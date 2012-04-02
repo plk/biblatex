@@ -1,4 +1,4 @@
-% $Id: biblatex.bst,v 1.7 2011/11/13 19:09:07 lehman stable $
+% $Id:$
 
 % Copyright (c) 2006-2011 Philipp Lehman.
 %
