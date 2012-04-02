@@ -421,6 +421,7 @@
 \newtoggle{blx@singletitle}
 \newtoggle{blx@terseinits}% BibTeX only
 \newtoggle{blx@firstinits}
+\newtoggle{blx@sortfirstinits}
 \newtoggle{blx@useauthor}
 \newtoggle{blx@useeditor}
 \newtoggle{blx@usetranslator}
@@ -5500,6 +5501,9 @@
     Please verify the spelling and rerun\MessageBreak
     LaTeX afterwards}}
 
+\protected\def\blx@bbl@keyalias#1#2{%
+  \csgdef{blx@keyalias@\the\c@refsection @#1}{\detokenize{#2}}}
+
 % {<entrykey>}{<entrytype>}{<options>}
 
 \protected\def\blx@bbl@entry#1#2#3{%
@@ -5746,6 +5750,7 @@
   \let\entry\blx@bbl@entry
   \let\endentry\blx@bbl@endentry
   \let\missing\blx@bbl@missing
+  \let\keyalias\blx@bbl@keyalias
   \let\lossort\blx@bbl@lossort
   \let\endlossort\blx@bbl@endlossort
   \let\set\blx@bbl@set
@@ -7317,12 +7322,15 @@
 % {<entrykey>}
 
 \def\blx@citeadd#1{%
-  \blx@citation{#1}\blx@msg@cundefon
-  \blx@ifdata{#1}
+  \ifcsdef{blx@keyalias@\the\c@refsection @#1}
+    {\def\blx@realkey{\csuse{blx@keyalias@\the\c@refsection @#1}}}
+    {\def\blx@realkey{#1}}%
+  \blx@citation{\blx@realkey}\blx@msg@cundefon
+  \blx@ifdata{\blx@realkey}
     {\advance\blx@tempcnta\@ne
-     \listadd\blx@tempa{#1}}
+     \listeadd\blx@tempa{\blx@realkey}}
     {\ifnum\blx@tempcntb>\z@\multicitedelim\fi
-     \abx@missing{#1}%
+     \abx@missing{\blx@realkey}
      \advance\blx@tempcntb\@ne}}
 
 % {<entrykey>}
@@ -8802,6 +8810,25 @@
 \xdef\blx@xml@ordered#1#2{%
   ~~~~~~<bcf:value order="#1">#2</bcf:value>\blx@nl}
 
+\xdef\blx@xml@sourcemap#1{%
+  ~~<bcf:sourcemap>\blx@nl
+  #1%
+  ~~</bcf:sourcemap>\blx@nl}
+\xdef\blx@xml@sourcemap@maps#1#2{%
+  ~~~~<bcf:maps#1>\blx@nl
+  #2%
+  ~~~~</bcf:maps>\blx@nl}
+\xdef\blx@xml@sourcemap@map#1#2{%
+  ~~~~~~<bcf:map#1>\blx@nl
+  #2%
+  ~~~~~~</bcf:map#1>\blx@nl}
+\xdef\blx@xml@sourcemap@perdatasource#1{%
+  ~~~~~~~~<bcf:per_datasource>#1</bcf:per_datasource>\blx@nl}
+\xdef\blx@xml@sourcemap@pertype#1{%
+  ~~~~~~~~<bcf:per_type>#1</bcf:per_type>\blx@nl}
+\xdef\blx@xml@sourcemap@step#1{%
+  ~~~~~~~~<bcf:map_step#1/>\blx@nl}
+
 \xdef\blx@xml@displaymodes#1#2{%
   ~~<bcf:displaymodes type="#1">\blx@nl
   #2%
@@ -8814,6 +8841,17 @@
   ~~~~~~<bcf:dtarget>#1</bcf:dtarget>\blx@nl}
 \xdef\blx@xml@dmode#1#2{%
   ~~~~~~<bcf:dmode order="#1">#2</bcf:dmode>\blx@nl}
+
+\xdef\blx@xml@labelalphatemplate#1#2{%
+  ~~<bcf:labelalphatemplate type="#1">\blx@nl
+  #2%
+  ~~</bcf:labelalphatemplate>\blx@nl}
+\xdef\blx@xml@labelalpha@element#1#2{%
+  ~~~~<bcf:labelelement order="#1">\blx@nl
+  #2%
+  ~~~~</bcf:labelelement>\blx@nl}
+\xdef\blx@xml@labelalpha@part#1#2{%
+  ~~~~~~<bcf:labelpart#1>#2</bcf:labelpart>\blx@nl}
 
 \xdef\blx@xml@inheritance#1{%
   ~~<bcf:inheritance>\blx@nl
@@ -8995,6 +9033,7 @@
       \blx@xml@toggle{debug}%
       \blx@xml@svalue{mincrossrefs}{\blx@mincrossrefs}%
       \blx@xml@toggle{sortcase}%
+      \blx@xml@toggle{sortfirstinits}%
       \ifdef\blx@sortlocale
 	{\blx@xml@svalue{sortlocale}{\blx@sortlocale}}
 	{}%
@@ -9022,6 +9061,25 @@
       \csuse{blx@biber@displaymodes@global}%
     }%
   }%
+  % sourcemap
+  \ifcsdef{blx@biber@sourcemap}
+    {\eappto\blx@tempa{%
+      \blx@xml@comment{SOURCEMAP}%
+      \blx@xml@sourcemap{%
+        \csuse{blx@biber@sourcemap}%
+      }%
+    }}
+    {}%
+  % labelalpha template
+  \eappto\blx@tempa{%
+    \blx@xml@comment{LABELALPHA TEMPLATE}}%
+  \def\do##1{%
+    \eappto\blx@tempa{%
+      \blx@xml@labelalphatemplate{##1}{%
+      \csuse{blx@biber@labelalphatemplate@##1}}%
+      }%
+    }%
+  \dolistloop\blx@biber@latem@type
   % data inheritance
   \eappto\blx@tempa{%
     \blx@xml@comment{CROSSREF}%
@@ -9062,7 +9120,186 @@
       \blx@xml@endfile}%
     \immediate\closeout\blx@auxout}}
 
-%% Customization
+%% Customisation
+
+% {<type>}{<spec>}
+
+\def\regexp#1{\expandafter\zap@space\detokenize{#1} \@empty}
+
+\newrobustcmd*{\DeclareSourcemap}[1]{%
+  \begingroup
+  \let\maps\blx@sourcemap@maps
+  \let\blx@tempa\@empty
+  #1%
+  \global\cslet{blx@biber@sourcemap}\blx@tempa
+  \endgroup}
+\@onlypreamble\DeclareSourcemap
+
+\newcommand*{\blx@sourcemap@maps}[2][]{%
+  \let\blx@tempb\@empty
+  \let\blx@tempc\@empty
+  \let\map\blx@sourcemap@map
+  \ifblank{#1}
+    {}
+    {\setkeys{blx@sourcemap@maps}{#1}}%
+  #2%
+  \eappto\blx@tempa{%
+    \blx@xml@sourcemap@maps{\blx@tempb}{\blx@tempc}}}
+
+\define@key{blx@sourcemap@maps}{datatype}{% characters
+  \eappto\blx@tempb{ datatype="#1"}}
+\define@key{blx@sourcemap@maps}{overwrite}[true]{% true|false
+  \ifstrequal{#1}{true}
+    {\appto\blx@tempb{ map\string_overwrite="1"}}
+    {}}
+
+\newcommand*{\blx@sourcemap@map}[2][]{%
+  \let\blx@tempd\@empty
+  \let\blx@tempe\@empty
+  \let\perdatasource\blx@sourcemap@perdatasource
+  \let\pertype\blx@sourcemap@pertype
+  \let\step\blx@sourcemap@step
+  \ifblank{#1}
+    {}
+    {\setkeys{blx@sourcemap@map}{#1}}%
+  #2%
+  \eappto\blx@tempc{%
+    \blx@xml@sourcemap@map{\blx@tempd}{\blx@tempe}}}
+
+\define@key{blx@sourcemap@map}{overwrite}[true]{% true|false
+  \ifstrequal{#1}{true}
+    {\appto\blx@tempd{ map\string_overwrite="1"}}
+    {}}
+
+\newcommand*{\blx@sourcemap@perdatasource}[1]{%
+  \eappto\blx@tempe{%
+    \blx@xml@sourcemap@perdatasource{#1}}}
+
+\newcommand*{\blx@sourcemap@pertype}[1]{%
+  \eappto\blx@tempe{%
+    \blx@xml@sourcemap@pertype{#1}}}
+
+\newcommand*{\blx@sourcemap@step}[1][2]{%
+  \let\blx@tempf\@empty
+  \setkeys{blx@sourcemap@step}{#1}%
+  \eappto\blx@tempe{%
+    \blx@xml@sourcemap@step{\blx@tempf}}}
+
+\define@key{blx@sourcemap@step}{typesource}{% characters
+  \eappto\blx@tempf{ map\string_type\string_source="#1"}}
+\define@key{blx@sourcemap@step}{typetarget}{% characters
+  \eappto\blx@tempf{ map\string_type\string_target="#1"}}
+\define@key{blx@sourcemap@step}{final}[true]{% true|false
+  \ifstrequal{#1}{true}
+    {\appto\blx@tempf{ map\string_final="1"}}
+    {}}
+\define@key{blx@sourcemap@step}{fieldsource}{% characters
+  \eappto\blx@tempf{ map\string_field\string_source="#1"}}
+\define@key{blx@sourcemap@step}{fieldtarget}{% characters
+  \eappto\blx@tempf{ map\string_field\string_target="#1"}}
+\define@key{blx@sourcemap@step}{fieldset}{% characters
+  \eappto\blx@tempf{ map\string_field\string_set="#1"}}
+\define@key{blx@sourcemap@step}{fieldvalue}{% characters
+  \eappto\blx@tempf{ map\string_field\string_value="#1"}}
+\define@key{blx@sourcemap@step}{null}[true]{% true|false
+  \ifstrequal{#1}{true}
+    {\appto\blx@tempf{ map\string_null="1"}}
+    {}}
+\define@key{blx@sourcemap@step}{origfield}[true]{% true|false
+  \ifstrequal{#1}{true}
+    {\appto\blx@tempf{ map\string_origfield="1"}}
+    {}}
+\define@key{blx@sourcemap@step}{origfieldval}[true]{% true|false
+  \ifstrequal{#1}{true}
+    {\appto\blx@tempf{ map\string_origfieldval="1"}}
+    {}}
+\define@key{blx@sourcemap@step}{origentrytype}[true]{% true|false
+  \ifstrequal{#1}{true}
+    {\appto\blx@tempf{ map\string_origentrytype="1"}}
+    {}}
+\define@key{blx@sourcemap@step}{match}{% characters
+  \appto\blx@tempf{ map\string_match="#1"}}
+\define@key{blx@sourcemap@step}{replace}{% characters
+  \eappto\blx@tempf{ map\string_replace="#1"}}
+
+%%%
+
+\newrobustcmd*{\DeclareLabelalphaTemplate}[2][]{%
+   \ifblank{#1}
+    {\blx@biber@latem{#2}{global}}
+    {\forcsvlist{\blx@biber@latem{#2}}{#1}}}
+\@onlypreamble\DeclareLabelalphaTemplate
+
+\def\blx@biber@latem#1#2{%
+  \begingroup
+  \let\labelelement\blx@latem@element
+  \let\field\blx@latem@field
+  \let\literal\blx@latem@literal
+  \blx@tempcnta\z@
+  \let\blx@tempa\@empty
+  #1%
+  \ifdef\blx@biber@latem@type
+    {\ifinlist{#2}{\blx@biber@latem@type}
+      {\global\cslet{blx@biber@labelalphatemplate@#2}\blx@tempa}
+      {\listgadd\blx@biber@latem@type{#2}%
+       \global\cslet{blx@biber@labelalphatemplate@#2}\blx@tempa}}%
+    {\listgadd\blx@biber@latem@type{#2}%
+     \global\cslet{blx@biber@labelalphatemplate@#2}\blx@tempa}%
+  \endgroup}
+
+\newcommand{\blx@latem@element}[1]{%
+  \advance\blx@tempcnta\@ne
+  \let\blx@tempb\@empty
+  #1%
+  \eappto\blx@tempa{%
+    \blx@xml@labelalpha@element{\the\blx@tempcnta}{\blx@tempb}}}
+
+\newcommand*{\blx@latem@literal}[1]{%
+  \eappto\blx@tempb{%
+    \blx@xml@labelalpha@part{}{#1}}}
+
+\newcommand*{\blx@latem@field}[2][]{%
+  \let\blx@tempc\@empty
+  \ifblank{#1}
+    {}
+    {\setkeys{blx@latem@field}{#1}}%
+  \eappto\blx@tempb{%
+    \blx@xml@labelalpha@part{\blx@tempc}{#2}}}
+
+\define@key{blx@latem@field}{final}[true]{% true|false
+  \ifstrequal{#1}{true}
+    {\appto\blx@tempc{ final="1"}}
+    {}}
+\define@key{blx@latem@field}{strwidth}{% integer
+    \eappto\blx@tempc{ substring\string_width="#1"}}
+\define@key{blx@latem@field}{varwidth}[true]{% "v"
+  \ifstrequal{#1}{true}
+    {\appto\blx@tempc{ substring\string_width="v"}}
+    {}}
+\define@key{blx@latem@field}{varwidthnorm}[true]{% "vf"
+  \ifstrequal{#1}{true}
+    {\appto\blx@tempc{ substring\string_width="vf"}}
+    {}}
+\define@key{blx@latem@field}{varwidthlist}[true]{% "l"
+  \ifstrequal{#1}{true}
+    {\appto\blx@tempc{ substring\string_width="l"}}
+    {}}
+\define@key{blx@latem@field}{strfixedcount}{%
+    \eappto\blx@tempc{ substring\string_fixed\string_threshold="#1"}}
+\define@key{blx@latem@field}{strwidthmax}{%
+    \eappto\blx@tempc{ substring\string_width\string_max="#1"}}
+\define@key{blx@latem@field}{strside}{% left|right
+  \ifstrequal{#1}{right}
+    {\eappto\blx@tempc{ substring\string_side="right"}}
+    {\eappto\blx@tempc{ substring\string_side="left"}}}
+\define@key{blx@latem@field}{compound}[false]{% true|false
+  \ifstrequal{#1}{true}
+    {\appto\blx@tempc{ substring\string_compound="1"}}
+    {}}
+\define@key{blx@latem@field}{ifnames}{%
+    \eappto\blx@tempc{ ifnamecount="#1"}}
+\define@key{blx@latem@field}{names}{%
+    \eappto\blx@tempc{ namecount="#1"}}
 
 % [<exceptions>]{<options>}
 
@@ -9613,6 +9850,9 @@
   
 \DeclareBibliographyOption{firstinits}[true]{%
   \settoggle{blx@firstinits}{#1}}
+
+\DeclareBibliographyOption{sortfirstinits}[true]{%
+  \settoggle{blx@sortfirstinits}{#1}}
 
 \DeclareBibliographyOption{abbreviate}[true]{%
   \ifstrequal{#1}{true}

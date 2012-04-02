@@ -1065,6 +1065,10 @@ Swedish   & Sweden         & \opt{swedish} \\
 
 The language of the bibliography entry. The identifier must be a language name known to the \sty{babel} package. This information may be used to switch hyphenation patterns and localize strings in the bibliography. Note that the language names are case sensitive. The languages currently supported by this package are given in \tabref{bib:fld:tab1}. Note that \sty{babel} treats the identifier \opt{english} as an alias for \opt{british} or \opt{american}, depending on the babel version. The \sty{biblatex} package always treats it as an alias for \opt{american}. It is preferable to use the language identifiers \opt{american} and \opt{british} to avoid any possible confusion. Compare \bibfield{language} in \secref{bib:fld:dat}.
 
+\fielditem{ids}{comma"=separated values\BiberOnlyMark}
+
+Citation key aliases for the main citation key. An entry may be cited by any of its aliases and \sty{biblatex} will treat the citation as if it had used the primary citation key. This is to aid users who change their citation keys but have legacy documents which use older keys for the same entry.
+
 \fielditem{indexsorttitle}{literal}
 
 The title used when sorting the index. In contrast to \bibfield{indextitle}, this field is used for sorting only. The printed title in the index is the \bibfield{indextitle} or the \bibfield{title} field. This field may be useful if the title contains special characters or commands which interfere with the sorting of the index. Consider this example:
@@ -5556,6 +5560,541 @@ Declares \prm{alias} to be an alias for the name list format \prm{format}. If an
 \subsection{Customization}
 \label{aut:ctm}
 
+\subsubsection{Dynamic Modification of Data}
+\label{aut:ctm:map}
+
+Bibliographic data sources which are automatically generated or which you have no control over can be a problem if you need to edit them in some way. For this reason, Biber has ability to modify data as it is read so that you can apply modifications to the source data stream without actually changing it. The modification can be defined in Biber's config file (see Biber docs), or via \sty{biblatex} macros in which case you can apply the modification only for specific documents. 
+
+\begin{ltxsyntax}
+
+\cmditem{DeclareSourcemap}{specification}|\BiberOnlyMark|
+
+Defines source data modification (mapping) rules which can be used to perform any combination of the following tasks:
+
+\begin{itemize}
+\item Map data source entrytypes to different entrytypes
+\item Map datasource fields to different fields
+\item Add new fields to an entry
+\item Remove fields from an entry
+\item Modify the contents of a field using standard Perl regular expression
+  match and replace
+\item Restrict any of the above operations to entries coming from
+  particular datasources which you defined in \cmd{addresource} macros
+\item Restrict any of the above operations to entries only of a certain
+  entrytype
+\end{itemize}
+
+The \prm{specification} is an undelimited list of \cmd{maps} directives which specify containers for mappings rules applying to a particular data source type (\ref{use:bib:res}). Spaces, tabs, and line endings may be used freely to visually arrange the \prm{specification}. Blank lines are not permissible. This command may only be used in the preamble. 
+
+\cmditem{maps}{elements}
+
+Contains an ordered set of \cmd{map} elements each of which is a logically related set of mapping steps to apply to the data source.
+
+\begin{optionlist*}
+
+\choitem{datatype}{bibtex, biblatexml, ris, zoterordfxml, endnotexml}
+
+Data source type which the contained \cmd{map} directives apply to (\ref{use:bib:res}).
+
+\boolitem[false]{overwrite}
+
+Specify whether a mapping rule is allowed to overwrite already existing data in an entry. If this option is not specified, the default is \texttt{false}. The short form \opt{overwrite} is equivalent to \kvopt{overwrite}{true}.
+
+\end{optionlist*}
+
+\cmditem{map}{restrictions,steps}
+
+A container for an ordered set of map \cmd{step}s, optionally restricted to particular entrytypes or data sources. This is a grouping element to allow a set of mapping steps to apply only to specific entrytypes or data sources. Mapping steps must always be contained within a \cmd{map} element.
+
+\begin{optionlist*}
+
+\boolitem{overwrite}
+
+As the same option on the parent \cmd{maps} element. This option allows an override on a per-map group basis. If this option is not specified, the default is the parent \cmd{maps} element option value. The short form \opt{overwrite} is equivalent to \kvopt{overwrite}{true}.
+
+\end{optionlist*}
+
+\cmditem{perdatasource}{datasource}
+
+Restricts all \cmd{step}s in this \cmd{map} element to entries from the named \prm{datasource}. The \prm{datasource} name should be exactly as given in a \cmd{addresource} macro defining a data source for the document. Multiple \cmd{perdatasource} restrictions are allowed within a \cmd{map} element.
+
+\cmditem{pertype}{entrytype}
+
+Restricts all \cmd{step}s in this \cmd{map} element to entries of the named \prm{entrytype}. Multiple \cmd{pertype} restrictions are allowed within a \cmd{map} element.
+
+\cmditem{step}
+
+A mapping step. Each step is applied sequentially to every relevant entry where <relevant> means those entries which correspond to the data source type, entrytype and data source name restrictions mentioned above. Each step is applied to the entry as it appears after the application of all previous steps. The mapping performed by the step is determined by the following options:
+
+\begin{optionlist*}
+
+\valitem{typesource}{entrytype}
+\valitem{typetarget}{entrytype}
+\valitem{fieldsource}{entryfield}
+\valitem{fieldtarget}{entryfield}
+\valitem{match}{regexp}
+\valitem{replace}{regexp}
+\valitem{fieldset}{entryfield}
+\valitem{fieldvalue}{string}
+\boolitem[false]{final}
+\boolitem[false]{null}
+\boolitem[false]{origfield}
+\boolitem[false]{origfieldval}
+\boolitem[false]{origentrytype}
+%
+For all boolean \cmd{step} options, the short form \opt{option} is equivalent to \kvopt{option}{true}. The following rules for a mapping step apply:
+
+\renewcommand{\labelitemii}{$\circ$}
+
+\begin{itemize}
+\item Change the \texttt{typesource} \prm{entrytype} to the
+  \texttt{typetarget} \prm{entrytype}, if defined. If
+  \texttt{final} is \texttt{true} then if the \prm{entrytype} of the entry is not \texttt{typesource}, processing of the parent \cmd{map} immediately terminates.
+\item Change the \texttt{fieldsource} \prm{entryfield} to
+  \texttt{fieldtarget}, if defined. If
+  \texttt{final} is \texttt{true} then if there is no \texttt{fieldsource} \prm{entryfield} in the entry, processing of the parent \cmd{map} immediately terminates.
+\item If \texttt{match} is defined but
+  \texttt{replace} is not, only apply the step if the \texttt{fieldsource} \prm{entryfield} matches the
+  \texttt{match} regular expression\footnote{Regular expressions are full Perl 5.14 regular expressions. This means you may need to deal with special characters, see examples.}
+\item Perform a regular expression match and replace on the value of the \texttt{fieldsource} \prm{entryfield} if \texttt{match} and \texttt{replace} are defined.
+\item If \texttt{fieldset} is defined, then one and only one of the following other options is then mandatory:
+  \begin{itemize}
+    \item\ \texttt{fieldvalue} --- The \texttt{fieldset} \prm{entryfield} is set to the \texttt{fieldvalue} \prm{string}
+    \item\ \texttt{null} --- The \texttt{fieldset} \prm{entryfield} is ignored, as if it did not exist in the datasource
+    \item\ \texttt{origentrytype} --- The \texttt{fieldset} \prm{entryfield} is set to the most recently mentioned \texttt{typesource} \prm{entrytype} name
+    \item\ \texttt{origfield} --- The \texttt{fieldset} \prm{entryfield} is set to the most recently mentioned \texttt{fieldsource} \prm{entryfield} name
+    \item\ \texttt{origfieldval} --- The \texttt{fieldset} \prm{entryfield} is set to the most recently mentioned \texttt{fieldsource} value
+  \end{itemize}
+\end{itemize}
+
+\end{optionlist*}
+
+\end{ltxsyntax}
+
+Here are some data source mapping examples:
+
+\begin{lstlisting}[style=latex]{}
+\DeclareSourcemap{
+  \maps[datatype=bibtex]{
+    \map{
+      \perdatasource{<<example1.bib>>}
+      \perdatasource{<<example2.bib>>}
+      \step[fieldset=keywords, fieldvalue={keyw1, keyw2}]
+    }
+  }
+}
+\end{lstlisting}
+%
+This would add a \bibfield{keywords} field with value <keyw1, keyw2>
+to all entries which are found in either the
+\texttt{examples1.bib} or \texttt{examples2.bib} files.
+%
+\begin{lstlisting}[style=latex]{}
+\DeclareSourcemap{
+  \maps[datatype=bibtex]{
+    \map{
+      \step[fieldsource=title]
+      \step[fieldset=note, origfieldval]
+    }
+  }
+}
+\end{lstlisting}
+%
+Copy the \bibfield{title} field to the \bibfield{note} field unless the
+\bibfield{note} field already exists.
+%
+\begin{lstlisting}[style=latex]{}
+\DeclareSourcemap{
+  \maps[datatype=bibtex]{
+    \map{
+      \step[typesource=chat, typetarget=customa, final]
+      \step[fieldset=type, origentrytype]
+    }
+  }
+}
+\end{lstlisting}
+%
+Any \bibfield{chat} entrytypes would become \bibfield{customa} entrytypes and 
+would automatically have a \bibfield{type} field set to 
+<chat> unless the \bibfield{type} field already exists in the entry (because
+\texttt{overwrite} is false by default). This mapping applies only to entries of type
+\bibtype{chat} since the first step has \texttt{final} set and so if the
+\texttt{typesource} does not match the entry entrytype, processing of this
+\cmd{map} immediately terminates.
+%
+\begin{lstlisting}[style=latex]{}
+\DeclareSourcemap{
+  \maps[datatype=bibtex]{
+    \map{
+      \perdatasource{<<examples.bib>>}
+      \pertype{<<article>>}
+      \pertype{<<book>>}
+       \step[fieldset=abstract, null]
+       \step[fieldset=note, fieldvalue={Auto-created this field}]
+    }
+  }
+}
+\end{lstlisting}
+%
+Any entries of entrytype \bibtype{article} or \bibtype{book} from the
+\texttt{examples.bib} datasource would have their \bibfield{abstract}
+fields removed and a \bibfield{note} field added with value <Auto-created this field>.
+%
+\begin{lstlisting}[style=latex]{}
+\DeclareSourcemap{
+  \maps[datatype=bibtex]{
+    \map{
+       \step[fieldset=abstract, null]
+       \step[fieldsource=conductor, fieldtarget=namea]
+       \step[fieldsource=gps, fieldtarget=usera]
+    }
+  }
+}
+\end{lstlisting}
+%
+This removes \bibfield{abstract} fields from any entry, changes
+\bibfield{conductor} fields to \bibfield{namea} fields and changes \bibfield{gps}
+fields to \bibfield{usera} fields.
+%
+\begin{lstlisting}[style=latex]{}
+\DeclareSourcemap{
+  \maps[datatype=bibtex]{
+    \map{
+       \step[fieldsource=pubmedid, fieldtarget=eprint, final]
+       \step[fieldset=eprinttype, origfield]
+       \step[fieldset=userd, fieldvalue={Some string of things}]
+    }
+  }
+}
+\end{lstlisting}
+%
+Applies only to entries with \bibfield{pubmed} fields and maps
+\bibfield{pubmedid} fields to \bibfield{eprint} fields, sets the \bibfield{eprinttype}
+field to <pubmedid> and also sets the \bibfield{userd} field to the string
+<Some string of things>.
+%
+\begin{lstlisting}[style=latex]{}
+\DeclareSourcemap{
+  \maps[datatype=bibtex]{
+    \map{
+       \step[fieldsource=series,
+             match=\regexp{\A\d*(.+)},
+             replace=\regexp{\L$1}]
+    }
+  }
+}
+\end{lstlisting}
+%$<- to stop emacs highlighting breaking
+Here, the contents of the \bibfield{series} field have leading numbers stripped and the remainder of the contents lowercased. Since regular expressions usually contain all sort of special characters, it is best to enclose them in the provided \cmd{regexp} macro as show as this will pass the expression through to Biber correctly.
+%
+\begin{lstlisting}[style=latex]{}
+\DeclareSourcemap{
+  \maps[datatype=bibtex]{
+    \map{
+       \step[fieldsource=maintitle,
+             match=\regexp{Collected\s+Works.+Freud},
+             final]
+       \step[fieldset=keywords, fieldvalue=freud]
+    }
+  }
+}
+\end{lstlisting}
+%$<- to stop emacs highlighting breaking
+Here, if for an entry, the \bibfield{maintitle} field matches a particular regular expression, we set a special keyword so we can, for example, make a references section just for certain items.
+%
+\begin{lstlisting}[style=latex]{}
+\DeclareSourcemap{
+  \maps[datatype=bibtex]{
+    \map{
+       \step[fieldsource=lista, match=\regexp{regexp}, final]
+       \step[fieldset=lista, null]
+    }
+  }
+}
+\end{lstlisting}
+%
+If an entry has a \bibfield{lista} field which matches regular expression <regexp>, then it is removed.
+%
+\begin{lstlisting}[style=latex]{}
+\DeclareSourcemap{
+  \maps[datatype=bibtex]{
+    \map{
+       \step[fieldsource=author,
+             match={Smith, Bill},
+             replace={Smith, William}]
+       \step[fieldsource=author,
+             match={Jones, Baz},
+             replace={Jones, Barry}]
+    }
+  }
+}
+\end{lstlisting}
+%
+Here, we use multiple match/replace for the same field to regularise some inconstant name variants. Bear in mind that \cmd{step} processing within a \opt{map} element is sequential and so the changes from a previous \cmd{step}s are already committed. Note that we don't need the \cmd{regexp} macro to protect the regular expressions in this example as they contain no characters which need special escaping. Please note that due to the difficulty of protecting regular expressions in \TeX, there should be no literal spaces in the argument to \cmd{regexp}. Please use escape code equivalents if spaces are needed. For example, this example, if using \cmd{regexp}, should be:
+%
+\begin{lstlisting}[style=latex]{}
+\DeclareSourcemap{
+  \maps[datatype=bibtex]{
+    \map{
+       \step[fieldsource=author,
+             match=\regexp{Smith,\s+Bill},
+             replace=\regexp{Smith,\x20William}]
+       \step[fieldsource=author,
+             match=\regexp{Jones,\s+Baz},
+             replace=\regexp{Jones,\x20Barry}]
+    }
+  }
+}
+\end{lstlisting}
+%
+Here, we have used the hexadecimal escape sequence <|\x20|> in place of literal spaces.
+%
+\begin{lstlisting}[style=latex]{}
+\DeclareSourcemap{
+  \maps[datatype=bibtex]{
+    \map[overwrite]{
+       \step[fieldsource=author, match={Doe,}, final]
+       \step[fieldsource=shortauthor, origfieldval]
+       \step[fieldsource=sortname, origfieldval]
+       \step[fieldsource=shortauthor,
+             match=\regexp{Doe,\s*(?:\.|ohn)(?:[-]*)(?:P\.|Paul)*},
+             replace={Doe, John Paul}]
+       \step[fieldsource=sortname,
+             match=\regexp{Doe,\s*(?:\.|ohn)(?:[-]*)(?:P\.|Paul)*},
+             replace={Doe, John Paul}]
+    }
+  }
+}
+\end{lstlisting}
+%
+Only applies to entries with an \bibfield{author} field matching <Doe,>. First the \bibfield{author} field is copied to both the \bibfield{shortauthor} and \bibfield{sortname} fields, overwriting them if they already exist. Then, these two new fields are modified to canonicalise a particular name, which presumably has some variants in the data source.
+
+\subsubsection{Labels}
+\label{aut:ctm:lab}
+
+Alphabetic styles use a label to identify bibliography entries. This label is constructed from components of the entry using a template which describes how to build the label. The template can be customised on a global or per-type basis. Label customisation requires Biber and will not work with any other backend.
+
+\begin{ltxsyntax}
+
+\cmditem{DeclareLabelalphaTemplate}[entrytype, \dots]{specification}|\BiberOnlyMark|
+
+Defines the alphabetic label template for the given entrytypes. If no entrytypes are specified in the first argument, then the global label template is defined. The \prm{specification} is an undelimited list of \cmd{labelelement} directives which specify the elements used to build the label. Spaces, tabs, and line endings may be used freely to visually arrange the \prm{specification}. Blank lines are not permissible. This command may only be used in the preamble.
+
+\cmditem{labelelement}{elements}
+
+Specifies the elements used to build the label. The \prm{elements} are an undelimited list of \cmd{field} or \cmd{literal} commands which are evaluated in the order in which they are given. The first \cmd{field} or \cmd{literal} which expands to a non-empty string is used as the \cmd{labelelement} expansion and the next \cmd{labelelement}, if any, is then processed.
+
+\cmditem{field}{field}
+
+If \prm{field} is non-empty, use it as the current label \cmd{labelelement}, subject to the options below. Valid values for \prm{field} are all name list type fields, all date fields and all title fields. Name list fields are treated specially and the options which take substrings of the \prm{field} to use in the \cmd{labelelement} are applied to the lastname of every name in a name list (see below).
+
+\begin{optionlist*}
+
+\boolitem[false]{final}
+
+This option marks a \cmd{field} directive as the final one in the \prm{specification}. If the \prm{field} is non-empty, then this field is used for the label and the remainder of the \prm{specification} will be ignored. The short form \opt{final} is equivalent to \kvopt{final}{true}.
+
+\intitem[1]{strwidth}
+
+The number of characters of the \prm{field} to use. For name list fields, if \kvopt{useprefix}{true}, the first character of the name prefix is prepended to the substring.
+
+\choitem[left]{strside}{left, right}
+
+The side of the string from which to take the \texttt{strwidth} number of characters.
+
+\boolitem[false]{varwidth}
+
+Use a variable width, left-side substring of characters from the \prm{field} (each lastname in name list fields). The length of the string is determined by the minimum length needed to disambiguate the substring from all other \prm{field} elements in the same position in the label. For name list fields, this means that each name substring is disambigated from all other name substrings which occur in the sme position in the name list (see examples below). This option overrides \texttt{strwidth} if both are used. The short form \opt{varwidth} is equivalent to \kvopt{varwidth}{true}. For name list fields, if \kvopt{useprefix}{true}, the first character of the name prefix is prepended to the substring.
+
+\boolitem[false]{varwidthnorm}
+
+As \texttt{varwidth} but will force the disambiguated substrings for the \prm{field} to be the same length as the longest disambiguated substring. This can be used to regularise the format of the labels if desired. This option overrides \texttt{strwidth} if both are used. The short form \opt{varwidthnorm} is equivalent to \kvopt{varwidthnorm}{true}.
+
+\boolitem[false]{varwidthlist}
+
+Alternative method of automatic label disambiguation where the field as a whole is disambiguated from all other fields in the same label position. For non-name list fields, this is equivalent to \texttt{varwidth}. For name list fields, names in a name list are not disambiguated from other names in the same position in their name lists but instead the entire name list is disambiguated as a whole from other name lists (see examples below). This option overrides \texttt{strwidth} if both are used. The short form \opt{varwidthlist} is equivalent to \kvopt{varwidthlist}{true}. For name list fields, if \kvopt{useprefix}{true}, the first character of the name prefix is prepended to the substring.
+
+\intitem{strwidthmax}
+
+When using \texttt{varwidth}, this option sets a limit (in number of characters) on the length of variable width substrings. This option can be used to regularise the label.
+
+\intitem[1]{strfixedcount}
+
+When using \texttt{varwidthnorm}, there must be at least \texttt{strfixedcount} disambiguated substrings with the same, maximal length to trigger the forcing of all disambiguated substrings to this same maximal length.
+
+\boolitem[false]{compound}
+
+Treat lastname name components containing whitespace (compound last names) as separate names for label generation. This means that when forming a label out of, for example the surname <Ballam Forsyth> with a 1 character, left-side substring, this name would give <BF> with \kvopt{compound}{true} and <B> with \kvopt{compound}{false}. The short form \opt{compound} is equivalent to \kvopt{compound}{true}.
+
+\intitem{ifnames}
+
+Only use this \cmd{field} specification if it is a name list field with \texttt{ifnames} names in it. This allows a \cmd{labelelement} to be conditionalised on name length (see below).
+
+\intitem{names}
+
+By default, for name list fields, the number of names considered when building the label obeys the \cnt{maxnames}\slash \cnt{minnames} truncation. This option can be used to override this with an explicit upper limit of how many names to consider. This is useful if you have some very long name lists which might result in a very long label.
+
+\end{optionlist*}
+
+\cmditem{literal}{characters}
+
+Insert the literal \prm{characters} into the label at this point.
+
+\end{ltxsyntax}
+
+Note that the template for labels can be defined per-type and you should be aware of this when using the automatically disambiguated label functionality. Disambiguation is not per-type as this might lead to ambiguity due to different label formats for different types being isolated from each others disambiguation process. Normally, you will want to use very different label formats for different types to make the type obvious by the label.
+
+Here are some examples. The default global \sty{biblatex} alphabetic label template is defined below. Firstly, \bibfield{shorthand} has \kvopt{final}{true} and so if there is a \bibfield{shorthand} field, it is used as the label and nothing more of the template is considered. Next, the \bibfield{label} field is used as the first label element if it exists. Otherwise, if there is only one name (\kvopt{ifnames}{1}) in the \bibfield{labelname} list, then three characters from the left side of the lastname in the \bibfield{labelname} are used as the first label element. If the \bibfield{labelname} has more than one name in it, one character from the left side of each lastname is used as the first label element. The second label element consists of 2 characters from the right side of the \bibfield{year} field.
+
+\begin{lstlisting}[style=latex]{}
+\DeclareLabelalphaTemplate{
+  \labelelement{
+    \field[final]{<<shorthand>>}
+    \field{<<label>>}
+    \field[strwidth=3,strside=left,ifnames=1]{<<labelname>>}
+    \field[strwidth=1,strside=left]{<<labelname>>}
+  }
+  \labelelement{
+    \field[strwidth=2,strside=right]{<<year>>}
+  }
+}
+\end{lstlisting}
+%
+To get an idea of how the label automatic disambiguation works, consider the following author lists:
+
+\begin{lstlisting}{}
+Agassi, Chang, Laver   (2000)
+Agassi, Connors, Lendl (2001)
+Agassi, Courier, Laver (2002)
+Borg, Connors, Edberg  (2003)
+Borg, Connors, Emerson (2004)
+\end{lstlisting}
+%
+Assuming a template declaration such as:
+
+\begin{lstlisting}[style=latex]{}
+\DeclareLabelalphaTemplate{
+  \labelelement{
+    \field[varwidth]{<<labelname>>}
+  }
+}
+\end{lstlisting}
+%
+Then the labels would be:
+
+\begin{lstlisting}{}
+Agassi, Chang, Laver    [AChLa]
+Agassi, Connors, Lendl  [AConLe]
+Agassi, Courier, Laver  [ACouLa]
+Borg, Connors, Edberg   [BConEd]
+Borg, Connors, Emerson  [BConEm]
+\end{lstlisting}
+%
+With normalised variable width labels defined:
+
+\begin{lstlisting}[style=latex]{}
+\DeclareLabelalphaTemplate{
+  \labelelement{
+    \field[varwidthnorm]{<<labelname>>}
+  }
+}
+\end{lstlisting}
+%
+You would get the following as the substrings of names in each position are extended to the length of the longest substring in that same position:
+
+\begin{lstlisting}{}
+Agassi, Chang, Laver    [AChaLa]
+Agassi, Connors, Lendl  [AConLe]
+Agassi, Courier, Laver  [ACouLa]
+Borg, Connors, Edberg   [BConEd]
+Borg, Connors, Emerson  [BConEm]
+\end{lstlisting}
+%
+With a restriction to two characters for the name components of the label element defined like this:
+
+\begin{lstlisting}[style=latex]{}
+\DeclareLabelalphaTemplate{
+  \labelelement{
+    \field[varwidthnorm,strwidthmax=2]{<<labelname>>}
+  }
+}
+\end{lstlisting}
+% 
+This would be the result (note that the individual lastname label parts are no longer unambiguous):
+
+\begin{lstlisting}{}
+Agassi, Chang, Laver    [AChLa]
+Agassi, Connors, Lendl  [ACoLe]
+Agassi, Courier, Laver  [ACoLa]
+Borg, Connors, Edberg   [BCoEd]
+Borg, Connors, Emerson  [BCoEm]
+\end{lstlisting}
+%
+Alternatively, you could choose to disambiguate the name lists as a whole with:
+
+\begin{lstlisting}[style=latex]{}
+\DeclareLabelalphaTemplate{
+  \labelelement{
+    \field[varwidthlist]{<<labelname>>}
+  }
+}
+\end{lstlisting}
+%
+Which would result in:
+
+\begin{lstlisting}{}
+Agassi, Chang, Laver    [AChL]
+Agassi, Connors, Lendl  [AConL]
+Agassi, Courier, Laver  [ACouL]
+Borg, Connors, Edberg   [BCEd]
+Borg, Connors, Emerson  [BCEm]
+\end{lstlisting}
+%
+Perhaps you only want to consider at most two names for label generation but disambiguate at the whole name list level:
+\begin{lstlisting}[style=latex]{}
+\DeclareLabelalphaTemplate{
+  \labelelement{
+    \field[varwidthlist,names=2]{<<labelname>>}
+  }
+}
+\end{lstlisting}
+%
+Which would result in:
+\begin{lstlisting}{}
+Agassi, Chang, Laver    [ACh+]
+Agassi, Connors, Lendl  [ACon+]
+Agassi, Courier, Laver  [ACou+]
+Borg, Connors, Edberg   [BC+a]
+Borg, Connors, Emerson  [BC+b]
+\end{lstlisting}
+%
+In this last example, you can see \cmd{labelalphaothers} has been appended to show that there are more names. The last two labels now require disambiguating with \cmd{extraalpha} as there is no way of disambiguating this label name list with only two names.
+
+Finally, here is an example using multiple label elements:
+
+\begin{lstlisting}[style=latex]{}
+\DeclareLabelalphaTemplate{
+  \labelelement{
+    \field[varwidthlist]{<<labelname>>}
+  }
+  \labelelement{
+    \literal{-}
+  }
+  \labelelement{
+    \field[strwidth=3,strside=right]{<<labelyear>>}
+  }
+}
+\end{lstlisting}
+%
+Which would result in:
+\begin{lstlisting}{}
+Agassi, Chang, Laver    [AChL-000]
+Agassi, Connors, Lendl  [AConL-001]
+Agassi, Courier, Laver  [ACouL-002]
+Borg, Connors, Edberg   [BCEd-003]
+Borg, Connors, Emerson  [BCEm-004]
+\end{lstlisting}
+
 \subsubsection{Sorting}
 \label{aut:ctm:srt}
 
@@ -5569,7 +6108,7 @@ Defines the sorting scheme \prm{name}. The \prm{name} is the identifier passed t
 
 \cmditem{sort}{elements}
 
-Specifies the elements considered in the sorting process. The \prm{elements} are an undelimited list of \cmd{name}, \cmd{list}, \cmd{field}, \cmd{literal}, and \cmd{citeorder} commands which are evalutated in the order in which they are given. If an element is defined, it is added to the sort key and the sorting routine skips to the next \cmd{sort} directive. If it is undefined, the next element is evaluated. Since literal strings are always defined, any \cmd{literal} commands should be the sole or the last element in a \cmd{sort} directive. The \cmd{sort} command supports the following optional arguments:
+Specifies the elements considered in the sorting process. The \prm{elements} are an undelimited list of \cmd{name}, \cmd{list}, \cmd{field}, \cmd{literal}, and \cmd{citeorder} commands which are evaluated in the order in which they are given. If an element is defined, it is added to the sort key and the sorting routine skips to the next \cmd{sort} directive. If it is undefined, the next element is evaluated. Since literal strings are always defined, any \cmd{literal} commands should be the sole or the last element in a \cmd{sort} directive. The \cmd{sort} command supports the following optional arguments:
 
 \begin{optionlist*}
 
@@ -6510,7 +7049,7 @@ This command is similar to \cmd{PackageWarning} but prints the entry key of the 
 
 \cmditem{RequireBiber}[severity]
 
-This command is intended for use in \file{cbx}\slash\file{bbx} files and in the \texttt{@preamble} of \file{bib} files. It checks the selected backend and warns if it is not Biber. The optional \prm{severity} argument is an integer specifying the severity. The value 1 triggers an informational message stating that Biber is recommended; 2 triggers a warning stating that Biber is required and the style\slash\file{bib} file may not work properly; 3 triggers an error stating that Biber is strictly required and the style\slash\file{bib} file will not work at all with any other backend. If \cmd{RequireBiber} is used multiple times, the highest \prm{severity} takes precedence. \file{cbx}\slash\file{bbx} files on the one hand and the \texttt{@preamble} snippets of all \file{bib} files on the other are tracked seperately. If the optional \prm{severity} argument is omitted, the default severity is 2 (warning).
+This command is intended for use in \file{cbx}\slash\file{bbx} files and in the \texttt{@preamble} of \file{bib} files. It checks the selected backend and warns if it is not Biber. The optional \prm{severity} argument is an integer specifying the severity. The value 1 triggers an informational message stating that Biber is recommended; 2 triggers a warning stating that Biber is required and the style\slash\file{bib} file may not work properly; 3 triggers an error stating that Biber is strictly required and the style\slash\file{bib} file will not work at all with any other backend. If \cmd{RequireBiber} is used multiple times, the highest \prm{severity} takes precedence. \file{cbx}\slash\file{bbx} files on the one hand and the \texttt{@preamble} snippets of all \file{bib} files on the other are tracked separately. If the optional \prm{severity} argument is omitted, the default severity is 2 (warning).
 
 \boolitem{pagetracker}
 
