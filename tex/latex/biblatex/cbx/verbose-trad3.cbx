@@ -1,0 +1,180 @@
+% $Id: verbose-trad3.cbx,v 1.7 2011/11/13 19:09:07 lehman stable $
+
+\ProvidesFile{verbose-trad3.cbx}
+[\abx@cbxid $Id: verbose-trad3.cbx,v 1.7 2011/11/13 19:09:07 lehman stable $]
+
+\providecommand*{\mkibid}[1]{#1}
+\newtoggle{cbx:loccit}
+
+\DeclareBibliographyOption{strict}[true]{%
+  \ifstrequal{#1}{true}
+    {\ExecuteBibliographyOptions{ibidtracker=constrict,loccittracker=constrict}}
+    {\ExecuteBibliographyOptions{ibidtracker=context,loccittracker=context}}}
+
+\DeclareBibliographyOption{citepages}[permit]{%
+  \ifcsdef{cbx@opt@citepages@#1}
+    {\csuse{cbx@opt@citepages@#1}}
+    {\PackageError{biblatex}
+       {Invalid option 'citepages=#1'}
+       {Valid values are 'permit', 'suppress', 'omit', 'separate'.}}}
+
+\providebibmacro*{cite:citepages}{}
+\providebibmacro*{cite:full:citepages}{}
+\providebibmacro*{cite:postnote}{}
+
+\def\cbx@opt@citepages@permit{%
+  \renewbibmacro*{cite:citepages}{}%
+  \renewbibmacro*{cite:full:citepages}{}%
+  \renewbibmacro*{cite:postnote}{%
+    \usebibmacro{cite:postnote:ibidpage}}}
+
+\def\cbx@opt@citepages@suppress{%
+  \renewbibmacro*{cite:citepages}{}%
+  \renewbibmacro*{cite:full:citepages}{%
+    \clearfield{pages}%
+    \clearfield{pagetotal}}%
+  \renewbibmacro*{cite:postnote}{%
+    \usebibmacro{cite:postnote:ibidpage}}}
+
+\def\cbx@opt@citepages@omit{%
+  \renewbibmacro*{cite:citepages}{}%
+  \renewbibmacro*{cite:full:citepages}{%
+    \ifboolexpr{
+      test {\ifnumequal{\value{citecount}}{\value{citetotal}}}
+      and
+      test {\iffieldpages{postnote}}
+    }
+      {\clearfield{pages}%
+       \clearfield{pagetotal}}
+      {}}%
+  \renewbibmacro*{cite:postnote}{%
+    \usebibmacro{cite:postnote:ibidpage}}}
+
+\def\cbx@opt@citepages@separate{%
+  \providetoggle{cbx:fullcite}%
+  \renewbibmacro*{cite:citepages}{%
+    \global\togglefalse{cbx:fullcite}}%
+  \renewbibmacro*{cite:full:citepages}{%
+    \global\toggletrue{cbx:fullcite}}%
+  \renewbibmacro*{cite:postnote}{%
+    \ifboolexpr{
+      togl {cbx:fullcite}
+      and
+      test {\iffieldpages{postnote}}
+      and
+      test {\ifnumequal{\value{citecount}}{\value{citetotal}}}
+      and
+      (
+	not test {\iffieldundef{pages}}
+	or
+	not test {\iffieldundef{pagetotal}}
+      )
+    }
+      {\usebibmacro{cite:postnote:pages}}
+      {\usebibmacro{cite:postnote:ibidpage}}}
+  \providebibmacro*{cite:postnote:pages}{%
+    \setunit{\postnotedelim}%
+    \bibstring{thiscite}%
+    \setunit{\addspace}%
+    \printfield{postnote}}}
+
+\ExecuteBibliographyOptions{citetracker=context,ibidtracker=constrict,
+                            loccittracker=constrict,autocite=footnote,
+			    citepages=permit}
+
+\newbibmacro*{cite}{%
+  \usebibmacro{cite:citepages}%
+  \global\togglefalse{cbx:loccit}%
+  \ifciteseen
+    {\ifciteibid
+       {\ifloccit
+	  {\usebibmacro{cite:ibid}}
+	  {\iffieldundef{shorthand}
+	     {\usebibmacro{cite:opcit}}
+	     {\usebibmacro{cite:shorthand}}}}
+       {\iffieldundef{shorthand}
+	  {\usebibmacro{cite:short}}
+	  {\usebibmacro{cite:shorthand}}}}
+    {\usebibmacro{cite:full}}}
+
+\newbibmacro*{cite:full}{%
+  \usebibmacro{cite:full:citepages}%
+  \printtext[bibhypertarget]{%
+    \usedriver
+      {\DeclareNameAlias{sortname}{default}}
+      {\thefield{entrytype}}}%
+  \usebibmacro{shorthandintro}}
+
+\newbibmacro*{cite:short}{%
+  \printnames{labelname}%
+  \setunit*{\nametitledelim}%
+  \printtext[bibhyperlink]{%
+    \printfield[citetitle]{labeltitle}}}
+
+\newbibmacro*{cite:opcit}{%
+  \printnames{labelname}%
+  \setunit*{\nametitledelim}%
+  \printtext[bibhyperlink]{%
+    \bibstring[\mkibid]{opcit}}}
+
+\newbibmacro*{cite:ibid}{%
+  \printtext[bibhyperlink]{\bibstring[\mkibid]{ibidem}}%
+  \global\toggletrue{cbx:loccit}}
+
+\newbibmacro*{cite:shorthand}{%
+  \printtext[bibhyperlink]{\printfield{shorthand}}}
+
+\newbibmacro*{cite:postnote:ibidpage}{%
+  \iftoggle{cbx:loccit}
+    {}
+    {\usebibmacro{postnote}}}
+
+\DeclareCiteCommand{\cite}
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{cite}}
+  {\multicitedelim}
+  {\usebibmacro{cite:postnote}}
+
+\DeclareCiteCommand{\parencite}[\mkbibparens]
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{cite}}
+  {\multicitedelim}
+  {\usebibmacro{cite:postnote}}
+
+\DeclareCiteCommand{\footcite}[\mkbibfootnote]
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{cite}}
+  {\multicitedelim}
+  {\usebibmacro{cite:postnote}}
+
+\DeclareCiteCommand{\footcitetext}[\mkbibfootnotetext]
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{cite}}
+  {\multicitedelim}
+  {\usebibmacro{cite:postnote}}
+
+\DeclareCiteCommand{\smartcite}[\iffootnote\mkbibparens\mkbibfootnote]
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{cite}}
+  {\multicitedelim}
+  {\usebibmacro{cite:postnote}}
+
+\DeclareCiteCommand{\textcite}[\cbx@textcite\footcite]
+  {\gdef\cbx@savedkeys{}}
+  {\printnames{labelname}%
+   \xappto\cbx@savedkeys{\thefield{entrykey},}}
+  {\multinamedelim}
+  {\protected@xappto\cbx@savedcites{%
+     [\thefield{prenote}][\thefield{postnote}]{\cbx@savedkeys}}}
+
+\newrobustcmd{\cbx@textcite}[2]{%
+  \def\cbx@savedcites{#1}#2\cbx@savedcites}
+
+\DeclareMultiCiteCommand{\textcites}[\cbx@textcite\footcites]{\textcite}{\multinamedelim}
+
+\endinput

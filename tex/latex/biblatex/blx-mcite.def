@@ -1,0 +1,78 @@
+% $Id: blx-mcite.def,v 1.7 2011/11/13 19:09:07 lehman stable $
+
+\ProvidesFile{blx-mcite.def}
+[\abx@rcsid $Id: blx-mcite.def,v 1.7 2011/11/13 19:09:07 lehman stable $
+ mcite-like citation commands]
+
+\newrobustcmd*{\mcite}{\mcitelike\cite}
+\newrobustcmd*{\Mcite}{\mcitelike\Cite}
+\newrobustcmd*{\mparencite}{\mcitelike\parencite}
+\newrobustcmd*{\Mparencite}{\mcitelike\Parencite}
+\newrobustcmd*{\mfootcite}{\mcitelike\footcite}
+\newrobustcmd*{\mfootcitetext}{\mcitelike\footcitetext}
+\newrobustcmd*{\mtextcite}{\mcitelike\textcite}
+\newrobustcmd*{\Mtextcite}{\mcitelike\Textcite}
+\newrobustcmd*{\msupercite}{\mcitelike\supercite}
+
+%    \mcite{key1,setA,*keyA1,*keyA2,*keyA3,key2,setB,*keyB1,*keyB2,*keyB3}
+% => \mcitelike\cite{key1,setA,*keyA1,*keyA2,*keyA3,key2,setB,*keyB1,*keyB2,*keyB3}
+% => \defbibentryset{setA}{keyA1,keyA2,keyA3}
+%    \defbibentryset{setB}{keyB1,keyB2,keyB3}
+%    \cite{key1,setA,key2,setB}
+
+\newrobustcmd*{\mcitelike}[1]{%
+  \@ifstar
+    {\blx@citeargs{\blx@mclike{#1*}}}
+    {\blx@citeargs{\blx@mclike{#1}}}}
+
+\long\def\blx@mclike#1#2#3#4{%
+  \begingroup
+  \let\blx@mclike@tempa\@empty
+  \let\blx@mclike@tempb\@empty
+  \let\blx@mclike@tempc\@empty
+  \blx@xsanitizeafter\blx@mclike@i{#4}%
+  \edef\blx@mclike@tempa{\endgroup\unexpanded{#1[#2][#3]}{\blx@mclike@tempa}}%
+  \blx@mclike@tempa}
+
+\def\blx@mclike@i#1{%
+  \forcsvlist\blx@mclike@ii{#1}%
+  \blx@mclike@iv}
+
+\def\blx@mclike@ii#1{\blx@mclike@iii#1&}
+
+\def\blx@mclike@iii#1#2&{%
+  \if*#1%
+    \blx@mclike@tail{#2}%
+  \else
+    \blx@mclike@head{#1#2}%
+  \fi}
+
+\def\blx@mclike@iv{%
+  \ifx\blx@mclike@tempb\@empty
+  \else
+    \ifx\blx@mclike@tempc\@empty
+      \nocite{\blx@mclike@tempb}% preserve citation order for sorting=none
+    \else
+      \defbibentryset{\blx@mclike@tempb}{\blx@mclike@tempc}%
+      \let\blx@mclike@tempc\@empty
+    \fi
+    \let\blx@mclike@tempb\@empty
+  \fi}
+
+\def\blx@mclike@head#1{%
+  \blx@mclike@iv
+  \edef\blx@mclike@tempa{%
+    \ifx\blx@mclike@tempa\@empty
+    \else
+      \blx@mclike@tempa,%
+    \fi#1}%
+  \def\blx@mclike@tempb{#1}}
+
+\def\blx@mclike@tail#1{%
+  \edef\blx@mclike@tempc{%
+    \ifx\blx@mclike@tempc\@empty
+    \else
+      \blx@mclike@tempc,%
+    \fi#1}}
+
+\endinput

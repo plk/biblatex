@@ -1,0 +1,187 @@
+% $Id: authortitle-icomp.cbx,v 1.7 2011/11/13 19:09:07 lehman stable $
+
+\ProvidesFile{authortitle-icomp.cbx}
+[\abx@cbxid $Id: authortitle-icomp.cbx,v 1.7 2011/11/13 19:09:07 lehman stable $]
+
+\ExecuteBibliographyOptions{uniquename,uniquelist,ibidtracker=constrict,
+                            pagetracker,sortcites,autocite=footnote}
+\providecommand*{\mkibid}[1]{#1}
+\newbool{cbx:parens}
+\newbool{cbx:loccit}
+
+\DeclareBibliographyOption{ibidpage}[true]{%
+  \ifstrequal{#1}{true}
+    {\ExecuteBibliographyOptions{loccittracker=constrict}}
+    {\ExecuteBibliographyOptions{loccittracker=false}}}
+
+\newbibmacro*{cite:init}{%
+  \global\boolfalse{cbx:loccit}%
+  \ifnumless{\value{multicitecount}}{2}
+    {\global\boolfalse{cbx:parens}%
+     \global\undef\cbx@lasthash}
+    {\iffieldundef{prenote}
+       {}
+       {\global\undef\cbx@lasthash}}}
+
+\newbibmacro*{cite:reinit}{%
+  \global\undef\cbx@lasthash}
+
+\newbibmacro*{cite}{%
+  \iffieldundef{shorthand}
+    {\ifthenelse{\ifciteibid\AND\NOT\iffirstonpage}
+       {\usebibmacro{cite:ibid}}
+       {\iffieldequals{namehash}{\cbx@lasthash}
+	  {\setunit{\compcitedelim}}
+	  {\ifnameundef{labelname}
+             {}
+             {\printnames{labelname}%
+              \setunit{\nametitledelim}}%
+           \savefield{namehash}{\cbx@lasthash}}%
+	\usebibmacro{cite:title}}}%
+    {\usebibmacro{cite:shorthand}%
+     \usebibmacro{cite:reinit}}%
+  \setunit{\multicitedelim}}
+
+\newbibmacro*{citetitle}{%
+  \iffieldundef{shorthand}
+    {\ifthenelse{\ifciteibid\AND\NOT\iffirstonpage}
+       {\usebibmacro{cite:ibid}}
+       {\usebibmacro{cite:title}}}%
+    {\usebibmacro{cite:shorthand}}%
+  \setunit{\multicitedelim}}
+
+\newbibmacro*{textcite}{%
+  \iffieldequals{namehash}{\cbx@lasthash}
+    {\setunit{\compcitedelim}}
+    {\ifnameundef{labelname}
+       {}
+       {\printnames{labelname}%
+        \setunit{%
+	  \global\booltrue{cbx:parens}%
+	  \addspace\bibopenparen}}%
+     \savefield{namehash}{\cbx@lasthash}}%
+  \ifnumequal{\value{citecount}}{1}
+    {\usebibmacro{prenote}}
+    {}%
+  \iffieldundef{shorthand}
+    {\ifthenelse{\ifciteibid\AND\NOT\iffirstonpage}
+       {\usebibmacro{cite:ibid}}
+       {\usebibmacro{cite:title}}}%
+    {\usebibmacro{cite:shorthand}}%
+  \setunit{%
+    \ifbool{cbx:parens}
+      {\bibcloseparen\global\boolfalse{cbx:parens}}
+      {}%
+    \multicitedelim}}
+
+\newbibmacro*{cite:title}{%
+  \printtext[bibhyperref]{\printfield[citetitle]{labeltitle}}}
+
+\newbibmacro*{cite:shorthand}{%
+  \printtext[bibhyperref]{\printfield{shorthand}}}
+
+\newbibmacro*{cite:ibid}{%
+  \printtext[bibhyperref]{\bibstring[\mkibid]{ibidem}}%
+  \ifloccit
+    {\global\booltrue{cbx:loccit}}
+    {}}
+
+\newbibmacro*{cite:postnote}{%
+  \ifbool{cbx:loccit}
+    {}
+    {\setunit{\postnotedelim}%
+     \printfield{postnote}}}
+
+\newbibmacro*{textcite:postnote}{%
+  \ifbool{cbx:loccit}
+    {}
+    {\ifnameundef{labelname}
+       {\setunit{%
+	  \global\booltrue{cbx:parens}%
+	  \addspace\bibopenparen}}
+       {\setunit{\postnotedelim}}%
+     \printfield{postnote}}%
+  \ifthenelse{\value{multicitecount}=\value{multicitetotal}}
+    {\setunit{}%
+     \printtext{%
+       \ifbool{cbx:parens}
+	 {\bibcloseparen\global\boolfalse{cbx:parens}}
+	 {}}}
+    {\setunit{%
+       \ifbool{cbx:parens}
+	 {\bibcloseparen\global\boolfalse{cbx:parens}}
+	 {}%
+       \multicitedelim}}}
+
+\DeclareCiteCommand{\cite}
+  {\usebibmacro{cite:init}%
+   \usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{cite}}
+  {}
+  {\usebibmacro{cite:postnote}}
+
+\DeclareCiteCommand*{\cite}
+  {\usebibmacro{cite:init}%
+   \usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{citetitle}}
+  {}
+  {\usebibmacro{cite:postnote}}
+
+\DeclareCiteCommand{\parencite}[\mkbibparens]
+  {\usebibmacro{cite:init}%
+   \usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{cite}}
+  {}
+  {\usebibmacro{cite:postnote}}
+
+\DeclareCiteCommand*{\parencite}[\mkbibparens]
+  {\usebibmacro{cite:init}%
+   \usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{citetitle}}
+  {}
+  {\usebibmacro{cite:postnote}}
+
+\DeclareCiteCommand{\footcite}[\mkbibfootnote]
+  {\usebibmacro{cite:init}%
+   \usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{cite}}
+  {}
+  {\usebibmacro{cite:postnote}}
+
+\DeclareCiteCommand{\footcitetext}[\mkbibfootnotetext]
+  {\usebibmacro{cite:init}%
+   \usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{cite}}
+  {}
+  {\usebibmacro{cite:postnote}}
+
+\DeclareCiteCommand{\smartcite}[\iffootnote\mkbibparens\mkbibfootnote]
+  {\usebibmacro{cite:init}%
+   \usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{cite}}
+  {}
+  {\usebibmacro{cite:postnote}}
+
+\DeclareCiteCommand{\textcite}
+  {\usebibmacro{cite:init}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{textcite}}
+  {}
+  {\usebibmacro{textcite:postnote}}
+
+\DeclareMultiCiteCommand{\cites}{\cite}{\setunit{\multicitedelim}}
+\DeclareMultiCiteCommand{\parencites}[\mkbibparens]{\parencite}{\setunit{\multicitedelim}}
+\DeclareMultiCiteCommand{\footcites}[\mkbibfootnote]{\footcite}{\setunit{\multicitedelim}}
+\DeclareMultiCiteCommand{\footcitetexts}[\mkbibfootnotetext]{\footcitetext}{\setunit{\multicitedelim}}
+\DeclareMultiCiteCommand{\smartcites}[\iffootnote\mkbibparens\mkbibfootnote]{\smartcite}
+                                     {\setunit{\multicitedelim}}
+\DeclareMultiCiteCommand{\textcites}{\textcite}{}
+
+\endinput

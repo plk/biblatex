@@ -1,0 +1,86 @@
+%
+% This example demonstrates how hybrid citations, i.e., two
+% citations styles in a single document, may be implemented.
+% Note that the default styles which ship with bibatex do not
+% support hybrid citation schemes out of the box. This example
+% is merely a proof of concept.
+%
+\documentclass[a4paper,oneside]{article}
+\usepackage[T1]{fontenc}
+\usepackage[american]{babel}
+\usepackage{csquotes}
+% We use the authoryear style as a basis but we want numerical
+% labels for all online references. Therefore, we request numeric
+% labels by setting 'labelnumber=true'. We also set
+% 'defernumbers=true'. This will be required by the 'omitnumbers'
+% option used below.
+\usepackage[style=authoryear,labelnumber,defernumbers]{biblatex}
+\usepackage{hyperref}
+\usepackage{nameref}
+\addbibresource{biblatex-examples.bib}
+
+% We define a dedicated citation command for online references which
+% uses numerical labels instead of the author-year scheme. Instead
+% of defining a dedicated command, it is also possible (and usually
+% preferable) to build smart citation commands which are able to
+% switch citation styles depending on the entry type (or other
+% criteria). It's just easier to demonstrate the point of the
+% 'omitnumbers' option this way:
+
+\DeclareCiteCommand{\citeonline}[\mkbibbrackets]
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \printtext[bibhyperref]{%
+     \printfield{prefixnumber}%
+     \printfield{labelnumber}}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+% The matching environment for the online sub-bibliography:
+
+\defbibenvironment{online}
+  {\list
+     {\printtext[labelnumberwidth]{%
+	\iffieldundef{shorthand}
+	  {\printfield{prefixnumber}%
+	   \printfield{labelnumber}}
+	  {\printfield{shorthand}}}}
+     {\setlength{\labelwidth}{\labelnumberwidth}%
+      \setlength{\leftmargin}{\labelwidth}%
+      \setlength{\labelsep}{\biblabelsep}%
+      \addtolength{\leftmargin}{\labelsep}%
+      \setlength{\itemsep}{\bibitemsep}%
+      \setlength{\parsep}{\bibparsep}}%
+      \renewcommand*{\makelabel}[1]{\hss##1}}
+  {\endlist}
+  {\item}
+
+\DeclareFieldFormat{labelnumberwidth}{\mkbibbrackets{#1}}
+
+\begin{document}
+
+\section*{Hybrid citations}
+
+\subsection*{Regular citations (author-year)}
+
+\cite{augustine},
+\cite{bertram},
+\cite{companion}
+
+\subsection*{Online citations (numeric)}
+
+\citeonline{ctan},
+\citeonline{markey}
+
+% Let's print the overall heading of the bibliography first:
+\printbibheading
+
+% We set omitnumbers=true for the author-year sub-bibliography.
+% Without that, the first item of the online bibliography would be
+% labeled as "[4]".
+\printbibliography[heading=subbibliography,title={Printed References},nottype=online,omitnumbers]
+
+% The online sub-bibliography requires a different environment:
+\printbibliography[heading=subbibliography,title={Online References},env=online,type=online]
+
+\end{document}

@@ -1,0 +1,131 @@
+% $Id: authoryear.cbx,v 1.7 2011/11/13 19:09:07 lehman stable $
+
+\ProvidesFile{authoryear.cbx}
+[\abx@cbxid $Id: authoryear.cbx,v 1.7 2011/11/13 19:09:07 lehman stable $]
+
+\ExecuteBibliographyOptions{labelyear,uniquename,uniquelist,autocite=inline}
+\newbool{cbx:parens}
+
+\newbibmacro*{cite}{%
+  \iffieldundef{shorthand}
+    {\ifthenelse{\ifnameundef{labelname}\OR\iffieldundef{labelyear}}
+       {\usebibmacro{cite:label}%
+        \setunit{\addspace}}
+       {\printnames{labelname}%
+        \setunit{\nameyeardelim}}%
+     \usebibmacro{cite:labelyear+extrayear}}
+    {\usebibmacro{cite:shorthand}}}
+
+\newbibmacro*{citeyear}{%
+  \iffieldundef{shorthand}
+    {\iffieldundef{labelyear}
+       {\usebibmacro{cite:label}}
+       {\usebibmacro{cite:labelyear+extrayear}}}
+    {\usebibmacro{cite:shorthand}}}
+
+\newbibmacro*{textcite}{%
+  \ifnameundef{labelname}
+    {\iffieldundef{shorthand}
+       {\usebibmacro{cite:label}%
+	\setunit{%
+	  \global\booltrue{cbx:parens}%
+	  \addspace\bibopenparen}%
+	\ifnumequal{\value{citecount}}{1}
+	  {\usebibmacro{prenote}}
+	  {}%
+	\usebibmacro{cite:labelyear+extrayear}}
+       {\usebibmacro{cite:shorthand}}}
+    {\printnames{labelname}%
+     \setunit{%
+       \global\booltrue{cbx:parens}%
+       \addspace\bibopenparen}%
+     \ifnumequal{\value{citecount}}{1}
+       {\usebibmacro{prenote}}
+       {}%
+     \usebibmacro{citeyear}}}
+
+\newbibmacro*{cite:shorthand}{%
+  \printtext[bibhyperref]{\printfield{shorthand}}}
+
+\newbibmacro*{cite:label}{%
+  \iffieldundef{label}
+    {\printtext[bibhyperref]{\printfield[citetitle]{labeltitle}}}
+    {\printtext[bibhyperref]{\printfield{label}}}}
+
+\newbibmacro*{cite:labelyear+extrayear}{%
+  \iffieldundef{labelyear}
+    {}
+    {\printtext[bibhyperref]{%
+       \printfield{labelyear}%
+       \printfield{extrayear}}}}
+
+\newbibmacro*{textcite:postnote}{%
+  \iffieldundef{postnote}
+    {\ifbool{cbx:parens}
+       {\bibcloseparen}
+       {}}
+    {\ifbool{cbx:parens}
+       {\setunit{\postnotedelim}}
+       {\setunit{\addspace\bibopenparen}}%
+     \printfield{postnote}\bibcloseparen}}
+
+\DeclareCiteCommand{\cite}
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{cite}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand*{\cite}
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{citeyear}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand{\parencite}[\mkbibparens]
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{cite}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand*{\parencite}[\mkbibparens]
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{citeyear}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand{\footcite}[\mkbibfootnote]
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{cite}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand{\footcitetext}[\mkbibfootnotetext]
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{cite}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand{\smartcite}[\iffootnote\mkbibparens\mkbibfootnote]
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{cite}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand{\textcite}
+  {\boolfalse{cbx:parens}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{textcite}}
+  {\ifbool{cbx:parens}
+     {\bibcloseparen\global\boolfalse{cbx:parens}}
+     {}%
+   \multicitedelim}
+  {\usebibmacro{textcite:postnote}}
+
+\endinput

@@ -1,0 +1,98 @@
+% $Id: authortitle-ticomp.cbx,v 1.7 2011/11/13 19:09:07 lehman stable $
+
+\ProvidesFile{authortitle-ticomp.cbx}
+[\abx@cbxid $Id: authortitle-ticomp.cbx,v 1.7 2011/11/13 19:09:07 lehman stable $]
+
+\RequireCitationStyle{authortitle-icomp}
+\ExecuteBibliographyOptions{singletitle,uniquename,uniquelist,autocite=inline}
+
+\renewbibmacro*{cite}{%
+  \iffieldundef{shorthand}
+    {\ifthenelse{\ifciteibid\AND\NOT\iffirstonpage}
+       {\usebibmacro{cite:ibid}}
+       {\iffieldequals{namehash}{\cbx@lasthash}
+	  {\setunit{\compcitedelim}%
+           \usebibmacro{cite:title}}
+	  {\ifnameundef{labelname}
+             {\usebibmacro{cite:title}}
+             {\ifsingletitle
+        	{\printtext[bibhyperref]{\printnames{labelname}}}
+        	{\printnames{labelname}%
+		 \setunit{\nametitledelim}%
+		 \usebibmacro{cite:title}}}%
+           \savefield{namehash}{\cbx@lasthash}}}}
+    {\usebibmacro{cite:shorthand}%
+     \usebibmacro{cite:reinit}}%
+  \setunit{\multicitedelim}}
+
+\renewbibmacro*{citetitle}{%
+  \iffieldundef{shorthand}
+    {\ifthenelse{\ifciteibid\AND\NOT\iffirstonpage}
+       {\usebibmacro{cite:ibid}}
+       {\iffieldequals{namehash}{\cbx@lasthash}
+	  {\setunit{\compcitedelim}}
+	  {\savefield{namehash}{\cbx@lasthash}}%
+	\usebibmacro{cite:title}}}
+    {\usebibmacro{cite:shorthand}%
+     \usebibmacro{cite:reinit}}%
+  \setunit{\multicitedelim}}
+
+\renewbibmacro*{textcite}{%
+  \iffieldequals{namehash}{\cbx@lasthash}
+    {\setunit{\compcitedelim}%
+     \iffieldundef{shorthand}
+       {\ifthenelse{\ifciteibid\AND\NOT\iffirstonpage}
+          {\usebibmacro{cite:ibid}}
+	  {\usebibmacro{cite:title}}}%
+       {\usebibmacro{cite:shorthand}}}
+    {\ifnameundef{labelname}
+       {\ifnumequal{\value{citecount}}{1}
+	  {\usebibmacro{prenote}}
+	  {}%
+        \iffieldundef{shorthand}
+	  {\ifthenelse{\ifciteibid\AND\NOT\iffirstonpage}
+             {\usebibmacro{cite:ibid}}
+	     {\usebibmacro{cite:title}}}%
+	  {\usebibmacro{cite:shorthand}}}
+       {\ifthenelse{\ifsingletitle\AND
+                    \(\iffieldundef{prenote}\OR\value{citecount}>1\)}
+          {\printtext[bibhyperref]{\printnames{labelname}}}
+          {\printnames{labelname}
+           \setunit{%
+	     \global\booltrue{cbx:parens}%
+	     \addspace\bibopenparen}%
+	   \ifnumequal{\value{citecount}}{1}
+	     {\usebibmacro{prenote}}
+	     {}%
+	   \iffieldundef{shorthand}
+	     {\ifthenelse{\ifciteibid\AND\NOT\iffirstonpage}
+        	{\usebibmacro{cite:ibid}}
+		{\usebibmacro{cite:title}}}%
+	     {\usebibmacro{cite:shorthand}}}}%
+     \savefield{namehash}{\cbx@lasthash}}%
+  \setunit{%
+    \ifbool{cbx:parens}
+      {\bibcloseparen\global\boolfalse{cbx:parens}}
+      {}%
+    \multicitedelim}}
+
+\renewbibmacro*{textcite:postnote}{%
+  \ifbool{cbx:parens}
+    {\setunit{\postnotedelim}}
+    {\setunit{%
+       \global\booltrue{cbx:parens}%
+       \addspace\bibopenparen}}%
+  \printfield{postnote}%
+  \ifthenelse{\value{multicitecount}=\value{multicitetotal}}
+    {\setunit{}%
+     \printtext{%
+       \ifbool{cbx:parens}
+	 {\bibcloseparen\global\boolfalse{cbx:parens}}
+	 {}}}
+    {\setunit{%
+       \ifbool{cbx:parens}
+	 {\bibcloseparen\global\boolfalse{cbx:parens}}
+	 {}%
+       \multicitedelim}}}
+
+\endinput

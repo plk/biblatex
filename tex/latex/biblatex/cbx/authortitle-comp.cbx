@@ -1,0 +1,158 @@
+% $Id: authortitle-comp.cbx,v 1.7 2011/11/13 19:09:07 lehman stable $
+
+\ProvidesFile{authortitle-comp.cbx}
+[\abx@cbxid $Id: authortitle-comp.cbx,v 1.7 2011/11/13 19:09:07 lehman stable $]
+
+\ExecuteBibliographyOptions{uniquename,uniquelist,sortcites,autocite=footnote}
+\newbool{cbx:parens}
+
+\newbibmacro*{cite:init}{%
+  \ifnumless{\value{multicitecount}}{2}
+    {\global\boolfalse{cbx:parens}%
+     \global\undef\cbx@lasthash}
+    {\iffieldundef{prenote}
+       {}
+       {\global\undef\cbx@lasthash}}}
+
+\newbibmacro*{cite:reinit}{%
+  \global\undef\cbx@lasthash}
+
+\newbibmacro*{cite}{%
+  \iffieldundef{shorthand}
+    {\iffieldequals{namehash}{\cbx@lasthash}
+       {\setunit{\compcitedelim}}
+       {\ifnameundef{labelname}
+          {}
+          {\printnames{labelname}%
+           \setunit{\nametitledelim}}%
+        \savefield{namehash}{\cbx@lasthash}}%
+     \usebibmacro{cite:title}}
+    {\usebibmacro{cite:shorthand}%
+     \usebibmacro{cite:reinit}}%
+  \setunit{\multicitedelim}}
+
+\newbibmacro*{citetitle}{%
+  \iffieldundef{shorthand}
+    {\usebibmacro{cite:title}}
+    {\usebibmacro{cite:shorthand}}%
+  \setunit{\multicitedelim}}
+
+\newbibmacro*{textcite}{%
+  \iffieldequals{namehash}{\cbx@lasthash}
+    {\setunit{\compcitedelim}}
+    {\ifnameundef{labelname}
+       {}
+       {\printnames{labelname}%
+        \setunit{%
+	  \global\booltrue{cbx:parens}%
+	  \addspace\bibopenparen}}%
+     \savefield{namehash}{\cbx@lasthash}}%
+  \ifnumequal{\value{citecount}}{1}
+    {\usebibmacro{prenote}}
+    {}%
+  \iffieldundef{shorthand}
+    {\usebibmacro{cite:title}}%
+    {\usebibmacro{cite:shorthand}}%
+  \setunit{%
+    \ifbool{cbx:parens}
+      {\bibcloseparen\global\boolfalse{cbx:parens}}
+      {}%
+    \multicitedelim}}
+
+\newbibmacro*{cite:title}{%
+  \printtext[bibhyperref]{\printfield[citetitle]{labeltitle}}}
+
+\newbibmacro*{cite:shorthand}{%
+  \printtext[bibhyperref]{\printfield{shorthand}}}
+
+\newbibmacro*{textcite:postnote}{%
+  \ifnameundef{labelname}
+    {\setunit{%
+       \global\booltrue{cbx:parens}%
+       \addspace\bibopenparen}}
+    {\setunit{\postnotedelim}}%
+  \printfield{postnote}%
+  \ifthenelse{\value{multicitecount}=\value{multicitetotal}}
+    {\setunit{}%
+     \printtext{%
+       \ifbool{cbx:parens}
+	 {\bibcloseparen\global\boolfalse{cbx:parens}}
+	 {}}}
+    {\setunit{%
+       \ifbool{cbx:parens}
+	 {\bibcloseparen\global\boolfalse{cbx:parens}}
+	 {}%
+       \multicitedelim}}}
+
+\DeclareCiteCommand{\cite}
+  {\usebibmacro{cite:init}%
+   \usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{cite}}
+  {}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand*{\cite}
+  {\usebibmacro{cite:init}%
+   \usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{citetitle}}
+  {}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand{\parencite}[\mkbibparens]
+  {\usebibmacro{cite:init}%
+   \usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{cite}}
+  {}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand*{\parencite}[\mkbibparens]
+  {\usebibmacro{cite:init}%
+   \usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{citetitle}}
+  {}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand{\footcite}[\mkbibfootnote]
+  {\usebibmacro{cite:init}%
+   \usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{cite}}
+  {}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand{\footcitetext}[\mkbibfootnotetext]
+  {\usebibmacro{cite:init}%
+   \usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{cite}}
+  {}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand{\smartcite}[\iffootnote\mkbibparens\mkbibfootnote]
+  {\usebibmacro{cite:init}%
+   \usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{cite}}
+  {}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand{\textcite}
+  {\usebibmacro{cite:init}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{textcite}}
+  {}
+  {\usebibmacro{textcite:postnote}}
+
+\DeclareMultiCiteCommand{\cites}{\cite}{\setunit{\multicitedelim}}
+\DeclareMultiCiteCommand{\parencites}[\mkbibparens]{\parencite}{\setunit{\multicitedelim}}
+\DeclareMultiCiteCommand{\footcites}[\mkbibfootnote]{\footcite}{\setunit{\multicitedelim}}
+\DeclareMultiCiteCommand{\footcitetexts}[\mkbibfootnotetext]{\footcitetext}{\setunit{\multicitedelim}}
+\DeclareMultiCiteCommand{\smartcites}[\iffootnote\mkbibparens\mkbibfootnote]{\smartcite}
+                                     {\setunit{\multicitedelim}}
+\DeclareMultiCiteCommand{\textcites}{\textcite}{}
+
+\endinput

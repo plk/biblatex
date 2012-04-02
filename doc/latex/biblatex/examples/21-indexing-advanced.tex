@@ -1,0 +1,142 @@
+%
+% This file demonstrates indexing with the 'index' package.
+% This file is processed as follows:
+%
+%   latex        file
+%   bibtex/biber file
+%   latex        file
+%   makeindex -o file.ind file.idx (= makeindex file)
+%   makeindex -o file.nnd file.ndx
+%   makeindex -o file.tnd file.tdx
+%   latex        file
+%
+% Note that the file name suffix may be omitted. It's 'latex file'
+% and not 'latex file.tex'. Also note that '-t <file>' is optional.
+%
+\documentclass[a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[american]{babel}
+\usepackage{csquotes}
+%
+% We set the 'indexing' package option and use the 'authortitle'
+% style in this example.
+\usepackage[indexing,style=authortitle,babel=hyphen]{biblatex}
+\addbibresource{biblatex-examples.bib}
+%
+% The 'index' package provides advanced indexing facilities with
+% support for multiple indexes.
+\usepackage{index}
+%
+% We want three indexes: a general index, an index of names, and an
+% index of titles. They are defined by way of \newindex, see the
+% documentation of the 'index' package for details.
+\newindex{default}{idx}{ind}{Subject Index}
+\newindex{names}{ndx}{nnd}{Name Index}
+\newindex{titles}{tdx}{tnd}{Title Index}
+%
+% We need to redefine some index formatting directives such that
+% biblatex adds names and titles to separate indexes. All names
+% should go to the name index, hence we simply redefine the default
+% index formatting directive for names. The default definition,
+% which is found in biblatex.def, looks like this:
+%
+%   \DeclareIndexNameFormat{default}{%
+%     \usebibmacro{index:name}{\index}{#1}{#3}{#5}{#7}%
+%   }
+%
+% As you can see, the data is simply passed on to a 'bibmacro' which
+% takes care of the formatting of the name. The definition of the
+% bibmacro, which is also found in biblatex.def, is not relevant in
+% our example because all we want to do is change or rather extend
+% the \index command, which happens to be the first argument of the
+% 'index:name' bibmacro.
+%
+\DeclareIndexNameFormat{default}{%
+  \usebibmacro{index:name}{\index[names]}{#1}{#3}{#5}{#7}%
+}
+%
+% Titles are handled in a similar way. The formatting directive we
+% need to modify is 'indextitle'. It's default definition looks like
+% this:
+%
+%   \DeclareIndexFieldFormat{indextitle}{%
+%     \usebibmacro{index:title}{\index}{#1}%
+%   }
+%
+% We modify it such that the \index command writes to the index of
+% titles:
+%
+\DeclareIndexFieldFormat{indextitle}{%
+  \usebibmacro{index:title}{\index[titles]}{#1}%
+}
+%
+% That's it as far as splitting the index is concerned. Let's have a
+% look at some other facilities you may want to customize. By
+% default, biblatex will index the author or editor and the title of
+% all references. This behavior may be modified as desired. The
+% indexing facilities are not hard-coded. All standard styles which
+% ship with this package call two 'bibmacros' which handle the
+% indexing. These macros are called 'citeindex' and 'bibindex', both
+% of which are defined in biblatex.def. The former handles indexing
+% in citations, the latter in the bibliography. Their default
+% definitions are as follows:
+%
+%   \newbibmacro*{citeindex}{%
+%     \ifciteindex
+%       {\indexnames{labelname}%
+%	 \indexfield{indextitle}}
+%       {}}
+%
+%   \newbibmacro*{bibindex}{%
+%     \ifbibindex
+%       {\indexnames{labelname}%
+%	 \indexfield{indextitle}}
+%       {}}
+%
+% The 'labelname' field is a copy of the 'author' field, if there is
+% an author, or a copy of the 'editor' field otherwise. 'indextitle'
+% is the 'indextitle' field, if defined in the bib file, or a copy
+% of the 'title' field otherwise.
+%
+% The mechanism works like this: the \indexnames and \indexfield
+% fields tell biblatex which data to add to the index, the indexing
+% directives tell it how to index the data.
+%
+% The default settings should be fine in most cases. As an example,
+% we will modify them here such that author, editors, translators,
+% and commentators in the bibliography are indexed:
+%
+\renewbibmacro*{bibindex}{%
+  \ifbibindex
+    {\indexnames{author}%
+     \indexnames{editor}%
+     \indexnames{translator}%
+     \indexnames{commentator}%
+     \indexfield{indextitle}}
+    {}}
+%
+\begin{document}
+
+\section*{Indexing with the \texttt{index} package}
+
+% We add the contents of the entire bib file to the bibliography.
+% Note that \nocite does not add anything to the index on its own.
+\nocite{*}
+
+% We cite a few items. These citations will be added to the index.
+\cite{piccato,gaonkar,malinowski,coleridge,gerhardt,cicero}
+
+% We also add an explicit index entry.
+\index{Example entry}
+
+\clearpage
+
+% We print the printbibliography...
+\printbibliography
+% ...and the indexes
+\raggedright
+\printindex         % the general index
+\printindex[names]  % the name index
+\printindex[titles] % the title index
+
+\end{document}

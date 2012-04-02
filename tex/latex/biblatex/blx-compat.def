@@ -1,0 +1,119 @@
+% $Id: blx-compat.def,v 1.7 2011/11/13 19:09:07 lehman stable $
+
+\ProvidesFile{blx-compat.def}
+[\abx@rcsid $Id: blx-compat.def,v 1.7 2011/11/13 19:09:07 lehman stable $
+ biblatex generic compatibility]
+
+% LaTeX
+
+\AtBeginDocument{%
+  \renewrobustcmd*{\bibliography}[1]{%
+    \blx@error
+      {'\string\bibliography' invalid}
+      {Use '\string\addbibresource' instead.\MessageBreak
+       I'm ignoring this command}}}
+
+\renewrobustcmd*{\bibliographystyle}[1]{%
+  \blx@error
+    {'\string\bibliographystyle' invalid}
+    {Use the package option 'style' instead.\MessageBreak
+     I'm ignoring this command}}
+
+% standard classes
+
+\DeclareOption{openbib}{\ExecuteBibliographyOptions{block=par}}
+
+% biblatex <0.9b
+
+\DeclareBibliographyOption{defernums}[true]{%
+  \ExecuteBibliographyOptions{defernumbers=#1}}
+
+\providecommand*{\lbx@fromlang}{%
+  \iffieldundef{origlanguage}
+    {\unspace}
+    {\bibstring{from\thefield{origlanguage}}}}
+
+% memoir
+
+\ifdef\ifnobibintoc
+  {\newcommand*{\ifmemoirbibintoc}{\notbool{nobibintoc}}}
+  {\newcommand{\ifmemoirbibintoc}[2]{#2}}
+
+% KOMA-Script
+
+\newcommand{\ifkomabibtotoc}[2]{#2}
+\newcommand{\ifkomabibtotocnumbered}[2]{#2}
+
+\ifdef\ds@bibtotoc
+  {% xkeyval breaks inheritance of key=value class options
+   \ifdef\XKV@classoptionslist
+     {\let\blx@classoptionslist\@classoptionslist
+      \let\@classoptionslist\XKV@classoptionslist
+      \AtEndOfPackage{\let\@classoptionslist\blx@classoptionslist}}
+     {}%
+   \DeclareOption{bibtotoc}{%
+     \let\ifkomabibtotoc=\@firstoftwo
+     \let\ifkomabibtotocnumbered=\@secondoftwo}
+   \DeclareOption{bibtotocnumbered}{%
+     \let\ifkomabibtotoc=\@firstoftwo
+     \let\ifkomabibtotocnumbered=\@firstoftwo}%
+   \DeclareOption{bibliography=totoc}{%
+     \let\ifkomabibtotoc=\@firstoftwo
+     \let\ifkomabibtotocnumbered=\@secondoftwo}
+   \DeclareOption{bibliography=nottotoc}{%
+     \let\ifkomabibtotoc=\@secondoftwo
+     \let\ifkomabibtotocnumbered=\@secondoftwo}
+   \DeclareOption{bibliography=totocnumbered}{%
+     \let\ifkomabibtotoc=\@firstoftwo
+     \let\ifkomabibtotocnumbered=\@firstoftwo}%
+   \DeclareOption{bibliography=oldstyle}{%
+     \ExecuteBibliographyOptions{block=space}}%
+   \DeclareOption{bibliography=openstyle}{%
+     \ExecuteBibliographyOptions{block=par}}%
+   \DeclareOption{toc=bib}{%
+     \let\ifkomabibtotoc=\@firstoftwo
+     \let\ifkomabibtotocnumbered=\@secondoftwo}%
+   \DeclareOption{toc=bibliography}{%
+     \let\ifkomabibtotoc=\@firstoftwo
+     \let\ifkomabibtotocnumbered=\@secondoftwo}%
+   \DeclareOption{toc=bibnumbered}{%
+     \let\ifkomabibtotoc=\@firstoftwo
+     \let\ifkomabibtotocnumbered=\@firstoftwo}%
+   \DeclareOption{toc=numberedbib}{%
+     \let\ifkomabibtotoc=\@firstoftwo
+     \let\ifkomabibtotocnumbered=\@firstoftwo}%
+   \DeclareOption{toc=bibliographynumbered}{%
+     \let\ifkomabibtotoc=\@firstoftwo
+     \let\ifkomabibtotocnumbered=\@firstoftwo}%
+   \DeclareOption{toc=numberedbibliography}{%
+     \let\ifkomabibtotoc=\@firstoftwo
+     \let\ifkomabibtotocnumbered=\@firstoftwo}}
+  {}
+
+% biblatex <1.6
+
+\define@key{blx@bib}{maxnames}{\blx@warn@depropt{maxnames}}
+\define@key{blx@los}{maxnames}{\blx@warn@depropt{maxnames}}
+\define@key{blx@bbs}{maxnames}{\blx@warn@depropt{maxnames}}
+\define@key{blx@bbg}{maxnames}{\blx@warn@depropt{maxnames}}
+\define@key{blx@bbc}{maxnames}{\blx@warn@depropt{maxnames}}
+
+\define@key{blx@bib}{minnames}{\blx@warn@depropt{minnames}}
+\define@key{blx@los}{minnames}{\blx@warn@depropt{minnames}}
+\define@key{blx@bbs}{minnames}{\blx@warn@depropt{minnames}}
+\define@key{blx@bbg}{minnames}{\blx@warn@depropt{minnames}}
+\define@key{blx@bbc}{minnames}{\blx@warn@depropt{minnames}}
+
+\define@key{blx@bib}{maxitems}{\blx@warn@depropt{maxitems}}
+\define@key{blx@los}{maxitems}{\blx@warn@depropt{maxitems}}
+\define@key{blx@bbs}{maxitems}{\blx@warn@depropt{maxitems}}
+\define@key{blx@bbg}{maxitems}{\blx@warn@depropt{maxitems}}
+\define@key{blx@bbc}{maxitems}{\blx@warn@depropt{maxitems}}
+
+\define@key{blx@bib}{minitems}{\blx@warn@depropt{minitems}}
+\define@key{blx@los}{minitems}{\blx@warn@depropt{minitems}}
+\define@key{blx@bbs}{minitems}{\blx@warn@depropt{minitems}}
+\define@key{blx@bbg}{minitems}{\blx@warn@depropt{minitems}}
+\define@key{blx@bbc}{minitems}{\blx@warn@depropt{minitems}}
+
+\endinput

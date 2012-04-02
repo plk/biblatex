@@ -1,0 +1,75 @@
+% $Id: draft.cbx,v 1.7 2011/11/13 19:09:07 lehman stable $
+
+\ProvidesFile{draft.cbx}
+[\abx@cbxid $Id: draft.cbx,v 1.7 2011/11/13 19:09:07 lehman stable $]
+
+\ExecuteBibliographyOptions{autocite=plain}
+
+\DeclareFieldFormat{citekey}{\cbx@mkcitekey{#1}}
+\DeclareUrlCommand{\cbx@mkcitekey}{\urlstyle{citekey}}
+\def\url@citekeystyle{\def\UrlFont{\bfseries}}
+\newbool{cbx:parens}
+
+\newbibmacro*{cite}{%
+  \printtext[bibhyperref]{\printfield[citekey]{entrykey}}}
+
+\newbibmacro*{textcite}{%
+  \printnames{labelname}%
+  \setunit*{%
+    \global\booltrue{cbx:parens}%
+    \addspace\bibopenparen}%
+  \ifnumequal{\value{citecount}}{1}
+    {\usebibmacro{prenote}}
+    {}%
+  \usebibmacro{cite}}
+
+\newbibmacro*{textcite:postnote}{%
+  \iffieldundef{postnote}
+    {\ifbool{cbx:parens}
+       {\bibcloseparen}
+       {}}
+    {\ifbool{cbx:parens}
+       {\setunit{\postnotedelim}}
+       {\setunit{\addspace\bibopenparen}}%
+     \printfield{postnote}\bibcloseparen}}
+
+\DeclareCiteCommand{\cite}
+  {\usebibmacro{prenote}}
+  {\usebibmacro{cite}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand{\parencite}[\mkbibparens]
+  {\usebibmacro{prenote}}
+  {\usebibmacro{cite}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand{\footcite}[\mkbibfootnote]
+  {\usebibmacro{prenote}}
+  {\usebibmacro{cite}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand{\footcitetext}[\mkbibfootnotetext]
+  {\usebibmacro{prenote}}
+  {\usebibmacro{cite}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand{\smartcite}[\iffootnote\mkbibparens\mkbibfootnote]
+  {\usebibmacro{prenote}}
+  {\usebibmacro{cite}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand{\textcite}
+  {\boolfalse{cbx:parens}}
+  {\usebibmacro{textcite}}
+  {\ifbool{cbx:parens}
+     {\bibcloseparen\global\boolfalse{cbx:parens}}
+     {}%
+   \multicitedelim}
+  {\usebibmacro{textcite:postnote}}
+
+\endinput

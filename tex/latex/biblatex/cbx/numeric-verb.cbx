@@ -1,0 +1,92 @@
+% $Id: numeric-verb.cbx,v 1.7 2011/11/13 19:09:07 lehman stable $
+
+\ProvidesFile{numeric-verb.cbx}
+[\abx@cbxid $Id: numeric-verb.cbx,v 1.7 2011/11/13 19:09:07 lehman stable $]
+
+\ExecuteBibliographyOptions{labelnumber,autocite=inline}
+\renewcommand*{\multicitedelim}{\addcomma\space}
+\providebool{bbx:subentry}
+\DeclareFieldFormat{entrysetcount}{\mknumalph{#1}}
+
+\newbibmacro*{cite}{%
+  \printtext[bibhyperref]{%
+    \printfield{prefixnumber}%
+    \printfield{labelnumber}%
+    \ifbool{bbx:subentry}
+      {\printfield{entrysetcount}}
+      {}}}
+
+\newbibmacro*{textcite}{%
+  \ifnameundef{labelname}
+    {\printfield[citetitle]{labeltitle}}
+    {\printnames{labelname}}%
+  \addspace\bibopenbracket
+  \ifnumequal{\value{citecount}}{1}
+    {\usebibmacro{prenote}}
+    {}%
+  \usebibmacro{cite}}
+
+\DeclareCiteCommand{\cite}
+  {\bibopenbracket
+   \usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \ifnumgreater{\value{citecount}}{1}
+     {\bibopenbracket}
+     {}%
+   \usebibmacro{cite}}
+  {\bibclosebracket\multicitedelim}
+  {\usebibmacro{postnote}%
+   \bibclosebracket}
+
+\DeclareCiteCommand{\parencite}[\mkbibbrackets]
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{cite}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand{\footcite}[\mkbibfootnote]
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{cite}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand{\footcitetext}[\mkbibfootnotetext]
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{cite}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand{\smartcite}[\iffootnote\mkbibbrackets\mkbibfootnote]
+  {\usebibmacro{prenote}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{cite}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand{\textcite}
+  {}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{textcite}}
+  {\bibclosebracket\multicitedelim}
+  {\usebibmacro{postnote}%
+   \bibclosebracket}
+
+\DeclareCiteCommand{\supercite}[\mkbibsuperscript]
+  {\iffieldundef{prenote}
+     {}
+     {\BibliographyWarning{Ignoring prenote argument}}%
+   \iffieldundef{postnote}
+     {}
+     {\BibliographyWarning{Ignoring postnote argument}}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{cite}}
+  {\supercitedelim}
+  {}
+
+\DeclareMultiCiteCommand{\parencites}[\mkbibbrackets]{\parencite}{\multicitedelim}
+\DeclareMultiCiteCommand{\smartcites}[\iffootnote\mkbibbrackets\mkbibfootnote]{\smartcite}{\multicitedelim}
+
+\endinput

@@ -1,0 +1,2317 @@
+% $Id: biblatex.def,v 1.7 2011/11/13 19:09:07 lehman stable $
+
+\ProvidesFile{biblatex.def}
+[\abx@rcsid $Id: biblatex.def,v 1.7 2011/11/13 19:09:07 lehman stable $
+ biblatex generic definitions]
+
+% ------------------------------------------------------------------
+% FORMATTING COMMANDS
+% ------------------------------------------------------------------
+
+% Generic formatting commands and hooks
+% ------------------------------------------------------------------
+
+% Used in citations, bibliography, list of shorthands
+
+\newcommand*{\mkbibnamefirst}[1]{#1}
+\newcommand*{\mkbibnamelast}[1]{#1}
+\newcommand*{\mkbibnameprefix}[1]{#1}
+\newcommand*{\mkbibnameaffix}[1]{#1}
+\newcommand*{\bibellipsis}{[\textellipsis\unkern]\midsentence}
+
+% Delimiters used in citations, bibliography, list of shorthands
+
+\newcommand*{\multinamedelim}{\addcomma\space}
+\newcommand*{\finalnamedelim}{%
+  \ifnumgreater{\value{liststop}}{2}{\finalandcomma}{}%
+  \addspace\bibstring{and}\space}
+\newcommand*{\revsdnamedelim}{}
+\newcommand*{\andothersdelim}{\addspace}
+
+\newcommand*{\multilistdelim}{\addcomma\space}
+\newcommand*{\finallistdelim}{%
+  \ifnumgreater{\value{liststop}}{2}{\finalandcomma}{}%
+  \addspace\bibstring{and}\space}
+\newcommand*{\andmoredelim}{\addspace}
+
+% Used in citations
+
+\newcommand*{\multicitedelim}{\addsemicolon\space}
+\newcommand*{\compcitedelim}{\addcomma\space}
+\newcommand*{\supercitedelim}{\addcomma}
+\newcommand*{\prenotedelim}{\addspace}
+\newcommand*{\postnotedelim}{\addcomma\space}
+\newcommand*{\nametitledelim}{\addcomma\space}
+\newcommand*{\nameyeardelim}{\addspace}
+\newcommand*{\volcitedelim}{\addcomma\space}
+
+% Used in the bibliography and the list of shorthands
+
+\newcommand*{\newunitpunct}{\addperiod\space}
+\newcommand*{\entrysetpunct}{\addsemicolon\space}
+\newcommand*{\finentrypunct}{\addperiod}
+\newcommand*{\labelnamepunct}{\newunitpunct}
+\newcommand*{\subtitlepunct}{\newunitpunct}
+\newcommand*{\intitlepunct}{\addcolon\space}
+\newcommand*{\bibpagespunct}{\addcomma\space}
+\newcommand*{\bibpagerefpunct}{\addspace}
+\newcommand*{\bibnamedash}{%
+  \ifdimless{\leftmargin}{0.75em}
+    {\mbox{\textemdash\space}}
+    {\makebox[\leftmargin][l]{%
+       \ifdimless{\leftmargin}{1.25em}
+         {\textendash}
+	 {\textemdash}}}}
+
+% Used for indexing
+
+\newcommand*{\bibindexnamedelima}{ }
+\newcommand*{\bibindexnamedelimb}{ }
+\newcommand*{\bibindexnamedelimc}{ }
+\newcommand*{\bibindexnamedelimd}{ }
+\newcommand*{\bibindexnamedelimi}{ }
+\newcommand*{\bibindexinitperiod}{.}
+\newcommand*{\bibindexinitdelim}{ }
+\newcommand*{\bibindexinithyphendelim}{.-}
+
+% \bibsetup is a generic hook controlling the (low-level) layout of
+% the bibliography and the list of shorthands. The default
+% definition should work fine in most cases.
+
+\newcommand*{\bibsetup}{%
+  \interlinepenalty=5000\relax
+  \widowpenalty=10000\relax
+  \clubpenalty=10000\relax
+  \raggedbottom
+  \frenchspacing
+  \biburlsetup}
+
+% The penalties above are not specific to biblatex. These are
+% low-level TeX features. \interlinepenalty is the penalty assigned
+% to page breaks within a paragraph (i.e., in this case, a
+% bibliography entry); \clubpenalty is an additional penalty
+% assigned to page breaks after the first line of a paragraph;
+% \widowpenalty is an additional penalty assigned to page breaks
+% before the last line of a paragraph. Note that the value 10000
+% means 'infinite' as far as TeX is concerned. Setting a penalty to
+% 10000 will unconditionally suppress the respective breakpoint.
+%
+% The net effect of the above settings is as follows. Breaking a
+% bibliography entry across pages is discouraged, but not suppressed
+% altogether. If a bibliography entry spans less than four lines,
+% TeX will always keep it on one page. If it spans four or more
+% lines, it may be broken across pages, provided that there are at
+% least two lines on the page before and after the break.
+%
+% These penalties should normally be used in conjunction with
+% \raggedbottom. If you don't like that and remove \raggedbottom
+% from the definition of \bibsetup, make sure to provide some
+% stretchability between bibliography entries by setting \bibitemsep
+% to a suitable value, e.g.:
+%
+% \setlength{\bibitemsep}{0.5\baselineskip plus 0.5\baselineskip}
+%
+% Using \frenchspacing in the bibliography is recommended. If you
+% want more visual separation, try the package option 'block=space'.
+% This will yield better results than \nonfrenchspacing.
+
+% \citesetup is a generic hook for citations.
+
+\newcommand*{\citesetup}{%
+  \frenchspacing
+  \biburlsetup}
+
+% Local setup for \url; see comments in url.sty for details.
+
+\newcounter{biburlnumpenalty}
+\newcounter{biburlucpenalty}
+\newcounter{biburllcpenalty}
+
+\newcommand*{\biburlsetup}{%
+  \Urlmuskip=0mu plus 3mu\relax
+  \mathchardef\UrlBigBreakPenalty=100\relax
+  \mathchardef\UrlBreakPenalty=200\relax
+  \def\UrlBigBreaks{\do\:\do\-}%
+  \def\UrlBreaks{%
+    \do\.\do\@\do\/\do\\\do\!\do\_\do\|\do\;\do\>\do\]\do\)\do\}%
+    \do\,\do\?\do\'\do\+\do\=\do\#\do\$\do\&\do\*\do\^\do\"}%
+  \ifnumgreater{\value{biburlnumpenalty}}{0}
+    {\def\do##1{\appto\UrlSpecials{\do##1{\mathchar`##1 \penalty\value{biburlnumpenalty}}}}%
+     \do\1\do\2\do\3\do\4\do\5\do\6\do\7\do\8\do\9\do\0}
+    {}%
+  \ifnumgreater{\value{biburlucpenalty}}{0}
+    {\def\do##1{\appto\UrlSpecials{\do##1{\mathchar`##1 \penalty\value{biburlucpenalty}}}}%
+     \do\A\do\B\do\C\do\D\do\E\do\F\do\G\do\H\do\I\do\J
+     \do\K\do\L\do\M\do\N\do\O\do\P\do\Q\do\R\do\S\do\T
+     \do\U\do\V\do\W\do\X\do\Y\do\Z}
+    {}%
+  \ifnumgreater{\value{biburllcpenalty}}{0}
+    {\def\do##1{\appto\UrlSpecials{\do##1{\mathchar`##1 \penalty\value{biburllcpenalty}}}}%
+     \do\a\do\b\do\c\do\d\do\e\do\f\do\g\do\h\do\i\do\j
+     \do\k\do\l\do\m\do\n\do\o\do\p\do\q\do\r\do\s\do\t
+     \do\u\do\v\do\w\do\x\do\y\do\z}
+    {}%
+  \let\do=\noexpand}
+
+% The above code allows linebreaks before numbers and letters.
+% This is often the only way to break DOIs. It also allows breaks
+% after hyphens and adjusts \Urlmuskip to add some stretchability
+% to URLs.
+
+% The default font of the bibliography and the list of shorthands.
+% We simply reset the current font to the global defaults.
+
+\newcommand*{\bibfont}{\normalfont\normalsize}
+
+% Some length registers which may be used to fine-tune the
+% (high-level) layout of the bibliography.
+
+\setlength{\bibhang}{\parindent}
+\setlength{\biblabelsep}{2\labelsep}
+\setlength{\bibitemsep}{\itemsep}
+\setlength{\bibnamesep}{0pt}
+\setlength{\bibinitsep}{0pt}
+\setlength{\bibparsep}{0pt}
+
+% Miscellaneous facilities
+% ------------------------------------------------------------------
+
+% The counter 'abbrvpenalty' holds the penalty used in short or
+% abbreviated bibliography strings. For example, a linebreak in
+% expressions such as "et al." or "ed. by" is unfortunate, but should
+% still be possible to prevent overfull boxes. We use TeX's
+% \hyphenpenalty (normally 50) as the default value. The idea is
+% making TeX treat the whole expression as if it were a single,
+% hyphenatable word as far as line-breaking is concerned. If you
+% dislike such linebreaks, use a higher value. If you do not mind
+% them at all, set this counter to zero. If you want to suppress them
+% unconditionally, set it to 10000.
+\defcounter{abbrvpenalty}{\hyphenpenalty}
+
+% The counter 'highnamepenalty' also holds a penalty affecting the
+% line-breaking of names. This penalty is inserted between smaller
+% chunks of a name, for example between the first and the middle
+% name. The default value is \hyphenpenalty. If you dislike such
+% linebreaks, use a higher value. If you do not mind them at all,
+% set this counter to zero. If you prefer the traditional BibTeX
+% behavior, set it to 10000.
+\defcounter{highnamepenalty}{\hyphenpenalty}
+
+% The counter 'lownamepenalty' holds a penalty which affects the
+% line-breaking of names. This penalty is inserted between larger
+% chunks of a name, for example between the chunk consisting of all
+% first names and the last name. The default value is half the
+% \hyphenpenalty. If you dislike such linebreaks, use a higher
+% value. If you do not mind them at all, set this counter to zero.
+\defcounter{lownamepenalty}{\hyphenpenalty/2}
+
+% Note that default values assigned to the above counters are
+% deliberately very low to prevent overfull boxes. This implies that
+% you will hardly notice any effect on line-breaking if the text is
+% set justified. If you set these counters to 10000 to suppress the
+% respective breakpoints, you will notice their effect but you may
+% also be confronted with overfull boxes. Keep in mind that
+% line-breaking in the bibliography is often more difficult than in
+% the body text and that you can not resort to rephrasing a
+% sentence. In some cases it may be preferable to set the entire
+% bibliography \raggedright (by modifying \bibsetup) to prevent
+% suboptimal linebreaks. In this case, even the very low default
+% penalties will make a visible difference.
+
+% File name prefixes for external abstracts and annotations
+\newcommand*{\bibabstractprefix}{bibabstract-}
+\newcommand*{\bibannotationprefix}{bibannotation-}
+
+% Print acronyms in small caps if possible
+\newcommand*{\mkbibacro}[1]{%
+  \ifcsundef{\f@encoding/\f@family/\f@series/sc}
+    {#1}
+    {\textsc{\MakeLowercase{#1}}}}
+
+% ------------------------------------------------------------------
+% ADDITIONAL PACKAGE OPTIONS
+% ------------------------------------------------------------------
+
+% Style of compressed page ranges in back references
+
+\DeclareBibliographyOption{backrefstyle}{%
+  \ifcsdef{abx@opt@pagerefstyle@#1}
+    {\letcs\abx@pagerefstyle{abx@opt@pagerefstyle@#1}}
+    {\PackageError{biblatex}
+       {Option 'backrefstyle=#1' invalid}
+       {The option you have supplied is invalid.\MessageBreak
+        See the biblatex manual for valid option keys
+	and possible values}}}
+\newcommand*{\abx@pagerefstyle}{1}
+\csdef{abx@opt@pagerefstyle@none}{-1}
+\csdef{abx@opt@pagerefstyle@two}{0}
+\csdef{abx@opt@pagerefstyle@three}{1}
+\csdef{abx@opt@pagerefstyle@two+}{2}
+\csdef{abx@opt@pagerefstyle@three+}{3}
+\csdef{abx@opt@pagerefstyle@all+}{4}
+
+% arXiv path/format selector
+%
+% abs    = abstract page
+% ps     = PostScript version
+% pdf    = PDF version
+% format = format selector
+
+\DeclareBibliographyOption{arxiv}{\def\abx@arxivpath{#1}}
+\newcommand*{\abx@arxivpath}{abs}
+
+% ------------------------------------------------------------------
+% FIELD FORMATS (#1 is the value of the field)
+% ------------------------------------------------------------------
+
+% The fallback used by \printfield
+
+\DeclareFieldFormat{default}{#1}
+
+% The default used by \citefield
+
+\DeclareFieldFormat{citefield}{#1}
+
+% Used in citations
+
+\DeclareFieldFormat{citetitle}{\mkbibemph{#1}}
+\DeclareFieldFormat
+  [article,inbook,incollection,inproceedings,patent,thesis,unpublished]
+  {citetitle}{\mkbibquote{#1\isdot}}
+\DeclareFieldFormat
+  [suppbook,suppcollection,suppperiodical]
+  {citetitle}{#1}
+\DeclareFieldFormat{labelyear}{\stripzeros{#1}}% = the '1995' part in 'Jones 1995a'
+\DeclareFieldFormat{extrayear}{% = the 'a' in 'Jones 1995a'
+  \iffieldnums{labelyear}
+    {\mknumalph{#1}}
+    {\mkbibparens{\mknumalph{#1}}}}
+\DeclareFieldFormat{labelalpha}{#1}% = the 'Jon95' part of 'Jon95a'
+\DeclareFieldFormat{extraalpha}{\mknumalph{#1}}% = the 'a' in 'Jon95a'
+\DeclareFieldFormat{shorthand}{#1\isdot}
+\DeclareFieldFormat{shorthandintro}{%
+  \ifcapital{\MakeCapital{#1}}{#1}\isdot}
+% citation commands
+\DeclareFieldFormat{prenote}{#1\isdot}
+\DeclareFieldFormat{postnote}{\mkpageprefix[pagination]{#1}}
+\DeclareFieldFormat{volcitevolume}{\bibstring{volume}\ppspace#1}
+\DeclareFieldFormat{volcitepages}{\mkpageprefix[pagination]{#1}}
+% multicite commands
+\DeclareFieldFormat{multiprenote}{#1\isdot}
+\DeclareFieldFormat{multipostnote}{\mkpageprefix[pagination]{#1}}
+
+% Used by \citeurl
+
+\DeclareFieldFormat{citeurl}{\url{#1}}
+
+% Used in the bibliography and the list of shorthands
+
+\DeclareFieldFormat{booktitle}{\mkbibemph{#1}}
+\DeclareFieldFormat{chapter}{\bibstring{chapter}~#1}
+\DeclareFieldFormat{doi}{%
+  \mkbibacro{DOI}\addcolon\space
+  \ifhyperref
+    {\href{http://dx.doi.org/#1}{\nolinkurl{#1}}}
+    {\nolinkurl{#1}}}
+\DeclareFieldFormat{edition}{%
+  \ifinteger{#1}
+    {\mkbibordedition{#1}~\bibstring{edition}}
+    {#1\isdot}}
+\DeclareFieldFormat{eprint}{%
+  \iffieldundef{eprinttype}
+    {eprint}
+    {\thefield{eprinttype}}%
+  \addcolon\space
+  \ifhyperref
+    {\url{#1}}
+    {\nolinkurl{#1}}%
+  \iffieldundef{eprintclass}
+    {}
+    {\addspace\mkbibparens{\thefield{eprintclass}}}}
+\DeclareFieldFormat{eprint:hdl}{%
+  HDL\addcolon\space
+  \ifhyperref
+    {\href{http://hdl.handle.net/#1}{\nolinkurl{#1}}}
+    {\nolinkurl{#1}}}
+\DeclareFieldAlias{eprint:HDL}{eprint:hdl}
+\DeclareFieldFormat{eprint:arxiv}{%
+  arXiv\addcolon
+  \ifhyperref
+    {\href{http://arxiv.org/\abx@arxivpath/#1}{%
+       \nolinkurl{#1}%
+       \iffieldundef{eprintclass}
+	 {}
+	 {\addspace\texttt{\mkbibbrackets{\thefield{eprintclass}}}}}}
+    {\nolinkurl{#1}
+     \iffieldundef{eprintclass}
+       {}
+       {\addspace\texttt{\mkbibbrackets{\thefield{eprintclass}}}}}}
+\DeclareFieldAlias{eprint:arXiv}{eprint:arxiv}
+\DeclareFieldFormat{eprint:jstor}{%
+  JSTOR\addcolon\space
+  \ifhyperref
+    {\href{http://www.jstor.org/stable/#1}{\nolinkurl{#1}}}
+    {\nolinkurl{#1}}}
+\DeclareFieldAlias{eprint:JSTOR}{eprint:jstor}
+\DeclareFieldFormat{eprint:pubmed}{%
+  PMID\addcolon\space
+  \ifhyperref
+    {\href{http://www.ncbi.nlm.nih.gov/pubmed/#1}{\nolinkurl{#1}}}
+    {\nolinkurl{#1}}}
+\DeclareFieldAlias{eprint:PubMed}{eprint:pubmed}
+\DeclareFieldFormat{eprint:googlebooks}{%
+  Google Books\addcolon\space
+  \ifhyperref
+    {\href{http://books.google.com/books?id=#1}{\nolinkurl{#1}}}
+    {\nolinkurl{#1}}}
+\DeclareFieldAlias{eprint:Google Books}{eprint:googlebooks}
+\DeclareFieldFormat{file}{\url{#1}}
+\DeclareFieldFormat{isbn}{\mkbibacro{ISBN}\addcolon\space #1}
+\DeclareFieldFormat{isrn}{\mkbibacro{ISRN}\addcolon\space #1}
+\DeclareFieldFormat{issn}{\mkbibacro{ISSN}\addcolon\space #1}
+\DeclareFieldFormat{journaltitle}{\mkbibemph{#1}}
+\DeclareFieldFormat{issuetitle}{\mkbibemph{#1}}
+\DeclareFieldFormat{maintitle}{\mkbibemph{#1}}
+\DeclareFieldFormat{month}{\mkbibmonth{#1}}
+\DeclareFieldFormat{note}{#1\isdot}
+\DeclareFieldFormat{number}{#1}% number in a series
+\DeclareFieldFormat[article,periodical]{number}{#1}% number of a journal
+\DeclareFieldFormat{pages}{\mkpageprefix[bookpagination]{#1}}
+\DeclareFieldFormat{pagetotal}{\mkpagetotal[bookpagination]{#1}}
+\DeclareFieldFormat{part}{.#1}% physical part of a logical volume
+\DeclareFieldFormat{series}{#1}% publication series
+\DeclareFieldFormat[article,periodical]{series}{% series of a journal
+  \ifinteger{#1}
+    {\mkbibordseries{#1}~\bibstring{jourser}}
+    {\ifbibstring{#1}{\bibstring{#1}}{#1}}}
+\DeclareFieldFormat{pubstate}{\ifbibstring{#1}{\bibstring{#1}}{#1}}
+\DeclareFieldFormat{title}{\mkbibemph{#1}}
+\DeclareFieldFormat
+  [article,inbook,incollection,inproceedings,patent,thesis,unpublished]
+  {title}{\mkbibquote{#1\isdot}}
+\DeclareFieldFormat
+  [suppbook,suppcollection,suppperiodical]
+  {title}{#1}
+\DeclareFieldFormat{type}{\ifbibstring{#1}{\bibstring{#1}}{#1}}
+\DeclareFieldFormat{url}{\mkbibacro{URL}\addcolon\space\url{#1}}
+\DeclareFieldFormat{urldate}{\mkbibparens{\bibstring{urlseen}\space#1}}
+\DeclareFieldFormat{version}{\bibstring{version}~#1}
+\DeclareFieldFormat{volume}{\bibstring{volume}~#1}% volume of a book
+\DeclareFieldFormat[article,periodical]{volume}{#1}% volume of a journal
+\DeclareFieldFormat{volumes}{#1~\bibstring{volumes}}
+
+% Generic formats for \printtext and \printfield
+
+\DeclareFieldFormat{emph}{\mkbibemph{#1}}
+\DeclareFieldFormat{bold}{\textbf{#1}}
+\DeclareFieldFormat{smallcaps}{\textsc{#1}}
+\DeclareFieldFormat{parens}{\mkbibparens{#1}}
+\DeclareFieldFormat{brackets}{\mkbibbrackets{#1}}
+\DeclareFieldFormat{bibhyperref}{\bibhyperref{#1}}
+\DeclareFieldFormat{bibhyperlink}{\bibhyperlink{\thefield{entrykey}}{#1}}
+\DeclareFieldFormat{bibhypertarget}{\bibhypertarget{\thefield{entrykey}}{#1}}
+\DeclareFieldFormat{titlecase}{#1}
+\DeclareFieldFormat{noformat}{#1}
+
+% ------------------------------------------------------------------
+% LITERAL LIST FORMATS (#1 is the current item)
+% ------------------------------------------------------------------
+
+% Formatting directives for literal lists
+% ------------------------------------------------------------------
+
+% The fallback used by \printlist
+
+\DeclareListFormat{default}{%
+  \usebibmacro{list:delim}{#1}%
+  #1\isdot
+  \usebibmacro{list:andothers}}
+
+% The default used by \citelist
+
+\DeclareListAlias{citelist}{default}
+
+% Used in the bibliography
+
+\DeclareListFormat{publisher}{%
+  \usebibmacro{list:delim}{#1}%
+  #1\isdot
+  \usebibmacro{list:andothers}}
+
+\DeclareListFormat{language}{%
+  \usebibmacro{list:delim}{%
+    \ifbibstring{#1}
+      {\bibxstring{#1}}
+      {\ifbibstring{lang#1}
+         {\bibxstring{lang#1}}
+         {#1}}}%
+  \ifbibstring{#1}
+    {\bibstring{#1}}
+    {\ifbibstring{lang#1}
+       {\bibstring{lang#1}}
+       {#1}}%
+  \usebibmacro{list:andothers}}
+
+\DeclareListFormat{location}{%
+  \usebibmacro{list:delim}{#1}%
+  #1\isdot
+  \usebibmacro{list:andothers}}
+
+\DeclareListFormat[patent]{location}{%
+  \usebibmacro{list:plain}%
+  \ifbibstring{#1}{\bibstring{#1}}{#1\isdot}%
+  \usebibmacro{list:andothers}}
+
+\DeclareListFormat{pageref}{%
+  \ifnumless{\abx@pagerefstyle}{0}
+    {\usebibmacro{list:plain}%
+     \ifhyperref
+       {\hyperlink{page.#1}{#1}}
+       {#1}}
+    {\ifnumequal{\value{listcount}}{1}
+       {\usebibmacro{pageref:init}}
+       {}%
+     \usebibmacro{pageref:comp}{#1}%
+     \ifnumequal{\value{listcount}}{\value{liststop}}
+       {\usebibmacro{pageref:dump}}
+       {}}}
+
+\DeclareListAlias{origlocation}{location}
+\DeclareListAlias{origpublisher}{publisher}
+\DeclareListAlias{institution}{default}
+\DeclareListAlias{organization}{default}
+
+% Auxiliary macros for list formatting directives
+% ------------------------------------------------------------------
+
+\newbibmacro*{list:delim}[1]{%
+  \ifnumgreater{\value{listcount}}{\value{liststart}}
+    {\ifboolexpr{
+       test {\ifnumless{\value{listcount}}{\value{liststop}}}
+       or
+       test \ifmoreitems
+     }
+       {\multilistdelim}
+       {\lbx@finallistdelim{#1}}}
+    {}}
+
+\newbibmacro*{list:plain}{%
+  \ifnumgreater{\value{listcount}}{\value{liststart}}
+    {\multilistdelim}
+    {}}
+
+\newbibmacro*{list:andothers}{%
+  \ifboolexpr{
+    test {\ifnumequal{\value{listcount}}{\value{liststop}}}
+    and
+    test \ifmoreitems
+  }
+    {\ifnumgreater{\value{liststop}}{1}
+       {\finalandcomma}
+       {}%
+     \andmoredelim\bibstring{andmore}}
+    {}}
+
+\newbibmacro*{pageref:init}{%
+  \let\abx@range@hold=\empty
+  \def\abx@range@diff{0}%
+  \def\abx@range@prev{-1}%
+  \def\abx@range@this{0}%
+  \def\abx@range@last{-1}}
+
+\newbibmacro*{pageref:comp}[1]{%
+  \numdef\abx@range@prev{\abx@range@prev+1}%
+  \ifinteger{#1}
+    {\def\abx@range@num{#1}%
+     \def\abx@range@this{1}%
+     \ifnumequal{\abx@range@this}{\abx@range@last}
+       {}
+       {\def\abx@range@prev{-1}}}
+    {\ifrmnum{#1}
+       {\numdef\abx@range@num{\rmntonum{#1}}%
+        \def\abx@range@this{2}%
+	\ifnumequal{\abx@range@this}{\abx@range@last}
+	  {}
+	  {\def\abx@range@prev{-1}}}
+       {\undef\abx@range@num
+        \def\abx@range@this{0}%
+	\def\abx@range@prev{-1}}}%
+  \ifdef\abx@range@num
+    {\ifnumequal{\abx@range@num}{\abx@range@prev}
+       {\def\abx@range@hold{#1}%
+        \numdef\abx@range@diff{\abx@range@diff+1}}
+       {\usebibmacro{pageref:dump}%
+	\ifnumgreater{\abx@range@last}{-1}
+	  {\multilistdelim}
+	  {}%
+	\ifhyperref
+	  {\hyperlink{page.#1}{#1}}
+	  {#1}}%
+     \edef\abx@range@prev{\abx@range@num}}
+    {\usebibmacro{pageref:dump}%
+     \ifnumgreater{\abx@range@last}{-1}
+       {\multilistdelim}
+       {}%
+     \ifhyperref
+       {\hyperlink{page.#1}{#1}}
+       {#1}%
+     \def\abx@range@prev{-1}}%
+  \edef\abx@range@last{\abx@range@this}}
+
+\newbibmacro*{pageref:dump}{%
+  \ifnumgreater{\abx@range@diff}{0}
+    {\ifcase\abx@pagerefstyle\relax % two
+       \bibrangedash
+       \ifhyperref
+	 {\hyperlink{page.\abx@range@hold}{\abx@range@hold}}
+	 {\abx@range@hold}%
+     \or % three
+       \ifnumless{\abx@range@diff}{2}
+	 {\multilistdelim}
+	 {\bibrangedash}%
+       \ifhyperref
+	 {\hyperlink{page.\abx@range@hold}{\abx@range@hold}}
+	 {\abx@range@hold}%
+     \or % two+
+       \ifnumless{\abx@range@diff}{2}
+	 {\sqspace
+	  \ifhyperref
+	    {\hyperlink{page.\abx@range@hold}{\bibstring{sequens}}}
+	    {\bibstring{sequens}}}
+	 {\bibrangedash
+	  \ifhyperref
+	    {\hyperlink{page.\abx@range@hold}{\abx@range@hold}}
+	    {\abx@range@hold}}%
+     \or % three+
+       \ifnumless{\abx@range@diff}{2}
+	 {\sqspace
+	  \ifhyperref
+	    {\hyperlink{page.\abx@range@hold}{\bibstring{sequens}}}
+	    {\bibstring{sequens}}}
+	 {\ifnumless{\abx@range@diff}{3}
+	    {\sqspace
+	     \ifhyperref
+	       {\hyperlink{page.\abx@range@hold}{\bibstring{sequentes}}}
+	       {\bibstring{sequentes}}}
+	    {\bibrangedash
+	     \ifhyperref
+	       {\hyperlink{page.\abx@range@hold}{\abx@range@hold}}
+	       {\abx@range@hold}}}%
+     \else % all+
+       \ifnumless{\abx@range@diff}{2}
+	 {\sqspace
+	  \ifhyperref
+	    {\hyperlink{page.\abx@range@hold}{\bibstring{sequens}}}
+	    {\bibstring{sequens}}}
+	 {\sqspace
+	  \ifhyperref
+	    {\hyperlink{page.\abx@range@hold}{\bibstring{sequentes}}}
+	    {\bibstring{sequentes}}}%
+     \fi
+     \def\abx@range@diff{0}}
+    {}}
+
+% ------------------------------------------------------------------
+% NAME LIST FORMATS
+% ------------------------------------------------------------------
+
+% Argments passed to formatting directives for name lists:
+%
+% #1 = last name
+% #2 = last name (initials)
+% #3 = first name
+% #4 = first name (initials)
+% #5 = name prefix, a.k.a. 'von part'
+% #6 = name prefix (initials)
+% #7 = name affix, a.k.a. 'junior part'
+% #8 = name affix (initials)
+
+% Formatting directives for name lists
+% ------------------------------------------------------------------
+
+\DeclareNameFormat{first-last}{%
+  \iffirstinits
+    {\usebibmacro{name:first-last}{#1}{#4}{#5}{#7}}
+    {\usebibmacro{name:first-last}{#1}{#3}{#5}{#7}}%
+  \usebibmacro{name:andothers}}
+
+\DeclareNameFormat{last-first}{%
+  \iffirstinits
+    {\usebibmacro{name:last-first}{#1}{#4}{#5}{#7}}
+    {\usebibmacro{name:last-first}{#1}{#3}{#5}{#7}}%
+  \usebibmacro{name:andothers}}
+
+\DeclareNameFormat{last-first/first-last}{%
+  \ifnumequal{\value{listcount}}{1}
+    {\iffirstinits
+       {\usebibmacro{name:last-first}{#1}{#4}{#5}{#7}}
+       {\usebibmacro{name:last-first}{#1}{#3}{#5}{#7}}%
+     \ifblank{#3#5}
+       {}
+       {\usebibmacro{name:revsdelim}}}
+    {\iffirstinits
+       {\usebibmacro{name:first-last}{#1}{#4}{#5}{#7}}
+       {\usebibmacro{name:first-last}{#1}{#3}{#5}{#7}}}%
+  \usebibmacro{name:andothers}}
+
+\DeclareNameFormat{initsonly}{%
+  \usebibmacro{name:first-last}{#2}{#4}{#6}{#8}%
+  \usebibmacro{name:andothers}}
+
+% Fallback used by \printnames
+
+\DeclareNameAlias{default}{first-last}
+
+% Default used by \citename
+
+\DeclareNameAlias{citename}{default}
+
+% Used in some citations
+
+\DeclareNameFormat{labelname}{%
+  \ifcase\value{uniquename}%
+    \usebibmacro{name:last}{#1}{#3}{#5}{#7}%
+  \or
+    \ifuseprefix
+      {\usebibmacro{name:first-last}{#1}{#4}{#5}{#8}}
+      {\usebibmacro{name:first-last}{#1}{#4}{#6}{#8}}%
+  \or
+    \usebibmacro{name:first-last}{#1}{#3}{#5}{#7}%
+  \fi
+  \usebibmacro{name:andothers}}
+
+% Used in the bibliography
+
+\DeclareNameAlias{sortname}{last-first/first-last}
+
+\DeclareNameAlias{author}{default}
+\DeclareNameAlias{bookauthor}{author}
+\DeclareNameAlias{editor}{default}
+\DeclareNameAlias{editora}{editor}
+\DeclareNameAlias{editorb}{editor}
+\DeclareNameAlias{editorc}{editor}
+\DeclareNameAlias{translator}{default}
+
+\DeclareNameAlias{byauthor}{default}
+\DeclareNameAlias{bybookauthor}{byauthor}
+\DeclareNameAlias{byeditor}{default}
+\DeclareNameAlias{byeditora}{byeditor}
+\DeclareNameAlias{byeditorb}{byeditor}
+\DeclareNameAlias{byeditorc}{byeditor}
+\DeclareNameAlias{bytranslator}{default}
+
+\DeclareNameAlias{withcommentator}{default}
+\DeclareNameAlias{withannotator}{default}
+\DeclareNameAlias{withintroduction}{default}
+\DeclareNameAlias{withforeword}{default}
+\DeclareNameAlias{withafterword}{default}
+
+\DeclareFieldFormat{authortype}{#1}
+\DeclareFieldFormat{editortype}{#1}
+
+% Auxiliary macros for name formatting directives
+% ------------------------------------------------------------------
+
+\newbibmacro*{name:last}[4]{%
+  \ifuseprefix
+    {\usebibmacro{name:delim}{#3#1}%
+     \usebibmacro{name:hook}{#3#1}%
+     \ifblank{#3}
+       {}
+       {\ifcapital
+          {\mkbibnameprefix{\MakeCapital{#3}}\isdot}
+          {\mkbibnameprefix{#3}\isdot}%
+        \ifpunctmark{'}{}{\bibnamedelimc}}}
+    {\usebibmacro{name:delim}{#1}%
+     \usebibmacro{name:hook}{#1}}%
+  \mkbibnamelast{#1}}%
+
+\newbibmacro*{name:first-last}[4]{%
+  \usebibmacro{name:delim}{#2#3#1}%
+  \usebibmacro{name:hook}{#2#3#1}%
+  \ifblank{#2}{}{\mkbibnamefirst{#2}\isdot\bibnamedelimd}%
+  \ifblank{#3}{}{%
+    \mkbibnameprefix{#3}\isdot
+    \ifpunctmark{'}
+      {}
+      {\ifuseprefix{\bibnamedelimc}{\bibnamedelimd}}}%
+  \mkbibnamelast{#1}\isdot
+  \ifblank{#4}{}{\bibnamedelimd\mkbibnameaffix{#4}\isdot}}
+
+\newbibmacro*{name:last-first}[4]{%
+  \ifuseprefix
+    {\usebibmacro{name:delim}{#3#1}%
+     \usebibmacro{name:hook}{#3#1}%
+     \ifblank{#3}{}{%
+       \ifcapital
+         {\mkbibnameprefix{\MakeCapital{#3}}\isdot}
+	 {\mkbibnameprefix{#3}\isdot}%
+       \ifpunctmark{'}{}{\bibnamedelimc}}%
+     \mkbibnamelast{#1}\isdot
+     \ifblank{#4}{}{\bibnamedelimd\mkbibnameaffix{#4}\isdot}%
+     \ifblank{#2}{}{\addcomma\bibnamedelimd\mkbibnamefirst{#2}\isdot}}
+    {\usebibmacro{name:delim}{#1}%
+     \usebibmacro{name:hook}{#1}%
+     \mkbibnamelast{#1}\isdot
+     \ifblank{#4}{}{\bibnamedelimd\mkbibnameaffix{#4}\isdot}%
+     \ifblank{#2#3}{}{\addcomma}%
+     \ifblank{#2}{}{\bibnamedelimd\mkbibnamefirst{#2}\isdot}%
+     \ifblank{#3}{}{\bibnamedelimd\mkbibnameprefix{#3}\isdot}}}
+
+\newbibmacro*{name:hook}[1]{%
+  \ifnumequal{\value{listcount}}{1}
+    {\lbx@initnamehook{#1}}
+    {}}
+
+\newbibmacro*{name:delim}[1]{%
+  \ifnumgreater{\value{listcount}}{\value{liststart}}
+    {\ifboolexpr{
+       test {\ifnumless{\value{listcount}}{\value{liststop}}}
+       or
+       test \ifmorenames
+     }
+       {\multinamedelim}
+       {\lbx@finalnamedelim{#1}}}
+    {}}
+
+\newbibmacro*{name:revsdelim}{%
+  \ifboolexpr{
+    (
+      test {\ifnumequal{\value{liststop}}{1}}
+      and
+      test \ifmorenames
+    )
+    or
+    test {\ifnumequal{\value{liststop}}{2}}
+  }
+    {\revsdnamedelim}
+    {}}
+
+\newbibmacro*{name:andothers}{%
+  \ifboolexpr{
+    test {\ifnumequal{\value{listcount}}{\value{liststop}}}
+    and
+    test \ifmorenames
+  }
+    {\ifnumgreater{\value{liststop}}{1}
+       {\finalandcomma}
+       {}%
+     \andothersdelim\bibstring{andothers}}
+    {}}
+
+% ------------------------------------------------------------------
+% INDEX FORMATS FOR FIELDS (#1 is the value of the field)
+% ------------------------------------------------------------------
+
+% There is no need to test if a field to be indexed is empty because
+% \indexfield performs this test implicitly.
+
+% The fallback used by \indexfield
+
+\DeclareIndexFieldFormat{default}{\index{#1}}
+
+% Used in the bibliography and in citations
+
+\DeclareIndexFieldFormat{indextitle}{%
+  \usebibmacro{index:title}{\index}{#1}}
+
+\newbibmacro*{index:title}[2]{%
+  \usebibmacro{index:field}{#1}{\thefield{indexsorttitle}}{\emph{#2}}}
+
+\newbibmacro*{index:field}[3]{%
+  \begingroup
+  \protected@edef\theindexentry{%
+    \unexpanded{#1}{#2\actualoperator\unexpanded{#3}}}%
+  \theindexentry
+  \endgroup}
+
+% ------------------------------------------------------------------
+% INDEX FORMATS FOR LITERAL LISTS (#1 is the current item)
+% ------------------------------------------------------------------
+
+% The fallback used by \indexlist
+
+\DeclareIndexListFormat{default}{\index{#1}}
+
+% ------------------------------------------------------------------
+% INDEX FORMATS FOR NAME LISTS
+% ------------------------------------------------------------------
+
+% Argments passed to indexing directives for name lists:
+%
+% #1 = last name
+% #2 = last name (initials)
+% #3 = first name
+% #4 = first name (initials)
+% #5 = name prefix, a.k.a 'von part'
+% #6 = name prefix (initials)
+% #7 = name affix, a.k.a 'junior part'
+% #8 = name affix (initials)
+
+% Indexing directives for name lists
+% ------------------------------------------------------------------
+
+% The fallback used by \indexnames
+
+\DeclareIndexNameFormat{default}{%
+  \usebibmacro{index:name}{\index}{#1}{#3}{#5}{#7}}
+
+% Used in citations
+
+\DeclareIndexNameAlias{labelname}{default}
+
+% Used in the bibliography
+
+\DeclareIndexNameAlias{author}{default}
+\DeclareIndexNameAlias{editor}{default}
+\DeclareIndexNameAlias{bookauthor}{default}
+
+% Auxiliary macros for name indexing directives
+% ------------------------------------------------------------------
+
+% When generating an index entry, we need to test which parts of a
+% name are actually available to prevent spurious punctuation and
+% spaces. Since those parts which are not available yield an empty
+% argument, we can use the \ifblank test from etoolbox.sty to analyze
+% the name.
+%
+% Note that the standard LaTeX \index command simply writes its
+% argument to the .idx file without preventing expansion. This means
+% that all \ifblank tests are expanded on the way and will not end
+% up in the index. The index package, however, prevents expansion.
+% This would lead to \ifblank ending up in the .idx file. To avoid
+% that, we preprocess the index entry inside an \edef. We use
+% \unexpanded to protect the \index command and the actual data from
+% expansion. This definition will work with both index.sty and the
+% standard indexing facilities.
+%
+% We also use \ifuseprefix to ensure that the name prefix is handled
+% properly. \actualoperator is the so-called actual operator, as
+% defined by the 'actual' specifier in the .ist file. The makeindex
+% programm will use the part preceeding the \actualoperator
+% delimiter for sorting. The part after the delimiter is used as the
+% index is printed. Note that this is not specific to biblatex, see
+% the makeindex documentation for details.
+
+\newcommand*{\actualoperator}{@}
+
+\newbibmacro*{index:name}[5]{%
+  \begingroup
+  \ifuseprefix
+    {\protected@edef\theindexentry{%
+       \unexpanded{#1}{%
+         \ifblank{#4}{}{#4 }%
+         \@firstofone #2% remove spurious braces
+         \ifblank{#5}{}{ #5}%
+         \ifblank{#3}{}{, #3}%
+         \actualoperator
+         \ifblank{#4}{}{\MakeCapital{#4} }%
+         #2%
+         \ifblank{#5}{}{ #5}%
+         \ifblank{#3}{}{, #3}}}}
+    {\protected@edef\theindexentry{%
+       \unexpanded{#1}{%
+         \@firstofone #2% remove spurious braces
+         \ifblank{#5}{}{ #5}%
+         \ifblank{#3#4}{}{,}%
+         \ifblank{#3}{}{ #3}%
+         \ifblank{#4}{}{ #4}}}}%
+  \theindexentry
+  \endgroup}
+
+% ------------------------------------------------------------------
+% CUSTOMIZATION
+% ------------------------------------------------------------------
+
+\DeclareLabelname{%
+  shortauthor,
+  author,
+  shorteditor,
+  editor,
+  translator}
+
+\DeclareLabelyear{%
+  year,
+  eventyear,
+  origyear,
+  urlyear}
+
+% ------------------------------------------------------------------
+% SORTING
+% ------------------------------------------------------------------
+
+\DeclarePresort{mm}
+
+\DeclareSortingScheme{none}{
+  \sort{\citeorder}
+}
+
+\DeclareSortingScheme{debug}{
+  \sort{
+    \field{entrykey}
+  }
+}
+
+\DeclareSortingScheme{nty}{
+  \sort{
+    \field{presort}
+  }
+  \sort[final]{
+    \field{sortkey}
+  }
+  \sort{
+    \name{sortname}
+    \name{author}
+    \name{editor}
+    \name{translator}
+    \field{sorttitle}
+    \field{title}
+  }
+  \sort{
+    \field{sorttitle}
+    \field{title}
+  }
+  \sort{
+    \field{sortyear}
+    \field{year}
+  }
+  \sort{
+    \field[padside=left,padwidth=4,padchar=0]{volume}
+    \literal{0000}
+  }
+}
+
+\DeclareSortingScheme{nyt}{
+  \sort{
+    \field{presort}
+  }
+  \sort[final]{
+    \field{sortkey}
+  }
+  \sort{
+    \name{sortname}
+    \name{author}
+    \name{editor}
+    \name{translator}
+    \field{sorttitle}
+    \field{title}
+  }
+  \sort{
+    \field{sortyear}
+    \field{year}
+  }
+  \sort{
+    \field{sorttitle}
+    \field{title}
+  }
+  \sort{
+    \field[padside=left,padwidth=4,padchar=0]{volume}
+    \literal{0000}
+  }
+}
+
+\DeclareSortingScheme{nyvt}{
+  \sort{
+    \field{presort}
+  }
+  \sort[final]{
+    \field{sortkey}
+  }
+  \sort{
+    \name{sortname}
+    \name{author}
+    \name{editor}
+    \name{translator}
+    \field{sorttitle}
+    \field{title}
+  }
+  \sort{
+    \field{sortyear}
+    \field{year}
+  }
+  \sort{
+    \field[padside=left,padwidth=4,padchar=0]{volume}
+    \literal{0000}
+  }
+  \sort{
+    \field{sorttitle}
+    \field{title}
+  }
+}
+
+\DeclareSortingScheme{anyt}{
+  \sort{
+    \field{presort}
+  }
+  \sort{
+    \field{labelalpha}
+  }
+  \sort[final]{
+    \field{sortkey}
+  }
+  \sort{
+    \name{sortname}
+    \name{author}
+    \name{editor}
+    \name{translator}
+    \field{sorttitle}
+    \field{title}
+  }
+  \sort{
+    \field{sortyear}
+    \field{year}
+  }
+  \sort{
+    \field{sorttitle}
+    \field{title}
+  }
+  \sort{
+    \field[padside=left,padwidth=4,padchar=0]{volume}
+    \literal{0000}
+  }
+}
+
+\DeclareSortingScheme{anyvt}{
+  \sort{
+    \field{presort}
+  }
+  \sort{
+    \field{labelalpha}
+  }
+  \sort[final]{
+    \field{sortkey}
+  }
+  \sort{
+    \name{sortname}
+    \name{author}
+    \name{editor}
+    \name{translator}
+    \field{sorttitle}
+    \field{title}
+  }
+  \sort{
+    \field{sortyear}
+    \field{year}
+  }
+  \sort{
+    \field[padside=left,padwidth=4,padchar=0]{volume}
+    \literal{0000}
+  }
+  \sort{
+    \field{sorttitle}
+    \field{title}
+  }
+}
+
+\DeclareSortingScheme{ynt}{
+  \sort{
+    \field{presort}
+  }
+  \sort[final]{
+    \field{sortkey}
+  }
+  \sort{
+    \field{sortyear}
+    \field{year}
+    \literal{9999}
+  }
+  \sort{
+    \name{sortname}
+    \name{author}
+    \name{editor}
+    \name{translator}
+    \field{sorttitle}
+    \field{title}
+  }
+  \sort{
+    \field{sorttitle}
+    \field{title}
+  }
+}
+
+\DeclareSortingScheme{ydnt}{
+  \sort{
+    \field{presort}
+  }
+  \sort[final]{
+    \field{sortkey}
+  }
+  \sort[direction=descending]{
+    \field[strside=left,strwidth=4]{sortyear}
+    \field[strside=left,strwidth=4]{year}
+    \literal{9999}
+  }
+  \sort{
+    \name{sortname}
+    \name{author}
+    \name{editor}
+    \name{translator}
+    \field{sorttitle}
+    \field{title}
+  }
+  \sort{
+    \field{sorttitle}
+    \field{title}
+  }
+}
+
+% ------------------------------------------------------------------
+% DATA INHERITANCE (CROSSREF)
+% ------------------------------------------------------------------
+
+\DefaultInheritance{all=true,override=false}
+
+\DeclareDataInheritance{mvbook,book}{inbook,bookinbook,suppbook}{%
+  \inherit{author}{author}
+  \inherit{author}{bookauthor}
+}
+
+\DeclareDataInheritance{mvbook}{book,inbook,bookinbook,suppbook}{%
+  \inherit{title}{maintitle}
+  \inherit{subtitle}{mainsubtitle}
+  \inherit{titleaddon}{maintitleaddon}
+  \noinherit{shorttitle}
+  \noinherit{sorttitle}
+  \noinherit{indextitle}
+  \noinherit{indexsorttitle}
+}
+
+\DeclareDataInheritance{mvcollection,mvreference}
+{collection,reference,incollection,inreference,suppcollection}{%
+  \inherit{title}{maintitle}
+  \inherit{subtitle}{mainsubtitle}
+  \inherit{titleaddon}{maintitleaddon}
+  \noinherit{shorttitle}
+  \noinherit{sorttitle}
+  \noinherit{indextitle}
+  \noinherit{indexsorttitle}
+}
+
+\DeclareDataInheritance{mvproceedings}{proceedings,inproceedings}{%
+  \inherit{title}{maintitle}
+  \inherit{subtitle}{mainsubtitle}
+  \inherit{titleaddon}{maintitleaddon}
+  \noinherit{shorttitle}
+  \noinherit{sorttitle}
+  \noinherit{indextitle}
+  \noinherit{indexsorttitle}
+}
+
+\DeclareDataInheritance{book}{inbook,bookinbook,suppbook}{%
+  \inherit{title}{booktitle}
+  \inherit{subtitle}{booksubtitle}
+  \inherit{titleaddon}{booktitleaddon}
+  \noinherit{shorttitle}
+  \noinherit{sorttitle}
+  \noinherit{indextitle}
+  \noinherit{indexsorttitle}
+}
+
+\DeclareDataInheritance{collection,reference}
+{incollection,inreference,suppcollection}{%
+  \inherit{title}{booktitle}
+  \inherit{subtitle}{booksubtitle}
+  \inherit{titleaddon}{booktitleaddon}
+  \noinherit{shorttitle}
+  \noinherit{sorttitle}
+  \noinherit{indextitle}
+  \noinherit{indexsorttitle}
+}
+
+\DeclareDataInheritance{proceedings}{inproceedings}{%
+  \inherit{title}{booktitle}
+  \inherit{subtitle}{booksubtitle}
+  \inherit{titleaddon}{booktitleaddon}
+  \noinherit{shorttitle}
+  \noinherit{sorttitle}
+  \noinherit{indextitle}
+  \noinherit{indexsorttitle}
+}
+
+\DeclareDataInheritance{periodical}{article,suppperiodical}{%
+  \inherit{title}{journaltitle}
+  \inherit{subtitle}{journalsubtitle}
+  \noinherit{shorttitle}
+  \noinherit{sorttitle}
+  \noinherit{indextitle}
+  \noinherit{indexsorttitle}
+}
+
+\DeclareDataInheritance{*}{*}{%
+  \noinherit{crossref}
+  \noinherit{xref}
+  \noinherit{entryset}
+  \noinherit{entrysubtype}
+  \noinherit{execute}
+  \noinherit{label}
+  \noinherit{options}
+  \noinherit{presort}
+  \noinherit{related}
+  \noinherit{relatedstring}
+  \noinherit{relatedtype}
+  \noinherit{shorthand}
+  \noinherit{shorthandintro}
+  \noinherit{sortkey}
+}
+
+% ------------------------------------------------------------------
+% MACROS FOR LBX FILES
+% ------------------------------------------------------------------
+
+\newcommand*{\lbx@initnamehook}[1]{}
+\newcommand*{\lbx@finalnamedelim}[1]{\finalnamedelim}
+\newcommand*{\lbx@finallistdelim}[1]{\finallistdelim}
+
+\newcommand*{\lbx@lfromlang}{%
+  \iffieldundef{origlanguage}
+    {\unspace}
+    {\biblstring{from\thefield{origlanguage}}}}
+
+\newcommand*{\lbx@sfromlang}{%
+  \iffieldundef{origlanguage}
+    {\unspace}
+    {\bibsstring{from\thefield{origlanguage}}}}
+
+% ------------------------------------------------------------------
+% MISCELLANEOUS
+% ------------------------------------------------------------------
+
+% ordinals
+
+\newcommand*{\mkbibordedition}{\mkbibordinal}
+\newcommand*{\mkbibordseries}{\mkbibordinal}
+
+% american
+
+\newrobustcmd*{\uspunctuation}{%
+  \DeclareQuotePunctuation{.,}%
+  \DeclarePunctuationPairs{comma}{*}}
+\newrobustcmd*{\stdpunctuation}{%
+  \DeclareQuotePunctuation{}%
+  \DeclarePunctuationPairs{comma}{*!?}}
+
+% french
+
+\newtoggle{smartof}
+\newrobustcmd*{\smartof}{\global\toggletrue{smartof}}
+\newrobustcmd*{\forceD}[1]{#1}
+\newrobustcmd*{\forceDE}[1]{#1}
+
+\AtBeginDocument{%
+  \@ifpackageloaded{babel}
+    {\ifdef\AutoSpaceBeforeFDP
+       {\newrobustcmd*{\EnsureAutoSpaceBeforeFDP}{%
+	  \iflanguage{french}
+	    {\AutoSpaceBeforeFDP}
+	    {}}%
+	\appto\bibsetup{\EnsureAutoSpaceBeforeFDP}%
+	\appto\citesetup{\EnsureAutoSpaceBeforeFDP}}
+       {}}
+    {}}
+
+% spanish
+
+\newcounter{smartand}
+\defcounter{smartand}{1}
+\newrobustcmd*{\forceY}[1]{#1}
+\newrobustcmd*{\forceE}[1]{#1}
+
+% ------------------------------------------------------------------
+% PREDEFINED HEADINGS
+% ------------------------------------------------------------------
+
+\newcommand*{\abx@classtype}{0}
+\@ifclassloaded{article}
+ {}
+ {\@ifclassloaded{book}
+   {\def\abx@classtype{1}}
+   {\@ifclassloaded{report}
+     {\def\abx@classtype{1}}
+     {\@ifclassloaded{scrartcl}
+        {\def\abx@classtype{2}}
+        {\@ifclassloaded{scrbook}
+           {\def\abx@classtype{3}}
+           {\@ifclassloaded{scrreprt}
+              {\def\abx@classtype{3}}
+              {\@ifclassloaded{memoir}
+                {\ifbool{artopt}
+		   {\def\abx@classtype{4}}
+		   {\def\abx@classtype{5}}}
+                {\ifundef\chapter
+                   {}
+                   {\def\abx@classtype{1}}}}}}}}}
+
+\defbibheading{none}{}
+
+\ifcase\abx@classtype\relax % article
+  \defbibheading{bibliography}[\refname]{%
+    \section*{#1}%
+    \markboth{\MakeUppercase{#1}}{\MakeUppercase{#1}}}
+  \defbibheading{shorthands}[\losname]{%
+    \section*{#1}%
+    \markboth{\MakeUppercase{#1}}{\MakeUppercase{#1}}}
+  \defbibheading{bibintoc}[\refname]{%
+    \section*{#1}%
+    \addcontentsline{toc}{section}{#1}%
+    \markboth{\MakeUppercase{#1}}{\MakeUppercase{#1}}}
+  \defbibheading{losintoc}[\losname]{%
+    \section*{#1}%
+    \addcontentsline{toc}{section}{#1}%
+    \markboth{\MakeUppercase{#1}}{\MakeUppercase{#1}}}
+  \defbibheading{bibnumbered}[\refname]{%
+    \section{#1}%
+    \if@twoside\markright{\MakeUppercase{#1}}\fi}
+  \defbibheading{losnumbered}[\losname]{%
+    \section{#1}%
+    \if@twoside\markright{\MakeUppercase{#1}}\fi}
+  \defbibheading{subbibliography}[\refname]{%
+    \subsection*{#1}}
+  \defbibheading{subbibintoc}[\refname]{%
+    \subsection*{#1}%
+    \addcontentsline{toc}{subsection}{#1}}
+  \defbibheading{subbibnumbered}[\refname]{%
+    \subsection{#1}}
+
+\or % book/report
+  \defbibheading{bibliography}[\bibname]{%
+    \chapter*{#1}%
+    \markboth{\MakeUppercase{#1}}{\MakeUppercase{#1}}}
+  \defbibheading{shorthands}[\losname]{%
+    \chapter*{#1}%
+    \markboth{\MakeUppercase{#1}}{\MakeUppercase{#1}}}
+  \defbibheading{bibintoc}[\bibname]{%
+    \chapter*{#1}%
+    \addcontentsline{toc}{chapter}{#1}%
+    \markboth{\MakeUppercase{#1}}{\MakeUppercase{#1}}}
+  \defbibheading{losintoc}[\losname]{%
+    \chapter*{#1}%
+    \addcontentsline{toc}{chapter}{#1}%
+    \markboth{\MakeUppercase{#1}}{\MakeUppercase{#1}}}
+  \defbibheading{bibnumbered}[\bibname]{%
+    \chapter{#1}%
+    \if@twoside\markright{\MakeUppercase{#1}}\fi}
+  \defbibheading{losnumbered}[\losname]{%
+    \chapter{#1}%
+    \if@twoside\markright{\MakeUppercase{#1}}\fi}
+  \defbibheading{subbibliography}[\refname]{%
+    \section*{#1}%
+    \if@twoside\markright{\MakeUppercase{#1}}\fi}
+  \defbibheading{subbibintoc}[\refname]{%
+    \section*{#1}%
+    \addcontentsline{toc}{section}{#1}%
+    \if@twoside\markright{\MakeUppercase{#1}}\fi}
+  \defbibheading{subbibnumbered}[\refname]{%
+    \section{#1}}
+
+\or % scrartcl
+  \defbibheading{bibliography}[\refname]{%
+    \ifkomabibtotocnumbered
+      {\section{#1}}
+      {\ifkomabibtotoc
+         {\addsec{#1}}
+         {\section*{#1}}%
+       \markboth{#1}{#1}}}
+  \defbibheading{shorthands}[\losname]{%
+    \ifkomabibtotocnumbered
+      {\section{#1}}
+      {\ifkomabibtotoc
+         {\addsec{#1}}
+         {\section*{#1}}%
+       \markboth{#1}{#1}}}
+  \defbibheading{bibintoc}[\refname]{%
+    \addsec{#1}%
+    \markboth{#1}{#1}}
+  \defbibheading{losintoc}[\losname]{%
+    \addsec{#1}%
+    \markboth{#1}{#1}}
+  \defbibheading{bibnumbered}[\refname]{%
+    \section{#1}%
+    \markboth{\sectionmarkformat#1}{\sectionmarkformat#1}}
+  \defbibheading{losnumbered}[\losname]{%
+    \section{#1}%
+    \markboth{\sectionmarkformat#1}{\sectionmarkformat#1}}
+  \defbibheading{subbibliography}[\refname]{%
+    \subsection*{#1}}
+  \defbibheading{subbibintoc}[\refname]{%
+    \subsection*{#1}%
+    \addcontentsline{toc}{subsection}{#1}}
+  \defbibheading{subbibnumbered}[\refname]{%
+    \subsection{#1}}
+
+\or % scrbook/scrreprt
+  \defbibheading{bibliography}[\bibname]{%
+    \ifkomabibtotocnumbered
+      {\chapter{#1}}
+      {\ifkomabibtotoc
+         {\addchap{#1}}
+         {\chapter*{#1}}%
+       \markboth{#1}{#1}}}
+  \defbibheading{shorthands}[\losname]{%
+    \ifkomabibtotocnumbered
+      {\chapter{#1}}
+      {\ifkomabibtotoc
+         {\addchap{#1}}
+         {\chapter*{#1}}%
+       \markboth{#1}{#1}}}
+  \defbibheading{bibintoc}[\bibname]{%
+    \addchap{#1}%
+    \markboth{#1}{#1}}
+  \defbibheading{losintoc}[\losname]{%
+    \addchap{#1}%
+    \markboth{#1}{#1}}
+  \defbibheading{bibnumbered}[\bibname]{%
+    \chapter{#1}%
+    \markboth{\chaptermarkformat#1}{\chaptermarkformat#1}}
+  \defbibheading{losnumbered}[\losname]{%
+    \chapter{#1}%
+    \markboth{\chaptermarkformat#1}{\chaptermarkformat#1}}
+  \defbibheading{subbibliography}[\refname]{%
+    \section*{#1}%
+    \if@twoside\markright{\sectionmarkformat#1}\fi}
+  \defbibheading{subbibintoc}[\refname]{%
+    \addsec{#1}%
+    \markboth{#1}{#1}}
+  \defbibheading{subbibnumbered}[\refname]{%
+    \section{#1}}
+
+\or % memoir (article)
+  \ifdef\memUChead{}{\let\memUChead\MakeUppercase}
+  \defbibheading{bibliography}[\refname]{%
+    \section*{#1}%
+    \ifmemoirbibintoc
+      {\phantomsection
+       \addcontentsline{toc}{section}{#1}}
+      {}%
+    \markboth{\memUChead{#1}}{\memUChead{#1}}}
+  \defbibheading{shorthands}[\losname]{%
+    \section*{#1}%
+    \ifmemoirbibintoc
+      {\phantomsection
+       \addcontentsline{toc}{section}{#1}}
+      {}%
+    \markboth{\memUChead{#1}}{\memUChead{#1}}}
+  \defbibheading{bibintoc}[\refname]{%
+    \section*{#1}%
+    \phantomsection
+    \addcontentsline{toc}{section}{#1}%
+    \markboth{\memUChead{#1}}{\memUChead{#1}}}
+  \defbibheading{losintoc}[\losname]{%
+    \section*{#1}%
+    \phantomsection
+    \addcontentsline{toc}{section}{#1}%
+    \markboth{\memUChead{#1}}{\memUChead{#1}}}
+  \defbibheading{bibnumbered}[\refname]{%
+    \section{#1}}
+  \defbibheading{losnumbered}[\losname]{%
+    \section{#1}}
+  \defbibheading{subbibliography}[\refname]{%
+    \subsection*{#1}%
+    \ifmemoirbibintoc
+      {\phantomsection
+       \addcontentsline{toc}{subsection}{#1}}
+      {}%
+    \if@twoside\markright{\memUChead{#1}}\fi}
+  \defbibheading{subbibintoc}[\refname]{%
+    \subsection*{#1}%
+    \phantomsection
+    \addcontentsline{toc}{subsection}{#1}%
+    \if@twoside\markright{\memUChead{#1}}\fi}
+  \defbibheading{subbibnumbered}[\refname]{%
+    \subsection{#1}}
+
+\or % memoir (book)
+  \ifdef\memUChead{}{\let\memUChead\MakeUppercase}
+  \defbibheading{bibliography}[\bibname]{%
+    \chapter*{#1}%
+    \ifmemoirbibintoc
+      {\phantomsection
+       \addcontentsline{toc}{chapter}{#1}}
+      {}%
+    \markboth{\memUChead{#1}}{\memUChead{#1}}}
+  \defbibheading{shorthands}[\losname]{%
+    \chapter*{#1}%
+    \ifmemoirbibintoc
+      {\phantomsection
+       \addcontentsline{toc}{chapter}{#1}}
+      {}%
+    \markboth{\memUChead{#1}}{\memUChead{#1}}}
+  \defbibheading{bibintoc}[\bibname]{%
+    \chapter*{#1}%
+    \phantomsection
+    \addcontentsline{toc}{chapter}{#1}%
+    \markboth{\memUChead{#1}}{\memUChead{#1}}}
+  \defbibheading{losintoc}[\losname]{%
+    \chapter*{#1}%
+    \phantomsection
+    \addcontentsline{toc}{chapter}{#1}%
+    \markboth{\memUChead{#1}}{\memUChead{#1}}}
+  \defbibheading{bibnumbered}[\bibname]{%
+    \chapter{#1}%
+    \if@twoside\markright{\memUChead{#1}}\fi}
+  \defbibheading{losnumbered}[\losname]{%
+    \chapter{#1}%
+    \if@twoside\markright{\memUChead{#1}}\fi}
+  \defbibheading{subbibliography}[\refname]{%
+    \section*{#1}%
+    \ifmemoirbibintoc
+      {\phantomsection
+       \addcontentsline{toc}{section}{#1}}
+      {}%
+    \if@twoside\markright{\memUChead{#1}}\fi}
+  \defbibheading{subbibintoc}[\refname]{%
+    \section*{#1}%
+    \phantomsection
+    \addcontentsline{toc}{section}{#1}%
+    \if@twoside\markright{\memUChead{#1}}\fi}
+  \defbibheading{subbibnumbered}[\refname]{%
+    \section{#1}}
+
+\fi
+
+% ------------------------------------------------------------------
+% GENERIC CITATION COMMANDS
+% ------------------------------------------------------------------
+
+\DeclareCiteCommand{\fullcite}
+  {\usebibmacro{prenote}}
+  {\usedriver
+     {\DeclareNameAlias{sortname}{default}}
+     {\thefield{entrytype}}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand{\footfullcite}[\mkbibfootnote]
+  {\usebibmacro{prenote}}
+  {\usedriver
+     {\DeclareNameAlias{sortname}{default}}
+     {\thefield{entrytype}}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand{\citeauthor}
+  {\boolfalse{citetracker}%
+   \boolfalse{pagetracker}%
+   \usebibmacro{prenote}}
+  {\ifciteindex
+     {\indexnames{labelname}}
+     {}%
+   \printnames{labelname}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand{\citetitle}
+  {\boolfalse{citetracker}%
+   \boolfalse{pagetracker}%
+   \usebibmacro{prenote}}
+  {\ifciteindex
+     {\indexfield{indextitle}}
+     {}%
+   \printfield[citetitle]{labeltitle}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand*{\citetitle}
+  {\boolfalse{citetracker}%
+   \boolfalse{pagetracker}%
+   \usebibmacro{prenote}}
+  {\ifciteindex
+     {\indexfield{indextitle}}
+     {}%
+   \printfield[citetitle]{title}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand{\citeyear}
+  {\boolfalse{citetracker}%
+   \boolfalse{pagetracker}%
+   \usebibmacro{prenote}}
+  {\printfield{year}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand{\citedate}
+  {\boolfalse{citetracker}%
+   \boolfalse{pagetracker}%
+   \usebibmacro{prenote}}
+  {\printdate}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand{\citeurl}
+  {\boolfalse{citetracker}%
+   \boolfalse{pagetracker}%
+   \usebibmacro{prenote}}
+  {\printfield[citeurl]{url}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+\DeclareCiteCommand{\notecite}
+  {\printfield{prenote}%
+   \setunit*{\prenotedelim}}
+  {\nocite{\thefield{entrykey}}}
+  {}
+  {\printfield{postnote}}
+
+\DeclareCiteCommand{\pnotecite}[\mkbibparens]
+  {\printfield{prenote}%
+   \setunit*{\prenotedelim}}
+  {\nocite{\thefield{entrykey}}}
+  {}
+  {\printfield{postnote}}
+
+\DeclareCiteCommand{\fnotecite}[\mkbibfootnote]
+  {\printfield{prenote}%
+   \setunit*{\prenotedelim}}
+  {\nocite{\thefield{entrykey}}}
+  {}
+  {\printfield{postnote}}
+
+\newrobustcmd*{\volcite}{\volcitecmd\cite}
+\newrobustcmd*{\pvolcite}{\volcitecmd\parencite}
+\newrobustcmd*{\fvolcite}{\volcitecmd\footcite}
+\newrobustcmd*{\ftvolcite}{\volcitecmd\footcitetext}
+\newrobustcmd*{\svolcite}{\volcitecmd\smartcite}
+\newrobustcmd*{\tvolcite}{\volcitecmd\textcite}
+\newrobustcmd*{\avolcite}{\volcitecmd\autocite}
+
+\newrobustcmd*{\Cite}{\bibsentence\cite}
+\newrobustcmd*{\Parencite}{\bibsentence\parencite}
+\newrobustcmd*{\Footcite}{\footcite}
+\newrobustcmd*{\Footcitetext}{\footcitetext}
+\newrobustcmd*{\Smartcite}{\bibsentence\smartcite}
+\newrobustcmd*{\Textcite}{\bibsentence\textcite}
+\newrobustcmd*{\Citeauthor}{\bibsentence\citeauthor}
+\newrobustcmd*{\Citetitle}{\bibsentence\citetitle}
+
+\newrobustcmd*{\Volcite}{\volcitecmd\Cite}
+\newrobustcmd*{\Pvolcite}{\volcitecmd\Parencite}
+\newrobustcmd*{\Fvolcite}{\volcitecmd\Footcite}
+\newrobustcmd*{\Ftvolcite}{\volcitecmd\Footcitetext}
+\newrobustcmd*{\Svolcite}{\volcitecmd\Smartcite}
+\newrobustcmd*{\Tvolcite}{\volcitecmd\Textcite}
+\newrobustcmd*{\Avolcite}{\volcitecmd\Autocite}
+
+\newrobustcmd*{\Notecite}{\bibsentence\notecite}
+\newrobustcmd*{\Pnotecite}{\bibsentence\pnotecite}
+\newrobustcmd*{\Fnotecite}{\fnotecite}
+
+\DeclareMultiCiteCommand{\cites}{\cite}{\multicitedelim}
+\DeclareMultiCiteCommand{\parencites}[\mkbibparens]{\parencite}{\multicitedelim}
+\DeclareMultiCiteCommand{\footcites}[\mkbibfootnote]{\footcite}{\multicitedelim}
+\DeclareMultiCiteCommand{\footcitetexts}[\mkbibfootnotetext]{\footcitetext}{\multicitedelim}
+\DeclareMultiCiteCommand{\smartcites}[\iffootnote\mkbibparens\mkbibfootnote]{\smartcite}{\multicitedelim}
+\DeclareMultiCiteCommand{\supercites}[\mkbibsuperscript]{\supercite}{\supercitedelim}
+\DeclareMultiCiteCommand{\textcites}{\textcite}{\multicitedelim}
+
+\newrobustcmd*{\Cites}{\bibsentence\cites}
+\newrobustcmd*{\Parencites}{\bibsentence\parencites}
+\newrobustcmd*{\Footcites}{\footcites}
+\newrobustcmd*{\Footcitetexts}{\footcitetexts}
+\newrobustcmd*{\Smartcites}{\bibsentence\smartcites}
+\newrobustcmd*{\Textcites}{\bibsentence\textcites}
+
+\DeclareAutoCiteCommand{plain}{\cite}{\cites}
+\DeclareAutoCiteCommand{inline}{\parencite}{\parencites}
+%\DeclareAutoCiteCommand{footnote}[l]{\footcite}{\footcites}
+\DeclareAutoCiteCommand{footnote}[f]{\smartcite}{\smartcites}
+\DeclareAutoCiteCommand{superscript}[l]{\supercite}{\supercites}
+
+\newrobustcmd*{\Autocite}{\bibsentence\autocite}
+\newrobustcmd*{\Autocites}{\bibsentence\autocites}
+
+% ------------------------------------------------------------------
+% GENERIC CITATION MACROS
+% ------------------------------------------------------------------
+
+\newbibmacro*{citeindex}{%
+  \ifciteindex
+    {\indexnames{labelname}%
+     \indexfield{indextitle}}
+    {}}
+
+\newbibmacro*{shorthandintro}{%
+  \iffieldundef{shorthandintro}
+    {\iffieldundef{shorthand}
+       {}
+       {\setunit{\addspace}%
+        \printtext[parens]{%
+          \bibstring{citedas}\space
+          \printfield{shorthand}}}}
+    {\setunit{\addspace}%
+     \printtext[parens]{\printfield{shorthandintro}}}}
+
+% citation commands
+
+\newbibmacro*{prenote}{%
+  \iffieldundef{prenote}
+    {}
+    {\printfield{prenote}%
+     \setunit{\prenotedelim}}}
+
+\newbibmacro*{postnote}{%
+  \iffieldundef{postnote}
+    {}
+    {\setunit{\postnotedelim}%
+     \printfield{postnote}}}
+
+% multicite commands
+
+\newbibmacro*{multiprenote}{%
+  \iffieldundef{multiprenote}
+    {}
+    {\printfield{multiprenote}%
+     \prenotedelim}}
+
+\newbibmacro*{multipostnote}{%
+  \iffieldundef{multipostnote}
+    {}
+    {\postnotedelim
+     \printfield{multipostnote}}}
+
+% ------------------------------------------------------------------
+% GENERIC BIBLIOGRAPHY MACROS
+% ------------------------------------------------------------------
+
+\newbibmacro*{bibindex}{%
+  \ifbibindex
+    {\indexnames{labelname}%
+     \indexfield{indextitle}}
+    {}}
+
+\newbibmacro*{author/editor}{%
+  \ifboolexpr{
+    test \ifuseauthor
+    and
+    not test {\ifnameundef{author}}
+  }
+    {\usebibmacro{author}}
+    {\usebibmacro{editor}}}
+
+\newbibmacro*{author/editor+others}{%
+  \ifboolexpr{
+    test \ifuseauthor
+    and
+    not test {\ifnameundef{author}}
+  }
+    {\usebibmacro{author}}
+    {\usebibmacro{editor+others}}}
+
+\newbibmacro*{author/translator}{%
+  \ifboolexpr{
+    test \ifuseauthor
+    and
+    not test {\ifnameundef{author}}
+  }
+    {\usebibmacro{author}}
+    {\usebibmacro{translator}}}
+
+\newbibmacro*{author/translator+others}{%
+  \ifboolexpr{
+    test \ifuseauthor
+    and
+    not test {\ifnameundef{author}}
+  }
+    {\usebibmacro{author}}
+    {\usebibmacro{translator+others}}}
+
+\newbibmacro*{author/editor/translator}{%
+  \ifboolexpr{
+    test \ifuseauthor
+    and
+    not test {\ifnameundef{author}}
+  }
+    {\usebibmacro{author}}
+    {\ifboolexpr{
+       test \ifuseeditor
+       and
+       not test {\ifnameundef{editor}}
+     }
+       {\usebibmacro{editor}}
+       {\usebibmacro{translator}}}}
+
+\newbibmacro*{author/editor+others/translator+others}{%
+  \ifboolexpr{
+    test \ifuseauthor
+    and
+    not test {\ifnameundef{author}}
+  }
+    {\usebibmacro{author}}
+    {\ifboolexpr{
+       test \ifuseeditor
+       and
+       not test {\ifnameundef{editor}}
+     }
+       {\usebibmacro{editor+others}}
+       {\usebibmacro{translator+others}}}}
+
+\newbibmacro*{author}{%
+  \ifboolexpr{
+    test \ifuseauthor
+    and
+    not test {\ifnameundef{author}}
+  }
+    {\printnames{author}%
+     \iffieldundef{authortype}
+       {}
+       {\setunit{\addcomma\space}%
+	\usebibmacro{authorstrg}}}
+    {}}
+
+\newbibmacro*{editor}{%
+  \ifboolexpr{
+    test \ifuseeditor
+    and
+    not test {\ifnameundef{editor}}
+  }
+    {\printnames{editor}%
+     \setunit{\addcomma\space}%
+     \usebibmacro{editorstrg}%
+     \clearname{editor}}
+    {}}
+
+\newbibmacro*{editor+others}{%
+  \ifboolexpr{
+    test \ifuseeditor
+    and
+    not test {\ifnameundef{editor}}
+  }
+    {\printnames{editor}%
+     \setunit{\addcomma\space}%
+     \usebibmacro{editor+othersstrg}%
+     \clearname{editor}}
+    {}}
+
+\newbibmacro*{translator}{%
+  \ifboolexpr{
+    test \ifusetranslator
+    and
+    not test {\ifnameundef{translator}}
+  }
+    {\printnames{translator}%
+     \setunit{\addcomma\space}%
+     \usebibmacro{translatorstrg}%
+     \clearname{translator}}
+    {}}
+
+\newbibmacro*{translator+others}{%
+  \ifboolexpr{
+    test \ifusetranslator
+    and
+    not test {\ifnameundef{translator}}
+  }
+    {\printnames{translator}%
+     \setunit{\addcomma\space}%
+     \usebibmacro{translator+othersstrg}%
+     \clearname{translator}}
+    {}}
+
+\newbibmacro*{authorstrg}{%
+  \iffieldundef{authortype}
+    {}
+    {\printtext[authortype]{%
+       \ifbibxstring{\thefield{authortype}}
+	 {\ifboolexpr{
+	    test {\ifnumgreater{\value{author}}{1}}
+	    or
+	    test {\ifandothers{author}}
+	  }
+	    {\bibstring{\thefield{authortype}s}}
+	    {\bibstring{\thefield{authortype}}}}
+	 {\thefield{authortype}}}}}
+
+\newbibmacro*{editorstrg}{%
+  \printtext[editortype]{%
+    \iffieldundef{editortype}
+      {\ifboolexpr{
+	 test {\ifnumgreater{\value{editor}}{1}}
+	 or
+	 test {\ifandothers{editor}}
+       }
+	 {\bibstring{editors}}
+	 {\bibstring{editor}}}
+      {\ifbibxstring{\thefield{editortype}}
+	 {\ifboolexpr{
+	    test {\ifnumgreater{\value{editor}}{1}}
+	    or
+	    test {\ifandothers{editor}}
+	  }
+	    {\bibstring{\thefield{editortype}s}}
+	    {\bibstring{\thefield{editortype}}}}
+	 {\thefield{editortype}}}}}
+
+\newbibmacro*{editor+othersstrg}{%
+  \iffieldundef{editortype}
+    {\ifboolexpr{
+       test {\ifnumgreater{\value{editor}}{1}}
+       or
+       test {\ifandothers{editor}}
+     }
+       {\def\abx@tempa{editors}}
+       {\def\abx@tempa{editor}}}
+    {\ifboolexpr{
+       test {\ifnumgreater{\value{editor}}{1}}
+       or
+       test {\ifandothers{editor}}
+     }
+       {\edef\abx@tempa{\thefield{editortype}s}}
+       {\edef\abx@tempa{\thefield{editortype}}}}%
+  \let\abx@tempb=\empty
+  \ifnamesequal{editor}{translator}
+    {\appto\abx@tempa{tr}%
+     \appto\abx@tempb{\clearname{translator}}}
+    {}%
+  \ifnamesequal{editor}{commentator}
+    {\appto\abx@tempa{co}%
+     \appto\abx@tempb{\clearname{commentator}}}
+    {\ifnamesequal{editor}{annotator}
+       {\appto\abx@tempa{an}%
+	\appto\abx@tempb{\clearname{annotator}}}
+       {}}%
+  \ifnamesequal{editor}{introduction}
+    {\appto\abx@tempa{in}%
+     \appto\abx@tempb{\clearname{introduction}}}
+    {\ifnamesequal{editor}{foreword}
+       {\appto\abx@tempa{fo}%
+	\appto\abx@tempb{\clearname{foreword}}}
+       {\ifnamesequal{editor}{afterword}
+          {\appto\abx@tempa{af}%
+           \appto\abx@tempb{\clearname{afterword}}}
+          {}}}%
+  \ifbibxstring{\abx@tempa}
+    {\printtext[editortype]{\bibstring{\abx@tempa}}\abx@tempb}
+    {\usebibmacro{editorstrg}}}
+
+\newbibmacro*{translatorstrg}{%
+  \ifboolexpr{
+    test {\ifnumgreater{\value{translator}}{1}}
+    or
+    test {\ifandothers{translator}}
+  }
+    {\bibstring{translators}}
+    {\bibstring{translator}}}
+
+\newbibmacro*{translator+othersstrg}{%
+  \ifboolexpr{
+    test {\ifnumgreater{\value{translator}}{1}}
+    or
+    test {\ifandothers{translator}}
+  }
+    {\def\abx@tempa{translators}}
+    {\def\abx@tempa{translator}}%
+  \ifnamesequal{translator}{commentator}
+    {\appto\abx@tempa{co}%
+     \clearname{commentator}}
+    {\ifnamesequal{translator}{annotator}
+       {\appto\abx@tempa{an}%
+	\clearname{annotator}}
+       {}}%
+  \ifnamesequal{translator}{introduction}
+    {\appto\abx@tempa{in}%
+     \clearname{introduction}}
+    {\ifnamesequal{translator}{foreword}
+       {\appto\abx@tempa{fo}%
+	\clearname{foreword}}
+       {\ifnamesequal{translator}{afterword}
+          {\appto\abx@tempa{af}%
+           \clearname{afterword}}
+          {}}}%
+  \bibstring{\abx@tempa}}
+
+\newbibmacro*{byauthor}{%
+  \ifboolexpr{
+    test \ifuseauthor
+    or
+    test {\ifnameundef{author}}
+  }
+    {}
+    {\usebibmacro{bytypestrg}{author}{author}%
+     \setunit{\addspace}%
+     \printnames[byauthor]{author}}}
+
+\newbibmacro*{bybookauthor}{%
+  \ifnamesequal{author}{bookauthor}
+    {}
+    {\printnames{bookauthor}}}
+
+\newbibmacro*{byeditor}{%
+  \ifnameundef{editor}
+    {}
+    {\usebibmacro{bytypestrg}{editor}{editor}%
+     \setunit{\addspace}%
+     \printnames[byeditor]{editor}%
+     \newunit}%
+  \usebibmacro{byeditorx}}
+
+\newbibmacro*{byeditorx}{%
+  \ifnameundef{editora}
+    {}
+    {\usebibmacro{bytypestrg}{editora}{editor}%
+     \setunit{\addspace}%
+     \printnames[byeditora]{editora}%
+     \newunit}%
+  \ifnameundef{editorb}
+    {}
+    {\usebibmacro{bytypestrg}{editorb}{editor}%
+     \setunit{\addspace}%
+     \printnames[byeditorb]{editorb}%
+     \newunit}%
+  \ifnameundef{editorc}
+    {}
+    {\usebibmacro{bytypestrg}{editorc}{editor}%
+     \setunit{\addspace}%
+     \printnames[byeditorc]{editorc}%
+     \newunit}}
+
+\newbibmacro*{bytranslator}{%
+  \ifnameundef{translator}
+    {}
+    {\bibstring{bytranslator}%
+     \setunit{\addspace}%
+     \printnames[bytranslator]{translator}}}
+
+\newbibmacro*{byholder}{%
+  \printnames{holder}}
+
+\newbibmacro*{byeditor+others}{%
+  \ifnameundef{editor}
+    {}
+    {\usebibmacro{byeditor+othersstrg}%
+     \setunit{\addspace}%
+     \printnames[byeditor]{editor}%
+     \clearname{editor}%
+     \newunit}%
+  \usebibmacro{byeditorx}%
+  \usebibmacro{bytranslator+others}}
+
+\newbibmacro*{bytranslator+others}{%
+  \ifnameundef{translator}
+    {}
+    {\usebibmacro{bytranslator+othersstrg}%
+     \setunit{\addspace}%
+     \printnames[bytranslator]{translator}%
+     \clearname{translator}%
+     \newunit}%
+  \usebibmacro{withothers}}
+
+\newbibmacro*{bytypestrg}[2]{%
+  \iffieldundef{#1type}
+    {\bibstring{by#2}}
+    {\ifbibxstring{by\thefield{#1type}}
+       {\bibstring{by\thefield{#1type}}}
+       {\printtext{\thefield{#1type}}}}}
+
+\newbibmacro*{byeditor+othersstrg}{%
+  \iffieldundef{editortype}
+    {\def\abx@tempa{byeditor}}
+    {\edef\abx@tempa{by\thefield{editortype}}}%
+  \let\abx@tempb=\empty
+  \ifnamesequal{editor}{translator}
+    {\appto\abx@tempa{tr}%
+     \appto\abx@tempb{\clearname{translator}}}
+    {}%
+  \ifnamesequal{editor}{commentator}
+    {\appto\abx@tempa{co}%
+     \appto\abx@tempb{\clearname{commentator}}}
+    {\ifnamesequal{editor}{annotator}
+       {\appto\abx@tempa{an}%
+        \appto\abx@tempb{\clearname{annotator}}}
+       {}}%
+  \ifnamesequal{editor}{introduction}
+    {\appto\abx@tempa{in}%
+     \appto\abx@tempb{\clearname{introduction}}}
+    {\ifnamesequal{editor}{foreword}
+       {\appto\abx@tempa{fo}%
+        \appto\abx@tempb{\clearname{foreword}}}
+       {\ifnamesequal{editor}{afterword}
+          {\appto\abx@tempa{af}%
+           \appto\abx@tempb{\clearname{afterword}}}
+          {}}}%
+  \ifbibxstring{\abx@tempa}
+    {\printtext{\bibstring{\abx@tempa}}\abx@tempb}
+    {\usebibmacro{bytypestrg}{editor}{editor}}}
+
+\newbibmacro*{bytranslator+othersstrg}{%
+  \def\abx@tempa{bytranslator}%
+  \ifnamesequal{translator}{commentator}
+    {\appto\abx@tempa{co}%
+     \clearname{commentator}}
+    {\ifnamesequal{translator}{annotator}
+       {\appto\abx@tempa{an}%
+	\clearname{annotator}}
+       {}}%
+  \ifnamesequal{translator}{introduction}
+    {\appto\abx@tempa{in}%
+     \clearname{introduction}}
+    {\ifnamesequal{translator}{foreword}
+       {\appto\abx@tempa{fo}%
+	\clearname{foreword}}
+       {\ifnamesequal{translator}{afterword}
+          {\appto\abx@tempa{af}%
+           \clearname{afterword}}
+          {}}}%
+  \bibstring{\abx@tempa}}
+
+\newbibmacro*{withcommentator}{%
+  \ifnameundef{commentator}
+    {}
+    {\bibstring{withcommentator}%
+     \setunit{\addspace}%
+     \printnames[withcommentator]{commentator}}}
+
+\newbibmacro*{withannotator}{%
+  \ifnameundef{annotator}
+    {}
+    {\bibstring{withannotator}%
+     \setunit{\addspace}%
+     \printnames[withannotator]{annotator}}}
+
+\newbibmacro*{withintroduction}{%
+  \ifnameundef{introduction}
+    {}
+    {\bibstring{withintroduction}%
+     \setunit{\addspace}%
+     \printnames[withintroduction]{introduction}}}
+
+\newbibmacro*{withforeword}{%
+  \ifnameundef{foreword}
+    {}
+    {\bibstring{withforeword}%
+     \setunit{\addspace}%
+     \printnames[withforeword]{foreword}}}
+
+\newbibmacro*{withafterword}{%
+  \ifnameundef{afterword}
+    {}
+    {\bibstring{withafterword}%
+     \setunit{\addspace}%
+     \printnames[withafterword]{afterword}}}
+
+\newbibmacro*{withothers}{%
+  \usebibmacro{withcommentator}%
+  \clearname{commentator}%
+  \newunit
+  \usebibmacro{withannotator}%
+  \clearname{annotator}%
+  \newunit
+  \usebibmacro{withintroduction}%
+  \clearname{introduction}%
+  \newunit
+  \usebibmacro{withforeword}%
+  \clearname{foreword}%
+  \newunit
+  \usebibmacro{withafterword}%
+  \clearname{afterword}}
+
+\newbibmacro*{title}{%
+  \ifboolexpr{
+    test {\iffieldundef{title}}
+    and
+    test {\iffieldundef{subtitle}}
+  }
+    {}
+    {\printtext[title]{%
+       \printfield[titlecase]{title}%
+       \setunit{\subtitlepunct}%
+       \printfield[titlecase]{subtitle}}%
+     \newunit}%
+  \printfield{titleaddon}}
+
+\newbibmacro*{booktitle}{%
+  \ifboolexpr{
+    test {\iffieldundef{booktitle}}
+    and
+    test {\iffieldundef{booksubtitle}}
+  }
+    {}
+    {\printtext[booktitle]{%
+       \printfield[titlecase]{booktitle}%
+       \setunit{\subtitlepunct}%
+       \printfield[titlecase]{booksubtitle}}%
+     \newunit}%
+  \printfield{booktitleaddon}}
+
+\newbibmacro*{maintitle}{%
+  \ifboolexpr{
+    test {\iffieldundef{maintitle}}
+    and
+    test {\iffieldundef{mainsubtitle}}
+  }
+    {}
+    {\printtext[maintitle]{%
+       \printfield[titlecase]{maintitle}%
+       \setunit{\subtitlepunct}%
+       \printfield[titlecase]{mainsubtitle}}%
+     \newunit}%
+  \printfield{maintitleaddon}}
+
+\newbibmacro*{journal}{%
+  \iffieldundef{journaltitle}
+    {}
+    {\printtext[journaltitle]{%
+       \printfield[titlecase]{journaltitle}%
+       \setunit{\subtitlepunct}%
+       \printfield[titlecase]{journalsubtitle}}}}
+
+\newbibmacro*{periodical}{%
+  \iffieldundef{title}
+    {}
+    {\printtext[title]{%
+       \printfield[titlecase]{title}%
+       \setunit{\subtitlepunct}%
+       \printfield[titlecase]{subtitle}}}}
+
+\newbibmacro*{issue}{%
+  \iffieldundef{issuetitle}
+    {}
+    {\printtext[issuetitle]{%
+       \printfield[titlecase]{issuetitle}%
+       \setunit{\subtitlepunct}%
+       \printfield[titlecase]{issuesubtitle}}}}
+
+\newbibmacro*{in:}{%
+  \printtext{%
+    \bibstring{in}\intitlepunct}}
+
+\newbibmacro*{date}{\printdate}
+
+\newbibmacro*{url+urldate}{%
+  \printfield{url}%
+  \iffieldundef{urlyear}
+    {}
+    {\setunit*{\addspace}%
+     \printurldate}}
+
+\newbibmacro*{pageref}{%
+  \iflistundef{pageref}
+    {}
+    {\printtext[parens]{%
+       \ifnumgreater{\value{pageref}}{1}
+         {\bibstring{backrefpages}\ppspace}
+	 {\bibstring{backrefpage}\ppspace}%
+       \printlist[pageref][-\value{listtotal}]{pageref}}}}
+
+\newbibmacro*{setpageref}{%
+  \iflistundef{pageref}
+    {}
+    {\printtext{%
+       \ifnumgreater{\value{pageref}}{1}
+         {\bibstring{backrefpages}\ppspace}
+	 {\bibstring{backrefpage}\ppspace}%
+       \printlist[pageref][-\value{listtotal}]{pageref}}}}
+
+\newbibmacro*{eprint}{%
+  \iffieldundef{eprinttype}
+    {\printfield{eprint}}
+    {\printfield[eprint:\strfield{eprinttype}]{eprint}}}
+
+\newbibmacro*{annotation}{%
+  \iffieldundef{annotation}
+    {\printfile[annotation]{\bibannotationprefix\thefield{entrykey}.tex}}
+    {\printfield{annotation}}}
+
+\newbibmacro*{abstract}{%
+  \iffieldundef{abstract}
+    {\printfile[abstract]{\bibabstractprefix\thefield{entrykey}.tex}}
+    {\printfield{abstract}}}
+
+\endinput

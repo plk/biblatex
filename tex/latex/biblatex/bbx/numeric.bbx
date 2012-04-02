@@ -1,0 +1,61 @@
+% $Id: numeric.bbx,v 1.7 2011/11/13 19:09:07 lehman stable $
+
+\ProvidesFile{numeric.bbx}
+[\abx@bbxid $Id: numeric.bbx,v 1.7 2011/11/13 19:09:07 lehman stable $]
+
+\RequireBibliographyStyle{standard}
+\ExecuteBibliographyOptions{labelnumber}
+
+\providebool{bbx:subentry}
+
+\DeclareBibliographyOption{subentry}[true]{%
+  \setbool{bbx:subentry}{#1}}
+
+\DeclareNameAlias{author}{default}
+\DeclareNameAlias{editor}{default}
+\DeclareNameAlias{translator}{default}
+
+\DeclareFieldFormat{bibentrysetcount}{\mkbibparens{\mknumalph{#1}}}
+\DeclareFieldFormat{labelnumberwidth}{\mkbibbrackets{#1}}
+\DeclareFieldFormat{shorthandwidth}{\mkbibbrackets{#1}}
+
+\defbibenvironment{bibliography}
+  {\list
+     {\printtext[labelnumberwidth]{%
+	\printfield{prefixnumber}%
+	\printfield{labelnumber}}}
+     {\setlength{\labelwidth}{\labelnumberwidth}%
+      \setlength{\leftmargin}{\labelwidth}%
+      \setlength{\labelsep}{\biblabelsep}%
+      \addtolength{\leftmargin}{\labelsep}%
+      \setlength{\itemsep}{\bibitemsep}%
+      \setlength{\parsep}{\bibparsep}}%
+      \renewcommand*{\makelabel}[1]{\hss##1}}
+  {\endlist}
+  {\item}
+
+\defbibenvironment{shorthands}
+  {\list
+     {\printfield[shorthandwidth]{shorthand}}
+     {\setlength{\labelwidth}{\shorthandwidth}%
+      \setlength{\leftmargin}{\labelwidth}%
+      \setlength{\labelsep}{\biblabelsep}%
+      \addtolength{\leftmargin}{\labelsep}%
+      \setlength{\itemsep}{\bibitemsep}%
+      \setlength{\parsep}{\bibparsep}%
+      \renewcommand*{\makelabel}[1]{\hss##1}}}
+  {\endlist}
+  {\item}
+
+\DeclareBibliographyDriver{set}{%
+  \entryset
+    {\ifbool{bbx:subentry}
+       {\printfield[bibentrysetcount]{entrysetcount}%
+	\setunit*{\addnbspace}}
+       {}}
+    {}%
+  \newunit\newblock
+  \usebibmacro{setpageref}%
+  \finentry}
+
+\endinput
