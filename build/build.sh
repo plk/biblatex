@@ -6,16 +6,18 @@ then
   exit 1
 fi
 
-declare TAG_VERSION=`git describe --tags | cut -d '-' -f 1`
+declare VERSION=`git describe --tags | cut -d '-' -f 1`
 declare DATE=`date '+%Y/%m/%d'`
 
-\rm -rf tds/*
+\rm -rf build/tds/*
 cp -r bibtex build/tds/
 cp -r doc build/tds/
 cp -r tex build/tds/
 
-find tds -type f | xargs perl -pi.bak -e "s/\$Id:\$/\$Id: $DATE $VERSION \$/;"
+find build/tds -type f | xargs perl -pi -e "s|\\\$Id:\\\$|\\\$Id: $DATE $VERSION \\\$|;"
 
+# Can't do in-place on windows (cygwin)
+find build/tds -name \*.bak | xargs rm
 
 
 
