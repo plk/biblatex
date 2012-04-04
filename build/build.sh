@@ -10,6 +10,7 @@ declare VERSION=`git describe --tags | cut -d '-' -f 1`
 declare DATE=`date '+%Y/%m/%d'`
 
 \rm -rf build/tds/*
+\rm -f build/biblatex-i.tgz
 cp -r bibtex build/tds/
 cp -r doc build/tds/
 cp -r tex build/tds/
@@ -20,6 +21,14 @@ find build/tds -type f | xargs perl -pi -e "s|\\\$Id:\\\$|\\\$Id: $DATE $VERSION
 
 # Can't do in-place on windows (cygwin)
 find build/tds -name \*.bak | xargs rm
+find build/tds -name auto | xargs \rm -rf
+
+pdflatex -interaction=batchmode build/tds/doc/latex/biblatex/biblatex.tex
+pdflatex -interaction=batchmode build/tds/doc/latex/biblatex/biblatex.tex
+pdflatex -interaction=batchmode build/tds/doc/latex/biblatex/biblatex.tex
+mv biblatex.pdf build/tds/doc/latex/biblatex/
+\rm -f biblatex.*
+tar zcf build/biblatex-i.tgz -C build/tds bibtex doc tex
 
 
 
