@@ -6077,7 +6077,11 @@
   \ifcsundef{blx@biber@sorting@#1}
     {\blx@err@invopt{sorting=#1}{}}%
     {\def\blx@tempc{#1}%
-     \letcs\blx@tempd{blx@biber@sorting@#1}}}
+     \edef\blx@tempd{%
+       \blx@xml@sorting{%
+         \blx@bcf@presort
+         \blx@bcf@exclude
+         \csuse{blx@biber@sorting@#1}}}}}
 
 \define@key{blx@bib}{section}{%
   \ifcsundef{blx@sbib@#1}
@@ -6689,12 +6693,16 @@
   \let\blx@theprenote\@empty
   \let\blx@thepostnote\@empty
   \let\blx@thetitle\@empty
+  \let\blx@tempc\@empty% used to hold sorting scheme name from "sorting=" option
+  \let\blx@tempd\@empty% used to hold sorting scheme itself from "sorting=" option
   \let\blx@printbibchecks\relax
   \blx@safe@actives
   \setkeys{blx@los}{#1}%
   \blx@rest@actives
   \ifdefvoid\blx@tempa
-    {\blx@warn@losempty\endgroup}
+    {\blx@warn@losempty
+     \csxappto{blx@biber@\the\c@refsection @sectionlists}{\blx@xml@sectionlistlos{\blx@tempc}{shorthand}{\blx@tempd}}%
+     \endgroup}
     {\blx@shorthands\blx@tempa}}
 
 \def\blx@printbibchecks{%
@@ -8929,9 +8937,14 @@
   ~~~~<bcf:sectionlist\noexpand\ifdefempty{#1}{}{ label="#1"} type="#2"%
   \noexpand\ifdefempty{#3}
     {/>\blx@nl}
-    {>\blx@nl%
+    {>\blx@nl
      #3%
      ~~~~</bcf:sectionlist>\blx@nl}}
+\xdef\blx@xml@sectionlistlos#1#2#3{%
+  ~~~~<bcf:sectionlist\noexpand\ifdefempty{#1}{}{ label="#1"} type="#2">\blx@nl
+  ~~~~~~<bcf:filter type="field">shorthand</bcf:filter>\blx@nl
+  #3%
+  ~~~~</bcf:sectionlist>\blx@nl}
 
 \xdef\blx@xml@bibdata#1#2{%
   ~~<bcf:bibdata section="#1">\blx@nl
