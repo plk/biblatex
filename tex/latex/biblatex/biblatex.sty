@@ -493,6 +493,9 @@
   \ifcsundef{blx@losh@\the\c@refsection}
     {\global\cslet{blx@losh@\the\c@refsection}\@empty}
     {}%
+  \ifcsundef{blx@sectionlists@\the\c@refsection}
+    {\global\cslet{blx@sectionlists@\the\c@refsection}\@empty}
+    {}%
   \blx@ibidreset@force
   \blx@idemreset@force
   \blx@opcitreset@force
@@ -5403,6 +5406,8 @@
 %                                       keyword -> keys [internal list]
 % \blx@losh@<section>                   shorthand hash
 %                                       section -> keys [internal list]
+% \blx@sectionlists@<section>           sectionlist hash
+%                                       section -> keys [internal list]
 % \blx@catg@<category>                  category hash, global
 %                                       category -> keys [internal list]
 % \blx@set@<section>@<entrykey>         parent -> child mapping (dynamic entry sets)
@@ -5757,8 +5762,9 @@
   \let\endentry\blx@bbl@endentry
   \let\missing\blx@bbl@missing
   \let\keyalias\blx@bbl@keyalias
-  \let\lossort\blx@bbl@lossort
-  \let\endlossort\blx@bbl@endlossort
+  \let\sectionlist\blx@bbl@sectionlist
+  \let\lossort\blx@bbl@lossort % BibTeX only
+  \let\endlossort\blx@bbl@endlossort % BibTeX only
   \let\set\blx@bbl@set
   \let\inset\blx@bbl@inset
   \let\xref\blx@bbl@xref % BibTeX only
@@ -5841,6 +5847,12 @@
 \protected\def\blx@aux@numprefix#1#2#3{%
   \blx@bbl@addentryfield{\detokenize{#1}}{#2}{prefixnumber}{#3}}
 
+\def\blx@bbl@sectionlist#1#2{%
+  \begingroup
+  \def\key##1{\listcsxadd{blx@sectionlists@\the\c@refsection}{\detokenize{##1}}}}
+\let\blx@bbl@sectionlist\endgroup
+
+% BibTeX only, Biber uses the generic sectionlist macro
 \def\blx@bbl@lossort{%
   \begingroup
   \def\key##1{\listcsxadd{blx@losh@\the\c@refsection}{\detokenize{##1}}}}
@@ -6370,7 +6382,7 @@
   \blx@rest@actives
   \ifdefvoid\blx@tempa
     {\blx@warn@bibempty
-     \csxappto{blx@biber@\the\c@refsection @sectionlists}{\blx@xml@sectionlist{\blx@tempc}{entry}{\blx@tempd}}%
+     \csxappto{blx@xml@\the\c@refsection @sectionlists}{\blx@xml@sectionlist{\blx@tempc}{entry}{\blx@tempd}}%
      \endgroup}
     {\blx@bibliography\blx@tempa}}
 
@@ -6701,7 +6713,7 @@
   \blx@rest@actives
   \ifdefvoid\blx@tempa
     {\blx@warn@losempty
-     \csxappto{blx@biber@\the\c@refsection @sectionlists}{\blx@xml@sectionlistlos{\blx@tempc}{shorthand}{\blx@tempd}}%
+     \csxappto{blx@xml@\the\c@refsection @sectionlists}{\blx@xml@sectionlistlos{\blx@tempc}{shorthand}{\blx@tempd}}%
      \endgroup}
     {\blx@shorthands\blx@tempa}}
 
@@ -6846,7 +6858,7 @@
   \blx@bibdata\blx@tempa\blx@bibfiles
   \blx@auxwrite\blx@auxout
     {\let\do\blx@datasource}
-    {\csuse{blx@biber@\the\c@refsection @sectionlists}%
+    {\csuse{blx@xml@\the\c@refsection @sectionlists}%
      \blx@xml@endsection\blx@nl
      \blx@xml@comment{section \the\c@refsection}%
      \blx@xml@bibdata{\the\c@refsection}{\blx@tempa}%
@@ -6879,7 +6891,7 @@
 \def\blx@endrefsection@biber{%
   \ifnum\c@refsection>\z@
     \blx@auxwrite\blx@auxout{}{%
-      \csuse{blx@biber@0@sectionlists}%
+      \csuse{blx@xml@0@sectionlists}%
       \blx@xml@endsection\blx@nl
       \blx@xml@comment{section 0 (cont.)}%
       \blx@xml@section{0}}%
@@ -9168,7 +9180,7 @@
   \endgroup
   \AfterEndDocument{%
     \blx@auxwrite\blx@auxout{}{%
-      \csuse{blx@biber@0@sectionlists}%
+      \csuse{blx@xml@0@sectionlists}%
       \blx@xml@endsection
       \blx@xml@endfile}%
     \immediate\closeout\blx@auxout}}
