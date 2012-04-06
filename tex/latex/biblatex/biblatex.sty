@@ -34,6 +34,7 @@
 \RequirePackage{logreq}
 \RequirePackage{ifthen}
 \RequirePackage{url}
+\RequirePackage{trace}
 
 \@ifpackagelater{etoolbox}{2010/11/29}
   {}
@@ -6064,13 +6065,19 @@
 
 \define@key{blx@bib}{sorting}{%
   \ifcsundef{blx@biber@sorting@#1}
-    {\blx@err@invopt{sorting=#1}{}%
-    {}}
+    {\blx@err@invopt{sorting=#1}{}}%
+    {\def\blx@tempc{#1}%
+     \edef\blx@tempd{%
+       \blx@xml@sorting{%
+         \blx@bcf@presort
+         \blx@bcf@exclude
+         \csuse{blx@biber@sorting@#1}}}}}
 
 \define@key{blx@los}{sorting}{%
   \ifcsundef{blx@biber@sorting@#1}
-    {\blx@err@invopt{sorting=#1}{}%
-    {}}
+    {\blx@err@invopt{sorting=#1}{}}%
+    {\def\blx@tempc{#1}%
+     \letcs\blx@tempd{blx@biber@sorting@#1}}}
 
 \define@key{blx@bib}{section}{%
   \ifcsundef{blx@sbib@#1}
@@ -6352,13 +6359,15 @@
   \let\blx@theprenote\@empty
   \let\blx@thepostnote\@empty
   \let\blx@thetitle\@empty
+  \let\blx@tempc\@empty% used to hold sorting scheme name from "sorting=" option
+  \let\blx@tempd\@empty% used to hold sorting scheme itself from "sorting=" option
   \blx@safe@actives
   \setkeys{blx@bib}{#1}%
   \blx@rest@actives
   \ifdefvoid\blx@tempa
     {\blx@warn@bibempty
-      
-      \endgroup}
+     \csxappto{blx@biber@\the\c@refsection @sectionlists}{\blx@xml@sectionlist{\blx@tempc}{entry}{\blx@tempd}}%
+     \endgroup}
     {\blx@bibliography\blx@tempa}}
 
 % [<options>]
@@ -6829,7 +6838,8 @@
   \blx@bibdata\blx@tempa\blx@bibfiles
   \blx@auxwrite\blx@auxout
     {\let\do\blx@datasource}
-    {\blx@xml@endsection\blx@nl
+    {\csuse{blx@biber@\the\c@refsection @sectionlists}%
+     \blx@xml@endsection\blx@nl
      \blx@xml@comment{section \the\c@refsection}%
      \blx@xml@bibdata{\the\c@refsection}{\blx@tempa}%
      \blx@xml@section{\the\c@refsection}}%
@@ -6861,6 +6871,7 @@
 \def\blx@endrefsection@biber{%
   \ifnum\c@refsection>\z@
     \blx@auxwrite\blx@auxout{}{%
+      \csuse{blx@biber@0@sectionlists}%
       \blx@xml@endsection\blx@nl
       \blx@xml@comment{section 0 (cont.)}%
       \blx@xml@section{0}}%
@@ -8913,6 +8924,15 @@
   ~~<bcf:section number="#1">}
 \xdef\blx@xml@endsection{%
   ~~</bcf:section>}
+
+\xdef\blx@xml@sectionlist#1#2#3{%
+  ~~~~<bcf:sectionlist\noexpand\ifdefempty{#1}{}{ label="#1"} type="#2"%
+  \noexpand\ifdefempty{#3}
+    {/>\blx@nl}
+    {>\blx@nl%
+     #3%
+     ~~~~</bcf:sectionlist>\blx@nl}}
+
 \xdef\blx@xml@bibdata#1#2{%
   ~~<bcf:bibdata section="#1">\blx@nl
   #2%
@@ -9106,6 +9126,8 @@
     }%
   }%
   % sorting
+  \gdef\blx@bcf@exclude{}% This is so we don't have to do all this again
+                         % for \printbibliography sorting
   \def\do##1{%
     \eappto\blx@bcf@presort{\csuse{blx@bcf@presort@##1}}%
     \eappto\blx@bcf@exclude{\csuse{blx@bcf@exclude@##1}}}%
@@ -9133,6 +9155,7 @@
   \endgroup
   \AfterEndDocument{%
     \blx@auxwrite\blx@auxout{}{%
+      \csuse{blx@biber@0@sectionlists}%
       \blx@xml@endsection
       \blx@xml@endfile}%
     \immediate\closeout\blx@auxout}}
