@@ -478,10 +478,10 @@
 \endgroup
 
 \def\blx@secinit{%
-  \ifcsundef{blx@sort@\the\c@refsection}
+  \ifcsundef{blx@sort@\the\c@refsection}% BibTeX only
     {\global\cslet{blx@sort@\the\c@refsection}\@empty}
     {}%
-  \ifcsundef{blx@sbib@\the\c@refsection}
+  \ifcsundef{blx@sbib@\the\c@refsection}% BibTeX only
     {\global\cslet{blx@sbib@\the\c@refsection}\@empty}
     {}%
   \ifcsundef{blx@bsee@\the\c@refsection}
@@ -490,11 +490,8 @@
   \ifcsundef{blx@fsee@\the\c@refsection}
     {\global\cslet{blx@fsee@\the\c@refsection}\@empty}
     {}%
-  \ifcsundef{blx@losh@\the\c@refsection}
+  \ifcsundef{blx@losh@\the\c@refsection}% BibTeX only
     {\global\cslet{blx@losh@\the\c@refsection}\@empty}
-    {}%
-  \ifcsundef{blx@sectionlists@\the\c@refsection}
-    {\global\cslet{blx@sectionlists@\the\c@refsection}\@empty}
     {}%
   \blx@ibidreset@force
   \blx@idemreset@force
@@ -5405,8 +5402,10 @@
 %                                       keyword -> keys [internal list]
 % \blx@losh@<section>                   shorthand hash
 %                                       section -> keys [internal list]
-% \blx@sectionlists@<section>           sectionlist hash
+% \blx@sectionlists@<section>@<sectiontype>@<sectionname> sectionlist hash
 %                                       section -> keys [internal list]
+%                                       sectiontype -> "shorthand" or "entry"
+%                                       sectionname -> sort scheme name
 % \blx@catg@<category>                  category hash, global
 %                                       category -> keys [internal list]
 % \blx@set@<section>@<entrykey>         parent -> child mapping (dynamic entry sets)
@@ -5543,7 +5542,9 @@
      \toggletrue{blx@skiplos}%
      \toggletrue{blx@skiplab}}%
   \nottoggle{blx@skipbib}
-    {\listcsxadd{blx@sbib@\the\c@refsection}{\abx@field@entrykey}%
+    {\ifnumequal\blx@backend\blx@backend@biber
+      {\listcsxadd{blx@sectionlists@\the\c@refsection @\blx@sectionlist@type @\blx@sectionlist@name}{\abx@field@entrykey}}
+      {\listcsxadd{blx@sbib@\the\c@refsection}{\abx@field@entrykey}}%
      \listcsxadd{blx@type@\the\c@refsection @\abx@field@entrytype}{\abx@field@entrykey}%
      \ifdef\abx@field@entrysubtype
        {\listcsxadd{blx@subt@\the\c@refsection @\abx@field@entrysubtype}{\abx@field@entrykey}}
@@ -5848,8 +5849,10 @@
 
 \def\blx@bbl@sectionlist#1#2{%
   \begingroup
+  \def\blx@sectionlist@type{#2}%
+  \def\blx@sectionlist@name{#1}%
   \ifstrequal{#2}{shorthand}
-    {\def\key##1{\listcsxadd{blx@sectionlists@\the\c@refsection}{\detokenize{##1}}}}
+    {\def\key##1{\listcsxadd{blx@sectionlists@\the\c@refsection @#2@#1}{\detokenize{##1}}}}
     {}}
 
 \let\blx@bbl@sectionlist\endgroup
@@ -6102,7 +6105,9 @@
     {\blx@err@nosec{#1}}
     {\c@refsection#1\relax
      \iftoggle{blx@tempa}
-       {\letcs\blx@tempa{blx@sbib@\the\c@refsection}}
+       {\ifnumequal\blx@backend\blx@backend@biber
+         {\letcs\blx@tempa{blx@sectionlists@\the\c@refsection @entry@\blx@biber@sortingscheme}}
+         {\letcs\blx@tempa{blx@sbib@\the\c@refsection}}}
        {\blx@err@secfirst}}}
 
 \define@key{blx@los}{section}{%
@@ -6110,7 +6115,9 @@
     {\blx@err@nosec{#1}}
     {\c@refsection#1\relax
      \iftoggle{blx@tempa}
-       {\letcs\blx@tempa{blx@losh@\the\c@refsection}}
+       {\ifnumequal\blx@backend\blx@backend@biber
+         {\letcs\blx@tempa{blx@sectionlists@\the\c@refsection@shorthand@shorthand}}
+         {\letcs\blx@tempa{blx@losh@\the\c@refsection}}}
        {\blx@err@secfirst}}}
 
 \define@key{blx@bbg}{section}{%
@@ -6371,7 +6378,9 @@
 \def\blx@printbibliography[#1]{%
   \toggletrue{blx@tempa}%
   \toggletrue{blx@tempb}%
-  \letcs\blx@tempa{blx@sbib@\the\c@refsection}%
+  \ifnumequal\blx@backend\blx@backend@biber
+    {\letcs\blx@tempa{blx@sectionlists@\the\c@refsection @entry@\blx@biber@globalsortingscheme}}
+    {\letcs\blx@tempa{blx@losh@\the\c@refsection}}%
   \def\blx@theheading{bibliography}%
   \def\blx@theenv{bibliography}%
   \let\blx@theprenote\@empty
@@ -6418,7 +6427,9 @@
     {}
     {\toggletrue{blx@tempa}%
      \begingroup
-     \expandafter\blx@bibliography\csname blx@sbib@\the\c@refsection\endcsname}%
+     \ifnumequal\blx@backend\blx@backend@biber
+       {\expandafter\blx@bibliography\csname blx@sectionlists@\the\c@refsection @entry@\blx@biber@globalsortingscheme\endcsname}%
+       {\expandafter\blx@bibliography\csname blx@sbib@\the\c@refsection\endcsname}%
   \ifnum\c@refsection<\blx@maxsection
     \advance\c@refsection\@ne
     \expandafter\blx@refsections
@@ -6458,7 +6469,9 @@
     {}
     {\toggletrue{blx@tempa}%
      \begingroup
-     \letcs\blx@tempa{blx@sbib@\the\c@refsection}%
+     \ifnumequal\blx@backend\blx@backend@biber
+       {\letcs\blx@tempa{blx@sectionlists@\the\c@refsection @entry@\blx@biber@globalsortingscheme}}
+       {\letcs\blx@tempa{blx@sbib@\the\c@refsection}}%
      \blx@filter\blx@tempa{blx@segm@\the\c@refsection @\the\c@refsegment}%
      \blx@bibliography\blx@tempa}%
   \ifnum\c@refsegment<\blx@maxsegment
@@ -6501,7 +6514,9 @@
     {\toggletrue{blx@tempa}%
      \begingroup
      \blx@key@heading{#1}%
-     \letcs\blx@tempa{blx@sbib@\the\c@refsection}%
+     \ifnumequal\blx@backend\blx@backend@biber
+       {\letcs\blx@tempa{blx@sectionlists@\the\c@refsection @entry@\blx@biber@globalsortingscheme}}
+       {\letcs\blx@tempa{blx@sbib@\the\c@refsection}}%
      \blx@filter\blx@tempa{blx@catg@#1}%
      \blx@bibliography\blx@tempa}}%
 
@@ -6701,7 +6716,9 @@
 \def\blx@printshorthands[#1]{%
   \toggletrue{blx@tempa}%
   \toggletrue{blx@tempb}%
-  \letcs\blx@tempa{blx@losh@\the\c@refsection}%
+  \ifnumequal\blx@backend\blx@backend@biber
+    {\letcs\blx@tempa{blx@sectionlists@\the\c@refsection @shorthand@shorthand}}
+    {\letcs\blx@tempa{blx@losh@\the\c@refsection}}%
   \def\blx@theheading{shorthands}%
   \def\blx@theenv{shorthands}%
   \let\blx@theprenote\@empty
@@ -6717,7 +6734,11 @@
     {\blx@warn@losempty
      \csxappto{blx@xml@\the\c@refsection @sectionlists}{\blx@xml@sectionlistlos{\blx@tempc}{shorthand}{\blx@tempd}}%
      \endgroup}
-    {\blx@shorthands\blx@tempa}}
+    {\blx@shorthands
+     \ifdefempty{\blx@tempc}
+       {}% use default from above
+       {\letcs\blx@tempa{blx@sectionlists@\the\c@refsection @shorthand@\blx@tempc}}%
+     \blx@tempa}}
 
 \def\blx@printbibchecks{%
   \togglefalse{blx@tempa}%
@@ -7930,8 +7951,8 @@
     \iftoggle{blx@bibliography}
       {}
       {\ifstrequal{*}{#1}
-	 {\blx@citation@all}
-	 {\blx@xsanitizeafter{\forcsvlist\blx@nocite@do}{#1}}}}%
+        {\blx@citation@all}
+        {\blx@xsanitizeafter{\forcsvlist\blx@nocite@do}{#1}}}}%
   \@esphack}
 
 \def\blx@nocite@do#1{\blx@citation{#1}\blx@msg@cundef}
@@ -9468,6 +9489,7 @@
   \let\blx@tempa\@empty
   #2%
   \global\cslet{blx@biber@sorting@#1}\blx@tempa
+  \gdef\blx@biber@globalsortingscheme{#1}%
   \endgroup}
 \@onlypreamble\DeclareSortingScheme
 
