@@ -23,7 +23,7 @@ find build/tds -type f | xargs perl -pi -e "s|\\\$Id:\\\$|\\\$Id: $DATE $VERSION
 find build/tds -name \*.bak | xargs rm
 find build/tds -name auto | xargs \rm -rf
 
-if [ $1='norel' ]
+if [ $1 = "norel" ]
 then
   exit 0
 fi
