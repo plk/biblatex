@@ -5402,7 +5402,14 @@
 %                                       keyword -> keys [internal list]
 % \blx@losh@<section>                   shorthand hash
 %                                       section -> keys [internal list]
-% \blx@sectionlists@<section>@<sectiontype>@<sectionname> sectionlist hash
+% \blx@slistsbib@<section>@<sectiontype>@<sectionname> all entries in
+%                                       bibliography of a type sorted
+%                                       in a particular way
+%                                       section -> keys [internal list]
+%                                       sectiontype -> "shorthand" or "entry"
+%                                       sectionname -> sort scheme name
+% \blx@slists@<section>@<sectiontype>@<sectionname> all entries of a type sorted
+%                                       in a particular way
 %                                       section -> keys [internal list]
 %                                       sectiontype -> "shorthand" or "entry"
 %                                       sectionname -> sort scheme name
@@ -5536,14 +5543,17 @@
     {}
     {\blx@addpageref{\abx@field@entrykey}}%
   \nottoggle{blx@setonly}
-    {\listcsxadd{blx@sort@\the\c@refsection}{\abx@field@entrykey}}
+    {\ifnumequal\blx@backend\blx@backend@biber
+      {\listcsxadd{blx@slists@\the\c@refsection @entry@\blx@slist@name}{\abx@field@entrykey}}
+      {\listcsxadd{blx@sort@\the\c@refsection}{\abx@field@entrykey}}}%
     {\global\toggletrue{blx@addset}%
      \toggletrue{blx@skipbib}%
      \toggletrue{blx@skiplos}%
      \toggletrue{blx@skiplab}}%
   \nottoggle{blx@skipbib}
-    {\ifnumequal\blx@backend\blx@backend@biber
-      {\listcsxadd{blx@sectionlists@\the\c@refsection @\blx@sectionlist@type @\blx@sectionlist@name}{\abx@field@entrykey}}
+    {\csgdef{blx@sections@\the\c@refsection}{true}% just to say we have a section for tests later
+     \ifnumequal\blx@backend\blx@backend@biber
+      {\listcsxadd{blx@slistsbib@\the\c@refsection @entry@\blx@slist@name}{\abx@field@entrykey}}
       {\listcsxadd{blx@sbib@\the\c@refsection}{\abx@field@entrykey}}%
      \listcsxadd{blx@type@\the\c@refsection @\abx@field@entrytype}{\abx@field@entrykey}%
      \ifdef\abx@field@entrysubtype
@@ -5574,13 +5584,18 @@
 
 \def\blx@addset{%
   \begingroup
-  \letcs\blx@tempa{blx@sort@\the\c@refsection}%
-  \global\cslet{blx@sort@\the\c@refsection}\@empty
+    \ifnumequal\blx@backend\blx@backend@biber
+      {\letcs\blx@tempa{blx@slists@\the\c@refsection @entry@\blx@slist@name}%
+       \global\cslet{blx@slists@\the\c@refsection @entry@\blx@slist@name}\@empty}%
+      {\letcs\blx@tempa{blx@sort@\the\c@refsection}%
+       \global\cslet{blx@sort@\the\c@refsection}\@empty}%
   \forlistloop\blx@addset@i\blx@tempa
   \endgroup}
 
 \def\blx@addset@i#1{%
-  \listcsgadd{blx@sort@\the\c@refsection}{#1}%
+  \ifnumequal\blx@backend\blx@backend@biber
+    {\listcsgadd{blx@slists@\the\c@refsection @entry@\blx@slist@name}{#1}}
+    {\listcsgadd{blx@sort@\the\c@refsection}{#1}}%
   \ifcsdef{blx@setp@\the\c@refsection @#1}
     {\expandafter\expandafter\expandafter\forcsvlist
      \expandafter\expandafter\expandafter\blx@addset@ii
@@ -5589,7 +5604,9 @@
     {}}
 
 \def\blx@addset@ii#1{%
-  \listcsgadd{blx@sort@\the\c@refsection}{#1}}
+  \ifnumequal\blx@backend\blx@backend@biber
+    {\listcsgadd{blx@slists@\the\c@refsection @entry@\blx@slist@name}{#1}}
+    {\listcsgadd{blx@sort@\the\c@refsection}{#1}}}
 
 \def\blx@bbl@shorthand{%
   \ifundef\abx@field@shorthand
@@ -5762,7 +5779,8 @@
   \let\endentry\blx@bbl@endentry
   \let\missing\blx@bbl@missing
   \let\keyalias\blx@bbl@keyalias
-  \let\sectionlist\blx@bbl@sectionlist
+  \let\sectionlist\blx@bbl@slist
+  \let\endsectionlist\blx@bbl@endslist
   \let\lossort\blx@bbl@lossort % BibTeX only
   \let\endlossort\blx@bbl@endlossort % BibTeX only
   \let\set\blx@bbl@set
@@ -5847,15 +5865,12 @@
 \protected\def\blx@aux@numprefix#1#2#3{%
   \blx@bbl@addentryfield{\detokenize{#1}}{#2}{prefixnumber}{#3}}
 
-\def\blx@bbl@sectionlist#1#2{%
+\def\blx@bbl@slist#1#2{%
   \begingroup
-  \def\blx@sectionlist@type{#2}%
-  \def\blx@sectionlist@name{#1}%
-  \ifstrequal{#2}{shorthand}
-    {\def\key##1{\listcsxadd{blx@sectionlists@\the\c@refsection @#2@#1}{\detokenize{##1}}}}
-    {}}
-
-\let\blx@bbl@sectionlist\endgroup
+  \def\blx@slist@name{#2}%
+  % This macro (\key) will only be called in shorthand lists
+  \def\key##1{\listcsxadd{blx@slistsbib@\the\c@refsection @shorthand@#2}{\detokenize{##1}}}}
+\let\blx@bbl@endslist\endgroup
 
 % BibTeX only, Biber uses the generic sectionlist macro
 \def\blx@bbl@lossort{%
@@ -5957,7 +5972,9 @@
   \def\do##1{%
     \csxdef{blx@data@\the\c@refsection @##1}{%
       \csuse{blx@data@\the\c@refsection @##1}}}%
-  \dolistcsloop{blx@sort@\the\c@refsection}%
+  \ifnumequal\blx@backend\blx@backend@biber
+    {\dolistcsloop{blx@slists@\the\c@refsection @entry@\blx@sorting}}
+    {\dolistcsloop{blx@sort@\the\c@refsection}}%
   \endgroup}
 
 \def\abx@hook@reencode{%
@@ -6101,32 +6118,32 @@
          \csuse{blx@biber@sorting@#1}}}}}
 
 \define@key{blx@bib}{section}{%
-  \ifcsundef{blx@sbib@#1}
+  \ifcsundef{blx@sections@#1}
     {\blx@err@nosec{#1}}
     {\c@refsection#1\relax
      \iftoggle{blx@tempa}
        {\ifnumequal\blx@backend\blx@backend@biber
-         {\letcs\blx@tempa{blx@sectionlists@\the\c@refsection @entry@\blx@biber@sortingscheme}}
+         {\letcs\blx@tempa{blx@slistsbib@\the\c@refsection @entry@\blx@sorting}}
          {\letcs\blx@tempa{blx@sbib@\the\c@refsection}}}
        {\blx@err@secfirst}}}
 
 \define@key{blx@los}{section}{%
-  \ifcsundef{blx@sbib@#1}
+  \ifcsundef{blx@sections@#1}
     {\blx@err@nosec{#1}}
     {\c@refsection#1\relax
      \iftoggle{blx@tempa}
        {\ifnumequal\blx@backend\blx@backend@biber
-         {\letcs\blx@tempa{blx@sectionlists@\the\c@refsection@shorthand@shorthand}}
+         {\letcs\blx@tempa{blx@slistsbib@\the\c@refsection@shorthand@shorthand}}
          {\letcs\blx@tempa{blx@losh@\the\c@refsection}}}
        {\blx@err@secfirst}}}
 
 \define@key{blx@bbg}{section}{%
-  \ifcsundef{blx@sbib@#1}
+  \ifcsundef{blx@sections@#1}
     {\blx@err@nosec{#1}}
     {\c@refsection#1\relax}}
 
 \define@key{blx@bbc}{section}{%
-  \ifcsundef{blx@sbib@#1}
+  \ifcsundef{blx@sections@#1}
     {\blx@err@nosec{#1}}
     {\c@refsection#1\relax}}
 
@@ -6378,22 +6395,27 @@
 \def\blx@printbibliography[#1]{%
   \toggletrue{blx@tempa}%
   \toggletrue{blx@tempb}%
-  \ifnumequal\blx@backend\blx@backend@biber
-    {\letcs\blx@tempa{blx@sectionlists@\the\c@refsection @entry@\blx@biber@globalsortingscheme}}
-    {\letcs\blx@tempa{blx@losh@\the\c@refsection}}%
   \def\blx@theheading{bibliography}%
   \def\blx@theenv{bibliography}%
   \let\blx@theprenote\@empty
   \let\blx@thepostnote\@empty
   \let\blx@thetitle\@empty
-  \let\blx@tempc\@empty% used to hold sorting scheme name from "sorting=" option
-  \let\blx@tempd\@empty% used to hold sorting scheme itself from "sorting=" option
+  % defaults when \printshorthands has no sorting= option
+  \let\blx@tempc\blx@sorting% used to hold sorting scheme name from "sorting=" option
+  \edef\blx@tempd{%
+    \blx@xml@sorting{%
+      \blx@bcf@presort
+      \blx@bcf@exclude
+      \csuse{blx@biber@sorting@\blx@sorting}}}% used to hold sorting scheme itself from "sorting=" option
   \blx@safe@actives
   \setkeys{blx@bib}{#1}%
+  \ifnumequal\blx@backend\blx@backend@biber
+    {\letcs\blx@tempa{blx@slistsbib@\the\c@refsection @entry@\blx@tempc}}
+    {\letcs\blx@tempa{blx@sbib@\the\c@refsection}}%
   \blx@rest@actives
   \ifdefvoid\blx@tempa
     {\blx@warn@bibempty
-     \csxappto{blx@xml@\the\c@refsection @sectionlists}{\blx@xml@sectionlist{\blx@tempc}{entry}{\blx@tempd}}%
+     \csxappto{blx@xml@\the\c@refsection @slistsbib}{\blx@xml@slist{entry}{\blx@tempc}{\blx@tempd}}%
      \endgroup}
     {\blx@bibliography\blx@tempa}}
 
@@ -6423,13 +6445,13 @@
   \blx@refsections}
 
 \def\blx@refsections{%
-  \ifcsvoid{blx@sbib@\the\c@refsection}
+  \ifcsvoid{blx@sections@\the\c@refsection}
     {}
     {\toggletrue{blx@tempa}%
      \begingroup
      \ifnumequal\blx@backend\blx@backend@biber
-       {\expandafter\blx@bibliography\csname blx@sectionlists@\the\c@refsection @entry@\blx@biber@globalsortingscheme\endcsname}%
-       {\expandafter\blx@bibliography\csname blx@sbib@\the\c@refsection\endcsname}%
+       {\expandafter\blx@bibliography\csname blx@slistsbib@\the\c@refsection @entry@\blx@sorting\endcsname}%
+       {\expandafter\blx@bibliography\csname blx@sbib@\the\c@refsection\endcsname}}%
   \ifnum\c@refsection<\blx@maxsection
     \advance\c@refsection\@ne
     \expandafter\blx@refsections
@@ -6470,7 +6492,7 @@
     {\toggletrue{blx@tempa}%
      \begingroup
      \ifnumequal\blx@backend\blx@backend@biber
-       {\letcs\blx@tempa{blx@sectionlists@\the\c@refsection @entry@\blx@biber@globalsortingscheme}}
+       {\letcs\blx@tempa{blx@slistsbib@\the\c@refsection @entry@\blx@sorting}}
        {\letcs\blx@tempa{blx@sbib@\the\c@refsection}}%
      \blx@filter\blx@tempa{blx@segm@\the\c@refsection @\the\c@refsegment}%
      \blx@bibliography\blx@tempa}%
@@ -6515,7 +6537,7 @@
      \begingroup
      \blx@key@heading{#1}%
      \ifnumequal\blx@backend\blx@backend@biber
-       {\letcs\blx@tempa{blx@sectionlists@\the\c@refsection @entry@\blx@biber@globalsortingscheme}}
+       {\letcs\blx@tempa{blx@slistsbib@\the\c@refsection @entry@\blx@sorting}}
        {\letcs\blx@tempa{blx@sbib@\the\c@refsection}}%
      \blx@filter\blx@tempa{blx@catg@#1}%
      \blx@bibliography\blx@tempa}}%
@@ -6716,29 +6738,30 @@
 \def\blx@printshorthands[#1]{%
   \toggletrue{blx@tempa}%
   \toggletrue{blx@tempb}%
-  \ifnumequal\blx@backend\blx@backend@biber
-    {\letcs\blx@tempa{blx@sectionlists@\the\c@refsection @shorthand@shorthand}}
-    {\letcs\blx@tempa{blx@losh@\the\c@refsection}}%
   \def\blx@theheading{shorthands}%
   \def\blx@theenv{shorthands}%
   \let\blx@theprenote\@empty
   \let\blx@thepostnote\@empty
   \let\blx@thetitle\@empty
-  \let\blx@tempc\@empty% used to hold sorting scheme name from "sorting=" option
-  \let\blx@tempd\@empty% used to hold sorting scheme itself from "sorting=" option
+  % defaults when \printshorthands has no sorting= option
+  \def\blx@tempc{shorthand}% used to hold sorting scheme name from "sorting=" option
+  \edef\blx@tempd{%
+    \blx@xml@sorting{%
+      \blx@bcf@presort
+      \blx@bcf@exclude
+      \csuse{blx@biber@sorting@shorthand}}}% used to hold sorting scheme itself from "sorting=" option
   \let\blx@printbibchecks\relax
   \blx@safe@actives
   \setkeys{blx@los}{#1}%
+  \ifnumequal\blx@backend\blx@backend@biber
+    {\letcs\blx@tempa{blx@slistsbib@\the\c@refsection @shorthand@\blx@tempc}}
+    {\letcs\blx@tempa{blx@losh@\the\c@refsection}}%
   \blx@rest@actives
   \ifdefvoid\blx@tempa
     {\blx@warn@losempty
-     \csxappto{blx@xml@\the\c@refsection @sectionlists}{\blx@xml@sectionlistlos{\blx@tempc}{shorthand}{\blx@tempd}}%
+     \csxappto{blx@xml@\the\c@refsection @slistsbib}{\blx@xml@slistlos{shorthand}{\blx@tempc}{\blx@tempd}}%
      \endgroup}
-    {\blx@shorthands
-     \ifdefempty{\blx@tempc}
-       {}% use default from above
-       {\letcs\blx@tempa{blx@sectionlists@\the\c@refsection @shorthand@\blx@tempc}}%
-     \blx@tempa}}
+    {\blx@shorthands\blx@tempa}}
 
 \def\blx@printbibchecks{%
   \togglefalse{blx@tempa}%
@@ -6881,7 +6904,7 @@
   \blx@bibdata\blx@tempa\blx@bibfiles
   \blx@auxwrite\blx@auxout
     {\let\do\blx@datasource}
-    {\csuse{blx@xml@\the\c@refsection @sectionlists}%
+    {\csuse{blx@xml@\the\c@refsection @slistsbib}%
      \blx@xml@endsection\blx@nl
      \blx@xml@comment{section \the\c@refsection}%
      \blx@xml@bibdata{\the\c@refsection}{\blx@tempa}%
@@ -6914,7 +6937,7 @@
 \def\blx@endrefsection@biber{%
   \ifnum\c@refsection>\z@
     \blx@auxwrite\blx@auxout{}{%
-      \csuse{blx@xml@0@sectionlists}%
+      \csuse{blx@xml@0@slistsbib}%
       \blx@xml@endsection\blx@nl
       \blx@xml@comment{section 0 (cont.)}%
       \blx@xml@section{0}}%
@@ -7292,12 +7315,19 @@
 \def\blx@citation@all{%
   \ifbool{citerequest}
     {\blx@bibreq{*}%
-     \global\csletcs
-       {blx@segm@\the\c@refsection @\the\c@refsegment}
-       {blx@sbib@\the\c@refsection}%
-     \ifcsvoid{blx@sort@\the\c@refsection}
-       {\blx@logreq@active{}}
-       {}}
+     \ifnumequal\blx@backend\blx@backend@biber
+       {\global\csletcs
+         {blx@segm@\the\c@refsection @\the\c@refsegment}
+         {blx@slists@\the\c@refsection @entry@\blx@sorting}%
+        \ifcsvoid{blx@slists@\the\c@refsection @entry@\blx@sorting}
+         {\blx@logreq@active{}}
+         {}}
+       {\global\csletcs
+         {blx@segm@\the\c@refsection @\the\c@refsegment}
+         {blx@sbib@\the\c@refsection}%
+        \ifcsvoid{blx@sort@\the\c@refsection}
+         {\blx@logreq@active{}}
+         {}}}
     {}}
 
 \protected\def\blx@bibreq#1{%
@@ -7365,7 +7395,9 @@
       \multicitedelim
     \fi
   \fi
-  \letcs\blx@tempb{blx@sort@\the\c@refsection}%
+  \ifnumequal\blx@backend\blx@backend@biber
+    {\letcs\blx@tempb{blx@slists@\the\c@refsection @entry@\blx@sorting}}
+    {\letcs\blx@tempb{blx@sort@\the\c@refsection}}%
   \blx@thecitesort
   \edef\blx@tempa{\endgroup
     \c@citecount\z@
@@ -8968,15 +9000,12 @@
 \xdef\blx@xml@endsection{%
   ~~</bcf:section>}
 
-\xdef\blx@xml@sectionlist#1#2#3{%
-  ~~~~<bcf:sectionlist\noexpand\ifdefempty{#1}{}{ label="#1"} type="#2"%
-  \noexpand\ifdefempty{#3}
-    {/>\blx@nl}
-    {>\blx@nl
-     #3%
-     ~~~~</bcf:sectionlist>\blx@nl}}
-\xdef\blx@xml@sectionlistlos#1#2#3{%
-  ~~~~<bcf:sectionlist\noexpand\ifdefempty{#1}{}{ label="#1"} type="#2">\blx@nl
+\xdef\blx@xml@slist#1#2#3{%
+  ~~~~<bcf:sectionlist type="#1" label="#2">\blx@nl
+  #3%
+  ~~~~</bcf:sectionlist>\blx@nl}
+\xdef\blx@xml@slistlos#1#2#3{%
+  ~~~~<bcf:sectionlist type="#1" label="#2">\blx@nl
   ~~~~~~<bcf:filter type="field">shorthand</bcf:filter>\blx@nl
   #3%
   ~~~~</bcf:sectionlist>\blx@nl}
@@ -9203,7 +9232,7 @@
   \endgroup
   \AfterEndDocument{%
     \blx@auxwrite\blx@auxout{}{%
-      \csuse{blx@xml@0@sectionlists}%
+      \csuse{blx@xml@0@slistsbib}%
       \blx@xml@endsection
       \blx@xml@endfile}%
     \immediate\closeout\blx@auxout}}
@@ -9489,7 +9518,6 @@
   \let\blx@tempa\@empty
   #2%
   \global\cslet{blx@biber@sorting@#1}\blx@tempa
-  \gdef\blx@biber@globalsortingscheme{#1}%
   \endgroup}
 \@onlypreamble\DeclareSortingScheme
 
