@@ -5779,8 +5779,8 @@
   \let\endentry\blx@bbl@endentry
   \let\missing\blx@bbl@missing
   \let\keyalias\blx@bbl@keyalias
-  \let\sectionlist\blx@bbl@slist
-  \let\endsectionlist\blx@bbl@endslist
+  \let\sortlist\blx@bbl@slist
+  \let\endsortlist\blx@bbl@endslist
   \let\lossort\blx@bbl@lossort % BibTeX only
   \let\endlossort\blx@bbl@endlossort % BibTeX only
   \let\set\blx@bbl@set
@@ -5872,7 +5872,7 @@
   \def\key##1{\listcsxadd{blx@slistsbib@\the\c@refsection @shorthand@#2}{\detokenize{##1}}}}
 \let\blx@bbl@endslist\endgroup
 
-% BibTeX only, Biber uses the generic sectionlist macro
+% BibTeX only, Biber uses the generic sortlist macro
 \def\blx@bbl@lossort{%
   \begingroup
   \def\key##1{\listcsxadd{blx@losh@\the\c@refsection}{\detokenize{##1}}}}
@@ -6405,7 +6405,7 @@
       \blx@bcf@presort
       \blx@bcf@exclude
       \csuse{blx@biber@sorting@\blx@sorting}}}% sorting scheme from "sorting" option
-  \let\blx@tempe\@empty% default refsection
+  \def\blx@tempe{0}% default refsection is 0
   \blx@safe@actives
   \setkeys{blx@bib}{#1}%
   \blx@rest@actives
@@ -6749,7 +6749,7 @@
       \blx@bcf@exclude
       \csuse{blx@biber@sorting@shorthand}}}% sorting scheme from "sorting" option
   \let\blx@printbibchecks\relax
-  \let\blx@tempe\@empty% default refsection
+  \def\blx@tempe{0}% default refsection is 0
   \blx@safe@actives
   \setkeys{blx@los}{#1}%
   \blx@rest@actives
@@ -8996,19 +8996,15 @@
 \xdef\blx@xml@endsection{%
   ~~</bcf:section>}
 
-\xdef\blx@xml@slists#1{%
-  \blx@nl~~<bcf:sectionlists>\blx@nl
-  #1%
-  ~~</bcf:sectionlists>}
 \xdef\blx@xml@slist#1#2#3#4{%
-  ~~~~<bcf:sectionlist\noexpand\ifdefvoid{#2}{}{ section="#2"} type="#1" label="#3">\blx@nl
+  ~~~~<bcf:sortlist section="#2" type="#1" label="#3">\blx@nl
   #4%
-  ~~~~</bcf:sectionlist>\blx@nl}
+  ~~~~</bcf:sortlist>\blx@nl}
 \xdef\blx@xml@slistlos#1#2#3#4{%
-  ~~~~<bcf:sectionlist\noexpand\ifdefvoid{#2}{}{ section="#2"} type="#1" label="#3">\blx@nl
+  ~~~~<bcf:sortlist section="#2" type="#1" label="#3">\blx@nl
   ~~~~~~<bcf:filter type="field">shorthand</bcf:filter>\blx@nl
   #4%
-  ~~~~</bcf:sectionlist>\blx@nl}
+  ~~~~</bcf:sortlist>\blx@nl}
 
 \xdef\blx@xml@bibdata#1#2{%
   ~~<bcf:bibdata section="#1">\blx@nl
@@ -9232,8 +9228,8 @@
   \endgroup
   \AfterEndDocument{%
     \blx@auxwrite\blx@auxout{}{%
-      \blx@xml@endsection
-      \blx@xml@slists{\csuse{blx@xml@slistsbib}}%
+      \blx@xml@endsection\blx@nl
+      \csuse{blx@xml@slistsbib}%
       \blx@xml@endfile}%
     \immediate\closeout\blx@auxout}}
 
