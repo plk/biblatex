@@ -1883,7 +1883,7 @@ This option corresponds to Biber's |--sortupper| command-line option. It has no 
 
 This option corresponds to Biber's |--sortlocale| command-line option. It has no effect with any other backend. If set, it specifies the locale to be used for sorting. While \sty{biblatex} provides no default value for this option, Biber will inherit the locale settings from the environment if no locale has been specified explicitly.
 
-\optitem[los]{sortlos}{\opt{bib}, \opt{los}}
+\optitem[los]{sortlos}{\opt{bib}, \opt{los}}[\BibTeXOnly]
 
 The sorting order of the list of shorthands. The following choices are available:
 
@@ -1892,9 +1892,11 @@ The sorting order of the list of shorthands. The following choices are available
 \item[los] Sort by shorthand.
 \end{valuelist}
 
+The sorting order of shorthands with \biber is more flexible and is set with the \opt{sorting} option to the \cmd{printshorthands} command.
+
 \boolitem[false]{sortcites}
 
-Whether or not to sort citations if multiple entry keys are passed to a citation command. If this option is enabled, citations are sorted according to the sorting order of the bibliography. This feature works with all citation styles.
+Whether or not to sort citations if multiple entry keys are passed to a citation command. If this option is enabled, citations are sorted according to the global sorting order of the bibliography. This feature works with all citation styles.
 
 \intitem[3]{maxnames}
 
@@ -2825,11 +2827,15 @@ The postnote is an arbitrary piece of text to be printed after the list of refer
 
 \intitem[0]{section}
 
-Print only entries cited in reference section \prm{integer}. The reference sections are numbered starting at~1. All citations given outside a \env{refsection} environment are assigned to section~0. See \secref{use:bib:sec} for details and \secref{use:use:mlt} for usage examples. When giving a chain of multiple filters, the \texttt{section} filter must always be given first.
+Print only entries cited in reference section \prm{integer}. The reference sections are numbered starting at~1. All citations given outside a \env{refsection} environment are assigned to section~0. See \secref{use:bib:sec} for details and \secref{use:use:mlt} for usage examples. When giving a chain of multiple filters, the \texttt{section} filter must always be given first. \texttt{section} must also come before any \texttt{sorting} specification.
 
 \intitem[0]{segment}
 
 Print only entries cited in reference segment \prm{integer}. The reference segments are numbered starting at~1. All citations given outside a \env{refsegment} environment are assigned to segment~0. See \secref{use:bib:seg} for details and \secref{use:use:mlt} for usage examples.
+
+\valitem{sorting}{name}[\BiberOnly]
+
+Sort the bibliography according to a built-in or user specified sorting scheme defined with \cmd{DeclareSortingScheme}. If omitted, the global sorting scheme specified with package \opt{sorting} option is used. This option facilitates multiple bibliography lists within a refsection, each of which can be sorted differently.
 
 \valitem{type}{entrytype}
 
@@ -2889,15 +2895,15 @@ This option applies to numerical citation\slash bibliography styles only and req
 
 \cmditem{bibbysection}[key=value, \dots]
 
-This command automatically loops over all reference sections. This is equivalent to giving one \cmd{printbibliography} command for every section but has the additional benefit of automatically skipping sections without references. Note that \cmd{bibbysection} starts looking for references in section \texttt{1}. It will ignore references given outside of \env{refsection} environments since they are assigned to section~0. See \secref{use:use:mlt} for usage examples. The options are a subset of those supported by \cmd{printbibliography}. Valid options are \opt{env}, \opt{heading}, \opt{prenote}, \opt{postnote}.
+This command automatically loops over all reference sections. This is equivalent to giving one \cmd{printbibliography} command for every section but has the additional benefit of automatically skipping sections without references. Note that \cmd{bibbysection} starts looking for references in section \texttt{1}. It will ignore references given outside of \env{refsection} environments since they are assigned to section~0. See \secref{use:use:mlt} for usage examples. The options are a subset of those supported by \cmd{printbibliography}. Valid options are \opt{env}, \opt{heading}, \opt{prenote}, \opt{postnote}. The global sorting scheme specified with package \opt{sorting} option is used for all sections.
 
 \cmditem{bibbysegment}[key=value, \dots]
 
-This command automatically loops over all reference segments. This is equivalent to giving one \cmd{printbibliography} command for every segment but has the additional benefit of automatically skipping segments without references. Note that \cmd{bibbysegment} starts looking for references in segment \texttt{1}. It will ignore references given outside of \env{refsegment} environments since they are assigned to segment~0. See \secref{use:use:mlt} for usage examples. The options are a subset of those supported by \cmd{printbibliography}. Valid options are \opt{env}, \opt{heading}, \opt{prenote}, \opt{postnote}.
+This command automatically loops over all reference segments. This is equivalent to giving one \cmd{printbibliography} command for every segment but has the additional benefit of automatically skipping segments without references. Note that \cmd{bibbysegment} starts looking for references in segment \texttt{1}. It will ignore references given outside of \env{refsegment} environments since they are assigned to segment~0. See \secref{use:use:mlt} for usage examples. The options are a subset of those supported by \cmd{printbibliography}. Valid options are \opt{env}, \opt{heading}, \opt{prenote}, \opt{postnote}. The global sorting scheme specified with package \opt{sorting} option is used for all segments.
 
 \cmditem{bibbycategory}[key=value, \dots]
 
-This command loops over all bibliography categories. This is equivalent to giving one \cmd{printbibliography} command for every category but has the additional benefit of automatically skipping empty categories. The categories are processed in the order in which they were declared. See \secref{use:use:mlt} for usage examples. The options are a subset of those supported by \cmd{printbibliography}. Valid options are \opt{env}, \opt{prenote}, \opt{postnote}, \opt{section}. Note that \opt{heading} is not available with this command. The name of the current category is automatically used as the heading name. This is equivalent to passing \texttt{heading=\prm{category}} to \cmd{printbibliography} and implies that there must be a matching heading definition for every category.
+This command loops over all bibliography categories. This is equivalent to giving one \cmd{printbibliography} command for every category but has the additional benefit of automatically skipping empty categories. The categories are processed in the order in which they were declared. See \secref{use:use:mlt} for usage examples. The options are a subset of those supported by \cmd{printbibliography}. Valid options are \opt{env}, \opt{prenote}, \opt{postnote}, \opt{section}. Note that \opt{heading} is not available with this command. The name of the current category is automatically used as the heading name. This is equivalent to passing \texttt{heading=\prm{category}} to \cmd{printbibliography} and implies that there must be a matching heading definition for every category. The global sorting scheme specified with package \opt{sorting} option is used for all categories.
 
 \cmditem{printbibheading}[key=value, \dots]
 
@@ -2915,6 +2921,8 @@ If any entry includes a \bibfield{shorthand} field, \sty{biblatex} automatically
 \cmditem{printshorthands}[key=value, \dots]
 
 This command prints the list of shorthands. It takes one optional argument, which is a list of options given in \keyval notation. Valid options are all options supported by \cmd{printbibliography} (\secref{use:bib:bib}) except \opt{prefixnumbers}, \opt{resetnumbers}, and \opt{omitnumbers}. If there are any \env{refsection} environments in the document, the list of shorthands will be local to these environments; see \secref{use:bib:sec} for details. By default, this command uses the heading \texttt{shorthands}. See \secref{use:bib:hdg} for details.
+
+The \opt{sorting} option differs from \cmd{printbibliography} in that if omitted, the default is to sort by shorthand.
 
 \end{ltxsyntax}
 

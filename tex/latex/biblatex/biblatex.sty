@@ -34,6 +34,7 @@
 \RequirePackage{logreq}
 \RequirePackage{ifthen}
 \RequirePackage{url}
+\RequirePackage{trace}
 
 \@ifpackagelater{etoolbox}{2010/11/29}
   {}
@@ -477,6 +478,7 @@
 \endgroup
 
 \def\blx@secinit{%
+  \csgdef{blx@sections@\the\c@refsection}{true}% just to say we have a section for tests later
   \ifcsundef{blx@sort@\the\c@refsection}% BibTeX only
     {\global\cslet{blx@sort@\the\c@refsection}\@empty}
     {}%
@@ -5550,8 +5552,7 @@
      \toggletrue{blx@skiplos}%
      \toggletrue{blx@skiplab}}%
   \nottoggle{blx@skipbib}
-    {\csgdef{blx@sections@\the\c@refsection}{true}% just to say we have a section for tests later
-     \ifnumequal\blx@backend\blx@backend@biber
+    {\ifnumequal\blx@backend\blx@backend@biber
       {\listcsxadd{blx@slistsbib@\the\c@refsection @entry@\blx@slist@name}{\abx@field@entrykey}}
       {\listcsxadd{blx@sbib@\the\c@refsection}{\abx@field@entrykey}}%
      \listcsxadd{blx@type@\the\c@refsection @\abx@field@entrytype}{\abx@field@entrykey}%
@@ -6099,7 +6100,8 @@
 \define@key{blx@bib}{sorting}{%
   \ifcsundef{blx@biber@sorting@#1}
     {\blx@err@invopt{sorting=#1}{}}%
-    {\def\blx@tempc{#1}%
+    {\blx@printbibchecks
+     \def\blx@tempc{#1}%
      \edef\blx@tempd{%
        \blx@xml@sorting{%
          \blx@bcf@presort
@@ -6109,7 +6111,8 @@
 \define@key{blx@los}{sorting}{%
   \ifcsundef{blx@biber@sorting@#1}
     {\blx@err@invopt{sorting=#1}{}}%
-    {\def\blx@tempc{#1}%
+    {\blx@printbibchecks
+     \def\blx@tempc{#1}%
      \edef\blx@tempd{%
        \blx@xml@sorting{%
          \blx@bcf@presort
@@ -6121,9 +6124,7 @@
     {\blx@err@nosec{#1}}
     {\c@refsection#1\relax
      \iftoggle{blx@tempa}
-       {\ifnumequal\blx@backend\blx@backend@biber
-         {\letcs\blx@tempa{blx@slistsbib@\the\c@refsection @entry@\blx@sorting}}
-         {\letcs\blx@tempa{blx@sbib@\the\c@refsection}}}
+       {\def\blx@tempe{#1}}
        {\blx@err@secfirst}}}
 
 \define@key{blx@los}{section}{%
@@ -6131,9 +6132,7 @@
     {\blx@err@nosec{#1}}
     {\c@refsection#1\relax
      \iftoggle{blx@tempa}
-       {\ifnumequal\blx@backend\blx@backend@biber
-         {\letcs\blx@tempa{blx@slistsbib@\the\c@refsection@shorthand@shorthand}}
-         {\letcs\blx@tempa{blx@losh@\the\c@refsection}}}
+       {\def\blx@tempe{#1}}
        {\blx@err@secfirst}}}
 
 \define@key{blx@bbg}{section}{%
@@ -6400,19 +6399,20 @@
   \let\blx@thepostnote\@empty
   \let\blx@thetitle\@empty
   % defaults when \printbibliography has no sorting= option
-  \let\blx@tempc\blx@sorting% used to hold sorting scheme name from "sorting=" option
+  \let\blx@tempc\blx@sorting% sorting scheme name from "sorting" option
   \edef\blx@tempd{%
     \blx@xml@sorting{%
       \blx@bcf@presort
       \blx@bcf@exclude
-      \csuse{blx@biber@sorting@\blx@sorting}}}% used to hold sorting scheme itself from "sorting=" option
+      \csuse{blx@biber@sorting@\blx@sorting}}}% sorting scheme from "sorting" option
+  \let\blx@tempe\@empty% default refsection
   \blx@safe@actives
   \setkeys{blx@bib}{#1}%
-  \ifnumequal\blx@backend\blx@backend@biber
-    {\letcs\blx@tempa{blx@slistsbib@\the\c@refsection @entry@\blx@tempc}}
-    {\letcs\blx@tempa{blx@sbib@\the\c@refsection}}%
   \blx@rest@actives
-  \csxappto{blx@xml@\the\c@refsection @slistsbib}{\blx@xml@slist{entry}{\blx@tempc}{\blx@tempd}}%
+  \ifnumequal\blx@backend\blx@backend@biber
+    {\letcs\blx@tempa{blx@slistsbib@\blx@tempe @entry@\blx@tempc}}
+    {\letcs\blx@tempa{blx@sbib@\blx@tempe}}%
+  \csxappto{blx@xml@slistsbib}{\blx@xml@slist{entry}{\blx@tempe}{\blx@tempc}{\blx@tempd}}%
   \ifdefvoid\blx@tempa
     {\blx@warn@bibempty\endgroup}
     {\blx@bibliography\blx@tempa}}
@@ -6742,20 +6742,21 @@
   \let\blx@thepostnote\@empty
   \let\blx@thetitle\@empty
   % defaults when \printshorthands has no sorting= option
-  \def\blx@tempc{shorthand}% used to hold sorting scheme name from "sorting=" option
+  \def\blx@tempc{shorthand}% sorting scheme name from "sorting" option
   \edef\blx@tempd{%
     \blx@xml@sorting{%
       \blx@bcf@presort
       \blx@bcf@exclude
-      \csuse{blx@biber@sorting@shorthand}}}% used to hold sorting scheme itself from "sorting=" option
+      \csuse{blx@biber@sorting@shorthand}}}% sorting scheme from "sorting" option
   \let\blx@printbibchecks\relax
+  \let\blx@tempe\@empty% default refsection
   \blx@safe@actives
   \setkeys{blx@los}{#1}%
-  \ifnumequal\blx@backend\blx@backend@biber
-    {\letcs\blx@tempa{blx@slistsbib@\the\c@refsection @shorthand@\blx@tempc}}
-    {\letcs\blx@tempa{blx@losh@\the\c@refsection}}%
   \blx@rest@actives
-  \csxappto{blx@xml@\the\c@refsection @slistsbib}{\blx@xml@slistlos{shorthand}{\blx@tempc}{\blx@tempd}}%
+  \ifnumequal\blx@backend\blx@backend@biber
+    {\letcs\blx@tempa{blx@slistsbib@\blx@tempe @shorthand@\blx@tempc}}
+    {\letcs\blx@tempa{blx@losh@\blx@tempe}}%
+  \csxappto{blx@xml@slistsbib}{\blx@xml@slistlos{shorthand}{\blx@tempe}{\blx@tempc}{\blx@tempd}}%
   \ifdefvoid\blx@tempa
     {\blx@warn@losempty\endgroup}
     {\blx@shorthands\blx@tempa}}
@@ -6901,8 +6902,7 @@
   \blx@bibdata\blx@tempa\blx@bibfiles
   \blx@auxwrite\blx@auxout
     {\let\do\blx@datasource}
-    {\csuse{blx@xml@\the\c@refsection @slistsbib}%
-     \blx@xml@endsection\blx@nl
+    {\blx@xml@endsection\blx@nl
      \blx@xml@comment{section \the\c@refsection}%
      \blx@xml@bibdata{\the\c@refsection}{\blx@tempa}%
      \blx@xml@section{\the\c@refsection}}%
@@ -6934,7 +6934,6 @@
 \def\blx@endrefsection@biber{%
   \ifnum\c@refsection>\z@
     \blx@auxwrite\blx@auxout{}{%
-      \csuse{blx@xml@0@slistsbib}%
       \blx@xml@endsection\blx@nl
       \blx@xml@comment{section 0 (cont.)}%
       \blx@xml@section{0}}%
@@ -8997,14 +8996,18 @@
 \xdef\blx@xml@endsection{%
   ~~</bcf:section>}
 
-\xdef\blx@xml@slist#1#2#3{%
-  ~~~~<bcf:sectionlist type="#1" label="#2">\blx@nl
-  #3%
+\xdef\blx@xml@slists#1{%
+  \blx@nl~~<bcf:sectionlists>\blx@nl
+  #1%
+  ~~</bcf:sectionlists>}
+\xdef\blx@xml@slist#1#2#3#4{%
+  ~~~~<bcf:sectionlist\noexpand\ifdefvoid{#2}{}{ section="#2"} type="#1" label="#3">\blx@nl
+  #4%
   ~~~~</bcf:sectionlist>\blx@nl}
-\xdef\blx@xml@slistlos#1#2#3{%
-  ~~~~<bcf:sectionlist type="#1" label="#2">\blx@nl
+\xdef\blx@xml@slistlos#1#2#3#4{%
+  ~~~~<bcf:sectionlist\noexpand\ifdefvoid{#2}{}{ section="#2"} type="#1" label="#3">\blx@nl
   ~~~~~~<bcf:filter type="field">shorthand</bcf:filter>\blx@nl
-  #3%
+  #4%
   ~~~~</bcf:sectionlist>\blx@nl}
 
 \xdef\blx@xml@bibdata#1#2{%
@@ -9229,8 +9232,8 @@
   \endgroup
   \AfterEndDocument{%
     \blx@auxwrite\blx@auxout{}{%
-      \csuse{blx@xml@0@slistsbib}%
       \blx@xml@endsection
+      \blx@xml@slists{\csuse{blx@xml@slistsbib}}%
       \blx@xml@endfile}%
     \immediate\closeout\blx@auxout}}
 
@@ -9795,6 +9798,7 @@
     {\undef\blx@sortlocale}
     {\edef\blx@sortlocale{\detokenize{#1}}}}
 
+% BibTeX only (Biber shorthands sorting is done using normal biber sorting schemes)
 \DeclareBibliographyOption{sortlos}{%
   \ifcsdef{blx@opt@sortlos@#1}
     {\letcs\blx@sortlos{blx@opt@sortlos@#1}}
