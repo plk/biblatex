@@ -34,7 +34,6 @@
 \RequirePackage{logreq}
 \RequirePackage{ifthen}
 \RequirePackage{url}
-\RequirePackage{trace}
 
 \@ifpackagelater{etoolbox}{2010/11/29}
   {}
@@ -6096,6 +6095,9 @@
     #2\undef\skipentry}}
 
 % options
+% We need a 2-pass structure for options in \printbibliography and
+% \printshorthands because section and/or sorting have to be set before any
+% other options and these also determine which list to use for later filtering
 
 \define@key{blx@bib1}{segment}{}
 \define@key{blx@bib1}{type}{}
@@ -6120,6 +6122,26 @@
 \define@key{blx@bib2}{section}{}
 \define@key{blx@bib2}{sorting}{}
 
+\define@key{blx@los1}{segment}{}
+\define@key{blx@los1}{type}{}
+\define@key{blx@los1}{nottype}{}
+\define@key{blx@los1}{subtype}{}
+\define@key{blx@los1}{notsubtype}{}
+\define@key{blx@los1}{keyword}{}
+\define@key{blx@los1}{notkeyword}{}
+\define@key{blx@los1}{category}{}
+\define@key{blx@los1}{notcategory}{}
+\define@key{blx@los1}{filter}{}
+\define@key{blx@los1}{check}{}
+\define@key{blx@los1}{heading}{}
+\define@key{blx@los1}{env}{}
+\define@key{blx@los1}{title}{}
+\define@key{blx@los1}{prenote}{}
+\define@key{blx@los1}{postnote}{}
+
+\define@key{blx@los2}{section}{}
+\define@key{blx@los2}{sorting}{}
+
 \define@key{blx@bib1}{sorting}{%
   \ifcsundef{blx@biber@sorting@#1}
     {\blx@err@invopt{sorting=#1}{}}%
@@ -6131,7 +6153,7 @@
          \blx@bcf@exclude
          \csuse{blx@biber@sorting@#1}}}}}
 
-\define@key{blx@los}{sorting}{%
+\define@key{blx@los1}{sorting}{%
   \ifcsundef{blx@biber@sorting@#1}
     {\blx@err@invopt{sorting=#1}{}}%
     {\blx@printbibchecks
@@ -6150,7 +6172,7 @@
        {\def\blx@tempe{#1}}
        {\blx@err@secfirst}}}
 
-\define@key{blx@los}{section}{%
+\define@key{blx@los1}{section}{%
   \ifcsundef{blx@sections@#1}
     {\blx@err@nosec{#1}}
     {\c@refsection#1\relax
@@ -6169,7 +6191,7 @@
     {\c@refsection#1\relax}}
 
 \define@key{blx@bib2}{segment}{\blx@key@segment{#1}}
-\define@key{blx@los}{segment}{\blx@key@segment{#1}}
+\define@key{blx@los2}{segment}{\blx@key@segment{#1}}
 
 \def\blx@key@segment#1{%
   \ifcsundef{blx@segm@\the\c@refsection @#1}
@@ -6181,7 +6203,7 @@
      \blx@filter\blx@tempa{blx@segm@\the\c@refsection @#1}}}
 
 \define@key{blx@bib2}{type}{\blx@key@type{#1}}
-\define@key{blx@los}{type}{\blx@key@type{#1}}
+\define@key{blx@los2}{type}{\blx@key@type{#1}}
 
 \def\blx@key@type#1{%
   \ifcsundef{blx@type@\the\c@refsection @#1}
@@ -6200,7 +6222,7 @@
 	   Use 'filter' and '\string\defbibfilter' with OR conjunctions}}}}
 
 \define@key{blx@bib2}{nottype}{\blx@key@nottype{#1}}
-\define@key{blx@los}{nottype}{\blx@key@nottype{#1}}
+\define@key{blx@los2}{nottype}{\blx@key@nottype{#1}}
 
 \def\blx@key@nottype#1{%
   \ifcsundef{blx@type@\the\c@refsection @#1}
@@ -6209,7 +6231,7 @@
      \blx@notfilter\blx@tempa{blx@type@\the\c@refsection @#1}}}
 
 \define@key{blx@bib2}{subtype}{\blx@key@subtype{#1}}
-\define@key{blx@los}{subtype}{\blx@key@subtype{#1}}
+\define@key{blx@los2}{subtype}{\blx@key@subtype{#1}}
 
 \def\blx@key@subtype#1{%
   \ifcsundef{blx@subt@\the\c@refsection @#1}
@@ -6228,7 +6250,7 @@
 	   Use 'filter' and '\string\defbibfilter' with OR conjunctions}}}}
 
 \define@key{blx@bib2}{notsubtype}{\blx@key@notsubtype{#1}}
-\define@key{blx@los}{notsubtype}{\blx@key@notsubtype{#1}}
+\define@key{blx@los2}{notsubtype}{\blx@key@notsubtype{#1}}
 
 \def\blx@key@notsubtype#1{%
   \ifcsundef{blx@subt@\the\c@refsection @#1}
@@ -6237,7 +6259,7 @@
      \blx@notfilter\blx@tempa{blx@subt@\the\c@refsection @#1}}}
 
 \define@key{blx@bib2}{keyword}{\blx@key@keyword{#1}}
-\define@key{blx@los}{keyword}{\blx@key@keyword{#1}}
+\define@key{blx@los2}{keyword}{\blx@key@keyword{#1}}
 
 \def\blx@key@keyword#1{%
   \ifcsundef{blx@keyw@\the\c@refsection @\detokenize{#1}}
@@ -6247,7 +6269,7 @@
      \blx@filter\blx@tempa{blx@keyw@\the\c@refsection @\detokenize{#1}}}}
 
 \define@key{blx@bib2}{notkeyword}{\blx@key@notkeyword{#1}}
-\define@key{blx@los}{notkeyword}{\blx@key@notkeyword{#1}}
+\define@key{blx@los2}{notkeyword}{\blx@key@notkeyword{#1}}
 
 \def\blx@key@notkeyword#1{%
   \ifcsundef{blx@keyw@\the\c@refsection @\detokenize{#1}}
@@ -6256,7 +6278,7 @@
      \blx@notfilter\blx@tempa{blx@keyw@\the\c@refsection @\detokenize{#1}}}}
 
 \define@key{blx@bib2}{category}{\blx@key@category{#1}}
-\define@key{blx@los}{category}{\blx@key@category{#1}}
+\define@key{blx@los2}{category}{\blx@key@category{#1}}
 
 \def\blx@key@category#1{%
   \ifcsundef{blx@catg@\detokenize{#1}}
@@ -6266,7 +6288,7 @@
      \blx@filter\blx@tempa{blx@catg@\detokenize{#1}}}}
 
 \define@key{blx@bib2}{notcategory}{\blx@key@notcategory{#1}}
-\define@key{blx@los}{notcategory}{\blx@key@notcategory{#1}}
+\define@key{blx@los2}{notcategory}{\blx@key@notcategory{#1}}
 
 \def\blx@key@notcategory#1{%
   \ifcsundef{blx@catg@#1}
@@ -6275,7 +6297,7 @@
      \blx@notfilter\blx@tempa{blx@catg@#1}}}
 
 \define@key{blx@bib2}{filter}{\blx@key@filter{#1}}
-\define@key{blx@los}{filter}{\blx@key@filter{#1}}
+\define@key{blx@los2}{filter}{\blx@key@filter{#1}}
 
 \def\blx@key@filter#1{%
   \ifcsdef{blx@filter@#1}
@@ -6288,7 +6310,7 @@
         Use \string\defbibfilter\space to define it}}}
 
 \define@key{blx@bib2}{check}{\blx@key@bibcheck{#1}}
-\define@key{blx@los}{check}{\blx@key@bibcheck{#1}}
+\define@key{blx@los2}{check}{\blx@key@bibcheck{#1}}
 
 \def\blx@key@bibcheck#1{%
   \ifcsdef{blx@bibcheck@#1}
@@ -6301,7 +6323,7 @@
 
 \define@key{blx@bhd}{heading}{\blx@key@heading{#1}}
 \define@key{blx@bib2}{heading}{\blx@key@heading{#1}}
-\define@key{blx@los}{heading}{\blx@key@heading{#1}}
+\define@key{blx@los2}{heading}{\blx@key@heading{#1}}
 \define@key{blx@bbs}{heading}{\blx@key@heading{#1}}
 \define@key{blx@bbg}{heading}{\blx@key@heading{#1}}
 
@@ -6314,7 +6336,7 @@
      {\def\blx@theheading{#1}}}
 
 \define@key{blx@bib2}{env}{\blx@key@env{#1}}
-\define@key{blx@los}{env}{\blx@key@env{#1}}
+\define@key{blx@los2}{env}{\blx@key@env{#1}}
 \define@key{blx@bbs}{env}{\blx@key@env{#1}}
 \define@key{blx@bbg}{env}{\blx@key@env{#1}}
 \define@key{blx@bbc}{env}{\blx@key@env{#1}}
@@ -6329,10 +6351,10 @@
 
 \define@key{blx@bhd}{title}{\def\blx@thetitle{#1}}
 \define@key{blx@bib2}{title}{\def\blx@thetitle{#1}}
-\define@key{blx@los}{title}{\def\blx@thetitle{#1}}
+\define@key{blx@los2}{title}{\def\blx@thetitle{#1}}
 
 \define@key{blx@bib2}{prenote}{\blx@key@prenote{#1}}
-\define@key{blx@los}{prenote}{\blx@key@prenote{#1}}
+\define@key{blx@los2}{prenote}{\blx@key@prenote{#1}}
 \define@key{blx@bbs}{prenote}{\blx@key@prenote{#1}}
 \define@key{blx@bbg}{prenote}{\blx@key@prenote{#1}}
 \define@key{blx@bbc}{prenote}{\blx@key@prenote{#1}}
@@ -6345,7 +6367,7 @@
      {\def\blx@theprenote{#1}}}
 
 \define@key{blx@bib2}{postnote}{\blx@key@postnote{#1}}
-\define@key{blx@los}{postnote}{\blx@key@postnote{#1}}
+\define@key{blx@los2}{postnote}{\blx@key@postnote{#1}}
 \define@key{blx@bbs}{postnote}{\blx@key@postnote{#1}}
 \define@key{blx@bbg}{postnote}{\blx@key@postnote{#1}}
 \define@key{blx@bbc}{postnote}{\blx@key@postnote{#1}}
@@ -6434,8 +6456,12 @@
   \setkeys{blx@bib1}{#1}
   \blx@rest@actives
   \ifnumequal\blx@backend\blx@backend@biber
-    {\letcs\blx@tempa{blx@slistsbib@\blx@tempe @entry@\blx@tempc}}
-    {\letcs\blx@tempa{blx@sbib@\blx@tempe}}%
+    {\ifcsvoid{blx@slistsbib@\blx@tempe @entry@\blx@tempc}
+      {}
+      {\letcs\blx@tempa{blx@slistsbib@\blx@tempe @entry@\blx@tempc}}}
+    {\ifcsvoid{blx@sbib@\blx@tempe}
+      {}
+      {\letcs\blx@tempa{blx@sbib@\blx@tempe}}}%
   \blx@safe@actives
   \setkeys{blx@bib2}{#1}
   \blx@rest@actives
@@ -6779,11 +6805,18 @@
   \let\blx@printbibchecks\relax
   \def\blx@tempe{0}% default refsection is 0
   \blx@safe@actives
-  \setkeys{blx@los}{#1}
+  \setkeys{blx@los1}{#1}
   \blx@rest@actives
   \ifnumequal\blx@backend\blx@backend@biber
-    {\letcs\blx@tempa{blx@slistsbib@\blx@tempe @shorthand@\blx@tempc}}
-    {\letcs\blx@tempa{blx@losh@\blx@tempe}}%
+    {\ifcsvoid{blx@slistsbib@\blx@tempe @shorthand@\blx@tempc}
+      {}
+      {\letcs\blx@tempa{blx@slistsbib@\blx@tempe @shorthand@\blx@tempc}}}
+    {\ifcsvoid{blx@losh@\blx@tempe}
+      {}
+      {\letcs\blx@tempa{blx@losh@\blx@tempe}}}%
+  \blx@safe@actives
+  \setkeys{blx@los2}{#1}
+  \blx@rest@actives
   \csxappto{blx@xml@slistsbib}{\blx@xml@slistlos{shorthand}{\blx@tempe}{\blx@tempc}{\blx@tempd}}%
   \ifdefvoid\blx@tempa
     {\blx@warn@losempty\endgroup}
@@ -7273,8 +7306,8 @@
   \ifbool{citerequest}
     {\ifnumless\blx@backend\blx@backend@biber % BibTeX only
        {\ifcsdef{blx@setp@\the\c@refsection @#1}
-	  {\blx@citation@set{#1}{#2}}
-	  {\ifcsdef{blx@setc@\the\c@refsection @#1}
+         {\blx@citation@set{#1}{#2}}
+         {\ifcsdef{blx@setc@\the\c@refsection @#1}
              {\blx@citation@inset{#1}{#2}}
              {\blx@citation@entry{#1}{#2}}}}
        {\blx@citation@entry{#1}{#2}}%
@@ -7450,14 +7483,14 @@
 
 \def\blx@citeadd#1{%
   \ifcsdef{blx@keyalias@\the\c@refsection @#1}
-    {\def\blx@realkey{\csuse{blx@keyalias@\the\c@refsection @#1}}}
+    {\edef\blx@realkey{\csuse{blx@keyalias@\the\c@refsection @#1}}}
     {\def\blx@realkey{#1}}%
-  \blx@citation{\blx@realkey}\blx@msg@cundefon
-  \blx@ifdata{\blx@realkey}
+  \expandafter\blx@citation\expandafter{\blx@realkey}\blx@msg@cundefon
+  \expandafter\blx@ifdata\expandafter{\blx@realkey}
     {\advance\blx@tempcnta\@ne
      \listeadd\blx@tempa{\blx@realkey}}
     {\ifnum\blx@tempcntb>\z@\multicitedelim\fi
-     \abx@missing{\blx@realkey}
+     \expandafter\abx@missing\expandafter{\blx@realkey}
      \advance\blx@tempcntb\@ne}}
 
 % {<entrykey>}
