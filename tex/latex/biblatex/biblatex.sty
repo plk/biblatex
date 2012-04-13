@@ -6168,17 +6168,13 @@
   \ifcsundef{blx@sections@#1}
     {\blx@err@nosec{#1}}
     {\c@refsection#1\relax
-     \iftoggle{blx@tempa}
-       {\def\blx@tempe{#1}}
-       {\blx@err@secfirst}}}
+     \def\blx@tempe{#1}}}
 
 \define@key{blx@los1}{section}{%
   \ifcsundef{blx@sections@#1}
     {\blx@err@nosec{#1}}
     {\c@refsection#1\relax
-     \iftoggle{blx@tempa}
-       {\def\blx@tempe{#1}}
-       {\blx@err@secfirst}}}
+     \def\blx@tempe{#1}}}
 
 \define@key{blx@bbg}{section}{%
   \ifcsundef{blx@sections@#1}
@@ -6451,9 +6447,9 @@
       \blx@bcf@presort
       \blx@bcf@exclude
       \csuse{blx@biber@sorting@\blx@sorting}}}% sorting scheme from "sorting" option
-  \def\blx@tempe{0}% default refsection is 0
+  \edef\blx@tempe{\the\c@refsection}% default refsection is current
   \blx@safe@actives
-  \setkeys{blx@bib1}{#1}
+  \setkeys{blx@bib1}{#1}% Set sorting and section only, if present ...
   \blx@rest@actives
   \ifnumequal\blx@backend\blx@backend@biber
     {\ifcsvoid{blx@slistsbib@\blx@tempe @entry@\blx@tempc}
@@ -6463,7 +6459,7 @@
       {}
       {\letcs\blx@tempa{blx@sbib@\blx@tempe}}}%
   \blx@safe@actives
-  \setkeys{blx@bib2}{#1}
+  \setkeys{blx@bib2}{#1}% ... now we have correct \blx@tempa, set rest of options
   \blx@rest@actives
   \csxappto{blx@xml@slistsbib}{\blx@xml@slist{entry}{\blx@tempe}{\blx@tempc}{\blx@tempd}}%
   \ifdefvoid\blx@tempa
@@ -6496,13 +6492,17 @@
   \blx@refsections}
 
 \def\blx@refsections{%
-  \ifcsvoid{blx@sections@\the\c@refsection}
-    {}
-    {\toggletrue{blx@tempa}%
-     \begingroup
-     \ifnumequal\blx@backend\blx@backend@biber
-       {\expandafter\blx@bibliography\csname blx@slistsbib@\the\c@refsection @entry@\blx@sorting\endcsname}%
-       {\expandafter\blx@bibliography\csname blx@sbib@\the\c@refsection\endcsname}}%
+  \ifnumequal\blx@backend\blx@backend@biber
+    {\ifcsvoid{blx@slistsbib@\the\c@refsection @entry@\blx@sorting}
+      {}
+      {\toggletrue{blx@tempa}%
+       \begingroup
+       \expandafter\blx@bibliography\csname blx@slistsbib@\the\c@refsection @entry@\blx@sorting\endcsname}}
+    {\ifcsvoid{blx@sbib@\the\c@refsection}
+      {}
+      {\toggletrue{blx@tempa}%
+       \begingroup
+       \expandafter\blx@bibliography\csname blx@sbib@\the\c@refsection\endcsname}}%
   \ifnum\c@refsection<\blx@maxsection
     \advance\c@refsection\@ne
     \expandafter\blx@refsections
@@ -6542,9 +6542,14 @@
     {}
     {\toggletrue{blx@tempa}%
      \begingroup
+     \let\blx@tempa\@empty
      \ifnumequal\blx@backend\blx@backend@biber
-       {\letcs\blx@tempa{blx@slistsbib@\the\c@refsection @entry@\blx@sorting}}
-       {\letcs\blx@tempa{blx@sbib@\the\c@refsection}}%
+       {\ifcsvoid{blx@slistsbib@\the\c@refsection @entry@\blx@sorting}
+         {}
+         {\letcs\blx@tempa{blx@slistsbib@\the\c@refsection @entry@\blx@sorting}}}
+       {\ifcsvoid{blx@sbib@\the\c@refsection}
+         {}
+         {\letcs\blx@tempa{blx@sbib@\the\c@refsection}}}%
      \blx@filter\blx@tempa{blx@segm@\the\c@refsection @\the\c@refsegment}%
      \blx@bibliography\blx@tempa}%
   \ifnum\c@refsegment<\blx@maxsegment
@@ -6803,9 +6808,9 @@
       \blx@bcf@exclude
       \csuse{blx@biber@sorting@shorthand}}}% sorting scheme from "sorting" option
   \let\blx@printbibchecks\relax
-  \def\blx@tempe{0}% default refsection is 0
+  \edef\blx@tempe{\the\c@refsection}% default refsection is current
   \blx@safe@actives
-  \setkeys{blx@los1}{#1}
+  \setkeys{blx@los1}{#1}% Set sorting and section only, if present ...
   \blx@rest@actives
   \ifnumequal\blx@backend\blx@backend@biber
     {\ifcsvoid{blx@slistsbib@\blx@tempe @shorthand@\blx@tempc}
@@ -6815,7 +6820,7 @@
       {}
       {\letcs\blx@tempa{blx@losh@\blx@tempe}}}%
   \blx@safe@actives
-  \setkeys{blx@los2}{#1}
+  \setkeys{blx@los2}{#1}% ... now we have correct \blx@tempa, set rest of options
   \blx@rest@actives
   \csxappto{blx@xml@slistsbib}{\blx@xml@slistlos{shorthand}{\blx@tempe}{\blx@tempc}{\blx@tempd}}%
   \ifdefvoid\blx@tempa
@@ -8953,7 +8958,7 @@
   \blx@sig@bcf\blx@nl
   \blx@ver@bcf\blx@nl}
 \xdef\blx@xml@endfile{%
-  \blx@nl</bcf:controlfile>}
+  </bcf:controlfile>}
 \xdef\blx@xml@comment#1{%
   ~~<!-- #1 -->\blx@nl}
 \xdef\blx@xml@options#1#2#3{%
@@ -9058,14 +9063,14 @@
   ~~</bcf:section>}
 
 \xdef\blx@xml@slist#1#2#3#4{%
-  ~~~~<bcf:sortlist section="#2" type="#1" label="#3">\blx@nl
+  ~~<bcf:sortlist section="#2" type="#1" label="#3">\blx@nl
   #4%
-  ~~~~</bcf:sortlist>\blx@nl}
+  ~~</bcf:sortlist>\blx@nl}
 \xdef\blx@xml@slistlos#1#2#3#4{%
-  ~~~~<bcf:sortlist section="#2" type="#1" label="#3">\blx@nl
-  ~~~~~~<bcf:filter type="field">shorthand</bcf:filter>\blx@nl
+  ~~<bcf:sortlist section="#2" type="#1" label="#3">\blx@nl
+  ~~~~<bcf:filter type="field">shorthand</bcf:filter>\blx@nl
   #4%
-  ~~~~</bcf:sortlist>\blx@nl}
+  ~~</bcf:sortlist>\blx@nl}
 
 \xdef\blx@xml@bibdata#1#2{%
   ~~<bcf:bibdata section="#1">\blx@nl
