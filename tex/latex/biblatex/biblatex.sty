@@ -354,7 +354,7 @@
 \newcount\blx@tempcntb
 \newcount\blx@tempcntc
 \newcount\blx@maxsection
-\newcount\blx@maxsegment
+\expandafter\newcount\csname blx@maxsegment@0\endcsname
 \newcount\blx@notetype
 \newcount\blx@parenlevel@text
 \newcount\blx@parenlevel@foot
@@ -6192,8 +6192,8 @@
 \def\blx@key@segment#1{%
   \ifcsundef{blx@segm@\the\c@refsection @#1}
     {\blx@error
-       {Segment '#1' not found}
-       {The reference segment '#1' could not be found}}
+       {Segment '#1' not found in section '\the\c@refsection'}
+       {The reference segment '#1' could not be found in section '\the\c@refsection'}}
     {\c@refsegment#1\relax
      \blx@printbibchecks
      \blx@filter\blx@tempa{blx@segm@\the\c@refsection @#1}}}
@@ -6516,7 +6516,7 @@
 \newrobustcmd*{\bibbysegment}{%
   \begingroup
   \edef\on@line{\on@line}%
-  \ifnum\blx@maxsegment=\z@
+  \ifnum\csname blx@maxsegment@\the\c@refsection\endcsname=\z@
     \blx@warning{No reference segments found}%
   \fi
   \@ifnextchar[%]
@@ -6551,7 +6551,7 @@
          {\letcs\blx@tempa{blx@sbib@\the\c@refsection}}}%
      \blx@filter\blx@tempa{blx@segm@\the\c@refsection @\the\c@refsegment}%
      \blx@bibliography\blx@tempa}%
-  \ifnum\c@refsegment<\blx@maxsegment
+  \ifnum\c@refsegment<\csname blx@maxsegment@\the\c@refsection\endcsname
     \advance\c@refsegment\@ne
     \expandafter\blx@refsegments
   \else
@@ -6930,6 +6930,7 @@
   \endgroup
   \global\advance\blx@maxsection\@ne
   \global\c@refsection\blx@maxsection
+  \expandafter\newcount\csname blx@maxsegment@\the\c@refsection\endcsname
   \blx@inf@refsec
   \blx@secinit
   \if@filesw
@@ -7035,11 +7036,11 @@
     \blx@err@nestenv{refsegment}%
     \blx@endrefsegment
   \fi
-  \global\advance\blx@maxsegment\@ne
-  \global\c@refsegment\blx@maxsegment
+  \global\advance\csname blx@maxsegment@\the\c@refsection\endcsname\@ne
+  \global\c@refsegment\csname blx@maxsegment@\the\c@refsection\endcsname
   \blx@inf@refseg
-  \blx@info{Setting label 'refsegment:\the\c@refsegment'}%
-  \label{refsegment:\the\c@refsegment}%
+  \blx@info{Setting label 'refsegment:\the\c@refsection\the\c@refsegment'}%
+  \label{refsegment:\the\c@refsection\the\c@refsegment}%
   \ifcsundef{blx@segm@\the\c@refsection @\the\c@refsegment}
     {\global\cslet{blx@segm@\the\c@refsection @\the\c@refsegment}\@empty}
     {}}
