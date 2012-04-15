@@ -6143,26 +6143,30 @@
 \define@key{blx@los2}{sorting}{}
 
 \define@key{blx@bib1}{sorting}{%
-  \ifcsundef{blx@biber@sorting@#1}
-    {\blx@err@invopt{sorting=#1}{}}%
-    {\blx@printbibchecks
-     \def\blx@tempc{#1}%
-     \edef\blx@tempd{%
-       \blx@xml@sorting{%
-         \blx@bcf@presort
-         \blx@bcf@exclude
-         \csuse{blx@biber@sorting@#1}}}}}
-
+  \ifnumequal\blx@backend\blx@backend@biber
+    {\ifcsundef{blx@biber@sorting@#1}
+      {\blx@err@invopt{sorting=#1}{}}%
+      {\blx@printbibchecks
+       \def\blx@tempc{#1}%
+       \edef\blx@tempd{%
+         \blx@xml@sorting{%
+           \blx@bcf@presort
+           \blx@bcf@exclude
+           \csuse{blx@biber@sorting@#1}}}}}
+    {\blx@warning{Sorting option to 'printbibliography' cannot be used with BibTeX}}}
+  
 \define@key{blx@los1}{sorting}{%
-  \ifcsundef{blx@biber@sorting@#1}
-    {\blx@err@invopt{sorting=#1}{}}%
-    {\blx@printbibchecks
-     \def\blx@tempc{#1}%
-     \edef\blx@tempd{%
-       \blx@xml@sorting{%
-         \blx@bcf@presort
-         \blx@bcf@exclude
-         \csuse{blx@biber@sorting@#1}}}}}
+  \ifnumequal\blx@backend\blx@backend@biber
+    {\ifcsundef{blx@biber@sorting@#1}
+      {\blx@err@invopt{sorting=#1}{}}%
+      {\blx@printbibchecks
+       \def\blx@tempc{#1}%
+       \edef\blx@tempd{%
+         \blx@xml@sorting{%
+           \blx@bcf@presort
+           \blx@bcf@exclude
+           \csuse{blx@biber@sorting@#1}}}}}
+    {\blx@warning{Sorting option to 'printbibliography' cannot be used with BibTeX}}}
 
 \define@key{blx@bib1}{section}{%
   \ifcsundef{blx@sections@#1}
@@ -6442,11 +6446,13 @@
   % defaults
   \let\blx@tempa\@empty% before there is a .bbl, this must not be undef
   \let\blx@tempc\blx@sorting% sorting scheme name from "sorting" option
-  \edef\blx@tempd{%
-    \blx@xml@sorting{%
-      \blx@bcf@presort
-      \blx@bcf@exclude
-      \csuse{blx@biber@sorting@\blx@sorting}}}% sorting scheme from "sorting" option
+  \ifnumequal\blx@backend\blx@backend@biber
+    {\edef\blx@tempd{%
+      \blx@xml@sorting{%
+        \blx@bcf@presort
+        \blx@bcf@exclude
+        \csuse{blx@biber@sorting@\blx@sorting}}}}% sorting scheme from "sorting" option
+    {}%
   \edef\blx@tempe{\the\c@refsection}% default refsection is current
   \blx@safe@actives
   \setkeys{blx@bib1}{#1}% Set sorting and section only, if present ...
@@ -6461,7 +6467,9 @@
   \blx@safe@actives
   \setkeys{blx@bib2}{#1}% ... now we have correct \blx@tempa, set rest of options
   \blx@rest@actives
-  \csxappto{blx@xml@slistsbib}{\blx@xml@slist{entry}{\blx@tempe}{\blx@tempc}{\blx@tempd}}%
+  \ifnumequal\blx@backend\blx@backend@biber
+    {\csxappto{blx@xml@slistsbib}{\blx@xml@slist{entry}{\blx@tempe}{\blx@tempc}{\blx@tempd}}}
+    {}%
   \ifdefvoid\blx@tempa
     {\blx@warn@bibempty\endgroup}
     {\blx@bibliography\blx@tempa}}
@@ -6806,11 +6814,13 @@
   % defaults
   \let\blx@tempa\@empty% before there is a .bbl, this must not be undef
   \def\blx@tempc{shorthand}% sorting scheme name from "sorting" option
-  \edef\blx@tempd{%
-    \blx@xml@sorting{%
-      \blx@bcf@presort
-      \blx@bcf@exclude
-      \csuse{blx@biber@sorting@shorthand}}}% sorting scheme from "sorting" option
+  \ifnumequal\blx@backend\blx@backend@biber
+    {\edef\blx@tempd{%
+      \blx@xml@sorting{%
+        \blx@bcf@presort
+        \blx@bcf@exclude
+        \csuse{blx@biber@sorting@shorthand}}}}% sorting scheme from "sorting" option
+    {}%
   \let\blx@printbibchecks\relax
   \edef\blx@tempe{\the\c@refsection}% default refsection is current
   \blx@safe@actives
@@ -6826,7 +6836,9 @@
   \blx@safe@actives
   \setkeys{blx@los2}{#1}% ... now we have correct \blx@tempa, set rest of options
   \blx@rest@actives
-  \csxappto{blx@xml@slistsbib}{\blx@xml@slistlos{shorthand}{\blx@tempe}{\blx@tempc}{\blx@tempd}}%
+  \ifnumequal\blx@backend\blx@backend@biber
+    {\csxappto{blx@xml@slistsbib}{\blx@xml@slistlos{shorthand}{\blx@tempe}{\blx@tempc}{\blx@tempd}}}
+    {}%
   \ifdefvoid\blx@tempa
     {\blx@warn@losempty\endgroup}
     {\blx@shorthands\blx@tempa}}
