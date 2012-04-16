@@ -23,7 +23,7 @@ find build/tds -type f | xargs perl -pi -e "s|\\\$Id:\\\$|\\\$Id: $DATE $VERSION
 find build/tds -name \*.bak | xargs rm
 find build/tds -name auto | xargs \rm -rf
 
-if [ $1 = "norel" ]
+if [ "$1" = "norel" ]
 then
   exit 0
 fi
@@ -33,7 +33,7 @@ pdflatex -interaction=batchmode build/tds/doc/latex/biblatex/biblatex.tex
 pdflatex -interaction=batchmode build/tds/doc/latex/biblatex/biblatex.tex
 mv biblatex.pdf build/tds/doc/latex/biblatex/
 \rm -f biblatex.*
-tar zcf build/biblatex-i.tgz -C build/tds bibtex doc tex
+tar zcf build/biblatexb.tgz -C build/tds bibtex doc tex
 
 
 
