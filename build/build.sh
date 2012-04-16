@@ -6,11 +6,20 @@ then
   exit 1
 fi
 
+if [ "$1" = "upload" ]
+then
+    if [ -e build/biblatexb.tgz ]
+    then
+      scp build/biblatexb.tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/dev/biblatexb.tgz
+    exit 0
+  fi
+fi
+
 declare VERSION=`git describe --tags | cut -d '-' -f 1`
 declare DATE=`date '+%Y/%m/%d'`
 
 \rm -rf build/tds/*
-\rm -f build/biblatex-i.tgz
+\rm -f build/biblatexb.tgz
 cp -r bibtex build/tds/
 cp -r doc build/tds/
 cp -r tex build/tds/
