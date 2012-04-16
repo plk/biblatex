@@ -61,6 +61,8 @@
        \ifdimless{\leftmargin}{1.25em}
          {\textendash}
 	 {\textemdash}}}}
+\newcommand*{\relatedpunct}{\space}
+\newcommand*{\relateddelim}{\adddot\par\nobreak}
 
 % Used for indexing
 
@@ -398,6 +400,9 @@
 \DeclareFieldFormat{volume}{\bibstring{volume}~#1}% volume of a book
 \DeclareFieldFormat[article,periodical]{volume}{#1}% volume of a journal
 \DeclareFieldFormat{volumes}{#1~\bibstring{volumes}}
+\DeclareFieldFormat{related}{#1}
+\DeclareFieldFormat{related:multivolume}{\par\nobreak#1}
+\DeclareFieldFormat{related:origpubin}{\mkbibparens{#1}}
 
 % Generic formats for \printtext and \printfield
 
@@ -2344,5 +2349,83 @@
   \iffieldundef{abstract}
     {\printfile[abstract]{\bibabstractprefix\thefield{entrykey}.tex}}
     {\printfield{abstract}}}
+
+\newbibmacro*{related:reprintof}[1]{%
+  \entrydata{#1}{%
+    \usebibmacro{title}%
+    \newunit
+    \ifentrytype{article}
+      {\usebibmacro{in:}%
+       \usebibmacro{journal+issuetitle}%
+       \newunit\newblock}
+      {}%
+    \ifboolexpr{
+      test {\ifentrytype{inbook}} or
+      test {\ifentrytype{incollection}} or
+      test {\ifentrytype{inproceedings}}
+    }
+      {\usebibmacro{in:}%
+       \usebibmacro{maintitle+booktitle}%
+       \newunit\newblock
+       \usebibmacro{event+venue+date}%
+       \newunit\newblock}
+      {}%
+  \usebibmacro{byeditor+others}%
+  \newunit\newblock
+  \printlist{location}%
+  \iflistundef{publisher}
+    {\setunit*{\addcomma\space}}
+    {\setunit*{\addcolon\space}}%
+  \printlist{publisher}%
+  \setunit*{\addcomma\space}%
+  \printdate%
+  \setunit{\bibpagespunct}%
+  \printfield{pages}}}
+
+\newbibmacro*{related:bytranslator}[1]{%
+  \entrydata*{#1}{%
+    \printnames[bytranslator]{translator}%
+    \setunit*{\addspace\bibstring{as}\space}%
+    \usebibmacro{title}%
+    \setunit{\addspace}%
+    \printtext[parens]{%
+      \printlist{location}%
+      \iflistundef{publisher}
+        {\setunit*{\addcomma\space}}
+        {\setunit*{\addcolon\space}}%
+      \printlist{publisher}%
+      \setunit*{\addcomma\space}%
+      \printdate}}}
+
+\newbibmacro*{related:multivolume}[1]{%
+  \entrydata*{#1}{%
+    \printfield{volume}%
+    \printfield{part}%
+    \setunit{\addcolon\space}%
+    \usebibmacro{title}%
+    \ifnamesequal{author}{savedauthor}
+      {}
+      {\usebibmacro{byauthor}%
+       \newunit\newblock}%
+    \ifnamesequal{editor}{savededitor}
+      {}
+      {\usebibmacro{byeditor+others}%
+       \newunit\newblock}%
+  \printdate}}
+
+\newbibmacro*{related:origpubin}[1]{%
+  \entrydata*{#1}{%
+    \printfield{year}%
+    \ifboolexpr{
+      test {\iflistsequal{publisher}{savedpublisher}} or
+      test {\iflistundef{publisher}}
+    }
+      {}
+      {\setunit{\addspace\bibstring{by}\space}%
+       \printlist{publisher}%
+       \setunit{\addcomma\space}%
+       \iflistsequal{location}{savedlocation}
+         {}
+         {\printlist{location}}}}}
 
 \endinput
