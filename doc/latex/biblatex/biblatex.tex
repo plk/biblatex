@@ -1883,7 +1883,7 @@ This option corresponds to Biber's |--sortupper| command-line option. It has no 
 
 This option corresponds to Biber's |--sortlocale| command-line option. It has no effect with any other backend. If set, it specifies the locale to be used for sorting. While \sty{biblatex} provides no default value for this option, Biber will inherit the locale settings from the environment if no locale has been specified explicitly.
 
-\optitem[los]{sortlos}{\opt{bib}, \opt{los}}
+\optitem[los]{sortlos}{\opt{bib}, \opt{los}}[\BibTeXOnly]
 
 The sorting order of the list of shorthands. The following choices are available:
 
@@ -1892,9 +1892,11 @@ The sorting order of the list of shorthands. The following choices are available
 \item[los] Sort by shorthand.
 \end{valuelist}
 
+The sorting order of shorthands with \biber is more flexible and is set with the \opt{sorting} option to the \cmd{printshorthands} command.
+
 \boolitem[false]{sortcites}
 
-Whether or not to sort citations if multiple entry keys are passed to a citation command. If this option is enabled, citations are sorted according to the sorting order of the bibliography. This feature works with all citation styles.
+Whether or not to sort citations if multiple entry keys are passed to a citation command. If this option is enabled, citations are sorted according to the global sorting order of the bibliography. This feature works with all citation styles.
 
 \intitem[3]{maxnames}
 
@@ -2823,13 +2825,17 @@ The prenote is an arbitrary piece of text to be printed after the heading but be
 
 The postnote is an arbitrary piece of text to be printed after the list of references. This option selects the postnote \prm{name}, as defined with \cmd{defbibnote}. By default, no postnote is printed. The note is printed in the standard text font. It is not affected by \cmd{bibsetup} and \cmd{bibfont} but it may contain its own font declarations. See \secref{use:bib:nts} for details.
 
-\intitem[0]{section}
+\intitem[current section]{section}
 
-Print only entries cited in reference section \prm{integer}. The reference sections are numbered starting at~1. All citations given outside a \env{refsection} environment are assigned to section~0. See \secref{use:bib:sec} for details and \secref{use:use:mlt} for usage examples. When giving a chain of multiple filters, the \texttt{section} filter must always be given first.
+Print only entries cited in reference section \prm{integer}. The reference sections are numbered starting at~1. All citations given outside a \env{refsection} environment are assigned to section~0. See \secref{use:bib:sec} for details and \secref{use:use:mlt} for usage examples.
 
 \intitem[0]{segment}
 
-Print only entries cited in reference segment \prm{integer}. The reference segments are numbered starting at~1. All citations given outside a \env{refsegment} environment are assigned to segment~0. See \secref{use:bib:seg} for details and \secref{use:use:mlt} for usage examples.
+Print only entries cited in reference segment \prm{integer}. The reference segments are numbered starting at~1. All citations given outside a \env{refsegment} environment are assigned to segment~0. See \secref{use:bib:seg} for details and \secref{use:use:mlt} for usage examples. Remember that segments within a section are numbered local to the section so the segment you request will be the nth segment in the requested (or currently active enclosing) section.
+
+\valitem{sorting}{name}[\BiberOnly]
+
+Sort the bibliography according to a built-in or user specified sorting scheme defined with \cmd{DeclareSortingScheme}. If omitted, the global sorting scheme specified with package \opt{sorting} option is used. This option facilitates multiple bibliography lists within a refsection, each of which can be sorted differently.
 
 \valitem{type}{entrytype}
 
@@ -2889,15 +2895,15 @@ This option applies to numerical citation\slash bibliography styles only and req
 
 \cmditem{bibbysection}[key=value, \dots]
 
-This command automatically loops over all reference sections. This is equivalent to giving one \cmd{printbibliography} command for every section but has the additional benefit of automatically skipping sections without references. Note that \cmd{bibbysection} starts looking for references in section \texttt{1}. It will ignore references given outside of \env{refsection} environments since they are assigned to section~0. See \secref{use:use:mlt} for usage examples. The options are a subset of those supported by \cmd{printbibliography}. Valid options are \opt{env}, \opt{heading}, \opt{prenote}, \opt{postnote}.
+This command automatically loops over all reference sections. This is equivalent to giving one \cmd{printbibliography} command for every section but has the additional benefit of automatically skipping sections without references. Note that \cmd{bibbysection} starts looking for references in section \texttt{1}. It will ignore references given outside of \env{refsection} environments since they are assigned to section~0. See \secref{use:use:mlt} for usage examples. The options are a subset of those supported by \cmd{printbibliography}. Valid options are \opt{env}, \opt{heading}, \opt{prenote}, \opt{postnote}. The global sorting scheme specified with package \opt{sorting} option is used for all sections.
 
 \cmditem{bibbysegment}[key=value, \dots]
 
-This command automatically loops over all reference segments. This is equivalent to giving one \cmd{printbibliography} command for every segment but has the additional benefit of automatically skipping segments without references. Note that \cmd{bibbysegment} starts looking for references in segment \texttt{1}. It will ignore references given outside of \env{refsegment} environments since they are assigned to segment~0. See \secref{use:use:mlt} for usage examples. The options are a subset of those supported by \cmd{printbibliography}. Valid options are \opt{env}, \opt{heading}, \opt{prenote}, \opt{postnote}.
+This command automatically loops over all reference segments. This is equivalent to giving one \cmd{printbibliography} command for every segment in the current \env{refsection} but has the additional benefit of automatically skipping segments without references. Note that \cmd{bibbysegment} starts looking for references in segment \texttt{1}. It will ignore references given outside of \env{refsegment} environments since they are assigned to segment~0. See \secref{use:use:mlt} for usage examples. The options are a subset of those supported by \cmd{printbibliography}. Valid options are \opt{env}, \opt{heading}, \opt{prenote}, \opt{postnote}. The global sorting scheme specified with package \opt{sorting} option is used for all segments.
 
 \cmditem{bibbycategory}[key=value, \dots]
 
-This command loops over all bibliography categories. This is equivalent to giving one \cmd{printbibliography} command for every category but has the additional benefit of automatically skipping empty categories. The categories are processed in the order in which they were declared. See \secref{use:use:mlt} for usage examples. The options are a subset of those supported by \cmd{printbibliography}. Valid options are \opt{env}, \opt{prenote}, \opt{postnote}, \opt{section}. Note that \opt{heading} is not available with this command. The name of the current category is automatically used as the heading name. This is equivalent to passing \texttt{heading=\prm{category}} to \cmd{printbibliography} and implies that there must be a matching heading definition for every category.
+This command loops over all bibliography categories. This is equivalent to giving one \cmd{printbibliography} command for every category but has the additional benefit of automatically skipping empty categories. The categories are processed in the order in which they were declared. See \secref{use:use:mlt} for usage examples. The options are a subset of those supported by \cmd{printbibliography}. Valid options are \opt{env}, \opt{prenote}, \opt{postnote}, \opt{section}. Note that \opt{heading} is not available with this command. The name of the current category is automatically used as the heading name. This is equivalent to passing \texttt{heading=\prm{category}} to \cmd{printbibliography} and implies that there must be a matching heading definition for every category. The global sorting scheme specified with package \opt{sorting} option is used for all categories.
 
 \cmditem{printbibheading}[key=value, \dots]
 
@@ -2915,6 +2921,8 @@ If any entry includes a \bibfield{shorthand} field, \sty{biblatex} automatically
 \cmditem{printshorthands}[key=value, \dots]
 
 This command prints the list of shorthands. It takes one optional argument, which is a list of options given in \keyval notation. Valid options are all options supported by \cmd{printbibliography} (\secref{use:bib:bib}) except \opt{prefixnumbers}, \opt{resetnumbers}, and \opt{omitnumbers}. If there are any \env{refsection} environments in the document, the list of shorthands will be local to these environments; see \secref{use:bib:sec} for details. By default, this command uses the heading \texttt{shorthands}. See \secref{use:bib:hdg} for details.
+
+The \opt{sorting} option differs from \cmd{printbibliography} in that if omitted, the default is to sort by shorthand.
 
 \end{ltxsyntax}
 
@@ -2944,7 +2952,7 @@ The \env{refsegment} environment is used in the document body to mark a referenc
 
 \envitem{refsegment}
 
-The difference between a \env{refsection} and a \env{refsegment} environment is that the former creates labels which are local to the environment whereas the latter provides a target for the \opt{segment} filter of \cmd{printbibliography} without affecting the labels. They will be unique across the entire document. \env{refsegment} environments may not be nested, but you may use them in conjunction with \env{refsection} to subdivide a reference section into segments. In this case, the segments are local to the enclosing \env{refsection} environment. Use the \env{refsegment} option of \cmd{printbibliography} to select a segment when printing the bibliography. The reference segments are numbered starting at~\texttt{1} and the number of the current segment will be written to the transcript file. All citations given outside a \env{refsegment} environment are assigned to segment~0. In contrast to the \env{refsection} environment, the current segment is not selected automatically if \cmd{printbibliography} is used within a \env{refsegment} environment.
+The difference between a \env{refsection} and a \env{refsegment} environment is that the former creates labels which are local to the environment whereas the latter provides a target for the \opt{segment} filter of \cmd{printbibliography} without affecting the labels. They will be unique across the entire document. \env{refsegment} environments may not be nested, but you may use them in conjunction with \env{refsection} to subdivide a reference section into segments. In this case, the segments are local to the enclosing \env{refsection} environment. Use the \env{refsegment} option of \cmd{printbibliography} to select a segment when printing the bibliography. Within a section, the reference segments are numbered starting at~\texttt{1} and the number of the current segment will be written to the transcript file. All citations given outside a \env{refsegment} environment are assigned to segment~0. In contrast to the \env{refsection} environment, the current segment is not selected automatically if \cmd{printbibliography} is used within a \env{refsegment} environment.
 
 \csitem{newrefsegment}
 
@@ -4199,7 +4207,7 @@ Since giving one \cmd{printbibliography} command for each part of a subdivided b
 <<\bibbysection[heading=subbibliography]>>
 \end{lstlisting}
 %
-When using a format with one cumulative bibliography subdivided by chapter (or any other document division) it may be more appropriate to use \env{refsegment} rather than \env{refsection} environments. The difference is that the \env{refsection} environment generates labels local to the environment while \env{refsegment} does not affect the generation of labels, hence they will be unique across the entire document. Note that \env{refsegment} environments do not require additional \file{aux} files. The next example could also be given in \secref{use:use:div} because, visually, it creates one global bibliography subdivided into multiple segments.
+When using a format with one cumulative bibliography subdivided by chapter (or any other document division) it may be more appropriate to use \env{refsegment} rather than \env{refsection} environments. The difference is that the \env{refsection} environment generates labels local to the environment while \env{refsegment} does not affect the generation of labels, hence they will be unique across the entire document. Note that when using \bibtex as the backend, \env{refsegment} environments do not require additional \file{aux} files. The next example could also be given in \secref{use:use:div} because, visually, it creates one global bibliography subdivided into multiple segments.
 
 \begin{ltxexample}
 \documentclass{...}
@@ -4229,7 +4237,7 @@ The use of \env{refsegment} is similar to \env{refsection} and there is also a c
 <<\bibbysegment[heading=subbibliography]>>
 \end{lstlisting}
 %
-This is equivalent to giving one \cmd{printbibliography} command for every segment.
+This is equivalent to giving one \cmd{printbibliography} command for every segment in the current \env{refsection}.
 
 \subsubsection{Subdivided Bibliographies}
 \label{use:use:div}
@@ -9562,7 +9570,8 @@ This revision history is a list of changes relevant to users of this package. Ch
 
 \begin{changelog}
 
-\begin{release}{1.?}{}
+\begin{release}{1.8}{}
+\item Added \opt{sorting} option for \cmd{printbibliography} and \cmd{printshorthands}\see{use:bib:bib}\BiberOnlyMark
 \item Added \texttt{ids} field for citekey aliasing\see{bib:fld}\BiberOnlyMark
 \item Added \opt{sortfirstinits} option\see{use:opt:pre:int}\BiberOnlyMark
 \item Added data stream modification feature\see{aut:ctm:map}\BiberOnlyMark

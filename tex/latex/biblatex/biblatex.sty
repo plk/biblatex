@@ -25,7 +25,7 @@
  programmable bibliographies]
 
 \def\blx@bblversion$#1: #2 ${#2}
-\edef\blx@bblversion{\blx@bblversion$Revision: 1.7 $}
+\edef\blx@bblversion{\blx@bblversion$Revision: 1.8 $}
 
 %% Dependencies
 
@@ -354,7 +354,7 @@
 \newcount\blx@tempcntb
 \newcount\blx@tempcntc
 \newcount\blx@maxsection
-\newcount\blx@maxsegment
+\expandafter\newcount\csname blx@maxsegment@0\endcsname
 \newcount\blx@notetype
 \newcount\blx@parenlevel@text
 \newcount\blx@parenlevel@foot
@@ -477,10 +477,11 @@
 \endgroup
 
 \def\blx@secinit{%
-  \ifcsundef{blx@sort@\the\c@refsection}
+  \csgdef{blx@sections@\the\c@refsection}{true}% just to say we have a section for tests later
+  \ifcsundef{blx@sort@\the\c@refsection}% BibTeX only
     {\global\cslet{blx@sort@\the\c@refsection}\@empty}
     {}%
-  \ifcsundef{blx@sbib@\the\c@refsection}
+  \ifcsundef{blx@sbib@\the\c@refsection}% BibTeX only
     {\global\cslet{blx@sbib@\the\c@refsection}\@empty}
     {}%
   \ifcsundef{blx@bsee@\the\c@refsection}
@@ -489,7 +490,7 @@
   \ifcsundef{blx@fsee@\the\c@refsection}
     {\global\cslet{blx@fsee@\the\c@refsection}\@empty}
     {}%
-  \ifcsundef{blx@losh@\the\c@refsection}
+  \ifcsundef{blx@losh@\the\c@refsection}% BibTeX only
     {\global\cslet{blx@losh@\the\c@refsection}\@empty}
     {}%
   \blx@ibidreset@force
@@ -850,6 +851,11 @@
   \blx@error
     {Section '#1' not found}
     {The reference section '#1' could not be found}}
+
+\def\blx@err@nosort#1{%
+  \blx@error
+    {Sorting scheme '#1' not found}
+    {The sorting scheme '#1' does not seem to have been defined anywhere}}
 
 \def\blx@err@secfirst{%
   \blx@error
@@ -5404,6 +5410,17 @@
 %                                       keyword -> keys [internal list]
 % \blx@losh@<section>                   shorthand hash
 %                                       section -> keys [internal list]
+% \blx@slistsbib@<section>@<sectiontype>@<sectionname> all entries in
+%                                       bibliography of a type sorted
+%                                       in a particular way
+%                                       section -> keys [internal list]
+%                                       sectiontype -> "shorthand" or "entry"
+%                                       sectionname -> sort scheme name
+% \blx@slists@<section>@<sectiontype>@<sectionname> all entries of a type sorted
+%                                       in a particular way
+%                                       section -> keys [internal list]
+%                                       sectiontype -> "shorthand" or "entry"
+%                                       sectionname -> sort scheme name
 % \blx@catg@<category>                  category hash, global
 %                                       category -> keys [internal list]
 % \blx@set@<section>@<entrykey>         parent -> child mapping (dynamic entry sets)
@@ -5534,13 +5551,17 @@
     {}
     {\blx@addpageref{\abx@field@entrykey}}%
   \nottoggle{blx@setonly}
-    {\listcsxadd{blx@sort@\the\c@refsection}{\abx@field@entrykey}}
+    {\ifnumequal\blx@backend\blx@backend@biber
+      {\listcsxadd{blx@slists@\the\c@refsection @entry@\blx@slist@name}{\abx@field@entrykey}}
+      {\listcsxadd{blx@sort@\the\c@refsection}{\abx@field@entrykey}}}%
     {\global\toggletrue{blx@addset}%
      \toggletrue{blx@skipbib}%
      \toggletrue{blx@skiplos}%
      \toggletrue{blx@skiplab}}%
   \nottoggle{blx@skipbib}
-    {\listcsxadd{blx@sbib@\the\c@refsection}{\abx@field@entrykey}%
+    {\ifnumequal\blx@backend\blx@backend@biber
+      {\listcsxadd{blx@slistsbib@\the\c@refsection @entry@\blx@slist@name}{\abx@field@entrykey}}
+      {\listcsxadd{blx@sbib@\the\c@refsection}{\abx@field@entrykey}}%
      \listcsxadd{blx@type@\the\c@refsection @\abx@field@entrytype}{\abx@field@entrykey}%
      \ifdef\abx@field@entrysubtype
        {\listcsxadd{blx@subt@\the\c@refsection @\abx@field@entrysubtype}{\abx@field@entrykey}}
@@ -5570,13 +5591,18 @@
 
 \def\blx@addset{%
   \begingroup
-  \letcs\blx@tempa{blx@sort@\the\c@refsection}%
-  \global\cslet{blx@sort@\the\c@refsection}\@empty
+    \ifnumequal\blx@backend\blx@backend@biber
+      {\letcs\blx@tempa{blx@slists@\the\c@refsection @entry@\blx@slist@name}%
+       \global\cslet{blx@slists@\the\c@refsection @entry@\blx@slist@name}\@empty}%
+      {\letcs\blx@tempa{blx@sort@\the\c@refsection}%
+       \global\cslet{blx@sort@\the\c@refsection}\@empty}%
   \forlistloop\blx@addset@i\blx@tempa
   \endgroup}
 
 \def\blx@addset@i#1{%
-  \listcsgadd{blx@sort@\the\c@refsection}{#1}%
+  \ifnumequal\blx@backend\blx@backend@biber
+    {\listcsgadd{blx@slists@\the\c@refsection @entry@\blx@slist@name}{#1}}
+    {\listcsgadd{blx@sort@\the\c@refsection}{#1}}%
   \ifcsdef{blx@setp@\the\c@refsection @#1}
     {\expandafter\expandafter\expandafter\forcsvlist
      \expandafter\expandafter\expandafter\blx@addset@ii
@@ -5585,7 +5611,9 @@
     {}}
 
 \def\blx@addset@ii#1{%
-  \listcsgadd{blx@sort@\the\c@refsection}{#1}}
+  \ifnumequal\blx@backend\blx@backend@biber
+    {\listcsgadd{blx@slists@\the\c@refsection @entry@\blx@slist@name}{#1}}
+    {\listcsgadd{blx@sort@\the\c@refsection}{#1}}}
 
 \def\blx@bbl@shorthand{%
   \ifundef\abx@field@shorthand
@@ -5758,8 +5786,10 @@
   \let\endentry\blx@bbl@endentry
   \let\missing\blx@bbl@missing
   \let\keyalias\blx@bbl@keyalias
-  \let\lossort\blx@bbl@lossort
-  \let\endlossort\blx@bbl@endlossort
+  \let\sortlist\blx@bbl@slist
+  \let\endsortlist\blx@bbl@endslist
+  \let\lossort\blx@bbl@lossort % BibTeX only
+  \let\endlossort\blx@bbl@endlossort % BibTeX only
   \let\set\blx@bbl@set
   \let\inset\blx@bbl@inset
   \let\xref\blx@bbl@xref % BibTeX only
@@ -5842,6 +5872,14 @@
 \protected\def\blx@aux@numprefix#1#2#3{%
   \blx@bbl@addentryfield{\detokenize{#1}}{#2}{prefixnumber}{#3}}
 
+\def\blx@bbl@slist#1#2{%
+  \begingroup
+  \def\blx@slist@name{#2}%
+  % This macro (\key) will only be called in shorthand lists
+  \def\key##1{\listcsxadd{blx@slistsbib@\the\c@refsection @shorthand@#2}{\detokenize{##1}}}}
+\let\blx@bbl@endslist\endgroup
+
+% BibTeX only, Biber uses the generic sortlist macro
 \def\blx@bbl@lossort{%
   \begingroup
   \def\key##1{\listcsxadd{blx@losh@\the\c@refsection}{\detokenize{##1}}}}
@@ -5941,7 +5979,9 @@
   \def\do##1{%
     \csxdef{blx@data@\the\c@refsection @##1}{%
       \csuse{blx@data@\the\c@refsection @##1}}}%
-  \dolistcsloop{blx@sort@\the\c@refsection}%
+  \ifnumequal\blx@backend\blx@backend@biber
+    {\dolistcsloop{blx@slists@\the\c@refsection @entry@\blx@sorting}}
+    {\dolistcsloop{blx@sort@\the\c@refsection}}%
   \endgroup}
 
 \def\abx@hook@reencode{%
@@ -6063,47 +6103,115 @@
     #2\undef\skipentry}}
 
 % options
+% We need a 2-pass structure for options in \printbibliography and
+% \printshorthands because section and/or sorting have to be set before any
+% other options and these also determine which list to use for later filtering
 
-\define@key{blx@bib}{section}{%
-  \ifcsundef{blx@sbib@#1}
+\define@key{blx@bib1}{segment}{}
+\define@key{blx@bib1}{type}{}
+\define@key{blx@bib1}{nottype}{}
+\define@key{blx@bib1}{subtype}{}
+\define@key{blx@bib1}{notsubtype}{}
+\define@key{blx@bib1}{keyword}{}
+\define@key{blx@bib1}{notkeyword}{}
+\define@key{blx@bib1}{category}{}
+\define@key{blx@bib1}{notcategory}{}
+\define@key{blx@bib1}{filter}{}
+\define@key{blx@bib1}{check}{}
+\define@key{blx@bib1}{heading}{}
+\define@key{blx@bib1}{env}{}
+\define@key{blx@bib1}{title}{}
+\define@key{blx@bib1}{prenote}{}
+\define@key{blx@bib1}{postnote}{}
+\define@key{blx@bib1}{resetnumbers}{}
+\define@key{blx@bib1}{omitnumbers}{}
+\define@key{blx@bib1}{prefixnumbers}{}
+
+\define@key{blx@bib2}{section}{}
+\define@key{blx@bib2}{sorting}{}
+
+\define@key{blx@los1}{segment}{}
+\define@key{blx@los1}{type}{}
+\define@key{blx@los1}{nottype}{}
+\define@key{blx@los1}{subtype}{}
+\define@key{blx@los1}{notsubtype}{}
+\define@key{blx@los1}{keyword}{}
+\define@key{blx@los1}{notkeyword}{}
+\define@key{blx@los1}{category}{}
+\define@key{blx@los1}{notcategory}{}
+\define@key{blx@los1}{filter}{}
+\define@key{blx@los1}{check}{}
+\define@key{blx@los1}{heading}{}
+\define@key{blx@los1}{env}{}
+\define@key{blx@los1}{title}{}
+\define@key{blx@los1}{prenote}{}
+\define@key{blx@los1}{postnote}{}
+
+\define@key{blx@los2}{section}{}
+\define@key{blx@los2}{sorting}{}
+
+\define@key{blx@bib1}{sorting}{%
+  \ifnumequal\blx@backend\blx@backend@biber
+    {\ifcsundef{blx@biber@sorting@#1}
+      {\blx@err@invopt{sorting=#1}{}}%
+      {\blx@printbibchecks
+       \def\blx@tempc{#1}%
+       \edef\blx@tempd{%
+         \blx@xml@sorting{%
+           \blx@bcf@presort
+           \blx@bcf@exclude
+           \csuse{blx@biber@sorting@#1}}}}}
+    {\blx@warning{Sorting option to 'printbibliography' can only be used with biber backend}}}
+  
+\define@key{blx@los1}{sorting}{%
+  \ifnumequal\blx@backend\blx@backend@biber
+    {\ifcsundef{blx@biber@sorting@#1}
+      {\blx@err@invopt{sorting=#1}{}}%
+      {\blx@printbibchecks
+       \def\blx@tempc{#1}%
+       \edef\blx@tempd{%
+         \blx@xml@sorting{%
+           \blx@bcf@presort
+           \blx@bcf@exclude
+           \csuse{blx@biber@sorting@#1}}}}}
+    {\blx@warning{Sorting option to 'printshorthands' can only be used with biber backend}}}
+
+\define@key{blx@bib1}{section}{%
+  \ifcsundef{blx@sections@#1}
     {\blx@err@nosec{#1}}
     {\c@refsection#1\relax
-     \iftoggle{blx@tempa}
-       {\letcs\blx@tempa{blx@sbib@\the\c@refsection}}
-       {\blx@err@secfirst}}}
+     \def\blx@tempe{#1}}}
 
-\define@key{blx@los}{section}{%
-  \ifcsundef{blx@sbib@#1}
+\define@key{blx@los1}{section}{%
+  \ifcsundef{blx@sections@#1}
     {\blx@err@nosec{#1}}
     {\c@refsection#1\relax
-     \iftoggle{blx@tempa}
-       {\letcs\blx@tempa{blx@losh@\the\c@refsection}}
-       {\blx@err@secfirst}}}
+     \def\blx@tempe{#1}}}
 
 \define@key{blx@bbg}{section}{%
-  \ifcsundef{blx@sbib@#1}
+  \ifcsundef{blx@sections@#1}
     {\blx@err@nosec{#1}}
     {\c@refsection#1\relax}}
 
 \define@key{blx@bbc}{section}{%
-  \ifcsundef{blx@sbib@#1}
+  \ifcsundef{blx@sections@#1}
     {\blx@err@nosec{#1}}
     {\c@refsection#1\relax}}
 
-\define@key{blx@bib}{segment}{\blx@key@segment{#1}}
-\define@key{blx@los}{segment}{\blx@key@segment{#1}}
+\define@key{blx@bib2}{segment}{\blx@key@segment{#1}}
+\define@key{blx@los2}{segment}{\blx@key@segment{#1}}
 
 \def\blx@key@segment#1{%
   \ifcsundef{blx@segm@\the\c@refsection @#1}
     {\blx@error
-       {Segment '#1' not found}
-       {The reference segment '#1' could not be found}}
+       {Segment '#1' not found in section '\the\c@refsection'}
+       {The reference segment '#1' could not be found in section '\the\c@refsection'}}
     {\c@refsegment#1\relax
      \blx@printbibchecks
      \blx@filter\blx@tempa{blx@segm@\the\c@refsection @#1}}}
 
-\define@key{blx@bib}{type}{\blx@key@type{#1}}
-\define@key{blx@los}{type}{\blx@key@type{#1}}
+\define@key{blx@bib2}{type}{\blx@key@type{#1}}
+\define@key{blx@los2}{type}{\blx@key@type{#1}}
 
 \def\blx@key@type#1{%
   \ifcsundef{blx@type@\the\c@refsection @#1}
@@ -6121,8 +6229,8 @@
 	   hence some options may not be used twice.\MessageBreak
 	   Use 'filter' and '\string\defbibfilter' with OR conjunctions}}}}
 
-\define@key{blx@bib}{nottype}{\blx@key@nottype{#1}}
-\define@key{blx@los}{nottype}{\blx@key@nottype{#1}}
+\define@key{blx@bib2}{nottype}{\blx@key@nottype{#1}}
+\define@key{blx@los2}{nottype}{\blx@key@nottype{#1}}
 
 \def\blx@key@nottype#1{%
   \ifcsundef{blx@type@\the\c@refsection @#1}
@@ -6130,8 +6238,8 @@
     {\blx@printbibchecks
      \blx@notfilter\blx@tempa{blx@type@\the\c@refsection @#1}}}
 
-\define@key{blx@bib}{subtype}{\blx@key@subtype{#1}}
-\define@key{blx@los}{subtype}{\blx@key@subtype{#1}}
+\define@key{blx@bib2}{subtype}{\blx@key@subtype{#1}}
+\define@key{blx@los2}{subtype}{\blx@key@subtype{#1}}
 
 \def\blx@key@subtype#1{%
   \ifcsundef{blx@subt@\the\c@refsection @#1}
@@ -6149,8 +6257,8 @@
 	   hence some options may not be used twice.\MessageBreak
 	   Use 'filter' and '\string\defbibfilter' with OR conjunctions}}}}
 
-\define@key{blx@bib}{notsubtype}{\blx@key@notsubtype{#1}}
-\define@key{blx@los}{notsubtype}{\blx@key@notsubtype{#1}}
+\define@key{blx@bib2}{notsubtype}{\blx@key@notsubtype{#1}}
+\define@key{blx@los2}{notsubtype}{\blx@key@notsubtype{#1}}
 
 \def\blx@key@notsubtype#1{%
   \ifcsundef{blx@subt@\the\c@refsection @#1}
@@ -6158,8 +6266,8 @@
     {\blx@printbibchecks
      \blx@notfilter\blx@tempa{blx@subt@\the\c@refsection @#1}}}
 
-\define@key{blx@bib}{keyword}{\blx@key@keyword{#1}}
-\define@key{blx@los}{keyword}{\blx@key@keyword{#1}}
+\define@key{blx@bib2}{keyword}{\blx@key@keyword{#1}}
+\define@key{blx@los2}{keyword}{\blx@key@keyword{#1}}
 
 \def\blx@key@keyword#1{%
   \ifcsundef{blx@keyw@\the\c@refsection @\detokenize{#1}}
@@ -6168,8 +6276,8 @@
     {\blx@printbibchecks
      \blx@filter\blx@tempa{blx@keyw@\the\c@refsection @\detokenize{#1}}}}
 
-\define@key{blx@bib}{notkeyword}{\blx@key@notkeyword{#1}}
-\define@key{blx@los}{notkeyword}{\blx@key@notkeyword{#1}}
+\define@key{blx@bib2}{notkeyword}{\blx@key@notkeyword{#1}}
+\define@key{blx@los2}{notkeyword}{\blx@key@notkeyword{#1}}
 
 \def\blx@key@notkeyword#1{%
   \ifcsundef{blx@keyw@\the\c@refsection @\detokenize{#1}}
@@ -6177,8 +6285,8 @@
     {\blx@printbibchecks
      \blx@notfilter\blx@tempa{blx@keyw@\the\c@refsection @\detokenize{#1}}}}
 
-\define@key{blx@bib}{category}{\blx@key@category{#1}}
-\define@key{blx@los}{category}{\blx@key@category{#1}}
+\define@key{blx@bib2}{category}{\blx@key@category{#1}}
+\define@key{blx@los2}{category}{\blx@key@category{#1}}
 
 \def\blx@key@category#1{%
   \ifcsundef{blx@catg@\detokenize{#1}}
@@ -6187,8 +6295,8 @@
     {\blx@printbibchecks
      \blx@filter\blx@tempa{blx@catg@\detokenize{#1}}}}
 
-\define@key{blx@bib}{notcategory}{\blx@key@notcategory{#1}}
-\define@key{blx@los}{notcategory}{\blx@key@notcategory{#1}}
+\define@key{blx@bib2}{notcategory}{\blx@key@notcategory{#1}}
+\define@key{blx@los2}{notcategory}{\blx@key@notcategory{#1}}
 
 \def\blx@key@notcategory#1{%
   \ifcsundef{blx@catg@#1}
@@ -6196,8 +6304,8 @@
     {\blx@printbibchecks
      \blx@notfilter\blx@tempa{blx@catg@#1}}}
 
-\define@key{blx@bib}{filter}{\blx@key@filter{#1}}
-\define@key{blx@los}{filter}{\blx@key@filter{#1}}
+\define@key{blx@bib2}{filter}{\blx@key@filter{#1}}
+\define@key{blx@los2}{filter}{\blx@key@filter{#1}}
 
 \def\blx@key@filter#1{%
   \ifcsdef{blx@filter@#1}
@@ -6209,8 +6317,8 @@
        {The filter '#1' could not be found.\MessageBreak
         Use \string\defbibfilter\space to define it}}}
 
-\define@key{blx@bib}{check}{\blx@key@bibcheck{#1}}
-\define@key{blx@los}{check}{\blx@key@bibcheck{#1}}
+\define@key{blx@bib2}{check}{\blx@key@bibcheck{#1}}
+\define@key{blx@los2}{check}{\blx@key@bibcheck{#1}}
 
 \def\blx@key@bibcheck#1{%
   \ifcsdef{blx@bibcheck@#1}
@@ -6222,8 +6330,8 @@
         Use \string\defbibcheck\space to define it}}}
 
 \define@key{blx@bhd}{heading}{\blx@key@heading{#1}}
-\define@key{blx@bib}{heading}{\blx@key@heading{#1}}
-\define@key{blx@los}{heading}{\blx@key@heading{#1}}
+\define@key{blx@bib2}{heading}{\blx@key@heading{#1}}
+\define@key{blx@los2}{heading}{\blx@key@heading{#1}}
 \define@key{blx@bbs}{heading}{\blx@key@heading{#1}}
 \define@key{blx@bbg}{heading}{\blx@key@heading{#1}}
 
@@ -6235,8 +6343,8 @@
 	 Use \string\defbibheading\space to define it}}
      {\def\blx@theheading{#1}}}
 
-\define@key{blx@bib}{env}{\blx@key@env{#1}}
-\define@key{blx@los}{env}{\blx@key@env{#1}}
+\define@key{blx@bib2}{env}{\blx@key@env{#1}}
+\define@key{blx@los2}{env}{\blx@key@env{#1}}
 \define@key{blx@bbs}{env}{\blx@key@env{#1}}
 \define@key{blx@bbg}{env}{\blx@key@env{#1}}
 \define@key{blx@bbc}{env}{\blx@key@env{#1}}
@@ -6250,11 +6358,11 @@
      {\def\blx@theenv{#1}}}
 
 \define@key{blx@bhd}{title}{\def\blx@thetitle{#1}}
-\define@key{blx@bib}{title}{\def\blx@thetitle{#1}}
-\define@key{blx@los}{title}{\def\blx@thetitle{#1}}
+\define@key{blx@bib2}{title}{\def\blx@thetitle{#1}}
+\define@key{blx@los2}{title}{\def\blx@thetitle{#1}}
 
-\define@key{blx@bib}{prenote}{\blx@key@prenote{#1}}
-\define@key{blx@los}{prenote}{\blx@key@prenote{#1}}
+\define@key{blx@bib2}{prenote}{\blx@key@prenote{#1}}
+\define@key{blx@los2}{prenote}{\blx@key@prenote{#1}}
 \define@key{blx@bbs}{prenote}{\blx@key@prenote{#1}}
 \define@key{blx@bbg}{prenote}{\blx@key@prenote{#1}}
 \define@key{blx@bbc}{prenote}{\blx@key@prenote{#1}}
@@ -6266,8 +6374,8 @@
 	 Use \string\defbibnote\space to define it}}
      {\def\blx@theprenote{#1}}}
 
-\define@key{blx@bib}{postnote}{\blx@key@postnote{#1}}
-\define@key{blx@los}{postnote}{\blx@key@postnote{#1}}
+\define@key{blx@bib2}{postnote}{\blx@key@postnote{#1}}
+\define@key{blx@los2}{postnote}{\blx@key@postnote{#1}}
 \define@key{blx@bbs}{postnote}{\blx@key@postnote{#1}}
 \define@key{blx@bbg}{postnote}{\blx@key@postnote{#1}}
 \define@key{blx@bbc}{postnote}{\blx@key@postnote{#1}}
@@ -6280,7 +6388,7 @@
 	 Use \string\defbibnote\space to define it}}
      {\def\blx@thepostnote{#1}}}
 
-\define@key{blx@bib}{resetnumbers}[true]{%
+\define@key{blx@bib2}{resetnumbers}[true]{%
   \ifstrequal{#1}{true}
     {\iftoggle{blx@defernumbers}
        {\csnumdef{blx@labelnumber@\the\c@refsection}{0}}
@@ -6289,7 +6397,7 @@
           Ignoring 'resetnumbers=true'}}}
     {}}
 
-\define@key{blx@bib}{omitnumbers}[true]{%
+\define@key{blx@bib2}{omitnumbers}[true]{%
   \ifstrequal{#1}{true}
     {\iftoggle{blx@defernumbers}
        {\toggletrue{blx@omitnumbers}}
@@ -6298,7 +6406,7 @@
           Ignoring 'omitnumbers=true'}}}
     {}}
 
-\define@key{blx@bib}{prefixnumbers}{%
+\define@key{blx@bib2}{prefixnumbers}{%
   \def\blx@prefixnumbers{#1}%
   \iftoggle{blx@defernumbers}
     {\csnumdef{blx@labelnumber@\the\c@refsection}{0}}
@@ -6338,15 +6446,38 @@
 \def\blx@printbibliography[#1]{%
   \toggletrue{blx@tempa}%
   \toggletrue{blx@tempb}%
-  \letcs\blx@tempa{blx@sbib@\the\c@refsection}%
   \def\blx@theheading{bibliography}%
   \def\blx@theenv{bibliography}%
   \let\blx@theprenote\@empty
   \let\blx@thepostnote\@empty
   \let\blx@thetitle\@empty
+  % defaults
+  \let\blx@tempa\@empty% before there is a .bbl, this must not be undef
+  \let\blx@tempc\blx@sorting% sorting scheme name from "sorting" option
+  \ifnumequal\blx@backend\blx@backend@biber
+    {\edef\blx@tempd{%
+      \blx@xml@sorting{%
+        \blx@bcf@presort
+        \blx@bcf@exclude
+        \csuse{blx@biber@sorting@\blx@sorting}}}}% sorting scheme from "sorting" option
+    {}%
+  \edef\blx@tempe{\the\c@refsection}% default refsection is current
   \blx@safe@actives
-  \setkeys{blx@bib}{#1}%
+  \setkeys{blx@bib1}{#1}% Set sorting and section only, if present ...
   \blx@rest@actives
+  \ifnumequal\blx@backend\blx@backend@biber
+    {\ifcsvoid{blx@slistsbib@\blx@tempe @entry@\blx@tempc}
+      {}
+      {\letcs\blx@tempa{blx@slistsbib@\blx@tempe @entry@\blx@tempc}}}
+    {\ifcsvoid{blx@sbib@\blx@tempe}
+      {}
+      {\letcs\blx@tempa{blx@sbib@\blx@tempe}}}%
+  \blx@safe@actives
+  \setkeys{blx@bib2}{#1}% ... now we have correct \blx@tempa, set rest of options
+  \blx@rest@actives
+  \ifnumequal\blx@backend\blx@backend@biber
+    {\csxappto{blx@xml@slistsbib}{\blx@xml@slist{entry}{\blx@tempe}{\blx@tempc}{\blx@tempd}}}
+    {}%
   \ifdefvoid\blx@tempa
     {\blx@warn@bibempty\endgroup}
     {\blx@bibliography\blx@tempa}}
@@ -6377,11 +6508,17 @@
   \blx@refsections}
 
 \def\blx@refsections{%
-  \ifcsvoid{blx@sbib@\the\c@refsection}
-    {}
-    {\toggletrue{blx@tempa}%
-     \begingroup
-     \expandafter\blx@bibliography\csname blx@sbib@\the\c@refsection\endcsname}%
+  \ifnumequal\blx@backend\blx@backend@biber
+    {\ifcsvoid{blx@slistsbib@\the\c@refsection @entry@\blx@sorting}
+      {}
+      {\toggletrue{blx@tempa}%
+       \begingroup
+       \expandafter\blx@bibliography\csname blx@slistsbib@\the\c@refsection @entry@\blx@sorting\endcsname}}
+    {\ifcsvoid{blx@sbib@\the\c@refsection}
+      {}
+      {\toggletrue{blx@tempa}%
+       \begingroup
+       \expandafter\blx@bibliography\csname blx@sbib@\the\c@refsection\endcsname}}%
   \ifnum\c@refsection<\blx@maxsection
     \advance\c@refsection\@ne
     \expandafter\blx@refsections
@@ -6395,7 +6532,7 @@
 \newrobustcmd*{\bibbysegment}{%
   \begingroup
   \edef\on@line{\on@line}%
-  \ifnum\blx@maxsegment=\z@
+  \ifnum\csname blx@maxsegment@\the\c@refsection\endcsname=\z@
     \blx@warning{No reference segments found}%
   \fi
   \@ifnextchar[%]
@@ -6408,7 +6545,6 @@
   \let\blx@theprenote\@empty
   \let\blx@thepostnote\@empty
   \let\blx@thetitle\@empty
-  \c@refsection\z@
   \c@refsegment\@ne
   \blx@safe@actives
   \setkeys{blx@bbg}{#1}%
@@ -6421,10 +6557,17 @@
     {}
     {\toggletrue{blx@tempa}%
      \begingroup
-     \letcs\blx@tempa{blx@sbib@\the\c@refsection}%
+     \let\blx@tempa\@empty
+     \ifnumequal\blx@backend\blx@backend@biber
+       {\ifcsvoid{blx@slistsbib@\the\c@refsection @entry@\blx@sorting}
+         {}
+         {\letcs\blx@tempa{blx@slistsbib@\the\c@refsection @entry@\blx@sorting}}}
+       {\ifcsvoid{blx@sbib@\the\c@refsection}
+         {}
+         {\letcs\blx@tempa{blx@sbib@\the\c@refsection}}}%
      \blx@filter\blx@tempa{blx@segm@\the\c@refsection @\the\c@refsegment}%
      \blx@bibliography\blx@tempa}%
-  \ifnum\c@refsegment<\blx@maxsegment
+  \ifnum\c@refsegment<\csname blx@maxsegment@\the\c@refsection\endcsname
     \advance\c@refsegment\@ne
     \expandafter\blx@refsegments
   \else
@@ -6464,7 +6607,14 @@
     {\toggletrue{blx@tempa}%
      \begingroup
      \blx@key@heading{#1}%
-     \letcs\blx@tempa{blx@sbib@\the\c@refsection}%
+     \let\blx@tempa\@empty
+     \ifnumequal\blx@backend\blx@backend@biber
+       {\ifcsvoid{blx@slistsbib@\the\c@refsection @entry@\blx@sorting}
+         {}
+         {\letcs\blx@tempa{blx@slistsbib@\the\c@refsection @entry@\blx@sorting}}}
+       {\ifcsvoid{blx@sbib@\the\c@refsection}
+         {}
+         {\letcs\blx@tempa{blx@sbib@\the\c@refsection}}}%
      \blx@filter\blx@tempa{blx@catg@#1}%
      \blx@bibliography\blx@tempa}}%
 
@@ -6664,16 +6814,39 @@
 \def\blx@printshorthands[#1]{%
   \toggletrue{blx@tempa}%
   \toggletrue{blx@tempb}%
-  \letcs\blx@tempa{blx@losh@\the\c@refsection}%
   \def\blx@theheading{shorthands}%
   \def\blx@theenv{shorthands}%
   \let\blx@theprenote\@empty
   \let\blx@thepostnote\@empty
   \let\blx@thetitle\@empty
+  % defaults
+  \let\blx@tempa\@empty% before there is a .bbl, this must not be undef
+  \def\blx@tempc{shorthand}% sorting scheme name from "sorting" option
+  \ifnumequal\blx@backend\blx@backend@biber
+    {\edef\blx@tempd{%
+      \blx@xml@sorting{%
+        \blx@bcf@presort
+        \blx@bcf@exclude
+        \csuse{blx@biber@sorting@shorthand}}}}% sorting scheme from "sorting" option
+    {}%
   \let\blx@printbibchecks\relax
+  \edef\blx@tempe{\the\c@refsection}% default refsection is current
   \blx@safe@actives
-  \setkeys{blx@los}{#1}%
+  \setkeys{blx@los1}{#1}% Set sorting and section only, if present ...
   \blx@rest@actives
+  \ifnumequal\blx@backend\blx@backend@biber
+    {\ifcsvoid{blx@slistsbib@\blx@tempe @shorthand@\blx@tempc}
+      {}
+      {\letcs\blx@tempa{blx@slistsbib@\blx@tempe @shorthand@\blx@tempc}}}
+    {\ifcsvoid{blx@losh@\blx@tempe}
+      {}
+      {\letcs\blx@tempa{blx@losh@\blx@tempe}}}%
+  \blx@safe@actives
+  \setkeys{blx@los2}{#1}% ... now we have correct \blx@tempa, set rest of options
+  \blx@rest@actives
+  \ifnumequal\blx@backend\blx@backend@biber
+    {\csxappto{blx@xml@slistsbib}{\blx@xml@slistlos{shorthand}{\blx@tempe}{\blx@tempc}{\blx@tempd}}}
+    {}%
   \ifdefvoid\blx@tempa
     {\blx@warn@losempty\endgroup}
     {\blx@shorthands\blx@tempa}}
@@ -6782,6 +6955,7 @@
   \endgroup
   \global\advance\blx@maxsection\@ne
   \global\c@refsection\blx@maxsection
+  \expandafter\newcount\csname blx@maxsegment@\the\c@refsection\endcsname
   \blx@inf@refsec
   \blx@secinit
   \if@filesw
@@ -6887,11 +7061,11 @@
     \blx@err@nestenv{refsegment}%
     \blx@endrefsegment
   \fi
-  \global\advance\blx@maxsegment\@ne
-  \global\c@refsegment\blx@maxsegment
+  \global\advance\csname blx@maxsegment@\the\c@refsection\endcsname\@ne
+  \global\c@refsegment\csname blx@maxsegment@\the\c@refsection\endcsname
   \blx@inf@refseg
-  \blx@info{Setting label 'refsegment:\the\c@refsegment'}%
-  \label{refsegment:\the\c@refsegment}%
+  \blx@info{Setting label 'refsegment:\the\c@refsection\the\c@refsegment'}%
+  \label{refsegment:\the\c@refsection\the\c@refsegment}%
   \ifcsundef{blx@segm@\the\c@refsection @\the\c@refsegment}
     {\global\cslet{blx@segm@\the\c@refsection @\the\c@refsegment}\@empty}
     {}}
@@ -7162,8 +7336,8 @@
   \ifbool{citerequest}
     {\ifnumless\blx@backend\blx@backend@biber % BibTeX only
        {\ifcsdef{blx@setp@\the\c@refsection @#1}
-	  {\blx@citation@set{#1}{#2}}
-	  {\ifcsdef{blx@setc@\the\c@refsection @#1}
+         {\blx@citation@set{#1}{#2}}
+         {\ifcsdef{blx@setc@\the\c@refsection @#1}
              {\blx@citation@inset{#1}{#2}}
              {\blx@citation@entry{#1}{#2}}}}
        {\blx@citation@entry{#1}{#2}}%
@@ -7228,12 +7402,19 @@
 \def\blx@citation@all{%
   \ifbool{citerequest}
     {\blx@bibreq{*}%
-     \global\csletcs
-       {blx@segm@\the\c@refsection @\the\c@refsegment}
-       {blx@sbib@\the\c@refsection}%
-     \ifcsvoid{blx@sort@\the\c@refsection}
-       {\blx@logreq@active{}}
-       {}}
+     \ifnumequal\blx@backend\blx@backend@biber
+       {\global\csletcs
+         {blx@segm@\the\c@refsection @\the\c@refsegment}
+         {blx@slists@\the\c@refsection @entry@\blx@sorting}%
+        \ifcsvoid{blx@slists@\the\c@refsection @entry@\blx@sorting}
+         {\blx@logreq@active{}}
+         {}}
+       {\global\csletcs
+         {blx@segm@\the\c@refsection @\the\c@refsegment}
+         {blx@sbib@\the\c@refsection}%
+        \ifcsvoid{blx@sort@\the\c@refsection}
+         {\blx@logreq@active{}}
+         {}}}
     {}}
 
 \protected\def\blx@bibreq#1{%
@@ -7301,7 +7482,9 @@
       \multicitedelim
     \fi
   \fi
-  \letcs\blx@tempb{blx@sort@\the\c@refsection}%
+  \ifnumequal\blx@backend\blx@backend@biber
+    {\letcs\blx@tempb{blx@slists@\the\c@refsection @entry@\blx@sorting}}
+    {\letcs\blx@tempb{blx@sort@\the\c@refsection}}%
   \blx@thecitesort
   \edef\blx@tempa{\endgroup
     \c@citecount\z@
@@ -7330,14 +7513,14 @@
 
 \def\blx@citeadd#1{%
   \ifcsdef{blx@keyalias@\the\c@refsection @#1}
-    {\def\blx@realkey{\csuse{blx@keyalias@\the\c@refsection @#1}}}
+    {\edef\blx@realkey{\csuse{blx@keyalias@\the\c@refsection @#1}}}
     {\def\blx@realkey{#1}}%
-  \blx@citation{\blx@realkey}\blx@msg@cundefon
-  \blx@ifdata{\blx@realkey}
+  \expandafter\blx@citation\expandafter{\blx@realkey}\blx@msg@cundefon
+  \expandafter\blx@ifdata\expandafter{\blx@realkey}
     {\advance\blx@tempcnta\@ne
      \listeadd\blx@tempa{\blx@realkey}}
     {\ifnum\blx@tempcntb>\z@\multicitedelim\fi
-     \abx@missing{\blx@realkey}
+     \expandafter\abx@missing\expandafter{\blx@realkey}
      \advance\blx@tempcntb\@ne}}
 
 % {<entrykey>}
@@ -7887,8 +8070,8 @@
     \iftoggle{blx@bibliography}
       {}
       {\ifstrequal{*}{#1}
-	 {\blx@citation@all}
-	 {\blx@xsanitizeafter{\forcsvlist\blx@nocite@do}{#1}}}}%
+        {\blx@citation@all}
+        {\blx@xsanitizeafter{\forcsvlist\blx@nocite@do}{#1}}}}%
   \@esphack}
 
 \def\blx@nocite@do#1{\blx@citation{#1}\blx@msg@cundef}
@@ -8800,7 +8983,7 @@
   \blx@sig@bcf\blx@nl
   \blx@ver@bcf\blx@nl}
 \xdef\blx@xml@endfile{%
-  \blx@nl</bcf:controlfile>}
+  </bcf:controlfile>}
 \xdef\blx@xml@comment#1{%
   ~~<!-- #1 -->\blx@nl}
 \xdef\blx@xml@options#1#2#3{%
@@ -8903,6 +9086,17 @@
   ~~<bcf:section number="#1">}
 \xdef\blx@xml@endsection{%
   ~~</bcf:section>}
+
+\xdef\blx@xml@slist#1#2#3#4{%
+  ~~<bcf:sortlist section="#2" type="#1" label="#3">\blx@nl
+  #4%
+  ~~</bcf:sortlist>\blx@nl}
+\xdef\blx@xml@slistlos#1#2#3#4{%
+  ~~<bcf:sortlist section="#2" type="#1" label="#3">\blx@nl
+  ~~~~<bcf:filter type="field">shorthand</bcf:filter>\blx@nl
+  #4%
+  ~~</bcf:sortlist>\blx@nl}
+
 \xdef\blx@xml@bibdata#1#2{%
   ~~<bcf:bibdata section="#1">\blx@nl
   #2%
@@ -8943,7 +9137,7 @@
     \blx@xml@svalue{minitems}{\blx@minitems}%
     \blx@xml@toggle{singletitle}%
     \blx@xml@svalue{sortalphaothers}{\sortalphaothers}%
-    \blx@xml@svalue{sortlos}{\blx@sortlos}%
+    \blx@xml@svalue{sortscheme}{\blx@sorting}%
     \blx@xml@svalue{uniquelist}{\blx@uniquelist}%
     \blx@xml@svalue{uniquename}{\blx@uniquename}%
     \blx@xml@toggle{useauthor}%
@@ -9096,6 +9290,8 @@
     }%
   }%
   % sorting
+  \gdef\blx@bcf@exclude{}% This is so we don't have to do all this again
+                         % for \printbibliography sorting
   \def\do##1{%
     \eappto\blx@bcf@presort{\csuse{blx@bcf@presort@##1}}%
     \eappto\blx@bcf@exclude{\csuse{blx@bcf@exclude@##1}}}%
@@ -9123,7 +9319,8 @@
   \endgroup
   \AfterEndDocument{%
     \blx@auxwrite\blx@auxout{}{%
-      \blx@xml@endsection
+      \blx@xml@endsection\blx@nl
+      \csuse{blx@xml@slistsbib}%
       \blx@xml@endfile}%
     \immediate\closeout\blx@auxout}}
 
@@ -9688,6 +9885,7 @@
     {\undef\blx@sortlocale}
     {\edef\blx@sortlocale{\detokenize{#1}}}}
 
+% BibTeX only (Biber shorthands sorting is done using normal biber sorting schemes)
 \DeclareBibliographyOption{sortlos}{%
   \ifcsdef{blx@opt@sortlos@#1}
     {\letcs\blx@sortlos{blx@opt@sortlos@#1}}

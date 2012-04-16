@@ -175,7 +175,7 @@ STRINGS  { ctrl.alphaothers templist tempstrga tempstrgb resvstrga
            last.name last.hash last.year last.extra }
 
 FUNCTION {initialize} {
-  "$Revision: 1.7 $"
+  "$Revision: 1.8 $"
   #12 entry.max$ substring$
   #-3 entry.max$ substring$
   "Biblatex version: " swap$ * top$
@@ -1762,7 +1762,7 @@ FUNCTION {input:control:options} {
 
 FUNCTION {input:control:version} {
   input:control:parse
-  "$Revision: 1.7 $"
+  "$Revision: 1.8 $"
   #12 entry.max$ substring$
   #-3 entry.max$ substring$
   'tempstrga :=
@@ -2585,7 +2585,7 @@ SORT
 
 FUNCTION {output:main:begin} {
   "% $ biblatex auxiliary file $"                               write$ newline$
-  "% $ biblatex version " "$Revision: 1.7 $"
+  "% $ biblatex version " "$Revision: 1.8 $"
   #12 entry.max$ substring$ #-3 entry.max$ substring$ * " $" *  write$ newline$
   "% Do not modify the above lines!"                            write$ newline$
   "%"                                                           write$ newline$
