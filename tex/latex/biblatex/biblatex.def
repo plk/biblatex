@@ -403,6 +403,7 @@
 \DeclareFieldFormat{related}{#1}
 \DeclareFieldFormat{related:multivolume}{\par\nobreak#1}
 \DeclareFieldFormat{related:origpubin}{\mkbibparens{#1}}
+\DeclareFieldFormat{related:origpubas}{\mkbibparens{#1}}
 
 % Generic formats for \printtext and \printfield
 
@@ -961,6 +962,15 @@
 % ------------------------------------------------------------------
 
 \DeclarePresort{mm}
+
+\DeclareSortingScheme{shorthand}{
+  \sort[final]{
+    \field{sortshorthand}
+  }
+  \sort{
+    \field{shorthand}
+  }
+}
 
 \DeclareSortingScheme{none}{
   \sort{\citeorder}
@@ -2360,8 +2370,10 @@
        \newunit\newblock}
       {}%
     \ifboolexpr{
-      test {\ifentrytype{inbook}} or
-      test {\ifentrytype{incollection}} or
+      test {\ifentrytype{inbook}}
+      or
+      test {\ifentrytype{incollection}}
+      or
       test {\ifentrytype{inproceedings}}
     }
       {\usebibmacro{in:}%
@@ -2383,7 +2395,7 @@
   \printfield{pages}}}
 
 \newbibmacro*{related:bytranslator}[1]{%
-  \entrydata*{#1}{%
+  \entrydata{#1}{%
     \printnames[bytranslator]{translator}%
     \setunit*{\addspace\bibstring{as}\space}%
     \usebibmacro{title}%
@@ -2405,7 +2417,9 @@
     \usebibmacro{title}%
     \ifnamesequal{author}{savedauthor}
       {}
-      {\usebibmacro{byauthor}%
+      {\usebibmacro{bytypestrg}{author}{author}%
+       \setunit{\addspace}%
+       \printnames[byauthor]{author}
        \newunit\newblock}%
     \ifnamesequal{editor}{savededitor}
       {}
@@ -2417,7 +2431,24 @@
   \entrydata*{#1}{%
     \printfield{year}%
     \ifboolexpr{
-      test {\iflistsequal{publisher}{savedpublisher}} or
+      test {\iflistsequal{publisher}{savedpublisher}}
+      or
+      test {\iflistundef{publisher}}
+    }
+      {}
+      {\setunit{\addspace\bibstring{by}\space}%
+       \printlist{publisher}%
+       \setunit{\addcomma\space}%
+       \iflistsequal{location}{savedlocation}
+         {}
+         {\printlist{location}}}}}
+
+\newbibmacro*{related:origpubas}[1]{%
+  \entrydata*{#1}{%
+    \usebibmacro{title}%
+    \ifboolexpr{
+      test {\iflistsequal{publisher}{savedpublisher}}
+      or
       test {\iflistundef{publisher}}
     }
       {}
