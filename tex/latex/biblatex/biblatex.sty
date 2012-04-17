@@ -9062,6 +9062,13 @@
 \xdef\blx@xml@inherit@block#1{%
   ~~~~~~<bcf:field source="#1" skip="true"/>\blx@nl}
 
+\xdef\blx@xml@nosorts#1{%
+  ~~<bcf:nosorts>\blx@nl
+  #1%
+  ~~</bcf:nosorts>\blx@nl}
+\xdef\blx@xml@nosort#1#2{%
+  ~~~~<bcf:nosort field="#1" value="#2"/>\blx@nl}
+
 \xdef\blx@xml@sorting#1{%
   ~~<bcf:sorting>\blx@nl
   #1%
@@ -9289,6 +9296,15 @@
       \csuse{blx@biber@inherit@data}%
     }%
   }%
+  % nosort
+  \ifcsdef{blx@biber@nosort}
+    {\eappto\blx@tempa{%
+      \blx@xml@comment{NOSORT}%
+      \blx@xml@nosorts{%
+        \csuse{blx@biber@nosort}%
+      }%
+    }}
+    {}%
   % sorting
   \gdef\blx@bcf@exclude{}% This is so we don't have to do all this again
                          % for \printbibliography sorting
@@ -9326,10 +9342,23 @@
 
 %% Customisation
 
-% {<type>}{<spec>}
-
 \def\regexp#1{\expandafter\zap@space\detokenize{#1} \@empty}
 
+% nosort
+\newrobustcmd*{\DeclareNosort}[1]{%
+  \begingroup
+  \let\nosort\blx@nosort
+  \let\blx@tempa\@empty
+  #1%
+  \global\cslet{blx@biber@nosort}\blx@tempa
+  \endgroup}
+\@onlypreamble\DeclareNosort
+
+\newcommand*{\blx@nosort}[2]{%
+  \eappto\blx@tempa{%
+    \blx@xml@nosort{#1}{#2}}}
+
+% sourcemap
 \newrobustcmd*{\DeclareSourcemap}[1]{%
   \begingroup
   \let\maps\blx@sourcemap@maps
