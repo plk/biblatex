@@ -6259,6 +6259,88 @@ Specifies are string to be used to automatically populate the \bibfield{presort}
 
 \end{ltxsyntax}
 
+\subsubsection{Fine Tuning Sorting}
+\label{aut:ctm:nosort}
+
+It can be useful to fine tune sorting so that it ignores certain parts of particular fields.
+
+\begin{ltxsyntax}
+
+\cmditem{DeclareNosort}{specification}|\BiberOnlyMark|
+
+Defines regular expressions to strip from particular fields or types of fields when sorting. The \prm{specification} is an undelimited list of \cmd{nosort} directives which specify the regular expressions to remove from particular fields or type of field. Spaces, tabs, nd line endings may be used freely to visually arrange the \prm{specification}. Blank lines are not permissible. This command may only be used in the preamble.
+
+\cmditem{nosort}{field or field type}{regexp}
+
+Any number of \cmd{nosort} commands can be given each of which specifies to remove the \prm{regexp} from the \prm{field} or \prm{field type}. A \prm{field type} is simple a convenience grouping of semantically similar fields which you might want to remove information from for sorting as a group. Table \ref{aut:nosort} shows the available field types. Since regular expressions usually contain all sort of special characters, it is best to enclose them in the provided \cmd{regexp} macro as show as this will pass the expression through to Biber correctly.
+
+\end{ltxsyntax}
+
+\begin{table}
+\tablesetup\lnstyle
+\begin{tabular}{ll}
+\toprule
+Field Type & Fields\\
+\midrule
+type\_name & author\\
+          & afterword\\
+          & annotator\\
+          & bookauthor\\
+          & commentator\\
+          & editor\\
+          & editora\\
+          & editorb\\
+          & editorc\\
+          & foreword\\
+          & holder\\
+          & introduction\\
+          & namea\\
+          & nameb\\
+          & namec\\
+          & shortauthor\\
+          & shorteditor\\
+          & translator\\
+type\_title & booktitle\\
+           & eventtitle\\
+           & issuetitle\\
+           & journaltitle\\
+           & maintitle\\
+           & origtitle\\
+           & title\\
+\bottomrule
+\end{tabular}
+\caption{Field types for \cmd{nosort}}
+\label{aut:nosort}
+\end{table}
+
+If there is no \cmd{DeclareNosort} specification, Biber will default to:
+
+\begin{lstlisting}[style=latex]{}
+\DeclareNosort{
+  % strip prefixes like 'al-' when sorting names
+  \nosort{type_names}{\regexp{\A\p{L}{2}\p{Pd}}}
+  % strip diacritics when sorting names
+  \nosort{type_names}{\regexp{[\x{2bf}\x{2018}]}
+}
+\end{lstlisting}
+%
+This Biber default strips diacritics and prefices from names when sorting. Suppose you wanted to ignore «The» at the beginning of a \bibfield{title} field when sorting:
+
+\begin{lstlisting}[style=latex]{}
+\DeclareNosort{
+  \nosort{title}{\regexp{\AThe\s+}}
+}
+\end{lstlisting}
+%
+Or if you wanted to ignore «The» at the beginning of any title field:
+
+\begin{lstlisting}[style=latex]{}
+\DeclareNosort{
+  \nosort{type_title}{\regexp{\AThe\s+}}
+}
+\end{lstlisting}
+%
+
 \subsubsection{Special Fields}
 \label{aut:ctm:fld}
 
@@ -9571,6 +9653,7 @@ This revision history is a list of changes relevant to users of this package. Ch
 \begin{changelog}
 
 \begin{release}{1.8}{}
+\item Added \cmd{\DeclareNosort}\see{aut:ctm:nosort}\BiberOnlyMark
 \item Added \opt{sorting} option for \cmd{printbibliography} and \cmd{printshorthands}\see{use:bib:bib}\BiberOnlyMark
 \item Added \texttt{ids} field for citekey aliasing\see{bib:fld}\BiberOnlyMark
 \item Added \opt{sortfirstinits} option\see{use:opt:pre:int}\BiberOnlyMark
