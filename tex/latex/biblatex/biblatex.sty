@@ -7076,13 +7076,15 @@
   \global\c@refsegment\z@}
 
 % Reference section/segment auto-reset
-
+% we are prepending to the commands so that the resets happen before
+% the part title is typeset otherwise \cites in there could be "ibid"
+% which makes no sense
 \def\blx@refpatch@part#1{%
     \ifundef\part
       {\blx@err@nodocdiv{part}}
       {\toggletrue{blx@tempa}%
        \def\do##1{%
-	 \patchcmd##1{\@endpart}{#1\@endpart}
+	 \pretocmd##1{#1}
 	   {\togglefalse{blx@tempa}\listbreak}
 	   {}}%
        \docsvlist{%
@@ -7097,7 +7099,7 @@
 \def\blx@refpatch@chapter#1{%
   \ifundef\chapter
     {\blx@err@nodocdiv{chapter}}
-    {\apptocmd\@makechapterhead{#1}
+    {\pretocmd\@makechapterhead{#1}
        {}
        {\blx@err@patch{\string\@makechapterhead}}}}
 
@@ -7108,9 +7110,8 @@
 
 \edef\blx@refpatch@sect@i#1#2{%
   \def\noexpand\do##1{%
-    \patchcmd##1%
-      {\noexpand\@xsect}
-      {\noexpand\blx@refpatch@sect@ii{#1}{#2}{\string#2}\noexpand\@xsect}
+     \pretocmd##1%
+       {\noexpand\blx@refpatch@sect@ii{#1}{#2}{\string#2}}
       {\togglefalse{blx@tempa}\noexpand\listbreak}
       {}}%
   \noexpand\blx@refpatch@sect@iii}
