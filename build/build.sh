@@ -6,7 +6,7 @@ then
   exit 1
 fi
 
-if [ "$1" = "upload" ]
+if [ "$2" = "upload" ]
 then
     if [ -e build/biblatexb.tgz ]
     then
@@ -15,8 +15,7 @@ then
   fi
 fi
 
-declare VERSION=`git describe --tags | cut -d '-' -f 1`
-declare DATE=`date '+%Y/%m/%d'`
+declare VERSION=$1
 
 \rm -rf build/tds/*
 \rm -f build/biblatexb.tgz
@@ -26,13 +25,13 @@ cp -r tex build/tds/
 # Need to generate this from processed source
 \rm -f build/tds/doc/latex/biblatex/biblatex.pdf
 
-find build/tds -type f | xargs perl -pi -e "s|\\\$Id:\\\$|\\\$Id: $DATE $VERSION \\\$|;s|\\\$Rev:\\\$|$VERSION|;s|\\\$Date:\\\$|$DATE|;"
+#find build/tds -type f | xargs perl -pi -e "s|VERSION:\s[^\\\]\\\}\\\$]+|VERSION: $VERSION|;"
 
 # Can't do in-place on windows (cygwin)
 find build/tds -name \*.bak | xargs rm
 find build/tds -name auto | xargs \rm -rf
 
-if [ "$1" = "norel" ]
+if [ "$2" = "norel" ]
 then
   exit 0
 fi
