@@ -16,6 +16,7 @@ then
 fi
 
 declare VERSION=$1
+declare DATE=`date '+%Y/%m/%d'`
 
 \rm -rf build/tds/*
 \rm -f build/biblatexb.tgz
@@ -25,7 +26,8 @@ cp -r tex build/tds/
 # Need to generate this from processed source
 \rm -f build/tds/doc/latex/biblatex/biblatex.pdf
 
-#find build/tds -type f | xargs perl -pi -e "s|VERSION:\s[^\\\]\\\}\\\$]+|VERSION: $VERSION|;"
+perl -pi -e "s|\\\\abx\\@date\{[^\}]+\}|\\\\abx\\@date\{$DATE\}|;s|\\\\abx\\@version\{[^\}]+\}|\\\\abx\\@version\{$VERSION\}|;" build/tds/tex/latex/biblatex/biblatex.sty
+perl -pi -e "s|\\%v.+|\\%v$VERSION|;" build/tds/tex/latex/biblatex/*.def
 
 # Can't do in-place on windows (cygwin)
 find build/tds -name \*.bak | xargs rm
