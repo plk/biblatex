@@ -6,11 +6,11 @@ then
   exit 1
 fi
 
-if [ "$2" = "upload" ]
+if [ "$1" = "upload" ]
 then
     if [ -e build/biblatexb.tgz ]
     then
-      scp build/biblatexb.tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/dev/biblatexb.tgz
+      scp build/biblatexb.tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/development/biblatexb.tgz
     exit 0
   fi
 fi
