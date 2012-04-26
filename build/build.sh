@@ -38,9 +38,9 @@ then
   exit 0
 fi
 
-pdflatex -interaction=batchmode build/tds/doc/latex/biblatex/biblatex.tex
-pdflatex -interaction=batchmode build/tds/doc/latex/biblatex/biblatex.tex
-pdflatex -interaction=batchmode build/tds/doc/latex/biblatex/biblatex.tex
+lualatex -interaction=batchmode build/tds/doc/latex/biblatex/biblatex.tex
+lualatex -interaction=batchmode build/tds/doc/latex/biblatex/biblatex.tex
+lualatex -interaction=batchmode build/tds/doc/latex/biblatex/biblatex.tex
 mv biblatex.pdf build/tds/doc/latex/biblatex/
 \rm -f biblatex.*
 tar zcf build/biblatexb.tgz -C build/tds bibtex doc tex
