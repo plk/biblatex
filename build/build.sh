@@ -10,12 +10,12 @@ if [ "$1" = "upload" ]
 then
     if [ -e build/biblatexb.tgz ]
     then
-      scp build/biblatexb.tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/dev/biblatexb.tgz
+      scp build/biblatexb.tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/development/biblatexb.tgz
     exit 0
   fi
 fi
 
-declare VERSION=`git describe --tags | cut -d '-' -f 1`
+declare VERSION=$1
 declare DATE=`date '+%Y/%m/%d'`
 
 \rm -rf build/tds/*
@@ -26,20 +26,21 @@ cp -r tex build/tds/
 # Need to generate this from processed source
 \rm -f build/tds/doc/latex/biblatex/biblatex.pdf
 
-find build/tds -type f | xargs perl -pi -e "s|\\\$Id:\\\$|\\\$Id: $DATE $VERSION \\\$|;s|\\\$Rev:\\\$|$VERSION|;s|\\\$Date:\\\$|$DATE|;"
+perl -pi -e "s|\\\\abx\\@date\{[^\}]+\}|\\\\abx\\@date\{$DATE\}|;s|\\\\abx\\@version\{[^\}]+\}|\\\\abx\\@version\{$VERSION\}|;" build/tds/tex/latex/biblatex/biblatex.sty
+perl -pi -e "s|\\%v.+|\\%v$VERSION|;" build/tds/tex/latex/biblatex/*.def
 
 # Can't do in-place on windows (cygwin)
 find build/tds -name \*.bak | xargs rm
 find build/tds -name auto | xargs \rm -rf
 
-if [ "$1" = "norel" ]
+if [ "$2" = "norel" ]
 then
   exit 0
 fi
 
-pdflatex -interaction=batchmode build/tds/doc/latex/biblatex/biblatex.tex
-pdflatex -interaction=batchmode build/tds/doc/latex/biblatex/biblatex.tex
-pdflatex -interaction=batchmode build/tds/doc/latex/biblatex/biblatex.tex
+lualatex -interaction=batchmode build/tds/doc/latex/biblatex/biblatex.tex
+lualatex -interaction=batchmode build/tds/doc/latex/biblatex/biblatex.tex
+lualatex -interaction=batchmode build/tds/doc/latex/biblatex/biblatex.tex
 mv biblatex.pdf build/tds/doc/latex/biblatex/
 \rm -f biblatex.*
 tar zcf build/biblatexb.tgz -C build/tds bibtex doc tex
