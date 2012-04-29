@@ -8,6 +8,13 @@
 \usepackage{booktabs}
 \usepackage{shortvrb}
 \usepackage{pifont}
+\usepackage{libertine}
+\KOMAoptions{numbers=noenddot}
+\addtokomafont{section}{\spotcolor}
+\addtokomafont{subsection}{\spotcolor}
+\addtokomafont{subsubsection}{\spotcolor}
+\addtokomafont{descriptionlabel}{\spotcolor}
+
 \MakeAutoQuote{«}{»}
 \MakeAutoQuote*{<}{>}
 \MakeShortVerb{\|}
@@ -2738,7 +2745,7 @@ This style prints all bibliographic data in tabular format. It is intended for d
 \subsection{Related Entries}
 \label{use:rel}
 
-Almost all bibliography styles require authors to specify certain types of relationship between entries such as Â«Reprint ofÂ», Â«Reprinted inÂ» etc. It is impossible to provide data fields to cover all of these relationships and so \sty{biblatex} provides a general mechanism for this using the entry fields \bibfield{related}, \bibfield{relatedtype} and \bibfield{relatedstring}. A related entry does not need to be cited and does not appear in the bibliography itself (unless of course it is also cited itseld independently). The \bibfield{relatedtype} field should specify a localization string which will be printed before the information from the related entries is printed, for example Â«Orig. Pub. asÂ». The \bibfield{relatedstring} field can be used to override the string determined via \bibfield{relatedtype}. Some examples:
+Almost all bibliography styles require authors to specify certain types of relationship between entries such as «Reprint of», «Reprinted in» etc. It is impossible to provide data fields to cover all of these relationships and so \sty{biblatex} provides a general mechanism for this using the entry fields \bibfield{related}, \bibfield{relatedtype} and \bibfield{relatedstring}. A related entry does not need to be cited and does not appear in the bibliography itself (unless of course it is also cited itseld independently). The \bibfield{relatedtype} field should specify a localization string which will be printed before the information from the related entries is printed, for example «Orig. Pub. as». The \bibfield{relatedstring} field can be used to override the string determined via \bibfield{relatedtype}. Some examples:
 
 \begin{lstlisting}[style=bibtex]{}
 @Book{key1,
@@ -2756,7 +2763,7 @@ Almost all bibliography styles require authors to specify certain types of relat
 Here we specify that entry \texttt{key1} is a reprint of entry \texttt{key2}. In the bibliography driver for \texttt{Book} entries, when \cmd{usebibmacro\{related\}} is called for entry \texttt{key1}:
 
 \begin{itemize}
-\item If the localization string Â«\texttt{reprintof}Â» is defined, it is printed, then
+\item If the localization string «\texttt{reprintof}» is defined, it is printed, then
 \item If the \texttt{related:reprintof} macro is defined, it is used to format the information contained in entry \texttt{key2}, otherwise the \texttt{related:default} macro is used
 \item If the \texttt{related:reprintof} format is defined, it is used to format both the localization string and data. If this format is not defined, then the \texttt{related} format is used instead.
 \end{itemize}
@@ -3722,8 +3729,8 @@ The \prm{language} must be a language name known to the \sty{babel} package. The
 \cmditem{NewBibliographyString}{key}
 
 This command declares new localization strings, \ie it initializes a new \prm{key} to be used in the
-\prm{definitions} of \cmd{DefineBibliographyStrings}. The \prm{key} argument may also be a comma"=separated
-list of key names. The keys listed in \secref{aut:lng:key} are defined by default.
+\prm{definitions} of \cmd{DefineBibliographyStrings} or \cmd{DeclareBibliographyStrings}. The \prm{key} argument may also be a comma"=separated
+list of key names. When used in a \file{lbx}, the \prm{key} is initialized only for the language specified by the name of the \file{lbx} file. The keys listed in \secref{aut:lng:key} are defined by default.
 
 \end{ltxsyntax}
 
@@ -5700,10 +5707,10 @@ The special fields are \bibfield{related}, \bibfield{relatedtype} and \bibfield{
 \begin{keymarglist}
 \item[related] A comma"=separated list of keys of entries which are related to this entry in some way. Note the the order of the keys is important. The data from multiple related entries is printed in the order of the keys listed in this field.
 \item[relatedtype] The type of relationship. This serves three purposes. If the value of this field resolves to a localization string identifier, then the resulting localized string is printed before the data from the related entries. Secondly, if there is a macro called \texttt{related:\prm{relatedtype}}, this is used to format the data from the related entries. If no such macro exists, then the macro \texttt{related:default} is used. Lastly, if there is a format named \texttt{related:\prm{relatedtype}}, then it is used to format both the localized string and related entry data. If there is no related type specific format, the \texttt{related} format is used.
-\item[relatedstring] If an entry contains this field, then the value of the field is printed literally before the date from the related entries. If both \bibfield{relatedtype} and \bibfield{relatedstring} are present in an entry, \bibfield{relatedstring} is used for the pre-data string (but \bibfield{relatedtype} is still used to determine the macro and format to use when printing the data).
+\item[relatedstring] If an entry contains this field, then the localization key specified by its value is printed before data from the related entries. If the field does not specify a key, its value is printed literally. If both \bibfield{relatedtype} and \bibfield{relatedstring} are present in an entry, \bibfield{relatedstring} is used for the pre-data string (but \bibfield{relatedtype} is still used to determine the macro and format to use when printing the data).
 \end{keymarglist}
 
-The related entry feature is enabled by default by the package option \opt{related} from \secref{use:opt:pre:gen}. The related information entry data from the related entries is included via a \cmd{usebibmacro\{related\}} call. Standard styles call this macro towards the end of each driver. Style authors should ensure the existence of (or take note of existing) localization strings which are useful as values for the \bibfield{relatedtype} field, such as \texttt{translationof} or perhaps \texttt{translatedas}. They can then define macros and/or formats with the name \texttt{related:\prm{relatedtype}} which will be used to format the data. The package \path{biblatex.def} contains macros and formats for some common relation types which can be used as templates. In particular, the \cmd{entrydata*} command is essential in such macros in order to make the data of the related entries available. Examples of entries using this feature can be found in the \sty{biblatex} distribution examples file \path{biblatex-examples.bib}. There are some specific formatting macros for this feature which control delimiters and separators in related entry information, see \secref{aut:fmt:fmt}.
+The related entry feature is enabled by default by the package option \opt{related} from \secref{use:opt:pre:gen}. The related information entry data from the related entries is included via a \cmd{usebibmacro\{related\}} call. Standard styles call this macro towards the end of each driver. Style authors should ensure the existence of (or take note of existing) localization strings which are useful as values for the \bibfield{relatedtype} field, such as \texttt{translationof} or perhaps \texttt{translatedas}. They can then define macros and/or formats with the name \texttt{related:\prm{relatedtype}} which will be used to format the data. The file \path{biblatex.def} contains macros and formats for some common relation types which can be used as templates. In particular, the \cmd{entrydata*} command is essential in such macros in order to make the data of the related entries available. Examples of entries using this feature can be found in the \sty{biblatex} distribution examples file \path{biblatex-examples.bib}. There are some specific formatting macros for this feature which control delimiters and separators in related entry information, see \secref{aut:fmt:fmt}.
 
 \subsubsection{Dynamic Modification of Data}
 \label{aut:ctm:map}
@@ -8008,6 +8015,7 @@ Roles which are related to supplementary material may also be expressed as objec
 \begin{keymarglist}
 \item[volume] The term <volume>, referring to a book.
 \item[volumes] The plural form of \texttt{volume}.
+\item[involumes] The term <in>, as used in expressions like <in \prm{number of volumes} volumes>.
 \item[jourvol] The term <volume>, referring to a journal.
 \item[jourser] The term <series>, referring to a journal.
 \item[book] The term <book>, referring to a document division.
@@ -8025,6 +8033,14 @@ Roles which are related to supplementary material may also be expressed as objec
 \item[reprint] The term <reprint>.
 \item[reprintof] The expression <reprint of \prm{title}>.
 \item[reprintas] The expression <reprinted as \prm{title}>.
+\item[reprintfrom] The expression <reprinted from \prm{title}>.
+\item[translationof] The expression <translation of \prm{title}>.
+\item[translationas] The expression <translated as \prm{title}>.
+\item[translationfrom] The expression <translated from [the] \prm{language}>.
+\item[origpubas] The expression <originally published as \prm{title}>.
+\item[origpubin] The expression <originally published in \prm{year}>.
+\item[astitle] The term <as>, as used in expressions like <published by \prm{publisher} as \prm{title}>.
+\item[bypublisher] The term <by>, as used in expressions like <published by \prm{publisher}>.
 \end{keymarglist}
 
 \paragraph{Publication State}
@@ -8063,6 +8079,7 @@ The following keys are typically used in the \bibfield{type} field of \bibtype{t
 \begin{keymarglist}
 \item[mathesis] An expression equivalent to the term <Master's thesis>.
 \item[phdthesis] The term <PhD thesis>, <PhD dissertation>, <doctoral thesis>, etc.
+\item[candthesis] An expression equivalent to the term <Candidate thesis>. Used for <Candidate> degrees that have no clear equivalent to the Master's or doctoral level.
 \item[techreport] The term <technical report>.
 \item[resreport] The term <research report>.
 \item[software] The term <computer software>.
@@ -11175,8 +11192,3 @@ This revision history is a list of changes relevant to users of this package. Ch
 \end{changelog}
 
 \end{document}
-%%% Local Variables:
-%%% TeX-command-default: "PDFLaTeX"
-%%% eval: (auto-fill-mode -1)
-%%% eval: (visual-line-mode)
-%%% End:
