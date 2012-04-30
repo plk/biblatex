@@ -10,7 +10,7 @@ if [ "$1" = "upload" ]
 then
     if [ -e build/biblatexb.tgz ]
     then
-      scp build/biblatexb.tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/development/biblatexb.tgz
+      scp build/biblatex.tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/development/biblatex.tgz
     exit 0
   fi
 fi
@@ -19,7 +19,7 @@ declare VERSION=$1
 declare DATE=`date '+%Y/%m/%d'`
 
 \rm -rf build/tds/*
-\rm -f build/biblatexb.tgz
+\rm -f build/biblatex.tgz
 cp -r bibtex build/tds/
 cp -r doc build/tds/
 cp -r tex build/tds/
@@ -38,12 +38,12 @@ then
   exit 0
 fi
 
-lualatex -interaction=batchmode build/tds/doc/latex/biblatex/biblatex.tex
-lualatex -interaction=batchmode build/tds/doc/latex/biblatex/biblatex.tex
-lualatex -interaction=batchmode build/tds/doc/latex/biblatex/biblatex.tex
+pdflatex -interaction=batchmode build/tds/doc/latex/biblatex/biblatex.tex
+pdflatex -interaction=batchmode build/tds/doc/latex/biblatex/biblatex.tex
+pdflatex -interaction=batchmode build/tds/doc/latex/biblatex/biblatex.tex
 mv biblatex.pdf build/tds/doc/latex/biblatex/
 \rm -f biblatex.*
-tar zcf build/biblatexb.tgz -C build/tds bibtex doc tex
+tar zcf build/biblatex.tgz -C build/tds bibtex doc tex
 
 
 
