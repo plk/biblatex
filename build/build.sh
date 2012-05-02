@@ -8,7 +8,7 @@ fi
 
 if [ "$1" = "upload" ]
 then
-    if [ -e build/biblatexb.tgz ]
+    if [ -e build/biblatex.tgz ]
     then
       scp build/biblatex.tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/development/biblatex.tgz
     exit 0
