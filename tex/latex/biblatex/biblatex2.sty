@@ -8615,6 +8615,13 @@
 \xdef\blx@xml@nosort#1#2{%
   ~~~~<bcf:nosort field="#1" value="#2"/>\blx@nl}
 
+\xdef\blx@xml@noinits#1{%
+  ~~<bcf:noinits>\blx@nl
+  #1%
+  ~~</bcf:noinits>\blx@nl}
+\xdef\blx@xml@noinit#1{%
+  ~~~~<bcf:noinit value="#1"/>\blx@nl}
+
 \xdef\blx@xml@sorting#1{%
   ~~<bcf:sorting>\blx@nl
   #1%
@@ -8807,6 +8814,15 @@
       \csuse{blx@biber@inherit@data}%
     }%
   }%
+  % noinit
+  \ifcsdef{blx@biber@noinit}
+    {\eappto\blx@tempa{%
+      \blx@xml@comment{NOINIT}%
+      \blx@xml@noinits{%
+        \csuse{blx@biber@noinit}%
+      }%
+    }}
+    {}%
   % nosort
   \ifcsdef{blx@biber@nosort}
     {\eappto\blx@tempa{%
@@ -8868,6 +8884,20 @@
 \newcommand*{\blx@nosort}[2]{%
   \eappto\blx@tempa{%
     \blx@xml@nosort{#1}{#2}}}
+
+% noinit
+\newrobustcmd*{\DeclareNoinit}[1]{%
+  \begingroup
+  \let\noinit\blx@noinit
+  \let\blx@tempa\@empty
+  #1%
+  \global\cslet{blx@biber@noinit}\blx@tempa
+  \endgroup}
+\@onlypreamble\DeclareNoinit
+
+\newcommand*{\blx@noinit}[1]{%
+  \eappto\blx@tempa{%
+    \blx@xml@noinit{#1}}}
 
 % sourcemap
 \newrobustcmd*{\DeclareSourcemap}[1]{%
