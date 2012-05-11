@@ -344,7 +344,7 @@
 \newcount\blx@notetype
 \newcount\blx@parenlevel@text
 \newcount\blx@parenlevel@foot
-\newcount\blx@sectioncites
+\expandafter\newcount\csname blx@sectionciteorder@0\endcsname
 
 \def\blx@uniquename{0}
 \def\blx@uniquelist{0}
@@ -453,7 +453,6 @@
   \blx@idemreset@force
   \blx@opcitreset@force
   \blx@loccitreset@force
-  \blx@sectioncites\z@
   \ifcsundef{blx@segm@\the\c@refsection @\the\c@refsegment}
     {\global\cslet{blx@segm@\the\c@refsection @\the\c@refsegment}\@empty}
     {}}
@@ -6572,6 +6571,7 @@
   \global\advance\blx@maxsection\@ne
   \global\c@refsection\blx@maxsection
   \expandafter\newcount\csname blx@maxsegment@\the\c@refsection\endcsname
+  \expandafter\newcount\csname blx@sectionciteorder@\the\c@refsection\endcsname
   \blx@inf@refsec
   \blx@secinit
   \if@filesw
@@ -6606,7 +6606,7 @@
   \blx@auxwrite\blx@bcfout
     {\let\do\blx@datasource}
     {\blx@xml@endsection\blx@nl
-     \blx@xml@comment{section \the\c@refsection}%
+     \blx@xml@comment{SECTION \the\c@refsection}%
      \blx@xml@bibdata{\the\c@refsection}{\blx@tempa}%
      \blx@xml@section{\the\c@refsection}}%
   \endgroup}
@@ -6624,7 +6624,7 @@
   \ifnum\c@refsection>\z@
     \blx@auxwrite\blx@bcfout{}{%
       \blx@xml@endsection\blx@nl
-      \blx@xml@comment{section 0 (cont.)}%
+      \blx@xml@comment{SECTION 0 (cont.)}%
       \blx@xml@section{0}}%
   \fi}
 
@@ -6976,7 +6976,11 @@
 \protected\def\blx@bibreq#1{%
   \begingroup
   \blx@xmlsanitizeafter{\def\blx@tempa}{#1}%
-  \blx@auxwrite\blx@bcfout{}{\blx@xml@citekey{\blx@tempa}}%
+  % citeall is always order "0" - this make no real difference as biber
+  % ignores all other citekeys in the section if citeall is present
+  \ifstrequal{*}{#1}
+    {\blx@auxwrite\blx@bcfout{}{\blx@xml@citekey{\blx@tempa}{0}}}
+    {\blx@auxwrite\blx@bcfout{}{\blx@xml@citekey{\blx@tempa}{\expandafter\the\csname blx@sectionciteorder@\the\c@refsection\endcsname}}}%
   \endgroup}
 
 % {<set>}{<key1,key2,key3>}
@@ -7022,6 +7026,7 @@
 
 \protected\def\blx@citeloop#1{%
   \begingroup
+  \global\advance\csname blx@sectionciteorder@\the\c@refsection\endcsname\@ne
   \blx@tempcnta\z@
   \blx@tempcntb\z@
   \let\blx@tempa\@empty
@@ -8665,8 +8670,8 @@
   ~~</bcf:bibdata>\blx@nl}
 \xdef\blx@xml@datasource#1#2#3{%
   ~~~~<bcf:datasource type="#1" datatype="#2">#3</bcf:datasource>\blx@nl}
-\xdef\blx@xml@citekey#1{%
-  ~~~~<bcf:citekey>#1</bcf:citekey>}
+\xdef\blx@xml@citekey#1#2{%
+  ~~~~<bcf:citekey order="#2">#1</bcf:citekey>}
 \xdef\blx@xml@citeset#1#2{%
   ~~~~<bcf:citekey type="set" members="#2">#1</bcf:citekey>}
 \xdef\blx@xml@svalue#1#2{%
@@ -8682,7 +8687,7 @@
 \endgroup
 
 \def\blx@bcf@options@global{%
-  \blx@xml@comment{global}%
+  \blx@xml@comment{GLOBAL}%
   \blx@xml@options{biblatex}{global}{%
     \blx@xml@svalue{alphaothers}{\labelalphaothers}%
     \blx@xml@toggle{labelalpha}%
@@ -8854,7 +8859,7 @@
   \blx@bibdata\blx@tempb\blx@bibfiles
   \eappto\blx@tempa{%
     \blx@xml@comment{CITATION DATA}%
-    \blx@xml@comment{section 0}%
+    \blx@xml@comment{SECTION 0}%
     \blx@xml@bibdata{0}{\blx@tempb}%
     \blx@xml@section{0}%
   }%
