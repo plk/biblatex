@@ -344,6 +344,7 @@
 \newcount\blx@notetype
 \newcount\blx@parenlevel@text
 \newcount\blx@parenlevel@foot
+\newcount\blx@sectioncites
 
 \def\blx@uniquename{0}
 \def\blx@uniquelist{0}
@@ -421,8 +422,8 @@
 \newtoggle{blx@citeindex}
 \newtoggle{blx@bibindex}
 
-\newread\blx@auxin
-\newwrite\blx@auxout
+\newread\blx@bcfin
+\newwrite\blx@bcfout
 
 \def\blx@onlypreamble#1{%
   \gappto\blx@dopreamblecmds{\do#1}}
@@ -452,6 +453,7 @@
   \blx@idemreset@force
   \blx@opcitreset@force
   \blx@loccitreset@force
+  \blx@sectioncites\z@
   \ifcsundef{blx@segm@\the\c@refsection @\the\c@refsegment}
     {\global\cslet{blx@segm@\the\c@refsection @\the\c@refsegment}\@empty}
     {}}
@@ -615,15 +617,15 @@
   \let\blx@tempa\@firstoftwo
   \edef\blx@tempb{\csuse{blx@sig@#2}}%
   \edef\blx@tempb{\detokenize\expandafter{\blx@tempb}}%
-  \openin\blx@auxin #1.#2\relax
-    \ifeof\blx@auxin
+  \openin\blx@bcfin #1.#2\relax
+    \ifeof\blx@bcfin
     \else
       \endlinechar\m@ne
-      \readline\blx@auxin to \blx@tempc
-      \ifeof\blx@auxin
+      \readline\blx@bcfin to \blx@tempc
+      \ifeof\blx@bcfin
       \else
         \ifx\blx@tempb\blx@tempc
-          \readline\blx@auxin to \blx@tempc
+          \readline\blx@bcfin to \blx@tempc
           \edef\blx@tempb{\csuse{blx@ver@#2}}%
           \edef\blx@tempb{\detokenize\expandafter{\blx@tempb}}%
           \ifx\blx@tempb\blx@tempc
@@ -643,7 +645,7 @@
         \fi
       \fi
     \fi
-  \closein\blx@auxin
+  \closein\blx@bcfin
   \expandafter\endgroup\blx@tempa}
 
 \def\blx@sig@bib{@Comment{$ biblatex control file $}}
@@ -6601,7 +6603,7 @@
   \begingroup
   \let\blx@tempa\@empty
   \blx@bibdata\blx@tempa\blx@bibfiles
-  \blx@auxwrite\blx@auxout
+  \blx@auxwrite\blx@bcfout
     {\let\do\blx@datasource}
     {\blx@xml@endsection\blx@nl
      \blx@xml@comment{section \the\c@refsection}%
@@ -6620,7 +6622,7 @@
 
 \def\blx@endrefsection@biber{%
   \ifnum\c@refsection>\z@
-    \blx@auxwrite\blx@auxout{}{%
+    \blx@auxwrite\blx@bcfout{}{%
       \blx@xml@endsection\blx@nl
       \blx@xml@comment{section 0 (cont.)}%
       \blx@xml@section{0}}%
@@ -6974,7 +6976,7 @@
 \protected\def\blx@bibreq#1{%
   \begingroup
   \blx@xmlsanitizeafter{\def\blx@tempa}{#1}%
-  \blx@auxwrite\blx@auxout{}{\blx@xml@citekey{\blx@tempa}}%
+  \blx@auxwrite\blx@bcfout{}{\blx@xml@citekey{\blx@tempa}}%
   \endgroup}
 
 % {<set>}{<key1,key2,key3>}
@@ -7013,7 +7015,7 @@
   \begingroup
   \blx@xmlsanitizeafter{\def\blx@tempa}{#1}%
   \blx@xmlsanitizeafter{\def\blx@tempb}{#2}%
-  \blx@auxwrite\blx@auxout{}{\blx@xml@citeset{\blx@tempa}{\blx@tempb}}%
+  \blx@auxwrite\blx@bcfout{}{\blx@xml@citeset{\blx@tempa}{\blx@tempb}}%
   \endgroup}
 
 % {<entrykey>,...}
@@ -8856,16 +8858,16 @@
     \blx@xml@bibdata{0}{\blx@tempb}%
     \blx@xml@section{0}%
   }%
-  \immediate\openout\blx@auxout\jobname.bcf\relax
-  \blx@auxwrite\blx@auxout{}{\blx@tempa}%
+  \immediate\openout\blx@bcfout\jobname.bcf\relax
+  \blx@auxwrite\blx@bcfout{}{\blx@tempa}%
   \global\undef\blx@tempa
   \endgroup
   \AfterEndDocument{%
-    \blx@auxwrite\blx@auxout{}{%
+    \blx@auxwrite\blx@bcfout{}{%
       \blx@xml@endsection\blx@nl
       \csuse{blx@xml@slistsbib}%
       \blx@xml@endfile}%
-    \immediate\closeout\blx@auxout}}
+    \immediate\closeout\blx@bcfout}}
 
 %% Customisation
 
