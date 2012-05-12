@@ -18,22 +18,29 @@
 % Set up a switch for choosing the version
 \newif\ifblx@load@version@one
 
+% A switch so we can issue a message about the backend
+\newif\ifblx@load@backend@seen
+
 % Fake keyval options to detect the backend
 % All basically the same, so passing the backend is done simply
 \DeclareOption{backend=bibtex}{%
   \PassOptionsToPackage{\CurrentOption}{biblatex1}%
   \blx@load@version@onetrue
+  \blx@load@backend@seentrue
 }
 \DeclareOption{backend=bibtex8}{%
   \PassOptionsToPackage{\CurrentOption}{biblatex1}%
   \blx@load@version@onetrue
+  \blx@load@backend@seentrue
 }
 \DeclareOption{backend=bibtexu}{%
   \PassOptionsToPackage{\CurrentOption}{biblatex1}%
   \blx@load@version@onetrue
+  \blx@load@backend@seentrue
 }
 \DeclareOption{backend=biber}{%
   \blx@load@version@onefalse
+  \blx@load@backend@seentrue
 }
 \DeclareOption*{%
   \PassOptionsToPackage{\CurrentOption}{biblatex1}%
@@ -41,8 +48,18 @@
 }
 
 % Default to the Biber backend
-\ExecuteOptions{backend=biber}
+\blx@load@version@onefalse
 \ProcessOptions\relax
+
+\ifblx@load@backend@seen
+\else
+  \PackageWarningNoLine{biblatex}
+    {%
+      No "backend" specified, using Biber backend.\MessageBreak
+      To use BibTeX, load biblatex with \MessageBreak
+      the "backend=bibtex" option%
+    }
+\fi
 
 % Now do the loading: avoid any awkward stuff with the conditional by
 % expanding first
