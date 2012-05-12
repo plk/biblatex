@@ -6355,17 +6355,34 @@ The \cmd{literal} element adds a literal \prm{string} to the sorting specificati
 
 \csitem{citeorder}
 
-The \cmd{citeorder} element has a special meaning. It indicates that the entries should be kept in the order in which they were cited. It is usually the only element in the \prm{specification}:
+The \cmd{citeorder} element has a special meaning. It requests a sort based on the lexical order of the actual citations. For entries cited within the same citation command like:
+
+\begin{lstlisting}[style=latex]{}
+\cite{one,two}
+\end{lstlisting}
+%
+there is a distinction between the lexical order and the semantic order. Here «one» and «two» have the same semantic order but a unique lexical order. The semantic order only matters if you specify further sorting to disambiguate entries with the same semantic order. For example, this is the definition of the \opt{none} sorting scheme):
 
 \begin{lstlisting}[style=latex]{}
 \DeclareSortingScheme{none}{
   \sort{\citeorder}
 }
 \end{lstlisting}
+%
+This sorts the bibliography purely lexically by the order of the keys in the citation commands. In the example above, it sorts «one» before «two». However, suppose that you consider «one» and «two» to have the same order (semantic order) since they are cited at the same time and want to further sort these by year. Suppose «two» has an earlier \bibfield{year} than «one»:
+
+\begin{lstlisting}[style=latex]{}
+\DeclareSortingScheme{noneyear}{
+  \sort{\citeorder}
+  \sort{year}
+}
+\end{lstlisting}
+%
+This sorts «two» before «one», even though lexically, «one» would sort before «two». This is possible because the semantic order can be disambiguated by the further sorting on year. With the standard \opt{none} sorting scheme, the lexical order and semantic order are identical because there is nothing further to disambiguate them. This means that you can use \cmd{citeorder} just like any other sorting specification element, choosing how to further sort entries cited at the same time (in the same citation command).
 
 \end{ltxsyntax}
 
-Here are some examples. In the first example, we define a simple name\slash title\slash year scheme. The name element may be either the \bibfield{author}, the \bibfield{editor}, or the \bibfield{translator}. Given this specification, the sorting routine will use the first element which is available and continue with the \bibfield{title}. Note that the options \opt{useauthor}, \opt{useeditor}, and \opt{usetranslator} are considered automatically in the sorting process:
+Here are some examples of sorting schemes. In the first example, we define a simple name\slash title\slash year scheme. The name element may be either the \bibfield{author}, the \bibfield{editor}, or the \bibfield{translator}. Given this specification, the sorting routine will use the first element which is available and continue with the \bibfield{title}. Note that the options \opt{useauthor}, \opt{useeditor}, and \opt{usetranslator} are considered automatically in the sorting process:
 
 \begin{lstlisting}[style=latex]{}
 \DeclareSortingScheme{sample}{
