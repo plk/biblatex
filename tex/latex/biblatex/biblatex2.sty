@@ -321,6 +321,8 @@
 \def\therefsection{\the\c@refsection}
 \newcounter{refsegment}
 \def\therefsegment{\the\c@refsegment}
+\newcounter{maxextratitle}
+\def\themaxextratitle{\the\c@maxextratitle}
 \newcounter{maxextrayear}
 \def\themaxextrayear{\the\c@maxextrayear}
 \newcounter{maxextraalpha}
@@ -400,6 +402,7 @@
 \newtoggle{blx@footnote}
 \newtoggle{blx@labelalpha}
 \newtoggle{blx@labelnumber}
+\newtoggle{blx@labeltitle}
 \newtoggle{blx@labelyear}
 \newtoggle{blx@natbib}
 \newtoggle{blx@mcite}
@@ -4823,6 +4826,7 @@
   \do{labelnumber}%
   \do{labeltitle}%
   \do{labelyear}%
+  \do{extratitle}%
   \do{extrayear}%
   \do{library}%
   \do{localnumber}%
@@ -5360,6 +5364,9 @@
      \iftoggle{blx@labelalpha}
        {\blx@bbl@labelalpha}
        {}%
+     \iftoggle{blx@labeltitle}
+       {\blx@bbl@labeltitle}
+       {}%
      \iftoggle{blx@labelyear}
        {\blx@bbl@labelyear}
        {}%
@@ -5433,6 +5440,13 @@
        {\blx@setlabwidth{\labelalphawidth}{%
           \csuse{abx@ffd@*@labelalphawidth}{\abx@field@shorthand}}}}}
 
+\def\blx@bbl@labeltitle{%
+  \ifundef\abx@field@extratitle
+    {}
+    {\ifnum\abx@field@extratitle>\c@maxextratitle
+       \global\c@maxextratitle\abx@field@extratitle\relax
+     \fi}}
+
 \def\blx@bbl@labelyear{%
   \ifundef\abx@field@extrayear
     {}
@@ -5441,11 +5455,6 @@
      \fi}}
 
 \def\blx@bbl@titles{%
-  \ifundef\abx@field@shorttitle
-    {\csgappto\blx@bbl@data{%
-       \let\abx@field@labeltitle\abx@field@title}}
-    {\csgappto\blx@bbl@data{%
-       \let\abx@field@labeltitle\abx@field@shorttitle}}%
   \ifundef\abx@field@indextitle
     {\csgappto\blx@bbl@data{%
        \let\abx@field@indextitle\abx@field@title}}
@@ -8692,6 +8701,8 @@
     \blx@xml@svalue{alphaothers}{\labelalphaothers}%
     \blx@xml@toggle{labelalpha}%
     \blx@xml@mvalue{labelnamespec}{\blx@bcf@labelnamespec}%
+    \blx@xml@toggle{labeltitle}%
+    \blx@xml@mvalue{labeltitlespec}{\blx@bcf@labeltitlespec}%
     \blx@xml@toggle{labelyear}%
     \blx@xml@mvalue{labelyearspec}{\blx@bcf@labelyearspec}%
     \blx@xml@svalue{maxalphanames}{\blx@maxalphanames}%
@@ -8722,6 +8733,11 @@
       \ifcsdef{blx@bcf@labelnamespec@#1}
         {\csuse{blx@bcf@labelnamespec@#1}}
         {\blx@bcf@labelnamespec}}%
+    \blx@xml@toggle{labeltitle}%
+    \blx@xml@mvalue{labeltitlespec}{%
+      \ifcsdef{blx@bcf@labeltitlespec@#1}
+        {\csuse{blx@bcf@labeltitlespec@#1}}
+        {\blx@bcf@labeltitlespec}}%
     \blx@xml@toggle{labelyear}%
     \blx@xml@mvalue{labelyearspec}{%
       \ifcsdef{blx@bcf@labelyearspec@#1}
@@ -9292,9 +9308,13 @@
   \blx@defmvalue{labelnamespec}{#1}{#2}}
 \@onlypreamble\DeclareLabelname
 
+\newrobustcmd*{\DeclareLabeltitle}[2][]{%
+  \blx@defmvalue{labeltitlespec}{#1}{#2}}
+\@onlypreamble\DeclareLabeltitle
+
 \newrobustcmd*{\DeclareLabelyear}[2][]{%
   \blx@defmvalue{labelyearspec}{#1}{#2}}
-\@onlypreamble\Declarelabelyear
+\@onlypreamble\DeclareLabelyear
 
 \def\blx@defmvalue#1#2#3{%
   \ifblank{#2}
@@ -10021,6 +10041,11 @@
   \settoggle{blx@labelalpha}{#1}}
 \DeclareTypeOption{labelalpha}[true]{%
   \settoggle{blx@labelalpha}{#1}}
+
+\DeclareBibliographyOption{labeltitle}[true]{%
+  \settoggle{blx@labeltitle}{#1}}
+\DeclareTypeOption{labeltitle}[true]{%
+  \settoggle{blx@labeltitle}{#1}}
 
 \DeclareBibliographyOption{labelyear}[true]{%
   \settoggle{blx@labelyear}{#1}}
