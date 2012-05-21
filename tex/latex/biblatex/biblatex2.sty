@@ -348,6 +348,8 @@
 \newcount\blx@parenlevel@foot
 \expandafter\newcount\csname blx@sectionciteorder@0\endcsname
 
+
+
 \def\blx@uniquename{0}
 \def\blx@uniquelist{0}
 \def\blx@maxbibnames{0}
@@ -424,6 +426,8 @@
 \newtoggle{blx@reencode}
 \newtoggle{blx@citeindex}
 \newtoggle{blx@bibindex}
+
+\let\blx@biber@sourcemap\@empty
 
 \newread\blx@bcfin
 \newwrite\blx@bcfout
@@ -8928,9 +8932,25 @@
   \let\maps\blx@sourcemap@maps
   \let\blx@tempa\@empty
   #1%
-  \global\cslet{blx@biber@sourcemap}\blx@tempa
+  \csxappto{blx@biber@sourcemap}{\blx@tempa}%
   \endgroup}
 \@onlypreamble\DeclareSourcemap
+
+\newrobustcmd*{\DeclareDefaultSourcemap}[2][]{%
+  \begingroup
+  \let\blx@tempa\@empty
+  \let\blx@tempb\@empty
+  \let\blx@tempc\@empty
+  \let\map\blx@sourcemap@map
+  #2%
+  \ifblank{#1}
+    {\setkeys{blx@sourcemap@maps}{datatype=bibtex, defaults=true}}
+    {\setkeys{blx@sourcemap@maps}{#1, defaults=true}}%
+  \eappto\blx@tempa{%
+    \blx@xml@sourcemap@maps{\blx@tempb}{\blx@tempc}}%
+  \csxappto{blx@biber@sourcemap}{\blx@tempa}%
+  \endgroup}
+\@onlypreamble\DeclareDefaultSourcemap
 
 \newcommand*{\blx@sourcemap@maps}[2][]{%
   \let\blx@tempb\@empty
@@ -8948,6 +8968,10 @@
 \define@key{blx@sourcemap@maps}{overwrite}[true]{% true|false
   \ifstrequal{#1}{true}
     {\appto\blx@tempb{ map\string_overwrite="1"}}
+    {}}
+\define@key{blx@sourcemap@maps}{defaults}[true]{% true|false
+  \ifstrequal{#1}{true}
+    {\appto\blx@tempb{ driver\string_defaults="1"}}
     {}}
 
 \newcommand*{\blx@sourcemap@map}[2][]{%
