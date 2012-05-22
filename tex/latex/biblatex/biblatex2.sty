@@ -379,6 +379,7 @@
 \newlength{\bibparsep}
 \newlength{\bibhang}
 
+\newbool{sourcemap}
 \newbool{citetracker}
 \newbool{pagetracker}
 \newbool{backtracker}
@@ -426,8 +427,6 @@
 \newtoggle{blx@reencode}
 \newtoggle{blx@citeindex}
 \newtoggle{blx@bibindex}
-
-\let\blx@biber@sourcemap\@empty
 
 \newread\blx@bcfin
 \newwrite\blx@bcfout
@@ -5816,8 +5815,6 @@
      \def\blx@tempc{#1}%
      \edef\blx@tempd{%
        \blx@xml@sorting{%
-         \blx@bcf@presort
-         \blx@bcf@exclude
          \csuse{blx@biber@sorting@#1}}}}}
   
 \define@key{blx@los1}{sorting}{%
@@ -5827,8 +5824,6 @@
      \def\blx@tempc{#1}%
      \edef\blx@tempd{%
        \blx@xml@sorting{%
-         \blx@bcf@presort
-         \blx@bcf@exclude
          \csuse{blx@biber@sorting@#1}}}}}
 
 \define@key{blx@bib1}{section}{%
@@ -6111,8 +6106,6 @@
   \let\blx@tempc\blx@sorting% sorting scheme name from "sorting" option
   \edef\blx@tempd{%
     \blx@xml@sorting{%
-      \blx@bcf@presort
-      \blx@bcf@exclude
       \csuse{blx@biber@sorting@\blx@sorting}}}% sorting scheme from "sorting" option
   \edef\blx@tempe{\the\c@refsection}% default refsection is current
   \blx@safe@actives
@@ -6460,8 +6453,6 @@
   \def\blx@tempc{shorthand}% sorting scheme name from "sorting" option
   \edef\blx@tempd{%
     \blx@xml@sorting{%
-      \blx@bcf@presort
-      \blx@bcf@exclude
       \csuse{blx@biber@sorting@shorthand}}}% sorting scheme from "sorting" option
   \let\blx@printbibchecks\relax
   \edef\blx@tempe{\the\c@refsection}% default refsection is current
@@ -8815,11 +8806,16 @@
     }%
   }%
   % sourcemap
-  \ifcsdef{blx@biber@sourcemap}
+  \ifbool{sourcemap}
     {\eappto\blx@tempa{%
       \blx@xml@comment{SOURCEMAP}%
       \blx@xml@sourcemap{%
-        \csuse{blx@biber@sourcemap}%
+        \ifcsdef{blx@biber@sourcemap@user}{\csuse{blx@biber@sourcemap@user}}{}%
+        \ifcsdef{blx@biber@sourcemap@defaults@bibtex}{\csuse{blx@biber@sourcemap@defaults@bibtex}}{}%
+        \ifcsdef{blx@biber@sourcemap@defaults@biblatexml}{\csuse{blx@biber@sourcemap@defaults@biblatexml}}{}%
+        \ifcsdef{blx@biber@sourcemap@defaults@endnotexml}{\csuse{blx@biber@sourcemap@defaults@endnotexml}}{}%
+        \ifcsdef{blx@biber@sourcemap@defaults@ris}{\csuse{blx@biber@sourcemap@defaults@ris}}{}%
+        \ifcsdef{blx@biber@sourcemap@defaults@zoterordfxml}{\csuse{blx@biber@sourcemap@defaults@zoterordfxml}}{}%
       }%
     }}
     {}%
@@ -8860,8 +8856,6 @@
     }}
     {}%
   % sorting
-  \gdef\blx@bcf@exclude{}% This is so we don't have to do all this again
-                         % for \printbibliography sorting
   \def\do##1{%
     \eappto\blx@bcf@presort{\csuse{blx@bcf@presort@##1}}%
     \eappto\blx@bcf@exclude{\csuse{blx@bcf@exclude@##1}}}%
@@ -8928,19 +8922,22 @@
 
 % sourcemap
 \newrobustcmd*{\DeclareSourcemap}[1]{%
+  \booltrue{sourcemap}%
   \begingroup
   \let\maps\blx@sourcemap@maps
   \let\blx@tempa\@empty
   #1%
-  \csxappto{blx@biber@sourcemap}{\blx@tempa}%
+  \csxdef{blx@biber@sourcemap@user}{\blx@tempa}%
   \endgroup}
 \@onlypreamble\DeclareSourcemap
 
 \newrobustcmd*{\DeclareDefaultSourcemap}[2][]{%
+  \booltrue{sourcemap}%
   \begingroup
   \let\blx@tempa\@empty
   \let\blx@tempb\@empty
   \let\blx@tempc\@empty
+  \let\blx@tempd\@empty
   \let\map\blx@sourcemap@map
   #2%
   \ifblank{#1}
@@ -8948,7 +8945,7 @@
     {\setkeys{blx@sourcemap@maps}{#1, defaults=true}}%
   \eappto\blx@tempa{%
     \blx@xml@sourcemap@maps{\blx@tempb}{\blx@tempc}}%
-  \csxappto{blx@biber@sourcemap}{\blx@tempa}%
+  \csxdef{blx@biber@sourcemap@defaults@\blx@tempd}{\blx@tempa}%
   \endgroup}
 \@onlypreamble\DeclareDefaultSourcemap
 
@@ -8964,7 +8961,8 @@
     \blx@xml@sourcemap@maps{\blx@tempb}{\blx@tempc}}}
 
 \define@key{blx@sourcemap@maps}{datatype}{% characters
-  \eappto\blx@tempb{ datatype="#1"}}
+  \eappto\blx@tempb{ datatype="#1"}%
+  \eappto\blx@tempd{#1}}
 \define@key{blx@sourcemap@maps}{overwrite}[true]{% true|false
   \ifstrequal{#1}{true}
     {\appto\blx@tempb{ map\string_overwrite="1"}}
