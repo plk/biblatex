@@ -8557,6 +8557,17 @@
 \xdef\blx@xml@ordered#1#2{%
   ~~~~~~<bcf:value order="#1">#2</bcf:value>\blx@nl}
 
+\xdef\blx@xml@datamodel#1{%
+  ~~<bcf:datamodel>\blx@nl
+  #1%
+  ~~</bcf:datamodel>\blx@nl}
+\xdef\blx@xml@datamodel@entrytypes#1{%
+  ~~~~<bcf:entrytypes>\blx@nl
+  #1%
+  ~~~~</bcf:entrytypes>\blx@nl}
+\xdef\blx@xml@datamodel@entrytype#1{%
+  ~~~~~~<bcf:entrytype>#1</bcf:entrytype>\blx@nl}
+
 \xdef\blx@xml@sourcemap#1{%
   ~~<bcf:sourcemap>\blx@nl
   #1%
@@ -8868,6 +8879,15 @@
       \csuse{blx@biber@sorting@\blx@sorting}%
     }%
   }%
+  % datamodel
+  \eappto\blx@tempa{%
+    \blx@xml@comment{DATA MODEL}%
+    \blx@xml@datamodel{%
+      \blx@xml@datamodel@entrytypes{%
+        \blx@bcf@datamodel@entrytypes
+      }%
+    }%
+  }%
   % files
   \let\blx@tempb\@empty
   \blx@bibdata\blx@tempb\blx@bibfiles
@@ -8919,6 +8939,40 @@
 \newcommand*{\blx@noinit}[1]{%
   \eappto\blx@tempa{%
     \blx@xml@noinit{#1}}}
+
+% datamodel
+\newrobustcmd*{\DeclareDatamodelEntrytype}[1]{%
+  \def\do##1{%
+    \ifinlistcs{##1}{blx@biber@datamodel@entrytypes}
+    {}
+    {\listcsgadd{blx@biber@datamodel@entrytypes}{##1}}%
+    \xappto\blx@bcf@datamodel@entrytypes{%
+      \blx@xml@datamodel@entrytype{##1}}}%
+  \docsvlist{#1}}
+\@onlypreamble\DeclareDatamodelEntrytype
+
+\newrobustcmd*{\DeclareDatamodelField}[2][]{%
+  \begingroup
+  \setkeys{blx@datamodel@field}{#1}%
+  \def\do##1{%
+    \ifinlistcs{##1}{blx@biber@datamodel@fields}
+    {}
+    {\listcsgadd{blx@biber@datamodel@fields}{##1}}%
+    \xappto\blx@bcf@datamodel@fields{%
+      \blx@xml@datamodel@field{##1}}}%
+  \docsvlist{#2}
+  \endgroup}
+\@onlypreamble\DeclareDatamodelField
+
+\define@key{blx@datamodel@field}{type}{% characters
+  \eappto\blx@tempa{fieldtype="#1"}}
+\define@key{blx@datamodel@field}{datatype}{% characters
+  \eappto\blx@tempa{ datatype="#1"}}
+\define@key{blx@datamodel@field}{nullok}{% true|false
+  \eappto\blx@tempa{ nullok="true"}}
+\define@key{blx@datamodel@field}{skipout}{% true|false
+  \eappto\blx@tempa{ skip\string_output="true"}}
+
 
 % sourcemap
 \newrobustcmd*{\DeclareSourcemap}[1]{%
