@@ -8567,6 +8567,12 @@
   ~~~~</bcf:entrytypes>\blx@nl}
 \xdef\blx@xml@datamodel@entrytype#1{%
   ~~~~~~<bcf:entrytype>#1</bcf:entrytype>\blx@nl}
+\xdef\blx@xml@datamodel@fields#1{%
+  ~~~~<bcf:fields>\blx@nl
+  #1%
+  ~~~~</bcf:fields>\blx@nl}
+\xdef\blx@xml@datamodel@field#1#2{%
+  ~~~~~~<bcf:field#1>#2</bcf:field>\blx@nl}
 
 \xdef\blx@xml@sourcemap#1{%
   ~~<bcf:sourcemap>\blx@nl
@@ -8886,6 +8892,9 @@
       \blx@xml@datamodel@entrytypes{%
         \blx@bcf@datamodel@entrytypes
       }%
+      \blx@xml@datamodel@fields{%
+        \blx@bcf@datamodel@fields
+      }%
     }%
   }%
   % files
@@ -8953,26 +8962,30 @@
 
 \newrobustcmd*{\DeclareDatamodelField}[2][]{%
   \begingroup
+  \let\blx@tempa\@empty
   \setkeys{blx@datamodel@field}{#1}%
   \def\do##1{%
     \ifinlistcs{##1}{blx@biber@datamodel@fields}
     {}
     {\listcsgadd{blx@biber@datamodel@fields}{##1}}%
     \xappto\blx@bcf@datamodel@fields{%
-      \blx@xml@datamodel@field{##1}}}%
+      \blx@xml@datamodel@field{\blx@tempa}{##1}}}%
   \docsvlist{#2}
   \endgroup}
 \@onlypreamble\DeclareDatamodelField
 
 \define@key{blx@datamodel@field}{type}{% characters
-  \eappto\blx@tempa{fieldtype="#1"}}
+  \eappto\blx@tempa{ fieldtype="#1"}}
 \define@key{blx@datamodel@field}{datatype}{% characters
   \eappto\blx@tempa{ datatype="#1"}}
-\define@key{blx@datamodel@field}{nullok}{% true|false
-  \eappto\blx@tempa{ nullok="true"}}
-\define@key{blx@datamodel@field}{skipout}{% true|false
-  \eappto\blx@tempa{ skip\string_output="true"}}
-
+\define@key{blx@datamodel@field}{nullok}[true]{% true|false
+  \ifstrequal{#1}{true}
+    {\appto\blx@tempa{ nullok="1"}}
+    {}}
+\define@key{blx@datamodel@field}{skipout}[true]{% true|false
+  \ifstrequal{#1}{true}  
+    {\appto\blx@tempa{ skip\string_output="1"}}
+    {}}
 
 % sourcemap
 \newrobustcmd*{\DeclareSourcemap}[1]{%
