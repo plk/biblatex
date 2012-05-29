@@ -8573,6 +8573,15 @@
   ~~~~</bcf:fields>\blx@nl}
 \xdef\blx@xml@datamodel@field#1#2{%
   ~~~~~~<bcf:field#1>#2</bcf:field>\blx@nl}
+\xdef\blx@xml@datamodel@entryfields#1{%
+  ~~~~<bcf:entryfields>\blx@nl
+  #1%
+  ~~~~</bcf:entryfields>\blx@nl}
+\xdef\blx@xml@datamodel@entryfield@type#1{%
+  ~~~~~~<bcf:entrytype>#1</bcf:entrytype>\blx@nl}
+\xdef\blx@xml@datamodel@entryfield@field#1{%
+  ~~~~~~<bcf:field>#1</bcf:field>\blx@nl}
+
 
 \xdef\blx@xml@sourcemap#1{%
   ~~<bcf:sourcemap>\blx@nl
@@ -8895,6 +8904,7 @@
       \blx@xml@datamodel@fields{%
         \blx@bcf@datamodel@fields
       }%
+      \blx@bcf@datamodel@entryfields
     }%
   }%
   % files
@@ -8986,6 +8996,22 @@
   \ifstrequal{#1}{true}  
     {\appto\blx@tempa{ skip\string_output="1"}}
     {}}
+
+\newrobustcmd*{\DeclareDatamodelEntryfields}[2][]{%
+  \begingroup
+  \let\blx@tempa\@empty
+  \let\blx@tempb\@empty
+  \ifblank{#1}
+    {}
+    {\def\do##1{%
+        \eappto\blx@tempa{\blx@xml@datamodel@entryfield@type{##1}}}%
+     \docsvlist{#1}}%
+  \def\do##1{%
+    \eappto\blx@tempb{\blx@xml@datamodel@entryfield@field{##1}}}%
+  \docsvlist{#2}%
+  \xappto\blx@bcf@datamodel@entryfields{\blx@xml@datamodel@entryfields{\blx@tempa\blx@tempb}}%
+  \endgroup}
+\@onlypreamble\DeclareDatamodelEntryfields
 
 % sourcemap
 \newrobustcmd*{\DeclareSourcemap}[1]{%
