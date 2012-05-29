@@ -8581,7 +8581,16 @@
   ~~~~~~<bcf:entrytype>#1</bcf:entrytype>\blx@nl}
 \xdef\blx@xml@datamodel@entryfield@field#1{%
   ~~~~~~<bcf:field>#1</bcf:field>\blx@nl}
-
+\xdef\blx@xml@datamodel@constraints#1{%
+  ~~~~<bcf:constraints>\blx@nl
+  #1%
+  ~~~~</bcf:constraints>\blx@nl}
+\xdef\blx@xml@datamodel@constraints@type#1{%
+  ~~~~~~<bcf:entrytype>#1</bcf:entrytype>\blx@nl}
+\xdef\blx@xml@datamodel@constraint#1#2{%
+  ~~~~~~<bcf:constraint#1>\blx@nl
+  #2%
+  ~~~~~~</bcf:constraint>\blx@nl}
 
 \xdef\blx@xml@sourcemap#1{%
   ~~<bcf:sourcemap>\blx@nl
@@ -8905,6 +8914,7 @@
         \blx@bcf@datamodel@fields
       }%
       \blx@bcf@datamodel@entryfields
+      \blx@bcf@datamodel@constraints
     }%
   }%
   % files
@@ -9012,6 +9022,38 @@
   \xappto\blx@bcf@datamodel@entryfields{\blx@xml@datamodel@entryfields{\blx@tempa\blx@tempb}}%
   \endgroup}
 \@onlypreamble\DeclareDatamodelEntryfields
+
+\newrobustcmd*{\DeclareDatamodelConstraints}[2][]{%
+  \begingroup
+  \let\blx@tempa\@empty
+  \let\blx@tempb\@empty
+  \let\constraint\blx@datamodel@constraint
+  \ifblank{#1}
+    {}
+    {\def\do##1{%
+        \eappto\blx@tempa{\blx@xml@datamodel@constraints@type{##1}}}%
+     \docsvlist{#1}}%
+  #2%
+  \xappto\blx@bcf@datamodel@constraints{\blx@xml@datamodel@constraints{\blx@tempa\blx@tempb}}%
+  \endgroup}
+\@onlypreamble\DeclareDatamodelConstraints
+
+\newcommand*{\blx@datamodel@constraint}[2][]{%
+  \let\blx@tempc\@empty
+  \let\blx@tempd\@empty
+  \setkeys{blx@datamodel@constraint}{#1}%
+  #2%
+  \eappto\blx@tempb{\blx@xml@datamodel@constraint{\blx@tempc}{\blx@tempd}}}
+
+\define@key{blx@datamodel@constraint}{type}{% characters
+  \eappto\blx@tempc{ type="#1"}}
+\define@key{blx@datamodel@constraint}{datatype}{% characters
+  \eappto\blx@tempc{ datatype="#1"}}
+\define@key{blx@datamodel@constraint}{rangemin}{% integer
+  \eappto\blx@tempc{ rangemin="#1"}}
+\define@key{blx@datamodel@constraint}{rangemax}{% integer
+  \eappto\blx@tempc{ rangemax="#1"}}
+
 
 % sourcemap
 \newrobustcmd*{\DeclareSourcemap}[1]{%
