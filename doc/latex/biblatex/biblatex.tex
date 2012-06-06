@@ -291,15 +291,17 @@ The \sty{ucs} package provides support for \utf encoded input. Either use \sty{i
 
 It is important to distinguish between \bibtex the program and \bibtex the file format. \sty{biblatex} can be used with or without \bibtex the program since its default backend \biber uses fully supports the \bibtex file format (\file{bib}) and users should be able to move to \sty{biblatex} will little or no changes to their \bibtex data files when using \biber as a backend. If using \bibtex as the data backend, note that you cannot use arbitrary \file{bst} files because the package depends on a special \bibtex interface. When using \bibtex as a backend, \sty{biblatex} uses its own special \file{bst} file only. The entry guide below is backend agnostic unless otherwise stated.
 
+This section describes the default data model defined in the \file{blx-dm.def} file which is part of \path{biblatex}. The data model is defined using the macros documented in \secref{aut:ctm:dm}. It is possible to redefine the data model which both \sty{biblatex} and \biber use so that datasources can contain new entrytypes and fields (which of course will need style support). The data model specfication also allows for constraints to be defined so that data sources can be validated against the data model (using \biber's \path{--validate_datamodel} option). Users who want to customise the data model need to look at the \file{blx-dm.def} file and to read \secref{aut:ctm:dm}.
+
 \subsection{Entry Types}
 \label{bib:typ}
 
-This section gives an overview of the entry types supported by \sty{biblatex} along with the fields supported by each type.
+This section gives an overview of the entry types supported by the default \sty{biblatex} data model along with the fields supported by each type.
 
 \subsubsection{Regular Types}
 \label{bib:typ:blx}
 
-The lists below indicate the fields supported by each entry type. Note that the mapping of fields to an entry type is ultimately at the discretion of the bibliography style. The lists below therefore serve two purposes. They indicate the fields supported by the standard styles which ship with this package and they also serve as a model for custom styles. Note that the <required> fields are not strictly required in all cases, see \secref{bib:use:key} for details. The fields marked as <optional> are optional in a technical sense. Bibliographical formatting rules usually require more than just the <required> fields. The standard styles will generally not perform any formal validity checks, but custom styles may do so. Generic fields like \bibfield{abstract} and \bibfield{annotation} or \bibfield{label} and \bibfield{shorthand} are not included in the lists below because they are independent of the entry type. The special fields discussed in \secref{bib:fld:spc}, which are also independent of the entry type, are not included in the lists either.
+The lists below indicate the fields supported by each entry type. Note that the mapping of fields to an entry type is ultimately at the discretion of the bibliography style. The lists below therefore serve two purposes. They indicate the fields supported by the standard styles which ship with this package and they also serve as a model for custom styles. Note that the <required> fields are not strictly required in all cases, see \secref{bib:use:key} for details. The fields marked as <optional> are optional in a technical sense. Bibliographical formatting rules usually require more than just the <required> fields. The default data model defined a few constraints for the format of date fields, ISBNs and some special fields like \bibfield{gender} but the constraints are only used if validating against the data model with \biber's \path{--validate_datamodel} option. Generic fields like \bibfield{abstract} and \bibfield{annotation} or \bibfield{label} and \bibfield{shorthand} are not included in the lists below because they are independent of the entry type. The special fields discussed in \secref{bib:fld:spc}, which are also independent of the entry type, are not included in the lists either. See the default data model specification in the file \file{blx-dm.def} which comes with \sty{biblatex} for a complete specification.
 
 \begin{typelist}
 
@@ -577,12 +579,12 @@ Audiovisual recordings, typically on \acr{DVD}, \acr{VHS} casette, or similar me
 \subsection{Entry Fields}
 \label{bib:fld}
 
-This section gives an overview of the fields supported by \sty{biblatex}. See \secref{bib:fld:typ} for an introduction to the data types supported by this package and \secref{bib:fld:dat, bib:fld:spc} for the actual field listings.
+This section gives an overview of the fields supported by the \sty{biblatex} default data model. See \secref{bib:fld:typ} for an introduction to the data types used by the data model specification and \secref{bib:fld:dat, bib:fld:spc} for the actual field listings.
 
 \subsubsection{Data Types}
 \label{bib:fld:typ}
 
-In \file{bib} files all bibliographic data is specified in fields. Some of those fields, for example \bibfield{author} and \bibfield{editor}, may contain a list of items. This list structure is implemented by the \bibtex file format via the keyword <|and|>, which is used to separate the individual items in the list. The \sty{biblatex} package implements three distinct data types to handle bibliographic data: name lists, literal lists, and fields. There are also several list and field subtypes. This section gives an overview of the data types supported by this package. See \secref{bib:fld:dat, bib:fld:spc} for information about the mapping of the \bibtex file format fields to \sty{biblatex}'s data types.
+In datasources such as a \file{bib} file, all bibliographic data is specified in fields. Some of those fields, for example \bibfield{author} and \bibfield{editor}, may contain a list of items. This list structure is implemented by the \bibtex file format via the keyword <|and|>, which is used to separate the individual items in the list. The \sty{biblatex} package implements three distinct data types to handle bibliographic data: name lists, literal lists, and fields. There are also several list and field subtypes. This section gives an overview of the data types supported by this package. See \secref{bib:fld:dat, bib:fld:spc} for information about the mapping of the \bibtex file format fields to \sty{biblatex}'s data types.
 
 \begin{description}
 
@@ -615,7 +617,7 @@ In \file{bib} files all bibliographic data is specified in fields. Some of those
 
 \item[Verbatim fields] are processed in verbatim mode and may contain special characters. Typical examples of verbatim fields are \bibfield{url} and \bibfield{doi}.
 
-\item[comma"=separated value fields] A comma"=separated list of literal values. Examples are the \bibfield{keywords} and \bibfield{options} fields.
+\item[Comma"=separated value fields] A comma"=separated list of literal values. Examples are the \bibfield{keywords} and \bibfield{options} fields.
 
 \item[Pattern fields] A literal field which must match a particular pattern. An example is the \bibfield{gender} field from \secref{bib:fld:spc}.
 
@@ -624,12 +626,10 @@ In \file{bib} files all bibliographic data is specified in fields. Some of those
 \end{description}
 \end{description}
 
-The data type of a field will usually not change, regardless of the type of entry it is used in. However, there are a few special cases. The field descriptions in \secref{bib:fld:dat} include the details or pointers to the relevant sections in this manual in such cases. For example, the \bibfield{location} field, which is a literal list by default, is treated as a key list when used in \bibtype{patent} entries. The \bibfield{series} field, which is a literal field by default, is handled in a special way when used in \bibtype{article} entries, see \secref{bib:use:ser} for details.
-
 \subsubsection{Data Fields}
 \label{bib:fld:dat}
 
-The fields listed in this section are the regular ones holding printable data. The name on the left is the name of the field, as used by both the \bibtex file format and \sty{biblatex}. The \sty{biblatex} data type is given to the right of the name. See \secref{bib:fld:typ} for explanation of the various data types.
+The fields listed in this section are the regular ones holding printable data in the default data model. The name on the left is the default data model name of the field as used by \sty{biblatex} and its backend. The \sty{biblatex} data type is given to the right of the name. See \secref{bib:fld:typ} for explanation of the various data types.
 
 \begin{fieldlist}
 
@@ -737,6 +737,10 @@ Similar to \bibfield{editortype} but referring to the \bibfield{editorc} field. 
 
 The electronic identifier of an \bibtype{article}.
 
+\fielditem{entrysubtype}{literal}
+
+This field, which is not used by the standard styles, may be used to specify a subtype of an entry type. This may be useful for bibliography styles which support a finer"=grained set of entry types.
+
 \fielditem{eprint}{verbatim}
 
 The electronic identifier of an online publication. This is roughly comparable to a \acr{doi} but specific to a certain archive, repository, service, or system. See \secref{use:use:epr} for details. Also see \bibfield{eprinttype} and \bibfield{eprintclass}.
@@ -843,7 +847,7 @@ This field may be useful to record information such as a library name and a call
 
 \listitem{location}{literal}
 
-The place(s) of publication, \ie the location of the \bibfield{publisher} or \bibfield{institution}, depending on the entry type. Traditional \bibtex uses the field name \bibfield{address}, which is supported as an alias. See also \secref{bib:fld:als, bib:use:and}. With \bibtype{patent} entries, this list indicates the scope of a patent and is treated as a key list. This list may also be useful for the custom types listed in \secref{bib:typ:ctm}.
+The place(s) of publication, \ie the location of the \bibfield{publisher} or \bibfield{institution}, depending on the entry type. Traditional \bibtex uses the field name \bibfield{address}, which is supported as an alias. See also \secref{bib:fld:als, bib:use:and}. With \bibtype{patent} entries, this list indicates the scope of a patent. This list may also be useful for the custom types listed in \secref{bib:typ:ctm}.
 
 \fielditem{mainsubtitle}{literal}
 
@@ -1010,7 +1014,7 @@ The year of publication. See also \bibfield{date} and \secref{bib:use:dat}.
 \subsubsection{Special Fields}
 \label{bib:fld:spc}
 
-The fields listed in this section do not hold printable data but serve a different purpose. They apply to all entry types.
+The fields listed in this section do not hold printable data but serve a different purpose. They apply to all entry types in the default data model.
 
 \begin{fieldlist}
 
@@ -1020,11 +1024,7 @@ This field holds an entry key for the cross"=referencing feature. Child entries 
 
 \fielditem{entryset}{comma"=separated values}
 
-This field is specific to entry sets. See \secref{use:use:set} for details.
-
-\fielditem{entrysubtype}{identifier}
-
-This field, which is not used by the standard styles, may be used to specify a subtype of an entry type. This may be useful for bibliography styles which support a finer"=grained set of entry types.
+This field is specific to entry sets. See \secref{use:use:set} for details. This field is consumed by the backend processing and does not appear in the \path{.bbl}.
 
 \fielditem{execute}{code}
 
@@ -1071,9 +1071,9 @@ Swedish   & Sweden         & \opt{swedish} \\
 
 The language of the bibliography entry. The identifier must be a language name known to the \sty{babel} package. This information may be used to switch hyphenation patterns and localize strings in the bibliography. Note that the language names are case sensitive. The languages currently supported by this package are given in \tabref{bib:fld:tab1}. Note that \sty{babel} treats the identifier \opt{english} as an alias for \opt{british} or \opt{american}, depending on the babel version. The \sty{biblatex} package always treats it as an alias for \opt{american}. It is preferable to use the language identifiers \opt{american} and \opt{british} to avoid any possible confusion. Compare \bibfield{language} in \secref{bib:fld:dat}.
 
-\fielditem{ids}{comma"=separated values\BiberOnlyMark}
+\fielditem{ids}{comma"=separated list of entrykeys\BiberOnlyMark}
 
-Citation key aliases for the main citation key. An entry may be cited by any of its aliases and \sty{biblatex} will treat the citation as if it had used the primary citation key. This is to aid users who change their citation keys but have legacy documents which use older keys for the same entry.
+Citation key aliases for the main citation key. An entry may be cited by any of its aliases and \sty{biblatex} will treat the citation as if it had used the primary citation key. This is to aid users who change their citation keys but have legacy documents which use older keys for the same entry. This field is consumed by the backend processing and does not appear in the \path{.bbl}.
 
 \fielditem{indexsorttitle}{literal}
 
@@ -1097,7 +1097,7 @@ A comma"=separated list of entry options in \keyval notation. This field is used
 
 \fielditem{presort}{string}
 
-A special field used to modify the sorting order of the bibliography. This field is the first item the sorting routine considers when sorting the bibliography, hence it may be used to arrange the entries in groups. This may be useful when creating subdivided bibliographies with the bibliography filters. This field is only used internally during sorting. Please refer to \secref{use:srt} for further details. Also see \secref{aut:ctm:srt}.
+A special field used to modify the sorting order of the bibliography. This field is the first item the sorting routine considers when sorting the bibliography, hence it may be used to arrange the entries in groups. This may be useful when creating subdivided bibliographies with the bibliography filters. Please refer to \secref{use:srt} for further details. Also see \secref{aut:ctm:srt}. This field is consumed by the backend processing and does not appear in the \path{.bbl}.
 
 \fielditem{related}{comma"=separated values}
 
@@ -1115,27 +1115,27 @@ A field used to override the bibliography string specified by \bibfield{relatedt
 
 \fielditem{sortkey}{literal\BiberOnlyMark}
 
-A field used to modify the sorting order of the bibliography. Think of this field as the master sort key. If present, \sty{biblatex} uses this field during sorting and ignores everything else, except for the \bibfield{presort} field. This field is only used internally during sorting. Please refer to \secref{use:srt} for further details.
+A field used to modify the sorting order of the bibliography. Think of this field as the master sort key. If present, \sty{biblatex} uses this field during sorting and ignores everything else, except for the \bibfield{presort} field. Please refer to \secref{use:srt} for further details. This field is consumed by the backend processing and does not appear in the \path{.bbl}.
 
 \listitem{sortname}{name}
 
-A name or a list of names used to modify the sorting order of the bibliography. If present, this list is used instead of \bibfield{author} or \bibfield{editor} when sorting the bibliography. It is only used internally during sorting. Please refer to \secref{use:srt} for further details.
+A name or a list of names used to modify the sorting order of the bibliography. If present, this list is used instead of \bibfield{author} or \bibfield{editor} when sorting the bibliography. Please refer to \secref{use:srt} for further details. This field is consumed by the backend processing and does not appear in the \path{.bbl}.
 
 \fielditem{sortshorthand}{literal\BiberOnlyMark}
 
-Similar to \bibfield{sortkey} but used in the list of shorthands. If present, \sty{biblatex} uses this field instead of \bibfield{shorthand} when sorting the list of shorthands. This is useful if the \bibfield{shorthand} field holds shorthands with formatting commands such as \cmd{emph} or \cmd{textbf}. This field is only used internally during sorting.
+Similar to \bibfield{sortkey} but used in the list of shorthands. If present, \sty{biblatex} uses this field instead of \bibfield{shorthand} when sorting the list of shorthands. This is useful if the \bibfield{shorthand} field holds shorthands with formatting commands such as \cmd{emph} or \cmd{textbf}. This field is consumed by the backend processing and does not appear in the \path{.bbl}.
 
 \fielditem{sorttitle}{literal}
 
-A field used to modify the sorting order of the bibliography. If present, this field is used instead of the \bibfield{title} field when sorting the bibliography. It is only used internally during sorting. The \bibfield{sorttitle} field may come in handy if you have an entry with a title like «An Introduction to\dots» and want that alphabetized under <I> rather than <A>. In this case, you could put «Introduction to\dots» in the \bibfield{sorttitle} field. Please refer to \secref{use:srt} for further details.
+A field used to modify the sorting order of the bibliography. If present, this field is used instead of the \bibfield{title} field when sorting the bibliography. The \bibfield{sorttitle} field may come in handy if you have an entry with a title like «An Introduction to\dots» and want that alphabetized under <I> rather than <A>. In this case, you could put «Introduction to\dots» in the \bibfield{sorttitle} field. Please refer to \secref{use:srt} for further details. This field is consumed by the backend processing and does not appear in the \path{.bbl}.
 
 \fielditem{sortyear}{literal}
 
-A field used to modify the sorting order of the bibliography. If present, this field is used instead of the \bibfield{year} field when sorting the bibliography. It is only used internally during sorting. Please refer to \secref{use:srt} for further details.
+A field used to modify the sorting order of the bibliography. If present, this field is used instead of the \bibfield{year} field when sorting the bibliography. Please refer to \secref{use:srt} for further details. This field is consumed by the backend processing and does not appear in the \path{.bbl}.
 
-\fielditem{xdata}{comma-separated list of entry keys\BiberOnlyMark}
+\fielditem{xdata}{comma-separated list of entrykeys\BiberOnlyMark}
 
-This field inherits data from one or more \bibtype{xdata} entries. Conceptually, the \bibfield{xdata} field is related to \bibfield{crossref} and \bibfield{xref}: \bibfield{crossref} establishes a logical parent/child relation and inherits data; \bibfield{xref} establishes as logical parent/child relation without inheriting data; \bibfield{xdata} inherits data without establishing a relation. The value of the \bibfield{xdata} may be a single entry key or a comma"=separated list of keys. See \secref{use:use:xdat} for further details.
+This field inherits data from one or more \bibtype{xdata} entries. Conceptually, the \bibfield{xdata} field is related to \bibfield{crossref} and \bibfield{xref}: \bibfield{crossref} establishes a logical parent/child relation and inherits data; \bibfield{xref} establishes as logical parent/child relation without inheriting data; \bibfield{xdata} inherits data without establishing a relation. The value of the \bibfield{xdata} may be a single entry key or a comma"=separated list of keys. See \secref{use:use:xdat} for further details. This field is consumed by the backend processing and does not appear in the \path{.bbl}.
 
 \fielditem{xref}{entry key}
 
@@ -6063,6 +6063,154 @@ Here, we have used the hexadecimal escape sequence <|\x20|> in place of literal 
 \end{lstlisting}
 %
 Only applies to entries with an \bibfield{author} field matching <Doe,>. First the \bibfield{author} field is copied to both the \bibfield{shortauthor} and \bibfield{sortname} fields, overwriting them if they already exist. Then, these two new fields are modified to canonicalise a particular name, which presumably has some variants in the data source.
+
+\subsubsection{Data Model Specification}
+\label{aut:ctm:dm}
+
+The data model which \sty{biblatex} uses consists of four main elements:
+
+\begin{itemize}
+\item Specification of valid Entrytypes
+\item Specification of valid Fields along with their type, datatype and any special flags
+\item Specification of which Fields are valid in which Entrytypes
+\item Specification of constraints which can be used to validate data against the data model
+\end{itemize}
+
+The default data model is defined in the core \sty{biblatex} file \file{blx-dm.def} using the macros described in this section. The default data model is described in detail in \secref{bib}. The data model is used internally by \sty{biblatex} and also by the backends. The data model for the \bibtex backend is hard-coded and cannot be changed. Changing the data model is only supported for the \biber backend. In practice, changing the data model means that you can define the entrytypes and fields for your datasources and validate your data against the data model. Naturally, this is not much use unless your style supports any new entrytypes or fields and it raises issues of portability between styles (although this can be mitigated by using the dynamic data modification functionality described in \secref{aut:ctm:map}).
+
+Validation against the data model means that after mapping your data sources into the data model, \biber (using its \path{--validate_datamodel} option) can check:
+
+\begin{itemize}
+\item Whether all entrytypes are valid entrytypes
+\item Whether all fields are valid fields for their entrytype
+\item Whether the fields obey various constraints on their format which you specify
+\end{itemize}
+%
+The data model is defined using the following macros:
+
+\begin{ltxsyntax}
+
+\cmditem{DeclareDatamodelEntrytypes}{entrytypes}|\BiberOnlyMark|
+
+Declares the comma"=separated list of \prm{entrytypes} to be valid entrytypes in the data model. This command may only be used in the preamble.
+
+\cmditem{DeclareDatamodelFields}[options]{fields}|\BiberOnlyMark|
+
+Declares the comma"=separated list of \prm{fields} to be valid fields in the data model with associated comma"=separated \prm{options}. This command may only be used in the preamble. Valid \prm{options} are:
+
+\begin{optionlist*}
+
+\valitem{type}{field type}
+
+Set the type of the field as described in \secref{bib:fld:typ}. Is typically <field> or <list>.
+
+\valitem{datatype}{field datatype}
+
+Set the datatype of the field as described in \secref{bib:fld:typ}. For example, <name> or <literal>.
+
+\boolitem[false]{nullok}
+
+The field is allowed to be defined but empty.
+
+\boolitem[false]{skipout}
+
+The field is not output to the \file{.bbl} and is therefore not present during \sty{biblatex} style processing.
+
+\end{optionlist*}
+
+\cmditem{DeclareDatamodelEntryFields}[entrytypes]{fields}|\BiberOnlyMark|
+
+Declares that the comma"=separated list of \prm{fields} is valid for the comma"=separated list of \prm{entrytypes}. If \prm{entrytypes} is not given, the fields are valid for all entrytypes. This command may only be used in the preamble.
+
+\cmditem{DeclareDatamodelConstraints}[entrytypes]{specification}|\BiberOnlyMark|
+
+If a comma"=separated list of \prm{entrytypes} is given, the constraints apply only to those entrytypes. The \prm{specification} is an undelimited list of \cmd{constraint} directives which specify a constraint. Spaces, tabs, and line endings may be used freely to visually arrange the \prm{specification}. Blank lines are not permissible. This command may only be used in the preamble.
+
+\cmditem{constraint}[type=constrainttype]{elements}
+
+Specifies a constraint of type \prm{constrainttype}. Valid constraint types are:
+
+\begin{optionlist*}
+
+\choitem{type}{data, mandatory, conditional}
+
+Constraints of type <data> put restrictions on the value of a field. Constraints of type <mandatory> specify which fields or combinations of fields an entrytype should have. Constraints of type <conditional> allow more sophisticated conditional and quantified field constraints.
+
+\choitem{datatype}{integer, isbn, issn, ismn, date, pattern}
+
+For constraints of type \prm{data}, constrain field values to be the given datatype.
+
+\valitem{rangemin}{num}
+
+For constraints of \prm{type} <data> and \prm{datatype} <integer>, constrain field values to be at least \prm{num}.
+
+\valitem{rangemax}{num}
+
+For constraints of \prm{type} <data> and \prm{datatype} <integer>, constrain field values to be at most \prm{num}.
+
+\valitem{pattern}{patt}
+
+For constraints of \prm{type} <data> and \prm{datatype} <pattern>, constrain field values to match regular expression pattern \prm{patt}. It is best to wrap any regular expression in the macro \cmd{regexp}, see \secref{aut:ctm:map}.
+
+\end{optionlist*}
+
+A \cmd{constraint} macro may contain any of the following:
+
+\cmditem{constraintfieldsor}{fields}
+
+For constraints of \prm{type} <mandatory>, specifies that an entry must contain a boolean OR of the \cmd{constraintfield}s.
+
+\cmditem{constraintfieldsxor}{fields}
+
+For constraints of \prm{type} <mandatory>, specifies that an entry must contain a boolean XOR of the \cmd{constraintfield}s.
+
+\cmditem{antecedent}[quantifier=quantspec]{fields}
+
+For constraints of \prm{type} <conditional>, specifies a quantified set of \cmd{constraintfield}s which must be satisfied before the \cmd{consequent} of the constraint is checked. \prm{quantspec} should have one of the following values:
+
+\begin{optionlist*}
+
+\choitem{quantifier}{all, one, none}
+
+Specifies how many of the \cmd{constrainfield}'s inside the \cmd{antecedent} have to be present to satisfy the antecedent of the conditional constraint.
+
+\end{optionlist*}
+
+\cmditem{consequent}[quantifier=quantspec]{fields}
+
+For constraints of \prm{type} <conditional>, specifies a quantified set of \cmd{constraintfield}s which must be satisfied if the preceding \cmd{antecedent} of the constraint was satisfied. \prm{quantspec} should have one of the following values:
+
+\begin{optionlist*}
+
+\choitem{quantifier}{all, one, none}
+
+Specifies how many of the \cmd{constrainfield}'s inside the \cmd{consequent} have to be present to satisfy the consequent of the conditional constraint.
+
+\end{optionlist*}
+
+\cmditem{constraintfield}{field}
+
+For constraints of \prm{type} <data>, the constraint applies to this \prm{field}. For constraints of \prm{type} <mandatory>, the entry must contain this \prm{field}. 
+
+The data model declaration macros may be used multiple times as they append to the previous definitions. In order to replace, change or remove existing definitions (such as the default model which is loaded with \sty{biblatex}), you should reset (clear) the current definition and then set what you want using the following macros:
+
+\cmditem{ResetDatamodelEntrytypes}
+
+Clear all data model entrytype information.
+
+\cmditem{ResetDatamodelFields}
+
+Clear all data model field information.
+
+\cmditem{ResetDatamodelEntryFields}
+
+Clear all data model fields for entrytypes information.
+
+\cmditem{ResetDatamodelConstraints}
+
+Clear all data model fields Constraints information.
+
+\end{ltxsyntax}
 
 \subsubsection{Labels}
 \label{aut:ctm:lab}

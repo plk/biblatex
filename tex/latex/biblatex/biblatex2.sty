@@ -8607,10 +8607,10 @@
   ~~~~~~~~<bcf:consequent#1>\blx@nl
   #2%
   ~~~~~~~~</bcf:consequent>\blx@nl}
-\xdef\blx@xml@datamodel@constraintfield#1#2{%
-  ~~~~~~~~<bcf:field#1>#2</bcf:field>\blx@nl}
-\xdef\blx@xml@datamodel@constraintfieldsub#1#2{%
-  ~~~~~~~~~~<bcf:field#1>#2</bcf:field>\blx@nl}
+\xdef\blx@xml@datamodel@constraintfield#1{%
+  ~~~~~~~~<bcf:field>#1</bcf:field>\blx@nl}
+\xdef\blx@xml@datamodel@constraintfieldsub#1{%
+  ~~~~~~~~~~<bcf:field>#1</bcf:field>\blx@nl}
 
 \xdef\blx@xml@sourcemap#1{%
   ~~<bcf:sourcemap>\blx@nl
@@ -8990,7 +8990,23 @@
     \blx@xml@noinit{#1}}}
 
 % datamodel
-\newrobustcmd*{\DeclareDatamodelEntrytype}[1]{%
+\newrobustcmd*{\ResetDatamodelEntrytypes}{%
+  \global\cslet{blx@bcf@datamodel@entrytypes}\@empty}
+\@onlypreamble\ResetDatamodelEntrytype
+
+\newrobustcmd*{\ResetDatamodelFields}{%
+  \global\cslet{blx@bcf@datamodel@fields}\@empty}
+\@onlypreamble\ResetDatamodelFields
+
+\newrobustcmd*{\ResetDatamodelEntryFields}{%
+  \global\cslet{blx@bcf@datamodel@entryfields}\@empty}
+\@onlypreamble\ResetDatamodelEntryFields
+
+\newrobustcmd*{\ResetDatamodelConstraints}{%
+  \global\cslet{blx@bcf@datamodel@constraints}\@empty}
+\@onlypreamble\ResetDatamodelConstraints
+
+\newrobustcmd*{\DeclareDatamodelEntrytypes}[1]{%
   \def\do##1{%
     \ifinlistcs{##1}{blx@biber@datamodel@entrytypes}
     {}
@@ -8998,9 +9014,9 @@
     \xappto\blx@bcf@datamodel@entrytypes{%
       \blx@xml@datamodel@entrytype{##1}}}%
   \docsvlist{#1}}
-\@onlypreamble\DeclareDatamodelEntrytype
+\@onlypreamble\DeclareDatamodelEntrytypes
 
-\newrobustcmd*{\DeclareDatamodelField}[2][]{%
+\newrobustcmd*{\DeclareDatamodelFields}[2][]{%
   \begingroup
   \let\blx@tempa\@empty
   \setkeys{blx@datamodel@field}{#1}%
@@ -9012,7 +9028,7 @@
       \blx@xml@datamodel@field{\blx@tempa}{##1}}}%
   \docsvlist{#2}
   \endgroup}
-\@onlypreamble\DeclareDatamodelField
+\@onlypreamble\DeclareDatamodelFields
 
 \define@key{blx@datamodel@field}{type}{% characters
   \eappto\blx@tempa{ fieldtype="#1"}}
@@ -9078,6 +9094,8 @@
   \eappto\blx@tempc{ rangemin="#1"}}
 \define@key{blx@datamodel@constraint}{rangemax}{% integer
   \eappto\blx@tempc{ rangemax="#1"}}
+\define@key{blx@datamodel@constraint}{pattern}{% regexp
+  \eappto\blx@tempc{ pattern="#1"}}
 
 \newcommand*{\blx@datamodel@constraint@antecedent}[2][]{%
   \let\blx@tempe\@empty
@@ -9114,18 +9132,11 @@
   \let\constraintfield\blx@datamodel@constraintfield% back to default
   \eappto\blx@tempd{\blx@xml@datamodel@constraintfieldsor{\blx@temph}}}
 
-\newcommand*{\blx@datamodel@constraintfield}[2][]{%
-  \let\blx@tempf\@empty
-  \setkeys{blx@datamodel@constraintfield}{#1}%
-  \eappto\blx@tempd{\blx@xml@datamodel@constraintfield{\blx@tempf}{#2}}}
+\newcommand*{\blx@datamodel@constraintfield}[1]{%
+  \eappto\blx@tempd{\blx@xml@datamodel@constraintfield{#1}}}
 
-\newcommand*{\blx@datamodel@constraintfieldsub}[2][]{%
-  \let\blx@tempf\@empty
-  \setkeys{blx@datamodel@constraintfield}{#1}%
-  \eappto\blx@temph{\blx@xml@datamodel@constraintfieldsub{\blx@tempf}{#2}}}
-
-\define@key{blx@datamodel@constraintfield}{preferred}{% characters
-  \eappto\blx@tempf{ preferred="#1"}}
+\newcommand*{\blx@datamodel@constraintfieldsub}[1]{%
+  \eappto\blx@temph{\blx@xml@datamodel@constraintfieldsub{#1}}}
 
 % sourcemap
 \newrobustcmd*{\DeclareSourcemap}[1]{%
