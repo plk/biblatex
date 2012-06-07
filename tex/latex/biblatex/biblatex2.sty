@@ -14,13 +14,12 @@
 [\abx@date\space v\abx@version\space programmable bibliographies (biber) (PK/JW/AB)]
 
 %% Dependencies
-
 \RequirePackage{etoolbox}
 \RequirePackage{keyval}
 \RequirePackage{logreq}
 \RequirePackage{ifthen}
 \RequirePackage{url}
-
+\usepackage{trace}
 \@ifpackagelater{etoolbox}{2010/11/29}
   {}
   {\PackageError{biblatex}
@@ -3296,7 +3295,7 @@
   \let\blx@saved@do\do
   \def\do##1{\blx@resetformat@i{#1}{#2}{##1}}%
   \blx@safe@actives
-  \abx@dotypes
+  \dolistcsloop{blx@biber@datamodel@entrytypes}%
   \blx@rest@actives
   \let\do\blx@saved@do}
 
@@ -4682,227 +4681,32 @@
     {\clearlist{language}}
     {}}
 
-%% Bibtex data interface
+% Used to pass regexps to .bcf
+\def\regexp#1{\expandafter\zap@space\detokenize{#1} \@empty}
 
-\def\abx@dotypes{%
-  \do{set}%
-  \do{article}%
-  \do{book}%
-  \do{mvbook}%
-  \do{booklet}%
-  \do{collection}%
-  \do{mvcollection}%
-  \do{inbook}%
-  \do{bookinbook}%
-  \do{incollection}%
-  \do{inproceedings}%
-  \do{manual}%
-  \do{misc}%
-  \do{online}%
-  \do{patent}%
-  \do{periodical}%
-  \do{proceedings}%
-  \do{mvproceedings}%
-  \do{report}%
-  \do{suppbook}%
-  \do{suppcollection}%
-  \do{suppperiodical}%
-  \do{thesis}%
-  \do{unpublished}%
-  \do{artwork}%
-  \do{audio}%
-  \do{commentary}%
-  \do{image}%
-  \do{inreference}%
-  \do{jurisdiction}%
-  \do{legal}%
-  \do{legislation}%
-  \do{letter}%
-  \do{movie}%
-  \do{music}%
-  \do{performance}%
-  \do{reference}%
-  \do{mvreference}%
-  \do{review}%
-  \do{software}%
-  \do{standard}%
-  \do{video}%
-  \do{customa}%
-  \do{customb}%
-  \do{customc}%
-  \do{customd}%
-  \do{custome}%
-  \do{customf}%
-}
+% Data model and supporting macros must be loaded early
+\blx@inputonce{blx-dm.def}{biblatex default data model}{}{}{}{}
 
-\def\abx@donames{%
-  \do{labelname}%
-  \do{author}%
-  \do{shortauthor}%
-  \do{editor}%
-  \do{editora}%
-  \do{editorb}%
-  \do{editorc}%
-  \do{shorteditor}%
-  \do{bookauthor}%
-  \do{translator}%
-  \do{annotator}%
-  \do{commentator}%
-  \do{introduction}%
-  \do{foreword}%
-  \do{afterword}%
-  \do{holder}%
-  \do{namea}%
-  \do{nameb}%
-  \do{namec}%
-}
-
-\def\abx@dolists{%
-  \do{institution}%
-  \do{language}%
-  \do{location}%
-  \do{organization}%
-  \do{origlocation}%
-  \do{origpublisher}%
-  \do{pageref}%
-  \do{publisher}%
-  \do{lista}%
-  \do{listb}%
-  \do{listc}%
-  \do{listd}%
-  \do{liste}%
-  \do{listf}%
-}
-
-\def\abx@dofields{%
-  \do{crossref}%
-  \do{xref}%
-  \do{entrykey}%
+% These are internal fields which are not part of the data model but
+% which need to be dealt with along with data model fields in places
+\def\abx@dointernalfields{%
   \do{childentrykey}%
-  \do{entrytype}%
-  \do{entrysubtype}%
+  \do{entrykey}%
   \do{entryset}%
   \do{entrysetcount}%
-  \do{related}%
-  \do{relatedtype}%
-  \do{relatedstring}%
-  \do{hyphenation}%
-  \do{keywords}%
-  \do{authortype}%
-  \do{editortype}%
-  \do{editoratype}%
-  \do{editorbtype}%
-  \do{editorctype}%
-  \do{nameatype}%
-  \do{namebtype}%
-  \do{namectype}%
-  \do{addendum}%
-  \do{booktitle}%
-  \do{booksubtitle}%
-  \do{booktitleaddon}%
-  \do{chapter}%
-  \do{doi}%
-  \do{edition}%
-  \do{eid}%
-  \do{eprint}%
-  \do{eprinttype}%
-  \do{eprintclass}%
-  \do{file}%
-  \do{gender}%
-  \do{howpublished}%
-  \do{indextitle}%
-  \do{indexsorttitle}%
-  \do{isan}%
-  \do{isbn}%
-  \do{ismn}%
-  \do{isrn}%
-  \do{issn}%
-  \do{issue}%
-  \do{iswc}%
-  \do{issuetitle}%
-  \do{issuesubtitle}%
-  \do{journaltitle}%
-  \do{journalsubtitle}%
-  \do{label}%
-  \do{labelalpha}%
+  \do{entrytype}%
   \do{extraalpha}%
+  \do{extratitle}%
+  \do{extrayear}%
+  \do{fullhash}%
+  \do{labelalpha}%
   \do{labelnumber}%
   \do{labeltitle}%
   \do{labelyear}%
-  \do{extratitle}%
-  \do{extrayear}%
-  \do{library}%
   \do{localnumber}%
-  \do{prefixnumber}%
-  \do{mainsubtitle}%
-  \do{maintitle}%
-  \do{maintitleaddon}%
-  \do{nameaddon}%
   \do{namehash}%
-  \do{fullhash}%
-  \do{note}%
-  \do{number}%
-  \do{day}%
-  \do{month}%
-  \do{year}%
-  \do{endday}%
-  \do{endmonth}%
-  \do{endyear}%
-  \do{origlanguage}%
-  \do{origtitle}%
-  \do{origday}%
-  \do{origmonth}%
-  \do{origyear}%
-  \do{origendday}%
-  \do{origendmonth}%
-  \do{origendyear}%
-  \do{reprinttitle}%
-  \do{pages}%
-  \do{pagetotal}%
-  \do{pagination}%
-  \do{bookpagination}%
-  \do{part}%
-  \do{pubstate}%
-  \do{series}%
-  \do{shorthand}%
-  \do{shorthandintro}%
-  \do{shortjournal}%
-  \do{shortseries}%
-  \do{shorttitle}%
+  \do{prefixnumber}%
   \do{sortinit}%
-  \do{subtitle}%
-  \do{title}%
-  \do{titleaddon}%
-  \do{eventtitle}%
-  \do{eventday}%
-  \do{eventmonth}%
-  \do{eventyear}%
-  \do{eventendday}%
-  \do{eventendmonth}%
-  \do{eventendyear}%
-  \do{type}%
-  \do{url}%
-  \do{urlday}%
-  \do{urlmonth}%
-  \do{urlyear}%
-  \do{urlendday}%
-  \do{urlendmonth}%
-  \do{urlendyear}%
-  \do{venue}%
-  \do{version}%
-  \do{volume}%
-  \do{volumes}%
-  \do{abstract}%
-  \do{annotation}%
-  \do{usera}%
-  \do{userb}%
-  \do{userc}%
-  \do{userd}%
-  \do{usere}%
-  \do{userf}%
-  \do{verba}%
-  \do{verbb}%
-  \do{verbc}%
 }
 
 \def\abx@dobooleans{%
@@ -4915,19 +4719,20 @@
   \csedef{the#1}{\noexpand\the\expandonce{\csname c@#1\endcsname}}%
   \csedef{thesaved#1}{\noexpand\the\expandonce{\csname c@saved#1\endcsname}}%
   \appto\abx@dobooleans{\do{more#1}}}
-\abx@donames
-\abx@dolists
+\dolistcsloop{blx@biber@datamodel@names}\do{labelname}%
+\dolistcsloop{blx@biber@datamodel@lists}\do{pageref}%
 \def\do#1{\newtoggle{abx@bool@#1}}
 \abx@dobooleans
 
 \protected\def\blx@resetdata{%
   \let\blx@saved@do\do
   \let\do\blx@imc@clearname
-  \abx@donames
+  \dolistcsloop{blx@biber@datamodel@names}\do{labelname}%
   \let\do\blx@imc@clearlist
-  \abx@dolists
+  \dolistcsloop{blx@biber@datamodel@lists}\do{pageref}%
   \let\do\blx@imc@clearfield
-  \abx@dofields\do{execute}\do{options}%
+  \dolistcsloop{blx@biber@datamodel@fields}\do{options}%
+  \abx@dointernalfields
   \def\do##1{\togglefalse{abx@bool@##1}}%
   \abx@dobooleans
   \let\do\blx@saved@do
@@ -4943,11 +4748,12 @@
 \protected\def\blx@saveentry{%
   \let\blx@saved@do\do
   \let\do\blx@savename
-  \abx@donames
+  \dolistcsloop{blx@biber@datamodel@names}\do{labelname}%
   \let\do\blx@savelist
-  \abx@dolists
+  \dolistcsloop{blx@biber@datamodel@lists}\do{pageref}%
   \let\do\blx@savefield
-  \abx@dofields\do{execute}\do{options}%
+  \dolistcsloop{blx@biber@datamodel@fields}\do{options}%
+  \abx@dointernalfields
   \let\do\blx@savebool
   \abx@dobooleans
   \c@savedcitecounter\c@citecounter
@@ -5628,11 +5434,12 @@
   \abx@hook@reencode
   \let\protect\@unexpandable@protect
   \def\do##1{\cslet{abx@name@##1}\relax}%
-  \abx@donames
+  \dolistcsloop{blx@biber@datamodel@names}\do{labelname}%
   \def\do##1{\cslet{abx@list@##1}\relax}%
-  \abx@dolists
+  \dolistcsloop{blx@biber@datamodel@lists}\do{pageref}%
   \def\do##1{\cslet{abx@field@##1}\relax}%
-  \abx@dofields\do{options}%
+  \dolistcsloop{blx@biber@datamodel@fields}\do{options}%
+  \abx@dointernalfields
   \long\def\abx@field@execute##1{%
     \unexpanded{\abx@field@execute{##1}}}%
   \csuse{abx@preamble}%
@@ -8557,61 +8364,6 @@
 \xdef\blx@xml@ordered#1#2{%
   ~~~~~~<bcf:value order="#1">#2</bcf:value>\blx@nl}
 
-\xdef\blx@xml@datamodel#1{%
-  ~~<bcf:datamodel>\blx@nl
-  #1%
-  ~~</bcf:datamodel>\blx@nl}
-\xdef\blx@xml@datamodel@entrytypes#1{%
-  ~~~~<bcf:entrytypes>\blx@nl
-  #1%
-  ~~~~</bcf:entrytypes>\blx@nl}
-\xdef\blx@xml@datamodel@entrytype#1{%
-  ~~~~~~<bcf:entrytype>#1</bcf:entrytype>\blx@nl}
-\xdef\blx@xml@datamodel@fields#1{%
-  ~~~~<bcf:fields>\blx@nl
-  #1%
-  ~~~~</bcf:fields>\blx@nl}
-\xdef\blx@xml@datamodel@field#1#2{%
-  ~~~~~~<bcf:field#1>#2</bcf:field>\blx@nl}
-\xdef\blx@xml@datamodel@entryfields#1{%
-  ~~~~<bcf:entryfields>\blx@nl
-  #1%
-  ~~~~</bcf:entryfields>\blx@nl}
-\xdef\blx@xml@datamodel@entryfield@type#1{%
-  ~~~~~~<bcf:entrytype>#1</bcf:entrytype>\blx@nl}
-\xdef\blx@xml@datamodel@entryfield@field#1{%
-  ~~~~~~<bcf:field>#1</bcf:field>\blx@nl}
-\xdef\blx@xml@datamodel@constraints#1{%
-  ~~~~<bcf:constraints>\blx@nl
-  #1%
-  ~~~~</bcf:constraints>\blx@nl}
-\xdef\blx@xml@datamodel@constraints@type#1{%
-  ~~~~~~<bcf:entrytype>#1</bcf:entrytype>\blx@nl}
-\xdef\blx@xml@datamodel@constraint#1#2{%
-  ~~~~~~<bcf:constraint#1>\blx@nl
-  #2%
-  ~~~~~~</bcf:constraint>\blx@nl}
-\xdef\blx@xml@datamodel@constraintfieldsxor#1{%
-  ~~~~~~~~<bcf:fieldxor>\blx@nl
-  #1%
-  ~~~~~~~~</bcf:fieldxor>\blx@nl}
-\xdef\blx@xml@datamodel@constraintfieldsor#1{%
-  ~~~~~~~~<bcf:fieldor>\blx@nl
-  #1%
-  ~~~~~~~~</bcf:fieldor>\blx@nl}
-\xdef\blx@xml@datamodel@constraint@antecedent#1#2{%
-  ~~~~~~~~<bcf:antecedent#1>\blx@nl
-  #2%
-  ~~~~~~~~</bcf:antecedent>\blx@nl}
-\xdef\blx@xml@datamodel@constraint@consequent#1#2{%
-  ~~~~~~~~<bcf:consequent#1>\blx@nl
-  #2%
-  ~~~~~~~~</bcf:consequent>\blx@nl}
-\xdef\blx@xml@datamodel@constraintfield#1{%
-  ~~~~~~~~<bcf:field>#1</bcf:field>\blx@nl}
-\xdef\blx@xml@datamodel@constraintfieldsub#1{%
-  ~~~~~~~~~~<bcf:field>#1</bcf:field>\blx@nl}
-
 \xdef\blx@xml@sourcemap#1{%
   ~~<bcf:sourcemap>\blx@nl
   #1%
@@ -8914,7 +8666,7 @@
   \def\do##1{%
     \eappto\blx@bcf@presort{\csuse{blx@bcf@presort@##1}}%
     \eappto\blx@bcf@exclude{\csuse{blx@bcf@exclude@##1}}}%
-  \abx@dotypes
+  \dolistcsloop{blx@biber@datamodel@entrytypes}%
   \eappto\blx@tempa{%
     \blx@xml@comment{SORTING}%
     \blx@xml@sorting{%
@@ -8959,8 +8711,6 @@
 
 %% Customisation
 
-\def\regexp#1{\expandafter\zap@space\detokenize{#1} \@empty}
-
 % nosort
 \newrobustcmd*{\DeclareNosort}[1]{%
   \begingroup
@@ -8988,155 +8738,6 @@
 \newcommand*{\blx@noinit}[1]{%
   \eappto\blx@tempa{%
     \blx@xml@noinit{#1}}}
-
-% datamodel
-\newrobustcmd*{\ResetDatamodelEntrytypes}{%
-  \global\cslet{blx@bcf@datamodel@entrytypes}\@empty}
-\@onlypreamble\ResetDatamodelEntrytype
-
-\newrobustcmd*{\ResetDatamodelFields}{%
-  \global\cslet{blx@bcf@datamodel@fields}\@empty}
-\@onlypreamble\ResetDatamodelFields
-
-\newrobustcmd*{\ResetDatamodelEntryFields}{%
-  \global\cslet{blx@bcf@datamodel@entryfields}\@empty}
-\@onlypreamble\ResetDatamodelEntryFields
-
-\newrobustcmd*{\ResetDatamodelConstraints}{%
-  \global\cslet{blx@bcf@datamodel@constraints}\@empty}
-\@onlypreamble\ResetDatamodelConstraints
-
-\newrobustcmd*{\DeclareDatamodelEntrytypes}[1]{%
-  \def\do##1{%
-    \ifinlistcs{##1}{blx@biber@datamodel@entrytypes}
-    {}
-    {\listcsgadd{blx@biber@datamodel@entrytypes}{##1}}%
-    \xappto\blx@bcf@datamodel@entrytypes{%
-      \blx@xml@datamodel@entrytype{##1}}}%
-  \docsvlist{#1}}
-\@onlypreamble\DeclareDatamodelEntrytypes
-
-\newrobustcmd*{\DeclareDatamodelFields}[2][]{%
-  \begingroup
-  \let\blx@tempa\@empty
-  \setkeys{blx@datamodel@field}{#1}%
-  \def\do##1{%
-    \ifinlistcs{##1}{blx@biber@datamodel@fields}
-    {}
-    {\listcsgadd{blx@biber@datamodel@fields}{##1}}%
-    \xappto\blx@bcf@datamodel@fields{%
-      \blx@xml@datamodel@field{\blx@tempa}{##1}}}%
-  \docsvlist{#2}
-  \endgroup}
-\@onlypreamble\DeclareDatamodelFields
-
-\define@key{blx@datamodel@field}{type}{% characters
-  \eappto\blx@tempa{ fieldtype="#1"}}
-\define@key{blx@datamodel@field}{datatype}{% characters
-  \eappto\blx@tempa{ datatype="#1"}}
-\define@key{blx@datamodel@field}{nullok}[true]{% true|false
-  \ifstrequal{#1}{true}
-    {\appto\blx@tempa{ nullok="true"}}
-    {}}
-\define@key{blx@datamodel@field}{skipout}[true]{% true|false
-  \ifstrequal{#1}{true}  
-    {\appto\blx@tempa{ skip\string_output="true"}}
-    {}}
-
-\newrobustcmd*{\DeclareDatamodelEntryfields}[2][]{%
-  \begingroup
-  \let\blx@tempa\@empty
-  \let\blx@tempb\@empty
-  \ifblank{#1}
-    {}
-    {\def\do##1{%
-        \eappto\blx@tempa{\blx@xml@datamodel@entryfield@type{##1}}}%
-     \docsvlist{#1}}%
-  \def\do##1{%
-    \eappto\blx@tempb{\blx@xml@datamodel@entryfield@field{##1}}}%
-  \docsvlist{#2}%
-  \xappto\blx@bcf@datamodel@entryfields{\blx@xml@datamodel@entryfields{\blx@tempa\blx@tempb}}%
-  \endgroup}
-\@onlypreamble\DeclareDatamodelEntryfields
-
-\newrobustcmd*{\DeclareDatamodelConstraints}[2][]{%
-  \begingroup
-  \let\blx@tempa\@empty
-  \let\blx@tempb\@empty
-  \let\constraint\blx@datamodel@constraint
-  \ifblank{#1}
-    {}
-    {\def\do##1{%
-        \eappto\blx@tempa{\blx@xml@datamodel@constraints@type{##1}}}%
-     \docsvlist{#1}}%
-  #2%
-  \xappto\blx@bcf@datamodel@constraints{\blx@xml@datamodel@constraints{\blx@tempa\blx@tempb}}%
-  \endgroup}
-\@onlypreamble\DeclareDatamodelConstraints
-
-\newcommand*{\blx@datamodel@constraint}[2][]{%
-  \let\blx@tempc\@empty
-  \let\blx@tempd\@empty
-  \setkeys{blx@datamodel@constraint}{#1}%
-  \let\constraintfieldsxor\blx@datamodel@constraintfieldsxor
-  \let\constraintfieldsor\blx@datamodel@constraintfieldsor
-  \let\constraintfield\blx@datamodel@constraintfield
-  \let\antecedent\blx@datamodel@constraint@antecedent
-  \let\consequent\blx@datamodel@constraint@consequent
-  #2%
-  \eappto\blx@tempb{\blx@xml@datamodel@constraint{\blx@tempc}{\blx@tempd}}}
-
-\define@key{blx@datamodel@constraint}{type}{% characters
-  \eappto\blx@tempc{ type="#1"}}
-\define@key{blx@datamodel@constraint}{datatype}{% characters
-  \eappto\blx@tempc{ datatype="#1"}}
-\define@key{blx@datamodel@constraint}{rangemin}{% integer
-  \eappto\blx@tempc{ rangemin="#1"}}
-\define@key{blx@datamodel@constraint}{rangemax}{% integer
-  \eappto\blx@tempc{ rangemax="#1"}}
-\define@key{blx@datamodel@constraint}{pattern}{% regexp
-  \eappto\blx@tempc{ pattern="#1"}}
-
-\newcommand*{\blx@datamodel@constraint@antecedent}[2][]{%
-  \let\blx@tempe\@empty
-  \let\blx@temph\@empty
-  \let\constraintfield\blx@datamodel@constraintfieldsub
-  \setkeys{blx@datamodel@constraint@quant}{#1}%
-  #2%
-  \let\constraintfield\blx@datamodel@constraintfield% back to default
-  \eappto\blx@tempd{\blx@xml@datamodel@constraint@antecedent{\blx@tempe}{\blx@temph}}}
-
-\newcommand*{\blx@datamodel@constraint@consequent}[2][]{%
-  \let\blx@tempe\@empty
-  \let\blx@temph\@empty
-  \let\constraintfield\blx@datamodel@constraintfieldsub
-  \setkeys{blx@datamodel@constraint@quant}{#1}%
-  #2%
-  \let\constraintfield\blx@datamodel@constraintfield% back to default
-  \eappto\blx@tempd{\blx@xml@datamodel@constraint@consequent{\blx@tempe}{\blx@temph}}}
-
-\define@key{blx@datamodel@constraint@quant}{quantifier}{% characters
-  \eappto\blx@tempe{ quant="#1"}}
-
-\newcommand*{\blx@datamodel@constraintfieldsxor}[1]{%
-  \let\blx@temph\@empty
-  \let\constraintfield\blx@datamodel@constraintfieldsub
-  #1%
-  \let\constraintfield\blx@datamodel@constraintfield% back to default
-  \eappto\blx@tempd{\blx@xml@datamodel@constraintfieldsxor{\blx@temph}}}
-
-\newcommand*{\blx@datamodel@constraintfieldsor}[1]{%
-  \let\blx@temph\@empty
-  \let\constraintfield\blx@datamodel@constraintfieldsub
-  #1%
-  \let\constraintfield\blx@datamodel@constraintfield% back to default
-  \eappto\blx@tempd{\blx@xml@datamodel@constraintfieldsor{\blx@temph}}}
-
-\newcommand*{\blx@datamodel@constraintfield}[1]{%
-  \eappto\blx@tempd{\blx@xml@datamodel@constraintfield{#1}}}
-
-\newcommand*{\blx@datamodel@constraintfieldsub}[1]{%
-  \eappto\blx@temph{\blx@xml@datamodel@constraintfieldsub{#1}}}
 
 % sourcemap
 \newrobustcmd*{\DeclareSourcemap}[1]{%
@@ -10526,7 +10127,6 @@
 % Load citation and bibliography styles, configuration file
 
 \blx@inputonce{biblatex.def}{generic definitions}{}{}{}{}
-\blx@inputonce{blx-dm.def}{default data model}{}{}{}{}
 \iftoggle{blx@natbib}
   {\blx@inputonce{blx-natbib.def}{natbib compatibility}{}{}{}{}}
   {}

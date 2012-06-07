@@ -621,7 +621,9 @@ In datasources such as a \file{bib} file, all bibliographic data is specified in
 
 \item[Pattern fields] A literal field which must match a particular pattern. An example is the \bibfield{gender} field from \secref{bib:fld:spc}.
 
-\item[Key fields] may hold printable data or localization keys. A test is performed to determine whether the value of the field is a known localization key (the localization keys defined by default are listed in \secref{aut:lng:key}). If so, the localized string is printed. If not, the value is printed as is. A typical example is the \bibfield{type} field.
+\item[Key fields] May hold printable data or localization keys. A test is performed to determine whether the value of the field is a known localization key (the localization keys defined by default are listed in \secref{aut:lng:key}). If so, the localized string is printed. If not, the value is printed as is. A typical example is the \bibfield{type} field.
+
+\item[Code fields] Holds \TeX code.
 
 \end{description}
 \end{description}
@@ -6212,6 +6214,65 @@ Clear all data model fields Constraints information.
 
 \end{ltxsyntax}
 
+Here is an example of a simple data model. Refer to the core \sty{biblatex} file \file{blx-dm.def} for the default data model specification.
+
+\begin{lstlisting}[style=latex]{}
+\ResetDatamodelEntrytypes
+\ResetDatamodelFields
+\ResetDatamodelEntryFields
+\ResetDatamodelConstraints
+
+\DeclareDatamodelEntrytypes{entrytype1, entrytype2}
+
+\DeclareDatamodelFields[type=field, datatype=literal]{field1,field2,field3,field4}
+
+\DeclareDatamodelEntryfields{field1}
+\DeclareDatamodelEntryfields[entrytype1]{field2,field3}
+\DeclareDatamodelEntryfields[entrytype2]{field2,field3,field4}
+
+\DeclareDatamodelConstraints[entrytype1]{
+  \constraint[type=data, datatype=integer, rangemin=3, rangemax=10]{
+    \constraintfield{field1}
+  }
+  \constraint[type=mandatory]{
+    \constraintfield{field1}
+    \constraintfieldsxor{
+      \constraintfield{field2}
+      \constraintfield{field3}
+    }
+  }
+}
+\DeclareDatamodelConstraints{
+  \constraint[type=conditional]{
+    \antecedent[quantifier=none]{
+      \constraintfield{field2}
+    }
+    \consequent[quantifier=all]{
+      \constraintfield{field3}
+      \constraintfield{field4}
+    }
+  }
+}
+\end{lstlisting}
+%
+This model specifies:
+
+\begin{itemize}
+\item Clear the default data model completely
+\item Two valid entry types <entrytype1> and <entrytype2>
+\item Four valid literal field fields
+\item <field1> is valid for all entrytypes
+\item <field2> and <field3> are valid for <entrytype1>
+\item <field2>, <field3> and <field4> are valid for <entrytype2>
+\item For <entrytype1>:
+  \begin{itemize}
+  \item <field1> must be an integer between 3 and 10
+  \item <field1> must be present
+  \item One and only one of <field2> or <field3> must be present
+  \end{itemize}
+\item For any entrytype, if <field2> is not present, <field3> and <field4> must be present
+\end{itemize}
+
 \subsubsection{Labels}
 \label{aut:ctm:lab}
 
@@ -10406,6 +10467,7 @@ This revision history is a list of changes relevant to users of this package. Ch
 
 \begin{release}{2.0}{}
 \item Misc bug fixes
+\item Customisable data model\see{aut:ctm:dm}\BiberOnlyMark
 \item Added \cmd{DeclareDefaultSourcemap}\see{aut:ctm:map}\BiberOnlyMark
 \item Added \opt{labeltitle} option\see{use:opt:pre:int}\BiberOnlyMark
 \item Added new special field \bibfield{extratitle}\see{aut:bbx:fld}\BiberOnlyMark

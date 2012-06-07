@@ -1,4 +1,273 @@
 % -*- mode: LaTeX -*-
+
+% Have to do this otherwise the '~'s in the .bcf strings are not expanded
+% This is done for the .bcf later in the style but since we have to do all the
+% data model things much earlier, have to set this here and reset on finishing
+\let\blx@tsave~
+\let~\space
+
+\newbool{dmskipout}%
+
+% Data model .bcf output macros
+\xdef\blx@xml@datamodel#1{%
+  ~~<bcf:datamodel>\blx@nl
+  #1%
+  ~~</bcf:datamodel>\blx@nl}
+\xdef\blx@xml@datamodel@entrytypes#1{%
+  ~~~~<bcf:entrytypes>\blx@nl
+  #1%
+  ~~~~</bcf:entrytypes>\blx@nl}
+\xdef\blx@xml@datamodel@entrytype#1{%
+  ~~~~~~<bcf:entrytype>#1</bcf:entrytype>\blx@nl}
+\xdef\blx@xml@datamodel@fields#1{%
+  ~~~~<bcf:fields>\blx@nl
+  #1%
+  ~~~~</bcf:fields>\blx@nl}
+\xdef\blx@xml@datamodel@field#1#2{%
+  ~~~~~~<bcf:field#1>#2</bcf:field>\blx@nl}
+\xdef\blx@xml@datamodel@entryfields#1{%
+  ~~~~<bcf:entryfields>\blx@nl
+  #1%
+  ~~~~</bcf:entryfields>\blx@nl}
+\xdef\blx@xml@datamodel@entryfield@type#1{%
+  ~~~~~~<bcf:entrytype>#1</bcf:entrytype>\blx@nl}
+\xdef\blx@xml@datamodel@entryfield@field#1{%
+  ~~~~~~<bcf:field>#1</bcf:field>\blx@nl}
+\xdef\blx@xml@datamodel@constraints#1{%
+  ~~~~<bcf:constraints>\blx@nl
+  #1%
+  ~~~~</bcf:constraints>\blx@nl}
+\xdef\blx@xml@datamodel@constraints@type#1{%
+  ~~~~~~<bcf:entrytype>#1</bcf:entrytype>\blx@nl}
+\xdef\blx@xml@datamodel@constraint#1#2{%
+  ~~~~~~<bcf:constraint#1>\blx@nl
+  #2%
+  ~~~~~~</bcf:constraint>\blx@nl}
+\xdef\blx@xml@datamodel@constraintfieldsxor#1{%
+  ~~~~~~~~<bcf:fieldxor>\blx@nl
+  #1%
+  ~~~~~~~~</bcf:fieldxor>\blx@nl}
+\xdef\blx@xml@datamodel@constraintfieldsor#1{%
+  ~~~~~~~~<bcf:fieldor>\blx@nl
+  #1%
+  ~~~~~~~~</bcf:fieldor>\blx@nl}
+\xdef\blx@xml@datamodel@constraint@antecedent#1#2{%
+  ~~~~~~~~<bcf:antecedent#1>\blx@nl
+  #2%
+  ~~~~~~~~</bcf:antecedent>\blx@nl}
+\xdef\blx@xml@datamodel@constraint@consequent#1#2{%
+  ~~~~~~~~<bcf:consequent#1>\blx@nl
+  #2%
+  ~~~~~~~~</bcf:consequent>\blx@nl}
+\xdef\blx@xml@datamodel@constraintfield#1{%
+  ~~~~~~~~<bcf:field>#1</bcf:field>\blx@nl}
+\xdef\blx@xml@datamodel@constraintfieldsub#1{%
+  ~~~~~~~~~~<bcf:field>#1</bcf:field>\blx@nl}
+
+% Data model specification macros
+\newrobustcmd*{\ResetDatamodelEntrytypes}{%
+  \global\cslet{blx@bcf@datamodel@entrytypes}\@empty
+  \global\cslet{blx@biber@datamodel@entrytypes}\@empty}
+\@onlypreamble\ResetDatamodelEntrytype
+
+\newrobustcmd*{\ResetDatamodelFields}{%
+  \global\cslet{blx@bcf@datamodel@fields}\@empty
+  \global\cslet{blx@biber@datamodel@fields}\@empty
+  \global\cslet{blx@biber@datamodel@names}\@empty
+  \global\cslet{blx@biber@datamodel@lists}\@empty}
+\@onlypreamble\ResetDatamodelFields
+
+\newrobustcmd*{\ResetDatamodelEntryFields}{%
+  \global\cslet{blx@bcf@datamodel@entryfields}\@empty}
+\@onlypreamble\ResetDatamodelEntryFields
+
+\newrobustcmd*{\ResetDatamodelConstraints}{%
+  \global\cslet{blx@bcf@datamodel@constraints}\@empty}
+\@onlypreamble\ResetDatamodelConstraints
+
+\newrobustcmd*{\DeclareDatamodelEntrytypes}[1]{%
+  \def\do##1{%
+    \ifinlistcs{##1}{blx@biber@datamodel@entrytypes}
+      {}
+      {\listcsgadd{blx@biber@datamodel@entrytypes}{##1}}%
+    \xappto\blx@bcf@datamodel@entrytypes{%
+      \blx@xml@datamodel@entrytype{##1}}}%
+  \docsvlist{#1}}
+\@onlypreamble\DeclareDatamodelEntrytypes
+
+\newrobustcmd*{\DeclareDatamodelFields}[2][]{%
+  \begingroup
+  \let\blx@dm@type\@empty
+  \let\blx@dm@datatype\@empty
+  \boolfalse{dmskipout}%
+  \let\blx@tempa\@empty
+  \setkeys{blx@datamodel@field}{#1}%
+  \def\do##1{%
+    \ifboolexpr{% add to list of names if it is a name which appears in .bbl
+      not bool {dmskipout}
+      and
+      test {\ifcsstring{blx@dm@datatype}{name}}
+      and
+      not test {\ifinlistcs{##1}{blx@biber@datamodel@names}}}
+        {\listcsgadd{blx@biber@datamodel@names}{##1}}
+        {}%
+    \ifboolexpr{% add to list of lists if it is a list which appears in .bbl
+      not bool {dmskipout}
+      test {\ifcsstring{blx@dm@type}{list}}
+      and
+      ( test {\ifcsstring{blx@dm@datatype}{literal}}
+        or
+        test {\ifcsstring{blx@dm@datatype}{key}}
+      )
+      and
+      not test {\ifinlistcs{##1}{blx@biber@datamodel@lists}}}
+        {\listcsgadd{blx@biber@datamodel@lists}{##1}}
+        {}%
+    \ifboolexpr{% add to list of fields unless certain type/datatype etc.
+      bool {dmskipout}
+      or
+      test {\ifcsstring{blx@dm@datatype}{name}}
+      or
+      ( test {\ifcsstring{blx@dm@type}{list}}
+        and
+        test {\ifcsstring{blx@dm@datatype}{literal}}
+      )
+      or
+      ( test {\ifcsstring{blx@dm@type}{field}}
+        and
+        test {\ifcsstring{blx@dm@datatype}{code}}
+      )
+      or
+      ( test {\ifcsstring{blx@dm@type}{list}}
+        and
+        test {\ifcsstring{blx@dm@datatype}{key}}
+      )
+      or
+      test {\ifinlistcs{##1}{blx@biber@datamodel@fields}}}
+      {}
+      {\listcsgadd{blx@biber@datamodel@fields}{##1}}%
+    \xappto\blx@bcf@datamodel@fields{%
+      \blx@xml@datamodel@field{\blx@tempa}{##1}}}%
+  \docsvlist{#2}
+  \endgroup}
+\@onlypreamble\DeclareDatamodelFields
+
+\define@key{blx@datamodel@field}{type}{% characters
+  \eappto\blx@tempa{ fieldtype="#1"}%
+  \def\blx@dm@type{#1}}
+\define@key{blx@datamodel@field}{datatype}{% characters
+  \eappto\blx@tempa{ datatype="#1"}%
+  \def\blx@dm@datatype{#1}}
+\define@key{blx@datamodel@field}{nullok}[true]{% true|false
+  \ifstrequal{#1}{true}
+    {\appto\blx@tempa{ nullok="true"}}
+    {}}
+\define@key{blx@datamodel@field}{skipout}[true]{% true|false
+  \ifstrequal{#1}{true}  
+    {\appto\blx@tempa{ skip\string_output="true"}%
+     \booltrue{dmskipout}}
+    {}}
+
+\newrobustcmd*{\DeclareDatamodelEntryfields}[2][]{%
+  \begingroup
+  \let\blx@tempa\@empty
+  \let\blx@tempb\@empty
+  \ifblank{#1}
+    {}
+    {\def\do##1{%
+        \eappto\blx@tempa{\blx@xml@datamodel@entryfield@type{##1}}}%
+     \docsvlist{#1}}%
+  \def\do##1{%
+    \eappto\blx@tempb{\blx@xml@datamodel@entryfield@field{##1}}}%
+  \docsvlist{#2}%
+  \xappto\blx@bcf@datamodel@entryfields{\blx@xml@datamodel@entryfields{\blx@tempa\blx@tempb}}%
+  \endgroup}
+\@onlypreamble\DeclareDatamodelEntryfields
+
+\newrobustcmd*{\DeclareDatamodelConstraints}[2][]{%
+  \begingroup
+  \let\blx@tempa\@empty
+  \let\blx@tempb\@empty
+  \let\constraint\blx@datamodel@constraint
+  \ifblank{#1}
+    {}
+    {\def\do##1{%
+        \eappto\blx@tempa{\blx@xml@datamodel@constraints@type{##1}}}%
+     \docsvlist{#1}}%
+  #2%
+  \xappto\blx@bcf@datamodel@constraints{\blx@xml@datamodel@constraints{\blx@tempa\blx@tempb}}%
+  \endgroup}
+\@onlypreamble\DeclareDatamodelConstraints
+
+\newcommand*{\blx@datamodel@constraint}[2][]{%
+  \let\blx@tempc\@empty
+  \let\blx@tempd\@empty
+  \setkeys{blx@datamodel@constraint}{#1}%
+  \let\constraintfieldsxor\blx@datamodel@constraintfieldsxor
+  \let\constraintfieldsor\blx@datamodel@constraintfieldsor
+  \let\constraintfield\blx@datamodel@constraintfield
+  \let\antecedent\blx@datamodel@constraint@antecedent
+  \let\consequent\blx@datamodel@constraint@consequent
+  #2%
+  \eappto\blx@tempb{\blx@xml@datamodel@constraint{\blx@tempc}{\blx@tempd}}}
+
+\define@key{blx@datamodel@constraint}{type}{% characters
+  \eappto\blx@tempc{ type="#1"}}
+\define@key{blx@datamodel@constraint}{datatype}{% characters
+  \eappto\blx@tempc{ datatype="#1"}}
+\define@key{blx@datamodel@constraint}{rangemin}{% integer
+  \eappto\blx@tempc{ rangemin="#1"}}
+\define@key{blx@datamodel@constraint}{rangemax}{% integer
+  \eappto\blx@tempc{ rangemax="#1"}}
+\define@key{blx@datamodel@constraint}{pattern}{% regexp
+  \eappto\blx@tempc{ pattern="#1"}}
+
+\newcommand*{\blx@datamodel@constraint@antecedent}[2][]{%
+  \let\blx@tempe\@empty
+  \let\blx@temph\@empty
+  \let\constraintfield\blx@datamodel@constraintfieldsub
+  \setkeys{blx@datamodel@constraint@quant}{#1}%
+  #2%
+  \let\constraintfield\blx@datamodel@constraintfield% back to default
+  \eappto\blx@tempd{\blx@xml@datamodel@constraint@antecedent{\blx@tempe}{\blx@temph}}}
+
+\newcommand*{\blx@datamodel@constraint@consequent}[2][]{%
+  \let\blx@tempe\@empty
+  \let\blx@temph\@empty
+  \let\constraintfield\blx@datamodel@constraintfieldsub
+  \setkeys{blx@datamodel@constraint@quant}{#1}%
+  #2%
+  \let\constraintfield\blx@datamodel@constraintfield% back to default
+  \eappto\blx@tempd{\blx@xml@datamodel@constraint@consequent{\blx@tempe}{\blx@temph}}}
+
+\define@key{blx@datamodel@constraint@quant}{quantifier}{% characters
+  \eappto\blx@tempe{ quant="#1"}}
+
+\newcommand*{\blx@datamodel@constraintfieldsxor}[1]{%
+  \let\blx@temph\@empty
+  \let\constraintfield\blx@datamodel@constraintfieldsub
+  #1%
+  \let\constraintfield\blx@datamodel@constraintfield% back to default
+  \eappto\blx@tempd{\blx@xml@datamodel@constraintfieldsxor{\blx@temph}}}
+
+\newcommand*{\blx@datamodel@constraintfieldsor}[1]{%
+  \let\blx@temph\@empty
+  \let\constraintfield\blx@datamodel@constraintfieldsub
+  #1%
+  \let\constraintfield\blx@datamodel@constraintfield% back to default
+  \eappto\blx@tempd{\blx@xml@datamodel@constraintfieldsor{\blx@temph}}}
+
+\newcommand*{\blx@datamodel@constraintfield}[1]{%
+  \eappto\blx@tempd{\blx@xml@datamodel@constraintfield{#1}}}
+
+\newcommand*{\blx@datamodel@constraintfieldsub}[1]{%
+  \eappto\blx@temph{\blx@xml@datamodel@constraintfieldsub{#1}}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Data model specification
+
+
 \DeclareDatamodelEntrytypes{
   article,
   artwork,
@@ -48,6 +317,26 @@
   video,
   xdata}
 
+\DeclareDatamodelFields[type=field, datatype=integer]{
+  day,
+  endday,
+  endmonth,
+  eventday,
+  eventendday,
+  eventendmonth,
+  eventmonth,
+  eventyear,
+  origday,
+  origendday,
+  origendmonth,
+  origmonth,
+  origyear,
+  urlday,
+  urlendday,
+  urlendmonth,
+  urlmonth,
+  urlyear}
+
 \DeclareDatamodelFields[type=field, datatype=literal]{
   abstract,
   addendum,
@@ -56,21 +345,12 @@
   booktitle,
   booktitleaddon,
   chapter,
-  day,
   edition,
   eid,
-  endday,
-  endmonth,
   entrysubtype,
   eprintclass,
   eprinttype,
-  eventday,
-  eventendday,
-  eventendmonth,
-  eventmonth,
   eventtitle,
-  eventyear,
-  execute,
   gender,
   howpublished,
   hyphenation,
@@ -96,12 +376,7 @@
   nameaddon,
   note,
   number,
-  origday,
-  origendday,
-  origendmonth,
-  origmonth,
   origtitle,
-  origyear,
   pagetotal,
   part,
   related,
@@ -117,11 +392,6 @@
   subtitle,
   title,
   titleaddon,
-  urlday,
-  urlendday,
-  urlendmonth,
-  urlmonth,
-  urlyear,
   usera,
   userb,
   userc,
@@ -134,7 +404,7 @@
   volumes,
   year}
 
-\DeclareDatamodelFields[type=field, datatype=literal, nullok]{
+\DeclareDatamodelFields[type=field, datatype=integer, nullok]{
   urlendyear,
   endyear,
   eventendyear,
@@ -207,7 +477,7 @@
 
 \DeclareDatamodelFields[type=list, datatype=entrykey, skipout]{xdata, ids}
 
-\DeclareDatamodelFields[type=field, datatype=date]{
+\DeclareDatamodelFields[type=field, datatype=date, skipout]{
   date,
   eventdate,
   origdate,
@@ -225,6 +495,7 @@
 \DeclareDatamodelFields[type=field, datatype=csv]{keywords}
 \DeclareDatamodelFields[type=field, datatype=csv, skipout]{options}
 \DeclareDatamodelFields[type=field, datatype=range]{pages}
+\DeclareDatamodelFields[type=field, datatype=code]{execute}
 
 \DeclareDatamodelEntryfields{
   abstract,
@@ -1301,3 +1572,5 @@
     \constraintfield{gender}
   }
 }
+
+\let~\blx@tsave
