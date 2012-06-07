@@ -19,7 +19,7 @@
 \RequirePackage{logreq}
 \RequirePackage{ifthen}
 \RequirePackage{url}
-\usepackage{trace}
+
 \@ifpackagelater{etoolbox}{2010/11/29}
   {}
   {\PackageError{biblatex}
@@ -4684,8 +4684,16 @@
 % Used to pass regexps to .bcf
 \def\regexp#1{\expandafter\zap@space\detokenize{#1} \@empty}
 
+% Have to do this otherwise the '~'s in the .bcf strings are not expanded
+% This is done for the .bcf later in the style but since we have to do all the
+% data model things much earlier, have to set this here and reset on finishing
+\let\blx@tsave~
+\let~\space
 % Data model and supporting macros must be loaded early
 \blx@inputonce{blx-dm.def}{biblatex default data model}{}{}{}{}
+% Override with user-defined data model if there is one
+\blx@inputonce{biblatex-dm.cfg}{biblatex custom data model}{}{}{}{}
+\let~\blx@tsave
 
 % These are internal fields which are not part of the data model but
 % which need to be dealt with along with data model fields in places
@@ -4709,10 +4717,6 @@
   \do{sortinit}%
 }
 
-\def\abx@dobooleans{%
-  \do{singletitle}%
-}
-
 \def\do#1{%
   \newcounter{#1}%
   \newcounter{saved#1}%
@@ -4721,6 +4725,10 @@
   \appto\abx@dobooleans{\do{more#1}}}
 \dolistcsloop{blx@biber@datamodel@names}\do{labelname}%
 \dolistcsloop{blx@biber@datamodel@lists}\do{pageref}%
+\def\abx@dobooleans{%
+  \do{singletitle}%
+}
+
 \def\do#1{\newtoggle{abx@bool@#1}}
 \abx@dobooleans
 
@@ -10242,6 +10250,7 @@
         'safeinputenc' option}}
     {}%
 }
+
 
 % Deferred last minute setup
 
