@@ -556,6 +556,24 @@
       {}}%
   \blx@runfilter#1}
 
+% {<listmacro>}{<listcsname>} => matches in <listmacro>
+% Slightly odd use of filtering to do citation sorting.
+% Same as blx@filter but it keeps \tempcnta in step with the
+% resulting number of things in the filtered list. This is
+% because \tempcnta is used to set citetotal - this use
+% of filtering for cite sorting has the side-effect of stripping
+% duplicated like \cite{foo,foo} but we need then to keep citetotal
+% in sync.
+
+\protected\def\blx@filtercitesort#1#2{%
+ \blx@tempcnta\z@
+ \def\do##1{%
+   \ifinlistcs{##1}{#2}
+     {\listadd#1{##1}%
+      \advance\blx@tempcnta\@ne}
+     {}}%
+ \blx@runfilter#1}
+
 % {<listmacro>}{<listcsname>} => neg. matches in <listmacro>
 
 \protected\def\blx@notfilter#1#2{%
@@ -7321,7 +7339,7 @@
 
 \def\blx@citesort{%
   \ifnum\blx@tempcnta>\@ne
-    \blx@filter\blx@tempb{blx@tempa}%
+    \blx@filtercitesort\blx@tempb{blx@tempa}%
   \else
     \blx@citenosort
   \fi}
