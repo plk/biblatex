@@ -6088,18 +6088,24 @@ Validation against the data model means that after mapping your data sources int
 \item Whether the fields obey various constraints on their format which you specify
 \end{itemize}
 %
-Redefining the data model is done using the file \file{biblatex-dm.cfg} which should be put somewhere \sty{biblatex} can find it, just like the main configuration file \sty{biblatex.cfg}. The \file{biblatex-dm.cfg} file is read just after the default data model file \file{blx-dm.def}.
-The data model is defined using the following macros:
+Redefining the data model can be done in several places. Style authors can create a \file{.dbx} file which contains the data model macros required and this will be loaded automatically when using the \sty{biblatex} package \opt{style} option by looking for a file named afer the style with a \file{.dbx} (just like the \file{.cbx} and \file{.bbx} files for a style). Alternatively, the name of the data model file can be different from the style name by specifying the name (without \file{.dbx} extension) to the package \opt{datamodel} option. After loading the style data model file, \sty{biblatex} then loads, if present, a users \file{biblatex-dm.cfg} which should be put somewhere \sty{biblatex} can find it, just like the main configuration file \sty{biblatex.cfg}. To summarise, the data model is determined by adding to the data model from each of these locations, in order:\\
+
+\noindent\file{blx-dm.def}$\rightarrow$\\
+\hspace*{1em}\file{<datamodel option>.dbx} $\rightarrow$\\
+\hspace*{2em}\file{<style option>.dbx} $\rightarrow$\\
+\hspace*{3em}\file{biblatex-dm.cfg}\\
+
+\noindent The data model is defined using the following macros:
 
 \begin{ltxsyntax}
 
 \cmditem{DeclareDatamodelEntrytypes}{entrytypes}|\BiberOnlyMark|
 
-Declares the comma"=separated list of \prm{entrytypes} to be valid entrytypes in the data model. This command may only be used in the preamble.
+Declares the comma"=separated list of \prm{entrytypes} to be valid entrytypes in the data model. This command may only be used in a data model configuration file.
 
 \cmditem{DeclareDatamodelFields}[options]{fields}|\BiberOnlyMark|
 
-Declares the comma"=separated list of \prm{fields} to be valid fields in the data model with associated comma"=separated \prm{options}. This command may only be used in the preamble. Valid \prm{options} are:
+Declares the comma"=separated list of \prm{fields} to be valid fields in the data model with associated comma"=separated \prm{options}. This command may only be used in a data model configuration file. Valid \prm{options} are:
 
 \begin{optionlist*}
 
@@ -6123,11 +6129,11 @@ The field is not output to the \file{.bbl} and is therefore not present during \
 
 \cmditem{DeclareDatamodelEntryfields}[entrytypes]{fields}|\BiberOnlyMark|
 
-Declares that the comma"=separated list of \prm{fields} is valid for the comma"=separated list of \prm{entrytypes}. If \prm{entrytypes} is not given, the fields are valid for all entrytypes. This command may only be used in the preamble.
+Declares that the comma"=separated list of \prm{fields} is valid for the comma"=separated list of \prm{entrytypes}. If \prm{entrytypes} is not given, the fields are valid for all entrytypes. This command may only be used in a data model configuration file.
 
 \cmditem{DeclareDatamodelConstraints}[entrytypes]{specification}|\BiberOnlyMark|
 
-If a comma"=separated list of \prm{entrytypes} is given, the constraints apply only to those entrytypes. The \prm{specification} is an undelimited list of \cmd{constraint} directives which specify a constraint. Spaces, tabs, and line endings may be used freely to visually arrange the \prm{specification}. Blank lines are not permissible. This command may only be used in the preamble.
+If a comma"=separated list of \prm{entrytypes} is given, the constraints apply only to those entrytypes. The \prm{specification} is an undelimited list of \cmd{constraint} directives which specify a constraint. Spaces, tabs, and line endings may be used freely to visually arrange the \prm{specification}. Blank lines are not permissible. This command may only be used in a data model configuration file.
 
 \cmditem{constraint}[type=constrainttype]{elements}
 
@@ -10389,6 +10395,7 @@ citereset	&\+&\+&\_&\_\\
 citestyle	&\+&\_&\_&\_\\
 citetracker	&\+&\+&\_&\_\\
 clearlang	&\+&\+&\_&\_\\
+datamodel &\+&\_&\_&\_\\
 dataonly	&\_&\_&\+&\+\\
 date		&\+&\+&\_&\_\\
 dateabbrev	&\+&\+&\_&\_\\

@@ -16,6 +16,7 @@
 %% Dependencies
 \RequirePackage{etoolbox}
 \RequirePackage{keyval}
+\RequirePackage{kvoptions}
 \RequirePackage{logreq}
 \RequirePackage{ifthen}
 \RequirePackage{url}
@@ -4711,6 +4712,28 @@
 \blx@inputonce{blx-dm.def}{biblatex default data model}{}{}{}{}
 \let~\blx@tsave
 
+% We need to now load any style data model
+% Order of precedence is:
+% <datamodel option>.dbx, <style option>.dbx
+% This has to be done before the real options processing so we need to
+% pick out just these two options to look at. You can't do this with keyval,
+% you have to use kvoptions. So, pick out these two, pass through all
+% others and delete datamodel option as we don't care about it when we come
+% to really set options below
+\SetupKeyvalOptions{
+  family=blx@opt@eldt,
+  prefix=blx@opt@eldt@}
+\DeclareStringOption{datamodel}
+\DeclareStringOption{style}
+\DeclareDefaultOption{}
+\ProcessLocalKeyvalOptions{blx@opt@eldt}
+\ifx\blx@opt@eldt@datamodel\@empty
+  \blx@inputonce{\blx@opt@eldt@style.dbx}{biblatex style data model}{}{}{}{}
+\else
+  \blx@inputonce{\blx@opt@eldt@datamodel.dbx}{biblatex style data model}{}{}{}{}
+\fi
+\DisableKeyvalOption[action=undef,local]{blx@opt@eldt}{datamodel}
+
 % Override with user-defined data model if there is one
 \blx@inputonce{biblatex-dm.cfg}{biblatex custom data model}{}{}{}{}
 
@@ -9245,6 +9268,10 @@
     {}}
 
 % load-time only
+
+% Have to have a dummy for this as it's set much earlier but is passed
+% through to here where we just ignore it
+\define@key{blx@opt@ldt}{datamodel}{}
 
 \define@key{blx@opt@ldt}{style}{%
   \def\blx@cbxfile{#1}%
