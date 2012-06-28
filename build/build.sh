@@ -6,44 +6,41 @@ then
   exit 1
 fi
 
-if [ "$1" = "upload" ]
+if [ $# -lt 2 ]
 then
-    if [ -e build/biblatex.tgz ]
-    then
-      scp build/biblatex.tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/development/biblatex.tgz
-    exit 0
-  fi
+  echo "Usage: build.sh <version> <command>"
+  exit 1
 fi
 
 declare VERSION=$1
 declare DATE=`date '+%Y/%m/%d'`
 
-\rm -rf build/tds/*
-\rm -f build/biblatex.tgz
-cp -r bibtex build/tds/
-cp -r doc build/tds/
-cp -r tex build/tds/
-# Need to generate this from processed source
-\rm -f build/tds/doc/latex/biblatex/biblatex.pdf
-
-perl -pi -e "s|\\\\abx\\@date\{[^\}]+\}|\\\\abx\\@date\{$DATE\}|;s|\\\\abx\\@version\{[^\}]+\}|\\\\abx\\@version\{$VERSION\}|;" build/tds/tex/latex/biblatex/biblatex.sty
-perl -pi -e "s|\\%v.+|\\%v$VERSION|;" build/tds/tex/latex/biblatex/*.def
-
-# Can't do in-place on windows (cygwin)
-find build/tds -name \*.bak | xargs rm
-find build/tds -name auto | xargs \rm -rf
-
-if [ "$2" = "norel" ]
+if [ "$2" = "upload" ]
 then
-  exit 0
+    if [ -e build/biblatex.tgz ]
+    then
+      scp build/biblatex-$VERSION.tds.tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/$VERSION/biblatex-$VERSION.tds.tgz
+    exit 0
+  fi
 fi
 
-pdflatex -interaction=batchmode build/tds/doc/latex/biblatex/biblatex.tex
-pdflatex -interaction=batchmode build/tds/doc/latex/biblatex/biblatex.tex
-pdflatex -interaction=batchmode build/tds/doc/latex/biblatex/biblatex.tex
-mv biblatex.pdf build/tds/doc/latex/biblatex/
-\rm -f biblatex.*
-tar zcf build/biblatex.tgz -C build/tds bibtex doc tex
+if [ "$2" = "build" ]
+then
+  \rm -rf build/tds/*
+  \rm -f build/biblatex*.tds.tgz
+  cp -r bibtex build/tds/
+  cp -r doc build/tds/
+  cp -r tex build/tds/
+
+  perl -pi -e "s|\\\\abx\\@date\{[^\}]+\}|\\\\abx\\@date\{$DATE\}|;s|\\\\abx\\@version\{[^\}]+\}|\\\\abx\\@version\{$VERSION\}|;" build/tds/tex/latex/biblatex/biblatex.sty
+  perl -pi -e "s|\\%v.+|\\%v$VERSION|;" build/tds/tex/latex/biblatex/*.def
+
+  # Can't do in-place on windows (cygwin)
+  find build/tds -name \*.bak | xargs rm
+  find build/tds -name auto | xargs \rm -rf
+
+  tar zcf build/biblatex-$VERSION.tds.tgz -C build/tds bibtex doc tex
+fi
 
 
 
