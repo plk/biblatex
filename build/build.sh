@@ -17,7 +17,7 @@ declare DATE=`date '+%Y/%m/%d'`
 
 if [ "$2" = "upload" ]
 then
-    if [ -e build/biblatex.tgz ]
+    if [ -e build/biblatex-$VERSION.tds.tgz ]
     then
       scp build/biblatex-$VERSION.tds.tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/$VERSION/biblatex-$VERSION.tds.tgz
     exit 0
