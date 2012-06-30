@@ -26,6 +26,7 @@ fi
 
 if [ "$2" = "build" ]
 then
+  [ -e build/tds ] || mkdir build/tds
   \rm -rf build/tds/*
   \rm -f build/biblatex*.tds.tgz
   cp -r bibtex build/tds/
@@ -36,7 +37,7 @@ then
   perl -pi -e "s|\\%v.+|\\%v$VERSION|;" build/tds/tex/latex/biblatex/*.def
 
   # Can't do in-place on windows (cygwin)
-  find build/tds -name \*.bak | xargs rm
+  find build/tds -name \*.bak | xargs \rm -rf
   find build/tds -name auto | xargs \rm -rf
 
   tar zcf build/biblatex-$VERSION.tds.tgz -C build/tds bibtex doc tex
