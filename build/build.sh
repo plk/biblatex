@@ -19,7 +19,7 @@ if [ "$2" = "upload" ]
 then
     if [ -e build/biblatex-$VERSION.tds.tgz ]
     then
-      scp build/biblatex-$VERSION.tds.tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/$VERSION/biblatex-$VERSION.tds.tgz
+      scp build/biblatex-$VERSION.tds.tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/biblatex-$VERSION/biblatex-$VERSION.tds.tgz
     exit 0
   fi
 fi
