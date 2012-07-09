@@ -190,15 +190,25 @@
     {}
     {\blx@err@patch{floats}}%
   \ifdef\TX@endtabularx % tabularx/memoir
-    {\patchcmd\TX@endtabularx
-       {\edef\TX@ckpt{\cl@@ckpt}}
-       {\edef\TX@ckpt{\cl@@ckpt\abx@resttrackers}%
+    {\pretocmd\TX@endtabularx
+      {\addtocounter{tabx@nest}{1}}% track nestes tabularx environments
+      {}
+      {\blx@err@patch{'tabularx'}}%
+      % no need to conditionalise on top-level tabx as the search/replace
+      % will only match once anyway
+     \patchcmd\TX@endtabularx
+      {\edef\TX@ckpt{\cl@@ckpt}}
+      {\edef\TX@ckpt{\cl@@ckpt\abx@resttrackers}%
         \abx@savetrackers}
-       {}
-       {\blx@err@patch{'tabularx'}}%
-     \apptocmd\TX@endtabularx{\abx@cleartrackers}
-       {}
-       {\blx@err@patch{'tabularx'}}}
+      {}
+      {\blx@err@patch{'tabularx'}}%
+     \apptocmd\TX@endtabularx
+      {\ifnum\value{tabx@nest}=1% only clear trackers for top-level tabularx
+        \abx@cleartrackers
+        \fi
+        \addtocounter{tabx@nest}{-1}}
+      {}
+      {\blx@err@patch{'tabularx'}}}
     {}%
   \@ifpackageloaded{csquotes}
     {\@ifpackagelater{csquotes}{2009/05/30}
@@ -287,6 +297,12 @@
 %% Allocation
 
 \providecommand{\@gobblefive}[5]{}
+
+% Counter to track nested tabularx environemnts so we don't
+% try to patch the commands more than once below as this undefs some
+% macros and an error is thrown
+\newcounter{tabx@nest}
+\setcounter{tabx@nest}{0}
 
 \newcounter{listtotal}
 \def\thelisttotal{\the\c@listtotal}
