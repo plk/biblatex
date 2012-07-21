@@ -4735,10 +4735,12 @@
 
 % We need to now load any style data model
 % Order of precedence is:
-% <datamodel option>.dbx, <style option>.dbx
+% <datamodel option>.dbx
+%   <style option>.dbx
+%     <citestyle option>.dbx and <bibstyle option>.dbx
 % This has to be done before the real options processing so we need to
-% pick out just these two options to look at. You can't do this with keyval,
-% you have to use kvoptions. So, pick out these two, pass through all
+% pick out just these four options to look at. You can't do this with keyval,
+% you have to use kvoptions. So, pick out these four, pass through all
 % others and delete datamodel option as we don't care about it when we come
 % to really set options below
 \SetupKeyvalOptions{
@@ -4746,10 +4748,23 @@
   prefix=blx@opt@eldt@}
 \DeclareStringOption{datamodel}
 \DeclareStringOption{style}
+\DeclareStringOption{citestyle}
+\DeclareStringOption{bibstyle}
 \DeclareDefaultOption{}
 \ProcessLocalKeyvalOptions{blx@opt@eldt}
 \ifx\blx@opt@eldt@datamodel\@empty
-  \blx@inputonce{\blx@opt@eldt@style.dbx}{biblatex style data model}{}{}{}{}
+  \ifx\blx@opt@eldt@style\@empty
+    \ifx\blx@opt@eldt@citestyle\@empty
+    \else
+      \blx@inputonce{\blx@opt@eldt@citestyle.dbx}{biblatex citestyle data model}{}{}{}{}
+    \fi
+    \ifx\blx@opt@eldt@bibstyle\@empty
+    \else
+      \blx@inputonce{\blx@opt@eldt@bibstyle.dbx}{biblatex bibstyle data model}{}{}{}{}
+    \fi
+  \else
+    \blx@inputonce{\blx@opt@eldt@style.dbx}{biblatex style data model}{}{}{}{}
+  \fi
 \else
   \blx@inputonce{\blx@opt@eldt@datamodel.dbx}{biblatex style data model}{}{}{}{}
 \fi
