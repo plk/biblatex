@@ -8,7 +8,7 @@ fi
 
 if [ $# -lt 2 ]
 then
-  echo "Usage: build.sh <version> <command>"
+  echo "Usage: build.sh <version> <command> DEV"
   exit 1
 fi
 
@@ -19,7 +19,12 @@ if [ "$2" = "upload" ]
 then
     if [ -e build/biblatex-$VERSION.tds.tgz ]
     then
-      scp build/biblatex-$VERSION.*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/biblatex-$VERSION/
+      if [ "$3" = "DEV" ]
+      then
+        scp build/biblatex-$VERSION.*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/development/
+      else
+        scp build/biblatex-$VERSION.*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/biblatex-$VERSION/
+      fi
     exit 0
   fi
 fi
