@@ -436,6 +436,7 @@
 \newtoggle{blx@useeditor}
 \newtoggle{blx@usetranslator}
 \newtoggle{blx@useprefix}
+\newtoggle{blx@addset}
 \newtoggle{blx@setonly}
 \newtoggle{blx@dataonly}
 \newtoggle{blx@skipbib}
@@ -5215,7 +5216,8 @@
     {\blx@addpageref{\abx@field@entrykey}}%
   \nottoggle{blx@setonly}
     {\listcsxadd{blx@slists@\the\c@refsection @entry@\blx@slist@name}{\abx@field@entrykey}}
-    {\toggletrue{blx@skipbib}%
+    {\global\toggletrue{blx@addset}%
+     \toggletrue{blx@skipbib}%
      \toggletrue{blx@skiplos}%
      \toggletrue{blx@skiplab}}%
   \nottoggle{blx@skipbib}
@@ -5249,6 +5251,30 @@
   \blx@bbl@titles
   \blx@bbl@hooks
   \endgroup}
+
+% This, at the end of the .bbl, puts any set parents into the
+% global sort list of citations as this is needed for the subentry citing
+% when sortcites is enabled as for sortcites, the global sorting list
+% is used and the parent set of a subentry is not necessarily
+% available in the global sortlist.
+\def\blx@addset{%
+  \begingroup
+  \letcs\blx@tempa{blx@slists@\the\c@refsection @entry@\blx@sorting}%
+  \global\cslet{blx@slists@\the\c@refsection @entry@\blx@sorting}\@empty
+  \forlistloop\blx@addset@i\blx@tempa
+  \endgroup}
+
+\def\blx@addset@i#1{%
+  \listcsgadd{blx@slists@\the\c@refsection @entry@\blx@sorting}{#1}%
+  \ifcsdef{blx@setp@\the\c@refsection @#1}
+    {\expandafter\expandafter\expandafter\forcsvlist
+     \expandafter\expandafter\expandafter\blx@addset@ii
+     \expandafter\expandafter\expandafter{%
+       \csname blx@setp@\the\c@refsection @#1\endcsname}}
+    {}}
+
+\def\blx@addset@ii#1{%
+  \listcsgadd{blx@slists@\the\c@refsection @entry@\blx@sorting}{#1}}
 
 \def\blx@bbl@shorthand{%
   \ifundef\abx@field@shorthand
@@ -5383,7 +5409,11 @@
   \let\verb\blx@bbl@verbdef
   \let\endverb\blx@bbl@verbend}
 
-\def\blx@bblend{}
+\def\blx@bblend{%
+  \iftoggle{blx@addset}
+    {\blx@addset
+     \global\togglefalse{blx@addset}}
+    {}}
 
 % {<instcount>}{<entrykey>}{<refsection>}{<labelnumber>}
 
