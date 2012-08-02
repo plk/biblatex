@@ -31,6 +31,7 @@ fi
 
 if [ "$2" = "build" ]
 then
+  find . -name \*~ -print | xargs rm
   # tds
   [ -e build/tds ] || mkdir build/tds
   \rm -rf build/tds/*
@@ -61,8 +62,7 @@ then
   cp -r tex/latex/biblatex/bbx build/flat/latex/
   cp -r tex/latex/biblatex/lbx build/flat/latex/
 
-  perl -pi -e "s|\\\\abx\\@date\{[^\}]+\}|\\\\abx\\@date\{$DATE\}|;s|\\\\abx\\@version\{[^\}]+\}|\\\\abx\\@version\{$VERSION\}|;" build/tds/tex/latex/biblatex/biblatex.sty
-  perl -pi -e "s|\\%v.+|\\%v$VERSION|;" build/tds/tex/latex/biblatex/*.def
+  perl -pi -e "s|\\\\abx\\@date\{[^\}]+\}|\\\\abx\\@date\{$DATE\}|;s|\\\\abx\\@version\{[^\}]+\}|\\\\abx\\@version\{$VERSION\}|;" build/tds/tex/latex/biblatex/biblatex.sty build/flat/latex/biblatex.sty
 
   # Can't do in-place on windows (cygwin)
   find build/tds -name \*.bak | xargs \rm -rf
