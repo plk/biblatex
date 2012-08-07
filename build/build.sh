@@ -45,11 +45,12 @@ then
   \rm -rf build/flat/*
   \rm -f build/biblatex-$VERSION.tgz
   mkdir -p build/flat/bibtex/{bib,bst,csf}
+  mkdir -p build/flat/bibtex/bib/biblatex
   mkdir -p build/flat/doc/examples
   mkdir -p build/flat/latex/{cbx,bbx,lbx}
   cp doc/latex/biblatex/README build/flat/
   cp doc/latex/biblatex/RELEASE build/flat/
-  cp doc/latex/biblatex/examples/biblatex-examples.bib build/flat/bibtex/bib/
+  cp doc/latex/biblatex/examples/biblatex-examples.bib build/flat/bibtex/bib/biblatex/
   cp bibtex/bst/biblatex/biblatex.bst build/flat/bibtex/bst/
   cp bibtex/csf/biblatex/*.csf build/flat/bibtex/csf/
   cp doc/latex/biblatex/biblatex.pdf build/flat/doc/
