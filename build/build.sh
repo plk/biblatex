@@ -1,21 +1,62 @@
 #!/usr/bin/env bash
 
+usage () {
+echo "Usage:
+
+build.sh help
+build.sh install <version> <tds_root>
+build.sh build <version>
+build.sh test
+build.sh upload <version> [ \"DEV\" ]
+
+With the \"DEV\" argument, uploads to the SourceForge development
+folder instead of the <version> numbered folder
+
+Examples: 
+/build/build.sh install 2.2 ~/texmf/
+/build/build.sh build 2.2
+/build/build.sh upload 2.2 DEV
+
+\"build test\" runs all of the example files (in a temp dir) and puts errors in a log
+"
+}
+
 if [ ! -e build/build.sh ]
 then
   echo "Please run in the root of the distribution tree" 1>&2
   exit 1
 fi
 
-if [ $# -lt 2 ]
+if [ "$1" = "help" ]
 then
-  echo "Usage: build.sh <version> <command> DEV"
+  usage
   exit 1
 fi
 
-declare VERSION=$1
+if [ "$1" = "install" -a \( -z "$2" -o -z "$3" \) ]
+then
+  usage
+  exit 1
+fi
+
+if [ "$1" = "build" -a -z "$2" ]
+then
+  usage
+  exit 1
+fi
+
+if [ "$1" = "upload" -a -z "$2" ]
+then
+  usage
+  exit 1
+fi
+
+
+
+declare VERSION=$2
 declare DATE=`date '+%Y/%m/%d'`
 
-if [ "$2" = "upload" ]
+if [ "$1" = "upload" ]
 then
     if [ -e build/biblatex-$VERSION.tds.tgz ]
     then
@@ -29,7 +70,7 @@ then
   fi
 fi
 
-if [ "$2" = "build" ]
+if [ "$1" = "build" -o "$1" = "install" ]
 then
   find . -name \*~ -print | xargs rm
   # tds
@@ -69,9 +110,52 @@ then
   find build/tds -name \*.bak | xargs \rm -rf
   find build/tds -name auto | xargs \rm -rf
 
-  tar zcf build/biblatex-$VERSION.tds.tgz -C build/tds bibtex doc tex
-  tar zcf build/biblatex-$VERSION.tgz -C build/flat README RELEASE bibtex doc latex
+  echo "Created build trees ..."
+fi
+
+if [ "$1" = "install" ]
+then
+  cp -r build/tds/* $3
+
+  echo "Installed TDS build tree ..."
 fi
 
 
+if [ "$1" = "build" ]
+then
 
+  cd doc/latex/biblatex
+  pdflatex -interaction=batchmode biblatex.tex
+  pdflatex -interaction=batchmode biblatex.tex
+  pdflatex -interaction=batchmode biblatex.tex
+
+  \rm *.{aux,bbl,bcf,blg,log,run.xml,toc,out,lot} 2>/dev/null
+
+  cd ../../..
+  echo "Created main documentation ..."
+
+  tar zcf build/biblatex-$VERSION.tds.tgz -C build/tds bibtex doc tex
+  tar zcf build/biblatex-$VERSION.tgz -C build/flat README RELEASE bibtex doc latex
+
+  echo "Created packages (flat and TDS) ..."
+
+fi
+
+
+if [ "$1" = "test" ]
+then
+  [ -e build/test/examples ] || mkdir -p build/test/examples
+  \rm -rf build/test/examples/*
+  cp -r doc/latex/biblatex/examples/*.tex build/test/examples/
+  cd build/test/examples
+  for f in *.tex
+  do
+    pdflatex -interaction=batchmode ${f%.tex}
+    biber ${f%.tex}
+    pdflatex -interaction=batchmode ${f%.tex}
+    pdflatex -interaction=batchmode ${f%.tex}
+  done
+
+  # Now look for errors and report ...
+
+fi
