@@ -11,9 +11,9 @@ do
   pdflatex ${f%.tex}
 done
 grep -E -i "(error|warn)" *.log | more
-grep -E-A 3 "(^\!)" *.log | more
-grep -E-i "(error|warn)" *.blg | more
+grep -E -A 3 "(^\!)" *.log | more
+grep -E -i "(error|warn)" *.blg | more
 cd ..
-grep -E -i "(|error|warn)" biblatex.log | more
+grep -E -i "(error|warn)" biblatex.log | more
 grep -E -A 3 "(^\!)" biblatex.log | more
 
