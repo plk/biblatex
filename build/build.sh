@@ -17,7 +17,12 @@ Examples:
 /build/build.sh build 2.2
 /build/build.sh upload 2.2 DEV
 
-\"build test\" runs all of the example files (in a temp dir) and puts errors in a log
+\"build test\" runs all of the example files (in a temp dir) and puts errors in a log:
+
+build/example_errs.txt
+
+You should run the \"build.sh install\" before test as it uses the installed biblatex and biber
+
 "
 }
 
@@ -145,17 +150,42 @@ fi
 if [ "$1" = "test" ]
 then
   [ -e build/test/examples ] || mkdir -p build/test/examples
+  \rm -f build/test/example_errs.txt
   \rm -rf build/test/examples/*
   cp -r doc/latex/biblatex/examples/*.tex build/test/examples/
   cd build/test/examples
   for f in *.tex
   do
-    pdflatex -interaction=batchmode ${f%.tex}
-    biber ${f%.tex}
-    pdflatex -interaction=batchmode ${f%.tex}
-    pdflatex -interaction=batchmode ${f%.tex}
+    flag=false
+    echo -n "File: $f ... "
+    pdflatex -interaction=batchmode ${f%.tex} > /dev/null
+    biber --onlylog ${f%.tex}
+    pdflatex -interaction=batchmode ${f%.tex} > /dev/null
+    pdflatex -interaction=batchmode ${f%.tex} > /dev/null
+
+    # Now look for errors and report ...
+    echo "==============================
+Test file: $f
+
+PDFLaTeX errors/warnings
+------------------------"  >> ../example_errs.txt
+    grep -E -i "(error|warning):" ${f%.tex}.log >> ../example_errs.txt
+    if [ $? -eq 0 ]; then flag=true; fi
+    grep -E -A 3 '^!' ${f%.tex}.log >> ../example_errs.txt
+    if [ $? -eq 0 ]; then flag=true; fi
+    echo >> ../example_errs.txt
+    echo "Biber errors/warnings" >> ../example_errs.txt
+    echo "---------------------" >> ../example_errs.txt
+    grep -E -i "(error|warn)" *.blg >> ../example_errs.txt
+    if [ $? -eq 0 ]; then flag=true; fi
+    echo "==============================" >> ../example_errs.txt
+    echo >> ../example_errs.txt
+    if $flag 
+    then
+      echo "ERRORS"
+    else
+      echo "OK"
+    fi
   done
-
-  # Now look for errors and report ...
-
+  cd ../../..
 fi
