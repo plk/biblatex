@@ -1758,9 +1758,10 @@ FUNCTION {input:control:options} {
   input:control:parse str.to.int
 }
 
+% This version corresponds to the .bbl version, *not* the biblatex version!
 FUNCTION {input:control:version} {
   input:control:parse
-  "$Revision: 2.2 $"
+  "$Revision: 2.1 $"
   #12 entry.max$ substring$
   #-3 entry.max$ substring$
   'tempstrga :=
@@ -2581,9 +2582,10 @@ ITERATE {mainsort}
 
 SORT
 
+% This version corresponds to the .bbl version, *not* the biblatex version!
 FUNCTION {output:main:begin} {
   "% $ biblatex auxiliary file $"                               write$ newline$
-  "% $ biblatex version " "$Revision: 2.2 $"
+  "% $ biblatex version " "$Revision: 2.1 $"
   #12 entry.max$ substring$ #-3 entry.max$ substring$ * " $" *  write$ newline$
   "% Do not modify the above lines!"                            write$ newline$
   "%"                                                           write$ newline$

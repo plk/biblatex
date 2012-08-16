@@ -19,38 +19,39 @@ Examples:
 
 \"build test\" runs all of the example files (in a temp dir) and puts errors in a log:
 
-build/example_errs.txt
+build/example_errs_biber.txt
+build/example_errs_bibtex.txt
 
 You should run the \"build.sh install\" before test as it uses the installed biblatex and biber
 
 "
 }
 
-if [ ! -e build/build.sh ]
+if [[ ! -e build/build.sh ]]
 then
   echo "Please run in the root of the distribution tree" 1>&2
   exit 1
 fi
 
-if [ "$1" = "help" ]
+if [[ "$1" = "help" ]]
 then
   usage
   exit 1
 fi
 
-if [ "$1" = "install" -a \( -z "$2" -o -z "$3" \) ]
+if [[ "$1" = "install" && ( -z "$2" || -z "$3" ) ]]
 then
   usage
   exit 1
 fi
 
-if [ "$1" = "build" -a -z "$2" ]
+if [[ "$1" = "build" && -z "$2" ]]
 then
   usage
   exit 1
 fi
 
-if [ "$1" = "upload" -a -z "$2" ]
+if [[ "$1" = "upload" && -z "$2" ]]
 then
   usage
   exit 1
@@ -61,11 +62,11 @@ fi
 declare VERSION=$2
 declare DATE=`date '+%Y/%m/%d'`
 
-if [ "$1" = "upload" ]
+if [[ "$1" = "upload" ]]
 then
-    if [ -e build/biblatex-$VERSION.tds.tgz ]
+    if [[ -e build/biblatex-$VERSION.tds.tgz ]]
     then
-      if [ "$3" = "DEV" ]
+      if [[ "$3" = "DEV" ]]
       then
         scp build/biblatex-$VERSION.*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/development/
       else
@@ -75,19 +76,20 @@ then
   fi
 fi
 
-if [ "$1" = "build" -o "$1" = "install" ]
+if [[ "$1" = "build" || "$1" = "install" ]]
 then
-  find . -name \*~ -print | xargs rm
+  find . -name \*~ -print | xargs rm >/dev/null 2>&1
   # tds
-  [ -e build/tds ] || mkdir build/tds
+  [[ -e build/tds ]] || mkdir build/tds
   \rm -rf build/tds/*
   \rm -f build/biblatex-$VERSION.tds.tgz
   cp -r bibtex build/tds/
   cp -r doc build/tds/
   cp -r tex build/tds/
+  cp build/tds/bibtex/bib/biblatex/biblatex-examples.bib build/tds/doc/latex/biblatex/examples/
 
   # normal
-  [ -e build/flat ] || mkdir build/flat
+  [[ -e build/flat ]] || mkdir build/flat
   \rm -rf build/flat/*
   \rm -f build/biblatex-$VERSION.tgz
   mkdir -p build/flat/bibtex/{bib,bst,csf}
@@ -96,7 +98,8 @@ then
   mkdir -p build/flat/latex/{cbx,bbx,lbx}
   cp doc/latex/biblatex/README build/flat/
   cp doc/latex/biblatex/RELEASE build/flat/
-  cp doc/latex/biblatex/examples/biblatex-examples.bib build/flat/bibtex/bib/biblatex/
+  cp bibtex/bib/biblatex/biblatex-examples.bib build/flat/bibtex/bib/biblatex/
+  cp bibtex/bib/biblatex/biblatex-examples.bib build/flat/doc/examples/
   cp bibtex/bst/biblatex/biblatex.bst build/flat/bibtex/bst/
   cp bibtex/csf/biblatex/*.csf build/flat/bibtex/csf/
   cp doc/latex/biblatex/biblatex.pdf build/flat/doc/
@@ -118,7 +121,7 @@ then
   echo "Created build trees ..."
 fi
 
-if [ "$1" = "install" ]
+if [[ "$1" = "install" ]]
 then
   cp -r build/tds/* $3
 
@@ -126,7 +129,7 @@ then
 fi
 
 
-if [ "$1" = "build" ]
+if [[ "$1" = "build" ]]
 then
 
   cd doc/latex/biblatex
@@ -147,40 +150,84 @@ then
 fi
 
 
-if [ "$1" = "test" ]
+if [[ "$1" = "test" ]]
 then
-  [ -e build/test/examples ] || mkdir -p build/test/examples
-  \rm -f build/test/example_errs.txt
+  [[ -e build/test/examples ]] || mkdir -p build/test/examples
+  \rm -f build/test/example_errs_biber.txt
+  \rm -f build/test/example_errs_bibtex.txt
   \rm -rf build/test/examples/*
   cp -r doc/latex/biblatex/examples/*.tex build/test/examples/
   cd build/test/examples
+
   for f in *.tex
   do
-    flag=false
-    echo -n "File: $f ... "
+    sed 's/backend=biber/backend=bibtex/g' $f > ${f%.tex}-bibtex.tex
+    bibtexflag=false
+    biberflag=false
+    if [[ "$f" < 9* ]] # 9+*.tex examples require biber
+    then
+      echo -n "File (bibtex): $f ... "
+      pdflatex -interaction=batchmode ${f%.tex}-bibtex > /dev/null
+      bibtex ${f%.tex}-bibtex >/dev/null 2>&1
+      # Any refsections? If so, need extra bibtex runs
+      for sec in ${f%.tex}-bibtex*-blx.aux
+      do
+        bibtex $sec >/dev/null 2>&1
+      done
+      pdflatex -interaction=batchmode ${f%.tex}-bibtex > /dev/null
+      # Need a second bibtex run to pick up set members
+      bibtex ${f%.tex}-bibtex >/dev/null 2>&1
+      pdflatex -interaction=batchmode ${f%.tex}-bibtex > /dev/null
+
+      # Now look for latex/bibtex errors and report ...
+      echo "==============================
+Test file: $f
+
+PDFLaTeX errors/warnings
+------------------------"  >> ../example_errs_bibtex.txt
+      grep -E -i "(error|warning):" ${f%.tex}-bibtex.log >> ../example_errs_bibtex.txt
+      if [[ $? -eq 0 ]]; then bibtexflag=true; fi
+      grep -E -A 3 '^!' ${f%.tex}-bibtex.log >> ../example_errs_bibtex.txt
+      if [[ $? -eq 0 ]]; then bibtexflag=true; fi
+      echo >> ../example_errs_bibtex.txt
+      echo "BibTeX errors/warnings" >> ../example_errs_bibtex.txt
+      echo "---------------------" >> ../example_errs_bibtex.txt
+      # Glob as we need to check all .blgs in case of refsections
+      grep -E -i -e "(error|warning)[^\$]" ${f%.tex}-bibtex*.blg >> ../example_errs_bibtex.txt
+      if [[ $? -eq 0 ]]; then bibtexflag=true; fi
+      echo "==============================" >> ../example_errs_bibtex.txt
+      echo >> ../example_errs_bibtex.txt
+      if $bibtexflag 
+      then
+        echo "ERRORS"
+      else
+        echo "OK"
+      fi
+    fi
+    echo -n "File (biber): $f ... "
     pdflatex -interaction=batchmode ${f%.tex} > /dev/null
     biber --onlylog ${f%.tex}
     pdflatex -interaction=batchmode ${f%.tex} > /dev/null
     pdflatex -interaction=batchmode ${f%.tex} > /dev/null
 
-    # Now look for errors and report ...
+    # Now look for latex/biber errors and report ...
     echo "==============================
 Test file: $f
 
 PDFLaTeX errors/warnings
-------------------------"  >> ../example_errs.txt
-    grep -E -i "(error|warning):" ${f%.tex}.log >> ../example_errs.txt
-    if [ $? -eq 0 ]; then flag=true; fi
-    grep -E -A 3 '^!' ${f%.tex}.log >> ../example_errs.txt
-    if [ $? -eq 0 ]; then flag=true; fi
-    echo >> ../example_errs.txt
-    echo "Biber errors/warnings" >> ../example_errs.txt
-    echo "---------------------" >> ../example_errs.txt
-    grep -E -i "(error|warn)" *.blg >> ../example_errs.txt
-    if [ $? -eq 0 ]; then flag=true; fi
-    echo "==============================" >> ../example_errs.txt
-    echo >> ../example_errs.txt
-    if $flag 
+------------------------"  >> ../example_errs_biber.txt
+    grep -E -i "(error|warning):" ${f%.tex}.log >> ../example_errs_biber.txt
+    if [[ $? -eq 0 ]]; then biberflag=true; fi
+    grep -E -A 3 '^!' ${f%.tex}.log >> ../example_errs_biber.txt
+    if [[ $? -eq 0 ]]; then biberflag=true; fi
+    echo >> ../example_errs_biber.txt
+    echo "Biber errors/warnings" >> ../example_errs_biber.txt
+    echo "---------------------" >> ../example_errs_biber.txt
+    grep -E -i "(error|warn)" ${f%.tex}.blg >> ../example_errs_biber.txt
+    if [[ $? -eq 0 ]]; then biberflag=true; fi
+    echo "==============================" >> ../example_errs_biber.txt
+    echo >> ../example_errs_biber.txt
+    if $biberflag 
     then
       echo "ERRORS"
     else
