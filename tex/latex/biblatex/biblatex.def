@@ -822,11 +822,19 @@
   \usebibmacro{index:field}{#1}{\thefield{indexsorttitle}}{\emph{#2}}}
 
 \newbibmacro*{index:field}[3]{%
+  \usebibmacro{index:entry}{#1}{\mkbibindexfield{#2}{#3}}}
+
+% Auxiliary macros for field indexing directives
+% ------------------------------------------------------------------
+
+\newbibmacro*{index:entry}[2]{%
   \begingroup
-  \protected@edef\theindexentry{%
-    \unexpanded{#1}{#2\actualoperator\unexpanded{#3}}}%
+  \protected@edef\theindexentry{\unexpanded{#1}{#2}}%
   \theindexentry
   \endgroup}
+
+\newcommand*{\mkbibindexfield}[2]{\mkbibindexentry{#1}{\unexpanded{#2}}}
+\newcommand*{\mkbibindexentry}[2]{#1\actualoperator#2}
 
 % ------------------------------------------------------------------
 % INDEX FORMATS FOR LITERAL LISTS (#1 is the current item)
@@ -891,36 +899,54 @@
 % We also use \ifuseprefix to ensure that the name prefix is handled
 % properly. \actualoperator is the so-called actual operator, as
 % defined by the 'actual' specifier in the .ist file. The makeindex
-% programm will use the part preceeding the \actualoperator
+% program will use the part preceeding the \actualoperator
 % delimiter for sorting. The part after the delimiter is used as the
 % index is printed. Note that this is not specific to biblatex, see
 % the makeindex documentation for details.
 
 \newcommand*{\actualoperator}{@}
+\newcommand*{\subentryoperator}{!}
 
 \newbibmacro*{index:name}[5]{%
-  \begingroup
+  \usebibmacro{index:entry}{#1}{\mkbibindexname{#2}{#3}{#4}{#5}}}
+
+% {<last name>}{<first name>}{<first initials>}{<last name prefix>}
+
+\newcommand*{\mkbibindexname}[4]{%
   \ifuseprefix
-    {\protected@edef\theindexentry{%
-       \unexpanded{#1}{%
-         \ifblank{#4}{}{#4 }%
-         \@firstofone #2% remove spurious braces
-         \ifblank{#5}{}{ #5}%
-         \ifblank{#3}{}{, #3}%
-         \actualoperator
-         \ifblank{#4}{}{\MakeCapital{#4} }%
-         #2%
-         \ifblank{#5}{}{ #5}%
-         \ifblank{#3}{}{, #3}}}}
-    {\protected@edef\theindexentry{%
-       \unexpanded{#1}{%
-         \@firstofone #2% remove spurious braces
-         \ifblank{#5}{}{ #5}%
-         \ifblank{#3#4}{}{,}%
-         \ifblank{#3}{}{ #3}%
-         \ifblank{#4}{}{ #4}}}}%
-  \theindexentry
-  \endgroup}
+    {\ifblank{#3}{}{#3 }%
+     \@firstofone #1% remove spurious braces
+     \ifblank{#4}{}{ #4}%
+     \ifblank{#2}{}{, #2}%
+     \actualoperator
+     \ifblank{#3}{}{\MakeCapital{#3} }%
+     #1%
+     \ifblank{#4}{}{ #4}%
+     \ifblank{#2}{}{, #2}}
+    {\@firstofone #1% remove spurious braces
+     \ifblank{#4}{}{ #4}%
+     \ifblank{#2#3}{}{,}%
+     \ifblank{#2}{}{ #2}%
+     \ifblank{#3}{}{ #3}}}
+
+% {<control sequence>}{<control sequence>}
+
+\newcommand*{\mkbibindexsubentry}[2]{%
+  \ifblank{#1}{}{\subentryoperator#1\actualoperator#2}}
+
+% Additional macros with subentries
+
+\newbibmacro*{index:name:field}[6]{%
+  \usebibmacro{index:name:subentry}{#1}{#2}{#3}{#4}{#5}
+    {\thefield{#6}}{\csfield{#6}}}
+
+\newbibmacro*{index:name:title}[5]{%
+  \usebibmacro{index:name:subentry}{#1}{#2}{#3}{#4}{#5}
+    {\thefield{indexsorttitle}}{\emph{\csfield{indextitle}}}}
+
+\newbibmacro*{index:name:subentry}[7]{%
+  \usebibmacro{index:entry}{#1}{%
+    \mkbibindexname{#2}{#3}{#4}{#5}\mkbibindexsubentry{#6}{#7}}}
 
 % ------------------------------------------------------------------
 % Driver sourcemaps
