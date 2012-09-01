@@ -5893,7 +5893,7 @@ For all boolean \cmd{step} options, the short form \opt{option} is equivalent to
   \texttt{final} is \texttt{true} then if there is no \texttt{fieldsource} \prm{entryfield} in the entry, processing of the parent \cmd{map} immediately terminates.
 \item If \texttt{match} is defined but
   \texttt{replace} is not, only apply the step if the \texttt{fieldsource} \prm{entryfield} matches the
-  \texttt{match} regular expression\footnote{Regular expressions are full Perl 5.14 regular expressions. This means you may need to deal with special characters, see examples.}
+  \texttt{match} regular expression\footnote{Regular expressions are full Perl 5.14 regular expressions. This means you may need to deal with special characters, see examples.}. You may use capture parenthesis as usual and refer to these (\$1\ldots\$9) in later \texttt{fieldvalue} specifications. This allows you to pull out parts of some fields and put these parts in other fields.
 \item Perform a regular expression match and replace on the value of the \texttt{fieldsource} \prm{entryfield} if \texttt{match} and \texttt{replace} are defined.
 \item If \texttt{fieldset} is defined, then its value is \prm{entryfield} which will be set to a  value specified by further options. If \texttt{append} is true, then the value to set is appended to the current value of \prm{entryfield}. The value to set is specified by a mandatory one and only one of the following options:
   \begin{itemize}
@@ -6131,7 +6131,29 @@ Only applies to entries with an \bibfield{author} field matching <Doe,>. First t
 \end{lstlisting}
 %
 This example demonstrates the sequential nature of the step processing and the \opt{append} option. If an entry has a \bibfield{verba} field then first, a forward slash is appended to the \bibfield{verbb} field. Then, the contents of \bibfield{verba} are appended to the \bibfield{verbb} field. A slash is then appended to the \bibfield{verbc} field and the contents of \bibfield{verbb} are appended to the \bibfield{verbc} field.
-
+%
+\begin{lstlisting}[style=latex]{}
+\DeclareSourcemap{
+  \maps[datatype=bibtex]{
+    \map[overwrite]{
+      \step[fieldset=<<autourl>>, fieldvalue={<<http://scholar.google.com/scholar?q=">>}]
+      \step[fieldsource=<<title>>]
+      \step[fieldset=<<autourl>>, origfieldval, append]
+      \step[fieldset=<<autourl>>, fieldvalue={<<"+author:>>}, append]
+      \step[fieldsource=<<author>>, match=\regexp{<<\A([^,]+)\s*,>>}]
+      \step[fieldset=<<autourl>>, fieldvalue={<<$1>>}, append]
+      \step[fieldset=<autourl>>, fieldvalue={<<&as_ylo=>>}, append]
+      \step[fieldsource=<<year>>]
+      \step[fieldset=<<autourl>>, origfieldval, append]
+      \step[fieldset=<<autourl>>, fieldvalue={<<&as_yhi=>>}, append]
+      \step[fieldset=<<autourl>>, origfieldval, append]
+    }
+  }
+}
+\end{lstlisting}%$ <- keep AucTeX highlighting happy
+%
+This example assumes you have created a field called \bibfield{autourl} using the datamodel macros from \secref{aut:ctm:dm} in order to hold, for example, a Google Scholar query URL auto-created from elements of the entry. The example progressively extracts information from the entry, constructing the URL as it goes. It demonstrates that it is possible to refer to parenthetical matches from the most recent \texttt{match} in any following \texttt{fieldvalue} which allows extracting the lastname from the \bibfield{author}, assuming a <last, first> format. The resulting field could then be used as a hyperlink from, for example, the title of the work in the bibliography.
+%
 \subsubsection{Data Model Specification}
 \label{aut:ctm:dm}
 
