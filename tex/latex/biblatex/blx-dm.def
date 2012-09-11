@@ -11,8 +11,8 @@
   ~~~~<bcf:entrytypes>\blx@nl
   #1%
   ~~~~</bcf:entrytypes>\blx@nl}
-\xdef\blx@xml@datamodel@entrytype#1{%
-  ~~~~~~<bcf:entrytype>#1</bcf:entrytype>\blx@nl}
+\xdef\blx@xml@datamodel@entrytype#1#2{%
+  ~~~~~~<bcf:entrytype#1>#2</bcf:entrytype>\blx@nl}
 \xdef\blx@xml@datamodel@fields#1{%
   ~~~~<bcf:fields>\blx@nl
   #1%
@@ -75,14 +75,25 @@
 \newrobustcmd*{\ResetDatamodelConstraints}{%
   \global\cslet{blx@bcf@datamodel@constraints}\@empty}
 
-\newrobustcmd*{\DeclareDatamodelEntrytypes}[1]{%
+\newrobustcmd*{\DeclareDatamodelEntrytypes}[2][]{%
+  \begingroup
+  \let\blx@tempa\@empty
   \def\do##1{%
     \ifinlistcs{##1}{blx@biber@datamodel@entrytypes}
       {}
       {\listcsgadd{blx@biber@datamodel@entrytypes}{##1}}%
     \xappto\blx@bcf@datamodel@entrytypes{%
-      \blx@xml@datamodel@entrytype{##1}}}%
-  \docsvlist{#1}}
+      \blx@xml@datamodel@entrytype{\blx@tempa}{##1}}}%
+  \ifblank{#1}
+    {\docsvlist{#2}}
+    {\setkeys{blx@datamodel@entrytypes}{#1}
+     \docsvlist{#2}}%
+  \endgroup}
+
+\define@key{blx@datamodel@entrytypes}{skipout}[true]{% true|false
+  \ifstrequal{#1}{true}  
+    {\appto\blx@tempa{ skip\string_output="true"}}
+    {}}
 
 \newrobustcmd*{\DeclareDatamodelFields}[2][]{%
   \begingroup
@@ -300,8 +311,9 @@
   suppcollection,
   thesis,
   unpublished,
-  video,
-  xdata}
+  video}
+
+\DeclareDatamodelEntrytypes[skipout]{xdata}
 
 \DeclareDatamodelFields[type=field, datatype=integer]{
   day,
