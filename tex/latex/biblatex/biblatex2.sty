@@ -4818,12 +4818,11 @@
   \do{localnumber}%
   \do{namehash}%
   \do{prefixnumber}%
-  \do{sortinit}%
-}
+  \do{sortinit}}
 
 \def\abx@dobooleans{%
-  \do{singletitle}%
-}
+  \do{singletitle}}
+
 \def\do#1{%
   \newcounter{#1}%
   \newcounter{saved#1}%
@@ -5284,21 +5283,21 @@
     {}%
   \nottoggle{blx@skiplab}
     {\iftoggle{blx@labelnumber}
-       {\blx@bbl@labelnumber}
-       {}%
-     \iftoggle{blx@labelalpha}
-       {\blx@bbl@labelalpha}
-       {}%
-     \iftoggle{blx@labeltitle}
-       {\blx@bbl@labeltitle}
-       {}%
-     \iftoggle{blx@labeltitleyear}
-       {\blx@bbl@labeltitleyear}
-       {}%
-     \iftoggle{blx@labelyear}
-       {\blx@bbl@labelyear}
-       {}%
-     \blx@bbl@prefixnumber}
+      {\blx@bbl@labelnumber}
+      {}%
+    \iftoggle{blx@labelalpha}
+      {\blx@bbl@labelalpha}
+      {}%
+    \iftoggle{blx@labeltitle}
+      {\blx@bbl@labeltitle}
+      {}%
+    \iftoggle{blx@labeltitleyear}
+      {\blx@bbl@labeltitleyear}
+      {}%
+    \iftoggle{blx@labelyear}
+      {\blx@bbl@labelyear}
+      {}%
+    \blx@bbl@prefixnumber}
     {}%
   \blx@bbl@titles
   \blx@bbl@hooks
@@ -5335,30 +5334,35 @@
        \csuse{abx@ffd@*@shorthandwidth}{\abx@field@shorthand}}}}
 
 \def\blx@bbl@labelnumber{%
-  \ifdefempty\abx@field@localnumber
-    {}
-    {\ifundef\abx@field@shorthand
-       {\ifdef\abx@field@localnumber
-          {}
+  % Used at endentry
+  % only do this for the global sorting list otherwise we increment
+  % the labelnumbers for each sortlist
+  \ifdefstrequal{\blx@slist@name}{\blx@sorting}
+    {\ifdefempty\abx@field@localnumber
+      {}% only if omitnumbers=true
+      {\ifundef\abx@field@shorthand
+        {\ifdef\abx@field@localnumber
+          {}% only if defernumbers=true
           {\csnumgdef{blx@labelnumber@\the\c@refsection}{%
-             \csuse{blx@labelnumber@\the\c@refsection}+1}%
-           \edef\abx@field@localnumber{%
-             \csuse{blx@labelnumber@\the\c@refsection}}}%
-        \blx@bbl@fieldedef{labelnumber}{\abx@field@localnumber}%
-        \iftoggle{blx@skipbib}
+              \csuse{blx@labelnumber@\the\c@refsection}+1}%
+            \edef\abx@field@localnumber{%
+              \csuse{blx@labelnumber@\the\c@refsection}}}%
+          \blx@bbl@fieldedef{labelnumber}{\abx@field@localnumber}%
+          \iftoggle{blx@skipbib}
           {}
           {\blx@setlabwidth{\labelnumberwidth}{%
-             \csuse{abx@ffd@*@labelnumberwidth}{%
-               \ifdef\abx@field@prefixnumber
-                 {\csuse{abx@ffd@*@prefixnumber}{\abx@field@prefixnumber}}
-                 {}%
-               \abx@field@localnumber}}}}
-       {\csgappto\blx@bbl@data{%
-          \let\abx@field@labelnumber\abx@field@shorthand}%
-        \iftoggle{blx@skipbib}
+              \csuse{abx@ffd@*@labelnumberwidth}{%
+                \ifdef\abx@field@prefixnumber
+                {\csuse{abx@ffd@*@prefixnumber}{\abx@field@prefixnumber}}
+                {}%
+                \abx@field@localnumber}}}}
+        {\csgappto\blx@bbl@data{%
+            \let\abx@field@labelnumber\abx@field@shorthand}%
+          \iftoggle{blx@skipbib}
           {}
           {\blx@setlabwidth{\labelnumberwidth}{%
-             \csuse{abx@ffd@*@labelnumberwidth}{\abx@field@shorthand}}}}}}
+              \csuse{abx@ffd@*@labelnumberwidth}{\abx@field@shorthand}}}}}}
+   {}}
 
 \def\blx@bbl@prefixnumber{%
   \ifdef\abx@field@prefixnumber
@@ -5479,6 +5483,7 @@
       {}
       {\blx@addchecksum{#1}{#4}}}}
 
+% Only used when defernumbers=true
 \def\blx@addlabelnumber{%
   \begingroup
   \nottoggle{blx@skiplab}
@@ -5523,7 +5528,7 @@
   \blx@bbl@addentryfield{\detokenize{#1}}{#2}{prefixnumber}{#3}}
 
 \def\blx@bbl@slist#1#2{%
-  \csnumgdef{blx@labelnumber@\the\c@refsection}{0}%
+%  \csnumgdef{blx@labelnumber@\the\c@refsection}{0}%
   \begingroup
   \def\blx@slist@name{#2}%
   % This macro (\key) will only be called in shorthand lists
@@ -6271,7 +6276,8 @@
   \csuse{blx@bibsetup}}
 
 % {<entrykey>}
-
+% output a bib item, this is why \blx@thelabelnumber is here so that
+% labelnumber is deferred if defernumbers=true
 \def\blx@bibitem#1{%
   \blx@ifdata{#1}
     {\begingroup
