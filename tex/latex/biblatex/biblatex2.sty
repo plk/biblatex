@@ -448,6 +448,7 @@
 \newtoggle{blx@reencode}
 \newtoggle{blx@citeindex}
 \newtoggle{blx@bibindex}
+\newtoggle{blx@localnumber}
 
 \newread\blx@bcfin
 \newwrite\blx@bcfout
@@ -5471,6 +5472,7 @@
 
 \protected\def\blx@aux@number#1#2#3#4{%
   \blx@bbl@addentryfield{\detokenize{#2}}{#3}{localnumber}{#4}%
+  \global\toggletrue{blx@localnumber}%
   \ifblank{#4}
     {}
     {\csgdef{blx@labelnumber@#3}{#4}}}
@@ -5487,17 +5489,25 @@
   \nottoggle{blx@skiplab}
     {\iftoggle{blx@labelnumber}
        {\ifundef\abx@field@shorthand
-          {\ifundef\abx@field@localnumber
-             {\iftoggle{blx@omitnumbers}
-                {\let\abx@field@localnumber\@empty}
-                {\csnumgdef{blx@labelnumber@\the\c@refsection}{%
-                   \csuse{blx@labelnumber@\the\c@refsection}+1}%
+         % Need to know if we set any localnumber from .aux file, not
+         % just current item. Otherwise, we may just write new
+         % localnumbers but not existing ones
+         {\nottoggle{blx@localnumber}
+           {\iftoggle{blx@omitnumbers}
+              {\let\abx@field@localnumber\@empty}
+              {\csnumgdef{blx@labelnumber@\the\c@refsection}{%
+                 \csuse{blx@labelnumber@\the\c@refsection}+1}%
                  \edef\abx@field@localnumber{\csuse{blx@labelnumber@\the\c@refsection}}%
                  \blx@bbl@addentryfield{\abx@field@entrykey}{\the\c@refsection}%
                    {localnumber}{\abx@field@localnumber}}%
-              \blx@auxwrite\@mainaux{}{%
-                \string\abx@aux@number{\the\c@instcount}{\abx@field@entrykey}%
-                {\the\c@refsection}{\abx@field@localnumber}}}
+                 % if we have to run biber again, don't write the .aux
+                 % file yet as we will potentially have new things to
+                 % put in there after it has run
+                 \nottoggle{blx@runbiber}
+                   {\blx@auxwrite\@mainaux{}{%
+                      \string\abx@aux@number{\the\c@instcount}{\abx@field@entrykey}%
+                     {\the\c@refsection}{\abx@field@localnumber}}}
+                     {}}
              {}}
           {}}%
        {}}
@@ -6885,7 +6895,7 @@
   \blx@loccitreset}
 
 % {<entrykey>}{<message>}
-
+% Just a wrapper to suppress citation tracking in toc/lof etc.
 \def\blx@citation#1#2{%
   \ifbool{citerequest}
     {\blx@citation@entry{#1}{#2}}
