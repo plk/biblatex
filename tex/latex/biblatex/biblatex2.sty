@@ -450,6 +450,9 @@
 \newtoggle{blx@bibindex}
 \newtoggle{blx@localnumber}
 
+\global\let\blx@cites\@empty
+\global\let\blx@lastcites\@empty
+
 \newread\blx@bcfin
 \newwrite\blx@bcfout
 
@@ -5468,6 +5471,10 @@
 \def\blx@bblend{%
 }
 
+% {<entrykey>}
+\protected\def\abx@aux@cite#1{%
+  \listxadd{\blx@lastcites}{\detokenize{#1}}}
+
 % {<instcount>}{<entrykey>}{<refsection>}{<labelnumber>}
 
 \protected\def\blx@aux@number#1#2#3#4{%
@@ -5500,14 +5507,14 @@
                  \edef\abx@field@localnumber{\csuse{blx@labelnumber@\the\c@refsection}}%
                  \blx@bbl@addentryfield{\abx@field@entrykey}{\the\c@refsection}%
                    {localnumber}{\abx@field@localnumber}}%
-                 % if we have to run biber again, don't write the .aux
-                 % file yet as we will potentially have new things to
-                 % put in there after it has run
-                 \nottoggle{blx@runbiber}
+                 % If we have to run biber or latex again,
+                 % don't write the .aux file yet as we will potentially have different
+                 % things in there after they have run
+                 \iftoggle{blx@runbiber}
+                   {}
                    {\blx@auxwrite\@mainaux{}{%
                       \string\abx@aux@number{\the\c@instcount}{\abx@field@entrykey}%
-                     {\the\c@refsection}{\abx@field@localnumber}}}
-                     {}}
+                     {\the\c@refsection}{\abx@field@localnumber}}}}
              {}}
           {}}%
        {}}
@@ -6338,6 +6345,15 @@
 \@onlypreamble\AtBeginBibliography
 \@onlypreamble\AtEveryBibitem
 
+% Test to see if we *removed* any citations since last run
+% (adding citations is dealt with naturally in \blx@citation@entry)
+% If so, give a rerun biber message. This also sets the 
+% rerun biber toggle so defernums doesn't consume the localnumbers
+% in the .aux but instead, re-writes them, which is what we need.
+\AtBeginBibliography{%
+  \def\do#1{\ifinlist{#1}{\blx@cites}{}{\blx@logreq@active{}}\relax}%
+  \dolistloop\blx@lastcites}
+
 % page tracker
 
 \def\blx@pagetracker@context{%
@@ -6903,6 +6919,10 @@
 
 \def\blx@citation@entry#1#2{%
   \blx@bibreq{#1}%
+  \ifinlist{#1}{\blx@cites}
+    {}
+    {\listgadd{\blx@cites}{#1}%
+     \blx@auxwrite\@mainaux{}{\string\abx@aux@cite{#1}}}%
   \ifinlistcs{#1}{blx@segm@\the\c@refsection @\the\c@refsegment}
     {}
     {\listcsgadd{blx@segm@\the\c@refsection @\the\c@refsegment}{#1}}%
