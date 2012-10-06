@@ -452,6 +452,7 @@
 
 \global\let\blx@cites\@empty
 \global\let\blx@lastcites\@empty
+\global\let\blx@localnumaux\@empty
 
 \newread\blx@bcfin
 \newwrite\blx@bcfout
@@ -5490,6 +5491,24 @@
       {}
       {\blx@addchecksum{#1}{#4}}}}
 
+\AtEndDocument{%
+  % Test to see if we *removed* any citations since last run
+  % (adding citations is dealt with naturally in \blx@citation@entry)
+  % If so, give a rerun biber message. This also sets the 
+  % rerun biber toggle so defernums doesn't consume the localnumbers
+  % in the .aux but instead, re-writes them, which is what we need.
+  \begingroup
+  \def\do#1{\ifinlist{#1}{\blx@cites}{}{\blx@logreq@active{}}\relax}%
+  \dolistloop\blx@lastcites
+  \endgroup
+  % If we have to run biber or latex again,
+  % don't write the .aux file yet as we will potentially have different
+  % things in there after they have run
+  \iftoggle{blx@runbiber}
+    {}
+    {\def\do#1{\blx@auxwrite\@mainaux{}{#1}}}
+     \dolistloop\blx@localnumaux}
+
 % Only used when defernumbers=true
 \def\blx@addlabelnumber{%
   \begingroup
@@ -5507,14 +5526,7 @@
                  \edef\abx@field@localnumber{\csuse{blx@labelnumber@\the\c@refsection}}%
                  \blx@bbl@addentryfield{\abx@field@entrykey}{\the\c@refsection}%
                    {localnumber}{\abx@field@localnumber}}%
-                 % If we have to run biber or latex again,
-                 % don't write the .aux file yet as we will potentially have different
-                 % things in there after they have run
-                 \iftoggle{blx@runbiber}
-                   {}
-                   {\blx@auxwrite\@mainaux{}{%
-                      \string\abx@aux@number{\the\c@instcount}{\abx@field@entrykey}%
-                     {\the\c@refsection}{\abx@field@localnumber}}}}
+                 \listxadd\blx@localnumaux{\string\abx@aux@number{\the\c@instcount}{\abx@field@entrykey}{\the\c@refsection}{\abx@field@localnumber}}}
              {}}
           {}}%
        {}}
@@ -6344,15 +6356,6 @@
 \newrobustcmd*{\AtEveryBibitem}{\gappto\blx@hook@bibitem}
 \@onlypreamble\AtBeginBibliography
 \@onlypreamble\AtEveryBibitem
-
-% Test to see if we *removed* any citations since last run
-% (adding citations is dealt with naturally in \blx@citation@entry)
-% If so, give a rerun biber message. This also sets the 
-% rerun biber toggle so defernums doesn't consume the localnumbers
-% in the .aux but instead, re-writes them, which is what we need.
-\AtBeginBibliography{%
-  \def\do#1{\ifinlist{#1}{\blx@cites}{}{\blx@logreq@active{}}\relax}%
-  \dolistloop\blx@lastcites}
 
 % page tracker
 
