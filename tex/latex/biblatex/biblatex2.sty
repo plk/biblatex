@@ -451,6 +451,8 @@
 \newtoggle{blx@localnumber}
 
 \global\let\blx@cites\@empty
+\global\let\blx@sortschemes\@empty
+\global\let\blx@lastsortschemes\@empty
 \global\let\blx@lastcites\@empty
 \global\let\blx@localnumaux\@empty
 
@@ -5473,8 +5475,14 @@
 }
 
 % {<entrykey>}
+% Get the saved information on which citations were mentioned last run
 \protected\def\abx@aux@cite#1{%
   \listxadd{\blx@lastcites}{\detokenize{#1}}}
+
+% {<sortschemename>}
+% Get the saved information on which sorting schemes were mentioned last run
+\protected\def\abx@aux@sortscheme#1{%
+  \listgadd{\blx@lastsortschemes}{#1}}
 
 % {<instcount>}{<entrykey>}{<refsection>}{<labelnumber>}
 
@@ -5500,14 +5508,24 @@
   \begingroup
   \def\do#1{\ifinlist{#1}{\blx@cites}{}{\blx@logreq@active{}}\relax}%
   \dolistloop\blx@lastcites
-  \endgroup
-  % If we have to run biber or latex again,
-  % don't write the .aux file yet as we will potentially have different
-  % things in there after they have run
-  \iftoggle{blx@runbiber}
-    {}
-    {\def\do#1{\blx@auxwrite\@mainaux{}{#1}}}
-     \dolistloop\blx@localnumaux}
+  % Test to see if we removed any mention of a sorting scheme since last run.
+  % If we did, we need to re-run biber
+  \def\do#1{\ifinlist{#1}{\blx@sortschemes}{}{\blx@logreq@active{}}\relax}%
+  \dolistloop\blx@lastsortschemes
+  % Test to see if we added any mention of a sorting scheme since last run
+  % If we did, we need to re-run biber
+  \def\do#1{\ifinlist{#1}{\blx@lastsortschemes}{}{\blx@logreq@active{}}\relax}%
+  \dolistloop\blx@sortschemes
+  % If we have to run biber or latex again and we are using defernumbers,
+  % don't write the localnumber information to the .aux file yet as we will
+  % potentially have to regenerate sorting order first in biber
+  \iftoggle{blx@defernumbers}
+    {\iftoggle{blx@runbiber}
+      {}
+      {\def\do#1{\blx@auxwrite\@mainaux{}{#1}}
+       \dolistloop\blx@localnumaux}}
+    {}%
+  \endgroup}
 
 % Only used when defernumbers=true
 \def\blx@addlabelnumber{%
@@ -5799,6 +5817,12 @@
     {\blx@err@invopt{sorting=#1}{}}%
     {\blx@printbibchecks
      \def\blx@tempc{#1}%
+     % Add the sortscheme to the list of sortschemes so we can compare
+     % on next run
+     \ifinlist{#1}{\blx@sortschemes}
+       {}
+       {\listgadd\blx@sortschemes{#1}%
+        \blx@auxwrite\@mainaux{}{\string\abx@aux@sortscheme{#1}}}%
      \edef\blx@tempd{%
        \blx@xml@sorting{%
          \csuse{blx@biber@sorting@#1}}}}}
@@ -9490,7 +9514,8 @@
   \ifcsdef{blx@biber@sorting@\blx@sorting}
     {}
     {\blx@err@invopt{sorting=\blx@sorting}{}%
-     \def\blx@sorting{nty}}}
+     \def\blx@sorting{nty}}%
+     \listxadd\blx@sortschemes{\blx@sorting}}
 
 \DeclareBibliographyOption{sortcase}[true]{%
   \settoggle{blx@sortcase}{#1}}
@@ -10460,6 +10485,7 @@
 % Deferred last minute setup
 
 \AtBeginDocument{%
+  \blx@auxwrite\@mainaux{}{\string\abx@aux@sortscheme{\blx@sorting}}%
   \blx@checkencoding
   \if@filesw
     \blx@ctrlwrite@biber
