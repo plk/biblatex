@@ -5508,6 +5508,16 @@
   \begingroup
   \def\do#1{\ifinlist{#1}{\blx@cites}{}{\blx@logreq@active{}}\relax}%
   \dolistloop\blx@lastcites
+  % Special case - if we are using sortscheme "none" anywhere, then changes
+  % in citation order matter and we need to re-run biber. So a special test
+  % to see if the cites from last run are identical in order. We have
+  % already tested for more or less cites between runs by now, we are
+  % testing here for exactly the same cites
+  \ifinlist{none}{\blx@sortschemes}
+    {\ifdefstrequal{\blx@cites}{\blx@lastcites}
+      {}
+      {\blx@logreq@active{}}}
+    {}%
   % Test to see if we removed any mention of a sorting scheme since last run.
   % If we did, we need to re-run biber
   \def\do#1{\ifinlist{#1}{\blx@sortschemes}{}{\blx@logreq@active{}}\relax}%
