@@ -450,6 +450,8 @@
 \newtoggle{blx@bibindex}
 \newtoggle{blx@localnumber}
 
+% Initialise some lists which track changing citations/sortschemes
+% etc. between runs
 \global\let\blx@cites\@empty
 \global\let\blx@sortschemes\@empty
 \global\let\blx@lastsortschemes\@empty
@@ -5500,6 +5502,12 @@
       {\blx@addchecksum{#1}{#4}}}}
 
 \AtEndDocument{%
+  % Here we run some tests to decide if we need to issue re-run
+  % messages in certain circumstances. In general, if we add/remove
+  % any citations or add/remove any sorting schemes, we need to re-run
+  % biber. Also, if we have to re-run biber, we need to defer writing
+  % the defernumbers .aux information because it will not yet be correct.
+
   % Test to see if we *removed* any citations since last run
   % (adding citations is dealt with naturally in \blx@citation@entry)
   % If so, give a rerun biber message. This also sets the 
