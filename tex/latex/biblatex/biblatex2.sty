@@ -455,6 +455,8 @@
 \global\let\blx@cites\@empty
 \global\let\blx@sortschemes\@empty
 \global\let\blx@lastsortschemes\@empty
+\global\let\blx@sortschemeslos\@empty
+\global\let\blx@lastsortschemeslos\@empty
 \global\let\blx@lastcites\@empty
 \global\let\blx@localnumaux\@empty
 
@@ -5486,6 +5488,11 @@
 \protected\def\abx@aux@sortscheme#1{%
   \listgadd{\blx@lastsortschemes}{#1}}
 
+% {<sortschemename>}
+% Get the saved information on which shorthand sorting schemes were mentioned last run
+\protected\def\abx@aux@sortschemelos#1{%
+  \listgadd{\blx@lastsortschemeslos}{#1}}
+
 % {<instcount>}{<entrykey>}{<refsection>}{<labelnumber>}
 
 \protected\def\blx@aux@number#1#2#3#4{%
@@ -5521,7 +5528,9 @@
   % to see if the cites from last run are identical in order. We have
   % already tested for more or less cites between runs by now, we are
   % testing here for exactly the same cites by treating the cite and
-  % lastcite lists as strings and comparing them
+  % lastcite lists as strings and comparing them. This doesn't apply
+  % to shorthand sortschemes as nobody wants to sort shorthands with
+  % "none" anyway, it makes no sense
   \ifinlist{none}{\blx@sortschemes}
     {\ifdefstrequal{\blx@cites}{\blx@lastcites}
       {}
@@ -5535,6 +5544,14 @@
   % If we did, we need to re-run biber
   \def\do#1{\ifinlist{#1}{\blx@lastsortschemes}{}{\blx@logreq@active{}}\relax}%
   \dolistloop\blx@sortschemes
+  % Test to see if we removed any mention of a shorthand sorting scheme since last run.
+  % If we did, we need to re-run biber
+  \def\do#1{\ifinlist{#1}{\blx@sortschemeslos}{}{\blx@logreq@active{}}\relax}%
+  \dolistloop\blx@lastsortschemeslos
+  % Test to see if we added any mention of a shorthand sorting scheme since last run
+  % If we did, we need to re-run biber
+  \def\do#1{\ifinlist{#1}{\blx@lastsortschemeslos}{}{\blx@logreq@active{}}\relax}%
+  \dolistloop\blx@sortschemeslos
   % If we have to run biber or latex again and we are using defernumbers,
   % don't write the localnumber information to the .aux file yet as we will
   % potentially have to regenerate sorting order first in biber
@@ -5836,8 +5853,8 @@
     {\blx@err@invopt{sorting=#1}{}}%
     {\blx@printbibchecks
      \def\blx@tempc{#1}%
-     % Add the sortscheme to the list of sortschemes so we can compare
-     % on next run
+     % Add the sortscheme to the list of sortschemes
+     % so we can compare on next run
      \ifinlist{#1}{\blx@sortschemes}
        {}
        {\listgadd\blx@sortschemes{#1}%
@@ -5851,6 +5868,12 @@
     {\blx@err@invopt{sorting=#1}{}}%
     {\blx@printbibchecks
      \def\blx@tempc{#1}%
+     % Add the sortscheme to the list of shorthand sortschemes
+     % so we can compare on next run
+     \ifinlist{#1}{\blx@sortschemeslos}
+       {}
+       {\listgadd\blx@sortschemeslos{#1}%
+        \blx@auxwrite\@mainaux{}{\string\abx@aux@sortschemelos{#1}}}%
      \edef\blx@tempd{%
        \blx@xml@sorting{%
          \csuse{blx@biber@sorting@#1}}}}}
@@ -6480,10 +6503,10 @@
   \let\blx@thetitle\@empty
   % defaults
   \let\blx@tempa\@empty% before there is a .bbl, this must not be undef
-  \def\blx@tempc{shorthand}% sorting scheme name from "sorting" option
+  \def\blx@tempc{shorthand}% default sorting scheme for shorthands
   \edef\blx@tempd{%
     \blx@xml@sorting{%
-      \csuse{blx@biber@sorting@shorthand}}}% sorting scheme from "sorting" option
+      \csuse{blx@biber@sorting@shorthand}}}% default sorting scheme for shorthands
   \let\blx@printbibchecks\relax
   \edef\blx@tempe{\the\c@refsection}% default refsection is current
   \blx@safe@actives
