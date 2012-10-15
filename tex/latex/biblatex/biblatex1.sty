@@ -9358,31 +9358,49 @@
 % [<type,type,...>]{<field,field,...>}
 
 \newrobustcmd*{\DeclareLabelname}[2][]{%
-  \blx@defmvalue{labelnamespec}{#1}{#2}}
+  \begingroup
+  \let\blx@tempa\@empty
+  \def\blx@tempb{labelnamespec}%
+  \let\field\blx@ordered@field
+  \ifblank{#1}
+    {\global\cslet{blx@bcf@labelnamespec}\@empty}
+    {\def\blx@tempa{#1}%
+     \do{\global\cslet{blx@bcf@labelnamespec@##1}\@empty}%
+     \docsvlist{#1}}%
+  #2%
+  \endgroup}
 \@onlypreamble\DeclareLabelname
 
 \newrobustcmd*{\DeclareLabelyear}[2][]{%
-  \blx@defmvalue{labelyearspec}{#1}{#2}}
-\@onlypreamble\Declarelabelyear
-
-\def\blx@defmvalue#1#2#3{%
-  \ifblank{#2}
-    {\expandafter\blx@defmvalue@ii\csname blx@bcf@#1\endcsname{#3}}
-    {\forcsvlist{\blx@defmvalue@i{#1}{#3}}{#2}}}
-
-\def\blx@defmvalue@i#1#2#3{%
-  \blx@addtypeopt{#3}%
-  \expandafter\blx@defmvalue@ii\csname blx@bcf@#1@#3\endcsname{#2}}
-
-\def\blx@defmvalue@ii#1#2{%
   \begingroup
-  \global\let#1\@empty
-  \blx@tempcnta\z@
-  \def\do##1{%
-    \advance\blx@tempcnta\@ne
-    \xappto#1{\noexpand\blx@xml@ordered{\the\blx@tempcnta}{##1}}}%
-  \docsvlist{#2}%
+  \let\blx@tempa\@empty
+  \def\blx@tempb{labelyearspec}%
+  \let\field\blx@ordered@field
+  \ifblank{#1}
+    {\global\cslet{blx@bcf@labelyearspec}\@empty}
+    {\def\blx@tempa{#1}%
+     \do{\global\cslet{blx@bcf@labelyearspec@##1}\@empty}%
+     \docsvlist{#1}}%
+  #2%
   \endgroup}
+\@onlypreamble\DeclareLabelyear
+
+\newcommand*{\blx@ordered@field}[2][]{%
+  \let\blx@tempc\@empty
+  \ifblank{#1}
+    {}
+    {\setkeys{blx@ordered@field}{#1}}%
+  \advance\blx@tempcnta\@ne
+  \ifdefempty{\blx@tempa}
+    {\csxappto{blx@bcf@\blx@tempb}{\noexpand\blx@xml@ordered{\the\blx@tempcnta}{\blx@tempc}{#2}}}
+    {\def\do{\blx@addtypeopt{##1}%
+             \csxappto{blx@bcf@\blx@tempb @##1}{\noexpand\blx@xml@ordered{\the\blx@tempcnta}{\blx@tempc}{#2}}}%
+     \docsvlist{\blx@tempa}}}
+
+\define@key{blx@ordered@field}{form}{%
+  \appto\blx@tempc{ form="#1"}}
+\define@key{blx@ordered@field}{lang}{%
+  \appto\blx@tempc{ lang="#1"}}
 
 % experimental
 

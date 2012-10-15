@@ -8613,8 +8613,9 @@
   ~~~~<bcf:option type="#1">\blx@nl
   #2%
   ~~~~</bcf:option>\blx@nl}
-\xdef\blx@xml@ordered#1#2{%
-  ~~~~~~<bcf:value order="#1">#2</bcf:value>\blx@nl}
+\xdef\blx@xml@ordered#1#2#3{%
+  ~~~~~~<bcf:value order="#1"#2%
+  >#3</bcf:value>\blx@nl}
 
 \xdef\blx@xml@sourcemap#1{%
   ~~<bcf:sourcemap>\blx@nl
@@ -9126,7 +9127,7 @@
      \global\cslet{blx@biber@labelalphatemplate@#2}\blx@tempa}%
   \endgroup}
 
-\newcommand{\blx@latem@element}[1]{%
+\newcommand*{\blx@latem@element}[1]{%
   \advance\blx@tempcnta\@ne
   \let\blx@tempb\@empty
   #1%
@@ -9148,6 +9149,8 @@
 % script form - original | translated | romanised | uniform
 \define@key{blx@latem@field}{form}{%
   \appto\blx@tempc{ form="#1"}}
+\define@key{blx@latem@field}{lang}{%
+  \appto\blx@tempc{ lang="#1"}}
 \define@key{blx@latem@field}{uppercase}[true]{% true|false
   \ifstrequal{#1}{true}
     {\appto\blx@tempc{ uppercase="1"}}
@@ -9219,7 +9222,7 @@
 
 % {<source>}{<target>}{<options>}
 
-\newcommand{\blx@inherit@except}[3]{%
+\newcommand*{\blx@inherit@except}[3]{%
   \let\blx@tempc\@empty
   \ifblank{#3}
     {}
@@ -9257,7 +9260,7 @@
 
 % [<options>]{<source>}{<target>}
 
-\newcommand{\blx@inherit@field}[3][]{%
+\newcommand*{\blx@inherit@field}[3][]{%
   \let\blx@tempc\@empty
   \ifblank{#1}
     {}
@@ -9265,7 +9268,7 @@
   \eappto\blx@tempb{%
     \blx@xml@inherit@field{#2}{#3}{\blx@tempc}}}
 
-\newcommand{\blx@inherit@block}[1]{%
+\newcommand*{\blx@inherit@block}[1]{%
   \eappto\blx@tempb{\blx@xml@inherit@block{#1}}}
 
 \define@key{blx@inherit@field}{override}[true]{% true|false
@@ -9294,7 +9297,7 @@
   \endgroup}
 \@onlypreamble\DeclareSortingScheme
 
-\newcommand{\blx@sortdef@sort}[2][]{%
+\newcommand*{\blx@sortdef@sort}[2][]{%
   \advance\blx@tempcnta\@ne
   \blx@tempcntb\z@
   \let\blx@tempb\@empty
@@ -9336,6 +9339,8 @@
 % script form - original | translated | romanised | uniform
 \define@key{blx@sortdef@field}{form}{%
   \appto\blx@tempd{ form="#1"}}
+\define@key{blx@sortdef@field}{lang}{%
+  \appto\blx@tempd{ lang="#1"}}
 \define@key{blx@sortdef@field}{padside}{% left|right
   \ifstrequal{#1}{right}
     {\eappto\blx@tempd{ pad\string_side="right"}}
@@ -9395,35 +9400,63 @@
 % [<type,type,...>]{<field,field,...>}
 
 \newrobustcmd*{\DeclareLabelname}[2][]{%
-  \blx@defmvalue{labelnamespec}{#1}{#2}}
+  \begingroup
+  \let\blx@tempa\@empty
+  \def\blx@tempb{labelnamespec}%
+  \let\field\blx@ordered@field
+  \ifblank{#1}
+    {\global\cslet{blx@bcf@labelnamespec}\@empty}
+    {\def\blx@tempa{#1}%
+     \do{\global\cslet{blx@bcf@labelnamespec@##1}\@empty}%
+     \docsvlist{#1}}%
+  #2%
+  \endgroup}
 \@onlypreamble\DeclareLabelname
 
 \newrobustcmd*{\DeclareLabeltitle}[2][]{%
-  \blx@defmvalue{labeltitlespec}{#1}{#2}}
+  \begingroup
+  \let\blx@tempa\@empty
+  \def\blx@tempb{labeltitlespec}%
+  \let\field\blx@ordered@field
+  \ifblank{#1}
+    {\global\cslet{blx@bcf@labeltitlespec}\@empty}
+    {\def\blx@tempa{#1}%
+     \do{\global\cslet{blx@bcf@labeltitlespec@##1}\@empty}%
+     \docsvlist{#1}}%
+  #2%
+  \endgroup}
 \@onlypreamble\DeclareLabeltitle
 
 \newrobustcmd*{\DeclareLabelyear}[2][]{%
-  \blx@defmvalue{labelyearspec}{#1}{#2}}
+  \begingroup
+  \let\blx@tempa\@empty
+  \def\blx@tempb{labelyearspec}%
+  \let\field\blx@ordered@field
+  \ifblank{#1}
+    {\global\cslet{blx@bcf@labelyearspec}\@empty}
+    {\def\blx@tempa{#1}%
+     \do{\global\cslet{blx@bcf@labelyearspec@##1}\@empty}%
+     \docsvlist{#1}}%
+  #2%
+  \endgroup}
 \@onlypreamble\DeclareLabelyear
 
-\def\blx@defmvalue#1#2#3{%
-  \ifblank{#2}
-    {\expandafter\blx@defmvalue@ii\csname blx@bcf@#1\endcsname{#3}}
-    {\forcsvlist{\blx@defmvalue@i{#1}{#3}}{#2}}}
+\newcommand*{\blx@ordered@field}[2][]{%
+  \let\blx@tempc\@empty
+  \ifblank{#1}
+    {}
+    {\setkeys{blx@ordered@field}{#1}}%
+  \advance\blx@tempcnta\@ne
+  \ifdefempty{\blx@tempa}
+    {\csxappto{blx@bcf@\blx@tempb}{\noexpand\blx@xml@ordered{\the\blx@tempcnta}{\blx@tempc}{#2}}}
+    {\def\do{\blx@addtypeopt{##1}%
+             \csxappto{blx@bcf@\blx@tempb @##1}{\noexpand\blx@xml@ordered{\the\blx@tempcnta}{\blx@tempc}{#2}}}%
+     \docsvlist{\blx@tempa}}}
 
-\def\blx@defmvalue@i#1#2#3{%
-  \blx@addtypeopt{#3}%
-  \expandafter\blx@defmvalue@ii\csname blx@bcf@#1@#3\endcsname{#2}}
-
-\def\blx@defmvalue@ii#1#2{%
-  \begingroup
-  \global\let#1\@empty
-  \blx@tempcnta\z@
-  \def\do##1{%
-    \advance\blx@tempcnta\@ne
-    \xappto#1{\noexpand\blx@xml@ordered{\the\blx@tempcnta}{##1}}}%
-  \docsvlist{#2}%
-  \endgroup}
+\define@key{blx@ordered@field}{form}{%
+  \appto\blx@tempc{ form="#1"}}
+\define@key{blx@ordered@field}{lang}{%
+  \appto\blx@tempc{ lang="#1"}}
 
 %% Package options
 
