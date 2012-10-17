@@ -831,6 +831,7 @@
   \printfield{pubstate}}
 
 \newcounter{bbx:relatedcount}
+\newcounter{bbx:relatedtotal}
 
 \newbibmacro*{related}{%
   \ifboolexpr{
@@ -840,6 +841,9 @@
   }
     {}
     {\setcounter{bbx:relatedcount}{0}%
+     \setcounter{bbx:relatedtotal}{0}%
+     \def\do##1{\stepcounter{bbx:relatedtotal}}%
+     \docsvfield{related}%
      \def\do{%
        \stepcounter{bbx:relatedcount}%
        \ifnumgreater{\value{bbx:relatedcount}}{1}
@@ -849,13 +853,19 @@
        {\appto{\do}{\usebibmacro{related:default}}}
        {\appto{\do}{\usebibmacro*{related:\strfield{relatedtype}}}}%
      \iffieldformatundef{related:\strfield{relatedtype}}
-       {\def\abx@tempa{related}}
-       {\def\abx@tempa{related:\strfield{relatedtype}}}%
-     \printtext[\abx@tempa]{%
+       {\def\bbx@tempa{related}}
+       {\def\bbx@tempa{related:\strfield{relatedtype}}}%
+     \printtext[\bbx@tempa]{%
        \iffieldundef{relatedstring}
-         {\iffieldbibstring{relatedtype}
-            {\printtext{\bibstring{\thefield{relatedtype}}\relatedpunct}}
-            {}}
+         {\ifboolexpr{
+            test {\ifnumgreater{\value{bbx:relatedtotal}}{1}}
+            and
+            test {\ifbibxstring{\thefield{relatedtype}s}}
+          }
+            {\printtext{\bibstring{\thefield{relatedtype}s}\relatedpunct}}
+            {\iffieldbibstring{relatedtype}
+               {\printtext{\bibstring{\thefield{relatedtype}}\relatedpunct}}
+               {}}}
          {\iffieldbibstring{relatedstring}
             {\printtext{\bibstring{\thefield{relatedstring}}\relatedpunct}}
             {\printtext{\printfield{relatedstring}\relatedpunct}}}%
