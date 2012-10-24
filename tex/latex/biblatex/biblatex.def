@@ -1,7 +1,5 @@
 % -*- mode: LaTeX -*-
 \ProvidesFile{biblatex.def}
-[\abx@rcsid $Id:$
- biblatex generic definitions]
 
 % ------------------------------------------------------------------
 % FORMATTING COMMANDS
@@ -54,6 +52,7 @@
 \newcommand*{\intitlepunct}{\addcolon\space}
 \newcommand*{\bibpagespunct}{\addcomma\space}
 \newcommand*{\bibpagerefpunct}{\addspace}
+\newcommand*{\revsdnamepunct}{\addcomma}
 \newcommand*{\bibnamedash}{%
   \ifdimless{\leftmargin}{0.75em}
     {\mbox{\textemdash\space}}
@@ -61,6 +60,8 @@
        \ifdimless{\leftmargin}{1.25em}
          {\textendash}
 	 {\textemdash}}}}
+\newcommand*{\relatedpunct}{\space}
+\newcommand*{\relateddelim}{\adddot\par\nobreak}
 
 % Used for indexing
 
@@ -117,7 +118,6 @@
 % \citesetup is a generic hook for citations.
 
 \newcommand*{\citesetup}{%
-  \frenchspacing
   \biburlsetup}
 
 % Local setup for \url; see comments in url.sty for details.
@@ -334,7 +334,7 @@
     {\nolinkurl{#1}}}
 \DeclareFieldAlias{eprint:HDL}{eprint:hdl}
 \DeclareFieldFormat{eprint:arxiv}{%
-  arXiv\addcolon
+  arXiv\addcolon\space
   \ifhyperref
     {\href{http://arxiv.org/\abx@arxivpath/#1}{%
        \nolinkurl{#1}%
@@ -398,6 +398,10 @@
 \DeclareFieldFormat{volume}{\bibstring{volume}~#1}% volume of a book
 \DeclareFieldFormat[article,periodical]{volume}{#1}% volume of a journal
 \DeclareFieldFormat{volumes}{#1~\bibstring{volumes}}
+\DeclareFieldFormat{related}{#1}
+\DeclareFieldFormat{related:multivolume}{\par\nobreak#1}
+\DeclareFieldFormat{related:origpubin}{\mkbibparens{#1}}
+\DeclareFieldFormat{related:origpubas}{\mkbibparens{#1}}
 
 % Generic formats for \printtext and \printfield
 
@@ -748,12 +752,12 @@
        \ifpunctmark{'}{}{\bibnamedelimc}}%
      \mkbibnamelast{#1}\isdot
      \ifblank{#4}{}{\bibnamedelimd\mkbibnameaffix{#4}\isdot}%
-     \ifblank{#2}{}{\addcomma\bibnamedelimd\mkbibnamefirst{#2}\isdot}}
+     \ifblank{#2}{}{\revsdnamepunct\bibnamedelimd\mkbibnamefirst{#2}\isdot}}
     {\usebibmacro{name:delim}{#1}%
      \usebibmacro{name:hook}{#1}%
      \mkbibnamelast{#1}\isdot
      \ifblank{#4}{}{\bibnamedelimd\mkbibnameaffix{#4}\isdot}%
-     \ifblank{#2#3}{}{\addcomma}%
+     \ifblank{#2#3}{}{\revsdnamepunct}%
      \ifblank{#2}{}{\bibnamedelimd\mkbibnamefirst{#2}\isdot}%
      \ifblank{#3}{}{\bibnamedelimd\mkbibnameprefix{#3}\isdot}}}
 
@@ -818,11 +822,19 @@
   \usebibmacro{index:field}{#1}{\thefield{indexsorttitle}}{\emph{#2}}}
 
 \newbibmacro*{index:field}[3]{%
+  \usebibmacro{index:entry}{#1}{\mkbibindexfield{#2}{#3}}}
+
+% Auxiliary macros for field indexing directives
+% ------------------------------------------------------------------
+
+\newbibmacro*{index:entry}[2]{%
   \begingroup
-  \protected@edef\theindexentry{%
-    \unexpanded{#1}{#2\actualoperator\unexpanded{#3}}}%
+  \protected@edef\theindexentry{\unexpanded{#1}{#2}}%
   \theindexentry
   \endgroup}
+
+\newcommand*{\mkbibindexfield}[2]{\mkbibindexentry{#1}{\unexpanded{#2}}}
+\newcommand*{\mkbibindexentry}[2]{#1\actualoperator#2}
 
 % ------------------------------------------------------------------
 % INDEX FORMATS FOR LITERAL LISTS (#1 is the current item)
@@ -887,39 +899,374 @@
 % We also use \ifuseprefix to ensure that the name prefix is handled
 % properly. \actualoperator is the so-called actual operator, as
 % defined by the 'actual' specifier in the .ist file. The makeindex
-% programm will use the part preceeding the \actualoperator
+% program will use the part preceeding the \actualoperator
 % delimiter for sorting. The part after the delimiter is used as the
 % index is printed. Note that this is not specific to biblatex, see
 % the makeindex documentation for details.
 
 \newcommand*{\actualoperator}{@}
+\newcommand*{\subentryoperator}{!}
 
 \newbibmacro*{index:name}[5]{%
-  \begingroup
+  \usebibmacro{index:entry}{#1}{\mkbibindexname{#2}{#3}{#4}{#5}}}
+
+% {<last name>}{<first name>}{<first initials>}{<last name prefix>}
+
+\newcommand*{\mkbibindexname}[4]{%
   \ifuseprefix
-    {\protected@edef\theindexentry{%
-       \unexpanded{#1}{%
-         \ifblank{#4}{}{#4 }%
-         \@firstofone #2% remove spurious braces
-         \ifblank{#5}{}{ #5}%
-         \ifblank{#3}{}{, #3}%
-         \actualoperator
-         \ifblank{#4}{}{\MakeCapital{#4} }%
-         #2%
-         \ifblank{#5}{}{ #5}%
-         \ifblank{#3}{}{, #3}}}}
-    {\protected@edef\theindexentry{%
-       \unexpanded{#1}{%
-         \@firstofone #2% remove spurious braces
-         \ifblank{#5}{}{ #5}%
-         \ifblank{#3#4}{}{,}%
-         \ifblank{#3}{}{ #3}%
-         \ifblank{#4}{}{ #4}}}}%
-  \theindexentry
-  \endgroup}
+    {\ifblank{#3}{}{#3 }%
+     \@firstofone #1% remove spurious braces
+     \ifblank{#4}{}{ #4}%
+     \ifblank{#2}{}{, #2}%
+     \actualoperator
+     \ifblank{#3}{}{\MakeCapital{#3} }%
+     #1%
+     \ifblank{#4}{}{ #4}%
+     \ifblank{#2}{}{, #2}}
+    {\@firstofone #1% remove spurious braces
+     \ifblank{#4}{}{ #4}%
+     \ifblank{#2#3}{}{,}%
+     \ifblank{#2}{}{ #2}%
+     \ifblank{#3}{}{ #3}}}
+
+% {<control sequence>}{<control sequence>}
+
+\newcommand*{\mkbibindexsubentry}[2]{%
+  \ifblank{#1}{}{\subentryoperator#1\actualoperator#2}}
+
+% Additional macros with subentries
+
+\newbibmacro*{index:name:field}[6]{%
+  \usebibmacro{index:name:subentry}{#1}{#2}{#3}{#4}{#5}
+    {\thefield{#6}}{\csfield{#6}}}
+
+\newbibmacro*{index:name:title}[5]{%
+  \usebibmacro{index:name:subentry}{#1}{#2}{#3}{#4}{#5}
+    {\thefield{indexsorttitle}}{\emph{\csfield{indextitle}}}}
+
+\newbibmacro*{index:name:subentry}[7]{%
+  \usebibmacro{index:entry}{#1}{%
+    \mkbibindexname{#2}{#3}{#4}{#5}\mkbibindexsubentry{#6}{#7}}}
 
 % ------------------------------------------------------------------
-% CUSTOMIZATION
+% Driver sourcemaps
+% ------------------------------------------------------------------
+
+\DeclareDefaultSourcemap[datatype=bibtex]{
+  \map{
+    \step[typesource=conference, typetarget=inproceedings]
+    \step[typesource=electronic, typetarget=online]
+    \step[typesource=www,        typetarget=online]
+  }
+  \map{
+    \step[typesource=mastersthesis, typetarget=thesis, final]
+    \step[fieldset=type,            fieldvalue=mathesis]
+  }
+  \map{
+    \step[typesource=phdthesis, typetarget=thesis, final]
+    \step[fieldset=type,        fieldvalue=phdthesis]
+  }
+  \map{
+    \step[typesource=techreport, typetarget=report, final]
+    \step[fieldset=type,         fieldvalue=techreport]
+  }
+  \map{
+    \step[fieldsource=address,       fieldtarget=location]
+    \step[fieldsource=school,        fieldtarget=institution]
+    \step[fieldsource=annote,        fieldtarget=annotation]
+    \step[fieldsource=archiveprefix, fieldtarget=eprinttype]
+    \step[fieldsource=journal,       fieldtarget=journaltitle]
+    \step[fieldsource=primaryclass,  fieldtarget=eprintclass]
+    \step[fieldsource=key,           fieldtarget=sortkey]
+    \step[fieldsource=pdf,           fieldtarget=file]
+  }
+}
+
+\DeclareDefaultSourcemap[datatype=endnotexml]{
+  \map{
+    \step[typesource={Aggregated Database},      typetarget=misc]
+    \step[typesource={Ancient Text},             typetarget=misc]
+    \step[typesource=Artwork,                    typetarget=artwork]
+    \step[typesource={Audiovisual Material},     typetarget=misc]
+    \step[typesource=Bill,                       typetarget=jurisdiction]
+    \step[typesource=Blog,                       typetarget=online]
+    \step[typesource=Book,                       typetarget=book]
+    \step[typesource={Book Section},             typetarget=inbook]
+    \step[typesource=Case,                       typetarget=jurisdiction]
+    \step[typesource=Catalog,                    typetarget=misc]
+    \step[typesource={Chart or Table},           typetarget=misc]
+    \step[typesource={Classical Work},           typetarget=misc]
+    \step[typesource={Computer Program},         typetarget=software]
+    \step[typesource={Conference Paper},         typetarget=inproceedings]
+    \step[typesource={Conference Proceedings},   typetarget=proceedings]
+    \step[typesource=Dictionary,                 typetarget=inreference]
+    \step[typesource={Edited Book},              typetarget=collection]
+    \step[typesource={Electronic Article},       typetarget=article]
+    \step[typesource={Electronic Book},          typetarget=book]
+    \step[typesource={Encyclopedia},             typetarget=reference]
+    \step[typesource=Equation,                   typetarget=misc]
+    \step[typesource=Figure,                     typetarget=misc]
+    \step[typesource={Film or Broadcast},        typetarget=movie]
+    \step[typesource={Government Document},      typetarget=report]
+    \step[typesource=Grant,                      typetarget=misc]
+    \step[typesource=Hearing,                    typetarget=jurisdiction]
+    \step[typesource={Journal Article},          typetarget=article]
+    \step[typesource={Legal Rule or Regulation}, typetarget=legislation]
+    \step[typesource={Magazine Article},         typetarget=article]
+    \step[typesource=Manuscript,                 typetarget=unpublished]
+    \step[typesource=Map,                        typetarget=misc]
+    \step[typesource={Newspaper Article},        typetarget=article]
+    \step[typesource={Online Database},          typetarget=online]
+    \step[typesource={Online Multimedia},        typetarget=online]
+    \step[typesource=Pamphlet,                   typetarget=booklet]
+    \step[typesource=Patent,                     typetarget=patent]
+    \step[typesource={Personal Communication},   typetarget=letter]
+    \step[typesource=Report,                     typetarget=report]
+    \step[typesource=Serial,                     typetarget=periodical]
+    \step[typesource=Standard,                   typetarget=standard]
+    \step[typesource=Statute,                    typetarget=legislation]
+    \step[typesource=Thesis,                     typetarget=thesis]
+    \step[typesource={Unpublished Work},         typetarget=unpublished]
+    \step[typesource={Web Page},                 typetarget=online]
+  }
+  \map{
+    \step[fieldsource={electronic-resource-num}, fieldtarget=eprint]
+    \step[fieldsource={alt-title},               fieldtarget=shorttitle]
+    \step[fieldsource={meeting-place},           fieldtarget=venue]
+    \step[fieldsource={pub-location},            fieldtarget=location]
+    \step[fieldsource={orig-pub},                fieldtarget=origpublisher]
+    \step[fieldsource={authors},                 fieldtarget=author]
+    \step[fieldsource={secondary-authors},       fieldtarget=editor]
+    \step[fieldsource={tertiary-authors},        fieldtarget=commentator]
+    \step[fieldsource={subsidiary-authors},      fieldtarget=translator]
+    \step[fieldsource={year},                    fieldtarget=date]
+    \step[fieldsource={pub-dates},               fieldtarget=date]
+    \step[fieldsource={num-vols},                fieldtarget=volumes]
+    \step[fieldsource={call-num},                fieldtarget=library]
+    \step[fieldsource={notes},                   fieldtarget=note]
+    \step[fieldsource={secondary-title},         fieldtarget=subtitle]
+    \step[fieldsource={work-type},               fieldtarget=type]
+  }
+  \map{
+    \pertype{Edited Book}
+    \step[fieldsource=contributors/authors, fieldtarget=contributors/editor]
+  }
+  \map{
+    \pertype{Electronic Article}
+    \pertype{Journal Article}
+    \pertype{Magazine Article}
+    \pertype{Newspaper Article}
+    \step[fieldsource=isbn, fieldtarget=issn]
+  }
+  \map{
+    \pertype{Patent}
+    \pertype{Report}
+    \pertype{Government Document}
+    \pertype{Legal Rule or Regulation}
+    \step[fieldsource=isbn, fieldtarget=number]
+  }
+  \map{
+    \pertype{Blog}
+    \pertype{Online Database}
+    \pertype{Online Multimedia}
+    \pertype{Web Page}
+    \step[fieldsource={titles/secondary-title}, fieldtarget={titles/title}]
+  }
+  \map{
+    \pertype{Book Section}
+    \step[fieldsource={titles/secondary-title}, fieldtarget={titles/booktitle}]
+  }
+  \map{
+    \pertype{Book}
+    \pertype{Electronic Book}
+    \pertype{Manuscript}
+    \pertype{Unpublished Work}
+    \step[fieldsource={titles/secondary-title}, fieldtarget={titles/series}]
+  }
+  \map{
+    \pertype{Conference Paper}
+    \pertype{Conference Proceedings}
+    \step[fieldsource={titles/secondary-title}, fieldtarget={titles/eventtitle}]
+  }
+  \map{
+    \pertype{Electronic Article}
+    \pertype{Journal Article}
+    \pertype{Magazine Article}
+    \pertype{Newspaper Article}
+    \step[fieldsource={titles/secondary-title}, fieldtarget={titles/journaltitle}]
+  }
+  \map{
+    \pertype{Book Section}
+    \step[fieldsource={titles/tertiary-title}, fieldtarget={titles/booktitle}]
+  }
+  \map{
+    \pertype{Conference Proceedings}
+    \pertype{periodical}
+    \step[fieldsource={titles/tertiary-title}, fieldtarget={titles/series}]
+  }
+}
+\DeclareDefaultSourcemap[datatype=ris]{
+  \map{
+    \step[typesource=ART,    typetarget=artwork]
+    \step[typesource=BILL,   typetarget=jurisdiction]
+    \step[typesource=BOOK,   typetarget=book]
+    \step[typesource=CHAP,   typetarget=inbook]
+    \step[typesource=COMP,   typetarget=software]
+    \step[typesource=CONF,   typetarget=proceedings]
+    \step[typesource=GEN,    typetarget=misc]
+    \step[typesource=JFULL,  typetarget=article]
+    \step[typesource=JOUR,   typetarget=article]
+    \step[typesource=MGZN,   typetarget=misc]
+    \step[typesource=MPCT,   typetarget=movie]
+    \step[typesource=NEWS,   typetarget=misc]
+    \step[typesource=PAMP,   typetarget=misc]
+    \step[typesource=PAT,    typetarget=patent]
+    \step[typesource=PCOMM,  typetarget=misc]
+    \step[typesource=RPRT,   typetarget=report]
+    \step[typesource=SER,    typetarget=misc]
+    \step[typesource=SLIDE,  typetarget=misc]
+    \step[typesource=SOUND,  typetarget=audio]
+    \step[typesource=STAT,   typetarget=legal]
+    \step[typesource=THES,   typetarget=thesis]
+    \step[typesource=UNBILL, typetarget=jurisdiction]
+    \step[typesource=UNPB,   typetarget=unpublished]
+  }
+  \map{
+    \step[fieldsource=Y1,       fieldtarget=date]
+    \step[fieldsource=PY,       fieldtarget=date]
+    \step[fieldsource=Y2,       fieldtarget=eventdate]
+    \step[fieldsource=A1,       fieldtarget=author]
+    \step[fieldsource=AU,       fieldtarget=author]
+    \step[fieldsource=A2,       fieldtarget=editor]
+    \step[fieldsource=A3,       fieldtarget=editor]
+    \step[fieldsource=ED,       fieldtarget=editor]
+    \step[fieldsource=SPEP,     fieldtarget=pages]
+    \step[fieldsource=N1,       fieldtarget=note]
+    \step[fieldsource=N2,       fieldtarget=abstract]
+    \step[fieldsource=AB,       fieldtarget=abstract]
+    \step[fieldsource=JO,       fieldtarget=journaltitle]
+    \step[fieldsource=JF,       fieldtarget=journaltitle]
+    \step[fieldsource=JA,       fieldtarget=shortjournal]
+    \step[fieldsource=VL,       fieldtarget=volume]
+    \step[fieldsource=IS,       fieldtarget=issue]
+    \step[fieldsource=CP,       fieldtarget=issue]
+    \step[fieldsource=CY,       fieldtarget=location]
+    \step[fieldsource=SN,       fieldtarget=isbn]
+    \step[fieldsource=PB,       fieldtarget=publisher]
+    \step[fieldsource=KW,       fieldtarget=keywords]
+    \step[fieldsource=TI,       fieldtarget=title]
+    \step[fieldsource=U1,       fieldtarget=usera]
+    \step[fieldsource=U2,       fieldtarget=userb]
+    \step[fieldsource=U3,       fieldtarget=userc]
+    \step[fieldsource=U4,       fieldtarget=userd]
+    \step[fieldsource=U5,       fieldtarget=usere]
+    \step[fieldsource=UR,       fieldtarget=url]
+    \step[fieldsource=L1,       fieldtarget=file]
+  }
+}
+\DeclareDefaultSourcemap[datatype=zoterordfxml]{
+  \map{
+    \step[typesource=conferencePaper,     typetarget=inproceedings]
+    \step[typesource=bookSection,         typetarget=inbook]
+    \step[typesource=journalArticle,      typetarget=article]
+    \step[typesource=magazineArticle,     typetarget=article]
+    \step[typesource=newspaperArticle,    typetarget=article]
+    \step[typesource=encyclopediaArticle, typetarget=inreference]
+    \step[typesource=manuscript,          typetarget=unpublished]
+    \step[typesource=document,            typetarget=misc]
+    \step[typesource=dictionaryEntry,     typetarget=inreference]
+    \step[typesource=interview,           typetarget=misc]
+    \step[typesource=film,                typetarget=movie]
+    \step[typesource=webpage,             typetarget=online]
+    \step[typesource=note,                typetarget=misc]
+    \step[typesource=attachment,          typetarget=misc]
+    \step[typesource=bill,                typetarget=legislation]
+    \step[typesource=case,                typetarget=jurisdiction]
+    \step[typesource=hearing,             typetarget=jurisdiction]
+    \step[typesource=statute,             typetarget=legislation]
+    \step[typesource=email,               typetarget=letter]
+    \step[typesource=map,                 typetarget=image]
+    \step[typesource=blogPost,            typetarget=online]
+    \step[typesource=instantMessage,      typetarget=letter]
+    \step[typesource=forumPost,           typetarget=online]
+    \step[typesource=audioRecording,      typetarget=audio]
+    \step[typesource=presentation,        typetarget=inproceedings]
+    \step[typesource=videoRecording,      typetarget=video]
+    \step[typesource=tvBroadcast,         typetarget=misc]
+    \step[typesource=radioBroadcast,      typetarget=misc]
+    \step[typesource=podcast,             typetarget=online]
+    \step[typesource=computerProgram,     typetarget=software]
+  }
+  \map{
+    \step[fieldsource=bib:contributors,    fieldtarget=author]
+    \step[fieldsource=bib:authors,         fieldtarget=author]
+    \step[fieldsource=z:interviewers,      fieldtarget=author]
+    \step[fieldsource=z:directors,         fieldtarget=author]
+    \step[fieldsource=z:scriptwriters,     fieldtarget=author]
+    \step[fieldsource=z:bookAuthor,        fieldtarget=author]
+    \step[fieldsource=z:inventors,         fieldtarget=author]
+    \step[fieldsource=z:recipients,        fieldtarget=author]
+    \step[fieldsource=z:counsels,          fieldtarget=author]
+    \step[fieldsource=z:artists,           fieldtarget=author]
+    \step[fieldsource=z:podcasters,        fieldtarget=author]
+    \step[fieldsource=z:presenters,        fieldtarget=author]
+    \step[fieldsource=z:commenters,        fieldtarget=author]
+    \step[fieldsource=z:programers,        fieldtarget=author]
+    \step[fieldsource=z:composers,         fieldtarget=author]
+    \step[fieldsource=z:producers,         fieldtarget=author]
+    \step[fieldsource=z:performers,        fieldtarget=author]
+    \step[fieldsource=bib:editors,         fieldtarget=editor]
+    \step[fieldsource=z:translators,       fieldtarget=translator]
+    \step[fieldsource=z:seriesEditors,     fieldtarget=editor]
+    \step[fieldsource=dc:date,             fieldtarget=date]
+    \step[fieldsource=bib:pages,           fieldtarget=pages]
+    \step[fieldsource=dc:title,            fieldtarget=title]
+    \step[fieldsource=z:proceedingsTitle,  fieldtarget=title]
+    \step[fieldsource=z:encyclopediaTitle, fieldtarget=title]
+    \step[fieldsource=z:dictionaryTitle,   fieldtarget=title]
+    \step[fieldsource=z:websiteTitle,      fieldtarget=title]
+    \step[fieldsource=z:forumTitle,        fieldtarget=title]
+    \step[fieldsource=z:blogTitle,         fieldtarget=title]
+    \step[fieldsource=z:nameOfAct,         fieldtarget=title]
+    \step[fieldsource=z:caseName,          fieldtarget=title]
+    \step[fieldsource=z:meetingName,       fieldtarget=eventtitle]
+    \step[fieldsource=prism:volume,        fieldtarget=volume]
+    \step[fieldsource=numberOfVolumes,     fieldtarget=volumes]
+    \step[fieldsource=z:numPages,          fieldtarget=pagetotal]
+    \step[fieldsource=prism:edition,       fieldtarget=edition]
+    \step[fieldsource=dc:description,      fieldtarget=note]
+    \step[fieldsource=dc:alternative,      fieldtarget=shortjournal]
+    \step[fieldsource=dcterms:abstract,    fieldtarget=abstract]
+    \step[fieldsource=dc:type,             fieldtarget=type]
+    \step[fieldsource=z:shortTitle,        fieldtarget=shorttitle]
+    \step[fieldsource=z:bookTitle,         fieldtarget=booktitle]
+    \step[fieldsource=prism:number,        fieldtarget=number]
+    \step[fieldsource=z:patentNumber,      fieldtarget=number]
+    \step[fieldsource=z:codeNumber,        fieldtarget=number]
+    \step[fieldsource=z:reportNumber,      fieldtarget=number]
+    \step[fieldsource=z:billNumber,        fieldtarget=number]
+    \step[fieldsource=z:documentNumber,    fieldtarget=number]
+    \step[fieldsource=z:publicLawNumber,   fieldtarget=number]
+    \step[fieldsource=z:applicationNumber, fieldtarget=number]
+    \step[fieldsource=z:episodeNumber,     fieldtarget=number]
+    \step[fieldsource=dc:coverage,         fieldtarget=location]
+    \step[fieldsource=z:university,        fieldtarget=institution]
+    \step[fieldsource=z:language,          fieldtarget=language]
+    \step[fieldsource=z:version,           fieldtarget=version]
+    \step[fieldsource=z:libraryCatalog,    fieldtarget=library]
+    \step[fieldsource=dcterms:isPartOf,    fieldtarget=BIBERCUSTOMpartof]
+    \step[fieldsource=dc:identifier,       fieldtarget=BIBERCUSTOMidentifier]
+    \step[fieldsource=dc:publisher,        fieldtarget=BIBERCUSTOMpublisher]
+    \step[fieldsource=dc:presentedAt,      fieldtarget=BIBERCUSTOMpresentedat]
+    \step[fieldsource=dc:subject,          fieldtarget=BIBERCUSTOMsubject]
+    \step[fieldsource={dcterms:BIBERCUSTOMpartof/bib:Journal},  fieldtarget={dcterms:BIBERCUSTOMpartof/periodical}]
+    \step[fieldsource={dcterms:BIBERCUSTOMpartof/bib:Book},  fieldtarget={dcterms:BIBERCUSTOMpartof/book}]
+    \step[fieldsource={dcterms:BIBERCUSTOMpartof/bib:ConferenceProceedings},  fieldtarget={dcterms:BIBERCUSTOMpartof/proceedings}]
+  }
+}
+
+% ------------------------------------------------------------------
+% META-FIELDS
 % ------------------------------------------------------------------
 
 \DeclareLabelname{%
@@ -934,6 +1281,10 @@
   eventyear,
   origyear,
   urlyear}
+
+\DeclareLabeltitle{%
+  shorttitle,
+  title}
 
 % ------------------------------------------------------------------
 % LABELALPHA TEMPLATE
@@ -957,6 +1308,15 @@
 
 \DeclarePresort{mm}
 
+\DeclareSortingScheme{shorthand}{
+  \sort[final]{
+    \field{sortshorthand}
+  }
+  \sort{
+    \field{shorthand}
+  }
+}
+
 \DeclareSortingScheme{none}{
   \sort{\citeorder}
 }
@@ -975,10 +1335,10 @@
     \field{sortkey}
   }
   \sort{
-    \name{sortname}
-    \name{author}
-    \name{editor}
-    \name{translator}
+    \field{sortname}
+    \field{author}
+    \field{editor}
+    \field{translator}
     \field{sorttitle}
     \field{title}
   }
@@ -1004,10 +1364,10 @@
     \field{sortkey}
   }
   \sort{
-    \name{sortname}
-    \name{author}
-    \name{editor}
-    \name{translator}
+    \field{sortname}
+    \field{author}
+    \field{editor}
+    \field{translator}
     \field{sorttitle}
     \field{title}
   }
@@ -1033,10 +1393,10 @@
     \field{sortkey}
   }
   \sort{
-    \name{sortname}
-    \name{author}
-    \name{editor}
-    \name{translator}
+    \field{sortname}
+    \field{author}
+    \field{editor}
+    \field{translator}
     \field{sorttitle}
     \field{title}
   }
@@ -1065,10 +1425,10 @@
     \field{sortkey}
   }
   \sort{
-    \name{sortname}
-    \name{author}
-    \name{editor}
-    \name{translator}
+    \field{sortname}
+    \field{author}
+    \field{editor}
+    \field{translator}
     \field{sorttitle}
     \field{title}
   }
@@ -1097,10 +1457,10 @@
     \field{sortkey}
   }
   \sort{
-    \name{sortname}
-    \name{author}
-    \name{editor}
-    \name{translator}
+    \field{sortname}
+    \field{author}
+    \field{editor}
+    \field{translator}
     \field{sorttitle}
     \field{title}
   }
@@ -1131,10 +1491,10 @@
     \literal{9999}
   }
   \sort{
-    \name{sortname}
-    \name{author}
-    \name{editor}
-    \name{translator}
+    \field{sortname}
+    \field{author}
+    \field{editor}
+    \field{translator}
     \field{sorttitle}
     \field{title}
   }
@@ -1157,10 +1517,10 @@
     \literal{9999}
   }
   \sort{
-    \name{sortname}
-    \name{author}
-    \name{editor}
-    \name{translator}
+    \field{sortname}
+    \field{author}
+    \field{editor}
+    \field{translator}
     \field{sorttitle}
     \field{title}
   }
@@ -1482,7 +1842,7 @@
     \markboth{\chaptermarkformat#1}{\chaptermarkformat#1}}
   \defbibheading{subbibliography}[\refname]{%
     \section*{#1}%
-    \if@twoside\markright{\sectionmarkformat#1}\fi}
+    \if@twoside\markright{#1}\fi}
   \defbibheading{subbibintoc}[\refname]{%
     \addsec{#1}%
     \markboth{#1}{#1}}
@@ -2344,5 +2704,112 @@
   \iffieldundef{abstract}
     {\printfile[abstract]{\bibabstractprefix\thefield{entrykey}.tex}}
     {\printfield{abstract}}}
+
+\newbibmacro*{related:default}[1]{%
+  \entrydata{#1}{%
+    \usebibmacro{title}%
+    \newunit
+    \ifentrytype{article}
+      {\usebibmacro{in:}%
+       \usebibmacro{journal+issuetitle}%
+       \newunit\newblock}
+      {}%
+    \ifboolexpr{
+      test {\ifentrytype{inbook}}
+      or
+      test {\ifentrytype{incollection}}
+      or
+      test {\ifentrytype{inproceedings}}
+    }
+      {\usebibmacro{in:}%
+       \usebibmacro{maintitle+booktitle}%
+       \newunit\newblock
+       \usebibmacro{event+venue+date}%
+       \newunit\newblock}
+      {}%
+  \usebibmacro{byeditor+others}%
+  \newunit\newblock
+  \printlist{location}%
+  \iflistundef{publisher}
+    {\setunit*{\addcomma\space}}
+    {\setunit*{\addcolon\space}}%
+  \printlist{publisher}%
+  \setunit*{\addcomma\space}%
+  \printdate%
+  \setunit{\bibpagespunct}%
+  \printfield{pages}}}
+
+\newbibmacro*{related:bytranslator}[1]{%
+  \entrydata{#1}{%
+    \printnames[bytranslator]{translator}%
+    \setunit*{\addspace\bibstring{astitle}\space}%
+    \usebibmacro{title}%
+    \setunit{\addspace}%
+    \printtext[parens]{%
+      \printlist{location}%
+      \iflistundef{publisher}
+        {\setunit*{\addcomma\space}}
+        {\setunit*{\addcolon\space}}%
+      \printlist{publisher}%
+      \setunit*{\addcomma\space}%
+      \printdate}}}
+
+\newbibmacro*{related:multivolume}[1]{%
+  \entrydata*{#1}{%
+    \printfield{volume}%
+    \printfield{part}%
+    \setunit{\addcolon\space}%
+    \usebibmacro{title}%
+    \ifboolexpr{
+      test {\ifnamesequal{author}{savedauthor}}
+      or
+      test {\ifnameundef{author}}
+    } 
+      {}
+      {\usebibmacro{bytypestrg}{author}{author}%
+       \setunit{\addspace}%
+       \printnames[byauthor]{author}
+       \newunit\newblock}%
+    \ifboolexpr{
+      test {\ifnamesequal{editor}{savededitor}}
+      or
+      test {\ifnameundef{editor}}
+    } 
+      {}
+      {\usebibmacro{byeditor+others}%
+       \newunit\newblock}%
+  \printdate}}
+
+\newbibmacro*{related:origpubin}[1]{%
+  \entrydata*{#1}{%
+    \printfield{year}%
+    \ifboolexpr{
+      test {\iflistsequal{publisher}{savedpublisher}}
+      or
+      test {\iflistundef{publisher}}
+    }
+      {}
+      {\setunit{\addspace\bibstring{bypublisher}\space}%
+       \printlist{publisher}%
+       \setunit{\addcomma\space}%
+       \iflistsequal{location}{savedlocation}
+         {}
+         {\printlist{location}}}}}
+
+\newbibmacro*{related:origpubas}[1]{%
+  \entrydata*{#1}{%
+    \usebibmacro{title}%
+    \ifboolexpr{
+      test {\iflistsequal{publisher}{savedpublisher}}
+      or
+      test {\iflistundef{publisher}}
+    }
+      {}
+      {\setunit{\addspace\bibstring{bypublisher}\space}%
+       \printlist{publisher}%
+       \setunit{\addcomma\space}%
+       \iflistsequal{location}{savedlocation}
+         {}
+         {\printlist{location}}}}}
 
 \endinput

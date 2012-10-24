@@ -1,0 +1,1574 @@
+% -*- mode: LaTeX -*-
+
+\newbool{dmskipout}%
+
+% Data model .bcf output macros
+\xdef\blx@xml@datamodel#1{%
+  ~~<bcf:datamodel>\blx@nl
+  #1%
+  ~~</bcf:datamodel>\blx@nl}
+\xdef\blx@xml@datamodel@entrytypes#1{%
+  ~~~~<bcf:entrytypes>\blx@nl
+  #1%
+  ~~~~</bcf:entrytypes>\blx@nl}
+\xdef\blx@xml@datamodel@entrytype#1#2{%
+  ~~~~~~<bcf:entrytype#1>#2</bcf:entrytype>\blx@nl}
+\xdef\blx@xml@datamodel@fields#1{%
+  ~~~~<bcf:fields>\blx@nl
+  #1%
+  ~~~~</bcf:fields>\blx@nl}
+\xdef\blx@xml@datamodel@field#1#2{%
+  ~~~~~~<bcf:field#1>#2</bcf:field>\blx@nl}
+\xdef\blx@xml@datamodel@entryfields#1{%
+  ~~~~<bcf:entryfields>\blx@nl
+  #1%
+  ~~~~</bcf:entryfields>\blx@nl}
+\xdef\blx@xml@datamodel@entryfield@type#1{%
+  ~~~~~~<bcf:entrytype>#1</bcf:entrytype>\blx@nl}
+\xdef\blx@xml@datamodel@entryfield@field#1{%
+  ~~~~~~<bcf:field>#1</bcf:field>\blx@nl}
+\xdef\blx@xml@datamodel@constraints#1{%
+  ~~~~<bcf:constraints>\blx@nl
+  #1%
+  ~~~~</bcf:constraints>\blx@nl}
+\xdef\blx@xml@datamodel@constraints@type#1{%
+  ~~~~~~<bcf:entrytype>#1</bcf:entrytype>\blx@nl}
+\xdef\blx@xml@datamodel@constraint#1#2{%
+  ~~~~~~<bcf:constraint#1>\blx@nl
+  #2%
+  ~~~~~~</bcf:constraint>\blx@nl}
+\xdef\blx@xml@datamodel@constraintfieldsxor#1{%
+  ~~~~~~~~<bcf:fieldxor>\blx@nl
+  #1%
+  ~~~~~~~~</bcf:fieldxor>\blx@nl}
+\xdef\blx@xml@datamodel@constraintfieldsor#1{%
+  ~~~~~~~~<bcf:fieldor>\blx@nl
+  #1%
+  ~~~~~~~~</bcf:fieldor>\blx@nl}
+\xdef\blx@xml@datamodel@constraint@antecedent#1#2{%
+  ~~~~~~~~<bcf:antecedent#1>\blx@nl
+  #2%
+  ~~~~~~~~</bcf:antecedent>\blx@nl}
+\xdef\blx@xml@datamodel@constraint@consequent#1#2{%
+  ~~~~~~~~<bcf:consequent#1>\blx@nl
+  #2%
+  ~~~~~~~~</bcf:consequent>\blx@nl}
+\xdef\blx@xml@datamodel@constraintfield#1{%
+  ~~~~~~~~<bcf:field>#1</bcf:field>\blx@nl}
+\xdef\blx@xml@datamodel@constraintfieldsub#1{%
+  ~~~~~~~~~~<bcf:field>#1</bcf:field>\blx@nl}
+
+% Data model specification macros
+\newrobustcmd*{\ResetDatamodelEntrytypes}{%
+  \global\cslet{blx@bcf@datamodel@entrytypes}\@empty
+  \global\cslet{blx@biber@datamodel@entrytypes}\@empty}
+
+\newrobustcmd*{\ResetDatamodelFields}{%
+  \global\cslet{blx@bcf@datamodel@fields}\@empty
+  \global\cslet{blx@biber@datamodel@fields}\@empty
+  \global\cslet{blx@biber@datamodel@names}\@empty
+  \global\cslet{blx@biber@datamodel@lists}\@empty}
+
+\newrobustcmd*{\ResetDatamodelEntryfields}{%
+  \global\cslet{blx@bcf@datamodel@entryfields}\@empty}
+
+\newrobustcmd*{\ResetDatamodelConstraints}{%
+  \global\cslet{blx@bcf@datamodel@constraints}\@empty}
+
+\newrobustcmd*{\DeclareDatamodelEntrytypes}[2][]{%
+  \begingroup
+  \let\blx@tempa\@empty
+  \def\do##1{%
+    \ifinlistcs{##1}{blx@biber@datamodel@entrytypes}
+      {}
+      {\listcsgadd{blx@biber@datamodel@entrytypes}{##1}}%
+    \xappto\blx@bcf@datamodel@entrytypes{%
+      \blx@xml@datamodel@entrytype{\blx@tempa}{##1}}}%
+  \ifblank{#1}
+    {\docsvlist{#2}}
+    {\setkeys{blx@datamodel@entrytypes}{#1}
+     \docsvlist{#2}}%
+  \endgroup}
+
+\define@key{blx@datamodel@entrytypes}{skipout}[true]{% true|false
+  \ifstrequal{#1}{true}  
+    {\appto\blx@tempa{ skip\string_output="true"}}
+    {}}
+
+\newrobustcmd*{\DeclareDatamodelFields}[2][]{%
+  \begingroup
+  \let\blx@dm@type\@empty
+  \let\blx@dm@datatype\@empty
+  \boolfalse{dmskipout}%
+  \let\blx@tempa\@empty
+  \setkeys{blx@datamodel@field}{#1}%
+  \def\do##1{%
+    \ifboolexpr{% add to list of names if it is a name which appears in .bbl
+      not bool {dmskipout}
+      and
+      test {\ifcsstring{blx@dm@datatype}{name}}
+      and
+      not test {\ifinlistcs{##1}{blx@biber@datamodel@names}}}
+        {\listcsgadd{blx@biber@datamodel@names}{##1}}
+        {}%
+    \ifboolexpr{% add to list of lists if it is a list which appears in .bbl
+      not bool {dmskipout}
+      test {\ifcsstring{blx@dm@type}{list}}
+      and
+      ( test {\ifcsstring{blx@dm@datatype}{literal}}
+        or
+        test {\ifcsstring{blx@dm@datatype}{key}}
+      )
+      and
+      not test {\ifinlistcs{##1}{blx@biber@datamodel@lists}}}
+        {\listcsgadd{blx@biber@datamodel@lists}{##1}}
+        {}%
+    \ifboolexpr{% add to list of fields unless certain type/datatype etc.
+      bool {dmskipout}
+      or
+      test {\ifcsstring{blx@dm@datatype}{name}}
+      or
+      ( test {\ifcsstring{blx@dm@type}{list}}
+        and
+        test {\ifcsstring{blx@dm@datatype}{literal}}
+      )
+      or
+      ( test {\ifcsstring{blx@dm@type}{field}}
+        and
+        test {\ifcsstring{blx@dm@datatype}{code}}
+      )
+      or
+      ( test {\ifcsstring{blx@dm@type}{list}}
+        and
+        test {\ifcsstring{blx@dm@datatype}{key}}
+      )
+      or
+      test {\ifinlistcs{##1}{blx@biber@datamodel@fields}}}
+      {}
+      {\listcsgadd{blx@biber@datamodel@fields}{##1}}%
+    \xappto\blx@bcf@datamodel@fields{%
+      \blx@xml@datamodel@field{\blx@tempa}{##1}}}%
+  \docsvlist{#2}
+  \endgroup}
+
+\define@key{blx@datamodel@field}{type}{% characters
+  \eappto\blx@tempa{ fieldtype="#1"}%
+  \def\blx@dm@type{#1}}
+\define@key{blx@datamodel@field}{datatype}{% characters
+  \eappto\blx@tempa{ datatype="#1"}%
+  \def\blx@dm@datatype{#1}}
+\define@key{blx@datamodel@field}{nullok}[true]{% true|false
+  \ifstrequal{#1}{true}
+    {\appto\blx@tempa{ nullok="true"}}
+    {}}
+\define@key{blx@datamodel@field}{skipout}[true]{% true|false
+  \ifstrequal{#1}{true}  
+    {\appto\blx@tempa{ skip\string_output="true"}%
+     \booltrue{dmskipout}}
+    {}}
+
+\newrobustcmd*{\DeclareDatamodelEntryfields}[2][]{%
+  \begingroup
+  \let\blx@tempa\@empty
+  \let\blx@tempb\@empty
+  \ifblank{#1}
+    {}
+    {\def\do##1{%
+        \eappto\blx@tempa{\blx@xml@datamodel@entryfield@type{##1}}}%
+     \docsvlist{#1}}%
+  \def\do##1{%
+    \eappto\blx@tempb{\blx@xml@datamodel@entryfield@field{##1}}}%
+  \docsvlist{#2}%
+  \xappto\blx@bcf@datamodel@entryfields{\blx@xml@datamodel@entryfields{\blx@tempa\blx@tempb}}%
+  \endgroup}
+
+\newrobustcmd*{\DeclareDatamodelConstraints}[2][]{%
+  \begingroup
+  \let\blx@tempa\@empty
+  \let\blx@tempb\@empty
+  \let\constraint\blx@datamodel@constraint
+  \ifblank{#1}
+    {}
+    {\def\do##1{%
+        \eappto\blx@tempa{\blx@xml@datamodel@constraints@type{##1}}}%
+     \docsvlist{#1}}%
+  #2%
+  \xappto\blx@bcf@datamodel@constraints{\blx@xml@datamodel@constraints{\blx@tempa\blx@tempb}}%
+  \endgroup}
+
+\newcommand*{\blx@datamodel@constraint}[2][]{%
+  \let\blx@tempc\@empty
+  \let\blx@tempd\@empty
+  \setkeys{blx@datamodel@constraint}{#1}%
+  \let\constraintfieldsxor\blx@datamodel@constraintfieldsxor
+  \let\constraintfieldsor\blx@datamodel@constraintfieldsor
+  \let\constraintfield\blx@datamodel@constraintfield
+  \let\antecedent\blx@datamodel@constraint@antecedent
+  \let\consequent\blx@datamodel@constraint@consequent
+  #2%
+  \eappto\blx@tempb{\blx@xml@datamodel@constraint{\blx@tempc}{\blx@tempd}}}
+
+\define@key{blx@datamodel@constraint}{type}{% characters
+  \eappto\blx@tempc{ type="#1"}}
+\define@key{blx@datamodel@constraint}{datatype}{% characters
+  \eappto\blx@tempc{ datatype="#1"}}
+\define@key{blx@datamodel@constraint}{rangemin}{% integer
+  \eappto\blx@tempc{ rangemin="#1"}}
+\define@key{blx@datamodel@constraint}{rangemax}{% integer
+  \eappto\blx@tempc{ rangemax="#1"}}
+\define@key{blx@datamodel@constraint}{pattern}{% regexp
+  \eappto\blx@tempc{ pattern="#1"}}
+
+\newcommand*{\blx@datamodel@constraint@antecedent}[2][]{%
+  \let\blx@tempe\@empty
+  \let\blx@temph\@empty
+  \let\constraintfield\blx@datamodel@constraintfieldsub
+  \setkeys{blx@datamodel@constraint@quant}{#1}%
+  #2%
+  \let\constraintfield\blx@datamodel@constraintfield% back to default
+  \eappto\blx@tempd{\blx@xml@datamodel@constraint@antecedent{\blx@tempe}{\blx@temph}}}
+
+\newcommand*{\blx@datamodel@constraint@consequent}[2][]{%
+  \let\blx@tempe\@empty
+  \let\blx@temph\@empty
+  \let\constraintfield\blx@datamodel@constraintfieldsub
+  \setkeys{blx@datamodel@constraint@quant}{#1}%
+  #2%
+  \let\constraintfield\blx@datamodel@constraintfield% back to default
+  \eappto\blx@tempd{\blx@xml@datamodel@constraint@consequent{\blx@tempe}{\blx@temph}}}
+
+\define@key{blx@datamodel@constraint@quant}{quantifier}{% characters
+  \eappto\blx@tempe{ quant="#1"}}
+
+\newcommand*{\blx@datamodel@constraintfieldsxor}[1]{%
+  \let\blx@temph\@empty
+  \let\constraintfield\blx@datamodel@constraintfieldsub
+  #1%
+  \let\constraintfield\blx@datamodel@constraintfield% back to default
+  \eappto\blx@tempd{\blx@xml@datamodel@constraintfieldsxor{\blx@temph}}}
+
+\newcommand*{\blx@datamodel@constraintfieldsor}[1]{%
+  \let\blx@temph\@empty
+  \let\constraintfield\blx@datamodel@constraintfieldsub
+  #1%
+  \let\constraintfield\blx@datamodel@constraintfield% back to default
+  \eappto\blx@tempd{\blx@xml@datamodel@constraintfieldsor{\blx@temph}}}
+
+\newcommand*{\blx@datamodel@constraintfield}[1]{%
+  \eappto\blx@tempd{\blx@xml@datamodel@constraintfield{#1}}}
+
+\newcommand*{\blx@datamodel@constraintfieldsub}[1]{%
+  \eappto\blx@temph{\blx@xml@datamodel@constraintfieldsub{#1}}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Data model specification
+
+
+\DeclareDatamodelEntrytypes{
+  article,
+  artwork,
+  audio,
+  bibnote,
+  book,
+  bookinbook,
+  booklet,
+  collection,
+  commentary,
+  customa,
+  customb,
+  customc,
+  customd,
+  custome,
+  customf,
+  inbook,
+  incollection,
+  inproceedings,
+  inreference,
+  image,
+  jurisdiction,
+  legal,
+  legislation,
+  letter,
+  manual,
+  misc,
+  movie,
+  music,
+  mvcollection,
+  mvbook,
+  online,
+  patent,
+  performance,
+  periodical,
+  proceedings,
+  reference,
+  report,
+  review,
+  set,
+  software,
+  standard,
+  suppbook,
+  suppcollection,
+  thesis,
+  unpublished,
+  video}
+
+\DeclareDatamodelEntrytypes[skipout]{xdata}
+
+\DeclareDatamodelFields[type=field, datatype=integer]{
+  day,
+  endday,
+  endmonth,
+  eventday,
+  eventendday,
+  eventendmonth,
+  eventmonth,
+  eventyear,
+  origday,
+  origendday,
+  origendmonth,
+  origmonth,
+  origyear,
+  urlday,
+  urlendday,
+  urlendmonth,
+  urlmonth,
+  urlyear}
+
+\DeclareDatamodelFields[type=field, datatype=literal]{
+  abstract,
+  addendum,
+  annotation,
+  booksubtitle,
+  booktitle,
+  booktitleaddon,
+  chapter,
+  edition,
+  eid,
+  entrysubtype,
+  eprintclass,
+  eprinttype,
+  eventtitle,
+  gender,
+  howpublished,
+  hyphenation,
+  indexsorttitle,
+  indextitle,
+  isan,
+  isbn,
+  ismn,
+  isrn,
+  issn,
+  issue,
+  issuesubtitle,
+  issuetitle,
+  iswc,
+  journalsubtitle,
+  journaltitle,
+  label,
+  library,
+  mainsubtitle,
+  maintitle,
+  maintitleaddon,
+  month,
+  nameaddon,
+  note,
+  number,
+  origtitle,
+  pagetotal,
+  part,
+  related,
+  relatedtype,
+  relatedstring,
+  reprinttitle,
+  series,
+  shorthand,
+  shorthandintro,
+  shortjournal,
+  shortseries,
+  shorttitle,
+  subtitle,
+  title,
+  titleaddon,
+  usera,
+  userb,
+  userc,
+  userd,
+  usere,
+  userf,
+  venue,
+  version,
+  volume,
+  volumes,
+  year}
+
+\DeclareDatamodelFields[type=field, datatype=integer, nullok]{
+  urlendyear,
+  endyear,
+  eventendyear,
+  origendyear}
+
+\DeclareDatamodelFields[type=field, datatype=literal, skipout]{
+  sorttitle,
+  sortshorthand,
+  sortyear,
+  sortkey,
+  presort,
+  entryset}
+
+\DeclareDatamodelFields[type=list, datatype=literal]{
+  institution,
+  lista,
+  listb,
+  listc,
+  listd,
+  liste,
+  listf,
+  location,
+  organization,
+  origlocation,
+  origpublisher,
+  publisher}
+
+\DeclareDatamodelFields[type=list, datatype=name]{
+  afterword,
+  annotator,
+  author,
+  bookauthor,
+  commentator,
+  editor,
+  editora,
+  editorb,
+  editorc,
+  foreword,
+  holder,
+  introduction,
+  namea,
+  nameb,
+  namec,
+  shortauthor,
+  shorteditor,
+  translator}
+
+\DeclareDatamodelFields[type=list, datatype=name, skipout]{sortname}
+
+\DeclareDatamodelFields[type=field, datatype=key]{
+  authortype,
+  editoratype,
+  editorbtype,
+  editorctype,
+  editortype,
+  bookpagination,
+  nameatype,
+  namebtype,
+  namectype,
+  origlanguage,
+  pagination,
+  pubstate,
+  type}
+
+\DeclareDatamodelFields[type=list, datatype=key]{language}
+
+\DeclareDatamodelFields[type=field, datatype=entrykey]{
+  crossref,
+  xref}
+
+\DeclareDatamodelFields[type=list, datatype=entrykey, skipout]{xdata, ids}
+
+\DeclareDatamodelFields[type=field, datatype=date, skipout]{
+  date,
+  eventdate,
+  origdate,
+  urldate}
+
+\DeclareDatamodelFields[type=field, datatype=verbatim]{
+  doi,
+  eprint,
+  file,
+  verba,
+  verbb,
+  verbc}
+
+\DeclareDatamodelFields[type=field, datatype=uri]{url}
+
+\DeclareDatamodelFields[type=field, datatype=csv]{keywords}
+\DeclareDatamodelFields[type=field, datatype=csv, skipout]{options}
+\DeclareDatamodelFields[type=field, datatype=range]{pages}
+\DeclareDatamodelFields[type=field, datatype=code]{execute}
+
+\DeclareDatamodelEntryfields{
+  abstract,
+  annotation,
+  authortype,
+  bookpagination,
+  crossref,
+  entryset,
+  entrysubtype,
+  execute,
+  file,
+  gender,
+  hyphenation,
+  ids,
+  indextitle,
+  indexsorttitle,
+  isan,
+  ismn,
+  iswc,
+  keywords,
+  label,
+  library,
+  lista,
+  listb,
+  listc,
+  listd,
+  liste,
+  listf,
+  nameaddon,
+  options,
+  origday,
+  origendday,
+  origendmonth,
+  origendyear,
+  origmonth,
+  origyear,
+  origlocation,
+  origpublisher,
+  origtitle,
+  pagination,
+  presort,
+  related,
+  relatedtype,
+  relatedstring,
+  shortauthor,
+  shorteditor,
+  shorthand,
+  shorthandintro,
+  shortjournal,
+  shortseries,
+  shorttitle,
+  sortkey,
+  sortname,
+  sortshorthand,
+  sorttitle,
+  sortyear,
+  usera,
+  userb,
+  userc,
+  userd,
+  usere,
+  userf,
+  verba,
+  verbb,
+  verbc,
+  xdata,
+  xref}
+
+\DeclareDatamodelEntryfields[set]{
+  entryset,
+  crossref}
+
+\DeclareDatamodelEntryfields[article]{
+  author,
+  journaltitle,
+  title,
+  day,
+  endday,
+  endmonth,
+  endyear,
+  month,
+  year,
+  addendum,
+  annotator,
+  commentator,
+  doi,
+  editor,
+  editora,
+  editorb,
+  editorc,
+  editoratype,
+  editorbtype,
+  editorctype,
+  eid,
+  eprint,
+  eprintclass,
+  eprinttype,
+  issn,
+  issue,
+  issuetitle,
+  issuesubtitle,
+  journalsubtitle,
+  language,
+  note,
+  number,
+  origlanguage,
+  pages,
+  pubstate,
+  series,
+  subtitle,
+  titleaddon,
+  translator,
+  url,
+  urlday,
+  urlendday,
+  urlendmonth,
+  urlendyear,
+  urlmonth,
+  urlyear,
+  version,
+  volume}
+
+\DeclareDatamodelEntryfields[bibnote]{note}
+
+\DeclareDatamodelEntryfields[book]{
+  author,
+  title,
+  day,
+  endday,
+  endmonth,
+  endyear,
+  month,
+  year,
+  addendum,
+  afterword,
+  annotator,
+  chapter,
+  commentator,
+  doi,
+  edition,
+  editor,
+  editora,
+  editorb,
+  editorc,
+  editoratype,
+  editorbtype,
+  editorctype,
+  eprint,
+  eprintclass,
+  eprinttype,
+  foreword,
+  introduction,
+  isbn,
+  language,
+  location,
+  maintitle,
+  maintitleaddon,
+  mainsubtitle,
+  note,
+  number,
+  origlanguage,
+  pages,
+  pagetotal,
+  part,
+  publisher,
+  pubstate,
+  series,
+  subtitle,
+  titleaddon,
+  translator,
+  url,
+  urlday,
+  urlendday,
+  urlendmonth,
+  urlendyear,
+  urlmonth,
+  urlyear,
+  volume,
+  volumes}
+
+\DeclareDatamodelEntryfields[mvbook]{
+  author,
+  title,
+  day,
+  endday,
+  endmonth,
+  endyear,
+  month,
+  year,
+  addendum,
+  afterword,
+  annotator,
+  commentator,
+  doi,
+  edition,
+  editor,
+  editora,
+  editorb,
+  editorc,
+  editoratype,
+  editorbtype,
+  editorctype,
+  eprint,
+  eprintclass,
+  eprinttype,
+  foreword,
+  introduction,
+  isbn,
+  language,
+  location,
+  note,
+  number,
+  origlanguage,
+  publisher,
+  pubstate,
+  subtitle,
+  titleaddon,
+  translator,
+  url,
+  urlday,
+  urlendday,
+  urlendmonth,
+  urlendyear,
+  urlmonth,
+  urlyear,
+  volume,
+  volumes}
+
+\DeclareDatamodelEntryfields[inbook,bookinbook,suppbook]{
+  author,
+  title,
+  booktitle,
+  day,
+  endday,
+  endmonth,
+  endyear,
+  month,
+  year,
+  addendum,
+  afterword,
+  annotator,
+  bookauthor,
+  booksubtitle,
+  booktitleaddon,
+  chapter,
+  commentator,
+  doi,
+  edition,
+  editor,
+  editora,
+  editorb,
+  editorc,
+  editoratype,
+  editorbtype,
+  editorctype,
+  eprint,
+  eprintclass,
+  eprinttype,
+  foreword,
+  introduction,
+  isbn,
+  language,
+  location,
+  mainsubtitle,
+  maintitle,
+  maintitleaddon,
+  note,
+  number,
+  origlanguage,
+  part,
+  publisher,
+  pages,
+  pubstate,
+  series,
+  subtitle,
+  titleaddon,
+  translator,
+  url,
+  urlday,
+  urlendday,
+  urlendmonth,
+  urlendyear,
+  urlmonth,
+  urlyear,
+  volume,
+  volumes}
+
+\DeclareDatamodelEntryfields[booklet]{
+  author,
+  editor,
+  title,
+  day,
+  endday,
+  endmonth,
+  endyear,
+  month,
+  year,
+  addendum,
+  chapter,
+  doi,
+  eprint,
+  eprintclass,
+  eprinttype,
+  howpublished,
+  language,
+  location,
+  note,
+  pages,
+  pagetotal,
+  pubstate,
+  subtitle,
+  titleaddon,
+  type,
+  url,
+  urlday,
+  urlendday,
+  urlendmonth,
+  urlendyear,
+  urlmonth,
+  urlyear}
+
+\DeclareDatamodelEntryfields[collection,reference]{
+  editor,
+  title,
+  day,
+  endday,
+  endmonth,
+  endyear,
+  month,
+  year,
+  addendum,
+  afterword,
+  annotator,
+  chapter,
+  commentator,
+  doi,
+  edition,
+  editora,
+  editorb,
+  editorc,
+  editoratype,
+  editorbtype,
+  editorctype,
+  eprint,
+  eprintclass,
+  eprinttype,
+  foreword,
+  introduction,
+  isbn,
+  language,
+  location,
+  mainsubtitle,
+  maintitle,
+  maintitleaddon,
+  note,
+  number,
+  origlanguage,
+  pages,
+  pagetotal,
+  part,
+  publisher,
+  pubstate,
+  series,
+  subtitle,
+  titleaddon,
+  translator,
+  url,
+  urlday,
+  urlendday,
+  urlendmonth,
+  urlendyear,
+  urlmonth,
+  urlyear,
+  volume,
+  volumes}
+
+\DeclareDatamodelEntryfields[mvcollection,mvreference]{
+  author,
+  title,
+  day,
+  endday,
+  endmonth,
+  endyear,
+  month,
+  year,
+  addendum,
+  afterword,
+  annotator,
+  commentator,
+  doi,
+  edition,
+  editor,
+  editora,
+  editorb,
+  editorc,
+  editoratype,
+  editorbtype,
+  editorctype,
+  eprint,
+  eprintclass,
+  eprinttype,
+  foreword,
+  introduction,
+  isbn,
+  language,
+  location,
+  note,
+  number,
+  origlanguage,
+  publisher,
+  pubstate,
+  subtitle,
+  titleaddon,
+  translator,
+  url,
+  urlday,
+  urlendday,
+  urlendmonth,
+  urlendyear,
+  urlmonth,
+  urlyear,
+  volume,
+  volumes}
+
+\DeclareDatamodelEntryfields[incollection,suppcollection,inreference]{
+  author,
+  editor,
+  title,
+  booktitle,
+  day,
+  endday,
+  endmonth,
+  endyear,
+  month,
+  year,
+  addendum,
+  afterword,
+  annotator,
+  booksubtitle,
+  booktitleaddon,
+  chapter,
+  commentator,
+  doi,
+  edition,
+  editora,
+  editorb,
+  editorc,
+  editoratype,
+  editorbtype,
+  editorctype,
+  eprint,
+  eprintclass,
+  eprinttype,
+  foreword,
+  introduction,
+  isbn,
+  language,
+  location,
+  mainsubtitle,
+  maintitle,
+  maintitleaddon,
+  note,
+  number,
+  origlanguage,
+  pages,
+  part,
+  publisher,
+  pubstate,
+  series,
+  subtitle,
+  titleaddon,
+  translator,
+  url,
+  urlday,
+  urlendday,
+  urlendmonth,
+  urlendyear,
+  urlmonth,
+  urlyear,
+  volume,
+  volumes}
+
+\DeclareDatamodelEntryfields[manual]{
+  title,
+  day,
+  endday,
+  endmonth,
+  endyear,
+  month,
+  year,
+  addendum,
+  author,
+  chapter,
+  doi,
+  edition,
+  editor,
+  eprint,
+  eprintclass,
+  eprinttype,
+  isbn,
+  language,
+  location,
+  note,
+  number,
+  organization,
+  pages,
+  pagetotal,
+  publisher,
+  pubstate,
+  series,
+  subtitle,
+  titleaddon,
+  type,
+  url,
+  urlday,
+  urlendday,
+  urlendmonth,
+  urlendyear,
+  urlmonth,
+  urlyear,
+  version}
+
+\DeclareDatamodelEntryfields[misc]{
+  title,
+  day,
+  endday,
+  endmonth,
+  endyear,
+  day,
+  endday,
+  endmonth,
+  endyear,
+  month,
+  year,
+  addendum,
+  author,
+  doi,
+  editor,
+  eprint,
+  eprintclass,
+  eprinttype,
+  howpublished,
+  language,
+  location,
+  note,
+  organization,
+  pubstate,
+  subtitle,
+  titleaddon,
+  type,
+  url,
+  urlday,
+  urlendday,
+  urlendmonth,
+  urlendyear,
+  urlmonth,
+  urlyear,
+  version}
+
+\DeclareDatamodelEntryfields[online]{
+  title,
+  url,
+  addendum,
+  author,
+  editor,
+  language,
+  month,
+  note,
+  organization,
+  pubstate,
+  subtitle,
+  titleaddon,
+  urlday,
+  urlendday,
+  urlendmonth,
+  urlendyear,
+  urlmonth,
+  urlyear,
+  version,
+  year}
+
+\DeclareDatamodelEntryfields[patent]{
+  author,
+  title,
+  number,
+  day,
+  endday,
+  endmonth,
+  endyear,
+  month,
+  year,
+  addendum,
+  doi,
+  eprint,
+  eprintclass,
+  eprinttype,
+  holder,
+  location,
+  note,
+  pubstate,
+  subtitle,
+  titleaddon,
+  type,
+  url,
+  urlday,
+  urlendday,
+  urlendmonth,
+  urlendyear,
+  urlmonth,
+  urlyear,
+  version}
+
+\DeclareDatamodelEntryfields[periodical]{
+  editor,
+  title,
+  day,
+  endday,
+  endmonth,
+  endyear,
+  month,
+  year,
+  addendum,
+  doi,
+  editora,
+  editorb,
+  editorc,
+  editoratype,
+  editorbtype,
+  editorctype,
+  eprint,
+  eprintclass,
+  eprinttype,
+  issn,
+  issue,
+  issuesubtitle,
+  issuetitle,
+  language,
+  note,
+  number,
+  pubstate,
+  series,
+  subtitle,
+  url,
+  urlday,
+  urlendday,
+  urlendmonth,
+  urlendyear,
+  urlmonth,
+  urlyear,
+  volume}
+
+\DeclareDatamodelEntryfields[mvproceedings]{
+  editor,
+  title,
+  day,
+  endday,
+  endmonth,
+  endyear,
+  month,
+  year,
+  addendum,
+  doi,
+  eprint,
+  eprintclass,
+  eprinttype,
+  eventday,
+  eventendday,
+  eventendmonth,
+  eventendyear,
+  eventmonth,
+  eventyear,
+  eventtitle,
+  isbn,
+  language,
+  location,
+  note,
+  number,
+  organization,
+  pagetotal,
+  publisher,
+  pubstate,
+  series,
+  subtitle,
+  titleaddon,
+  url,
+  urlday,
+  urlendday,
+  urlendmonth,
+  urlendyear,
+  urlmonth,
+  urlyear,
+  venue,
+  volumes}
+
+\DeclareDatamodelEntryfields[proceedings]{
+  editor,
+  title,
+  day,
+  endday,
+  endmonth,
+  endyear,
+  month,
+  year,
+  addendum,
+  chapter,
+  doi,
+  eprint,
+  eprintclass,
+  eprinttype,
+  eventday,
+  eventendday,
+  eventendmonth,
+  eventendyear,
+  eventmonth,
+  eventyear,
+  eventtitle,
+  isbn,
+  language,
+  location,
+  mainsubtitle,
+  maintitle,
+  maintitleaddon,
+  note,
+  number,
+  organization,
+  pages,
+  pagetotal,
+  part,
+  publisher,
+  pubstate,
+  series,
+  subtitle,
+  titleaddon,
+  url,
+  urlday,
+  urlendday,
+  urlendmonth,
+  urlendyear,
+  urlmonth,
+  urlyear,
+  venue,
+  volume,
+  volumes}
+
+\DeclareDatamodelEntryfields[inproceedings]{
+  author,
+  editor,
+  title,
+  booktitle,
+  day,
+  endday,
+  endmonth,
+  endyear,
+  month,
+  year,
+  addendum,
+  booksubtitle,
+  booktitleaddon,
+  chapter,
+  doi,
+  eprint,
+  eprintclass,
+  eprinttype,
+  eventday,
+  eventendday,
+  eventendmonth,
+  eventendyear,
+  eventmonth,
+  eventyear,
+  eventtitle,
+  isbn,
+  language,
+  location,
+  mainsubtitle,
+  maintitle,
+  maintitleaddon,
+  note,
+  number,
+  organization,
+  pages,
+  part,
+  publisher,
+  pubstate,
+  series,
+  subtitle,
+  titleaddon,
+  url,
+  urlday,
+  urlendday,
+  urlendmonth,
+  urlendyear,
+  urlmonth,
+  urlyear,
+  venue,
+  volume,
+  volumes}
+
+\DeclareDatamodelEntryfields[report]{
+  author,
+  title,
+  type,
+  institution,
+  day,
+  endday,
+  endmonth,
+  endyear,
+  month,
+  year,
+  addendum,
+  chapter,
+  doi,
+  eprint,
+  eprintclass,
+  eprinttype,
+  isrn,
+  language,
+  location,
+  note,
+  number,
+  pages,
+  pagetotal,
+  pubstate,
+  subtitle,
+  titleaddon,
+  url,
+  urlday,
+  urlendday,
+  urlendmonth,
+  urlendyear,
+  urlmonth,
+  urlyear,
+  version}
+
+\DeclareDatamodelEntryfields[thesis]{
+  author,
+  title,
+  type,
+  institution,
+  day,
+  endday,
+  endmonth,
+  endyear,
+  month,
+  year,
+  addendum,
+  chapter,
+  doi,
+  eprint,
+  eprintclass,
+  eprinttype,
+  language,
+  location,
+  note,
+  pages,
+  pagetotal,
+  pubstate,
+  subtitle,
+  titleaddon,
+  url,
+  urlday,
+  urlendday,
+  urlendmonth,
+  urlendyear,
+  urlmonth,
+  urlyear}
+
+\DeclareDatamodelEntryfields[unpublished]{
+  author,
+  title,
+  day,
+  endday,
+  endmonth,
+  endyear,
+  month,
+  year,
+  addendum,
+  howpublished,
+  language,
+  location,
+  note,
+  pubstate,
+  subtitle,
+  titleaddon,
+  url,
+  urlday,
+  urlendday,
+  urlendmonth,
+  urlendyear,
+  urlmonth,
+  urlyear}
+
+\DeclareDatamodelConstraints[
+  article,
+  book,
+  inbook,
+  bookinbook,
+  suppbook,
+  booklet,
+  collection,
+  incollection,
+  suppcollection,
+  manual,
+  misc,
+  mvbook,
+  mvcollection,
+  online,
+  patent,
+  periodical,
+  suppperiodical,
+  proceedings,
+  inproceedings,
+  reference,
+  inreference,
+  report,
+  set,
+  thesis,
+  unpublished]{
+    \constraint[type=mandatory]{
+      \constraintfieldsxor{
+        \constraintfield{date}
+        \constraintfield{year}
+      }
+    }
+  }
+
+\DeclareDatamodelConstraints[set]{
+  \constraint[type=mandatory]{
+    \constraintfield{entryset}
+    \constraintfield{crossref}
+  }
+}
+
+\DeclareDatamodelConstraints[article]{
+  \constraint[type=mandatory]{
+    \constraintfield{author}
+    \constraintfield{journaltitle}
+    \constraintfield{title}
+  }
+}
+
+\DeclareDatamodelConstraints[book,mvbook,mvcollection,mvreference]{
+  \constraint[type=mandatory]{
+    \constraintfield{author}
+    \constraintfield{title}
+  }
+}
+
+\DeclareDatamodelConstraints[inbook,bookinbook,suppbook]{
+  \constraint[type=mandatory]{
+    \constraintfield{author}
+    \constraintfield{title}
+    \constraintfield{booktitle}
+  }
+}
+
+\DeclareDatamodelConstraints[booklet]{
+  \constraint[type=mandatory]{
+    \constraintfieldsor{
+      \constraintfield{author}
+      \constraintfield{editor}
+    }
+    \constraintfield{title}
+  }
+}
+
+\DeclareDatamodelConstraints[collection,reference]{
+  \constraint[type=mandatory]{
+    \constraintfield{editor}
+    \constraintfield{title}
+  }
+}
+
+\DeclareDatamodelConstraints[incollection,suppcollection,inreference]{
+  \constraint[type=mandatory]{
+    \constraintfield{author}
+    \constraintfield{editor}
+    \constraintfield{title}
+    \constraintfield{booktitle}
+  }
+}
+
+\DeclareDatamodelConstraints[manual]{
+  \constraint[type=mandatory]{
+    \constraintfield{title}
+  }
+}
+
+\DeclareDatamodelConstraints[misc]{
+  \constraint[type=mandatory]{
+    \constraintfield{title}
+  }
+}
+
+\DeclareDatamodelConstraints[online]{
+  \constraint[type=mandatory]{
+    \constraintfield{title}
+    \constraintfield{url}
+  }
+}
+
+\DeclareDatamodelConstraints[patent]{
+  \constraint[type=mandatory]{
+    \constraintfield{author}
+    \constraintfield{title}
+    \constraintfield{number}
+  }
+}
+
+\DeclareDatamodelConstraints[periodical]{
+  \constraint[type=mandatory]{
+    \constraintfield{editor}
+    \constraintfield{title}
+  }
+}
+
+\DeclareDatamodelConstraints[proceedings,mvproceedings]{
+  \constraint[type=mandatory]{
+    \constraintfield{editor}
+    \constraintfield{title}
+  }
+}
+
+\DeclareDatamodelConstraints[inproceedings]{
+  \constraint[type=mandatory]{
+    \constraintfield{author}
+    \constraintfield{editor}
+    \constraintfield{title}
+    \constraintfield{booktitle}
+  }
+}
+
+\DeclareDatamodelConstraints[report]{
+  \constraint[type=mandatory]{
+    \constraintfield{author}
+    \constraintfield{title}
+    \constraintfield{type}
+    \constraintfield{institution}
+  }
+}
+
+\DeclareDatamodelConstraints[thesis]{
+  \constraint[type=mandatory]{
+    \constraintfield{author}
+    \constraintfield{title}
+    \constraintfield{type}
+    \constraintfield{institution}
+  }
+}
+
+\DeclareDatamodelConstraints[unpublished]{
+  \constraint[type=mandatory]{
+    \constraintfield{author}
+    \constraintfield{title}
+  }
+}
+
+\DeclareDatamodelConstraints{
+  \constraint[type=data, datatype=isbn]{
+    \constraintfield{isbn}
+  }
+  \constraint[type=data, datatype=issn]{
+    \constraintfield{issn}
+  }
+  \constraint[type=data, datatype=ismn]{
+    \constraintfield{ismn}
+  }
+  \constraint[type=data, datatype=date]{
+    \constraintfield{date}
+    \constraintfield{eventdate}
+    \constraintfield{origdate}
+    \constraintfield{urldate}
+  }
+  \constraint[type=data, datatype=pattern, pattern=\regexp{(?:sf|sm|sn|pf|pm|pn|pp)}]{
+    \constraintfield{gender}
+  }
+}
+

@@ -1,5 +1,3 @@
-% $Id:$
-
 % Copyright (c) 2006-2011 Philipp Lehman.
 %
 % Permission is granted to copy, distribute and/or modify this
@@ -175,7 +173,7 @@ STRINGS  { ctrl.alphaothers templist tempstrga tempstrgb resvstrga
            last.name last.hash last.year last.extra }
 
 FUNCTION {initialize} {
-  "$Revision: 1.7 $"
+  "$Revision: 2.3 $"
   #12 entry.max$ substring$
   #-3 entry.max$ substring$
   "Biblatex version: " swap$ * top$
@@ -1760,9 +1758,10 @@ FUNCTION {input:control:options} {
   input:control:parse str.to.int
 }
 
+% This version corresponds to the .bbl version, *not* the biblatex version!
 FUNCTION {input:control:version} {
   input:control:parse
-  "$Revision: 1.7 $"
+  "$Revision: 2.1 $"
   #12 entry.max$ substring$
   #-3 entry.max$ substring$
   'tempstrga :=
@@ -2583,9 +2582,10 @@ ITERATE {mainsort}
 
 SORT
 
+% This version corresponds to the .bbl version, *not* the biblatex version!
 FUNCTION {output:main:begin} {
   "% $ biblatex auxiliary file $"                               write$ newline$
-  "% $ biblatex version " "$Revision: 1.7 $"
+  "% $ biblatex version " "$Revision: 2.1 $"
   #12 entry.max$ substring$ #-3 entry.max$ substring$ * " $" *  write$ newline$
   "% Do not modify the above lines!"                            write$ newline$
   "%"                                                           write$ newline$
