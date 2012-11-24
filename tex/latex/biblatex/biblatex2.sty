@@ -8855,6 +8855,7 @@
       \blx@xml@comment{SOURCEMAP}%
       \blx@xml@sourcemap{%
         \ifcsdef{blx@biber@sourcemap@user}{\csuse{blx@biber@sourcemap@user}}{}%
+        \ifcsdef{blx@biber@sourcemap@user}{\csuse{blx@biber@sourcemap@style}}{}%
         \ifcsdef{blx@biber@sourcemap@defaults@bibtex}{\csuse{blx@biber@sourcemap@defaults@bibtex}}{}%
         \ifcsdef{blx@biber@sourcemap@defaults@biblatexml}{\csuse{blx@biber@sourcemap@defaults@biblatexml}}{}%
         \ifcsdef{blx@biber@sourcemap@defaults@endnotexml}{\csuse{blx@biber@sourcemap@defaults@endnotexml}}{}%
@@ -8980,7 +8981,7 @@
 \newrobustcmd*{\DeclareSourcemap}[1]{%
   \booltrue{sourcemap}%
   \begingroup
-  \let\maps\blx@sourcemap@maps
+  \let\maps\blx@usersourcemap@maps
   \let\blx@tempa\@empty
   #1%
   \csxdef{blx@biber@sourcemap@user}{\blx@tempa}%
@@ -8990,14 +8991,15 @@
 \newrobustcmd*{\DeclareStyleSourcemap}[1]{%
   \booltrue{sourcemap}%
   \begingroup
-  \let\maps\blx@sourcemap@maps
+  \let\maps\blx@stylesourcemap@maps
   \let\blx@tempa\@empty
   #1%
   \csxdef{blx@biber@sourcemap@style}{\blx@tempa}%
   \endgroup}
+
 \@onlypreamble\DeclareStyleSourcemap
 
-\newrobustcmd*{\DeclareDefaultSourcemap}[2][]{%
+\newrobustcmd*{\DeclareDriverSourcemap}[2][]{%
   \booltrue{sourcemap}%
   \begingroup
   \let\blx@tempa\@empty
@@ -9007,21 +9009,32 @@
   \let\map\blx@sourcemap@map
   #2%
   \ifblank{#1}
-    {\setkeys{blx@sourcemap@maps}{datatype=bibtex, defaults=true}}
-    {\setkeys{blx@sourcemap@maps}{#1, defaults=true}}%
+    {\setkeys{blx@sourcemap@maps}{datatype=bibtex, level=driver}}
+    {\setkeys{blx@sourcemap@maps}{#1, level=driver}}%
   \eappto\blx@tempa{%
     \blx@xml@sourcemap@maps{\blx@tempb}{\blx@tempc}}%
   \csxdef{blx@biber@sourcemap@defaults@\blx@tempd}{\blx@tempa}%
   \endgroup}
-\@onlypreamble\DeclareDefaultSourcemap
+\@onlypreamble\DeclareDriverSourcemap
 
-\newcommand*{\blx@sourcemap@maps}[2][]{%
+\newcommand*{\blx@usersourcemap@maps}[2][]{%
   \let\blx@tempb\@empty
   \let\blx@tempc\@empty
   \let\map\blx@sourcemap@map
   \ifblank{#1}
-    {}
-    {\setkeys{blx@sourcemap@maps}{#1}}%
+    {\setkeys{blx@sourcemap@maps}{level=user}}
+    {\setkeys{blx@sourcemap@maps}{#1, level=user}}%
+  #2%
+  \eappto\blx@tempa{%
+    \blx@xml@sourcemap@maps{\blx@tempb}{\blx@tempc}}}
+
+\newcommand*{\blx@stylesourcemap@maps}[2][]{%
+  \let\blx@tempb\@empty
+  \let\blx@tempc\@empty
+  \let\map\blx@sourcemap@map
+  \ifblank{#1}
+    {\setkeys{blx@sourcemap@maps}{level=style}}
+    {\setkeys{blx@sourcemap@maps}{#1, level=style}}%
   #2%
   \eappto\blx@tempa{%
     \blx@xml@sourcemap@maps{\blx@tempb}{\blx@tempc}}}
@@ -9033,10 +9046,8 @@
   \ifstrequal{#1}{true}
     {\appto\blx@tempb{ map\string_overwrite="1"}}
     {}}
-\define@key{blx@sourcemap@maps}{defaults}[true]{% true|false
-  \ifstrequal{#1}{true}
-    {\appto\blx@tempb{ driver\string_defaults="1"}}
-    {}}
+\define@key{blx@sourcemap@maps}{level}{% user|style|driver
+    \appto\blx@tempb{ level="#1"}}
 
 \newcommand*{\blx@sourcemap@map}[2][]{%
   \let\blx@tempd\@empty
