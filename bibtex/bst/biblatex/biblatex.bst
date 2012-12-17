@@ -173,7 +173,7 @@ STRINGS  { ctrl.alphaothers templist tempstrga tempstrgb resvstrga
            last.name last.hash last.year last.extra }
 
 FUNCTION {initialize} {
-  "$Revision: 2.4 $"
+  "$Revision: 2.5 $"
   #12 entry.max$ substring$
   #-3 entry.max$ substring$
   "Biblatex version: " swap$ * top$
