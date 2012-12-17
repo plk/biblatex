@@ -1,0 +1,100 @@
+* Forms
+** Disable trace?
+** Documentation
+*** Extra fields in printfield etc?
+*** No form/lang for verbatim, special fields etc. only lists, names and field types
+** fields need two optional arguments for form and lang in bbl, by default empty for backwards compat
+** Potential issues
+*** You can sort on one form of a name/title but labelname/labeltitle could cause labels to be generated from another form? One way to avoid is to specify a labelname form and then to sort on labelname?
+
+These need extra args everywhere and they are called by other things which
+need extra args
+
+abx@field <- dealing with this
+abx@list
+abx@name
+
+
+
+
+
+
+
+
+saveentry and reencode need to know about possible forms and langs for fields so it can iterate over them to save or delete them.
+
+Search for any of the below changed macros and see if their calls need editing
+
+\blx@getformat needs to be form/lang enabled
+\Declare*Format needs to be form/lang enabled
+
+
+\field -> \blx@bbl@fielddef -> \blx@bbl@addfield -> abx@field
+\list  -> \blx@bbl@listdef  -> -> abx@list
+\name  -> \blx@bbl@namedef  -> -> abx@name
+
+
+\def\do##1{%
+  \def\do####1{%
+    \def\do######1{%
+      \cslet{abx@field@##1@####1@######1}\relax}%
+    \dolistcsloop{abx@scripts@field@lang}}%
+  \dolistcsloop{abx@scripts@field@form}}%
+
+\listgadd{\abx@scripts@field,list,name@form}{#1}%
+\listgadd{\abx@scripts@field,list,name@lang}{#2}%
+
+
+
+\blx@imc@mkpagetotal?
+\blx@imc@mkpageprefix?
+\citefield?
+
+\blx@blxinit?
+
+\blx@imc@printfield
+\blx@imc@indexfield
+
+\blx@imc@thefield
+\blx@imc@strfield
+\blx@imc@usefield
+\blx@imc@thelist
+\blx@imc@thename
+\blx@imc@clearfield
+\blx@imc@clearlist
+\blx@imc@clearname
+\blx@imc@restorefield
+\blx@imc@restorelist
+\blx@imc@restorename
+\blx@imc@iffieldundef
+\blx@imc@iflistundef
+\blx@imc@ifnameundef
+\blx@imc@iffieldsequal
+\blx@imc@iflistsequal
+\blx@imc@ifnamesequal
+\blx@imc@iffieldequals
+\blx@imc@iflistequals
+\blx@imc@ifnameequals
+\blx@imc@iffieldequalcs
+\blx@imc@iflistequalcs
+\blx@imc@ifnameequalcs
+\def\blx@imc@iffieldequalstr
+\def\blx@imc@iffieldxref
+\def\blx@imc@iflistxref
+\def\blx@imc@ifnamexref
+\blx@listsetup
+\def\blx@savefield
+\def\blx@savelist
+\def\blx@savename
+\blx@bbl@listdef
+\blx@bbl@namedef
+\blx@imc@iffieldint
+\blx@imc@iffieldnum
+\blx@imc@iffieldnums
+\blx@imc@iffieldpages
+\blx@imc@iffieldbibstring
+\blx@bbl@addentryfield
+\def\blx@bbl@addfield
+\blx@reencode
+
+
