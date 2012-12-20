@@ -5951,6 +5951,11 @@ For all boolean \cmd{step} options, the short form \opt{option} is equivalent to
 \renewcommand{\labelitemii}{$\circ$}
 
 \begin{itemize}
+\item If \texttt{entrynull} is set, processing of the \cmd{map}
+  immediately terminates and the current entry is not created. It is
+  as if it did not exist in the datasource. Obviously, you should
+  select the entries which you want to apply this to using prior
+  mapping steps.
 \item Change the \texttt{typesource} \prm{entrytype} to the
   \texttt{typetarget} \prm{entrytype}, if defined. If
   \texttt{final} is \texttt{true} then if the \prm{entrytype} of the entry is not \texttt{typesource}, processing of the parent \cmd{map} immediately terminates.
@@ -6257,6 +6262,19 @@ This example demonstrates the sequential nature of the step processing and the \
 \end{lstlisting}%$ <- keep AucTeX highlighting happy
 %
 This example assumes you have created a field called \bibfield{autourl} using the datamodel macros from \secref{aut:ctm:dm} in order to hold, for example, a Google Scholar query URL auto-created from elements of the entry. The example progressively extracts information from the entry, constructing the URL as it goes. It demonstrates that it is possible to refer to parenthetical matches from the most recent \texttt{match} in any following \texttt{fieldvalue} which allows extracting the lastname from the \bibfield{author}, assuming a <last, first> format. The resulting field could then be used as a hyperlink from, for example, the title of the work in the bibliography.
+%
+\begin{lstlisting}[style=latex]{}
+\DeclareSourcemap{
+  \maps[datatype=bibtex]{
+    \map{
+      \step[fieldsource=<<title>>, match={A Title}, final]
+      \step[entrynull]
+    }
+  }
+}
+\end{lstlisting}
+%
+Any entry with a \bibfield{title} field matching <A Title> will be completely ignored.
 %
 \subsubsection{Data Model Specification}
 \label{aut:ctm:dm}
