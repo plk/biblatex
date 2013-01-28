@@ -6,72 +6,43 @@
 % 2012-10-23  Added to biblatex project (Sebastià Vila-Marta)
 % 2012-11-04  All strings translated (Sebastià Vila-Marta)
 % 2013-01-08  Some syntactic typos corrected. New strings (Sebastià Vila-Marta)
+% 2013-01-28  Regularise some extras according typographical rules
 
 \DeclareRedundantLanguages{catalan}{catalan}
 
 % Looks like these extras need to be checked over with answers to the questions here:
 % http://sourceforge.net/apps/mediawiki/biblatex/index.php?title=Adding_lbx_Files
 \DeclareBibliographyExtras{%
-  \protected\def\bibrangedash{%
-    \textendash\penalty\hyphenpenalty}% breakable dash
-  \protected\def\bibdatedash{\bibrangedash}%
+  \protected\def\bibrangedash{\,-\penalty\hyphenpenalty\,}
+  \protected\def\bibdatedash{\,\textendash\penalty\hyphenpenalty\,}%
   \let\finalandcomma=\empty
-  \def\mkbibordinal{\mkbibmascord}%
+  \protected\def\mkbibordinal{\mkbibmascord}%
   \protected\def\mkbibmascord#1{%
-    \begingroup
-    \@tempcnta0#1\relax\number\@tempcnta
-    \ifcase\@tempcnta x\or er\or n\or er\or rt\else \`e\fi
-    \endgroup}%
+    \begingroup\@tempcnta0#1\relax\number\@tempcnta
+    \ifcase\@tempcnta x\or r\or n\or r\or t\else \`e\fi\endgroup}%
   \protected\def\mkbibfemord#1{#1a}%
+  \def\lbx@ca@longmonth#1{
+    \ifthenelse{\thefield{#2}=4}{ d'}{
+      \ifthenelse{\thefield{#2}=8}{ d'}{
+        \ifthenelse{\thefield{#2}=10}{ d'}{ de~}}}
+    {\mkbibmonth{\thefield{#1}}}
+  }
   \protected\def\mkbibdatelong#1#2#3{%
-    \iffieldundef{#3}
-      {}
-      {\stripzeros{\thefield{#3}}%
-       \iffieldundef{#2}
-         {}
-         {\nobreakspace%
-          \ifthenelse{\thefield{#2}=4}
-            {d'}
-            {\ifthenelse{\thefield{#2}=8}
-               {d'}
-               {\ifthenelse{\thefield{#2}=10}
-                  {d'}
-                  {de\space}}}}}%
-    \iffieldundef{#2}
-      {}
-      {\mkbibmonth{\thefield{#2}}%
-       \iffieldundef{#1}
-         {}
-         {\space de\nobreakspace}}%
-    \iffieldundef{#1}
-      {}
-      {\thefield{#1}}}%
+    \iffieldundef{#3}{}{\stripzeros{\thefield{#3}}}
+    \iffieldundef{#2}{}{\iffieldundef{#3}{}{\lbx@ca@longmonth{#2}}}
+    \iffieldundef{#1}{}{\iffieldundef{#2}{}{ de~}\stripzeros{\thefield{#1}}}
+  }
   \protected\def\mkbibdateshort#1#2#3{%
-    \iffieldundef{#3}
-      {}
-      {\mkdatezeros{\thefield{#3}}%
-       \iffieldundef{#2}{}{\mbox{-}}}%
-    \iffieldundef{#2}
-      {}
-      {\mkdatezeros{\thefield{#2}}%
-       \iffieldundef{#1}{}{\mbox{-}}}%
-    \thefield{#1}}%
-  \savecommand\mkbibrangeterse
-  \protected\def\mkbibrangeterse{%
-    \BibliographyWarning{%
-      Date format 'terse' not applicable to\MessageBreak
-      Catalan dates. Using format 'short' instead}%
-    \mkbibrangefull{short}}%
-  \savecommand\mkbibordedition
-  \savecommand\mkbibordseries
-  \def\mkbibordedition{\mkbibfemord}%
-  \def\mkbibordseries{\mkbibfemord}%
+    \iffieldundef{#3}{}{\stripzeros{\thefield{#3}}%
+       \iffieldundef{#2}{}{-}}}%
+    \iffieldundef{#2}{}{\stripzeros{\thefield{#2}}%
+       \iffieldundef{#1}{}{-}}%
+    \stripzeros{\thefield{#1}}}%
+  \protected\def\mkbibordedition{\mkbibfemord}%
+  \protected\def\mkbibordseries{\mkbibfemord}%
 }
 
 \UndeclareBibliographyExtras{%
-  \restorecommand\mkbibrangeterse
-  \restorecommand\mkbibordedition
-  \restorecommand\mkbibordseries
 }
 
 \DeclareBibliographyStrings{%
