@@ -1,29 +1,30 @@
 \ProvidesFile{catalan.lbx}
 [\abx@lbxid]
 
-% Changes:
-% 2012-04-23  Translation (Sebastià Vila-Marta)
-% 2012-10-23  Added to biblatex project (Sebastià Vila-Marta)
-% 2012-11-04  All strings translated (Sebastià Vila-Marta)
-% 2013-01-08  Some syntactic typos corrected. New strings (Sebastià Vila-Marta)
-
-\DeclareRedundantLanguages{catalan}{catalan}
-
-% Looks like these extras need to be checked over with answers to the questions here:
-% http://sourceforge.net/apps/mediawiki/biblatex/index.php?title=Adding_lbx_Files
 \DeclareBibliographyExtras{%
-  \protected\def\bibrangedash{%
-    \textendash\penalty\hyphenpenalty}% breakable dash
-  \protected\def\bibdatedash{\bibrangedash}%
+  \protected\def\bibrangedash{\mbox{-}}%
+  \protected\def\bibdatedash{%
+    \textendash\penalty\hyphenpenalty}%
   \let\finalandcomma=\empty
   \def\mkbibordinal{\mkbibmascord}%
   \protected\def\mkbibmascord#1{%
     \begingroup
     \@tempcnta0#1\relax\number\@tempcnta
-    \ifcase\@tempcnta x\or er\or n\or er\or rt\else \`e\fi
-    \endgroup}%
-  \protected\def\mkbibfemord#1{#1a}%
-  \protected\def\mkbibdatelong#1#2#3{%
+    \ifnum\@tempcnta>4
+      \`e%
+    \else
+      \@tempcntb\@tempcnta
+      \divide\@tempcnta2
+      \multiply\@tempcnta2
+      \ifnum\@tempcnta=\@tempcntb
+        n%
+      \else
+        r%
+      \fi
+    \fi
+    \endgroup}
+  \protected\def\mkbibfemord#1{\stripzeros{#1}a}%
+  \protected\def\mkbibdatelong#1#2#3{% maintainers: check me
     \iffieldundef{#3}
       {}
       {\stripzeros{\thefield{#3}}%
@@ -46,7 +47,7 @@
     \iffieldundef{#1}
       {}
       {\thefield{#1}}}%
-  \protected\def\mkbibdateshort#1#2#3{%
+  \protected\def\mkbibdateshort#1#2#3{% maintainers: check me
     \iffieldundef{#3}
       {}
       {\mkdatezeros{\thefield{#3}}%
@@ -64,7 +65,7 @@
     \mkbibrangefull{short}}%
   \savecommand\mkbibordedition
   \savecommand\mkbibordseries
-  \def\mkbibordedition{\mkbibfemord}%
+  \def\mkbibordedition{\mkbibmascord}%
   \def\mkbibordseries{\mkbibfemord}%
 }
 
@@ -74,6 +75,7 @@
   \restorecommand\mkbibordseries
 }
 
+% maintainers: need smart of, smart the, gender-specific keys?
 \DeclareBibliographyStrings{%
   bibliography     = {{Bibliografia}{Bibliografia}},
   references       = {{Refer\`encies}{Refer\`encies}},
@@ -465,4 +467,5 @@
   abstract         = {{resum}{resum}}, 
   annotation       = {{nota}{not\adddot}}, 
 }
+
 \endinput
