@@ -2671,6 +2671,50 @@
 \setcounter{mincompwidth}{1}
 \def\abx@rangeproclimit{100000}
 
+% {<string>}
+% This mustn't be robust as it's likely to be used mainly tests and so
+% needs to be expandable
+\newcommand*{\rangelen}[1]{%
+  \blx@rangelen@range#1\bibrangedash\bibrangedash&}
+
+\def\blx@rangelen@range#1\bibrangedash#2\bibrangedash#3&{%
+  \ifblank{#3}
+    {\blx@rangelen@hyphen#1--&}
+    {\ifblank{#2}
+       {0}% n\bibrangedash
+       {\ifblank{#1}
+          {0}% \bibrangedash n
+          {\blx@rangelen@check{#1}{#2}}}}}
+
+\def\blx@rangelen@hyphen#1-#2-#3&{%
+  \ifblank{#3}
+    {1}% n
+    {\ifblank{#2}
+       {\ifblank{#1}
+          {\let\blx@tempb\@empty}
+          {\def\blx@tempb{#1}}%
+        \blx@rangelen@hyphen@i#3&}
+       {\ifblank{#1}
+          {0}% -n
+          {\blx@rangelen@check{#1}{#2}}}}}
+
+\def\blx@rangelen@hyphen@i#1-#2&{%
+  \ifblank{#1#2}
+    {0}% n-
+    {\notblank{#1}
+       {\ifdefempty\blx@tempb
+          {0}
+          {\expandafter\blx@rangelen@check
+           \expandafter{\blx@tempb}{#1}}}
+       {\blx@rangelen@hyphen@i#2&}}}
+
+\def\blx@rangelen@check#1#2{%
+  \blx@imc@ifinteger{#1}
+    {\blx@imc@ifinteger{#2}
+       {\the\numexpr#2-#1\relax}% n-m
+       {0}}
+    {0}}
+
 % <*>[<postpro>]{<string>}
 
 \newrobustcmd*{\mkcomprange}{%
@@ -2993,7 +3037,7 @@
   \savelistcs \savename \savenamecs \usedriver
   \ifinteger \ifnumeral \ifnumerals \ifpages
   \iffieldint \iffieldnum \iffieldnums \iffieldpages
-  \mkpageprefix \mkpagetotal \mkpagefirst
+  \mkpageprefix \mkpagetotal
   \newblock \newunit \setunit \finentry}
 
 \appto\blx@blxinit{%
