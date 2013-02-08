@@ -738,31 +738,36 @@
   \PackageError{biblatex}{#1}{#2.}%
   \endgroup}
 
-\protected\def\blx@warning#1{%
-  \begingroup
-  \blx@safe@actives
-  \PackageWarning{biblatex}{#1\blx@noline}%
-  \endgroup}
 \protected\def\blx@warning@noline#1{%
   \begingroup
   \blx@safe@actives
   \PackageWarningNoLine{biblatex}{#1}%
   \endgroup}
+\let\blx@warning\blx@warning@noline
+\AtEndOfPackage{
+  \protected\def\blx@warning#1{%
+    \begingroup
+    \blx@safe@actives
+    \PackageWarning{biblatex}{#1}%
+    \endgroup}}
+
 \protected\def\blx@warning@entry#1{%
   \ifdef\abx@field@entrykey
     {\blx@warning{#1\MessageBreak at entry '\abx@field@entrykey'}}
     {\blx@warning{#1}}}
 
-\protected\def\blx@info#1{%
-  \begingroup
-  \blx@safe@actives
-  \PackageInfo{biblatex}{#1\blx@noline}%
-  \endgroup}
-\def\blx@info@noline#1{%
+\protected\def\blx@info@noline#1{%
   \begingroup
   \blx@safe@actives
   \PackageInfo{biblatex}{#1\@gobble}%
   \endgroup}
+\let\blx@info\blx@info@noline
+\AtEndOfPackage{
+  \protected\def\blx@info#1{%
+    \begingroup
+    \blx@safe@actives
+    \PackageInfo{biblatex}{#1}%
+    \endgroup}}
 
 \let\blx@noline\@gobble
 \AtEndOfPackage{\let\blx@noline\@empty}
@@ -2666,6 +2671,50 @@
 \setcounter{mincompwidth}{1}
 \def\abx@rangeproclimit{100000}
 
+% {<string>}
+% This mustn't be robust as it's likely to be used mainly tests and so
+% needs to be expandable
+\newcommand*{\rangelen}[1]{%
+  \blx@rangelen@range#1\bibrangedash\bibrangedash&}
+
+\def\blx@rangelen@range#1\bibrangedash#2\bibrangedash#3&{%
+  \ifblank{#3}
+    {\blx@rangelen@hyphen#1--&}
+    {\ifblank{#2}
+       {0}% n\bibrangedash
+       {\ifblank{#1}
+          {0}% \bibrangedash n
+          {\blx@rangelen@check{#1}{#2}}}}}
+
+\def\blx@rangelen@hyphen#1-#2-#3&{%
+  \ifblank{#3}
+    {1}% n
+    {\ifblank{#2}
+       {\ifblank{#1}
+          {\let\blx@tempb\@empty}
+          {\def\blx@tempb{#1}}%
+        \blx@rangelen@hyphen@i#3&}
+       {\ifblank{#1}
+          {0}% -n
+          {\blx@rangelen@check{#1}{#2}}}}}
+
+\def\blx@rangelen@hyphen@i#1-#2&{%
+  \ifblank{#1#2}
+    {0}% n-
+    {\notblank{#1}
+       {\ifdefempty\blx@tempb
+          {0}
+          {\expandafter\blx@rangelen@check
+           \expandafter{\blx@tempb}{#1}}}
+       {\blx@rangelen@hyphen@i#2&}}}
+
+\def\blx@rangelen@check#1#2{%
+  \blx@imc@ifinteger{#1}
+    {\blx@imc@ifinteger{#2}
+       {\the\numexpr#2-#1\relax}% n-m
+       {0}}
+    {0}}
+
 % <*>[<postpro>]{<string>}
 
 \newrobustcmd*{\mkcomprange}{%
@@ -2988,7 +3037,7 @@
   \savelistcs \savename \savenamecs \usedriver
   \ifinteger \ifnumeral \ifnumerals \ifpages
   \iffieldint \iffieldnum \iffieldnums \iffieldpages
-  \mkpageprefix \mkpagetotal \mkpagefirst
+  \mkpageprefix \mkpagetotal
   \newblock \newunit \setunit \finentry}
 
 \appto\blx@blxinit{%
@@ -5349,7 +5398,7 @@
        \csuse{abx@ffd@*@shorthandwidth}{\abx@field@shorthand}}}}
 
 \def\blx@bbl@labelnumber{%
-  % Used at endentry
+  % Used at endentry, when reading .bbl
   % only do this for the global sorting list otherwise we increment
   % the labelnumbers for each sortlist
   \ifdefstrequal{\blx@slist@name}{\blx@sorting}
@@ -5507,11 +5556,17 @@
     {}
     {\csgdef{blx@labelnumber@#3}{#4}}}
 
+% Here we mustn't change the checksum if we used localnumbers from the
+% .aux file as this means that deferred numbering is
+% complete. Otherwise we get in an endless rerun loop because the
+% checksum due to number changes is always different.
 \AtEndDocument{%
   \def\abx@aux@number#1#2#3#4{%
     \ifblank{#4}
       {}
-      {\blx@addchecksum{#1}{#4}}}}
+      {\nottoggle{blx@localnumber}
+         {\blx@addchecksum{#1}{#4}}
+         {}}}}
 
 \AtEndDocument{%
   % Here we run some tests to decide if we need to issue re-run
@@ -5568,6 +5623,7 @@
     {}%
   \endgroup}
 
+% Called as part of bib output for an entry
 % Only used when defernumbers=true
 \def\blx@addlabelnumber{%
   \begingroup
@@ -5586,7 +5642,13 @@
                  \blx@bbl@addentryfield{\abx@field@entrykey}{\the\c@refsection}%
                    {localnumber}{\abx@field@localnumber}}%
                  \listxadd\blx@localnumaux{\string\abx@aux@number{\the\c@instcount}{\abx@field@entrykey}{\the\c@refsection}{\abx@field@localnumber}}}
-             {}}
+             % If localnumbers were already in the .aux, add them
+             % again from the .aux. This prevents some cycling
+             % problems where pagebreaks change after localnumber
+             % settles down and then we need another run which then
+             % regenerates localnumber requiring another run but then
+             % the pagebreaks change back again ... etc.
+             {\listxadd\blx@localnumaux{\string\abx@aux@number{\the\c@instcount}{\abx@field@entrykey}{\the\c@refsection}{\abx@field@localnumber}}}}
           {}}%
        {}}
     {}%
@@ -6175,6 +6237,10 @@
       {}
       {\letcs\blx@tempa{blx@sbib@\blx@tempe}}}%
   \blx@safe@actives
+  %  Must reset omitnumbers as it's a global macro and if we don't, any
+  % \printbibliography following one with this set will inherit any
+  % previous "true" value
+  \togglefalse{blx@omitnumbers}%
   \setkeys{blx@bib2}{#1}% ... now we have correct \blx@tempa, set rest of options
   \blx@rest@actives
   \csxappto{blx@xml@slistsbib}{\blx@xml@slist{entry}{\blx@tempe}{\blx@tempc}{\blx@tempd}}%
@@ -6325,6 +6391,7 @@
   \fi
   \csuse{blx@env@\blx@theenv}%
   \csuse{blx@hook@bibinit}%
+  \csuse{blx@hook@bibinit@next}%
   \let\blx@do\blx@bibitem
   \let\blx@done\blx@endbibliography
   \blx@listloop}
@@ -6427,6 +6494,12 @@
 \newrobustcmd*{\AtEveryBibitem}{\gappto\blx@hook@bibitem}
 \@onlypreamble\AtBeginBibliography
 \@onlypreamble\AtEveryBibitem
+
+\newrobustcmd*{\AtNextBibliography}{%
+  \ifundef\blx@hook@bibinit@next
+    {\gdef\blx@hook@bibinit@next{\global\undef\blx@hook@bibinit@next}}
+    {}%
+  \gappto\blx@hook@bibinit@next}
 
 % page tracker
 
