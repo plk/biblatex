@@ -75,8 +75,8 @@ export BSTINPUTS=.:$PWD/build/flat/bibtex/bst//:
 
 # do the test using bibtex
 [[ -e build/test/examples-$1 ]] || mkdir -p build/test/examples-$1
-\rm -f build/test/example_$1_errs_biber.txt
 \rm -f build/test/example_$1_errs_bibtex.txt
+\rm -f build/test/$1-results.pdf
 \rm -rf build/test/examples-$1/*
 cp -r doc/latex/biblatex/examples/*.tex build/test/examples-$1/
 cd build/test/examples-$1
