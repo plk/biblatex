@@ -20,7 +20,7 @@
 
 \ExecuteBibliographyOptions{isbn,url,doi,eprint,related}
 
-\newbibmacro*{begentry}{}
+\newbibmacro*{begentry}{\let\blx@related@loop\@empty}
 \newbibmacro*{finentry}{\finentry}
 
 \DeclareBibliographyDriver{article}{%
@@ -838,9 +838,12 @@
     not test {\iftoggle{bbx:related}}
     or
     test {\iffieldundef{related}}
+    or
+    test {\xifinlist{\thefield{entrykey}}{\blx@related@loop}}
   }
     {}
-    {\setcounter{bbx:relatedcount}{0}%
+    {\listxadd{\blx@related@loop}{\thefield{entrykey}}%
+     \setcounter{bbx:relatedcount}{0}%
      \setcounter{bbx:relatedtotal}{0}%
      \def\do##1{\stepcounter{bbx:relatedtotal}}%
      \docsvfield{related}%
