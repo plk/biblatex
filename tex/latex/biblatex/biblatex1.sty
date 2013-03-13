@@ -4855,6 +4855,8 @@
 
 \protected\def\blx@imc@printdate{}
 \protected\def\blx@imc@printdateextra{}
+\let\blx@imc@printdatelabel\blx@imc@printdate
+\let\blx@imc@printdateextralabel\blx@imc@printdateextra
 \protected\def\blx@imc@printurldate{}
 \protected\def\blx@imc@printeventdate{}
 \protected\def\blx@imc@printorigdate{}
@@ -4877,7 +4879,7 @@
   {\egroup#1}}
 
 \blx@regimcs{%
-  \printdate \printdateextra \printurldate \printeventdate
+  \printdate \printdateextra \printdatelabel \printdateextralabel \printurldate \printeventdate
   \printorigdate \stripzeros \mkdatezeros}
 
 % {<language>}{<strings>}
@@ -9412,77 +9414,6 @@
 
 \def\blx@sortexlude@i#1{%
   \appto\blx@tempa{\blx@xml@exclude{#1}}}
-
-% [<type,type,...>]{<field,field,...>}
-
-\newrobustcmd*{\DeclareLabelname}[2][]{%
-  \begingroup
-  \let\blx@tempa\@empty
-  \def\blx@tempb{labelnamespec}%
-  \let\field\blx@ordered@field
-  \ifblank{#1}
-    {\global\cslet{blx@bcf@labelnamespec}\@empty}
-    {\def\blx@tempa{#1}%
-     \do{\global\cslet{blx@bcf@labelnamespec@##1}\@empty}%
-     \docsvlist{#1}}%
-  #2%
-  \endgroup}
-\@onlypreamble\DeclareLabelname
-
-\newrobustcmd*{\DeclareLabelyear}[2][]{%
-  \blx@warning@noline{%
-    'DeclareLabelyear' is deprecated, please use 'DeclareLabeldate'}}
-
-\newrobustcmd*{\DeclareLabeldate}[2][]{%
-  \begingroup
-  \let\blx@tempa\@empty
-  \def\blx@tempb{labeldatespec}%
-  \let\field\blx@orderedld@field
-  \let\literal\blx@orderedld@literal
-  \ifblank{#1}
-    {\global\cslet{blx@bcf@labeldatespec}\@empty}
-    {\def\blx@tempa{#1}%
-     \def\do##1{\global\cslet{blx@bcf@labeldatespec@##1}\@empty}%
-     \expandafter\docsvlist\expandafter{#1}}%
-  #2%
-  \endgroup}
-\@onlypreamble\DeclareLabeldate
-
-\newcommand*{\blx@ordered@field}[2][]{%
-  \let\blx@tempc\@empty
-  \ifblank{#1}
-    {}
-    {\setkeys{blx@ordered@field}{#1}}%
-  \advance\blx@tempcnta\@ne
-  \ifdefempty{\blx@tempa}
-    {\csxappto{blx@bcf@\blx@tempb}{\noexpand\blx@xml@ordered{\the\blx@tempcnta}{\blx@tempc}{#2}}}
-    {\def\do{\blx@addtypeopt{##1}%
-             \csxappto{blx@bcf@\blx@tempb @##1}{\noexpand\blx@xml@ordered{\the\blx@tempcnta}{\blx@tempc}{#2}}}%
-     \docsvlist{\blx@tempa}}}
-
-\define@key{blx@ordered@field}{form}{%
-  \appto\blx@tempc{ form="#1"}}
-\define@key{blx@ordered@field}{lang}{%
-  \appto\blx@tempc{ lang="#1"}}
-
-% experimental
-
-\newrobustcmd*{\DeclareDisplaymode}[2][global]{%
-  \begingroup
-  \blx@tempcnta\z@
-  \def\blx@tempa{\blx@xml@dtarget{*}}%
-  \forcsvlist\blx@defdisplaymode{#2}%
-  \csxdef{blx@biber@displaymodes@#1}{%
-    \blx@xml@displaymode{\blx@tempa}}%
-  \endgroup}
-
-\def\blx@defdisplaymode#1{%
-  \advance\blx@tempcnta\@ne
-  \edef\blx@tempa{%
-    \blx@tempa
-    \blx@xml@dmode{\the\blx@tempcnta}{#1}}}
-
-\DeclareDisplaymode{original,romanised,uniform,translated}
 
 %% Package options
 
