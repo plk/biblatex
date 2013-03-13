@@ -427,7 +427,7 @@
 \newtoggle{blx@labelnumber}
 \newtoggle{blx@labeltitle}
 \newtoggle{blx@labeltitleyear}
-\newtoggle{blx@labelyear}
+\newtoggle{blx@labeldate}
 \newtoggle{blx@natbib}
 \newtoggle{blx@mcite}
 \newtoggle{blx@loadfiles}
@@ -4878,7 +4878,7 @@
   \do{labelnumber}%
   \do{labeltitle}%
   \do{labeltitleyear}%
-  \do{labelyear}%
+  \do{labeldate}%
   \do{localnumber}%
   \do{namehash}%
   \do{prefixnumber}%
@@ -5357,8 +5357,8 @@
     \iftoggle{blx@labeltitleyear}
       {\blx@bbl@labeltitleyear}
       {}%
-    \iftoggle{blx@labelyear}
-      {\blx@bbl@labelyear}
+    \iftoggle{blx@labeldate}
+      {\blx@bbl@labeldate}
       {}%
     \blx@bbl@prefixnumber}
     {}%
@@ -5466,7 +5466,7 @@
        \global\c@maxextratitleyear\abx@field@extratitleyear\relax
      \fi}}
 
-\def\blx@bbl@labelyear{%
+\def\blx@bbl@labeldate{%
   \ifundef\abx@field@extrayear
     {}
     {\ifnum\abx@field@extrayear>\c@maxextrayear
@@ -8822,8 +8822,8 @@
     \blx@xml@toggle{labeltitle}%
     \blx@xml@mvalue{labeltitlespec}{\blx@bcf@labeltitlespec}%
     \blx@xml@toggle{labeltitleyear}%
-    \blx@xml@toggle{labelyear}%
-    \blx@xml@mvalue{labelyearspec}{\blx@bcf@labelyearspec}%
+    \blx@xml@toggle{labeldate}%
+    \blx@xml@mvalue{labeldatespec}{\blx@bcf@labeldatespec}%
     \blx@xml@svalue{maxalphanames}{\blx@maxalphanames}%
     \blx@xml@svalue{maxbibnames}{\blx@maxbibnames}%
     \blx@xml@svalue{maxcitenames}{\blx@maxcitenames}%
@@ -8858,11 +8858,11 @@
         {\csuse{blx@bcf@labeltitlespec@#1}}
         {\blx@bcf@labeltitlespec}}%
     \blx@xml@toggle{labeltitleyear}%
-    \blx@xml@toggle{labelyear}%
-    \blx@xml@mvalue{labelyearspec}{%
-      \ifcsdef{blx@bcf@labelyearspec@#1}
-        {\csuse{blx@bcf@labelyearspec@#1}}
-        {\blx@bcf@labelyearspec}}%
+    \blx@xml@toggle{labeldate}%
+    \blx@xml@mvalue{labeldatespec}{%
+      \ifcsdef{blx@bcf@labeldatespec@#1}
+        {\csuse{blx@bcf@labeldatespec@#1}}
+        {\blx@bcf@labeldatespec}}%
     \blx@xml@svalue{maxalphanames}{\blx@maxalphanames}%
     \blx@xml@svalue{maxbibnames}{\blx@maxbibnames@type}%
     \blx@xml@svalue{maxcitenames}{\blx@maxcitenames@type}%
@@ -9529,19 +9529,23 @@
 \@onlypreamble\DeclareLabeltitle
 
 \newrobustcmd*{\DeclareLabelyear}[2][]{%
+  \blx@warning@noline{%
+    'DeclareLabelyear' is deprecated, please use 'DeclareLabeldate'}}
+
+\newrobustcmd*{\DeclareLabeldate}[2][]{%
   \begingroup
   \let\blx@tempa\@empty
-  \def\blx@tempb{labelyearspec}%
-  \let\field\blx@orderedly@field
-  \let\literal\blx@orderedly@literal
+  \def\blx@tempb{labeldatespec}%
+  \let\field\blx@orderedld@field
+  \let\literal\blx@orderedld@literal
   \ifblank{#1}
-    {\global\cslet{blx@bcf@labelyearspec}\@empty}
+    {\global\cslet{blx@bcf@labeldatespec}\@empty}
     {\def\blx@tempa{#1}%
-     \def\do##1{\global\cslet{blx@bcf@labelyearspec@##1}\@empty}%
+     \def\do##1{\global\cslet{blx@bcf@labeldatespec@##1}\@empty}%
      \expandafter\docsvlist\expandafter{#1}}%
   #2%
   \endgroup}
-\@onlypreamble\DeclareLabelyear
+\@onlypreamble\DeclareLabeldate
 
 \newcommand*{\blx@ordered@field}[2][]{%
   \let\blx@tempc\@empty
@@ -9555,7 +9559,7 @@
                 \csxappto{blx@bcf@\blx@tempb @##1}{\noexpand\blx@xml@ordered{\the\blx@tempcnta}{\blx@tempc}{#2}}}%
      \expandafter\docsvlist\expandafter{\blx@tempa}}}
 
-\newcommand*{\blx@orderedly@field}[2][]{%
+\newcommand*{\blx@orderedld@field}[2][]{%
   \let\blx@tempc\@empty
   \ifblank{#1}
     {}
@@ -9567,7 +9571,7 @@
                 \csxappto{blx@bcf@\blx@tempb @##1}{\noexpand\blx@xml@ordered{\the\blx@tempcnta}{\blx@tempc}{#2}}}%
      \expandafter\docsvlist\expandafter{\blx@tempa}}}
 
-\newcommand*{\blx@orderedly@literal}[1]{%
+\newcommand*{\blx@orderedld@literal}[1]{%
   \advance\blx@tempcnta\@ne
   \ifdefempty{\blx@tempa}
     {\csxappto{blx@bcf@\blx@tempb}{\noexpand\blx@xml@ordered{\the\blx@tempcnta}{ type="string"}{#1}}}
@@ -10291,10 +10295,19 @@
 \DeclareTypeOption{labeltitleyear}[true]{%
   \settoggle{blx@labeltitleyear}{#1}}
 
+\DeclareBibliographyOption{labeldate}[true]{%
+  \settoggle{blx@labeldate}{#1}}
+\DeclareTypeOption{labeldate}[true]{%
+  \settoggle{blx@labeldate}{#1}}
+
 \DeclareBibliographyOption{labelyear}[true]{%
-  \settoggle{blx@labelyear}{#1}}
+  \blx@warning@noline{%
+    'labelyear' option is deprecated, use 'labeldate' instead}%
+  \settoggle{blx@labeldate}{#1}}
 \DeclareTypeOption{labelyear}[true]{%
-  \settoggle{blx@labelyear}{#1}}
+  \blx@warning@noline{%
+    'labelyear' option is deprecated, use 'labeldate' instead}%
+  \settoggle{blx@labeldate}{#1}}
 
 \DeclareBibliographyOption{uniquelist}[true]{%
   \ifcsdef{blx@opt@uniquelist@#1}
@@ -10574,10 +10587,10 @@
         \setkeys{blx@opt@pre}{uniquename=mininit}}
        {}}
     {}%
-  \nottoggle{blx@labelyear}
+  \nottoggle{blx@labeldate}
     {\ifnumequal\blx@uniquelist\blx@opt@uniquelist@minyear
        {\blx@warn@conflopt{%
-          'uniquelist=minyear' requires 'labelyear'.\MessageBreak
+          'uniquelist=minyear' requires 'labeldate'.\MessageBreak
           Setting 'uniquelist=true'}%
         \setkeys{blx@opt@pre}{uniquelist}}
        {}}

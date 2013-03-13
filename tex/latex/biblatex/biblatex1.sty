@@ -422,7 +422,7 @@
 \newtoggle{blx@footnote}
 \newtoggle{blx@labelalpha}
 \newtoggle{blx@labelnumber}
-\newtoggle{blx@labelyear}
+\newtoggle{blx@labeldate}
 \newtoggle{blx@natbib}
 \newtoggle{blx@mcite}
 \newtoggle{blx@loadfiles}
@@ -5118,7 +5118,7 @@
   \do{extraalpha}%
   \do{labelnumber}%
   \do{labeltitle}%
-  \do{labelyear}%
+  \do{labeldate}%
   \do{extrayear}%
   \do{library}%
   \do{localnumber}%
@@ -5677,8 +5677,8 @@
      \iftoggle{blx@labelalpha}
        {\blx@bbl@labelalpha}
        {}%
-     \iftoggle{blx@labelyear}
-       {\blx@bbl@labelyear}
+     \iftoggle{blx@labeldate}
+       {\blx@bbl@labeldate}
        {}%
      \blx@bbl@prefixnumber}
     {}%
@@ -5772,7 +5772,7 @@
        {\blx@setlabwidth{\labelalphawidth}{%
           \csuse{abx@ffd@*@labelalphawidth}{\abx@field@shorthand}}}}}
 
-\def\blx@bbl@labelyear{%
+\def\blx@bbl@labeldate{%
   \ifundef\abx@field@extrayear
     {}
     {\ifnum\abx@field@extrayear>\c@maxextrayear
@@ -9030,8 +9030,8 @@
     \blx@xml@svalue{alphaothers}{\labelalphaothers}%
     \blx@xml@toggle{labelalpha}%
     \blx@xml@mvalue{labelnamespec}{\blx@bcf@labelnamespec}%
-    \blx@xml@toggle{labelyear}%
-    \blx@xml@mvalue{labelyearspec}{\blx@bcf@labelyearspec}%
+    \blx@xml@toggle{labeldate}%
+    \blx@xml@mvalue{labeldatespec}{\blx@bcf@labeldatespec}%
     \blx@xml@svalue{maxalphanames}{\blx@maxalphanames}%
     \blx@xml@svalue{maxbibnames}{\blx@maxbibnames}%
     \blx@xml@svalue{maxcitenames}{\blx@maxcitenames}%
@@ -9060,11 +9060,11 @@
       \ifcsdef{blx@bcf@labelnamespec@#1}
 	{\csuse{blx@bcf@labelnamespec@#1}}
 	{\blx@bcf@labelnamespec}}%
-    \blx@xml@toggle{labelyear}%
-    \blx@xml@mvalue{labelyearspec}{%
-      \ifcsdef{blx@bcf@labelyearspec@#1}
-        {\csuse{blx@bcf@labelyearspec@#1}}
-	{\blx@bcf@labelyearspec}}%
+    \blx@xml@toggle{labeldate}%
+    \blx@xml@mvalue{labeldatespec}{%
+      \ifcsdef{blx@bcf@labeldatespec@#1}
+        {\csuse{blx@bcf@labeldatespec@#1}}
+	{\blx@bcf@labeldatespec}}%
     \blx@xml@svalue{maxalphanames}{\blx@maxalphanames}%
     \blx@xml@svalue{maxbibnames}{\blx@maxbibnames@type}%
     \blx@xml@svalue{maxcitenames}{\blx@maxcitenames@type}%
@@ -9104,7 +9104,7 @@
     \noexpand\iftoggle{blx@useeditor}{1}{0}:%
     \noexpand\iftoggle{blx@usetranslator}{1}{0}:%
     \noexpand\iftoggle{blx@labelalpha}{1}{0}:%
-    \noexpand\iftoggle{blx@labelyear}{1}{0}:%
+    \noexpand\iftoggle{blx@labeldate}{1}{0}:%
     \noexpand\iftoggle{blx@singletitle}{1}{0}:%
     \noexpand\csuse{blx@bibtex@sorting@\noexpand\blx@sorting}:%
     \noexpand\blx@sortlos:%
@@ -9431,12 +9431,12 @@
 \newrobustcmd*{\DeclareLabelyear}[2][]{%
   \begingroup
   \let\blx@tempa\@empty
-  \def\blx@tempb{labelyearspec}%
+  \def\blx@tempb{labeldatespec}%
   \let\field\blx@ordered@field
   \ifblank{#1}
-    {\global\cslet{blx@bcf@labelyearspec}\@empty}
+    {\global\cslet{blx@bcf@labeldatespec}\@empty}
     {\def\blx@tempa{#1}%
-     \do{\global\cslet{blx@bcf@labelyearspec@##1}\@empty}%
+     \do{\global\cslet{blx@bcf@labeldatespec@##1}\@empty}%
      \docsvlist{#1}}%
   #2%
   \endgroup}
@@ -10205,10 +10205,19 @@
 \DeclareTypeOption{labelalpha}[true]{%
   \settoggle{blx@labelalpha}{#1}}
 
+\DeclareBibliographyOption{labeldate}[true]{%
+  \settoggle{blx@labeldate}{#1}}
+\DeclareTypeOption{labeldate}[true]{%
+  \settoggle{blx@labeldate}{#1}}
+
 \DeclareBibliographyOption{labelyear}[true]{%
-  \settoggle{blx@labelyear}{#1}}
+  \blx@warning@noline{%
+    'labelyear' option is deprecated, use 'labeldate' instead}%
+  \settoggle{blx@labeldate}{#1}}
 \DeclareTypeOption{labelyear}[true]{%
-  \settoggle{blx@labelyear}{#1}}
+  \blx@warning@noline{%
+    'labelyear' option is deprecated, use 'labeldate' instead}%
+  \settoggle{blx@labeldate}{#1}}
 
 \DeclareBibliographyOption{uniquelist}[true]{%
   \ifcsdef{blx@opt@uniquelist@#1}
@@ -10488,10 +10497,10 @@
 	\setkeys{blx@opt@pre}{uniquename=mininit}}
        {}}
     {}%
-  \nottoggle{blx@labelyear}
+  \nottoggle{blx@labeldate}
     {\ifnumequal\blx@uniquelist\blx@opt@uniquelist@minyear
        {\blx@warn@conflopt{%
-          'uniquelist=minyear' requires 'labelyear'.\MessageBreak
+          'uniquelist=minyear' requires 'labeldate'.\MessageBreak
           Setting 'uniquelist=true'}%
         \setkeys{blx@opt@pre}{uniquelist}}
        {}}
