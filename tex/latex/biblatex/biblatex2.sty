@@ -20,6 +20,7 @@
 \RequirePackage{logreq}
 \RequirePackage{ifthen}
 \RequirePackage{url}
+\RequirePackage{xparse}% needed for expandable keyval parsing
 %\RequirePackage{trace}
 
 \@ifpackagelater{etoolbox}{2010/11/29}
@@ -5003,18 +5004,25 @@
 
 % {<field>}{<value>}
 
-\long\def\blx@bbl@addfield#1#2{%
+\long\def\blx@bbl@addfield#1#2#3#4{%
   \csxappto\blx@bbl@data{%
-    \def\expandafter\noexpand\csname abx@field@#1\endcsname{#2}}}
+    \def\expandafter\noexpand\csname abx@field@#1@#3@#4\endcsname{#2}}}
 
-\protected\long\def\blx@bbl@fielddef#1#2{%
-  \def\NewValue{#2}%
-  \ifcsdef{blx@fih@#1}
-    {\csname blx@fih@#1\endcsname{#2}%
+% keyvals for form/lang options to .bbl macros
+\define@key{blx@ms}{form}{\def\blx@tempa{#1}}
+\define@key{blx@ms}{lang}{\def\blx@tempb{#1}}
+
+\protected\long\def\blx@bbl@fielddef#1#2#3{%
+  \let\blx@tempa\@empty
+  \let\blx@tempb\@empty
+  \setkeys{blx@ms}{#1}%
+  \def\NewValue{#3}%
+  \ifcsdef{blx@fih@#2}
+    {\csname blx@fih@#2\endcsname{#3}%
      \ifdefvoid\NewValue}
     {\@secondoftwo}
        {}
-       {\blx@bbl@addfield{#1}{\expandonce\NewValue}}}
+       {\blx@bbl@addfield{#2}{\expandonce\NewValue}}}
 
 \protected\long\def\blx@bbl@fieldedef#1#2{%
   \edef\NewValue{#2}%
@@ -5029,7 +5037,7 @@
 \protected\long\def\blx@bbl@stringdef#1#2{%
   \begingroup
   \edef\blx@tempa{\endgroup
-    \blx@bbl@fielddef{#1}{\detokenize{#2}}}%
+    \blx@bbl@fielddef{form=original,lang=default}{#1}{\detokenize{#2}}}%
   \blx@tempa}
 
 % {<field>}
@@ -5144,7 +5152,7 @@
   \iftoggle{blx@skipbib}
     {}
     {\forcsvlist{\blx@addkeyword{\abx@field@entrykey}}{#1}%
-     \blx@bbl@fielddef{keywords}{#1}}}
+     \blx@bbl@fielddef{form=original,lang=default}{keywords}{#1}}}
 
 \def\blx@addkeyword#1#2{%
   \listcsxadd{blx@keyw@\the\c@refsection @\detokenize{#2}}{#1}}
