@@ -150,7 +150,7 @@
          {\color@begingroup\toggletrue{blx@footnote}\@makefntext}
          {}
          {}}%
-     \docsvlist{%
+    \docsvlist{%
        \@footnotetext,% patch twice
        \H@@footnotetext,% patch twice
        \@plainfootnotetext}}
@@ -4973,29 +4973,20 @@
   \blx@warning@noline{\blx@tempa}%
   \endgroup}
 
-% {<field>}{<code>}
-
 \newrobustcmd{\DeclareFieldInputHandler}[2]{%
-  \ifblank{#2}
-    {\csundef{blx@fih@#1}}
-    {\long\csdef{blx@fih@#1}##1{#2}}}
-\@onlypreamble\DeclareFieldInputHandler
-
-% {<list>}{<code>}
+  \blx@warning@noline{%
+    'DeclareFieldInputHandler' is deprecated, please use Biber source
+    mapping features ('\DeclareSourceMap')}}
 
 \newrobustcmd*{\DeclareListInputHandler}[2]{%
-  \ifblank{#2}
-    {\csundef{blx@lih@#1}}
-    {\csdef{blx@lih@#1}##1{#2}}}
-\@onlypreamble\DeclareListInputHandler
-
-% {<name>}{<code>}
+  \blx@warning@noline{%
+    'DeclareListInputHandler' is deprecated, please use Biber source
+    mapping features ('\DeclareSourceMap')}}
 
 \newrobustcmd*{\DeclareNameInputHandler}[2]{%
-  \ifblank{#2}
-    {\csundef{blx@nih@#1}}
-    {\csdef{blx@nih@#1}##1{#2}}}
-\@onlypreamble\DeclareNameInputHandler
+  \blx@warning@noline{%
+    'DeclareNameInputHandler' is deprecated, please use Biber source
+    mapping features ('\DeclareSourceMap')}}
 
 % {<entrykey>}{<refsection>}{<field>}{<value>}
 
@@ -5005,41 +4996,35 @@
 
 % {<field>}{<value>}
 
-\long\def\blx@bbl@addfield#1#2#3#4{%
-  \csxappto\blx@bbl@data{%
-    \def\expandafter\noexpand\csname abx@field@#1@#3@#4\endcsname{#2}}}
+%\long\def\blx@bbl@addfield#1#2#3#4{%
+\newcommand{\blx@bbl@addfield}[3][]{%
+  \ifblank{#1}
+    {\csxappto\blx@bbl@data{%
+        \def\expandafter\noexpand\csname abx@field@#1\endcsname{#2}}}
+    {\let\blx@tempa\@empty
+     \let\blx@tempb\@empty
+     \setkeys{blx@ms}{#1}%
+     \csxappto\blx@bbl@data{%
+       \def\expandafter\noexpand\csname abx@field@#1@\blx@tempa @\blx@tempb\endcsname{#2}}}}
 
 % keyvals for form/lang options to .bbl macros
 \define@key{blx@ms}{form}{\def\blx@tempa{#1}}
 \define@key{blx@ms}{lang}{\def\blx@tempb{#1}}
 
-% {<form/lang kevals>}{field}{value}
-\protected\long\def\blx@bbl@fielddef#1#2#3{%
-  \let\blx@tempa\@empty
-  \let\blx@tempb\@empty
-  \setkeys{blx@ms}{#1}%
+% [<form/lang kevals>]{field}{value}
+%\protected\long\def\blx@bbl@fielddef#1#2#3{%
+\newrobustcmd{\blx@bbl@fielddef}[3][]{%
   \def\NewValue{#3}%
-  \ifcsdef{blx@fih@#2}
-    {\csname blx@fih@#2\endcsname{#3}%
-     \ifdefvoid\NewValue}
-    {\@secondoftwo}
-       {}
-       {\blx@bbl@addfield{#2}{\expandonce\NewValue}{\blx@tempa}{\blx@tempb}}}
+  \blx@bbl@addfield[#1]{#2}{\expandonce\NewValue}}
 
 \protected\long\def\blx@bbl@fieldedef#1#2{%
   \edef\NewValue{#2}%
-  \ifcsdef{blx@fih@#1}
-    {\csname blx@fih@#1\expandafter
-     \endcsname\expandafter{\NewValue}%
-     \ifdefvoid\NewValue}
-    {\@secondoftwo}
-       {}
-       {\blx@bbl@addfield{#1}{\NewValue}{original}{default}}}
+  \blx@bbl@addfield{#1}{\NewValue}}
 
 \protected\long\def\blx@bbl@stringdef#1#2{%
   \begingroup
   \edef\blx@tempa{\endgroup
-    \blx@bbl@fielddef{form=original,lang=default}{#1}{\detokenize{#2}}}%
+    \blx@bbl@fielddef{#1}{\detokenize{#2}}}%
   \blx@tempa}
 
 % {<field>}
@@ -5051,13 +5036,9 @@
   \let\NewValue\@empty}
 
 \protected\def\blx@bbl@verbend{%
-  \ifcsdef{blx@fih@\blx@tempa}
-    {\csname blx@fih@\blx@tempa\expandafter
-     \endcsname\expandafter{\NewValue}%
-     \ifdefvoid\NewValue}
-    {\@secondoftwo}
-       {}
-       {\blx@bbl@addfield{\blx@tempa}{\NewValue}}%
+  \ifdefvoid\NewValue
+    {}
+    {\blx@bbl@addfield{\blx@tempa}{\NewValue}}%
   \endgroup}
 
 \protected\def\blx@bbl@verbadd{%
@@ -5093,42 +5074,44 @@
   \csgappto\blx@bbl@data{%
     \togglefalse{abx@bool@#1}}}
 
-% {<form/lang kevals>}{<list}{<itemcount>}{<value>}
+% [<form/lang kevals>]{<list}{<itemcount>}{<value>}
 
-\protected\def\blx@bbl@listdef#1#2#3#4{%
-  \let\blx@tempa\@empty
-  \let\blx@tempb\@empty
-  \setkeys{blx@ms}{#1}%
+%\protected\def\blx@bbl@listdef#1#2#3#4{%
+\newrobustcmd*{\blx@bbl@listdef}[4][]{%
   \def\NewCount{#3}%
   \def\NewValue{#4}%
-  \ifcsdef{blx@lih@#2}
-    {\csname blx@lih@#2\endcsname{#4}%
-     \ifdefvoid\NewValue}
-    {\@secondoftwo}
-       {}
-       {\csxappto\blx@bbl@data{%
-          \csname c@#2\endcsname\NewCount\relax
-          \def\expandafter\noexpand\csname abx@list@#2@\blx@tempa @\blx@tempb\endcsname
-          {\expandonce\NewValue}}}}
+  \ifblank{#1}
+    {\csxappto\blx@bbl@data{%
+        \csname c@#2\endcsname\NewCount\relax
+        \def\expandafter\noexpand\csname abx@list@#2\endcsname
+        {\expandonce\NewValue}}}
+    {\let\blx@tempa\@empty
+      \let\blx@tempb\@empty
+      \setkeys{blx@ms}{#1}%
+      \csxappto\blx@bbl@data{%
+        \csname c@#2\endcsname\NewCount\relax
+        \def\expandafter\noexpand\csname abx@list@#2@\blx@tempa @\blx@tempb\endcsname
+        {\expandonce\NewValue}}}}
 
-% {<form/lang kevals>}{<name>}{<itemcount>}{<nameoptions>}{<value>}
+% [<form/lang kevals>]{<name>}{<itemcount>}{<nameoptions>}{<value>}
 
-\protected\def\blx@bbl@namedef#1#2#3#4#5{%
-  \let\blx@tempa\@empty
-  \let\blx@tempb\@empty
-  \setkeys{blx@ms}{#1}%
+%\protected\def\blx@bbl@namedef#1#2#3#4#5{%
+\newrobustcmd*{\blx@bbl@listdef}[5][]{%
   \def\NewCount{#3}%
   \def\NewOption{#4}%
   \def\NewValue{#5}%
-  \ifcsdef{blx@nih@#2}
-    {\csname blx@nih@#2\endcsname{#5}%
-     \ifdefvoid\NewValue}
-    {\@secondoftwo}
-       {}
-       {\csxappto\blx@bbl@data{%
-          \csname c@#2\endcsname\NewCount\relax
-          \def\expandafter\noexpand\csname abx@name@#2\blx@tempa @\blx@tempb\endcsname
-          {{\expandonce\NewOption}{\expandonce\NewValue}}}}}
+  \ifblank{#1}
+    {\csxappto\blx@bbl@data{%
+        \csname c@#2\endcsname\NewCount\relax
+        \def\expandafter\noexpand\csname abx@name@#2\endcsname
+        {{\expandonce\NewOption}{\expandonce\NewValue}}}}
+    {\let\blx@tempa\@empty
+      \let\blx@tempb\@empty
+      \setkeys{blx@ms}{#1}%
+      \csxappto\blx@bbl@data{%
+        \csname c@#2\endcsname\NewCount\relax
+        \def\expandafter\noexpand\csname abx@name@#2@\blx@tempa @\blx@tempb\endcsname
+        {{\expandonce\NewOption}{\expandonce\NewValue}}}}}
 
 % {<entrykey>,...}
 
@@ -5159,7 +5142,7 @@
   \iftoggle{blx@skipbib}
     {}
     {\forcsvlist{\blx@addkeyword{\abx@field@entrykey}}{#1}%
-     \blx@bbl@fielddef{form=original,lang=default}{keywords}{#1}}}
+     \blx@bbl@fielddef{keywords}{#1}}}
 
 \def\blx@addkeyword#1#2{%
   \listcsxadd{blx@keyw@\the\c@refsection @\detokenize{#2}}{#1}}
@@ -5707,7 +5690,7 @@
     \advance\blx@tempcnta\@ne}%
   \dolistcsloop{blx@pref@\the\c@refsection @#1}%
   \edef\blx@tempa{\endgroup\noexpand\blx@bbl@listdef
-    {form=original,lang=default}{pageref}{\the\blx@tempcnta}{\blx@tempa}}%
+    {pageref}{\the\blx@tempcnta}{\blx@tempa}}%
   \blx@tempa}
 
 %% Data input
