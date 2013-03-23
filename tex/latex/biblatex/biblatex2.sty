@@ -1947,8 +1947,8 @@
 
 \def\blx@ifnamesequal@iii#1#2#3#4#5#6#7#8#9{%
   \setkeys{blx@opt@name}{#1}%
-  \ifdef\abx@field@hash@original@default
-    {\eappto\blx@tempa{{\abx@field@hash@original@default}}}
+  \ifdef\abx@field@hash
+    {\eappto\blx@tempa{{\abx@field@hash}}}
     {\appto\blx@tempa{{{#2}{#4}{#6}{#8}}}}}
 
 % {<field>}{<macro>}{<true>}{<false>}
@@ -2267,14 +2267,14 @@
 \def\blx@ifopcit@global{%
   \blx@imc@iffieldundef{namehash}
     {\@secondoftwo}
-    {\blx@imc@iffieldequalcs{entrykey}{blx@lastkey@text@\abx@field@namehash@original@default}}}
+    {\blx@imc@iffieldequalcs{entrykey}{blx@lastkey@text@\abx@field@namehash}}}
 
 \def\blx@ifopcit@context{%
   \blx@imc@iffieldundef{namehash}
     {\@secondoftwo}
     {\iftoggle{blx@footnote}
-       {\blx@imc@iffieldequalcs{entrykey}{blx@lastkey@foot@\abx@field@namehash@original@default}}
-       {\blx@imc@iffieldequalcs{entrykey}{blx@lastkey@text@\abx@field@namehash@original@default}}}}
+       {\blx@imc@iffieldequalcs{entrykey}{blx@lastkey@foot@\abx@field@namehash}}
+       {\blx@imc@iffieldequalcs{entrykey}{blx@lastkey@text@\abx@field@namehash}}}}
 
 \def\blx@ifopcit@strict{%
   \blx@ifcitesingle
@@ -2287,9 +2287,9 @@
        {\@secondoftwo}
        {\iftoggle{blx@footnote}
           {\blx@ifmpfncheck
-             {\blx@imc@iffieldequalcs{entrykey}{blx@lastkey@foot@\abx@field@namehash@original@default}}
+             {\blx@imc@iffieldequalcs{entrykey}{blx@lastkey@foot@\abx@field@namehash}}
              {\@secondoftwo}}
-          {\blx@imc@iffieldequalcs{entrykey}{blx@lastkey@text@\abx@field@namehash@original@default}}}}
+          {\blx@imc@iffieldequalcs{entrykey}{blx@lastkey@text@\abx@field@namehash}}}}
     {\@secondoftwo}}%
 
 % {<true>}{<false>}
@@ -3163,8 +3163,8 @@
   \@ifstar\blx@mksc@i\blx@mksc@ii}
 
 \def\blx@mksc@i{%
-  \ifdef\abx@field@hyphenation@original@default
-    {\xifinlist\abx@field@hyphenation@original@default\blx@cmksc@lang
+  \ifdef\abx@field@hyphenation
+    {\xifinlist\abx@field@hyphenation\blx@cmksc@lang
        {\blx@mksc@ii}
        {\@firstofone}}
     {\blx@mksc@ii}}
@@ -3604,7 +3604,7 @@
 
 \define@key{blx@opt@name}{uniquelist}{\c@uniquelist#1\relax}
 \define@key{blx@opt@name}{uniquename}{\c@uniquename#1\relax}
-\define@key{blx@opt@name}{hash}{\edef\abx@field@hash@original@default{\detokenize{#1}}}
+\define@key{blx@opt@name}{hash}{\edef\abx@field@hash{\detokenize{#1}}}
 
 \newrobustcmd*{\bibinitperiod}{\adddot}
 \newrobustcmd*{\bibinitdelim}{\addnbspace}
@@ -4743,15 +4743,15 @@
           \begingroup
           \blx@imc@iffieldundef{hyphenation}
             {}
-            {\ifcsundef{l@\abx@field@hyphenation@original@default}
-               {\blx@warn@nohyph{\abx@field@hyphenation@original@default}}
+            {\ifcsundef{l@\abx@field@hyphenation}
+               {\blx@warn@nohyph{\abx@field@hyphenation}}
                {\blx@hook@initlang
                 \def\blx@endlang{%
                   \blx@hook@endlang
                   \csname end\blx@thelangenv\endcsname
                   \endgroup}%
                 \csname\blx@thelangenv\expandafter\endcsname
-                \expandafter{\abx@field@hyphenation@original@default}}}}}
+                \expandafter{\abx@field@hyphenation}}}}}
        {}%
      \blx@langsetup\bbl@main@language}
     {\blx@err@patch{'babel' package}%
@@ -5000,12 +5000,12 @@
 \newcommand{\blx@bbl@addfield}[3][]{%
   \ifblank{#1}
     {\csxappto\blx@bbl@data{%
-        \def\expandafter\noexpand\csname abx@field@#1\endcsname{#2}}}
+        \def\expandafter\noexpand\csname abx@field@#2\endcsname{#3}}}
     {\let\blx@tempa\@empty
      \let\blx@tempb\@empty
      \setkeys{blx@ms}{#1}%
      \csxappto\blx@bbl@data{%
-       \def\expandafter\noexpand\csname abx@field@#1@\blx@tempa @\blx@tempb\endcsname{#2}}}}
+       \def\expandafter\noexpand\csname abx@field@#2@\blx@tempa @\blx@tempb\endcsname{#3}}}}
 
 % keyvals for form/lang options to .bbl macros
 \define@key{blx@ms}{form}{\def\blx@tempa{#1}}
@@ -5096,7 +5096,7 @@
 % [<form/lang kevals>]{<name>}{<itemcount>}{<nameoptions>}{<value>}
 
 %\protected\def\blx@bbl@namedef#1#2#3#4#5{%
-\newrobustcmd*{\blx@bbl@listdef}[5][]{%
+\newrobustcmd*{\blx@bbl@namedef}[5][]{%
   \def\NewCount{#3}%
   \def\NewOption{#4}%
   \def\NewValue{#5}%
@@ -5231,16 +5231,16 @@
      \expandafter\expandafter\expandafter{%
        \csname blx@setc@\the\c@refsection @#1\endcsname}%
      \blx@ifdata{#1}
-       {\def\abx@field@childentrykey@original@default{#1}%
+       {\def\abx@field@childentrykey{#1}%
         \begingroup
         \blx@getdata{#1}%
         \edef\blx@tempa{\endgroup
-          \def\noexpand\abx@field@childentrytype@original@default{\abx@field@entrytype}}%
+          \def\noexpand\abx@field@childentrytype{\abx@field@entrytype}}%
         \blx@tempa}
        {}}
     {\blx@getdata{#1}}%
   \ifcsdef{blx@seti@\the\c@refsection @#1}
-    {\letcs\abx@field@entrysetcount@original@default{blx@seti@\the\c@refsection @#1}}
+    {\letcs\abx@field@entrysetcount{blx@seti@\the\c@refsection @#1}}
     {}}
 
 \def\blx@execute{%
@@ -5270,7 +5270,7 @@
 \def\blx@entrysetcount{%
   \ifdef\abx@field@entrykey
     {\ifcsdef{blx@seti@\the\c@refsection @\abx@field@entrykey}
-       {\letcs\abx@field@entrysetcount@original@default{%
+       {\letcs\abx@field@entrysetcount{%
           blx@seti@\the\c@refsection @\abx@field@entrykey}}
        {}}
     {}}
@@ -5391,10 +5391,10 @@
   \listcsgadd{blx@slists@\the\c@refsection @entry@\blx@sorting}{#1}}
 
 \def\blx@bbl@shorthand{%
-  \ifundef\abx@field@shorthand@original@default
+  \ifundef\abx@field@shorthand
     {}
     {\blx@setlabwidth{\shorthandwidth}{%
-       \csuse{abx@ffd@*@shorthandwidth}{\abx@field@shorthand@original@default}}}}
+       \csuse{abx@ffd@*@shorthandwidth}{\abx@field@shorthand}}}}
 
 \def\blx@bbl@labelnumber{%
   % Used at endentry, when reading .bbl
@@ -5403,7 +5403,7 @@
   \ifdefstrequal{\blx@slist@name}{\blx@sorting}
     {\ifdefempty\abx@field@localnumber
       {}% only if omitnumbers=true
-      {\ifundef\abx@field@shorthand@original@default
+      {\ifundef\abx@field@shorthand
         {\ifdef\abx@field@localnumber
           {}% only if defernumbers=true
           {\csnumgdef{blx@labelnumber@\the\c@refsection}{%
@@ -5420,11 +5420,11 @@
                 {}%
                 \abx@field@localnumber}}}}
         {\csgappto\blx@bbl@data{%
-            \let\abx@field@labelnumber\abx@field@shorthand@original@default}%
+            \let\abx@field@labelnumber\abx@field@shorthand}%
           \iftoggle{blx@skipbib}
           {}
           {\blx@setlabwidth{\labelnumberwidth}{%
-              \csuse{abx@ffd@*@labelnumberwidth}{\abx@field@shorthand@original@default}}}}}}
+              \csuse{abx@ffd@*@labelnumberwidth}{\abx@field@shorthand}}}}}}
    {}}
 
 \def\blx@bbl@prefixnumber{%
@@ -5433,12 +5433,12 @@
     {}}
 
 \def\blx@bbl@labelalpha{%
-   \ifundef\abx@field@labelalpha@original@default
+   \ifundef\abx@field@labelalpha
      {}
-     {\ifundef\abx@field@extraalpha@original@default
+     {\ifundef\abx@field@extraalpha
         {}
-        {\ifnum\abx@field@extraalpha@original@default>\c@maxextraalpha
-           \global\c@maxextraalpha\abx@field@extraalpha@original@default\relax
+        {\ifnum\abx@field@extraalpha>\c@maxextraalpha
+           \global\c@maxextraalpha\abx@field@extraalpha\relax
          \fi}%
       \iftoggle{blx@skipbib}
         {}
@@ -5447,30 +5447,30 @@
              \ifdef\abx@field@prefixnumber
                {\csuse{abx@ffd@*@prefixnumber}{\abx@field@prefixnumber}}
                {}%
-             \csuse{abx@ffd@*@labelalpha}{\abx@field@labelalpha@original@default}%
-             \ifundef\abx@field@extraalpha@original@default
+             \csuse{abx@ffd@*@labelalpha}{\abx@field@labelalpha}%
+             \ifundef\abx@field@extraalpha
                {}
-               {\csuse{abx@ffd@*@extraalpha}{\abx@field@extraalpha@original@default}}}}}}}
+               {\csuse{abx@ffd@*@extraalpha}{\abx@field@extraalpha}}}}}}}
 
 \def\blx@bbl@labeltitle{%
-  \ifundef\abx@field@extratitle@original@default
+  \ifundef\abx@field@extratitle
     {}
-    {\ifnum\abx@field@extratitle@original@default>\c@maxextratitle
-       \global\c@maxextratitle\abx@field@extratitle@original@default\relax
+    {\ifnum\abx@field@extratitle>\c@maxextratitle
+       \global\c@maxextratitle\abx@field@extratitle\relax
      \fi}}
 
 \def\blx@bbl@labeltitleyear{%
-  \ifundef\abx@field@extratitleyear@original@default
+  \ifundef\abx@field@extratitleyear
     {}
-    {\ifnum\abx@field@extratitleyear@original@default>\c@maxextratitleyear
-       \global\c@maxextratitleyear\abx@field@extratitleyear@original@default\relax
+    {\ifnum\abx@field@extratitleyear>\c@maxextratitleyear
+       \global\c@maxextratitleyear\abx@field@extratitleyear\relax
      \fi}}
 
 \def\blx@bbl@labeldate{%
-  \ifundef\abx@field@extrayear@original@default
+  \ifundef\abx@field@extrayear
     {}
-    {\ifnum\abx@field@extrayear@original@default>\c@maxextrayear
-       \global\c@maxextrayear\abx@field@extrayear@original@default\relax
+    {\ifnum\abx@field@extrayear>\c@maxextrayear
+       \global\c@maxextrayear\abx@field@extrayear\relax
      \fi}}
 
 \def\blx@bbl@titles{%
@@ -5628,7 +5628,7 @@
   \begingroup
   \nottoggle{blx@skiplab}
     {\iftoggle{blx@labelnumber}
-       {\ifundef\abx@field@shorthand@original@default
+       {\ifundef\abx@field@shorthand
          % Need to know if we set any localnumber from .aux file, not
          % just current item. Otherwise, we may just write new
          % localnumbers but not existing ones
@@ -5656,7 +5656,7 @@
 \def\blx@addprefixnumber{%
   \nottoggle{blx@skiplab}
     {\ifdef\blx@prefixnumbers
-       {\ifundef\abx@field@shorthand@original@default
+       {\ifundef\abx@field@shorthand
           {\edef\abx@field@prefixnumber{\expandonce\blx@prefixnumbers}%
            \ifundef\abx@field@prefixnumber
              {\blx@bbl@addentryfield{\abx@field@entrykey}{\the\c@refsection}%
@@ -5739,8 +5739,8 @@
   \def\do##1{\cslet{abx@field@##1}\relax}%
   \dolistcsloop{blx@biber@datamodel@fields}\do{options}%
   \abx@dointernalfields
-  \long\def\abx@field@execute@original@default##1{%
-    \unexpanded{\abx@field@execute@original@default{##1}}}%
+  \long\def\abx@field@execute##1{%
+    \unexpanded{\abx@field@execute{##1}}}%
   \csuse{abx@preamble}%
   \def\do##1{%
     \csxdef{blx@data@\the\c@refsection @##1}{%
@@ -6479,7 +6479,7 @@
          {}
          {\addvspace{\bibinitsep}}%
      \fi
-     \global\let\blx@previnit\abx@field@sortinit@original@default}}
+     \global\let\blx@previnit\abx@field@sortinit}}
 
 \def\blx@namesep{%
   \ifnum\c@instcount>\@ne
@@ -6487,7 +6487,7 @@
       {}
       {\addvspace{\bibnamesep}}%
   \fi
-  \global\let\blx@prevhash\abx@field@fullhash@original@default}
+  \global\let\blx@prevhash\abx@field@fullhash}
 
 \newrobustcmd*{\AtBeginBibliography}{\gappto\blx@hook@bibinit}
 \newrobustcmd*{\AtEveryBibitem}{\gappto\blx@hook@bibitem}
@@ -7388,14 +7388,14 @@
 
 \def\blx@idemtracker@gobal{%
   \ifbool{citetracker}
-    {\global\let\blx@lasthash@text\abx@field@fullhash@original@default}
+    {\global\let\blx@lasthash@text\abx@field@fullhash}
     {}}
 
 \def\blx@idemtracker@context{%
   \ifbool{citetracker}
     {\iftoggle{blx@footnote}
-       {\global\let\blx@lasthash@foot\abx@field@fullhash@original@default}
-       {\global\let\blx@lasthash@text\abx@field@fullhash@original@default}}
+       {\global\let\blx@lasthash@foot\abx@field@fullhash}
+       {\global\let\blx@lasthash@text\abx@field@fullhash}}
     {}}
 
 \let\blx@idemtracker@strict\blx@idemtracker@gobal
@@ -7458,10 +7458,10 @@
 \def\blx@opcit@tracker#1{%
   \blx@imc@iffieldundef{namehash}
     {}
-    {\global\cslet{blx@lastkey@#1@\abx@field@namehash@original@default}\abx@field@entrykey
-     \xifinlistcs\abx@field@namehash@original@default{blx@trackhash@#1}
+    {\global\cslet{blx@lastkey@#1@\abx@field@namehash}\abx@field@entrykey
+     \xifinlistcs\abx@field@namehash{blx@trackhash@#1}
        {}
-       {\listcsxadd{blx@trackhash@#1}\abx@field@namehash@original@default}}}
+       {\listcsxadd{blx@trackhash@#1}\abx@field@namehash}}}
 
 \def\blx@opcit@reset#1{%
   \begingroup
