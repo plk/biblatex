@@ -519,23 +519,42 @@
     \expandafter\blx@regimcs@i
   \fi}
 
-% {<field>} => \do{<item1>}\do{<item2>}...
+% [<form/lang keyval>]{<field>} => \do{<item1>}\do{<item2>}...
+\DeclareExpandableDocumentCommand{\blx@imc@docsvfield}
+  {O{form=original,lang=default}m}
+  {\ifinlist{#2}{\blx@biber@datamodel@msfields}
+    {\def\blx@tempa{original}%
+     \def\blx@tempb{default}%
+     \setkeys{blx@ms}{#1}%
+     \blx@imc@iffieldundef[#1]{#2}
+       {}
+       {\expandafter\expandafter\expandafter\docsvlist
+         \expandafter\expandafter\expandafter{%
+           \csname abx@field@#2@\blx@tempa @\blx@tempb\endcsname}}}
+    {\blx@imc@iffieldundef{#2}
+       {}
+       {\expandafter\expandafter\expandafter\docsvlist
+         \expandafter\expandafter\expandafter{%
+           \csname abx@field@#2\endcsname}}}}
 
-\def\blx@imc@docsvfield#1{%
-  \blx@imc@iffieldundef{#1}
-    {}
-    {\expandafter\expandafter\expandafter\docsvlist
-     \expandafter\expandafter\expandafter{%
-       \csname abx@field@#1\endcsname}}}
+% [<form/lang keyval>]{<handler>}{<field>} => <handler>{<item1>}<handler>{<item2>}...
 
-% {<handler>}{<field>} => <handler>{<item1>}<handler>{<item2>}...
-
-\def\blx@imc@forcsvfield#1#2{%
-  \blx@imc@iffieldundef{#2}
-    {}
-    {\expandafter\expandafter\expandafter\blx@imc@forcsvfield@i
-     \expandafter\expandafter\expandafter{%
-       \csname abx@field@#2\endcsname}{#1}}}
+\DeclareExpandableDocumentCommand{\blx@imc@forcsvfield}
+  {O{form=original,lang=default}m m}
+  {\ifinlist{#3}{\blx@biber@datamodel@msfields}
+    {\def\blx@tempa{original}%
+     \def\blx@tempb{default}%
+     \setkeys{blx@ms}{#1}%
+     \blx@imc@iffieldundef[#1]{#3}
+       {}
+       {\expandafter\expandafter\expandafter\blx@imc@forcsvfield@i
+         \expandafter\expandafter\expandafter{%
+           \csname abx@field@#3@\blx@tempa @\blx@tempb\endcsname}{#2}}}
+    {\blx@imc@iffieldundef{#3}
+      {}
+      {\expandafter\expandafter\expandafter\blx@imc@forcsvfield@i
+         \expandafter\expandafter\expandafter{%
+           \csname abx@field@#3\endcsname}{#2}}}}
 
 \def\blx@imc@forcsvfield@i#1#2{\forcsvlist{#2}{#1}}
 
@@ -1601,6 +1620,16 @@
 \appto\blx@blxinit{%
   \appto\nocorrlist{\isdot\adddot\addperiod\addcomma}}
 
+% {<form/lang keyval>}{<field>}
+% This forks on multiscript fields/lists/names, parsing the form/lang spec
+\protected\def\blx@mscheck#1#2{%
+  \ifinlist{#2}{\blx@biber@datamodel@msfields}
+    {\def\blx@tempa{original}%
+     \def\blx@tempb{default}%
+     \setkeys{blx@ms}{#1}%
+     \@firstoftwo}
+    {\@secondoftwo}}
+
 %% Style definition
 
 % {<bibstyle>}
@@ -1886,20 +1915,35 @@
 \protected\def\blx@imc@savenamecs{%
   \@ifstar{\blx@savedatacs{name}}{\global\blx@savedatacs{name}}}
 
-% {<field>}{<true>}{<false>}
+% [<form/lang keyval>]{<field>}{<true>}{<false>}
 
-\def\blx@imc@iffieldundef#1{%
-  \ifcsundef{abx@field@#1}}
+\DeclareExpandableDocumentCommand{\blx@imc@iffieldundef}
+  {O{form=original,lang=default}m}
+  {\blx@mscheck{#1}{#2}
+    {\ifcsundef{abx@field@#2@\blx@tempa @\blx@tempb}}
+    {\ifcsundef{abx@field@#2}}}
 
 % {<plainlist>}{<true>}{<false>}
 
 \def\blx@imc@iflistundef#1{%
   \ifcsundef{abx@list@#1}}
 
+% \DeclareExpandableDocumentCommand{\blx@imc@iflistundef}
+%   {O{form=original,lang=default}m}
+%   {\blx@mscheck{#1}{#2}
+%     {\ifcsundef{abx@list@#2@\blx@tempa @\blx@tempb}}
+%     {\ifcsundef{abx@list@#2}}}
+
 % {<namelist>}{<true>}{<false>}
 
 \def\blx@imc@ifnameundef#1{%
   \ifcsundef{abx@name@#1}}
+
+% \DeclareExpandableDocumentCommand{\blx@imc@ifnameundef}
+%   {O{form=original,lang=default}m}
+%   {\blx@mscheck{#1}{#2}
+%     {\ifcsundef{abx@name@#2@\blx@tempa @\blx@tempb}}
+%     {\ifcsundef{abx@name@#2}}}
 
 % {<field1>}{<field2>}{<true>}{<false>}
 
@@ -3483,21 +3527,32 @@
         \blx@theformat{#2}%
         \blx@endunit}}}
 
-% [<format>]{<field>}
+% [<format>][<form/lang keyval>]{<field>}
 
-\newrobustcmd*{\blx@imc@printfield}[2][]{%
-  \blx@imc@iffieldundef{#2}
-    {\blx@nounit}
-    {\blx@getformat\blx@theformat{ffd}{#1}{#2}%
-     \ifdefvoid\blx@theformat
-       {\blx@nounit}
-       {\blx@begunit
-        \def\currentfield{#2}%
-        \expandafter\expandafter
-        \expandafter\blx@theformat
-        \expandafter\expandafter
-        \expandafter{\csname abx@field@#2\endcsname}%
-        \blx@endunit}}}
+\DeclareExpandableDocumentCommand{\blx@imc@printfield}
+  {oO{form=original,lang=default}m}
+  {\blx@imc@iffieldundef[#2]{#3}
+     {\blx@nounit}
+     {\def\Format{#1}%
+      \IfNoValueTF{#1}% undef with xparse means special "-NoValue-"
+        {\def\Format{}}
+        {\def\Format{#1}}%
+      \blx@getformat\blx@theformat{ffd}{\Format}{#3}%
+      \ifdefvoid\blx@theformat
+         {\blx@nounit}
+         {\blx@begunit
+          \def\currentfield{#3}%
+          \blx@mscheck{#2}{#3}
+            {\expandafter\expandafter
+             \expandafter\blx@theformat
+             \expandafter\expandafter
+             \expandafter{\csname abx@field@#3@\blx@tempa @\blx@tempb\endcsname}%
+             \blx@endunit}
+            {\expandafter\expandafter
+             \expandafter\blx@theformat
+             \expandafter\expandafter
+             \expandafter{\csname abx@field@#3\endcsname}%
+             \blx@endunit}}}}
 
 % [<format>]{<field>}
 
@@ -4995,14 +5050,12 @@
     \def\expandafter\noexpand\csname abx@field@#3\endcsname{#4}}}
 
 % {<field>}{<value>}
-
-%\long\def\blx@bbl@addfield#1#2#3#4{%
 \newcommand{\blx@bbl@addfield}[3][]{%
   \ifblank{#1}
     {\csxappto\blx@bbl@data{%
         \def\expandafter\noexpand\csname abx@field@#2\endcsname{#3}}}
-    {\let\blx@tempa\@empty
-     \let\blx@tempb\@empty
+    {\def\blx@tempa{original}%
+     \def\blx@tempb{default}%
      \setkeys{blx@ms}{#1}%
      \csxappto\blx@bbl@data{%
        \def\expandafter\noexpand\csname abx@field@#2@\blx@tempa @\blx@tempb\endcsname{#3}}}}
@@ -5012,7 +5065,6 @@
 \define@key{blx@ms}{lang}{\def\blx@tempb{#1}}
 
 % [<form/lang kevals>]{field}{value}
-%\protected\long\def\blx@bbl@fielddef#1#2#3{%
 \newrobustcmd{\blx@bbl@fielddef}[3][]{%
   \def\NewValue{#3}%
   \blx@bbl@addfield[#1]{#2}{\expandonce\NewValue}}
@@ -5074,7 +5126,7 @@
   \csgappto\blx@bbl@data{%
     \togglefalse{abx@bool@#1}}}
 
-% [<form/lang kevals>]{<list}{<itemcount>}{<value>}
+% [<form/lang kevals>]{<list>}{<itemcount>}{<value>}
 
 %\protected\def\blx@bbl@listdef#1#2#3#4{%
 \newrobustcmd*{\blx@bbl@listdef}[4][]{%
@@ -5085,13 +5137,13 @@
         \csname c@#2\endcsname\NewCount\relax
         \def\expandafter\noexpand\csname abx@list@#2\endcsname
         {\expandonce\NewValue}}}
-    {\let\blx@tempa\@empty
-      \let\blx@tempb\@empty
-      \setkeys{blx@ms}{#1}%
-      \csxappto\blx@bbl@data{%
-        \csname c@#2\endcsname\NewCount\relax
-        \def\expandafter\noexpand\csname abx@list@#2@\blx@tempa @\blx@tempb\endcsname
-        {\expandonce\NewValue}}}}
+    {\def\blx@tempa{original}%
+     \def\blx@tempb{default}%
+     \setkeys{blx@ms}{#1}%
+     \csxappto\blx@bbl@data{%
+       \csname c@#2\endcsname\NewCount\relax
+       \def\expandafter\noexpand\csname abx@list@#2@\blx@tempa @\blx@tempb\endcsname
+       {\expandonce\NewValue}}}}
 
 % [<form/lang kevals>]{<name>}{<itemcount>}{<nameoptions>}{<value>}
 
@@ -5105,13 +5157,13 @@
         \csname c@#2\endcsname\NewCount\relax
         \def\expandafter\noexpand\csname abx@name@#2\endcsname
         {{\expandonce\NewOption}{\expandonce\NewValue}}}}
-    {\let\blx@tempa\@empty
-      \let\blx@tempb\@empty
-      \setkeys{blx@ms}{#1}%
-      \csxappto\blx@bbl@data{%
-        \csname c@#2\endcsname\NewCount\relax
-        \def\expandafter\noexpand\csname abx@name@#2@\blx@tempa @\blx@tempb\endcsname
-        {{\expandonce\NewOption}{\expandonce\NewValue}}}}}
+    {\def\blx@tempa{original}%
+     \def\blx@tempb{default}%
+     \setkeys{blx@ms}{#1}%
+     \csxappto\blx@bbl@data{%
+       \csname c@#2\endcsname\NewCount\relax
+       \def\expandafter\noexpand\csname abx@name@#2@\blx@tempa @\blx@tempb\endcsname
+       {{\expandonce\NewOption}{\expandonce\NewValue}}}}}
 
 % {<entrykey>,...}
 
