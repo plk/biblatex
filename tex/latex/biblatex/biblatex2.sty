@@ -1622,6 +1622,8 @@
 
 % {<form/lang keyval>}{<field>}
 % This forks on multiscript fields/lists/names, parsing the form/lang spec
+% The two \defs are there to make sure both options have defaults in case only
+% one is given ([form=<form>])
 \protected\def\blx@mscheck#1#2{%
   \ifinlist{#2}{\blx@biber@datamodel@msfields}
     {\def\blx@tempa{original}%
@@ -1925,14 +1927,14 @@
 
 % {<plainlist>}{<true>}{<false>}
 
-\def\blx@imc@iflistundef#1{%
-  \ifcsundef{abx@list@#1}}
+% \def\blx@imc@iflistundef#1{%
+%   \ifcsundef{abx@list@#1}}
 
-% \DeclareExpandableDocumentCommand{\blx@imc@iflistundef}
-%   {O{form=original,lang=default}m}
-%   {\blx@mscheck{#1}{#2}
-%     {\ifcsundef{abx@list@#2@\blx@tempa @\blx@tempb}}
-%     {\ifcsundef{abx@list@#2}}}
+\DeclareExpandableDocumentCommand{\blx@imc@iflistundef}
+  {O{form=original,lang=default}m}
+  {\blx@mscheck{#1}{#2}
+    {\ifcsundef{abx@list@#2@\blx@tempa @\blx@tempb}}
+    {\ifcsundef{abx@list@#2}}}
 
 % {<namelist>}{<true>}{<false>}
 
@@ -3578,8 +3580,8 @@
        {\blx@nounit}}
     {\blx@nounit}}
 
-% {<macro>}[<format>][<start>-<stop>]
-% => <macro>{<format>}{<start>}{<stop>}
+% {<macro>}[<format>][<start>-<stop>][<form/lang keyval>]
+% => <macro>{<format>}{<start>}{<stop>}[<form/lang keyval>]
 
 \def\blx@listargs#1{%
   \@ifnextchar[%]
@@ -3722,29 +3724,38 @@
 
 \long\def\blx@namebreak#1&{}
 
-% [<format>][<start>-<stop>]{<plainlist>}
+% [<format>][<start>-<stop>][<form/lang keyval>]{<plainlist>}
 
 \protected\def\blx@imc@printlist{%
   \blx@listargs\blx@printlist}
 
-% {<format>}{<start>}{<stop>}{<plainlist>}
+% {<format>}{<start>}{<stop>}[<form/lang keyval>]{<plainlist>}
 
-\def\blx@printlist#1#2#3#4{%
-  \blx@imc@iflistundef{#4}
-    {\blx@nounit}
-    {\blx@getformat\blx@theformat{lfd}{#1}{#4}%
-     \ifdefvoid\blx@theformat
-       {\blx@nounit}
-       {\blx@begunit
-        \blx@listsetup{#2}{#3}{#4}%
-        \expandafter\blx@listparser\blx@thedata{}&%
-        \blx@endunit}}}
+\DeclareExpandableDocumentCommand{\blx@printlist}
+  {mmmO{form=original,lang=default}m}
+  {\blx@imc@iflistundef[#4]{#5}
+     {\blx@nounit}
+     {\def\Format{#1}%
+      \IfNoValueTF{#1}% undef with xparse means special "-NoValue-"
+        {\def\Format{}}
+        {\def\Format{#1}}%
+      \blx@getformat\blx@theformat{lfd}{\Format}{#5}%
+      \ifdefvoid\blx@theformat
+        {\blx@nounit}
+        {\blx@begunit
+         \blx@listsetup{#2}{#3}{#4}{#5}%
+         \expandafter\blx@listparser\blx@thedata{}&%
+         \blx@endunit}}}
 
-\def\blx@listsetup#1#2#3{%
-  \def\currentlist{#3}%
+% {<start>}{<stop>}{<form/lang keyval>}{<plainlist>}
+
+\def\blx@listsetup#1#2#3#4{%
+  \def\currentlist{#4}%
   \c@listcount\@ne
-  \expandafter\c@listtotal\csname c@#3\endcsname
-  \letcs\blx@thedata{abx@list@#3}%
+  \expandafter\c@listtotal\csname c@#4\endcsname
+  \blx@mscheck{#3}{#4}
+    {\letcs\blx@thedata{abx@list@#4@\blx@tempa @\blx@tempb}}
+    {\letcs\blx@thedata{abx@list@#4}}%
   \ifblank{#1}
     {\c@liststart\@ne}
     {\ifnum#1<\@ne
@@ -3766,6 +3777,69 @@
          \c@liststop#2\relax
        \fi
      \fi}}
+
+% \def\blx@listsetup#1#2#3{%
+%   \def\currentlist{#3}%
+%   \c@listcount\@ne
+%   \expandafter\c@listtotal\csname c@#3\endcsname
+%   \letcs\blx@thedata{abx@list@#3}%
+%   \ifblank{#1}
+%     {\c@liststart\@ne}
+%     {\ifnum#1<\@ne
+%        \c@liststart\@ne
+%      \else
+%        \c@liststart#1\relax
+%      \fi}%
+%   \ifblank{#2}
+%     {\c@liststop\c@listtotal
+%      \ifnum\c@listtotal>\c@maxitems
+%        \c@liststop\c@minitems
+%      \fi}
+%     {\ifnum#2>\c@listtotal
+%        \c@liststop\c@listtotal
+%      \else
+%        \ifnum#2<\@ne
+%          \c@liststop\@ne
+%        \else
+%          \c@liststop#2\relax
+%        \fi
+%      \fi}}
+
+% \DeclareExpandableDocumentCommand{\blx@imc@printfield}
+%   {oO{form=original,lang=default}m}
+%   {\blx@imc@iffieldundef[#2]{#3}
+%      {\blx@nounit}
+%      {\def\Format{#1}%
+%       \IfNoValueTF{#1}% undef with xparse means special "-NoValue-"
+%         {\def\Format{}}
+%         {\def\Format{#1}}%
+%       \blx@getformat\blx@theformat{ffd}{\Format}{#3}%
+%       \ifdefvoid\blx@theformat
+%          {\blx@nounit}
+%          {\blx@begunit
+%           \def\currentfield{#3}%
+%           \blx@mscheck{#2}{#3}
+%             {\expandafter\expandafter
+%              \expandafter\blx@theformat
+%              \expandafter\expandafter
+%              \expandafter{\csname abx@field@#3@\blx@tempa @\blx@tempb\endcsname}%
+%              \blx@endunit}
+%             {\expandafter\expandafter
+%              \expandafter\blx@theformat
+%              \expandafter\expandafter
+%              \expandafter{\csname abx@field@#3\endcsname}%
+%              \blx@endunit}}}}
+
+% \def\blx@printlist#1#2#3#4{%
+%   \blx@imc@iflistundef{#4}
+%     {\blx@nounit}
+%     {\blx@getformat\blx@theformat{lfd}{#1}{#4}%
+%      \ifdefvoid\blx@theformat
+%        {\blx@nounit}
+%        {\blx@begunit
+%         \blx@listsetup{#2}{#3}{#4}%
+%         \expandafter\blx@listparser\blx@thedata{}&%
+%         \blx@endunit}}}
 
 % [<format>][<start>-<stop>]{<plainlist>}
 
