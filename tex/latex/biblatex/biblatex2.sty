@@ -1632,6 +1632,10 @@
      \@firstoftwo}
     {\@secondoftwo}}
 
+% keyvals for form/lang options to .bbl macros
+\define@key{blx@ms}{form}{\def\blx@tempa{#1}}
+\define@key{blx@ms}{lang}{\def\blx@tempb{#1}}
+
 %% Style definition
 
 % {<bibstyle>}
@@ -1938,7 +1942,7 @@
 
 % {<namelist>}{<true>}{<false>}
 
-\def\blx@imc@ifnameundef#1{%
+\def\blx@imc@ifnameundef#1{
   \ifcsundef{abx@name@#1}}
 
 % \DeclareExpandableDocumentCommand{\blx@imc@ifnameundef}
@@ -3474,7 +3478,6 @@
     \expandonce{\csname abx@#1@#4@#5\endcsname}}}
 
 % {<macro>}{<id>}{<name>}{<field>}
-
 \def\blx@getformat#1#2#3#4{%
   \blx@safe@actives
   \afterassignment\blx@rest@actives
@@ -3535,7 +3538,7 @@
   {oO{form=original,lang=default}m}
   {\blx@imc@iffieldundef[#2]{#3}
      {\blx@nounit}
-     {\def\Format{#1}%
+     {\def\Format{#1}% for scoping of \def
       \IfNoValueTF{#1}% undef with xparse means special "-NoValue-"
         {\def\Format{}}
         {\def\Format{#1}}%
@@ -3599,12 +3602,28 @@
 \def\blx@listargs@iii#1#2#3-#4&{%
   #1{#2}{#3}{#4}}
 
-% [<format>][<start>-<stop>]{<namelist>}
+% [<format>][<start>-<stop>][<form/lang keyval>]{<namelist>}
 
 \protected\def\blx@imc@printnames{%
   \blx@listargs\blx@printnames}
 
-% {<format>}{<start>}{<stop>}{<namelist>}
+% {<format>}{<start>}{<stop>}{<form/lang keyval>}{<namelist>}
+
+% \DeclareExpandableDocumentCommand{\blx@printnames}
+%   {mmmmm}
+%   {\blx@imc@ifnameundef[#4]{#5}
+%      {\blx@nounit}
+%      {\def\Format{#1}%
+%       \IfNoValueTF{#1}% undef with xparse means special "-NoValue-"
+%         {\def\Format{}}
+%         {\def\Format{#1}}%
+%       \blx@getformat\blx@theformat{nfd}{\Format}{#5}%
+%       \ifdefvoid\blx@theformat
+%         {\blx@nounit}
+%         {\blx@begunit
+%          \blx@namesetup{#2}{#3}{#4}{#5}%
+%          \expandafter\blx@nameparser\blx@thedata{}&%
+%          \blx@endunit}}}
 
 \def\blx@printnames#1#2#3#4{%
   \blx@imc@ifnameundef{#4}
@@ -3616,6 +3635,8 @@
         \blx@namesetup{#2}{#3}{#4}%
         \expandafter\blx@nameparser\blx@thedata{}&%
         \blx@endunit}}}
+
+% {<start>}{<stop>}{<form/lang keyval>}{<plainlist>}
 
 \def\blx@namesetup#1#2#3{%
   \def\currentname{#3}%
@@ -3724,22 +3745,36 @@
 
 \long\def\blx@namebreak#1&{}
 
+% {<macro>}[<format>][<start>-<stop>][<form/lang keyval]
+% => <macro>{<format>}{<start>}{<stop>}[<form/lang keyval>]
+
+\DeclareDocumentCommand\blx@listargsl
+  {m o >{\SplitArgument{1}{-}}o o}
+  {\edef\Format{\IfValueTF{#2}{#2}{}}%
+   \def\Start{}%
+   \def\Stop{}%
+   \IfValueTF{#3}
+     {\edef\Start{\@firstoftwo #3}%
+      \edef\Stop{\@secondoftwo #3}%
+      \edef\Start{\ifstrequal{\Start}{\NoValue}{}{\Start}}%
+      \edef\Stop{\ifstrequal{\Stop}{\NoValue}{}{\Stop}}}
+     {}%
+   \IfNoValueTF{#4}
+     {#1{\Format}{\Start}{\Stop}}
+     {#1{\Format}{\Start}{\Stop}[#4]}}
+
 % [<format>][<start>-<stop>][<form/lang keyval>]{<plainlist>}
 
 \protected\def\blx@imc@printlist{%
-  \blx@listargs\blx@printlist}
+  \blx@listargsl\blx@printlist}
 
 % {<format>}{<start>}{<stop>}[<form/lang keyval>]{<plainlist>}
 
 \DeclareExpandableDocumentCommand{\blx@printlist}
-  {mmmO{form=original,lang=default}m}
-  {\blx@imc@iflistundef[#4]{#5}
+  {m m m O{form=original,lang=default} m}
+  {\typeout{#1:#2:#3:#4:#5}\blx@imc@iflistundef[#4]{#5}
      {\blx@nounit}
-     {\def\Format{#1}%
-      \IfNoValueTF{#1}% undef with xparse means special "-NoValue-"
-        {\def\Format{}}
-        {\def\Format{#1}}%
-      \blx@getformat\blx@theformat{lfd}{\Format}{#5}%
+     {\blx@getformat\blx@theformat{lfd}{#1}{#5}%
       \ifdefvoid\blx@theformat
         {\blx@nounit}
         {\blx@begunit
@@ -3777,69 +3812,6 @@
          \c@liststop#2\relax
        \fi
      \fi}}
-
-% \def\blx@listsetup#1#2#3{%
-%   \def\currentlist{#3}%
-%   \c@listcount\@ne
-%   \expandafter\c@listtotal\csname c@#3\endcsname
-%   \letcs\blx@thedata{abx@list@#3}%
-%   \ifblank{#1}
-%     {\c@liststart\@ne}
-%     {\ifnum#1<\@ne
-%        \c@liststart\@ne
-%      \else
-%        \c@liststart#1\relax
-%      \fi}%
-%   \ifblank{#2}
-%     {\c@liststop\c@listtotal
-%      \ifnum\c@listtotal>\c@maxitems
-%        \c@liststop\c@minitems
-%      \fi}
-%     {\ifnum#2>\c@listtotal
-%        \c@liststop\c@listtotal
-%      \else
-%        \ifnum#2<\@ne
-%          \c@liststop\@ne
-%        \else
-%          \c@liststop#2\relax
-%        \fi
-%      \fi}}
-
-% \DeclareExpandableDocumentCommand{\blx@imc@printfield}
-%   {oO{form=original,lang=default}m}
-%   {\blx@imc@iffieldundef[#2]{#3}
-%      {\blx@nounit}
-%      {\def\Format{#1}%
-%       \IfNoValueTF{#1}% undef with xparse means special "-NoValue-"
-%         {\def\Format{}}
-%         {\def\Format{#1}}%
-%       \blx@getformat\blx@theformat{ffd}{\Format}{#3}%
-%       \ifdefvoid\blx@theformat
-%          {\blx@nounit}
-%          {\blx@begunit
-%           \def\currentfield{#3}%
-%           \blx@mscheck{#2}{#3}
-%             {\expandafter\expandafter
-%              \expandafter\blx@theformat
-%              \expandafter\expandafter
-%              \expandafter{\csname abx@field@#3@\blx@tempa @\blx@tempb\endcsname}%
-%              \blx@endunit}
-%             {\expandafter\expandafter
-%              \expandafter\blx@theformat
-%              \expandafter\expandafter
-%              \expandafter{\csname abx@field@#3\endcsname}%
-%              \blx@endunit}}}}
-
-% \def\blx@printlist#1#2#3#4{%
-%   \blx@imc@iflistundef{#4}
-%     {\blx@nounit}
-%     {\blx@getformat\blx@theformat{lfd}{#1}{#4}%
-%      \ifdefvoid\blx@theformat
-%        {\blx@nounit}
-%        {\blx@begunit
-%         \blx@listsetup{#2}{#3}{#4}%
-%         \expandafter\blx@listparser\blx@thedata{}&%
-%         \blx@endunit}}}
 
 % [<format>][<start>-<stop>]{<plainlist>}
 
@@ -5133,10 +5105,6 @@
      \setkeys{blx@ms}{#1}%
      \csxappto\blx@bbl@data{%
        \def\expandafter\noexpand\csname abx@field@#2@\blx@tempa @\blx@tempb\endcsname{#3}}}}
-
-% keyvals for form/lang options to .bbl macros
-\define@key{blx@ms}{form}{\def\blx@tempa{#1}}
-\define@key{blx@ms}{lang}{\def\blx@tempb{#1}}
 
 % [<form/lang kevals>]{field}{value}
 \newrobustcmd{\blx@bbl@fielddef}[3][]{%
