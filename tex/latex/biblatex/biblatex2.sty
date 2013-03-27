@@ -3610,7 +3610,7 @@
 \def\blx@namesetup#1#2#3#4{%
   \def\currentname{#4}%
   \c@listcount\@ne
-  \expandafter\c@listtotal\csname c@#4\endcsname
+  \c@listtotal\csname c@#4\endcsname
   \blx@namesetup@i{#3}{#4}%
   \ifblank{#1}
     {\c@liststart\@ne}
@@ -3718,11 +3718,11 @@
 
 \long\def\blx@namebreak#1&{}
 
-% {<macro>}[<format>][<start>-<stop>][<form/lang keyval]
-% => <macro>{<format>}{<start>}{<stop>}[<form/lang keyval>]
 % Thanks to egreg and Joseph on TSE
 % (http://tex.stackexchange.com/questions/104506/expanding-arguments-before-macro-call) for
 % the tricky expansion at the end
+% {<macro>}[<format>][<start>-<stop>][<form/lang keyval]
+% => <macro>{<format>}{<start>}{<stop>}[<form/lang keyval>]
 
 \DeclareDocumentCommand\blx@listargs
   {m o >{\SplitArgument{1}{-}}o o}
@@ -3737,7 +3737,9 @@
        \edef\Stop{\@secondoftwo #3}}}%
      \IfNoValueTF{#4}% Have to fully expand the args before calling blx@printlist
        {\protected@edef\z{\noexpand#1{\Format}{\Start}{\Stop}}\z}
-       {\protected@edef\z{\noexpand#1{\Format}{\Start}{\Stop}[#4]}\z}}
+       {\ifblank{#4}
+         {\protected@edef\z{\noexpand#1{\Format}{\Start}{\Stop}}\z}
+         {\protected@edef\z{\noexpand#1{\Format}{\Start}{\Stop}[#4]}\z}}}
 
 % [<format>][<start>-<stop>][<form/lang keyval>]{<plainlist>}
 
@@ -5147,7 +5149,6 @@
 
 % [<form/lang kevals>]{<list>}{<itemcount>}{<value>}
 
-%\protected\def\blx@bbl@listdef#1#2#3#4{%
 \newrobustcmd*{\blx@bbl@listdef}[4][]{%
   \def\NewCount{#3}%
   \def\NewValue{#4}%
@@ -5166,7 +5167,6 @@
 
 % [<form/lang kevals>]{<name>}{<itemcount>}{<nameoptions>}{<value>}
 
-%\protected\def\blx@bbl@namedef#1#2#3#4#5{%
 \newrobustcmd*{\blx@bbl@namedef}[5][]{%
   \def\NewCount{#3}%
   \def\NewOption{#4}%
