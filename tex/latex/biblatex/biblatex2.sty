@@ -1942,14 +1942,14 @@
 
 % {<namelist>}{<true>}{<false>}
 
-\def\blx@imc@ifnameundef#1{
-  \ifcsundef{abx@name@#1}}
+% \def\blx@imc@ifnameundef#1{
+%   \ifcsundef{abx@name@#1}}
 
-% \DeclareExpandableDocumentCommand{\blx@imc@ifnameundef}
-%   {O{form=original,lang=default}m}
-%   {\blx@mscheck{#1}{#2}
-%     {\ifcsundef{abx@name@#2@\blx@tempa @\blx@tempb}}
-%     {\ifcsundef{abx@name@#2}}}
+\DeclareExpandableDocumentCommand{\blx@imc@ifnameundef}
+  {O{form=original,lang=default}m}
+  {\blx@mscheck{#1}{#2}
+    {\ifcsundef{abx@name@#2@\blx@tempa @\blx@tempb}}
+    {\ifcsundef{abx@name@#2}}}
 
 % {<field1>}{<field2>}{<true>}{<false>}
 
@@ -3559,17 +3559,20 @@
              \expandafter{\csname abx@field@#3\endcsname}%
              \blx@endunit}}}}
 
-% [<format>]{<field>}
+% [<format>][<form/lang keyval>]{<field>}
 
-\newcommand*{\blx@imc@indexfield}[2][]{%
-  \blx@imc@iffieldundef{#2}
+\DeclareExpandableDocumentCommand{\blx@imc@indexfield}
+  {oO{form=original,lang=default}m}
+  {\blx@imc@iffieldundef[#2]{#3}
     {}
-    {\blx@getformat\blx@theformat{fid}{#1}{#2}%
+    {\blx@getformat\blx@theformat{fid}{#1}{#3}%
      \ifdefvoid\blx@theformat
        {}
        {\begingroup
-        \def\currentfield{#2}%
-        \letcs\blx@tempa{abx@field@#2}%
+        \def\currentfield{#3}%
+        \blx@mscheck{#2}{#3}
+          {\letcs\blx@tempa{abx@field@#3@\blx@tempa @\blx@tempb}}
+          {\letcs\blx@tempa{abx@field@#3}}%
         \expandafter\blx@theformat\expandafter{\blx@tempa}%
         \endgroup}}}
 
@@ -3583,66 +3586,32 @@
        {\blx@nounit}}
     {\blx@nounit}}
 
-% {<macro>}[<format>][<start>-<stop>][<form/lang keyval>]
-% => <macro>{<format>}{<start>}{<stop>}[<form/lang keyval>]
-
-\def\blx@listargs#1{%
-  \@ifnextchar[%]
-    {\blx@listargs@i{#1}}
-    {#1{}{}{}}}
-
-\def\blx@listargs@i#1[#2]{%
-  \@ifnextchar[%]
-    {\blx@listargs@ii{#1}{#2}}
-    {#1{#2}{}{}}}
-
-\def\blx@listargs@ii#1#2[#3]{%
-  \blx@listargs@iii{#1}{#2}#3&}
-
-\def\blx@listargs@iii#1#2#3-#4&{%
-  #1{#2}{#3}{#4}}
-
 % [<format>][<start>-<stop>][<form/lang keyval>]{<namelist>}
 
 \protected\def\blx@imc@printnames{%
   \blx@listargs\blx@printnames}
 
-% {<format>}{<start>}{<stop>}{<form/lang keyval>}{<namelist>}
+% {<format>}{<start>}{<stop>}[<form/lang keyval>]{<namelist>}
 
-% \DeclareExpandableDocumentCommand{\blx@printnames}
-%   {mmmmm}
-%   {\blx@imc@ifnameundef[#4]{#5}
-%      {\blx@nounit}
-%      {\def\Format{#1}%
-%       \IfNoValueTF{#1}% undef with xparse means special "-NoValue-"
-%         {\def\Format{}}
-%         {\def\Format{#1}}%
-%       \blx@getformat\blx@theformat{nfd}{\Format}{#5}%
-%       \ifdefvoid\blx@theformat
-%         {\blx@nounit}
-%         {\blx@begunit
-%          \blx@namesetup{#2}{#3}{#4}{#5}%
-%          \expandafter\blx@nameparser\blx@thedata{}&%
-%          \blx@endunit}}}
-
-\def\blx@printnames#1#2#3#4{%
-  \blx@imc@ifnameundef{#4}
-    {\blx@nounit}
-    {\blx@getformat\blx@theformat{nfd}{#1}{#4}%
-     \ifdefvoid\blx@theformat
-       {\blx@nounit}
-       {\blx@begunit
-        \blx@namesetup{#2}{#3}{#4}%
-        \expandafter\blx@nameparser\blx@thedata{}&%
-        \blx@endunit}}}
+\DeclareExpandableDocumentCommand{\blx@printnames}
+  {m m m O{form=original,lang=default} m}
+  {\blx@imc@ifnameundef[#4]{#5}
+     {\blx@nounit}
+     {\blx@getformat\blx@theformat{nfd}{#1}{#5}%
+      \ifdefvoid\blx@theformat
+        {\blx@nounit}
+        {\blx@begunit
+         \blx@namesetup{#2}{#3}{#4}{#5}%
+         \expandafter\blx@nameparser\blx@thedata{}&%
+         \blx@endunit}}}
 
 % {<start>}{<stop>}{<form/lang keyval>}{<plainlist>}
 
-\def\blx@namesetup#1#2#3{%
-  \def\currentname{#3}%
+\def\blx@namesetup#1#2#3#4{%
+  \def\currentname{#4}%
   \c@listcount\@ne
-  \c@listtotal\csname c@#3\endcsname
-  \blx@namesetup@i{#3}%
+  \expandafter\c@listtotal\csname c@#4\endcsname
+  \blx@namesetup@i{#3}{#4}%
   \ifblank{#1}
     {\c@liststart\@ne}
     {\ifnum#1<\@ne
@@ -3669,9 +3638,12 @@
      \fi}%
   \blx@namecodes}
 
-\def\blx@namesetup@i#1{%
-  \expandafter\expandafter
-  \expandafter\blx@namesetup@ii\csname abx@name@#1\endcsname}
+\def\blx@namesetup@i#1#2{%
+  \blx@mscheck{#1}{#2}
+    {\expandafter\expandafter
+     \expandafter\blx@namesetup@ii\csname abx@name@#2@\blx@tempa @\blx@tempb\endcsname}
+    {\expandafter\expandafter
+     \expandafter\blx@namesetup@ii\csname abx@name@#2\endcsname}}
 
 \def\blx@namesetup@ii#1#2{%
   \c@uniquelist\z@
@@ -3698,16 +3670,17 @@
 \protected\def\blx@imc@indexnames{%
   \blx@listargs\blx@indexnames}
 
-% {<format>}{<start>}{<stop>}{<namelist>}
+% {<format>}{<start>}{<stop>}[<form/lang keyval>]{<namelist>}
 
-\def\blx@indexnames#1#2#3#4{%
-  \blx@imc@ifnameundef{#4}
+\DeclareExpandableDocumentCommand{\blx@indexnames}
+  {m m m O{form=original,lang=default} m}
+  {\blx@imc@ifnameundef[#4]{#5}
     {}
-    {\blx@getformat\blx@theformat{nid}{#1}{#4}%
+    {\blx@getformat\blx@theformat{nid}{#1}{#5}%
      \ifdefvoid\blx@theformat
        {}
        {\begingroup
-        \blx@namesetup{#2}{#3}{#4}%
+        \blx@namesetup{#2}{#3}{#4}{#5}%
         \blx@indexnamesetup
         \expandafter\blx@nameparser\blx@thedata{}&%
         \endgroup}}}
@@ -3751,7 +3724,7 @@
 % (http://tex.stackexchange.com/questions/104506/expanding-arguments-before-macro-call) for
 % the tricky expansion at the end
 
-\DeclareDocumentCommand\blx@listargsl
+\DeclareDocumentCommand\blx@listargs
   {m o >{\SplitArgument{1}{-}}o o}
   {\edef\Format{\IfValueTF{#2}{#2}{}}%
    \let\Start\@empty%
@@ -3769,7 +3742,7 @@
 % [<format>][<start>-<stop>][<form/lang keyval>]{<plainlist>}
 
 \protected\def\blx@imc@printlist{%
-  \blx@listargsl\blx@printlist}
+  \blx@listargs\blx@printlist}
 
 % {<format>}{<start>}{<stop>}[<form/lang keyval>]{<plainlist>}
 
@@ -3819,7 +3792,7 @@
 % [<format>][<start>-<stop>][<form/lang keyval>]{<plainlist>}
 
 \protected\def\blx@imc@indexlist{%
-  \blx@listargsl\blx@indexlist}
+  \blx@listargs\blx@indexlist}
 
 % {<format>}{<start>}{<stop>}[<form/lang keyval>]{<plainlist>}
 
