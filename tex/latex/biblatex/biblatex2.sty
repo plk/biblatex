@@ -3747,21 +3747,24 @@
 
 % {<macro>}[<format>][<start>-<stop>][<form/lang keyval]
 % => <macro>{<format>}{<start>}{<stop>}[<form/lang keyval>]
+% Thanks to egreg and Joseph on TSE
+% (http://tex.stackexchange.com/questions/104506/expanding-arguments-before-macro-call) for
+% the tricky expansion at the end
 
 \DeclareDocumentCommand\blx@listargsl
   {m o >{\SplitArgument{1}{-}}o o}
   {\edef\Format{\IfValueTF{#2}{#2}{}}%
-   \def\Start{}%
-   \def\Stop{}%
-   \IfValueTF{#3}
-     {\edef\Start{\@firstoftwo #3}%
-      \edef\Stop{\@secondoftwo #3}%
-      \edef\Start{\ifstrequal{\Start}{\NoValue}{}{\Start}}%
-      \edef\Stop{\ifstrequal{\Stop}{\NoValue}{}{\Stop}}}
-     {}%
-   \IfNoValueTF{#4}
-     {#1{\Format}{\Start}{\Stop}}
-     {#1{\Format}{\Start}{\Stop}[#4]}}
+   \let\Start\@empty%
+   \let\Stop\@empty%
+   \IfNoValueTF{#3}%
+     {}% #3 is completely missing, not even []
+     {\expandafter\ifstrempty\expandafter{\@firstoftwo#3}
+       {}% #3 is {}{\NoValue}, meaning []
+       {\edef\Start{\@firstoftwo #3}%
+       \edef\Stop{\@secondoftwo #3}}}%
+     \IfNoValueTF{#4}% Have to fully expand the args before calling blx@printlist
+       {\protected@edef\z{\noexpand#1{\Format}{\Start}{\Stop}}\z}
+       {\protected@edef\z{\noexpand#1{\Format}{\Start}{\Stop}[#4]}\z}}
 
 % [<format>][<start>-<stop>][<form/lang keyval>]{<plainlist>}
 
@@ -3772,7 +3775,7 @@
 
 \DeclareExpandableDocumentCommand{\blx@printlist}
   {m m m O{form=original,lang=default} m}
-  {\typeout{#1:#2:#3:#4:#5}\blx@imc@iflistundef[#4]{#5}
+  {\blx@imc@iflistundef[#4]{#5}
      {\blx@nounit}
      {\blx@getformat\blx@theformat{lfd}{#1}{#5}%
       \ifdefvoid\blx@theformat
@@ -3813,21 +3816,22 @@
        \fi
      \fi}}
 
-% [<format>][<start>-<stop>]{<plainlist>}
+% [<format>][<start>-<stop>][<form/lang keyval>]{<plainlist>}
 
 \protected\def\blx@imc@indexlist{%
-  \blx@listargs\blx@indexlist}
+  \blx@listargsl\blx@indexlist}
 
-% {<format>}{<start>}{<stop>}{<plainlist>}
+% {<format>}{<start>}{<stop>}[<form/lang keyval>]{<plainlist>}
 
-\def\blx@indexlist#1#2#3#4{%
-  \blx@imc@iflistundef{#4}
+\DeclareExpandableDocumentCommand{\blx@indexlist}
+  {m m m O{form=original,lang=default} m}
+  {\blx@imc@iflistundef[#4]{#5}
     {}
-    {\blx@getformat\blx@theformat{lid}{#1}{#4}%
+    {\blx@getformat\blx@theformat{lid}{#1}{#5}%
      \ifdefvoid\blx@theformat
        {}
        {\begingroup
-        \blx@listsetup{#2}{#3}{#4}%
+        \blx@listsetup{#2}{#3}{#4}{#5}%
         \expandafter\blx@listparser\blx@thedata{}&%
         \endgroup}}}
 
