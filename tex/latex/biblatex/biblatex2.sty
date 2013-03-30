@@ -4781,8 +4781,8 @@
   {\egroup#1}}
 
 \blx@regimcs{%
-  \printdate \printdateextra \printdatelabel \printdateextralabel \printurldate \printeventdate
-  \printorigdate \stripzeros \mkdatezeros}
+  \printdate \printdateextra \printdatelabel \printdateextralabel
+  \printurldate \printeventdate \printorigdate \stripzeros \mkdatezeros}
 
 % {<language>}{<strings>}
 
@@ -4801,6 +4801,7 @@
 \def\blx@endlang{\endgroup}
 \let\blx@hook@endlang\@empty
 \let\blx@hook@initlang\@empty
+\let\blx@imc@mainlang\@empty
 \def\blx@hyphenreset{%
   \ifcsundef{l@\blx@languagename}
     {}
@@ -4833,6 +4834,7 @@
                 \csname\blx@thelangenv\expandafter\endcsname
                 \expandafter{\abx@field@hyphenation}}}}}
        {}%
+     \def\blx@imc@mainlang{\select@language{\bbl@main@language}}%
      \blx@langsetup\bbl@main@language}
     {\blx@err@patch{'babel' package}%
      \blx@mknobabel}}
@@ -4842,6 +4844,8 @@
   \blx@lbxinput{\blx@languagename}
     {}
     {\blx@err@nolang{\blx@languagename}}}
+
+\blx@regimcs{\mainlang}
 
 \newrobustcmd*{\DeclareRedundantLanguages}[2]{%
   \begingroup
@@ -4897,7 +4901,7 @@
 \def\regexp#1{\expandafter\zap@space\detokenize{#1} \@empty}
 
 % Have to do this otherwise the '~'s in the .bcf strings are not expanded
-% This is done for the .bcf later in the style but since we have to do all the
+% This is done for the .bcf later but since we have to do all the
 % data model things much earlier, have to set this here and reset on finishing
 \let\blx@tsave~
 \let~\space
@@ -9309,8 +9313,9 @@
     \blx@xml@labelalpha@element{\the\blx@tempcnta}{\blx@tempb}}}
 
 \newcommand*{\blx@latem@literal}[1]{%
+  \blx@xmlsanitizeafter{\def\blx@temps}{#1}%
   \eappto\blx@tempb{%
-    \blx@xml@labelalpha@part{}{#1}}}
+    \blx@xml@labelalpha@part{}{\expandafter\regexp\expandafter{\blx@temps}}}}
 
 \newcommand*{\blx@latem@field}[2][]{%
   \let\blx@tempc\@empty
@@ -9367,6 +9372,13 @@
     \eappto\blx@tempc{ ifnamecount="#1"}}
 \define@key{blx@latem@field}{names}{%
     \eappto\blx@tempc{ namecount="#1"}}
+\define@key{blx@latem@field}{padchar}{%
+  \blx@xmlsanitizeafter{\def\blx@temps}{#1}%
+  \eappto\blx@tempc{ pad\string_char="\expandafter\regexp\expandafter{\blx@temps}"}}
+\define@key{blx@latem@field}{padside}{% left|right
+  \ifstrequal{#1}{left}
+    {\eappto\blx@tempc{ pad\string_side="left"}}
+    {\eappto\blx@tempc{ pad\string_side="right"}}}
 
 % [<exceptions>]{<options>}
 

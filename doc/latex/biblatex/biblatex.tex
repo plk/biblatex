@@ -6569,6 +6569,14 @@ The number of characters of the \prm{field} to use. For name list fields, if \kv
 
 The side of the string from which to take the \texttt{strwidth} number of characters.
 
+\choitem[right]{padside}{left, right}
+
+Side to pad the label part when using the \texttt{padchar} option. Only for use with fixed-width label strings (\texttt{strwidth}).
+
+\valitem{padchar}{character}
+
+If present, pads the label part on the \texttt{padside} side with the specified character to the length of \texttt{strwidth}. Only for use with fixed-width label strings (\texttt{strwidth}).
+
 \boolitem[false]{uppercase}
 
 Forces the label part derived from the field to uppercase. By default, the case is taken from the field source and not modified.
@@ -6785,6 +6793,41 @@ Agassi, Courier, Laver  [ACouL-002]
 Borg, Connors, Edberg   [BCEd-003]
 Borg, Connors, Emerson  [BCEm-004]
 \end{lstlisting}
+%
+Here is another rather contrived example showing that you don't need to specially quote \latex special characters (apart from <\%>, obviously) when specifying padding characters and literals:
+
+\begin{lstlisting}[style=latex]{}
+\DeclareLabelalphaTemplate{
+  \labelelement{
+    \literal{>}
+  }
+  \labelelement{
+    \literal{\%}
+  }
+  \labelelement{
+    \field[strwidth=4, padchar=_]{<<labelname>>}
+  }
+  \labelelement{
+    \field[strwidth=3, padchar=&, padside=left]{title}
+  }
+  \labelelement{
+    \field[strwidth=2,strside=right]{<<year>>}
+  }
+}
+\end{lstlisting}
+%
+which given:
+\begin{lstlisting}[style=bibtex]{}
+@Book{test,
+  author    = {XXX YY},
+  title     = {T},
+  year      = {2007},
+}
+\end{lstlisting}
+would resulting a label looking like this:
+\begin{verbatim}
+[>%YY__&&T07]
+\end{verbatim}
 
 \subsubsection{Sorting}
 \label{aut:ctm:srt}
@@ -7139,7 +7182,7 @@ Defines the date components to consider when generating \bibfield{labelyear}, \b
 }
 \end{lstlisting}
 %
-Note that the \bibfield{date} field is split by the backend into \bibfield{year}, \bibfield{month} which are also valid fields in the default data model. In order to support legacy data which directly sets \bibfield{year} and/or \bibfield{month}, the specification <\field{date}> in \cmd{DeclareLabeldate} will also match \bibfield{year} and \bibfield{month} fields, if present.
+Note that the \bibfield{date} field is split by the backend into \bibfield{year}, \bibfield{month} which are also valid fields in the default data model. In order to support legacy data which directly sets \bibfield{year} and/or \bibfield{month}, the specification <\bibfield{date}> in \cmd{DeclareLabeldate} will also match \bibfield{year} and \bibfield{month} fields, if present.
 The \bibfield{labelyear}, \bibfield{labelmonth} and \bibfield{labelday} fields may be customized globally or on a per-type basis. If the optional \prm{entrytype} argument is given, the specification applies to the respective entry type. If not, it is applied globally. The \prm{entrytype} argument may be a comma"=separated list of values. This command may only be used in the preamble. See also \secref{aut:bbx:fld:dat}.
 
 \cmditem{DeclareLabeltitle}[entrytype, \dots]{specification}|\BiberOnlyMark|
