@@ -60,7 +60,7 @@
        \ifdimless{\leftmargin}{1.25em}
          {\textendash}
 	 {\textemdash}}}}
-\newcommand*{\relatedpunct}{\space}
+\newcommand*{\relatedpunct}{\addspace}
 \newcommand*{\relateddelim}{\adddot\par\nobreak}
 \newcommand*{\mkrelatedstring}{\mainlang}
 
@@ -309,8 +309,6 @@
 
 % Used in the bibliography and the list of shorthands
 
-\DeclareFieldFormat{booktitle}{\mkbibemph{#1}}
-\DeclareFieldFormat{chapter}{\bibstring{chapter}~#1}
 \DeclareFieldFormat{doi}{%
   \mkbibacro{DOI}\addcolon\space
   \ifhyperref
@@ -375,6 +373,8 @@
 \DeclareFieldFormat{journaltitle}{\mkbibemph{#1}}
 \DeclareFieldFormat{issuetitle}{\mkbibemph{#1}}
 \DeclareFieldFormat{maintitle}{\mkbibemph{#1}}
+\DeclareFieldFormat{booktitle}{\mkbibemph{#1}}
+\DeclareFieldFormat{chapter}{\bibstring{chapter}~#1}
 \DeclareFieldFormat{month}{\mkbibmonth{#1}}
 \DeclareFieldFormat{note}{#1\isdot}
 \DeclareFieldFormat{number}{#1}% number in a series
@@ -1644,6 +1644,7 @@
 % ------------------------------------------------------------------
 
 \newcommand*{\lbx@initnamehook}[1]{}
+\newcommand*{\lbx@inittitlehook}[1]{}
 \newcommand*{\lbx@finalnamedelim}[1]{\finalnamedelim}
 \newcommand*{\lbx@finallistdelim}[1]{\finallistdelim}
 
@@ -1675,7 +1676,7 @@
   \DeclareQuotePunctuation{}%
   \DeclarePunctuationPairs{comma}{*!?}}
 
-% french
+% french and catalan
 
 \newtoggle{smartof}
 \newrobustcmd*{\smartof}{\global\toggletrue{smartof}}
@@ -1686,11 +1687,11 @@
   \@ifpackageloaded{babel}
     {\ifdef\AutoSpaceBeforeFDP
        {\newrobustcmd*{\EnsureAutoSpaceBeforeFDP}{%
-	  \iflanguage{french}
-	    {\AutoSpaceBeforeFDP}
-	    {}}%
-	\appto\bibsetup{\EnsureAutoSpaceBeforeFDP}%
-	\appto\citesetup{\EnsureAutoSpaceBeforeFDP}}
+          \iflanguage{french}
+            {\AutoSpaceBeforeFDP}
+            {}}%
+        \appto\bibsetup{\EnsureAutoSpaceBeforeFDP}%
+        \appto\citesetup{\EnsureAutoSpaceBeforeFDP}}
        {}}
     {}}
 
@@ -2739,6 +2740,7 @@
             {\clearname{author}}
             {}}%
        \renewbibmacro*{related:init}{}%
+       \DeclareNameAlias{sortname}{default}%
        \renewbibmacro*{pageref}{}}
       {\thefield{entrytype}}}}
 
@@ -2814,5 +2816,38 @@
        \iflistsequal{location}{savedlocation}
          {}
          {\printlist{location}}}}}
+
+\DeclareFieldFormat{title:hook}{%
+  \lbx@inittitlehook{#1}%
+  \mkbibemph{#1}}
+
+\newbibmacro*{related:reprintfrom}[1]{%
+  \entrydata*{#1}{%
+    \iffieldundef{journaltitle}
+      {\iffieldundef{maintitle}
+         {\printfield[title:hook]{booktitle}}
+         {\printfield[title:hook]{maintitle}}%
+       \newunit\newblock
+       \usebibmacro{byeditor+others}%
+       \newunit\newblock
+       \printfield{edition}%
+       \newunit
+       \iffieldundef{volume}
+         {}
+         {\printfield{volume}%
+          \printfield{part}}
+       \newunit\newblock
+       \usebibmacro{series+number}%
+       \newunit\newblock
+       \printfield{note}%
+       \newunit\newblock
+       \usebibmacro{publisher+location+date}%
+       \newunit\newblock
+       \usebibmacro{chapter+pages}}
+      {\printfield[title:hook]{journaltitle}%
+       \newunit\newblock
+       \usebibmacro{byeditor+others}%
+       \newunit\newblock
+       \usebibmacro{note+pages}}}}
 
 \endinput

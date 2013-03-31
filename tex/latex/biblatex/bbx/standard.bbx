@@ -887,51 +887,63 @@
 \newbibmacro*{begrelated}{}
 \newbibmacro*{endrelated}{}
 
+\def\ifrelatedloop{%
+  \ifboolexpr{ test {\xifinlistcs{\strfield{entrykey}}{bbx:relatedloop}}
+    or test {\xifinlistcs{\strfield{clonesourcekey}}{bbx:relatedloop}} }}
+
 \newbibmacro*{related}{%
-  \ifboolexpr{
-    test {\iffieldundef{related}}
-    or
-    test {\xifinlistcs{\thefield{entrykey}}{bbx:relatedloop}}
-  }
+  \ifboolexpr{ test {\iffieldundef{related}} or test {\ifrelatedloop} }
     {}
-    {\listcsxadd{bbx:relatedloop}{\thefield{entrykey}}%
-     \setcounter{bbx:relatedcount}{0}%
+    {\def\bbx@tempa{}%
      \setcounter{bbx:relatedtotal}{0}%
-     \def\do##1{\stepcounter{bbx:relatedtotal}}%
+     \def\do##1{%
+       \entrydata{##1}{%
+         \ifrelatedloop
+           {}
+           {\stepcounter{bbx:relatedtotal}%
+            \gappto{\bbx@tempa}{##1,}}}}%
      \docsvfield{related}%
-     \def\do{%
-       \stepcounter{bbx:relatedcount}%
-       \ifnumgreater{\value{bbx:relatedcount}}{1}
-         {\printtext{\relateddelim}}
-         {}}%
-     \ifbibmacroundef{related:\strfield{relatedtype}}
-       {\appto{\do}{\usebibmacro{related:default}}}
-       {\appto{\do}{\usebibmacro*{related:\strfield{relatedtype}}}}%
-     \iffieldformatundef{related:\strfield{relatedtype}}
-       {\def\bbx@tempa{related}}
-       {\def\bbx@tempa{related:\strfield{relatedtype}}}%
-     \iffieldformatundef{relatedstring:\strfield{relatedtype}}
-       {\def\bbx@tempb{relatedstring}}
-       {\def\bbx@tempb{relatedstring:\strfield{relatedtype}}}%
-     \printtext[\bbx@tempa]{%
-       \usebibmacro{begrelated}%
-       \iffieldundef{relatedstring}
-         {\ifboolexpr{
-            test {\ifnumgreater{\value{bbx:relatedtotal}}{1}}
-            and
-            test {\ifbibxstring{\thefield{relatedtype}s}}
-          }
-            {\printtext[\bbx@tempb]{%
-               \bibstring[\mkrelatedstring]{\thefield{relatedtype}s}}}
-            {\iffieldbibstring{relatedtype}
+     \restorefield{related}{\bbx@tempa}%
+     \ifnumgreater{\value{bbx:relatedtotal}}{0}
+       {\listcsxadd{bbx:relatedloop}{\strfield{entrykey}}%
+        \iffieldundef{clonesourcekey}
+          {}
+          {\listcsxadd{bbx:relatedloop}{\strfield{clonesourcekey}}}%
+        \setcounter{bbx:relatedcount}{0}%
+        \def\do{%
+          \stepcounter{bbx:relatedcount}%
+          \ifnumgreater{\value{bbx:relatedcount}}{1}
+            {\printtext{\relateddelim}}
+            {}}%
+        \ifbibmacroundef{related:\strfield{relatedtype}}
+          {\appto{\do}{\usebibmacro{related:default}}}
+          {\appto{\do}{\usebibmacro*{related:\strfield{relatedtype}}}}%
+        \iffieldformatundef{related:\strfield{relatedtype}}
+          {\def\bbx@tempa{related}}
+          {\def\bbx@tempa{related:\strfield{relatedtype}}}%
+        \iffieldformatundef{relatedstring:\strfield{relatedtype}}
+          {\def\bbx@tempb{relatedstring}}
+          {\def\bbx@tempb{relatedstring:\strfield{relatedtype}}}%
+        \printtext[\bbx@tempa]{%
+          \usebibmacro{begrelated}%
+          \iffieldundef{relatedstring}
+            {\ifboolexpr{
+               test {\ifnumgreater{\value{bbx:relatedtotal}}{1}}
+               and
+               test {\ifbibxstring{\thefield{relatedtype}s}}
+             }
                {\printtext[\bbx@tempb]{%
-                  \bibstring[\mainlang]{\thefield{relatedtype}}}}
-               {}}}
-         {\iffieldbibstring{relatedstring}
-            {\printtext[\bbx@tempb]{%
-               \bibstring[\mainlang]{\thefield{relatedstring}}}}
-            {\printfield[\bbx@tempb]{relatedstring}}}%
-       \docsvfield{related}%
-       \usebibmacro{endrelated}}}}
+                  \bibstring[\mkrelatedstring]{\thefield{relatedtype}s}}}
+               {\iffieldbibstring{relatedtype}
+                  {\printtext[\bbx@tempb]{%
+                     \bibstring[\mkrelatedstring]{\thefield{relatedtype}}}}
+                  {}}}
+            {\iffieldbibstring{relatedstring}
+               {\printtext[\bbx@tempb]{%
+                  \bibstring[\mkrelatedstring]{\thefield{relatedstring}}}}
+               {\printfield[\bbx@tempb]{relatedstring}}}%
+          \docsvfield{related}%
+          \usebibmacro{endrelated}}}%
+       {}}}
 
 \endinput
