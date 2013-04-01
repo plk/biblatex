@@ -62,7 +62,7 @@
 	 {\textemdash}}}}
 \newcommand*{\relatedpunct}{\addspace}
 \newcommand*{\relateddelim}{\adddot\par\nobreak}
-\newcommand{\mkrelatedstring}[1]{\mainlang{#1}}
+\newcommand{\mkrelatedstring}{\mainlang}
 
 % Used for indexing
 
@@ -2750,6 +2750,13 @@
 
 \newbibmacro*{related:bytranslator}[1]{%
   \entrydata{#1}{%
+    \renewbibmacro*{name:hook}[1]{%
+      \ifnumequal{\value{listcount}}{1}
+        {\begingroup
+         \mkrelatedstring%
+         \lbx@initnamehook{#1}%
+         \endgroup}
+        {}}%
     \printnames[bytranslator]{translator}%
     \setunit*{\addspace\bibstring[\mkrelatedstring]{astitle}\space}%
     \usebibmacro{title}%
@@ -2822,7 +2829,10 @@
          {\printlist{location}}}}}
 
 \DeclareFieldFormat{title:hook}{%
-  \mkrelatedstring{\lbx@inittitlehook{#1}}%
+  \begingroup
+  \mkrelatedstring%
+  \lbx@inittitlehook{#1}%
+  \endgroup
   \mkbibemph{#1}}
 
 \newbibmacro*{related:reprintfrom}[1]{%
