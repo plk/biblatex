@@ -62,7 +62,7 @@
 	 {\textemdash}}}}
 \newcommand*{\relatedpunct}{\addspace}
 \newcommand*{\relateddelim}{\adddot\par\nobreak}
-\newcommand*{\mkrelatedstring}{\mainlang}
+\newcommand{\mkrelatedstring}{\mainlang}
 
 % Used for indexing
 
@@ -406,7 +406,7 @@
 \DeclareFieldFormat{related:multivolume}{\par\nobreak#1}
 \DeclareFieldFormat{related:origpubin}{\mkbibparens{#1}}
 \DeclareFieldFormat{related:origpubas}{\mkbibparens{#1}}
-\DeclareFieldFormat{relatedstring}{#1\relatedpunct}
+\DeclareFieldFormat{relatedstring:default}{#1\relatedpunct}
 
 % Generic formats for \printtext and \printfield
 
@@ -2750,6 +2750,13 @@
 
 \newbibmacro*{related:bytranslator}[1]{%
   \entrydata{#1}{%
+    \renewbibmacro*{name:hook}[1]{%
+      \ifnumequal{\value{listcount}}{1}
+        {\begingroup
+         \mkrelatedstring%
+         \lbx@initnamehook{#1}%
+         \endgroup}
+        {}}%
     \printnames[bytranslator]{translator}%
     \setunit*{\addspace\bibstring[\mkrelatedstring]{astitle}\space}%
     \usebibmacro{title}%
