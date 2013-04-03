@@ -21,7 +21,7 @@
 \RequirePackage{ifthen}
 \RequirePackage{url}
 \RequirePackage{xparse}% needed for expandable keyval parsing
-%\RequirePackage{trace}
+\RequirePackage{trace}
 
 \@ifpackagelater{etoolbox}{2010/11/29}
   {}
@@ -1624,8 +1624,8 @@
 % This forks on multiscript fields/lists/names, parsing the form/lang spec
 % The two \defs are there to make sure both options have defaults in case only
 % one is given ([form=<form>])
-\protected\def\blx@mscheck#1#2{%
-  \ifinlist{#2}{\blx@biber@datamodel@msfields}
+\def\blx@mscheck#1#2{%
+  \ifcsdef{blx@msfield@#2}
     {\def\blx@tempa{original}%
      \def\blx@tempb{default}%
      \setkeys{blx@ms}{#1}%
@@ -1828,15 +1828,26 @@
 \def\blx@imc@ifbibmacroundef#1{%
   \ifcsundef{abx@macro@#1}}
 
-% {<field>}
+% [<form/lang keyval>]{<field>}
 
-\def\blx@imc@thefield#1{\csuse{abx@field@#1}}
+\DeclareExpandableDocumentCommand{\blx@imc@thefield}
+  {O{form=original,lang=default}m}
+  {\blx@mscheck{#1}{#2}
+    {\csuse{abx@field@#2@\blx@tempa @\blx@tempb}}
+    {\csuse{abx@field@#2}}}
 
-\def\blx@imc@strfield#1{%
-  \ifcsdef{abx@field@#1}
-    {\detokenize\expandafter\expandafter\expandafter
-       {\csname abx@field@#1\endcsname}}
-    {}}
+%\def\blx@imc@strfield#1{%
+\DeclareExpandableDocumentCommand{\blx@imc@strfield}
+  {O{form=original,lang=default}m}
+  {\blx@mscheck{#1}{#2}
+    {\ifcsdef{abx@field@#2@\blx@tempa @\blx@tempb}
+      {\detokenize\expandafter\expandafter\expandafter
+         {\csname abx@field@#1@\blx@tempa @\blx@tempb\endcsname}}
+      {}}
+    {\ifcsdef{abx@field@#2}
+      {\detokenize\expandafter\expandafter\expandafter
+         {\csname abx@field@#2\endcsname}}
+      {}}}
 
 \def\blx@imc@csfield#1{\usefield{\unexpanded}{#1}}
 
