@@ -1886,32 +1886,64 @@
     {\csuse{abx@name@#2}}}
 
 % [<form/lang keyval>]{<field>}
-\protected\def\blx@imc@clearfield#1{%
-  \csundef{abx@field@#1}}
+% With no optional form/lang, clears all form/lang variants of a field
+\newcommand{\blx@imc@clearfield}[2][]{%
+  \ifblank{#1}
+    {\csundef{abx@field@#2}%
+      \begingroup
+      \def\do##1{%
+        \begingroup
+        \def\do####1{%
+          \global\csundef{abx@field@#2@##1@####1}}%
+        \dolistloop\blx@mslangs
+        \endgroup}%
+      \dolistloop\blx@msforms
+      \endgroup}%
+    {\blx@mscheck{#1}{#2}
+      {\csundef{abx@field@#2@\blx@tempa @\blx@tempb}}
+      {\blx@warning@noline{%
+       You are trying to \noexpand\clearfield a non-multiscript field '#2' with form/lang arguments}}}}
 
-% \DeclareDocumentCommand{\blx@imc@clearfield}
-%   {O{form=original,lang=default}m}
-%   {\blx@mscheck{#1}{#2}
-%     {\csundef{abx@field@#2@\blx@tempa @\blx@tempb}}
-%     {\csundef{abx@field@#2}}}
+% [<form/lang keyval>]{<plainlist>}
+% With no optional form/lang, clears all form/lang variants of a list
 
-% {<plainlist>}
+\newcommand{\blx@imc@clearlist}[2][]{%
+  \ifblank{#1}
+    {\ifcsundef{abx@list@#2}{}{\togglefalse{abx@bool@more#2}\csundef{abx@list@#2}\csname c@#2\endcsname\z@}%
+      \begingroup
+      \def\do##1{%
+        \begingroup
+        \def\do####1{%
+          \ifcsundef{abx@list@#2@##1@####1}{}{\togglefalse{abx@bool@more#2}\global\csundef{abx@list@#2@##1@####1}\csname c@#2\endcsname\z@}}%
+        \dolistloop\blx@mslangs
+        \endgroup}%
+      \dolistloop\blx@msforms
+      \endgroup}%
+    {\blx@mscheck{#1}{#2}
+      {\ifcsundef{abx@list@#2@\blx@tempa @\blx@tempb}{}{\global\csundef{abx@list@#2@\blx@tempa @\blx@tempb}}}
+      {\blx@warning@noline{%
+       You are trying to \noexpand\clearlist a non-multiscript list '#2' with form/lang arguments}}}}
 
-\protected\def\blx@imc@clearlist#1{%
-  \ifcsundef{abx@list@#1}
-    {}
-    {\togglefalse{abx@bool@more#1}%
-     \csundef{abx@list@#1}%
-     \csname c@#1\endcsname\z@}}
+% [<form/lang keyval>]{<namelist>}
+% With no optional form/lang, clears all form/lang variants of a name list
 
-% {<namelist>}
+\newcommand{\blx@imc@clearname}[2][]{%
+  \ifblank{#1}
+    {\ifcsundef{abx@name@#2}{}{\togglefalse{abx@bool@more#2}\csundef{abx@name@#2}\csname c@#2\endcsname\z@}%
+      \begingroup
+      \def\do##1{%
+        \begingroup
+        \def\do####1{%
+          \ifcsundef{abx@name@#2@##1@####1}{}{\togglefalse{abx@bool@more#2}\global\csundef{abx@name@#2@##1@####1}\csname c@#2\endcsname\z@}}%
+        \dolistloop\blx@mslangs
+        \endgroup}%
+      \dolistloop\blx@msforms
+      \endgroup}%
+    {\blx@mscheck{#1}{#2}
+      {\ifcsundef{abx@name@#2@\blx@tempa @\blx@tempb}{}{\global\csundef{abx@name@#2@\blx@tempa @\blx@tempb}}}
+      {\blx@warning@noline{%
+       You are trying to \noexpand\clearname a non-multiscript name '#2' with form/lang arguments}}}}
 
-\protected\def\blx@imc@clearname#1{%
-  \ifcsundef{abx@name@#1}
-    {}
-    {\togglefalse{abx@bool@more#1}%
-     \csundef{abx@name@#1}%
-     \csname c@#1\endcsname\z@}}
 
 % {<field>}{<macro>}
 
