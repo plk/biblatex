@@ -524,9 +524,9 @@
   \fi}
 
 % [<form/lang keyval>]{<field>} => \do{<item1>}\do{<item2>}...
-\DeclareExpandableDocumentCommand{\blx@imc@docsvfield}
-  {O{form=original,lang=default}m}
-  {\ifinlist{#2}{\blx@biber@datamodel@msfields}
+
+\newcommand{\blx@imc@docsvfield}[2][]{%
+  \ifinlist{#2}{\blx@biber@datamodel@msfields}
     {\def\blx@tempa{original}%
      \def\blx@tempb{default}%
      \setkeys{blx@ms}{#1}%
@@ -543,9 +543,8 @@
 
 % [<form/lang keyval>]{<handler>}{<field>} => <handler>{<item1>}<handler>{<item2>}...
 
-\DeclareExpandableDocumentCommand{\blx@imc@forcsvfield}
-  {O{form=original,lang=default}m m}
-  {\ifinlist{#3}{\blx@biber@datamodel@msfields}
+\newcommand{\blx@imc@forcsvfield}[3]{%
+  \ifinlist{#3}{\blx@biber@datamodel@msfields}
     {\def\blx@tempa{original}%
      \def\blx@tempb{default}%
      \setkeys{blx@ms}{#1}%
@@ -1628,11 +1627,15 @@
 % This forks on multiscript fields/lists/names, parsing the form/lang spec
 % The two \defs are there to make sure both options have defaults in case only
 % one is given ([form=<form>])
+% Some places don't pass any defaults for #1 (why would they, they are set
+% in here too) so we have to do an xparse NoValue test before setting keys
 \def\blx@mscheck#1#2{%
   \ifcsdef{blx@msfield@#2}
     {\def\blx@tempa{original}%
      \def\blx@tempb{default}%
-     \setkeys{blx@ms}{#1}%
+     \IfValueTF{#1}
+       {\setkeys{blx@ms}{#1}}
+       {}%
      \@firstoftwo}
     {\@secondoftwo}}
 
@@ -1835,13 +1838,13 @@
 % [<form/lang keyval>]{<field>}
 
 \DeclareExpandableDocumentCommand{\blx@imc@thefield}
-  {O{form=original,lang=default}m}
+  {om}
   {\blx@mscheck{#1}{#2}
     {\csuse{abx@field@#2@\blx@tempa @\blx@tempb}}
     {\csuse{abx@field@#2}}}
 
 \DeclareExpandableDocumentCommand{\blx@imc@strfield}
-  {O{form=original,lang=default}m}
+  {om}
   {\blx@mscheck{#1}{#2}
     {\ifcsdef{abx@field@#2@\blx@tempa @\blx@tempb}
       {\detokenize\expandafter\expandafter\expandafter
@@ -1857,9 +1860,8 @@
 
 % {<command>}[<form/lang keyval>]{<field>}
 
-%\def\blx@imc@usefield#1#2{%
 \DeclareExpandableDocumentCommand{\blx@imc@usefield}
-  {mO{form=original,lang=default}m}
+  {mom}
   {\blx@mscheck{#2}{#3}
     {\expandafter\expandafter\expandafter#1%
       \expandafter\expandafter\expandafter{\csname abx@field@#3@\blx@tempa @\blx@tempb\endcsname}}
@@ -1870,7 +1872,7 @@
 % [<form/lang keyval>]{<plainlist>}
 
 \DeclareExpandableDocumentCommand{\blx@imc@thelist}
-  {O{form=original,lang=default}m}
+  {om}
   {\blx@mscheck{#1}{#2}
     {\csuse{abx@list@#2@\blx@tempa @\blx@tempb}}
     {\csuse{abx@list@#2}}}
@@ -1878,7 +1880,7 @@
 % [<form/lang keyval>]{<namelist>}
 
 \DeclareExpandableDocumentCommand{\blx@imc@thename}
-  {O{form=original,lang=default}m}
+  {om}
   {\blx@mscheck{#1}{#2}
     {\csuse{abx@name@#2@\blx@tempa @\blx@tempb}}
     {\csuse{abx@name@#2}}}
@@ -1958,18 +1960,15 @@
 % [<form/lang keyval>]{<field>}{<true>}{<false>}
 
 \DeclareExpandableDocumentCommand{\blx@imc@iffieldundef}
-  {O{form=original,lang=default}m}
+  {om}
   {\blx@mscheck{#1}{#2}
     {\ifcsundef{abx@field@#2@\blx@tempa @\blx@tempb}}
     {\ifcsundef{abx@field@#2}}}
 
 % {<plainlist>}{<true>}{<false>}
 
-% \def\blx@imc@iflistundef#1{%
-%   \ifcsundef{abx@list@#1}}
-
 \DeclareExpandableDocumentCommand{\blx@imc@iflistundef}
-  {O{form=original,lang=default}m}
+  {om}
   {\blx@mscheck{#1}{#2}
     {\ifcsundef{abx@list@#2@\blx@tempa @\blx@tempb}}
     {\ifcsundef{abx@list@#2}}}
@@ -1980,7 +1979,7 @@
 %   \ifcsundef{abx@name@#1}}
 
 \DeclareExpandableDocumentCommand{\blx@imc@ifnameundef}
-  {O{form=original,lang=default}m}
+  {om}
   {\blx@mscheck{#1}{#2}
     {\ifcsundef{abx@name@#2@\blx@tempa @\blx@tempb}}
     {\ifcsundef{abx@name@#2}}}
@@ -3569,7 +3568,7 @@
 % [<format>][<form/lang keyval>]{<field>}
 
 \DeclareExpandableDocumentCommand{\blx@imc@printfield}
-  {oO{form=original,lang=default}m}
+  {oom}
   {\blx@imc@iffieldundef[#2]{#3}
      {\blx@nounit}
      {\def\Format{#1}% for scoping of \def
@@ -3596,7 +3595,7 @@
 % [<format>][<form/lang keyval>]{<field>}
 
 \DeclareExpandableDocumentCommand{\blx@imc@indexfield}
-  {oO{form=original,lang=default}m}
+  {oom}
   {\blx@imc@iffieldundef[#2]{#3}
     {}
     {\blx@getformat\blx@theformat{fid}{#1}{#3}%
@@ -3628,7 +3627,7 @@
 % {<format>}{<start>}{<stop>}[<form/lang keyval>]{<namelist>}
 
 \DeclareExpandableDocumentCommand{\blx@printnames}
-  {m m m O{form=original,lang=default} m}
+  {mmmom}
   {\blx@imc@ifnameundef[#4]{#5}
      {\blx@nounit}
      {\blx@getformat\blx@theformat{nfd}{#1}{#5}%
@@ -3707,7 +3706,7 @@
 % {<format>}{<start>}{<stop>}[<form/lang keyval>]{<namelist>}
 
 \DeclareExpandableDocumentCommand{\blx@indexnames}
-  {m m m O{form=original,lang=default} m}
+  {mmmom}
   {\blx@imc@ifnameundef[#4]{#5}
     {}
     {\blx@getformat\blx@theformat{nid}{#1}{#5}%
@@ -3783,7 +3782,7 @@
 % {<format>}{<start>}{<stop>}[<form/lang keyval>]{<plainlist>}
 
 \DeclareExpandableDocumentCommand{\blx@printlist}
-  {m m m O{form=original,lang=default} m}
+  {mmmom}
   {\blx@imc@iflistundef[#4]{#5}
      {\blx@nounit}
      {\blx@getformat\blx@theformat{lfd}{#1}{#5}%
@@ -3833,7 +3832,7 @@
 % {<format>}{<start>}{<stop>}[<form/lang keyval>]{<plainlist>}
 
 \DeclareExpandableDocumentCommand{\blx@indexlist}
-  {m m m O{form=original,lang=default} m}
+  {mmmom}
   {\blx@imc@iflistundef[#4]{#5}
     {}
     {\blx@getformat\blx@theformat{lid}{#1}{#5}%
