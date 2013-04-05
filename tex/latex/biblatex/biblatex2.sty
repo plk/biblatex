@@ -1965,37 +1965,171 @@
 
 \protected\def\blx@imc@restorename#1{\cslet{abx@name@#1}}
 
-% {<field>}{<macro>}
+% [<form/lang keyval>]{<field>}{<macro>}
+% Thanks to Ryan Reich on TSE
+% (http://tex.stackexchange.com/questions/107070) for the trick to get the
+% \csletcs defs out of the groups in a loop
 
-\protected\def\blx@imc@savefield{%
-  \@ifstar{\blx@savedata{field}}{\global\blx@savedata{field}}}
-\def\blx@savedata#1#2#3{\letcs#3{abx@#1@#2}}
+\DeclareDocumentCommand{\blx@imc@savefield}
+  {somm}
+  {\IfBooleanTF{#1}
+    {\let\@scope\global}% starred version
+    {\let\@scope\relax}%
+   \IfNoValueTF{#2}
+     {\blx@imc@ifbibfieldms{#3}
+       {\begingroup
+        \def\do##1{%
+          \begingroup
+          \def\do####1{%
+            \ifcsdef{abx@field@#3@##1@####1}
+              {\gappto\blx@sf{\@scope\csletcs{\cstostr{#4}@##1@####1}{abx@field@#3@##1@####1}}}
+              {}}%
+          \dolistloop\blx@mslangs
+          \endgroup}%
+        \dolistloop\blx@msforms
+        \endgroup
+        \blx@sf\global\undef\blx@sf}
+      {\@scope\letcs#4{abx@field@#3}}}
+     {\blx@imc@ifbibfieldmsx{#2}{#3}
+       {\@scope\csletcs{\cstostr{#4}@\blx@tempa @\blx@tempb}{abx@field@#3@\blx@tempa @\blx@tempb}}
+       {\blx@warning@noline{%
+        You are trying to \noexpand\savefield a non-multiscript field '#3' with form/lang arguments}}}}
 
-% {<plainlist>}{<macro>}
+% [<form/lang keyval>]{<plainlist>}{<macro>}
 
-\protected\def\blx@imc@savelist{%
-  \@ifstar{\blx@savedata{list}}{\global\blx@savedata{list}}}
+\DeclareDocumentCommand{\blx@imc@savelist}
+  {somm}
+  {\IfBooleanTF{#1}
+    {\let\@scope\global}% starred version
+    {\let\@scope\relax}%
+   \IfNoValueTF{#2}
+     {\blx@imc@ifbibfieldms{#3}
+       {\begingroup
+        \def\do##1{%
+          \begingroup
+          \def\do####1{%
+            \ifcsdef{abx@list@#3@##1@####1}
+              {\gappto\blx@sf{\@scope\csletcs{\cstostr{#4}@##1@####1}{abx@list@#3@##1@####1}}}
+              {}}%
+          \dolistloop\blx@mslangs
+          \endgroup}%
+        \dolistloop\blx@msforms
+        \endgroup
+        \blx@sf\global\undef\blx@sf}
+      {\@scope\letcs#4{abx@list@#3}}}
+     {\blx@imc@ifbibfieldmsx{#2}{#3}
+       {\@scope\csletcs{\cstostr{#4}@\blx@tempa @\blx@tempb}{abx@list@#3@\blx@tempa @\blx@tempb}}
+       {\blx@warning@noline{%
+        You are trying to \noexpand\savelist a non-multiscript list '#3' with form/lang arguments}}}}
 
-% {<namelist>}{<macro>}
+% [<form/lang keyval>]{<namelist>}{<macro>}
 
-\protected\def\blx@imc@savename{%
-  \@ifstar{\blx@savedata{name}}{\global\blx@savedata{name}}}
+\DeclareDocumentCommand{\blx@imc@savename}
+  {somm}
+  {\IfBooleanTF{#1}
+    {\let\@scope\global}% starred version
+    {\let\@scope\relax}%
+   \IfNoValueTF{#2}
+     {\blx@imc@ifbibfieldms{#3}
+       {\begingroup
+        \def\do##1{%
+          \begingroup
+          \def\do####1{%
+            \ifcsdef{abx@name@#3@##1@####1}
+              {\gappto\blx@sf{\@scope\csletcs{\cstostr{#4}@##1@####1}{abx@name@#3@##1@####1}}}
+              {}}%
+          \dolistloop\blx@mslangs
+          \endgroup}%
+        \dolistloop\blx@msforms
+        \endgroup
+        \blx@sf\global\undef\blx@sf}
+      {\@scope\letcs#4{abx@name@#3}}}
+     {\blx@imc@ifbibfieldmsx{#2}{#3}
+       {\@scope\csletcs{\cstostr{#4}@\blx@tempa @\blx@tempb}{abx@name@#3@\blx@tempa @\blx@tempb}}
+       {\blx@warning@noline{%
+        You are trying to \noexpand\savename a non-multiscript name '#3' with form/lang arguments}}}}
 
-% {<field>}{<csname>}
+% [<form/lang keyval>]{<field>}{<csname>}
 
-\protected\def\blx@imc@savefieldcs{%
-  \@ifstar{\blx@savedatacs{field}}{\global\blx@savedatacs{field}}}
-\def\blx@savedatacs#1#2#3{\csletcs{#3}{abx@#1@#2}}
+\DeclareDocumentCommand{\blx@imc@savefieldcs}
+  {somm}
+  {\IfBooleanTF{#1}
+    {\let\@scope\global}% starred version
+    {\let\@scope\relax}%
+   \IfNoValueTF{#2}
+     {\blx@imc@ifbibfieldms{#3}
+       {\begingroup
+        \def\do##1{%
+          \begingroup
+          \def\do####1{%
+            \ifcsdef{abx@field@#3@##1@####1}
+              {\gappto\blx@sf{\@scope\csletcs{#4@##1@####1}{abx@field@#3@##1@####1}}}
+              {}}%
+          \dolistloop\blx@mslangs
+          \endgroup}%
+        \dolistloop\blx@msforms
+        \endgroup
+        \blx@sf\global\undef\blx@sf}
+      {\@scope\letcs#4{abx@field@#3}}}
+     {\blx@imc@ifbibfieldmsx{#2}{#3}
+       {\@scope\csletcs{#4@\blx@tempa @\blx@tempb}{abx@field@#3@\blx@tempa @\blx@tempb}}
+       {\blx@warning@noline{%
+        You are trying to \noexpand\savefieldcs a non-multiscript field '#3' with form/lang arguments}}}}
 
-% {<plainlist>}{<csname>}
 
-\protected\def\blx@imc@savelistcs{%
-  \@ifstar{\blx@savedatacs{list}}{\global\blx@savedatacs{list}}}
+% [<form/lang keyval>]{<plainlist>}{<csname>}
 
-% {<namelist>}{<csname>}
+\DeclareDocumentCommand{\blx@imc@savelistcs}
+  {somm}
+  {\IfBooleanTF{#1}
+    {\let\@scope\global}% starred version
+    {\let\@scope\relax}%
+   \IfNoValueTF{#2}
+     {\blx@imc@ifbibfieldms{#3}
+       {\begingroup
+        \def\do##1{%
+          \begingroup
+          \def\do####1{%
+            \ifcsdef{abx@list@#3@##1@####1}
+              {\gappto\blx@sf{\@scope\csletcs{#4@##1@####1}{abx@list@#3@##1@####1}}}
+              {}}%
+          \dolistloop\blx@mslangs
+          \endgroup}%
+        \dolistloop\blx@msforms
+        \endgroup
+        \blx@sf\global\undef\blx@sf}
+      {\@scope\letcs#4{abx@list@#3}}}
+     {\blx@imc@ifbibfieldmsx{#2}{#3}
+       {\@scope\csletcs{#4@\blx@tempa @\blx@tempb}{abx@list@#3@\blx@tempa @\blx@tempb}}
+       {\blx@warning@noline{%
+        You are trying to \noexpand\savelistcs a non-multiscript list '#3' with form/lang arguments}}}}
 
-\protected\def\blx@imc@savenamecs{%
-  \@ifstar{\blx@savedatacs{name}}{\global\blx@savedatacs{name}}}
+% [<form/lang keyval>]{<namelist>}{<csname>}
+
+\DeclareDocumentCommand{\blx@imc@savenamecs}
+  {somm}
+  {\IfBooleanTF{#1}
+    {\let\@scope\global}% starred version
+    {\let\@scope\relax}%
+   \IfNoValueTF{#2}
+     {\blx@imc@ifbibfieldms{#3}
+       {\begingroup
+        \def\do##1{%
+          \begingroup
+          \def\do####1{%
+            \ifcsdef{abx@name@#3@##1@####1}
+              {\gappto\blx@sf{\@scope\csletcs{#4@##1@####1}{abx@name@#3@##1@####1}}}
+              {}}%
+          \dolistloop\blx@mslangs
+          \endgroup}%
+        \dolistloop\blx@msforms
+        \endgroup
+        \blx@sf\global\undef\blx@sf}
+      {\@scope\letcs#4{abx@name@#3}}}
+     {\blx@imc@ifbibfieldmsx{#2}{#3}
+       {\@scope\csletcs{#4@\blx@tempa @\blx@tempb}{abx@name@#3@\blx@tempa @\blx@tempb}}
+       {\blx@warning@noline{%
+        You are trying to \noexpand\savename a non-multiscript name '#3' with form/lang arguments}}}}
 
 % [<form/lang keyval>]{<field>}{<true>}{<false>}
 
@@ -3791,8 +3925,12 @@
 
 \long\def\blx@namebreak#1&{}
 
+% \macro -> macro
+\def\cstostr#1{%
+  \expandafter\@gobble\detokenize\expandafter{\string#1}}
+
 % Thanks to egreg and Joseph on TSE
-% (http://tex.stackexchange.com/questions/104506/expanding-arguments-before-macro-call) for
+% (http://tex.stackexchange.com/questions/104506) for
 % the tricky expansion at the end
 % {<macro>}[<format>][<start>-<stop>][<form/lang keyval]
 % => <macro>{<format>}{<start>}{<stop>}[<form/lang keyval>]
