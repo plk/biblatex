@@ -415,6 +415,7 @@
 \newtoggle{blx@skipentry}
 \newtoggle{blx@insert}
 \newtoggle{blx@lastins}
+\newtoggle{blx@keepunit}
 \newtoggle{blx@debug}
 \newtoggle{blx@sortcase}
 \newtoggle{blx@sortupper}
@@ -2946,6 +2947,7 @@
   \global\togglefalse{blx@unit}%
   \global\togglefalse{blx@insert}%
   \global\togglefalse{blx@lastins}%
+  \global\togglefalse{blx@keepunit}%
   \global\let\blx@unitpunct\newunitpunct
   \blx@imc@resetpunctfont}
 
@@ -2996,19 +2998,36 @@
   \global\toggletrue{blx@block}}%
 
 \protected\def\blx@imc@newunit{%
-  \global\let\blx@unitpunct\newunitpunct
-  \global\toggletrue{blx@unit}}%
+  \iftoggle{blx@keepunit}
+    {}
+    {\global\let\blx@unitpunct\newunitpunct
+     \global\toggletrue{blx@unit}}}
 
 \protected\def\blx@imc@setunit{%
   \@ifstar\blx@setunit@i\blx@setunit}
 
 \long\def\blx@setunit#1{%
-  \long\gdef\blx@unitpunct{#1}%
-  \global\toggletrue{blx@unit}}%
+  \iftoggle{blx@keepunit}
+    {}
+    {\long\gdef\blx@unitpunct{#1}%
+     \global\toggletrue{blx@unit}}}
 
 \def\blx@setunit@i{%
   \iftoggle{blx@lastins}
     {\blx@setunit}
+    {\@gobble}}
+
+\protected\def\blx@imc@printunit{%
+  \@ifstar\blx@printunit@i\blx@printunit}
+
+\def\blx@printunit#1{%
+  \long\gdef\blx@unitpunct{#1\global\togglefalse{blx@keepunit}}%
+  \global\toggletrue{blx@keepunit}%
+  \global\toggletrue{blx@unit}}
+
+\def\blx@printunit@i{%
+  \iftoggle{blx@lastins}
+    {\blx@printunit}
     {\@gobble}}
 
 \protected\def\blx@imc@finentry{%
@@ -3020,7 +3039,7 @@
   \blx@setunit\relax}
 
 \protected\def\blx@finentry@inset{%
-  \blx@setunit\entrysetpunct
+  \blx@printunit\entrysetpunct
   \global\toggletrue{blx@block}}
 
 \blx@regimcs{%
@@ -3038,7 +3057,7 @@
   \ifinteger \ifnumeral \ifnumerals \ifpages
   \iffieldint \iffieldnum \iffieldnums \iffieldpages
   \mkpageprefix \mkpagetotal
-  \newblock \newunit \setunit \finentry}
+  \newblock \newunit \setunit \printunit \finentry}
 
 \appto\blx@blxinit{%
   \def\ifnatbibmode{\iftoggle{blx@natbib}}%
