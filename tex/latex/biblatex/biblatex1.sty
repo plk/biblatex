@@ -412,6 +412,7 @@
 \newtoggle{blx@skipentry}
 \newtoggle{blx@insert}
 \newtoggle{blx@lastins}
+\newtoggle{blx@keepunit}
 \newtoggle{blx@debug}
 \newtoggle{blx@sortcase}
 \newtoggle{blx@sortupper}
@@ -3124,6 +3125,7 @@
   \global\togglefalse{blx@unit}%
   \global\togglefalse{blx@insert}%
   \global\togglefalse{blx@lastins}%
+  \global\togglefalse{blx@keepunit}%
   \global\let\blx@unitpunct\newunitpunct
   \blx@imc@resetpunctfont}
 
@@ -3174,19 +3176,36 @@
   \global\toggletrue{blx@block}}%
 
 \protected\def\blx@imc@newunit{%
-  \global\let\blx@unitpunct\newunitpunct
-  \global\toggletrue{blx@unit}}%
+  \iftoggle{blx@keepunit}
+    {}
+    {\global\let\blx@unitpunct\newunitpunct
+     \global\toggletrue{blx@unit}}}
 
 \protected\def\blx@imc@setunit{%
   \@ifstar\blx@setunit@i\blx@setunit}
 
 \long\def\blx@setunit#1{%
-  \long\gdef\blx@unitpunct{#1}%
-  \global\toggletrue{blx@unit}}%
+  \iftoggle{blx@keepunit}
+    {}
+    {\long\gdef\blx@unitpunct{#1}%
+     \global\toggletrue{blx@unit}}}
 
 \def\blx@setunit@i{%
   \iftoggle{blx@lastins}
     {\blx@setunit}
+    {\@gobble}}
+
+\protected\def\blx@imc@printunit{%
+  \@ifstar\blx@printunit@i\blx@printunit}
+
+\def\blx@printunit#1{%
+  \long\gdef\blx@unitpunct{#1\global\togglefalse{blx@keepunit}}%
+  \global\toggletrue{blx@keepunit}%
+  \global\toggletrue{blx@unit}}
+
+\def\blx@printunit@i{%
+  \iftoggle{blx@lastins}
+    {\blx@printunit}
     {\@gobble}}
 
 \protected\def\blx@imc@finentry{%
@@ -3216,7 +3235,7 @@
   \ifinteger \ifnumeral \ifnumerals \ifpages
   \iffieldint \iffieldnum \iffieldnums \iffieldpages
   \mkpageprefix \mkpagetotal \mkpagefirst
-  \newblock \newunit \setunit \finentry}
+  \newblock \newunit \setunit \printunit \finentry}
 
 \appto\blx@blxinit{%
   \def\ifnatbibmode{\iftoggle{blx@natbib}}%
@@ -3974,10 +3993,24 @@
   \let\do\blx@entryset@i}
 
 \def\blx@entryset@i#1{%
-  \blx@imc@entrydata{#1}{%
-    \blx@entryset@precode
-    \blx@driver{\blx@imc@thefield{entrytype}}
-    \blx@entryset@postcode}}
+  \blx@ifdata{#1}
+    {\begingroup
+     \blx@resetdata
+     \blx@getdata{#1}%
+     \blx@entrysetcount
+     \blx@setoptions@type\abx@field@entrytype
+     \blx@setoptions@entry
+     \addtocounter{instcount}\@ne
+     \blx@execute
+     \blx@beglang
+     \blx@begunit
+     \blx@entryset@precode
+     \blx@driver{\blx@imc@thefield{entrytype}}
+     \blx@entryset@postcode
+     \blx@endunit
+     \blx@endlang
+     \endgroup}
+    {\blx@nounit}}
 
 \blx@regimcs{%
   \printtext \printfield \printlist \printnames \printfile
