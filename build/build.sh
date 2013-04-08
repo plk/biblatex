@@ -133,9 +133,9 @@ if [[ "$1" = "build" ]]
 then
 
   cd doc/latex/biblatex
-  pdflatex -interaction=batchmode biblatex.tex
-  pdflatex -interaction=batchmode biblatex.tex
-  pdflatex -interaction=batchmode biblatex.tex
+  lualatex -interaction=batchmode biblatex.tex
+  lualatex -interaction=batchmode biblatex.tex
+  lualatex -interaction=batchmode biblatex.tex
 
   \rm *.{aux,bbl,bcf,blg,log,run.xml,toc,out,lot} 2>/dev/null
 
