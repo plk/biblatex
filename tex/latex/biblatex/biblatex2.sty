@@ -2384,68 +2384,82 @@
           {\global\undef\blx@nefail\@secondoftwo}
           {\global\undef\blx@nefail\@firstoftwo}}
 
-% {<field>}{<macro>}{<true>}{<false>}
-
-\def\blx@imc@iffieldequals#1#2{%
-  \blx@imc@iffieldundef{#1}
+% [<form/lang keyval>]{<field>}{<macro>}{<true>}{<false>}
+\newcommand*{\blx@imc@iffieldequals}[3][]{%
+  \ifundef#3%
     {\@secondoftwo}
-    {\ifundef#2%
-       {\@secondoftwo}
-       {\expandafter\ifx\csname abx@field@#1\endcsname#2%
-          \expandafter\@firstoftwo
-        \else
-          \expandafter\@secondoftwo
-        \fi}}}
+    {\blx@imc@ifbibfieldmsx{#1}{#2}
+      {\expandafter\ifx\csname abx@field@#2@\blx@tempa @\blx@tempb\endcsname#3%
+       \expandafter\@firstoftwo
+       \else
+       \expandafter\@secondoftwo
+       \fi}
+      {\expandafter\ifx\csname abx@field@#2\endcsname#3%
+       \expandafter\@firstoftwo
+       \else
+       \expandafter\@secondoftwo
+       \fi}}}
 
-% {<plainlist>}{<macro>}{<true>}{<false>}
-
-\def\blx@imc@iflistequals#1#2{%
-  \blx@imc@iflistundef{#1}
+% [<form/lang keyval>]{<plainlist>}{<macro>}{<true>}{<false>}
+\newcommand*{\blx@imc@iflistequals}[3][]{%
+  \ifundef#3%
     {\@secondoftwo}
-    {\ifundef#2%
-       {\@secondoftwo}
-       {\expandafter\ifx\csname abx@list@#1\endcsname#2%
-          \expandafter\@firstoftwo
-        \else
-          \expandafter\@secondoftwo
-        \fi}}}
+    {\blx@imc@ifbibfieldmsx{#1}{#2}
+      {\expandafter\ifx\csname abx@list@#2@\blx@tempa @\blx@tempb\endcsname#3%
+       \expandafter\@firstoftwo
+       \else
+       \expandafter\@secondoftwo
+       \fi}
+      {\expandafter\ifx\csname abx@list@#2\endcsname#3%
+       \expandafter\@firstoftwo
+       \else
+       \expandafter\@secondoftwo
+       \fi}}}
 
-% {<namelist>}{<macro>}{<true>}{<false>}
-
-\def\blx@imc@ifnameequals#1#2{% FIXME
-  \blx@imc@ifnameundef{#1}
+% [<form/lang keyval>]{<namelist>}{<macro>}{<true>}{<false>}
+\newcommand*{\blx@imc@ifnameequals}[3][]{%
+  \ifundef#3%
     {\@secondoftwo}
-    {\ifundef#2%
-       {\@secondoftwo}
-       {\expandafter\ifx\csname abx@name@#1\endcsname#2%
-          \expandafter\@firstoftwo
-        \else
-          \expandafter\@secondoftwo
-        \fi}}}
+    {\blx@imc@ifbibfieldmsx{#1}{#2}
+      {\expandafter\ifx\csname abx@name@#2@\blx@tempa @\blx@tempb\endcsname#3%
+       \expandafter\@firstoftwo
+       \else
+       \expandafter\@secondoftwo
+       \fi}
+      {\expandafter\ifx\csname abx@name@#2\endcsname#3%
+       \expandafter\@firstoftwo
+       \else
+       \expandafter\@secondoftwo
+       \fi}}}
 
-% {<field>}{<csname>}{<true>}{<false>}
+% [<form/lang keyval>]{<field>}{<csname>}{<true>}{<false>}
+\newcommand*{\blx@imc@iffieldequalcs}[2][]{%
+  \blx@imc@ifbibfieldmsx{#1}{#2}
+    {\ifcsequal{abx@field@#2@\blx@tempa @\blx@tempb}}
+    {\ifcsequal{abx@field@#2}}}
 
-\def\blx@imc@iffieldequalcs#1{%
-  \ifcsequal{abx@field@#1}}
+% [<form/lang keyval>]{<plainlist>}{<csname>}{<true>}{<false>}
+\newcommand*{\blx@imc@iflistequalcs}[2][]{%
+  \blx@imc@ifbibfieldmsx{#1}{#2}
+    {\ifcsequal{abx@list@#2@\blx@tempa @\blx@tempb}}
+    {\ifcsequal{abx@list@#2}}}
 
-% {<plainlist>}{<csname>}{<true>}{<false>}
+% [<form/lang keyval>]{<namelist>}{<csname>}{<true>}{<false>}
+\newcommand*{\blx@imc@ifnameequalcs}[2][]{%
+  \blx@imc@ifbibfieldmsx{#1}{#2}
+    {\ifcsequal{abx@name@#2@\blx@tempa @\blx@tempb}}
+    {\ifcsequal{abx@name@#2}}}
 
-\def\blx@imc@iflistequalcs#1{%
-  \ifcsequal{abx@list@#1}}
+% [<form/lang keyval>]{<field>}{<string>}{<true>}{<false>}
 
-% {<namelist>}{<csname>}{<true>}{<false>}
-
-\def\blx@imc@ifnameequalcs#1{% FIXME
-  \ifcsequal{abx@name@#1}}
-
-% {<field>}{<string>}{<true>}{<false>}
-
-\protected\long\def\blx@imc@iffieldequalstr#1#2{%
-  \blx@imc@iffieldundef{#1}
-    {\@secondoftwo}
+\newcommand{\blx@imc@iffieldequalstr}[3][]{%
+  \blx@imc@ifbibfieldmsx{#1}{#2}
     {\expandafter\expandafter\expandafter\ifstrequal
      \expandafter\expandafter\expandafter{%
-       \csname abx@field@#1\endcsname}{#2}}}
+     \csname abx@field@#2@\blx@tempa @\blx@tempb\endcsname}{#3}}
+    {\expandafter\expandafter\expandafter\ifstrequal
+     \expandafter\expandafter\expandafter{%
+     \csname abx@field@#2\endcsname}{#3}}}
 
 % {<field>}{<true>}{<false>}
 
