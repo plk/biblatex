@@ -2201,7 +2201,7 @@
     {\ifcsundef{abx@name@#2@\blx@tempa @\blx@tempb}}
     {\ifcsundef{abx@name@#2}}}
 
-% Amazing that these macros were one line in biblatex 2.0. Dealing with
+% Amazing that these macros were one line in biblatex <3.0. Dealing with
 % multiscript complicates them enormously
 % {field|list}[<form/lang keyval>]{<field>|<plainlist>}[<form/lang keyval>]{<field>|<plainlist>}
 \def\blx@imc@iffieldsequal{\blx@imc@ifflequal@i{field}}
@@ -2299,24 +2299,48 @@
           {\global\undef\blx@fefail\@secondoftwo}
           {\global\undef\blx@fefail\@firstoftwo}}
 
-% {<namelist1>}{<namelist2>}{<true>}{<false>}
+% [<form/lang keyval>]{<namelist1>}[<form/lang keyval>]{<namelist2>}{<true>}{<false>}
+% This assumes that all name fields are ms fields (which they are in the default data model)
 
-\def\blx@imc@ifnamesequal#1#2{%
+\DeclareDocumentCommand{\blx@imc@ifnamesequal}
+  {omom}
+  {\IfNoValueTF{#1}
+    {\IfNoValueTF{#3}
+      {\blx@ifnamesequal@v{#2}{#4}}
+      {\blx@warning@noline{You are trying to \string\ifnamesequal test all multiscript variants for name '#2' against a specified variant for name '#4'}\@secondoftwo}}
+    {\IfNoValueTF{#3}
+      {\blx@warning@noline{You are trying to \string\ifnamesequal test all multiscript variants for name '#4' against a specified variant for name '#2'}\@secondoftwo}
+      {\begingroup
+         \def\blx@tempa{original}%
+         \def\blx@tempb{default}%
+         \setkeys{blx@ms}{#1}%
+         \xappto\blx@ife{\expandafter\def\noexpand\blx@tempc{#2@\blx@tempa @\blx@tempb}}%
+       \endgroup
+       \begingroup
+         \def\blx@tempa{original}%
+         \def\blx@tempb{default}%
+         \setkeys{blx@ms}{#3}%
+         \xappto\blx@ife{\expandafter\def\noexpand\blx@tempd{#4@\blx@tempa @\blx@tempb}}%
+       \endgroup
+        \blx@ife\global\undef\blx@ife
+        \blx@imc@ifnamesequal@i{\blx@tempc}{\blx@tempd}}}}%
+
+\def\blx@imc@ifnamesequal@i#1#2{%
   \ifcsundef{abx@name@#1}
     {\@secondoftwo}
     {\ifcsundef{abx@name@#2}
        {\@secondoftwo}
-       {\blx@ifnamesequal{#1}{#2}}}}
+       {\blx@ifnamesequal@i{#1}{#2}}}}
 
-\def\blx@ifnamesequal#1#2{%
+\def\blx@ifnamesequal@i#1#2{%
   \begingroup
   \let\blx@tempa\@empty
   \expandafter\expandafter
-  \expandafter\blx@ifnamesequal@i\csname abx@name@#2\endcsname
+  \expandafter\blx@ifnamesequal@ii\csname abx@name@#2\endcsname
   \let\blx@tempb\blx@tempa
   \let\blx@tempa\@empty
   \expandafter\expandafter
-  \expandafter\blx@ifnamesequal@i\csname abx@name@#1\endcsname
+  \expandafter\blx@ifnamesequal@ii\csname abx@name@#1\endcsname
   \expandafter\endgroup
   \ifx\blx@tempa\blx@tempb
     \expandafter\@firstoftwo
@@ -2324,20 +2348,41 @@
     \expandafter\@secondoftwo
   \fi}
 
-\def\blx@ifnamesequal@i#1#2{%
-  \expandafter\blx@ifnamesequal@ii#2{}&}
+\def\blx@ifnamesequal@ii#1#2{%
+  \expandafter\blx@ifnamesequal@iii#2{}&}
 
-\def\blx@ifnamesequal@ii#1{%
+\def\blx@ifnamesequal@iii#1{%
   \ifblank{#1}
     {\blx@namebreak}
-    {\blx@ifnamesequal@iii#1%
-     \blx@ifnamesequal@ii}}
+    {\blx@ifnamesequal@iiii#1%
+     \blx@ifnamesequal@iii}}
 
-\def\blx@ifnamesequal@iii#1#2#3#4#5#6#7#8#9{%
+\def\blx@ifnamesequal@iiii#1#2#3#4#5#6#7#8#9{%
   \setkeys{blx@opt@name}{#1}%
   \ifdef\abx@field@hash
     {\eappto\blx@tempa{{\abx@field@hash}}}
     {\appto\blx@tempa{{{#2}{#4}{#6}{#8}}}}}
+
+% Deal with comparing all forms/langs of two multi-script names
+\def\blx@ifnamesequal@v#1#2{%
+  \def\do##1{%
+    \begingroup
+      \def\do####1{%
+        \ifcsdef{abx@name@#1@##1@####1}
+          {\ifcsdef{abx@name@#2@##1@####1}
+             {\blx@imc@ifnamesequal@i{#1@##1@####1}{#2@##1@####1}
+               {}
+               {\global\def\blx@nefail{true}}}
+             {\global\def\blx@nefail{true}}}
+          {\ifcsdef{abx@name@#2@##1@####1}
+            {\global\def\blx@nefail{true}}
+            {}}}%
+          \dolistloop\blx@mslangs
+          \endgroup}%
+        \dolistloop\blx@msforms
+        \ifdef\blx@nefail
+          {\global\undef\blx@nefail\@secondoftwo}
+          {\global\undef\blx@nefail\@firstoftwo}}
 
 % {<field>}{<macro>}{<true>}{<false>}
 
