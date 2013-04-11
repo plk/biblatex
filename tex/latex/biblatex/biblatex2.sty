@@ -527,7 +527,7 @@
 % [<form/lang keyval>]{<field>} => \do{<item1>}\do{<item2>}...
 
 \newcommand{\blx@imc@docsvfield}[2][]{%
-  \ifinlist{#2}{\blx@biber@datamodel@msbibfields}
+  \blx@imc@ifbibfieldms{#2}
     {\def\blx@tempa{original}%
      \def\blx@tempb{default}%
      \setkeys{blx@ms}{#1}%
@@ -545,7 +545,7 @@
 % [<form/lang keyval>]{<handler>}{<field>} => <handler>{<item1>}<handler>{<item2>}...
 
 \newcommand{\blx@imc@forcsvfield}[3]{%
-  \ifinlist{#3}{\blx@biber@datamodel@msbibfields}
+  \blx@imc@ifbibfieldms{#3}
     {\def\blx@tempa{original}%
      \def\blx@tempb{default}%
      \setkeys{blx@ms}{#1}%
@@ -2461,16 +2461,37 @@
      \expandafter\expandafter\expandafter{%
      \csname abx@field@#2\endcsname}{#3}}}
 
-% {<field>}{<true>}{<false>}
+% [<form/lang keyval>]{<field>}{<true>}{<false>}
+\newcommand*{\blx@imc@iffieldxref}[2][]{%
+  \blx@imc@ifbibfieldms{#2}
+    {\blx@imc@iffieldundef[#1]{#2}
+      {\@secondoftwo}
+      {\blx@whichxref
+         {\blx@iffieldxref@i[#1]{#2}}
+         {\@secondoftwo}}}
+    {\blx@imc@iffieldundef{#2}
+      {\@secondoftwo}
+      {\blx@whichxref
+         {\blx@iffieldxref@ii{#2}}
+         {\@secondoftwo}}}}
 
-\protected\def\blx@imc@iffieldxref#1{%
-  \blx@imc@iffieldundef{#1}
-    {\@secondoftwo}
-    {\blx@whichxref
-       {\blx@iffieldxref{#1}}
-       {\@secondoftwo}}}
+% [<form/lang keyval>]{<field>}{xref|crossref}
+\newcommand*{\blx@iffieldxref@i}[3][]{%
+  \def\blx@tempa{original}%
+  \def\blx@tempb{default}%
+  \setkeys{blx@ms}{#1}%
+  \begingroup
+   \letcs\blx@tempc{abx@field@#3}%
+   \letcs\blx@tempd{abx@field@#2@\blx@tempa @\blx@tempb}%
+   \csundef{abx@field@#2@\blx@tempa @\blx@tempb}%
+   \blx@getdata{\blx@tempc}%
+   \blx@imc@iffieldequals[#1]{#2}\blx@tempd
+     {\aftergroup\@firstoftwo}
+     {\aftergroup\@secondoftwo}%
+  \endgroup}
 
-\def\blx@iffieldxref#1#2{%
+% {<field>}{xref|crossref}
+\def\blx@iffieldxref@ii#1#2{%
   \begingroup
   \letcs\blx@tempa{abx@field@#2}%
   \letcs\blx@tempb{abx@field@#1}%
@@ -2488,16 +2509,37 @@
        {#1{xref}}}
     {#1{crossref}}}
 
-% {<plainlist>}{<true>}{<false>}
+% [<form/lang keyval>]{<plainlist>}{<true>}{<false>}
+\newcommand*{\blx@imc@iflistxref}[2][]{%
+  \blx@imc@ifbibfieldms{#2}
+    {\blx@imc@iflistundef[#1]{#2}
+      {\@secondoftwo}
+      {\blx@whichxref
+         {\blx@iflistxref@i[#1]{#2}}
+         {\@secondoftwo}}}
+    {\blx@imc@iflistundef{#2}
+      {\@secondoftwo}
+      {\blx@whichxref
+         {\blx@iflistxref@ii{#2}}
+         {\@secondoftwo}}}}
 
-\protected\def\blx@imc@iflistxref#1{%
-  \blx@imc@iflistundef{#1}
-    {\@secondoftwo}
-    {\blx@whichxref
-       {\blx@iflistxref{#1}}
-       {\@secondoftwo}}}
+% [<form/lang keyval>]{<plainlist>}{xref|crossref}
+\newcommand*{\blx@iflistxref@i}[3][]{%
+  \def\blx@tempa{original}%
+  \def\blx@tempb{default}%
+  \setkeys{blx@ms}{#1}%
+  \begingroup
+   \letcs\blx@tempc{abx@field@#3}%
+   \letcs\blx@tempd{abx@list@#2@\blx@tempa @\blx@tempb}%
+   \csundef{abx@list@#2@\blx@tempa @\blx@tempb}%
+   \blx@getdata{\blx@tempc}%
+   \blx@imc@iflistequals[#1]{#2}\blx@tempd
+     {\aftergroup\@firstoftwo}
+     {\aftergroup\@secondoftwo}%
+  \endgroup}
 
-\def\blx@iflistxref#1#2{%
+% {<plainlist>}{xref|crossref}
+\def\blx@iflistxref@ii#1#2{%
   \begingroup
   \letcs\blx@tempa{abx@field@#2}%
   \letcs\blx@tempb{abx@list@#1}%
@@ -2508,24 +2550,27 @@
     {\aftergroup\@secondoftwo}%
   \endgroup}
 
-% {<namelist>}{<true>}{<false>}
-
-\protected\def\blx@imc@ifnamexref#1{%
-  \blx@imc@ifnameundef{#1}
+% [<form/lang keyval>]{<namelist>}{<true>}{<false>}
+\newcommand*{\blx@imc@ifnamexref}[2][]{%
+  \blx@imc@ifnameundef[#1]{#2}
     {\@secondoftwo}
     {\blx@whichxref
-       {\blx@ifnamexref{#1}}
-       {\@secondoftwo}}}
+      {\blx@ifnamexref[#1]{#2}}
+      {\@secondoftwo}}}
 
-\def\blx@ifnamexref#1#2{%
+% [<form/lang keyval>]{<namelist>}{xref|crossref}
+\newcommand*{\blx@ifnamexref}[3][]{%
+  \def\blx@tempa{original}%
+  \def\blx@tempb{default}%
+  \setkeys{blx@ms}{#1}%
   \begingroup
-  \letcs\blx@tempa{abx@field@#2}%
-  \letcs\blx@tempb{abx@name@#1}%
-  \csundef{abx@name@#1}%
-  \blx@getdata{\blx@tempa}%
-  \blx@imc@ifnameequals{#1}\blx@tempb
-    {\aftergroup\@firstoftwo}
-    {\aftergroup\@secondoftwo}%
+   \letcs\blx@tempc{abx@field@#3}%
+   \letcs\blx@tempd{abx@name@#2@\blx@tempa @\blx@tempb}%
+   \csundef{abx@name@#2@\blx@tempa @\blx@tempb}%
+   \blx@getdata{\blx@tempc}%
+   \blx@imc@ifnameequals[#1]{#2}\blx@tempd
+     {\aftergroup\@firstoftwo}
+     {\aftergroup\@secondoftwo}%
   \endgroup}
 
 % {<string>}{<true>}{<false>}
