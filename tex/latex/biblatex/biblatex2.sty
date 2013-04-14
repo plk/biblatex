@@ -2574,7 +2574,28 @@
   \endgroup}
 
 % {<string>}{<true>}{<false>}
+\protected\def\blx@imc@ifcurrentform#1{%
+  \begingroup
+  \def\blx@tempa{#1}%
+  \ifx\currentform\blx@tempa
+    \aftergroup\@firstoftwo
+  \else
+    \aftergroup\@secondoftwo
+  \fi
+  \endgroup}
 
+% {<string>}{<true>}{<false>}
+\protected\def\blx@imc@ifcurrentlang#1{%
+  \begingroup
+  \def\blx@tempa{#1}%
+  \ifx\currentlang\blx@tempa
+    \aftergroup\@firstoftwo
+  \else
+    \aftergroup\@secondoftwo
+  \fi
+  \endgroup}
+
+% {<string>}{<true>}{<false>}
 \protected\def\blx@imc@ifcurrentfield#1{%
   \begingroup
   \def\blx@tempa{#1}%
@@ -2585,7 +2606,7 @@
   \fi
   \endgroup}
 
-% {<string>}{<true>}{<false>}
+% [<form/lang keyval>]{<string>}{<true>}{<false>}
 
 \protected\def\blx@imc@ifcurrentlist#1{%
   \begingroup
@@ -2597,7 +2618,7 @@
   \fi
   \endgroup}
 
-% {<string>}{<true>}{<false>}
+% [<form/lang keyval>]{<string>}{<true>}{<false>}
 
 \protected\def\blx@imc@ifcurrentname#1{%
   \begingroup
@@ -3540,7 +3561,7 @@
   \clearfield \clearlist \clearname \restorefield \restorelist \restorename
   \ifcategory \ifentrycategory \ifkeyword \ifentrykeyword
   \ifciteseen \ifentryseen \ifciteibid \ifciteidem \ifopcit \ifloccit
-  \ifcurrentfield \ifcurrentlist \ifcurrentname \ifentrytype
+  \ifcurrentfield \ifcurrentform \ifcurrentlang \ifcurrentlist \ifcurrentname \ifentrytype
   \iffieldequalcs \iffieldequals \iffieldequalstr \iffieldsequal
   \ifbibmacroundef \iffieldundef \iffieldxref \iflistequalcs \iflistequals
   \iflistsequal \iflistundef \iflistxref \ifmorenames \ifmoreitems
@@ -3993,7 +4014,6 @@
         \blx@endunit}}}
 
 % [<format>][<form/lang keyval>]{<field>}
-
 \DeclareExpandableDocumentCommand{\blx@imc@printfield}
   {oom}
   {\blx@imc@iffieldundef[#2]{#3}
@@ -4007,8 +4027,12 @@
          {\blx@nounit}
          {\blx@begunit
           \def\currentfield{#3}%
+          \let\currentform\@empty
+          \let\currentlang\@empty
           \blx@imc@ifbibfieldmsx{#2}{#3}
-            {\expandafter\expandafter
+            {\edef\currentform{\blx@tempa}%
+             \edef\currentlang{\blx@tempb}%
+             \expandafter\expandafter
              \expandafter\blx@theformat
              \expandafter\expandafter
              \expandafter{\csname abx@field@#3@\blx@tempa @\blx@tempb\endcsname}%
@@ -4020,7 +4044,6 @@
              \blx@endunit}}}}
 
 % [<format>][<form/lang keyval>]{<field>}
-
 \DeclareExpandableDocumentCommand{\blx@imc@indexfield}
   {oom}
   {\blx@imc@iffieldundef[#2]{#3}
@@ -4030,8 +4053,12 @@
        {}
        {\begingroup
         \def\currentfield{#3}%
+        \let\currentform\@empty
+        \let\currentlang\@empty
         \blx@imc@ifbibfieldmsx{#2}{#3}
-          {\letcs\blx@tempa{abx@field@#3@\blx@tempa @\blx@tempb}}
+          {\edef\currentform{\blx@tempa}%
+           \edef\currentlang{\blx@tempb}%
+           \letcs\blx@tempa{abx@field@#3@\blx@tempa @\blx@tempb}}
           {\letcs\blx@tempa{abx@field@#3}}%
         \expandafter\blx@theformat\expandafter{\blx@tempa}%
         \endgroup}}}
@@ -4069,6 +4096,8 @@
 
 \def\blx@namesetup#1#2#3#4{%
   \def\currentname{#4}%
+  \let\currentform\@empty
+  \let\currentlang\@empty
   \c@listcount\@ne
   \c@listtotal\csname c@#4\endcsname
   \blx@namesetup@i{#3}{#4}%
@@ -4100,7 +4129,9 @@
 
 \def\blx@namesetup@i#1#2{%
   \blx@imc@ifbibfieldmsx{#1}{#2}
-    {\expandafter\expandafter
+    {\edef\currentform{\blx@tempa}%
+     \edef\currentlang{\blx@tempb}%
+     \expandafter\expandafter
      \expandafter\blx@namesetup@ii\csname abx@name@#2@\blx@tempa @\blx@tempb\endcsname}
     {\expandafter\expandafter
      \expandafter\blx@namesetup@ii\csname abx@name@#2\endcsname}}
@@ -4187,7 +4218,6 @@
 % the tricky expansion at the end
 % {<macro>}[<format>][<start>-<stop>][<form/lang keyval]
 % => <macro>{<format>}{<start>}{<stop>}[<form/lang keyval>]
-
 \DeclareDocumentCommand\blx@listargs
   {m o >{\SplitArgument{1}{-}}o o}
   {\edef\Format{\IfValueTF{#2}{#2}{}}%
@@ -4206,12 +4236,10 @@
          {\protected@edef\z{\noexpand#1{\Format}{\Start}{\Stop}[#4]}\z}}}
 
 % [<format>][<start>-<stop>][<form/lang keyval>]{<plainlist>}
-
 \protected\def\blx@imc@printlist{%
   \blx@listargs\blx@printlist}
 
 % {<format>}{<start>}{<stop>}[<form/lang keyval>]{<plainlist>}
-
 \DeclareExpandableDocumentCommand{\blx@printlist}
   {mmmom}
   {\blx@imc@iflistundef[#4]{#5}
@@ -4225,13 +4253,16 @@
          \blx@endunit}}}
 
 % {<start>}{<stop>}{<form/lang keyval>}{<plainlist>}
-
 \def\blx@listsetup#1#2#3#4{%
   \def\currentlist{#4}%
+  \let\currentform\@empty
+  \let\currentlang\@empty
   \c@listcount\@ne
   \expandafter\c@listtotal\csname c@#4\endcsname
   \blx@imc@ifbibfieldmsx{#3}{#4}
-    {\letcs\blx@thedata{abx@list@#4@\blx@tempa @\blx@tempb}}
+    {\edef\currentform{\blx@tempa}%
+     \edef\currentlang{\blx@tempb}%
+     \letcs\blx@thedata{abx@list@#4@\blx@tempa @\blx@tempb}}
     {\letcs\blx@thedata{abx@list@#4}}%
   \ifblank{#1}
     {\c@liststart\@ne}
@@ -4256,12 +4287,10 @@
      \fi}}
 
 % [<format>][<start>-<stop>][<form/lang keyval>]{<plainlist>}
-
 \protected\def\blx@imc@indexlist{%
   \blx@listargs\blx@indexlist}
 
 % {<format>}{<start>}{<stop>}[<form/lang keyval>]{<plainlist>}
-
 \DeclareExpandableDocumentCommand{\blx@indexlist}
   {mmmom}
   {\blx@imc@iflistundef[#4]{#5}
@@ -4275,7 +4304,6 @@
         \endgroup}}}
 
 % {<item1>}{<item2>}{...}
-
 \long\def\blx@listparser#1{%
   \ifblank{#1}
     {\blx@listbreak}
@@ -4292,7 +4320,6 @@
 \long\def\blx@listbreak#1&{}
 
 % <*>{<key>}{<code>}
-
 \protected\def\blx@imc@entrydata{%
   \@ifstar
     {\blx@xsanitizeafter{\blx@imc@entrydata@i\blx@saveentry}}
@@ -8856,6 +8883,8 @@
     \def\ifsamepage{\blx@TE\blx@imc@ifsamepage}%
     \def\iffirstonpage{\blx@TE\blx@imc@iffirstonpage}%
     \def\ifcurrentfield#1{\blx@TE{\blx@imc@ifcurrentfield{#1}}}%
+    \def\ifcurrentform#1{\blx@TE{\blx@imc@ifcurrentform{#1}}}%
+    \def\ifcurrentlang#1{\blx@TE{\blx@imc@ifcurrentlang{#1}}}%
     \def\ifcurrentlist#1{\blx@TE{\blx@imc@ifcurrentlist{#1}}}%
     \def\ifcurrentname#1{\blx@TE{\blx@imc@ifcurrentname{#1}}}%
     \def\ifentrytype#1{\blx@TE{\blx@imc@ifentrytype{#1}}}%
