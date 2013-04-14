@@ -527,38 +527,34 @@
 % [<form/lang keyval>]{<field>} => \do{<item1>}\do{<item2>}...
 
 \newcommand{\blx@imc@docsvfield}[2][]{%
-  \blx@imc@ifbibfieldms{#2}
-    {\def\blx@tempa{original}%
-     \def\blx@tempb{default}%
-     \setkeys{blx@ms}{#1}%
-     \blx@imc@iffieldundef[#1]{#2}
-       {}
-       {\expandafter\expandafter\expandafter\docsvlist
-         \expandafter\expandafter\expandafter{%
-           \csname abx@field@#2@\blx@tempa @\blx@tempb\endcsname}}}
-    {\blx@imc@iffieldundef{#2}
-       {}
-       {\expandafter\expandafter\expandafter\docsvlist
-         \expandafter\expandafter\expandafter{%
-           \csname abx@field@#2\endcsname}}}}
+  \blx@imc@iffieldundef[#1]{#2}
+    {}
+    {\blx@imc@ifbibfieldms{#2}
+      {\def\blx@tempa{original}%
+       \def\blx@tempb{default}%
+       \setkeys{blx@ms}{#1}%
+       \expandafter\expandafter\expandafter\docsvlist
+       \expandafter\expandafter\expandafter{%
+         \csname abx@field@#2@\blx@tempa @\blx@tempb\endcsname}}}
+    {\expandafter\expandafter\expandafter\docsvlist
+     \expandafter\expandafter\expandafter{%
+       \csname abx@field@#2\endcsname}}}
 
 % [<form/lang keyval>]{<handler>}{<field>} => <handler>{<item1>}<handler>{<item2>}...
 
 \newcommand{\blx@imc@forcsvfield}[3]{%
-  \blx@imc@ifbibfieldms{#3}
-    {\def\blx@tempa{original}%
-     \def\blx@tempb{default}%
-     \setkeys{blx@ms}{#1}%
-     \blx@imc@iffieldundef[#1]{#3}
-       {}
-       {\expandafter\expandafter\expandafter\blx@imc@forcsvfield@i
-         \expandafter\expandafter\expandafter{%
-           \csname abx@field@#3@\blx@tempa @\blx@tempb\endcsname}{#2}}}
-    {\blx@imc@iffieldundef{#3}
-      {}
+  \blx@imc@iffieldundef[#1]{#3}
+    {}
+    {\blx@imc@ifbibfieldms{#3}
+      {\def\blx@tempa{original}%
+       \def\blx@tempb{default}%
+       \setkeys{blx@ms}{#1}%
+       \expandafter\expandafter\expandafter\blx@imc@forcsvfield@i
+       \expandafter\expandafter\expandafter{%
+         \csname abx@field@#3@\blx@tempa @\blx@tempb\endcsname}{#2}}}
       {\expandafter\expandafter\expandafter\blx@imc@forcsvfield@i
-         \expandafter\expandafter\expandafter{%
-           \csname abx@field@#3\endcsname}{#2}}}}
+       \expandafter\expandafter\expandafter{%
+         \csname abx@field@#3\endcsname}{#2}}}
 
 \def\blx@imc@forcsvfield@i#1#2{\forcsvlist{#2}{#1}}
 
@@ -1640,9 +1636,11 @@
   \ifcsdef{blx@msbibfield@#2}
     {\def\blx@tempa{original}%
      \def\blx@tempb{default}%
-     \IfValueTF{#1}
-       {\setkeys{blx@ms}{#1}}
-       {}%
+     \ifblank{#1}%\ifbibfieldmsx[]{field}
+       {}
+       {\IfValueTF{#1}%\ifbibfieldmsx{field}
+        {\setkeys{blx@ms}{#1}}
+        {}}%
      \@firstoftwo}
     {\@secondoftwo}}
 
@@ -2463,17 +2461,15 @@
 
 % [<form/lang keyval>]{<field>}{<true>}{<false>}
 \newcommand*{\blx@imc@iffieldxref}[2][]{%
-  \blx@imc@ifbibfieldms{#2}
-    {\blx@imc@iffieldundef[#1]{#2}
-      {\@secondoftwo}
+  \blx@imc@iffieldundef[#1]{#2}
+    {\@secondoftwo}    
+    {\blx@imc@ifbibfieldms{#2}
       {\blx@whichxref
-         {\blx@iffieldxref@i[#1]{#2}}
-         {\@secondoftwo}}}
-    {\blx@imc@iffieldundef{#2}
-      {\@secondoftwo}
+        {\blx@iffieldxref@i[#1]{#2}}
+        {\@secondoftwo}}
       {\blx@whichxref
-         {\blx@iffieldxref@ii{#2}}
-         {\@secondoftwo}}}}
+        {\blx@iffieldxref@ii{#2}}
+        {\@secondoftwo}}}}
 
 % [<form/lang keyval>]{<field>}{xref|crossref}
 \newcommand*{\blx@iffieldxref@i}[3][]{%
@@ -2511,17 +2507,15 @@
 
 % [<form/lang keyval>]{<plainlist>}{<true>}{<false>}
 \newcommand*{\blx@imc@iflistxref}[2][]{%
-  \blx@imc@ifbibfieldms{#2}
-    {\blx@imc@iflistundef[#1]{#2}
-      {\@secondoftwo}
+  \blx@imc@iflistundef[#1]{#2}
+    {\@secondoftwo}
+    {\blx@imc@ifbibfieldms{#2}
       {\blx@whichxref
-         {\blx@iflistxref@i[#1]{#2}}
-         {\@secondoftwo}}}
-    {\blx@imc@iflistundef{#2}
-      {\@secondoftwo}
-      {\blx@whichxref
-         {\blx@iflistxref@ii{#2}}
-         {\@secondoftwo}}}}
+        {\blx@iflistxref@i[#1]{#2}}
+        {\@secondoftwo}}}
+    {\blx@whichxref
+      {\blx@iflistxref@ii{#2}}
+      {\@secondoftwo}}}
 
 % [<form/lang keyval>]{<plainlist>}{xref|crossref}
 \newcommand*{\blx@iflistxref@i}[3][]{%
@@ -2930,15 +2924,19 @@
   \fi
   \endgroup}
 
-% {<field>}{<true>}{<false>}
-
-\protected\def\blx@imc@iffieldint#1{%
-  \blx@imc@iffieldundef{#1}
+% [<form/lang keyval>]{<field>}{<true>}{<false>}
+\newcommand*{\blx@imc@iffieldint}[2][]{%
+  \blx@imc@iffieldundef[#1]{#2}
     {\@secondoftwo}
-    {\expandafter\expandafter
-     \expandafter\ifinteger
-     \expandafter\expandafter
-     \expandafter{\csname abx@field@#1\endcsname}}}
+    {\blx@imc@ifbibfieldmsx{#1}{#2}
+      {\expandafter\expandafter
+       \expandafter\ifinteger
+       \expandafter\expandafter
+       \expandafter{\csname abx@field@#2@\blx@tempa @\blx@tempb\endcsname}}
+      {\expandafter\expandafter
+       \expandafter\ifinteger
+       \expandafter\expandafter
+       \expandafter{\csname abx@field@#2\endcsname}}}}
 
 % {<string>}{<true>}{<false>}
 
@@ -2993,32 +2991,45 @@
   \def\do##1{\let##1\@empty}%
   \blx@dopagecmds}
 
-% {<field>}{<true>}{<false>}
-
-\protected\def\blx@imc@iffieldnum#1{%
-  \blx@imc@iffieldundef{#1}
+% [<form/lang keyval>]{<field>}{<true>}{<false>}
+\newcommand*{\blx@imc@iffieldnum}[2][]{%
+  \blx@imc@iffieldundef[#1]{#2}
     {\@secondoftwo}
-    {\expandafter\expandafter
-     \expandafter\blx@imc@ifnumeral
-     \expandafter\expandafter
+    {\blx@imc@ifbibfieldmsx{#1}{#2}
+      {\expandafter\expandafter
+       \expandafter\blx@imc@ifnumeral
+       \expandafter\expandafter
+       \expandafter{\csname abx@field@#2@\blx@tempa @\blx@tempb\endcsname}}
+      {\expandafter\expandafter
+       \expandafter\blx@imc@ifnumeral
+       \expandafter\expandafter
+       \expandafter{\csname abx@field@#2\endcsname}}}}
 
-     \expandafter{\csname abx@field@#1\endcsname}}}
-
-\protected\def\blx@imc@iffieldnums#1{%
-  \blx@imc@iffieldundef{#1}
+\newcommand*{\blx@imc@iffieldnums}[2][]{%
+  \blx@imc@iffieldundef[#1]{#2}
     {\@secondoftwo}
-    {\expandafter\expandafter
-     \expandafter\blx@imc@ifnumerals
-     \expandafter\expandafter
-     \expandafter{\csname abx@field@#1\endcsname}}}
+    {\blx@imc@ifbibfieldmsx{#1}{#2}
+      {\expandafter\expandafter
+       \expandafter\blx@imc@ifnumerals
+       \expandafter\expandafter
+       \expandafter{\csname abx@field@#2@\blx@tempa @\blx@tempb\endcsname}}
+      {\expandafter\expandafter
+       \expandafter\blx@imc@ifnumerals
+       \expandafter\expandafter
+       \expandafter{\csname abx@field@#2\endcsname}}}}
 
-\protected\def\blx@imc@iffieldpages#1{%
-  \blx@imc@iffieldundef{#1}
+\newcommand*{\blx@imc@iffieldpages}[2][]{%
+  \blx@imc@iffieldundef[#1]{#2}
     {\@secondoftwo}
-    {\expandafter\expandafter
-     \expandafter\blx@imc@ifpages
-     \expandafter\expandafter
-     \expandafter{\csname abx@field@#1\endcsname}}}
+    {\blx@imc@ifbibfieldmsx{#1}{#2}
+      {\expandafter\expandafter
+       \expandafter\blx@imc@ifpages
+       \expandafter\expandafter
+       \expandafter{\csname abx@field@#2@\blx@tempa @\blx@tempb\endcsname}}
+      {\expandafter\expandafter
+       \expandafter\blx@imc@ifpages
+       \expandafter\expandafter
+       \expandafter{\csname abx@field@#2\endcsname}}}}
 
 % {<chars>}
 
