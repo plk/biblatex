@@ -449,7 +449,6 @@
 \newtoggle{blx@skiplab}
 \newtoggle{blx@citation}
 \newtoggle{blx@bibliography}
-\newtoggle{blx@reencode}
 \newtoggle{blx@citeindex}
 \newtoggle{blx@bibindex}
 \newtoggle{blx@localnumber}
@@ -2460,7 +2459,7 @@
      \csname abx@field@#2\endcsname}{#3}}}
 
 % [<form/lang keyval>]{<field>}{<true>}{<false>}
-\newcommand*{\blx@imc@iffieldxref}[2][]{%
+\newrobustcmd*{\blx@imc@iffieldxref}[2][]{%
   \blx@imc@iffieldundef[#1]{#2}
     {\@secondoftwo}    
     {\blx@imc@ifbibfieldms{#2}
@@ -2925,7 +2924,7 @@
   \endgroup}
 
 % [<form/lang keyval>]{<field>}{<true>}{<false>}
-\newcommand*{\blx@imc@iffieldint}[2][]{%
+\newrobustcmd*{\blx@imc@iffieldint}[2][]{%
   \blx@imc@iffieldundef[#1]{#2}
     {\@secondoftwo}
     {\blx@imc@ifbibfieldmsx{#1}{#2}
@@ -2992,7 +2991,7 @@
   \blx@dopagecmds}
 
 % [<form/lang keyval>]{<field>}{<true>}{<false>}
-\newcommand*{\blx@imc@iffieldnum}[2][]{%
+\newrobustcmd*{\blx@imc@iffieldnum}[2][]{%
   \blx@imc@iffieldundef[#1]{#2}
     {\@secondoftwo}
     {\blx@imc@ifbibfieldmsx{#1}{#2}
@@ -3005,7 +3004,7 @@
        \expandafter\expandafter
        \expandafter{\csname abx@field@#2\endcsname}}}}
 
-\newcommand*{\blx@imc@iffieldnums}[2][]{%
+\newrobustcmd*{\blx@imc@iffieldnums}[2][]{%
   \blx@imc@iffieldundef[#1]{#2}
     {\@secondoftwo}
     {\blx@imc@ifbibfieldmsx{#1}{#2}
@@ -3018,7 +3017,7 @@
        \expandafter\expandafter
        \expandafter{\csname abx@field@#2\endcsname}}}}
 
-\newcommand*{\blx@imc@iffieldpages}[2][]{%
+\newrobustcmd*{\blx@imc@iffieldpages}[2][]{%
   \blx@imc@iffieldundef[#1]{#2}
     {\@secondoftwo}
     {\blx@imc@ifbibfieldmsx{#1}{#2}
@@ -4529,7 +4528,7 @@
     {\@firstoftwo}}
 
 % [<form/lang keyval>]{<field>}{<true>}{<false>}
-\newcommand{\blx@imc@iffieldbibstring}[2][]{%
+\newcommand*{\blx@imc@iffieldbibstring}[2][]{%
   \blx@imc@ifbibfieldmsx{#1}{#2}
     {\ifcsundef{\abx@str @\detokenize\expandafter
                 \expandafter\expandafter{%
@@ -5890,8 +5889,7 @@
      \global\togglefalse{blx@addset}}
     {}%
   \endgroup
-  \csnumgdef{blx@labelnumber@\the\c@refsection}{0}%
-  \iftoggle{blx@reencode}{\blx@reencode}{}}
+  \csnumgdef{blx@labelnumber@\the\c@refsection}{0}}
 
 % {<entrykey>}
 
@@ -6080,6 +6078,7 @@
   \ifundef\abx@field@indextitle
     {\csgappto\blx@bbl@data{%
        \let\abx@field@indextitle\abx@field@title}}
+%       \let\abx@field@indextitle\abx@field@title@original@default}}
     {}%
   \ifundef\abx@field@indexsorttitle
     {\csgappto\blx@bbl@data{%
@@ -6300,22 +6299,10 @@
 
 \def\blx@bblinput{%
   \begingroup
-  \iftoggle{blx@reencode}
-    {\ifdef\inpenc@prehook
-       {\inpenc@prehook{}%
-        \inpenc@posthook{}}
-       {}%
-     \inputencoding\blx@bibencoding}
-    {}%
   \blx@info@noline{Trying to load bibliographic data..}%
   \blx@blxinit
   \blx@bblfile@biber
-  \endgroup
-  \iftoggle{blx@reencode}
-    {\ifdef\@enablequotes
-       {\@enablequotes}
-       {}}
-    {}}
+  \endgroup}
 
 \def\blx@bblfile@biber{%
   \blx@secinit
@@ -6330,32 +6317,6 @@
   \blx@bblend
   \endgroup
   \csnumgdef{blx@labelnumber@\the\c@refsection}{0}}
-
-\def\blx@reencode{%
-  \begingroup
-  \abx@hook@reencode
-  \let\protect\@unexpandable@protect
-  \def\do##1{\cslet{abx@name@##1}\relax}%
-  \dolistcsloop{blx@biber@datamodel@names}\do{labelname}%
-  \def\do##1{\cslet{abx@list@##1}\relax}%
-  \dolistcsloop{blx@biber@datamodel@lists}\do{pageref}%
-  \def\do##1{\cslet{abx@field@##1}\relax}%
-  \dolistcsloop{blx@biber@datamodel@fields}\do{options}%
-  \abx@dointernalfields
-  \long\def\abx@field@execute##1{%
-    \unexpanded{\abx@field@execute{##1}}}%
-  \csuse{abx@preamble}%
-  \def\do##1{%
-    \csxdef{blx@data@\the\c@refsection @##1}{%
-      \csuse{blx@data@\the\c@refsection @##1}}}%
-  \dolistcsloop{blx@slists@\the\c@refsection @entry@\blx@sorting}%
-  \endgroup}
-
-\def\abx@hook@reencode{%
-  \ifdef\@enablequotes{\@enablequotes}{}%
-  \def\IeC##1{\unexpanded{\IeC{##1}}}%
-  \let~\relax
-}
 
 %% Bibliography
 
@@ -8763,6 +8724,36 @@
     \expandafter\blx@autopunct
     \expandafter{\blx@autopunct}}%
   \endgroup}
+
+
+% [<prenote>][<postnote>]{<entrykey>,...}[<format>][<form\lang keyval>]{<namelist>}<punct>
+\newrobustcmd*{\citenameN}{\blx@thecheckpunct{\blxcitecmd{citenameN}}}
+
+\DeclareDocumentCommand{\blx@cite@citenameN}
+  {oomoomm}
+  {\begingroup
+   \blx@citecmdinit
+   \blx@citeinit
+   \ifblank{#1}
+     {}
+     {\def\abx@field@prenote{#1}}%
+   \ifblank{#2}
+     {\let\blx@thenotecheck\relax}
+     {\def\abx@field@postnote{#2}}%
+   \def\blx@precode{\usebibmacro{prenote}}%
+   \def\blx@loopcode{%
+     \ifnameundef[#5]{#6}
+       {\blx@warning@entry{'#6' undefined or not a name list}%
+        \abx@missing{#6}}
+       {\printnames[#4][#5]{#6}}}%
+   \def\blx@dlimcode{\multicitedelim}%
+   \ifblank{#2}
+     {\def\blx@postcode{#7}}
+     {\def\blx@postcode{\usebibmacro{postnote}#7}}%
+   \boolfalse{citetracker}%
+   \boolfalse{pagetracker}%
+   \blx@citeloop{#3}%
+   \endgroup}
 
 % [<prenote>][<postnote>]{<entrykey>,...}[<format>]{<namelist>}<punct>
 
@@ -11247,28 +11238,23 @@
     {\ifdefstring\blx@bibencoding{ascii}
        {\blx@info@noline{%
           Data encoding '\blx@bibencoding' specified.\MessageBreak
-          No need to reencode data}%
-        \togglefalse{blx@reencode}}
+          No need to reencode data}}
        {\ifdefstring\blx@bibencoding{auto}
           {\let\blx@bibencoding\blx@texencoding
            \blx@info@noline{%
              Automatic encoding selection.\MessageBreak
-             Assuming data encoding '\blx@bibencoding'}
-           \togglefalse{blx@reencode}}
+             Assuming data encoding '\blx@bibencoding'}}
           {\ifdefstrequal\blx@bibencoding\blx@texencoding
              {\blx@info@noline{%
                 Data encoding '\blx@bibencoding' specified.\MessageBreak
-                No need to reencode data}%
-              \togglefalse{blx@reencode}}
+                No need to reencode data}}
              {\blx@info@noline{%
                    Data encoding '\blx@bibencoding' specified.\MessageBreak
-                   Backend will reencode on the fly}%
-                 \togglefalse{blx@reencode}}}}}
+                   Backend will reencode on the fly}}}}}
     {\def\blx@bibencoding{ascii}%
      \blx@info@noline{%
         Data encoding not specified.\MessageBreak
-        Assuming '\blx@bibencoding'}%
-     \togglefalse{blx@reencode}}%
+        Assuming '\blx@bibencoding'}}%
   \ifboolexpr{%
     togl {blx@safeinputenc}
     and ( test {\@ifpackageloaded{inputenc}}
