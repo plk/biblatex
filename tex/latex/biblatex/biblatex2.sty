@@ -21,6 +21,7 @@
 \RequirePackage{ifthen}
 \RequirePackage{url}
 \RequirePackage{xparse}% needed for expandable optional arguments parsing
+\RequirePackage{pdftexcmds}% Needed for expandable string testing
 %\RequirePackage{trace}
 
 \@ifpackagelater{etoolbox}{2010/11/29}
@@ -1627,7 +1628,7 @@
 
 % {<form/lang keyval>}{<field>}
 % This forks on multiscript fields/lists/names, parsing the form/lang spec
-% The two \csdefs are there to make sure both options have defaults in case only
+% The two \defs are there to make sure both options have defaults in case only
 % one is given ([form=<form>]).
 \def\blx@imc@ifbibfieldmsx#1#2{%
   \ifcsdef{blx@msbibfield@#2}
@@ -1839,11 +1840,48 @@
 
 % [<form/lang keyval>]{<field>}
 
+% This needs to be expandable and so can't use \ifbibfieldmsx as it's not
+% expandable (due, essentially, to \setkeys)
+% Thanks to egreg (http://tex.stackexchange.com/questions/110465)
 \DeclareExpandableDocumentCommand{\blx@imc@thefield}
   {om}
-  {\blx@imc@ifbibfieldmsx{#1}{#2}
-    {\csuse{abx@field@#2@\blx@tempa @\blx@tempb}}
+  {\ifcsdef{blx@msbibfield@#2}
+    {\ifblank{#1}%\thefield[]{field}
+      {\csuse{abx@field@#2@original@default}}
+      {\IfNoValueTF{#1}%\thefield{field}
+        {\csuse{abx@field@#2@original@default}}
+        {\csuse{abx@field@#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}}}}}
     {\csuse{abx@field@#2}}}
+
+\def\blx@ms@getform#1{%
+  \ifnum\pdf@strcmp{\forcsvlist\blx@ms@getform@i{#1}}{}=\z@
+    original%default
+  \else
+    \forcsvlist\blx@ms@getform@i{#1}%
+  \fi}
+
+\def\blx@ms@getlang#1{%
+  \ifnum\pdf@strcmp{\forcsvlist\blx@ms@getlang@i{#1}}{}=\z@
+    default%default
+  \else
+    \forcsvlist\blx@ms@getlang@i{#1}%
+  \fi}
+
+\def\blx@ms@getform@i#1{%
+  \blx@ms@getform@ii#1&}
+
+\def\blx@ms@getform@ii#1=#2&{%
+  \ifnum\pdf@strcmp{\zap@space#1 \@empty}{form}=\z@
+    \zap@space#2 \@empty
+  \fi}
+
+\def\blx@ms@getlang@i#1{%
+  \blx@ms@getlang@ii#1&}
+
+\def\blx@ms@getlang@ii#1=#2&{%
+  \ifnum\pdf@strcmp{\zap@space#1 \@empty}{lang}=\z@
+    \zap@space#2 \@empty
+  \fi}
 
 \DeclareExpandableDocumentCommand{\blx@imc@strfield}
   {om}
