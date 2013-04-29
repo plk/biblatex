@@ -530,8 +530,8 @@
   \blx@imc@iffieldundef[#1]{#2}
     {}
     {\blx@imc@ifbibfieldms{#2}
-      {\def\blx@tempa{original}%
-       \def\blx@tempb{default}%
+      {\edef\blx@tempa{\blx@form}%
+       \edef\blx@tempb{\blx@lang}%
        \setkeys{blx@ms}{#1}%
        \expandafter\expandafter\expandafter\docsvlist
        \expandafter\expandafter\expandafter{%
@@ -546,8 +546,8 @@
   \blx@imc@iffieldundef[#1]{#3}
     {}
     {\blx@imc@ifbibfieldms{#3}
-      {\def\blx@tempa{original}%
-       \def\blx@tempb{default}%
+      {\edef\blx@tempa{\blx@form}%
+       \edef\blx@tempb{\blx@lang}%
        \setkeys{blx@ms}{#1}%
        \expandafter\expandafter\expandafter\blx@imc@forcsvfield@i
        \expandafter\expandafter\expandafter{%
@@ -1632,8 +1632,8 @@
 % one is given ([form=<form>]).
 \def\blx@imc@ifbibfieldmsx#1#2{%
   \ifcsdef{blx@msbibfield@#2}
-    {\def\blx@tempa{original}%
-     \def\blx@tempb{default}%
+    {\edef\blx@tempa{\blx@form}%
+     \edef\blx@tempb{\blx@lang}%
      \ifblank{#1}%\ifbibfieldmsx[]{field}
        {}
        {\IfNoValueTF{#1}%\ifbibfieldmsx{field}
@@ -1847,22 +1847,22 @@
   {om}
   {\ifcsdef{blx@msbibfield@#2}
     {\ifblank{#1}%\thefield[]{field}
-      {\csuse{abx@field@#2@original@default}}
+      {\csuse{abx@field@#2@\blx@form @\blx@lang}}
       {\IfNoValueTF{#1}%\thefield{field}
-        {\csuse{abx@field@#2@original@default}}
+        {\csuse{abx@field@#2@\blx@form @\blx@lang}}
         {\csuse{abx@field@#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}}}}}
     {\csuse{abx@field@#2}}}
 
 \def\blx@ms@getform#1{%
   \ifnum\pdf@strcmp{\forcsvlist\blx@ms@getform@i{#1}}{}=\z@
-    original%default
+    \blx@form
   \else
     \forcsvlist\blx@ms@getform@i{#1}%
   \fi}
 
 \def\blx@ms@getlang#1{%
   \ifnum\pdf@strcmp{\forcsvlist\blx@ms@getlang@i{#1}}{}=\z@
-    default%default
+    \blx@lang
   \else
     \forcsvlist\blx@ms@getlang@i{#1}%
   \fi}
@@ -2259,14 +2259,14 @@
           {\blx@warning@noline{You are trying to \string\if#1sequal test all multiscript variants for #1 '#5' against a specified variant for #1 '#3'}\@secondoftwo}
           % [f/l]{msfield}[f/l]{msfield}
           {\begingroup
-             \def\blx@tempa{original}%
-             \def\blx@tempb{default}%
+             \edef\blx@tempa{\blx@form}%
+             \edef\blx@tempb{\blx@lang}%
              \setkeys{blx@ms}{#2}%
              \xappto\blx@ife{\expandafter\def\noexpand\blx@tempc{abx@#1@#3@\blx@tempa @\blx@tempb}}%
            \endgroup
            \begingroup
-             \def\blx@tempa{original}%
-             \def\blx@tempb{default}%
+             \edef\blx@tempa{\blx@form}%
+             \edef\blx@tempb{\blx@lang}%
              \setkeys{blx@ms}{#4}%
              \xappto\blx@ife{\expandafter\def\noexpand\blx@tempd{abx@#1@#5@\blx@tempa @\blx@tempb}}%
            \endgroup
@@ -2279,10 +2279,10 @@
         % [?]{msfield}{non-msfield}
         {\IfNoValueTF{#2}
           % {msfield}{non-msfield}
-          {\ifcsequal{abx@#1@#2@original@default}{abx@#1@#5}}
+          {\ifcsequal{abx@#1@#2@\blx@form @\blx@lang}{abx@#1@#5}}
           % [f/l]{msfield}{non-msfield}
-          {\def\blx@tempa{original}
-           \def\blx@tempb{default}%
+          {\edef\blx@tempa{\blx@form}
+           \edef\blx@tempb{\blx@lang}%
            \setkeys{blx@ms}{#2}%
            \ifcsequal{abx@#1@#3@\blx@tempa @\blx@tempb}{abx@#1@#5}}}}}
     % [?]{non-msfield}[?]{?}
@@ -2294,10 +2294,10 @@
         % {non-msfield}[?]{msfield}
         {\IfNoValueTF{#4}
           % {non-msfield}{msfield}
-          {\ifcsequal{abx@#1@#5@original@default}{abx@#1@#3}}
+          {\ifcsequal{abx@#1@#5@\blx@form @\blx@lang}{abx@#1@#3}}
           % {non-msfield}[f/l]{msfield}
-          {\def\blx@tempa{original}
-           \def\blx@tempb{default}%
+          {\edef\blx@tempa{\blx@form}
+           \edef\blx@tempb{\blx@lang}%
            \setkeys{blx@ms}{#4}%
            \ifcsequal{abx@#1@#5@\blx@tempa @\blx@tempb}{abx@#1@#3}}}}
       % [?]{non-msfield}[?]{non-msfield}
@@ -2344,14 +2344,14 @@
     {\IfNoValueTF{#3}
       {\blx@warning@noline{You are trying to \string\ifnamesequal test all multiscript variants for name '#4' against a specified variant for name '#2'}\@secondoftwo}
       {\begingroup
-         \def\blx@tempa{original}%
-         \def\blx@tempb{default}%
+         \edef\blx@tempa{\blx@form}%
+         \edef\blx@tempb{\blx@lang}%
          \setkeys{blx@ms}{#1}%
          \xappto\blx@ife{\expandafter\def\noexpand\blx@tempc{#2@\blx@tempa @\blx@tempb}}%
        \endgroup
        \begingroup
-         \def\blx@tempa{original}%
-         \def\blx@tempb{default}%
+         \edef\blx@tempa{\blx@form}%
+         \edef\blx@tempb{\blx@lang}%
          \setkeys{blx@ms}{#3}%
          \xappto\blx@ife{\expandafter\def\noexpand\blx@tempd{#4@\blx@tempa @\blx@tempb}}%
        \endgroup
@@ -2508,8 +2508,8 @@
 
 % [<form/lang keyval>]{<field>}{xref|crossref}
 \newcommand*{\blx@iffieldxref@i}[3][]{%
-  \def\blx@tempa{original}%
-  \def\blx@tempb{default}%
+  \edef\blx@tempa{\blx@form}%
+  \edef\blx@tempb{\blx@lang}%
   \setkeys{blx@ms}{#1}%
   \begingroup
    \letcs\blx@tempc{abx@field@#3}%
@@ -2554,8 +2554,8 @@
 
 % [<form/lang keyval>]{<plainlist>}{xref|crossref}
 \newcommand*{\blx@iflistxref@i}[3][]{%
-  \def\blx@tempa{original}%
-  \def\blx@tempb{default}%
+  \edef\blx@tempa{\blx@form}%
+  \edef\blx@tempb{\blx@lang}%
   \setkeys{blx@ms}{#1}%
   \begingroup
    \letcs\blx@tempc{abx@field@#3}%
@@ -2589,8 +2589,8 @@
 
 % [<form/lang keyval>]{<namelist>}{xref|crossref}
 \newcommand*{\blx@ifnamexref}[3][]{%
-  \def\blx@tempa{original}%
-  \def\blx@tempb{default}%
+  \edef\blx@tempa{\blx@form}%
+  \edef\blx@tempb{\blx@lang}%
   \setkeys{blx@ms}{#1}%
   \begingroup
    \letcs\blx@tempc{abx@field@#3}%
@@ -5643,8 +5643,8 @@
   \ifblank{#1}
     {\csxappto\blx@bbl@data{%
         \def\expandafter\noexpand\csname abx@field@#2\endcsname{#3}}}
-    {\def\blx@tempa{original}%
-     \def\blx@tempb{default}%
+    {\edef\blx@tempa{\blx@form}%
+     \edef\blx@tempb{\blx@lang}%
      \setkeys{blx@ms}{#1}%
      \listxadd\blx@msforms{\blx@tempa}%
      \listxadd\blx@mslangs{\blx@tempb}%
@@ -5723,8 +5723,8 @@
         \csname c@#2\endcsname\NewCount\relax
         \def\expandafter\noexpand\csname abx@list@#2\endcsname
         {\expandonce\NewValue}}}
-    {\def\blx@tempa{original}%
-     \def\blx@tempb{default}%
+    {\edef\blx@tempa{\blx@form}%
+     \edef\blx@tempb{\blx@lang}%
      \setkeys{blx@ms}{#1}%
      \listxadd\blx@msforms{\blx@tempa}%
      \listxadd\blx@mslangs{\blx@tempb}%
@@ -5744,8 +5744,8 @@
         \csname c@#2\endcsname\NewCount\relax
         \def\expandafter\noexpand\csname abx@name@#2\endcsname
         {{\expandonce\NewOption}{\expandonce\NewValue}}}}
-    {\def\blx@tempa{original}%
-     \def\blx@tempb{default}%
+    {\edef\blx@tempa{\blx@form}%
+     \edef\blx@tempb{\blx@lang}%
      \setkeys{blx@ms}{#1}%
      \listxadd\blx@msforms{\blx@tempa}%
      \listxadd\blx@mslangs{\blx@tempb}%
@@ -6116,7 +6116,7 @@
 \def\blx@bbl@titles{%
   \ifundef\abx@field@indextitle
     {\csgappto\blx@bbl@data{%
-       \let\abx@field@indextitle\abx@field@title@original@default}}
+       \letcs\abx@field@indextitle{abx@field@title@\blx@form @\blx@lang}}}
     {}%
   \ifundef\abx@field@indexsorttitle
     {\csgappto\blx@bbl@data{%
@@ -8408,17 +8408,21 @@
 \long\def\blx@citepunct@i#1#2#3#4{%
   \blx@thecheckpunct{#1{#2}{#3}{#4}}}
 
-% {<csname>}[<arg1>][<arg2>]{arg3}[arg4]{arg5}<punct>
-% => <macro>{<arg1>}{<arg2>}{<arg3>}{<arg4>}{arg5}{<punctcmd>}
+% {<csname>}[<arg1>][<arg2>]{arg3}[arg4][arg5]{arg6}<punct>
+% => <macro>{<arg1>}{<arg2>}{<arg3>}{<arg4>}{arg5}{arg6}{<punctcmd>}
 
 \protected\def\blx@citexpunct#1{%
   \blx@citeargs{\blx@citexpunct@i{#1}}}
 \long\def\blx@citexpunct@i#1#2#3#4{%
   \@ifnextchar[%]
     {\blx@citexpunct@ii{#1}{{#2}{#3}{#4}}}
-    {\blx@citexpunct@ii{#1}{{#2}{#3}{#4}}[#1]}}
-\long\def\blx@citexpunct@ii#1#2[#3]#4{%
-  \blx@thecheckpunct{\blxcitecmd{#1}#2{#3}{#4}}}
+    {\blx@citexpunct@ii{#1}{{#2}{#3}{#4}}[#1]}}% this is where the default format is instantiated
+\long\def\blx@citexpunct@ii#1#2[#3]{%
+  \@ifnextchar[%]
+    {\blx@citexpunct@iii{#1}{#2{#3}}}
+    {\blx@citexpunct@iii{#1}{#2{#3}}[form=\blx@form,lang=\blx@lang]}}
+\long\def\blx@citexpunct@iii#1#2[#3]#4{%
+    \blx@thecheckpunct{\blxcitecmd{#1}#2{#3}{#4}}}
 
 % {<code>}<punct> => <code>{<punctcmd>}
 
@@ -8765,11 +8769,10 @@
 
 
 % [<prenote>][<postnote>]{<entrykey>,...}[<format>][<form\lang keyval>]{<namelist>}<punct>
-\newrobustcmd*{\citenameN}{\blx@thecheckpunct{\blxcitecmd{citenameN}}}
+\newrobustcmd*{\citename}{\blx@citexpunct{citename}}
 
-\DeclareDocumentCommand{\blx@cite@citenameN}
-  {oomoomm}
-  {\begingroup
+\long\csdef{blx@cite@citename}#1#2#3#4#5#6#7{%
+  \begingroup
    \blx@citecmdinit
    \blx@citeinit
    \ifblank{#1}
@@ -8783,7 +8786,7 @@
      \ifnameundef[#5]{#6}
        {\blx@warning@entry{'#6' undefined or not a name list}%
         \abx@missing{#6}}
-       {\printnames[#4][#5]{#6}}}%
+       {\printnames[#4][][#5]{#6}}}%
    \def\blx@dlimcode{\multicitedelim}%
    \ifblank{#2}
      {\def\blx@postcode{#7}}
@@ -8793,38 +8796,10 @@
    \blx@citeloop{#3}%
    \endgroup}
 
-% [<prenote>][<postnote>]{<entrykey>,...}[<format>]{<namelist>}<punct>
-
-\newrobustcmd*{\citename}{\blx@citexpunct{citename}}
-\long\csdef{blx@cite@citename}#1#2#3#4#5#6{%
-  \begingroup
-  \blx@citecmdinit
-  \blx@citeinit
-  \ifblank{#1}
-    {}
-    {\def\abx@field@prenote{#1}}%
-  \ifblank{#2}
-    {\let\blx@thenotecheck\relax}
-    {\def\abx@field@postnote{#2}}%
-  \def\blx@precode{\usebibmacro{prenote}}%
-  \def\blx@loopcode{%
-    \ifnameundef{#5}
-      {\blx@warning@entry{'#5' undefined or not a name list}%
-       \abx@missing{#5}}
-      {\printnames[#4]{#5}}}%
-  \def\blx@dlimcode{\multicitedelim}%
-  \ifblank{#2}
-    {\def\blx@postcode{#6}}
-    {\def\blx@postcode{\usebibmacro{postnote}#6}}%
-  \boolfalse{citetracker}%
-  \boolfalse{pagetracker}%
-  \blx@citeloop{#3}%
-  \endgroup}
-
-% [<prenote>][<postnote>]{<entrykey>,...}[<format>]{<list>}<punct>
+% [<prenote>][<postnote>]{<entrykey>,...}[<format>][<form\lang keyval>]{<list>}<punct>
 
 \newrobustcmd*{\citelist}{\blx@citexpunct{citelist}}
-\long\csdef{blx@cite@citelist}#1#2#3#4#5#6{%
+\long\csdef{blx@cite@citelist}#1#2#3#4#5#6#7{%
   \begingroup
   \blx@citecmdinit
   \blx@citeinit
@@ -8836,23 +8811,23 @@
     {\def\abx@field@postnote{#2}}%
   \def\blx@precode{\usebibmacro{prenote}}%
   \def\blx@loopcode{%
-    \iflistundef{#5}
-      {\blx@warning@entry{'#5' undefined or not a literal list}%
-       \abx@missing{#5}}
-      {\printlist[#4]{#5}}}%
+    \iflistundef[#5]{#6}
+      {\blx@warning@entry{'#6' undefined or not a literal list}%
+       \abx@missing{#6}}
+      {\printlist[#4][][#5]{#6}}}%
   \def\blx@dlimcode{\multicitedelim}%
   \ifblank{#2}
-    {\def\blx@postcode{#6}}
-    {\def\blx@postcode{\usebibmacro{postnote}#6}}%
+    {\def\blx@postcode{#7}}
+    {\def\blx@postcode{\usebibmacro{postnote}#7}}%
   \boolfalse{citetracker}%
   \boolfalse{pagetracker}%
   \blx@citeloop{#3}%
   \endgroup}
 
-% [<prenote>][<postnote>]{<entrykey>,...}[<format>]{<field>}<punct>
+% [<prenote>][<postnote>]{<entrykey>,...}[<format>][<form\lang keyval>]{<field>}<punct>
 
 \newrobustcmd*{\citefield}{\blx@citexpunct{citefield}}
-\long\csdef{blx@cite@citefield}#1#2#3#4#5#6{%
+\long\csdef{blx@cite@citefield}#1#2#3#4#5#6#7{%
   \begingroup
   \blx@citecmdinit
   \blx@citeinit
@@ -8864,14 +8839,14 @@
     {\def\abx@field@postnote{#2}}%
   \def\blx@precode{\usebibmacro{prenote}}%
   \def\blx@loopcode{%
-    \iffieldundef{#5}
-      {\blx@warning@entry{'#5' undefined or not a field}%
-       \abx@missing{#5}}
-      {\printfield[#4]{#5}}}%
+    \iffieldundef[#5]{#6}
+      {\blx@warning@entry{'#6' undefined or not a field}%
+       \abx@missing{#6}}
+      {\printfield[#4][#5]{#6}}}%
   \def\blx@dlimcode{\multicitedelim}%
   \ifblank{#2}
-    {\def\blx@postcode{#6}}
-    {\def\blx@postcode{\usebibmacro{postnote}#6}}%
+    {\def\blx@postcode{#7}}
+    {\def\blx@postcode{\usebibmacro{postnote}#7}}%
   \boolfalse{citetracker}%
   \boolfalse{pagetracker}%
   \blx@citeloop{#3}%
@@ -10347,6 +10322,12 @@
   \blx@warning@noline{%
     sortlos option is deprecated, use 'sorting' option to \string\printshorthands}}
 
+\DeclareBibliographyOption{form}{%
+ \def\blx@form{#1}}
+
+\DeclareBibliographyOption{lang}{%
+ \def\blx@lang{#1}}
+
 \DeclareBibliographyOption{maxnames}{%
   \numdef\blx@maxcitenames{#1}%
   \numdef\blx@maxbibnames{#1}}
@@ -11177,7 +11158,7 @@
   date=comp,datelabel=comp,origdate=comp,eventdate=comp,urldate=short,autopunct=true,
   punctfont=false,defernumbers=false,refsection=none,refsegment=none,
   citereset=none,hyperref=auto,parentracker,maxparens=3,
-  bibencoding=auto,bibwarn}
+  bibencoding=auto,bibwarn,form=original,lang=default}
 
 % Load compatibility code
 
