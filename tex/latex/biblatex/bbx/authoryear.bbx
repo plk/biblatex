@@ -1,6 +1,16 @@
 \ProvidesFile{authoryear.bbx}
 [\abx@bbxid]
 
+% authoryear styles are special in the following way:
+
+% The citation labels are "labelname (labelyear)" and since citation
+% labels are the keys into the references section, the fact that the
+% citation uses labelyear means that the references must also. This
+% means we use a special \printdate[extra]label macro to generate the
+% references section main date for an entry. Otherwise, if labeldate selects
+% anything other than DATE (or equivalently, YEAR/MONTH), then the
+% citation won't match the reference.
+
 \RequireBibliographyStyle{standard}
 
 \DeclareBibliographyOption{dashed}[true]{%
@@ -23,21 +33,21 @@
 
 \def\bbx@opt@mergedate@maximum{%
   \renewbibmacro*{date+extrayear}{%
-    \iffieldundef{year}
+    \iffieldundef{labelyear}
       {}
       {\printtext[parens]{%
          \printfield{issue}%
 	 \setunit*{\addspace}%
-	 \printdateextra}}}%
+	 \printdateextralabel}}}%
   \renewbibmacro*{date}{}%
   \renewbibmacro*{issue+date}{}%
 }
 
 \def\bbx@opt@mergedate@compact{%
   \renewbibmacro*{date+extrayear}{%
-    \iffieldundef{year}
+    \iffieldundef{labelyear}
       {}
-      {\printtext[parens]{\printdateextra}}}%
+      {\printtext[parens]{\printdateextralabel}}}%
   \renewbibmacro*{date}{}%
   \renewbibmacro*{issue+date}{%
     \iffieldundef{issue}
@@ -118,7 +128,7 @@
     \newunit}%
 }
 
-\ExecuteBibliographyOptions{labelyear,sorting=nyt,pagetracker,mergedate}
+\ExecuteBibliographyOptions{labeldate,sorting=nyt,pagetracker,mergedate}
 
 \DeclareFieldFormat{shorthandwidth}{#1}
 \setlength{\bibitemsep}{0pt}

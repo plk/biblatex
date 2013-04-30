@@ -60,8 +60,9 @@
        \ifdimless{\leftmargin}{1.25em}
          {\textendash}
 	 {\textemdash}}}}
-\newcommand*{\relatedpunct}{\space}
+\newcommand*{\relatedpunct}{\addspace}
 \newcommand*{\relateddelim}{\adddot\par\nobreak}
+\newcommand{\mkrelatedstring}{\mainlang}
 
 % Used for indexing
 
@@ -281,7 +282,9 @@
 \DeclareFieldFormat
   [suppbook,suppcollection,suppperiodical]
   {citetitle}{#1}
-\DeclareFieldFormat{labelyear}{\stripzeros{#1}}% = the '1995' part in 'Jones 1995a'
+% labelyear can be a localisation string to allow for "no date" etc.
+\DeclareFieldFormat{labelyear}{% = the '1995' part in 'Jones 1995a'
+  \ifbibstring{#1}{\bibstring{#1}}{\stripzeros{#1}}}
 \DeclareFieldFormat{extrayear}{% = the 'a' in 'Jones 1995a'
   \iffieldnums{labelyear}
     {\mknumalph{#1}}
@@ -306,8 +309,6 @@
 
 % Used in the bibliography and the list of shorthands
 
-\DeclareFieldFormat{booktitle}{\mkbibemph{#1}}
-\DeclareFieldFormat{chapter}{\bibstring{chapter}~#1}
 \DeclareFieldFormat{doi}{%
   \mkbibacro{DOI}\addcolon\space
   \ifhyperref
@@ -372,6 +373,8 @@
 \DeclareFieldFormat{journaltitle}{\mkbibemph{#1}}
 \DeclareFieldFormat{issuetitle}{\mkbibemph{#1}}
 \DeclareFieldFormat{maintitle}{\mkbibemph{#1}}
+\DeclareFieldFormat{booktitle}{\mkbibemph{#1}}
+\DeclareFieldFormat{chapter}{\bibstring{chapter}~#1}
 \DeclareFieldFormat{month}{\mkbibmonth{#1}}
 \DeclareFieldFormat{note}{#1\isdot}
 \DeclareFieldFormat{number}{#1}% number in a series
@@ -403,6 +406,7 @@
 \DeclareFieldFormat{related:multivolume}{\par\nobreak#1}
 \DeclareFieldFormat{related:origpubin}{\mkbibparens{#1}}
 \DeclareFieldFormat{related:origpubas}{\mkbibparens{#1}}
+\DeclareFieldFormat{relatedstring:default}{#1\relatedpunct}
 
 % Generic formats for \printtext and \printfield
 
@@ -1278,11 +1282,12 @@
   \field{translator}
 }
 
-\DeclareLabelyear{%
-  \field{year}
-  \field{eventyear}
-  \field{origyear}
-  \field{urlyear}
+\DeclareLabeldate{%
+  \field{date}
+  \field{eventdate}
+  \field{origdate}
+  \field{urldate}
+  \literal{nodate}
 }
 
 \DeclareLabeltitle{%
@@ -1639,6 +1644,7 @@
 % ------------------------------------------------------------------
 
 \newcommand*{\lbx@initnamehook}[1]{}
+\newcommand*{\lbx@inittitlehook}[1]{}
 \newcommand*{\lbx@finalnamedelim}[1]{\finalnamedelim}
 \newcommand*{\lbx@finallistdelim}[1]{\finallistdelim}
 
@@ -1670,7 +1676,7 @@
   \DeclareQuotePunctuation{}%
   \DeclarePunctuationPairs{comma}{*!?}}
 
-% french
+% catalan and french
 
 \newtoggle{smartof}
 \newrobustcmd*{\smartof}{\global\toggletrue{smartof}}
@@ -1681,11 +1687,11 @@
   \@ifpackageloaded{babel}
     {\ifdef\AutoSpaceBeforeFDP
        {\newrobustcmd*{\EnsureAutoSpaceBeforeFDP}{%
-	  \iflanguage{french}
-	    {\AutoSpaceBeforeFDP}
-	    {}}%
-	\appto\bibsetup{\EnsureAutoSpaceBeforeFDP}%
-	\appto\citesetup{\EnsureAutoSpaceBeforeFDP}}
+          \iflanguage{french}
+            {\AutoSpaceBeforeFDP}
+            {}}%
+        \appto\bibsetup{\EnsureAutoSpaceBeforeFDP}%
+        \appto\citesetup{\EnsureAutoSpaceBeforeFDP}}
        {}}
     {}}
 
@@ -2722,43 +2728,37 @@
     {\printfield{abstract}}}
 
 \newbibmacro*{related:default}[1]{%
-  \entrydata{#1}{%
-    \usebibmacro{title}%
-    \newunit
-    \ifentrytype{article}
-      {\usebibmacro{in:}%
-       \usebibmacro{journal+issuetitle}%
-       \newunit\newblock}
-      {}%
-    \ifboolexpr{
-      test {\ifentrytype{inbook}}
-      or
-      test {\ifentrytype{incollection}}
-      or
-      test {\ifentrytype{inproceedings}}
-    }
-      {\usebibmacro{in:}%
-       \usebibmacro{maintitle+booktitle}%
-       \newunit\newblock
-       \usebibmacro{event+venue+date}%
-       \newunit\newblock}
-      {}%
-  \usebibmacro{byeditor+others}%
-  \newunit\newblock
-  \printlist{location}%
-  \iflistundef{publisher}
-    {\setunit*{\addcomma\space}}
-    {\setunit*{\addcolon\space}}%
-  \printlist{publisher}%
-  \setunit*{\addcomma\space}%
-  \printdate%
-  \setunit{\bibpagespunct}%
-  \printfield{pages}}}
+  \entrydata*{#1}{%
+    \usedriver
+      {\ifnameundef{savedauthor}
+         {\ifnameundef{savededitor}
+            {}
+            {\ifnamesequal{editor}{savededitor}
+               {\clearname{editor}}
+               {}}}
+         {\ifnamesequal{author}{savedauthor}
+            {\clearname{author}}
+            {}}%
+       \renewbibmacro*{related:init}{}%
+       \DeclareNameAlias{sortname}{default}%
+       \ifbibmacroundef{date+extrayear}
+         {}
+         {\renewbibmacro*{date+extrayear}{}%
+          \renewbibmacro*{date}{\printdate}}%
+       \renewbibmacro*{pageref}{}}
+      {\thefield{entrytype}}}}
 
 \newbibmacro*{related:bytranslator}[1]{%
   \entrydata{#1}{%
+    \renewbibmacro*{name:hook}[1]{%
+      \ifnumequal{\value{listcount}}{1}
+        {\begingroup
+         \mkrelatedstring%
+         \lbx@initnamehook{#1}%
+         \endgroup}
+        {}}%
     \printnames[bytranslator]{translator}%
-    \setunit*{\addspace\bibstring{astitle}\space}%
+    \setunit*{\addspace\bibstring[\mkrelatedstring]{astitle}\space}%
     \usebibmacro{title}%
     \setunit{\addspace}%
     \printtext[parens]{%
@@ -2805,7 +2805,7 @@
       test {\iflistundef{publisher}}
     }
       {}
-      {\setunit{\addspace\bibstring{bypublisher}\space}%
+      {\setunit{\addspace\bibstring[\mkrelatedstring]{bypublisher}\space}%
        \printlist{publisher}%
        \setunit{\addcomma\space}%
        \iflistsequal{location}{savedlocation}
@@ -2821,11 +2821,47 @@
       test {\iflistundef{publisher}}
     }
       {}
-      {\setunit{\addspace\bibstring{bypublisher}\space}%
+      {\setunit{\addspace\bibstring[\mkrelatedstring]{bypublisher}\space}%
        \printlist{publisher}%
        \setunit{\addcomma\space}%
        \iflistsequal{location}{savedlocation}
          {}
          {\printlist{location}}}}}
+
+\DeclareFieldFormat{title:hook}{%
+  \begingroup
+  \mkrelatedstring%
+  \lbx@inittitlehook{#1}%
+  \endgroup
+  \mkbibemph{#1}}
+
+\newbibmacro*{related:reprintfrom}[1]{%
+  \entrydata*{#1}{%
+    \iffieldundef{journaltitle}
+      {\iffieldundef{maintitle}
+         {\printfield[title:hook]{booktitle}}
+         {\printfield[title:hook]{maintitle}}%
+       \newunit\newblock
+       \usebibmacro{byeditor+others}%
+       \newunit\newblock
+       \printfield{edition}%
+       \newunit
+       \iffieldundef{volume}
+         {}
+         {\printfield{volume}%
+          \printfield{part}}
+       \newunit\newblock
+       \usebibmacro{series+number}%
+       \newunit\newblock
+       \printfield{note}%
+       \newunit\newblock
+       \usebibmacro{publisher+location+date}%
+       \newunit\newblock
+       \usebibmacro{chapter+pages}}
+      {\printfield[title:hook]{journaltitle}%
+       \newunit\newblock
+       \usebibmacro{byeditor+others}%
+       \newunit\newblock
+       \usebibmacro{note+pages}}}}
 
 \endinput

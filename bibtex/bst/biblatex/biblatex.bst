@@ -165,7 +165,7 @@ ENTRY {
 INTEGERS { ctrl.debug ctrl.bibtex8 ctrl.maxline ctrl.sorting ctrl.cssort ctrl.sortlos 
            ctrl.maxnames ctrl.minnames ctrl.useauthor ctrl.useeditor ctrl.usetranslator
            ctrl.useprefix ctrl.terseinits ctrl.labelalpha ctrl.singletitle
-           ctrl.labelyear citecount 
+           ctrl.labeldate citecount 
            tempctra tempctrb tempctrc resvctra resvctrb resvctrc
            last.extra.num }
 
@@ -173,14 +173,14 @@ STRINGS  { ctrl.alphaothers templist tempstrga tempstrgb resvstrga
            last.name last.hash last.year last.extra }
 
 FUNCTION {initialize} {
-  "$Revision: 2.5 $"
+  "$Revision: 2.6 $"
   #12 entry.max$ substring$
   #-3 entry.max$ substring$
   "Biblatex version: " swap$ * top$
    #0  'ctrl.terseinits :=
    #0  'ctrl.debug :=
    #0  'ctrl.labelalpha :=
-   #0  'ctrl.labelyear :=
+   #0  'ctrl.labeldate :=
    #0  'ctrl.singletitle :=
    #0  'ctrl.sorting :=
    #0  'ctrl.sortlos :=
@@ -259,8 +259,8 @@ FUNCTION {ctrl:labelalpha} {
   and
 }
 
-FUNCTION {ctrl:labelyear} {
-  ctrl.labelyear
+FUNCTION {ctrl:labeldate} {
+  ctrl.labeldate
   ctrl:skiplab not
   and
 }
@@ -1312,7 +1312,7 @@ FUNCTION {output:specials} {
     }
     'skip$
   if$
-  ctrl:labelyear
+  ctrl:labeldate
   dateyear empty$ not
   and
     { "labelyear"
@@ -1761,7 +1761,7 @@ FUNCTION {input:control:options} {
 % This version corresponds to the .bbl version, *not* the biblatex version!
 FUNCTION {input:control:version} {
   input:control:parse
-  "$Revision: 2.1 $"
+  "$Revision: 2.2 $"
   #12 entry.max$ substring$
   #-3 entry.max$ substring$
   'tempstrga :=
@@ -1788,7 +1788,7 @@ FUNCTION {input:control} {
           input:control:options 'ctrl.useeditor :=
           input:control:options 'ctrl.usetranslator :=
           input:control:options 'ctrl.labelalpha :=
-          input:control:options 'ctrl.labelyear :=
+          input:control:options 'ctrl.labeldate :=
           input:control:options 'ctrl.singletitle :=
           input:control:options 'ctrl.sorting :=
           input:control:options 'ctrl.sortlos :=
@@ -2198,7 +2198,7 @@ FUNCTION {labelsort:label} {
 
 FUNCTION {labelsort:main} {
   ctrl:skiplab not
-  ctrl.singletitle ctrl.labelyear or
+  ctrl.singletitle ctrl.labeldate or
   and
     { label.name purify delimiter.1 *
       sortkey.year * delimiter.1 *
@@ -2396,7 +2396,7 @@ FUNCTION {labelsort:main:singletitle} {
 }
 
 FUNCTION {labelsort:main:year:iterate} {
-  ctrl:labelyear
+  ctrl:labeldate
     { label.name
       dateyear empty$
          'skip$
@@ -2431,7 +2431,7 @@ FUNCTION {labelsort:main:year:iterate} {
 }
 
 FUNCTION {labelsort:main:year:reverse} {
-  ctrl:labelyear
+  ctrl:labeldate
     { last.extra "2" =
         { "1" 'extrayear := }
         'skip$
@@ -2585,7 +2585,7 @@ SORT
 % This version corresponds to the .bbl version, *not* the biblatex version!
 FUNCTION {output:main:begin} {
   "% $ biblatex auxiliary file $"                               write$ newline$
-  "% $ biblatex version " "$Revision: 2.1 $"
+  "% $ biblatex version " "$Revision: 2.2 $"
   #12 entry.max$ substring$ #-3 entry.max$ substring$ * " $" *  write$ newline$
   "% Do not modify the above lines!"                            write$ newline$
   "%"                                                           write$ newline$
