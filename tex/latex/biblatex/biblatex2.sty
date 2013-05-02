@@ -2211,11 +2211,15 @@
         You are trying to \string\savename a non-multiscript name '#3' with form/lang arguments}}}}
 
 % [<form/lang keyval>]{<field>}{<true>}{<false>}
-
+% Has to be expandable to work in \ifthen
 \DeclareExpandableDocumentCommand{\blx@imc@iffieldundef}
   {om}
-  {\blx@imc@ifbibfieldmsx{#1}{#2}
-    {\ifcsundef{abx@field@#2@\blx@tempa @\blx@tempb}}
+  {\ifcsdef{blx@msbibfield@#2}
+    {\ifblank{#1}%\iffieldundef[]{field}
+      {\csuse{abx@field@#2@\blx@form @\blx@lang}}
+      {\IfNoValueTF{#1}%\iffieldundef{field}
+        {\ifcsundef{abx@field@#2@\blx@form @\blx@lang}}
+        {\ifcsundef{abx@field@#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}}}}}
     {\ifcsundef{abx@field@#2}}}
 
 % {<plainlist>}{<true>}{<false>}
@@ -2418,15 +2422,28 @@
           {\global\undef\blx@nefail\@firstoftwo}}
 
 % [<form/lang keyval>]{<field>}{<macro>}{<true>}{<false>}
-\newcommand*{\blx@imc@iffieldequals}[3][]{%
-  \ifundef#3%
+\DeclareExpandableDocumentCommand{\blx@imc@iffieldequals}
+  {omm}
+  {\ifundef#3%
     {\@secondoftwo}
-    {\blx@imc@ifbibfieldmsx{#1}{#2}
-      {\expandafter\ifx\csname abx@field@#2@\blx@tempa @\blx@tempb\endcsname#3%
-       \expandafter\@firstoftwo
-       \else
-       \expandafter\@secondoftwo
-       \fi}
+    {\ifcsdef{blx@msbibfield@#2}
+      {\ifblank{#1}
+        {\expandafter\ifx\csname abx@field@#2@\blx@form @\blx@lang\endcsname#3%
+         \expandafter\@firstoftwo
+         \else
+         \expandafter\@secondoftwo
+         \fi}
+        {\IfNoValueTF{#1}
+          {\expandafter\ifx\csname abx@field@#2@\blx@form @\blx@lang\endcsname#3%
+           \expandafter\@firstoftwo
+           \else
+           \expandafter\@secondoftwo
+           \fi}
+          {\expandafter\ifx\csname abx@field@#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}\endcsname#3%
+           \expandafter\@firstoftwo
+           \else
+           \expandafter\@secondoftwo
+           \fi}}}
       {\expandafter\ifx\csname abx@field@#2\endcsname#3%
        \expandafter\@firstoftwo
        \else
@@ -2466,10 +2483,15 @@
        \fi}}}
 
 % [<form/lang keyval>]{<field>}{<csname>}{<true>}{<false>}
-\newcommand*{\blx@imc@iffieldequalcs}[2][]{%
-  \blx@imc@ifbibfieldmsx{#1}{#2}
-    {\ifcsequal{abx@field@#2@\blx@tempa @\blx@tempb}}
-    {\ifcsequal{abx@field@#2}}}
+\DeclareExpandableDocumentCommand{\blx@imc@iffieldequalcs}
+  {omm}
+  {\ifcsdef{blx@msbibfield@#2}
+    {\ifblank{#1}
+      {\ifcsequal{abx@field@#2@\blx@form @\blx@lang}{#3}}
+      {\IfNoValueTF{#1}
+        {\ifcsequal{abx@field@#2@\blx@form @\blx@lang}{#3}}
+        {\ifcsequal{abx@field@#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}}{#3}}}}
+    {\ifcsequal{abx@field@#2}{#3}}}
 
 % [<form/lang keyval>]{<plainlist>}{<csname>}{<true>}{<false>}
 \newcommand*{\blx@imc@iflistequalcs}[2][]{%
@@ -2484,14 +2506,33 @@
     {\ifcsequal{abx@name@#2}}}
 
 % [<form/lang keyval>]{<field>}{<string>}{<true>}{<false>}
-\newcommand{\blx@imc@iffieldequalstr}[3][]{%
-  \blx@imc@ifbibfieldmsx{#1}{#2}
-    {\expandafter\expandafter\expandafter\ifstrequal
-     \expandafter\expandafter\expandafter{%
-     \csname abx@field@#2@\blx@tempa @\blx@tempb\endcsname}{#3}}
+% Has to be expandable to work in \ifthen
+\DeclareExpandableDocumentCommand{\blx@imc@iffieldequalstr}
+  {omm}
+  {\ifcsdef{blx@msbibfield@#2}
+    {\ifblank{#1}
+      {\expandafter\expandafter\expandafter\ifstrequal
+       \expandafter\expandafter\expandafter{%
+       \csname abx@field@#2@\blx@form @\blx@lang\endcsname}{#3}}
+      {\IfNoValueTF{#1}
+        {\expandafter\expandafter\expandafter\ifstrequal
+         \expandafter\expandafter\expandafter{%
+         \csname abx@field@#2@\blx@form @\blx@lang\endcsname}{#3}}
+        {\expandafter\expandafter\expandafter\ifstrequal
+         \expandafter\expandafter\expandafter{%
+         \csname abx@field@#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}\endcsname}{#3}}}}
     {\expandafter\expandafter\expandafter\ifstrequal
      \expandafter\expandafter\expandafter{%
      \csname abx@field@#2\endcsname}{#3}}}
+
+% \newcommand{\blx@imc@iffieldequalstr}[3][]{%
+%   \blx@imc@ifbibfieldmsx{#1}{#2}
+%     {\expandafter\expandafter\expandafter\ifstrequal
+%      \expandafter\expandafter\expandafter{%
+%      \csname abx@field@#2@\blx@tempa @\blx@tempb\endcsname}{#3}}
+%     {\expandafter\expandafter\expandafter\ifstrequal
+%      \expandafter\expandafter\expandafter{%
+%      \csname abx@field@#2\endcsname}{#3}}}
 
 % [<form/lang keyval>]{<field>}{<true>}{<false>}
 \newrobustcmd*{\blx@imc@iffieldxref}[2][]{%
@@ -8894,9 +8935,6 @@
 
 \appto\blx@blxinit{%
   \appto\blx@TE@hook{%
-    \def\ifbibfieldms#1{\blx@TE{\blx@imc@ifbibfieldms{#1}}}%
-    \def\ifbibfieldmsx#1#2{\blx@TE{\blx@imc@ifbibfieldmsx{#1}{#2}}}%
-
     \def\ifhyperref{\blx@TE\blx@imc@ifhyperref}%
     \def\ifmorenames{\blx@TE\blx@imc@ifmorenames}%
     \def\ifmoreitems{\blx@TE\blx@imc@ifmoreitems}%
@@ -8908,17 +8946,22 @@
     \def\ifloccit{\blx@TE\blx@imc@ifloccit}%
     \def\ifsamepage{\blx@TE\blx@imc@ifsamepage}%
     \def\iffirstonpage{\blx@TE\blx@imc@iffirstonpage}%
+
+    \def\ifbibfieldms#1{\blx@TE{\blx@imc@ifbibfieldms{#1}}}%
+    \def\ifbibfieldmsx#1#2{\blx@TE{\blx@imc@ifbibfieldmsx{#1}{#2}}}%
+
     \def\ifcurrentfield#1{\blx@TE{\blx@imc@ifcurrentfield{#1}}}%
     \def\ifcurrentform#1{\blx@TE{\blx@imc@ifcurrentform{#1}}}%
     \def\ifcurrentlang#1{\blx@TE{\blx@imc@ifcurrentlang{#1}}}%
     \def\ifcurrentlist#1{\blx@TE{\blx@imc@ifcurrentlist{#1}}}%
     \def\ifcurrentname#1{\blx@TE{\blx@imc@ifcurrentname{#1}}}%
     \def\ifentrytype#1{\blx@TE{\blx@imc@ifentrytype{#1}}}%
-    \def\iffieldequalcs#1#2{\blx@TE{\blx@imc@iffieldequalcs{#1}{#2}}}%
-    \def\iffieldequals#1#2{\blx@TE{\blx@imc@iffieldequals{#1}{#2}}}%
-    \def\iffieldequalstr#1#2{\blx@TE{\blx@imc@iffieldequalstr{#1}{#2}}}%
+    \DeclareExpandableDocumentCommand{\iffieldequalcs}{omm}{\blx@TE{\blx@imc@iffieldequalcs[#1]{#2}{#3}}}%
+    \DeclareExpandableDocumentCommand{\iffieldequals}{omm}{\blx@TE{\blx@imc@iffieldequals[#1]{#2}{#3}}}%
+    \DeclareExpandableDocumentCommand{\iffieldequalstr}{omm}{\blx@TE{\blx@imc@iffieldequalstr[#1]{#2}{#3}}}%
+%ZZZ
     \def\iffieldsequal#1#2{\blx@TE{\blx@imc@iffieldsequal{#1}{#2}}}%
-    \def\iffieldundef#1{\blx@TE{\blx@imc@iffieldundef{#1}}}%
+    \DeclareExpandableDocumentCommand{\iffieldundef}{om}{\blx@TE{\blx@imc@iffieldundef[#1]{#2}}}%
     \def\ifnameequalcs#1#2{\blx@TE{\blx@imc@ifnameequalcs{#1}{#2}}}%
     \def\ifnameequals#1#2{\blx@TE{\blx@imc@ifnameequals{#1}{#2}}}%
     \def\ifnamesequal#1#2{\blx@TE{\blx@imc@ifnamesequal{#1}{#2}}}%
