@@ -2241,10 +2241,10 @@
 % Amazing that these macros were one line in biblatex <3.0. Dealing with
 % multiscript complicates them enormously
 % {field|list}[<form/lang keyval>]{<field>|<plainlist>}[<form/lang keyval>]{<field>|<plainlist>}
-\def\blx@imc@iffieldsequal{\blx@imc@ifflequal@i{field}}
-\def\blx@imc@iflistsequal{\blx@imc@ifflequal@i{list}}
+\def\blx@imc@iffieldsequal{\blx@imc@ifflequal{field}}
+\def\blx@imc@iflistsequal{\blx@imc@ifflequal{list}}
 
-\DeclareExpandableDocumentCommand{\blx@imc@ifflequal@i}
+\DeclareExpandableDocumentCommand{\blx@imc@ifflequal}
   {momom}
   {\blx@imc@ifbibfieldms{#3}
     % [?]{msfield}[?]{?}
@@ -2254,7 +2254,7 @@
         % {msfield}[?]{msfield}
         {\IfNoValueTF{#4}
           % {msfield}{msfield}
-          {\blx@imc@ifflequal@ii{#1}{#3}{#5}}
+          {\blx@imc@ifflequal@i{#1}{#3}{#5}}
           % {msfield}[f/l]{msfield}
           {\blx@warning@noline{You are trying to \string\if#1sequal test all multiscript variants for #1 '#3' against a specified variant for #1 '#5'}\@secondoftwo}}
         % [f/l]{msfield}[?]{msfield}
@@ -2262,7 +2262,7 @@
           % [f/l]{msfield}{msfield}
           {\blx@warning@noline{You are trying to \string\if#1sequal test all multiscript variants for #1 '#5' against a specified variant for #1 '#3'}\@secondoftwo}
           % [f/l]{msfield}[f/l]{msfield}
-          {\blx@imc@ifflequal@iv{\blx@imc@ifflequal@iii{#1}{#2}{#3}}{\blx@imc@ifflequal@iii{#1}{#4}{#5}}}}}
+          {\blx@imc@ifflequal@iii{\blx@imc@ifflequal@ii{#1}{#2}{#3}}{\blx@imc@ifflequal@ii{#1}{#4}{#5}}}}}
       % [?]{msfield}[?]{non-msfield}
       {\IfValueTF{#4}
         % [?]{msfield}[f/l]{non-msfield}
@@ -2272,7 +2272,7 @@
           % {msfield}{non-msfield}
           {\ifcsequal{abx@#1@#2@\blx@form @\blx@lang}{abx@#1@#5}}
           % [f/l]{msfield}{non-msfield}
-          {\blx@imc@ifflequal@iv{\blx@imc@ifflequal@iii{#1}{#2}{#3}}{\csuse{abx@#1@#5}}}}}}
+          {\blx@imc@ifflequal@iii{\blx@imc@ifflequal@ii{#1}{#2}{#3}}{\csuse{abx@#1@#5}}}}}}
     % [?]{non-msfield}[?]{?}
     {\blx@imc@ifbibfieldms{#5}
       % [?]{non-msfield}[?]{msfield}
@@ -2284,7 +2284,7 @@
           % {non-msfield}{msfield}
           {\ifcsequal{abx@#1@#5@\blx@form @\blx@lang}{abx@#1@#3}}
           % {non-msfield}[f/l]{msfield}
-          {\blx@imc@ifflequal@iv{\blx@imc@ifflequal@iii{#1}{#4}{#5}}{\csuse{abx@#1@#3}}}}}
+          {\blx@imc@ifflequal@iii{\blx@imc@ifflequal@ii{#1}{#4}{#5}}{\csuse{abx@#1@#3}}}}}
       % [?]{non-msfield}[?]{non-msfield}
       {\IfValueTF{#2}
         % [f/l]{non-msfield}[?]{non-msfield}
@@ -2297,7 +2297,7 @@
           {\ifcsequal{abx@#1@#3}{abx@#1@#5}}}}}}
 
 % Deal with comparing all forms/langs of two multi-script fields/lists
-\def\blx@imc@ifflequal@ii#1#2#3{%
+\def\blx@imc@ifflequal@i#1#2#3{%
   \def\do##1{%
     \begingroup
       \def\do####1{%
@@ -2317,7 +2317,7 @@
           {\global\undef\blx@fefail\@secondoftwo}
           {\global\undef\blx@fefail\@firstoftwo}}
 
-\def\blx@imc@ifflequal@iii#1#2#3{%
+\def\blx@imc@ifflequal@ii#1#2#3{%
   \ifcsdef{blx@msbibfield@#3}
     {\ifblank{#2}
       {\csuse{abx@#1@#3@\blx@form @\blx@lang}}
@@ -2326,7 +2326,7 @@
         {\csuse{abx@#1@#3@\blx@ms@getform{#2}@\blx@ms@getlang{#2}}}}}
     {\csuse{abx@#1@#3}}}
 
-\def\blx@imc@ifflequal@iv#1#2{%
+\def\blx@imc@ifflequal@iii#1#2{%
   \ifnum\pdf@strcmp{#1}{#2}=\z@
     \expandafter\@firstoftwo
   \else
@@ -2335,7 +2335,6 @@
 
 % [<form/lang keyval>]{<namelist1>}[<form/lang keyval>]{<namelist2>}{<true>}{<false>}
 % This assumes that all name fields are ms fields (which they are in the default data model)
-
 \DeclareDocumentCommand{\blx@imc@ifnamesequal}
   {omom}
   {\IfNoValueTF{#1}
@@ -2419,61 +2418,34 @@
           {\global\undef\blx@nefail\@firstoftwo}}
 
 % [<form/lang keyval>]{<field>}{<macro>}{<true>}{<false>}
-\DeclareExpandableDocumentCommand{\blx@imc@iffieldequals}
-  {omm}
-  {\ifundef#3%
+\def\blx@imc@iffieldequals{\blx@imc@ifflnequals{field}}
+\def\blx@imc@iflistequals{\blx@imc@ifflnequals{list}}
+\def\blx@imc@ifnameequals{\blx@imc@ifflnequals{name}}
+
+% {field|list|name}[<form/lang keyval>]{<plainlist>}{<macro>}{<true>}{<false>}
+\DeclareExpandableDocumentCommand{\blx@imc@ifflnequals}
+  {momm}
+  {\ifundef#4%
     {\@secondoftwo}
-    {\ifcsdef{blx@msbibfield@#2}
-      {\ifblank{#1}
-        {\expandafter\ifx\csname abx@field@#2@\blx@form @\blx@lang\endcsname#3%
+    {\ifcsdef{blx@msbibfield@#3}
+      {\ifblank{#2}
+        {\expandafter\ifx\csname abx@#1@#3@\blx@form @\blx@lang\endcsname#4%
          \expandafter\@firstoftwo
          \else
          \expandafter\@secondoftwo
          \fi}
-        {\IfNoValueTF{#1}
-          {\expandafter\ifx\csname abx@field@#2@\blx@form @\blx@lang\endcsname#3%
+        {\IfNoValueTF{#2}
+          {\expandafter\ifx\csname abx@#1@#3@\blx@form @\blx@lang\endcsname#4%
            \expandafter\@firstoftwo
            \else
            \expandafter\@secondoftwo
            \fi}
-          {\expandafter\ifx\csname abx@field@#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}\endcsname#3%
+          {\expandafter\ifx\csname abx@#1@#3@\blx@ms@getform{#2}@\blx@ms@getlang{#2}\endcsname#4%
            \expandafter\@firstoftwo
            \else
            \expandafter\@secondoftwo
            \fi}}}
-      {\expandafter\ifx\csname abx@field@#2\endcsname#3%
-       \expandafter\@firstoftwo
-       \else
-       \expandafter\@secondoftwo
-       \fi}}}
-
-% [<form/lang keyval>]{<plainlist>}{<macro>}{<true>}{<false>}
-\newcommand*{\blx@imc@iflistequals}[3][]{%
-  \ifundef#3%
-    {\@secondoftwo}
-    {\blx@imc@ifbibfieldmsx{#1}{#2}
-      {\expandafter\ifx\csname abx@list@#2@\blx@tempa @\blx@tempb\endcsname#3%
-       \expandafter\@firstoftwo
-       \else
-       \expandafter\@secondoftwo
-       \fi}
-      {\expandafter\ifx\csname abx@list@#2\endcsname#3%
-       \expandafter\@firstoftwo
-       \else
-       \expandafter\@secondoftwo
-       \fi}}}
-
-% [<form/lang keyval>]{<namelist>}{<macro>}{<true>}{<false>}
-\newcommand*{\blx@imc@ifnameequals}[3][]{%
-  \ifundef#3%
-    {\@secondoftwo}
-    {\blx@imc@ifbibfieldmsx{#1}{#2}
-      {\expandafter\ifx\csname abx@name@#2@\blx@tempa @\blx@tempb\endcsname#3%
-       \expandafter\@firstoftwo
-       \else
-       \expandafter\@secondoftwo
-       \fi}
-      {\expandafter\ifx\csname abx@name@#2\endcsname#3%
+      {\expandafter\ifx\csname abx@#1@#3\endcsname#4%
        \expandafter\@firstoftwo
        \else
        \expandafter\@secondoftwo
@@ -2506,11 +2478,6 @@
         {\ifcsequal{abx@name@#2@\blx@form @\blx@lang}{#3}}
         {\ifcsequal{abx@name@#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}}{#3}}}}
     {\ifcsequal{abx@name@#2}{#3}}}
-
-% \newcommand*{\blx@imc@ifnameequalcs}[2][]{%
-%   \blx@imc@ifbibfieldmsx{#1}{#2}
-%     {\ifcsequal{abx@name@#2@\blx@tempa @\blx@tempb}}
-%     {\ifcsequal{abx@name@#2}}}
 
 % [<form/lang keyval>]{<field>}{<string>}{<true>}{<false>}
 \DeclareExpandableDocumentCommand{\blx@imc@iffieldequalstr}
@@ -8954,14 +8921,13 @@
     \def\ifcurrentname#1{\blx@TE{\blx@imc@ifcurrentname{#1}}}%
     \def\ifentrytype#1{\blx@TE{\blx@imc@ifentrytype{#1}}}%
     \DeclareExpandableDocumentCommand{\iffieldequalcs}{omm}{\blx@TE{\blx@imc@iffieldequalcs[#1]{#2}{#3}}}%
-    \DeclareExpandableDocumentCommand{\iffieldequals}{omm}{\blx@TE{\blx@imc@iffieldequals[#1]{#2}{#3}}}%
+    \DeclareExpandableDocumentCommand{\iffieldequals}{omm}{\blx@TE{\blx@imc@ifflnequals{field}[#1]{#2}{#3}}}%
     \DeclareExpandableDocumentCommand{\iffieldequalstr}{omm}{\blx@TE{\blx@imc@iffieldequalstr[#1]{#2}{#3}}}%
-    \DeclareExpandableDocumentCommand{\iffieldsequal}{omom}{\blx@TE{\blx@imc@ifflequal@i{field}[#1]{#2}[#3]{#4}}}%
+    \DeclareExpandableDocumentCommand{\iffieldsequal}{omom}{\blx@TE{\blx@imc@ifflequal{field}[#1]{#2}[#3]{#4}}}%
     \DeclareExpandableDocumentCommand{\iffieldundef}{om}{\blx@TE{\blx@imc@iffieldundef[#1]{#2}}}%
     \DeclareExpandableDocumentCommand{\ifnameequalcs}{omm}{\blx@TE{\blx@imc@ifnameequalcs[#1]{#2}{#3}}}%
-%    \def\ifnameequalcs#1#2{\blx@TE{\blx@imc@ifnameequalcs{#1}{#2}}}%
+    \DeclareExpandableDocumentCommand{\ifnameequals}{omm}{\blx@TE{\blx@imc@ifflnequals{name}[#1]{#2}{#3}}}%
 %ZZZ
-    \def\ifnameequals#1#2{\blx@TE{\blx@imc@ifnameequals{#1}{#2}}}%
     \def\ifnamesequal#1#2{\blx@TE{\blx@imc@ifnamesequal{#1}{#2}}}%
     \def\ifnameundef#1{\blx@TE{\blx@imc@ifnameundef{#1}}}%
     \def\ifcategory#1{\blx@TE{\blx@imc@ifcategory{#1}}}%
