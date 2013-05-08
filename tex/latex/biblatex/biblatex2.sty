@@ -2060,12 +2060,11 @@
 % Thanks to Ryan Reich on TSE
 % (http://tex.stackexchange.com/questions/107070) for the trick to get the
 % \csletcs defs out of the groups in a loop
-
 \DeclareDocumentCommand{\blx@imc@savefield}
   {somm}
   {\IfBooleanTF{#1}
-    {\let\@scope\global}% starred version
-    {\let\@scope\relax}%
+    {\let\@scope\relax}% starred version
+    {\let\@scope\global}%
    \IfNoValueTF{#2}
      {\blx@imc@ifbibfieldms{#3}
        {\def\do##1{%
@@ -2089,8 +2088,8 @@
 \DeclareDocumentCommand{\blx@imc@savelist}
   {somm}
   {\IfBooleanTF{#1}
-    {\let\@scope\global}% starred version
-    {\let\@scope\relax}%
+    {\let\@scope\relax}% starred version
+    {\let\@scope\global}%
    \IfNoValueTF{#2}
      {\blx@imc@ifbibfieldms{#3}
        {\def\do##1{%
@@ -2114,8 +2113,8 @@
 \DeclareDocumentCommand{\blx@imc@savename}
   {somm}
   {\IfBooleanTF{#1}
-    {\let\@scope\global}% starred version
-    {\let\@scope\relax}%
+    {\let\@scope\relax}% starred version
+    {\let\@scope\global}%
    \IfNoValueTF{#2}
      {\blx@imc@ifbibfieldms{#3}
        {\def\do##1{%
@@ -2139,8 +2138,8 @@
 \DeclareDocumentCommand{\blx@imc@savefieldcs}
   {somm}
   {\IfBooleanTF{#1}
-    {\let\@scope\global}% starred version
-    {\let\@scope\relax}%
+    {\let\@scope\relax}% starred version
+    {\let\@scope\global}%
    \IfNoValueTF{#2}
      {\blx@imc@ifbibfieldms{#3}
        {\def\do##1{%
@@ -2165,8 +2164,8 @@
 \DeclareDocumentCommand{\blx@imc@savelistcs}
   {somm}
   {\IfBooleanTF{#1}
-    {\let\@scope\global}% starred version
-    {\let\@scope\relax}%
+    {\let\@scope\relax}% starred version
+    {\let\@scope\global}%
    \IfNoValueTF{#2}
      {\blx@imc@ifbibfieldms{#3}
        {\def\do##1{%
@@ -2189,8 +2188,8 @@
 \DeclareDocumentCommand{\blx@imc@savenamecs}
   {somm}
   {\IfBooleanTF{#1}
-    {\let\@scope\global}% starred version
-    {\let\@scope\relax}%
+    {\let\@scope\relax}% starred version
+    {\let\@scope\global}%
    \IfNoValueTF{#2}
      {\blx@imc@ifbibfieldms{#3}
        {\def\do##1{%
@@ -5674,24 +5673,44 @@
   \csxappto{blx@data@#2@#1}{%
     \def\expandafter\noexpand\csname abx@field@#3\endcsname{#4}}}
 
-% {<field>}{<value>}
-\newcommand{\blx@bbl@addfield}[3][]{%
-  \ifblank{#1}
+% [<form/lang keval>]{<field>}{<value>}
+\DeclareDocumentCommand{\blx@bbl@addfield}
+  {omm}
+  {\ifcsdef{blx@msbibfield@#2}
+    {\ifblank{#1}
+      {\csxappto\blx@bbl@data{%
+       \def\expandafter\noexpand\csname abx@field@#2@\blx@form @\blx@lang\endcsname{#3}}}
+      {\IfNoValueTF{#1}
+        {\csxappto\blx@bbl@data{%
+         \def\expandafter\noexpand\csname abx@field@#2@\blx@form @\blx@lang\endcsname{#3}}}
+        {\xifinlist{\blx@ms@getform{#1}}{\blx@msforms}
+           {}
+           {\listxadd\blx@msforms{\blx@ms@getform{#1}}}%
+         \xifinlist{\blx@ms@getlang{#1}}{\blx@mslangs}
+           {}
+           {\listxadd\blx@mslangs{\blx@ms@getlang{#1}}}%
+         \csxappto\blx@bbl@data{%
+           \def\expandafter\noexpand\csname abx@field@#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}\endcsname{#3}}}}}
     {\csxappto\blx@bbl@data{%
-        \def\expandafter\noexpand\csname abx@field@#2\endcsname{#3}}}
-    {\edef\blx@tempa{\blx@form}%
-     \edef\blx@tempb{\blx@lang}%
-     \setkeys{blx@ms}{#1}%
-     \xifinlist{\blx@tempa}{\blx@msforms}
-       {}
-       {\listxadd\blx@msforms{\blx@tempa}}%
-     \xifinlist{\blx@tempb}{\blx@mslangs}
-       {}
-       {\listxadd\blx@mslangs{\blx@tempb}}%
-     \csxappto\blx@bbl@data{%
-       \def\expandafter\noexpand\csname abx@field@#2@\blx@tempa @\blx@tempb\endcsname{#3}}}}
+       \def\expandafter\noexpand\csname abx@field@#2\endcsname{#3}}}}
 
-% [<form/lang kevals>]{field}{value}
+% \newcommand{\blx@bbl@addfield}[3][]{%
+%   \ifblank{#1}
+%     {\csxappto\blx@bbl@data{%
+%         \def\expandafter\noexpand\csname abx@field@#2\endcsname{#3}}}
+%     {\edef\blx@tempa{\blx@form}%
+%      \edef\blx@tempb{\blx@lang}%
+%      \setkeys{blx@ms}{#1}%
+%      \xifinlist{\blx@tempa}{\blx@msforms}
+%        {}
+%        {\listxadd\blx@msforms{\blx@tempa}}%
+%      \xifinlist{\blx@tempb}{\blx@mslangs}
+%        {}
+%        {\listxadd\blx@mslangs{\blx@tempb}}%
+%      \csxappto\blx@bbl@data{%
+%        \def\expandafter\noexpand\csname abx@field@#2@\blx@tempa @\blx@tempb\endcsname{#3}}}}
+
+% [<form/lang keval>]{field}{value}
 \newrobustcmd{\blx@bbl@fielddef}[3][]{%
   \def\NewValue{#3}%
   \blx@bbl@addfield[#1]{#2}{\expandonce\NewValue}}
@@ -10370,10 +10389,12 @@
     sortlos option is deprecated, use 'sorting' option to \string\printshorthands}}
 
 \DeclareBibliographyOption{form}{%
- \def\blx@form{#1}}
+ \def\blx@form{#1}
+ \listgadd\blx@msforms{#1}}
 
 \DeclareBibliographyOption{lang}{%
- \def\blx@lang{#1}}
+ \def\blx@lang{#1}
+ \listgadd\blx@mslangs{#1}}
 
 \DeclareBibliographyOption{maxnames}{%
   \numdef\blx@maxcitenames{#1}%
