@@ -24,6 +24,12 @@
 \RequirePackage{pdftexcmds}% Needed for expandable string testing
 %\RequirePackage{trace}
 
+% Turn of xparse redefine warnings as we do this a lot
+\ExplSyntaxOn
+ \msg_redirect_name:nnn { LaTeX } { xparse / redefine-command }
+   { none }
+ \ExplSyntaxOff
+
 \@ifpackagelater{etoolbox}{2010/11/29}
   {}
   {\PackageError{biblatex}
@@ -4148,7 +4154,6 @@
         \endgroup}}}
 
 % [<format>]{<file>}
-
 \newrobustcmd*{\blx@imc@printfile}[2][]{%
   \iftoggle{blx@loadfiles}
     {\IfFileExists{#2}
@@ -4158,12 +4163,10 @@
     {\blx@nounit}}
 
 % [<format>][<start>-<stop>][<form/lang keyval>]{<namelist>}
-
 \protected\def\blx@imc@printnames{%
   \blx@listargs\blx@printnames}
 
 % {<format>}{<start>}{<stop>}[<form/lang keyval>]{<namelist>}
-
 \DeclareExpandableDocumentCommand{\blx@printnames}
   {mmmom}
   {\blx@imc@ifnameundef[#4]{#5}
@@ -4177,7 +4180,6 @@
          \blx@endunit}}}
 
 % {<start>}{<stop>}{<form/lang keyval>}{<plainlist>}
-
 \def\blx@namesetup#1#2#3#4{%
   \def\currentname{#4}%
   \let\currentform\@empty
@@ -4309,11 +4311,11 @@
    \let\Stop\@empty%
    \IfNoValueTF{#3}%
      {}% #3 is completely missing, not even []
-     {\expandafter\ifstrempty\expandafter{\@firstoftwo #3}
+     {\expandafter\ifstrempty\expandafter{\@secondoftwo#3}
        {}% #3 is {}{}, meaning []
-       {\edef\Start{\@firstoftwo #3}%
-        \edef\Stop{\@secondoftwo #3}}}%
-     \IfNoValueTF{#4}% Have to fully expand the args before calling blx@printlist
+       {\edef\Start{\@firstoftwo#3}%
+        \edef\Stop{\@secondoftwo#3}}}%
+     \IfNoValueTF{#4}% Have to fully expand the args before calling blx@print*
        {\protected@edef\z{\noexpand#1{\Format}{\Start}{\Stop}}\z}
        {\ifblank{#4}
          {\protected@edef\z{\noexpand#1{\Format}{\Start}{\Stop}}\z}
