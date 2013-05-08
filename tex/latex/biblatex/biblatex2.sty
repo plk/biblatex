@@ -2186,7 +2186,6 @@
         You are trying to \string\savelistcs a non-multiscript list '#3' with form/lang arguments}}}}
 
 % [<form/lang keyval>]{<namelist>}{<csname>}
-
 \DeclareDocumentCommand{\blx@imc@savenamecs}
   {somm}
   {\IfBooleanTF{#1}
@@ -2210,33 +2209,22 @@
        {\blx@warning@noline{%
         You are trying to \string\savename a non-multiscript name '#3' with form/lang arguments}}}}
 
-% [<form/lang keyval>]{<field>}{<true>}{<false>}
+
+\def\blx@imc@iffieldundef{\blx@imc@ifflnundef{field}}
+\def\blx@imc@iflistundef{\blx@imc@ifflnundef{list}}
+\def\blx@imc@ifnameundef{\blx@imc@ifflnundef{name}}
+
+% {field|list|name}[<form/lang keyval>]{<field>}{<true>}{<false>}
 % Has to be expandable to work in \ifthen
-\DeclareExpandableDocumentCommand{\blx@imc@iffieldundef}
-  {om}
-  {\ifcsdef{blx@msbibfield@#2}
-    {\ifblank{#1}%\iffieldundef[]{field}
-      {\csuse{abx@field@#2@\blx@form @\blx@lang}}
-      {\IfNoValueTF{#1}%\iffieldundef{field}
-        {\ifcsundef{abx@field@#2@\blx@form @\blx@lang}}
-        {\ifcsundef{abx@field@#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}}}}}
-    {\ifcsundef{abx@field@#2}}}
-
-% {<plainlist>}{<true>}{<false>}
-
-\DeclareExpandableDocumentCommand{\blx@imc@iflistundef}
-  {om}
-  {\blx@imc@ifbibfieldmsx{#1}{#2}
-    {\ifcsundef{abx@list@#2@\blx@tempa @\blx@tempb}}
-    {\ifcsundef{abx@list@#2}}}
-
-% {<namelist>}{<true>}{<false>}
-
-\DeclareExpandableDocumentCommand{\blx@imc@ifnameundef}
-  {om}
-  {\blx@imc@ifbibfieldmsx{#1}{#2}
-    {\ifcsundef{abx@name@#2@\blx@tempa @\blx@tempb}}
-    {\ifcsundef{abx@name@#2}}}
+\DeclareExpandableDocumentCommand{\blx@imc@ifflnundef}
+  {mom}
+  {\ifcsdef{blx@msbibfield@#3}
+    {\ifblank{#2}
+      {\csuse{abx@#1@#3@\blx@form @\blx@lang}}
+      {\IfNoValueTF{#2}
+        {\ifcsundef{abx@#1@#3@\blx@form @\blx@lang}}
+        {\ifcsundef{abx@#1@#3@\blx@ms@getform{#2}@\blx@ms@getlang{#2}}}}}
+    {\ifcsundef{abx@#1@#3}}}
 
 % Amazing that these macros were one line in biblatex <3.0. Dealing with
 % multiscript complicates them enormously
@@ -2964,14 +2952,25 @@
   \endgroup}
 
 % [<form/lang keyval>]{<field>}{<true>}{<false>}
-\newrobustcmd*{\blx@imc@iffieldint}[2][]{%
-  \blx@imc@iffieldundef[#1]{#2}
+\DeclareExpandableDocumentCommand{\blx@imc@iffieldint}
+  {om}
+  {\blx@imc@iffieldundef[#1]{#2}
     {\@secondoftwo}
-    {\blx@imc@ifbibfieldmsx{#1}{#2}
-      {\expandafter\expandafter
-       \expandafter\ifinteger
-       \expandafter\expandafter
-       \expandafter{\csname abx@field@#2@\blx@tempa @\blx@tempb\endcsname}}
+    {\ifcsdef{blx@msbibfield@#2}
+      {\ifblank{#1}
+        {\expandafter\expandafter
+         \expandafter\ifinteger
+         \expandafter\expandafter
+         \expandafter{\csname abx@field@#2@\blx@form @\blx@lang\endcsname}}
+        {\IfNoValueTF{#1}
+          {\expandafter\expandafter
+           \expandafter\ifinteger
+           \expandafter\expandafter
+           \expandafter{\csname abx@field@#2@\blx@form @\blx@lang\endcsname}}
+          {\expandafter\expandafter
+           \expandafter\ifinteger
+           \expandafter\expandafter
+           \expandafter{\csname abx@field@#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}\endcsname}}}}
       {\expandafter\expandafter
        \expandafter\ifinteger
        \expandafter\expandafter
@@ -3031,40 +3030,73 @@
   \blx@dopagecmds}
 
 % [<form/lang keyval>]{<field>}{<true>}{<false>}
-\newrobustcmd*{\blx@imc@iffieldnum}[2][]{%
-  \blx@imc@iffieldundef[#1]{#2}
+\DeclareExpandableDocumentCommand{\blx@imc@iffieldnum}
+  {om}
+  {\blx@imc@iffieldundef[#1]{#2}
     {\@secondoftwo}
-    {\blx@imc@ifbibfieldmsx{#1}{#2}
-      {\expandafter\expandafter
-       \expandafter\blx@imc@ifnumeral
-       \expandafter\expandafter
-       \expandafter{\csname abx@field@#2@\blx@tempa @\blx@tempb\endcsname}}
+    {\ifcsdef{blx@msbibfield@#2}
+      {\ifblank{#1}
+        {\expandafter\expandafter
+         \expandafter\blx@imc@ifnumeral
+         \expandafter\expandafter
+         \expandafter{\csname abx@field@#2@\blx@form @\blx@lang\endcsname}}
+        {\IfNoValueTF{#1}
+          {\expandafter\expandafter
+           \expandafter\blx@imc@ifnumeral
+           \expandafter\expandafter
+           \expandafter{\csname abx@field@#2@\blx@form @\blx@lang\endcsname}}
+          {\expandafter\expandafter
+           \expandafter\blx@imc@ifnumeral
+           \expandafter\expandafter
+           \expandafter{\csname abx@field@#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}\endcsname}}}}
       {\expandafter\expandafter
        \expandafter\blx@imc@ifnumeral
        \expandafter\expandafter
        \expandafter{\csname abx@field@#2\endcsname}}}}
 
-\newrobustcmd*{\blx@imc@iffieldnums}[2][]{%
-  \blx@imc@iffieldundef[#1]{#2}
+\DeclareExpandableDocumentCommand{\blx@imc@iffieldnums}
+  {om}
+  {\blx@imc@iffieldundef[#1]{#2}
     {\@secondoftwo}
-    {\blx@imc@ifbibfieldmsx{#1}{#2}
-      {\expandafter\expandafter
-       \expandafter\blx@imc@ifnumerals
-       \expandafter\expandafter
-       \expandafter{\csname abx@field@#2@\blx@tempa @\blx@tempb\endcsname}}
+    {\ifcsdef{blx@msbibfield@#2}
+      {\ifblank{#1}
+        {\expandafter\expandafter
+         \expandafter\blx@imc@ifnumerals
+         \expandafter\expandafter
+         \expandafter{\csname abx@field@#2@\blx@form @\blx@lang\endcsname}}
+        {\IfNoValueTF{#1}
+          {\expandafter\expandafter
+           \expandafter\blx@imc@ifnumerals
+           \expandafter\expandafter
+           \expandafter{\csname abx@field@#2@\blx@form @\blx@lang\endcsname}}
+          {\expandafter\expandafter
+           \expandafter\blx@imc@ifnumerals
+           \expandafter\expandafter
+           \expandafter{\csname abx@field@#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}\endcsname}}}}
       {\expandafter\expandafter
        \expandafter\blx@imc@ifnumerals
        \expandafter\expandafter
        \expandafter{\csname abx@field@#2\endcsname}}}}
 
-\newrobustcmd*{\blx@imc@iffieldpages}[2][]{%
-  \blx@imc@iffieldundef[#1]{#2}
+\DeclareExpandableDocumentCommand{\blx@imc@iffieldpages}
+  {om}
+  {\blx@imc@iffieldundef[#1]{#2}
     {\@secondoftwo}
-    {\blx@imc@ifbibfieldmsx{#1}{#2}
-      {\expandafter\expandafter
-       \expandafter\blx@imc@ifpages
-       \expandafter\expandafter
-       \expandafter{\csname abx@field@#2@\blx@tempa @\blx@tempb\endcsname}}
+    {\ifcsdef{blx@msbibfield@#2}
+      {\ifblank{#1}
+        {\expandafter\expandafter
+         \expandafter\blx@imc@ifpages
+         \expandafter\expandafter
+         \expandafter{\csname abx@field@#2@\blx@form @\blx@lang\endcsname}}
+        {\IfNoValueTF{#1}
+          {\expandafter\expandafter
+           \expandafter\blx@imc@ifpages
+           \expandafter\expandafter
+           \expandafter{\csname abx@field@#2@\blx@form @\blx@lang\endcsname}}
+          {\expandafter\expandafter
+           \expandafter\blx@imc@ifpages
+           \expandafter\expandafter
+           \expandafter{\csname abx@field@#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}\endcsname}}}}
       {\expandafter\expandafter
        \expandafter\blx@imc@ifpages
        \expandafter\expandafter
@@ -8910,10 +8942,8 @@
     \def\ifloccit{\blx@TE\blx@imc@ifloccit}%
     \def\ifsamepage{\blx@TE\blx@imc@ifsamepage}%
     \def\iffirstonpage{\blx@TE\blx@imc@iffirstonpage}%
-
     \def\ifbibfieldms#1{\blx@TE{\blx@imc@ifbibfieldms{#1}}}%
-    \def\ifbibfieldmsx#1#2{\blx@TE{\blx@imc@ifbibfieldmsx{#1}{#2}}}%
-
+    \def\ifbibfieldmsx#1{\blx@TE{\blx@imc@ifbibfieldmsx{#1}}}%
     \def\ifcurrentfield#1{\blx@TE{\blx@imc@ifcurrentfield{#1}}}%
     \def\ifcurrentform#1{\blx@TE{\blx@imc@ifcurrentform{#1}}}%
     \def\ifcurrentlang#1{\blx@TE{\blx@imc@ifcurrentlang{#1}}}%
@@ -8924,25 +8954,24 @@
     \DeclareExpandableDocumentCommand{\iffieldequals}{omm}{\blx@TE{\blx@imc@ifflnequals{field}[#1]{#2}{#3}}}%
     \DeclareExpandableDocumentCommand{\iffieldequalstr}{omm}{\blx@TE{\blx@imc@iffieldequalstr[#1]{#2}{#3}}}%
     \DeclareExpandableDocumentCommand{\iffieldsequal}{omom}{\blx@TE{\blx@imc@ifflequal{field}[#1]{#2}[#3]{#4}}}%
-    \DeclareExpandableDocumentCommand{\iffieldundef}{om}{\blx@TE{\blx@imc@iffieldundef[#1]{#2}}}%
+    \DeclareExpandableDocumentCommand{\iffieldundef}{om}{\blx@TE{\blx@imc@ifflnundef{field}[#1]{#2}}}%
     \DeclareExpandableDocumentCommand{\ifnameequalcs}{omm}{\blx@TE{\blx@imc@ifnameequalcs[#1]{#2}{#3}}}%
     \DeclareExpandableDocumentCommand{\ifnameequals}{omm}{\blx@TE{\blx@imc@ifflnequals{name}[#1]{#2}{#3}}}%
-%ZZZ
-    \def\ifnamesequal#1#2{\blx@TE{\blx@imc@ifnamesequal{#1}{#2}}}%
-    \def\ifnameundef#1{\blx@TE{\blx@imc@ifnameundef{#1}}}%
+    \DeclareExpandableDocumentCommand{\ifnamesequal}{omom}{\blx@TE{\blx@imc@ifnamesequal[#1]{#2}[#3]{#4}}}%
+    \DeclareExpandableDocumentCommand{\ifnameundef}{om}{\blx@TE{\blx@imc@ifflnundef{name}[#1]{#2}}}%
     \def\ifcategory#1{\blx@TE{\blx@imc@ifcategory{#1}}}%
     \def\ifkeyword#1{\blx@TE{\blx@imc@ifkeyword{#1}}}%
     \def\ifentrycategory#1#2{\blx@TE{\blx@imc@ifentrycategory{#1}{#2}}}%
     \def\ifentrykeyword#1#2{\blx@TE{\blx@imc@ifentrykeyword{#1}{#2}}}%
     \def\ifcapital{\blx@TE\blx@imc@ifcapital}%
     \def\ifinteger#1{\blx@TE{\blx@imc@ifinteger{#1}}}%
-    \def\iffieldint#1{\blx@TE{\blx@imc@iffieldint{#1}}}%
+    \DeclareExpandableDocumentCommand{\iffieldint}{om}{\blx@TE{\blx@imc@iffieldint[#1]{#2}}}%
     \def\ifnumeral#1{\blx@TE{\blx@imc@ifnumeral{#1}}}%
     \def\ifnumerals#1{\blx@TE{\blx@imc@ifnumerals{#1}}}%
     \def\ifpages#1{\blx@TE{\blx@imc@ifpages{#1}}}%
-    \def\iffieldnum#1{\blx@TE{\blx@imc@iffieldnum{#1}}}%
-    \def\iffieldnums#1{\blx@TE{\blx@imc@iffieldnums{#1}}}%
-    \def\iffieldpages#1{\blx@TE{\blx@imc@iffieldpages{#1}}}%
+    \DeclareExpandableDocumentCommand{\iffieldnum}{om}{\blx@TE{\blx@imc@iffieldnum[#1]{#2}}}%
+    \DeclareExpandableDocumentCommand{\iffieldnums}{om}{\blx@TE{\blx@imc@iffieldnums[#1]{#2}}}%
+    \DeclareExpandableDocumentCommand{\iffieldpages}{om}{\blx@TE{\blx@imc@iffieldpages[#1]{#2}}}%
     \def\ifbibstring#1{\blx@TE{\blx@imc@ifbibstring{#1}}}%
     \def\iffieldbibstring#1{\blx@TE{\blx@imc@iffieldbibstring{#1}}}%
     \def\ifnatbibmode{\blx@TE{\iftoggle{blx@natbib}}}%
