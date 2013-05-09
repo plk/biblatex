@@ -2249,11 +2249,11 @@
           % {msfield}{msfield}
           {\blx@imc@ifflequal@i{#1}{#3}{#5}}
           % {msfield}[f/l]{msfield}
-          {\blx@warning@noline{You are trying to \string\if#1sequal test all multiscript variants for #1 '#3' against a specified variant for #1 '#5'}\@secondoftwo}}
+          {\blx@imc@ifflequal@iii{\csuse{abx@#1@#3@\blx@form @\blx@lang}}{\blx@imc@ifflequal@ii{#1}{#4}{#5}}}}
         % [f/l]{msfield}[?]{msfield}
         {\IfNoValueTF{#4}
           % [f/l]{msfield}{msfield}
-          {\blx@warning@noline{You are trying to \string\if#1sequal test all multiscript variants for #1 '#5' against a specified variant for #1 '#3'}\@secondoftwo}
+          {\blx@imc@ifflequal@iii{\blx@imc@ifflequal@ii{#1}{#2}{#3}}{\csuse{abx@#1@#5@\blx@form @\blx@lang}}}
           % [f/l]{msfield}[f/l]{msfield}
           {\blx@imc@ifflequal@iii{\blx@imc@ifflequal@ii{#1}{#2}{#3}}{\blx@imc@ifflequal@ii{#1}{#4}{#5}}}}}
       % [?]{msfield}[?]{non-msfield}
@@ -2327,29 +2327,33 @@
   \fi}
 
 % [<form/lang keyval>]{<namelist1>}[<form/lang keyval>]{<namelist2>}{<true>}{<false>}
-% This assumes that all name fields are ms fields (which they are in the default data model)
 \DeclareDocumentCommand{\blx@imc@ifnamesequal}
   {omom}
   {\IfNoValueTF{#1}
     {\IfNoValueTF{#3}
-      {\blx@ifnamesequal@v{#2}{#4}}
-      {\blx@warning@noline{You are trying to \string\ifnamesequal test all multiscript variants for name '#2' against a specified variant for name '#4'}\@secondoftwo}}
+      {\blx@ifnamesequal@v{#2}{#4}}%{name}{name}
+      {\blx@imc@ifbibfieldms{#2}%{name}[]{name}
+       {\blx@imc@ifbibfieldms{#4}
+         {\blx@imc@ifnamesequal@i{#2@\blx@form @\blx@lang}{#4@\blx@ms@getform{#3}@\blx@ms@getlang{#3}}}%{ms}[]{ms}
+         {\blx@warning@noline{You are trying to \ifnamesequal a non-multiscript name '#4' with form/lang arguments}\@secondoftwo}%{ms}[]{non-ms}
+       {\blx@imc@ifbibfieldms{#4}
+         {\blx@imc@ifnamesequal@i{#2}{#4@\blx@ms@getform{#3}@\blx@ms@getlang{#3}}}%{non-ms}[]{ms}
+         {\blx@warning@noline{You are trying to \ifnamesequal a non-multiscript name '#4' with form/lang arguments}\@secondoftwo}}}}}%{non-ms}[]{non-ms}
     {\IfNoValueTF{#3}
-      {\blx@warning@noline{You are trying to \string\ifnamesequal test all multiscript variants for name '#4' against a specified variant for name '#2'}\@secondoftwo}
-      {\begingroup
-         \edef\blx@tempa{\blx@form}%
-         \edef\blx@tempb{\blx@lang}%
-         \setkeys{blx@ms}{#1}%
-         \xappto\blx@ife{\expandafter\def\noexpand\blx@tempc{#2@\blx@tempa @\blx@tempb}}%
-       \endgroup
-       \begingroup
-         \edef\blx@tempa{\blx@form}%
-         \edef\blx@tempb{\blx@lang}%
-         \setkeys{blx@ms}{#3}%
-         \xappto\blx@ife{\expandafter\def\noexpand\blx@tempd{#4@\blx@tempa @\blx@tempb}}%
-       \endgroup
-        \blx@ife\global\undef\blx@ife
-        \blx@imc@ifnamesequal@i{\blx@tempc}{\blx@tempd}}}}%
+      {\blx@imc@ifbibfieldms{#2}%[]{name}{name}
+        {\blx@imc@ifbibfieldms{#4}
+          {\blx@imc@ifnamesequal@i{#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}}{#4@\blx@form @\blx@lang}}%[]{ms}{ms}
+          {\blx@imc@ifnamesequal@i{#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}}{#4}}}%[]{ms}{non-ms}
+        {\blx@imc@ifbibfieldms{#4}
+          {\blx@warning@noline{You are trying to \ifnamesequal a non-multiscript name '#2' with form/lang arguments}\@secondoftwo}%[]{non-ms}{ms}
+          {\blx@warning@noline{You are trying to \ifnamesequal a non-multiscript name '#2' with form/lang arguments}\@secondoftwo}}}%[]{non-ms}{non-ms}
+      {\blx@imc@ifbibfieldms{#2}%[]{name}[]{name}
+        {\blx@imc@ifbibfieldms{#4}%[]{ms}[]{name}
+          {\blx@imc@ifnamesequal@i{#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}}{#4@\blx@ms@getform{#3}@\blx@ms@getlang{#3}}}%[]{ms}[]{ms}
+          {\blx@warning@noline{You are trying to \ifnamesequal a non-multiscript name '#4' with form/lang arguments}\@secondoftwo}}%[]{ms}[]{non-ms}
+        {\blx@imc@ifbibfieldms{#4}
+          {\blx@warning@noline{You are trying to \ifnamesequal a non-multiscript name '#2' with form/lang arguments}\@secondoftwo}%[]{non-ms}[]{non-ms}
+          {\blx@warning@noline{You are trying to \ifnamesequal two non-multiscript names '#2' and '#4' with form/lang arguments}\@secondoftwo}}}}}
 
 \def\blx@imc@ifnamesequal@i#1#2{%
   \ifcsundef{abx@name@#1}
@@ -2389,26 +2393,32 @@
     {\eappto\blx@tempa{{\abx@field@hash}}}
     {\appto\blx@tempa{{{#2}{#4}{#6}{#8}}}}}
 
-% Deal with comparing all forms/langs of two multi-script names
+% Deal with comparing all forms/langs of two names with no f/l specifiers
 \def\blx@ifnamesequal@v#1#2{%
-  \def\do##1{%
-    \begingroup
-      \def\do####1{%
-        \ifcsdef{abx@name@#1@##1@####1}
-          {\ifcsdef{abx@name@#2@##1@####1}
-             {\blx@imc@ifnamesequal@i{#1@##1@####1}{#2@##1@####1}
-               {}
-               {\global\def\blx@nefail{true}}}
-             {\global\def\blx@nefail{true}}}
-          {\ifcsdef{abx@name@#2@##1@####1}
-            {\global\def\blx@nefail{true}}
-            {}}}%
-          \dolistloop\blx@mslangs
-          \endgroup}%
-        \dolistloop\blx@msforms
-        \ifdef\blx@nefail
-          {\global\undef\blx@nefail\@secondoftwo}
-          {\global\undef\blx@nefail\@firstoftwo}}
+  \blx@imc@ifbibfieldms{#1}
+    {\blx@imc@ifbibfieldms{#2}
+      {\def\do##1{%{ms}{ms}
+       \begingroup
+         \def\do####1{%
+           \ifcsdef{abx@name@#1@##1@####1}
+             {\ifcsdef{abx@name@#2@##1@####1}
+                {\blx@imc@ifnamesequal@i{#1@##1@####1}{#2@##1@####1}
+                  {}
+                  {\global\def\blx@nefail{true}}}
+                {\global\def\blx@nefail{true}}}
+             {\ifcsdef{abx@name@#2@##1@####1}
+               {\global\def\blx@nefail{true}}
+               {}}}%
+             \dolistloop\blx@mslangs
+             \endgroup}%
+           \dolistloop\blx@msforms
+           \ifdef\blx@nefail
+             {\global\undef\blx@nefail\@secondoftwo}
+             {\global\undef\blx@nefail\@firstoftwo}}
+      {\blx@imc@ifnamesequal@i{#1@\blx@form @\blx@lang}{#2}}}%{ms}{non-ms}
+    {\blx@imc@ifbibfieldms{#2}
+      {\blx@imc@ifnamesequal@i{#1}{#2@\blx@form @\blx@lang}}%{non-ms}{ms}
+      {\blx@imc@ifnamesequal@i{#1}{#2}}}}%{non-ms}{non-ms}
 
 % [<form/lang keyval>]{<field>}{<macro>}{<true>}{<false>}
 \def\blx@imc@iffieldequals{\blx@imc@ifflnequals{field}}
@@ -5837,14 +5847,12 @@
   \csxdef{blx@seti@\the\c@refsection @#1}{\the\blx@tempcnta}}
 
 % {<entrykey>}
-
 \protected\def\blx@bbl@inset#1{%
   \toggletrue{blx@setonly}%
   \blx@bbl@fieldedef{entryset}{\detokenize{#1}}%
   \csxdef{blx@setc@\the\c@refsection @\abx@field@entrykey}{\detokenize{#1}}}
 
 % {<keyword>,...}
-
 \protected\def\blx@bbl@keyw#1{%
   \iftoggle{blx@skipbib}
     {}
@@ -5855,7 +5863,6 @@
   \listcsxadd{blx@keyw@\the\c@refsection @\detokenize{#2}}{#1}}
 
 % {<options>}
-
 \protected\long\def\blx@bbl@options#1{%
   \begingroup
   \let\blx@tempa\@empty
