@@ -4320,7 +4320,10 @@
      {\expandafter\expandafter\expandafter\ifstrempty\expandafter\expandafter\expandafter{\expandafter\@firstoftwo#3\expandafter\@secondoftwo#3}
        {}% #3 is {}{}, meaning []
        {\edef\Start{\@firstoftwo#3}%
-        \edef\Stop{\@secondoftwo#3}}}%
+        \edef\Stop{\@secondoftwo#3}%
+        \expandafter\IfNoValueTF\expandafter{\Stop}% Work around bug in xparse<=2013/03/12
+          {\edef\Stop{}}
+          {}}}%
      \IfNoValueTF{#4}% Have to fully expand the args before calling blx@print*
        {\protected@edef\z{\noexpand#1{\Format}{\Start}{\Stop}}\z}
        {\ifblank{#4}
@@ -5716,7 +5719,7 @@
     mapping features ('\DeclareSourceMap')}}
 
 % {<entrykey>}{<refsection>}{<field>}{<value>}
-
+% Only used to add non-ms fields internally
 \long\def\blx@bbl@addentryfield#1#2#3#4{%
   \csxappto{blx@data@#2@#1}{%
     \def\expandafter\noexpand\csname abx@field@#3\endcsname{#4}}}
