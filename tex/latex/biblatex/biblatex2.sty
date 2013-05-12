@@ -1628,15 +1628,15 @@
 
 % {<form/lang keyval>}{<field>}
 % This forks on multiscript fields/lists/names, parsing the form/lang spec
-% The two \defs are there to make sure both options have defaults in case only
+% The two \edefs are there to make sure both options have defaults in case only
 % one is given ([form=<form>]).
 \def\blx@imc@ifbibfieldmsx#1#2{%
   \ifcsdef{blx@msbibfield@#2}
     {\edef\blx@tempa{\blx@form}%
      \edef\blx@tempb{\blx@lang}%
-     \ifblank{#1}%\ifbibfieldmsx[]{field}
+     \ifblank{#1}%[]{field}
        {}
-       {\IfNoValueTF{#1}%\ifbibfieldmsx{field}
+       {\IfNoValueTF{#1}%{field}
         {}
         {\setkeys{blx@ms}{#1}}}%
      \@firstoftwo}
@@ -3650,12 +3650,12 @@
   \global\toggletrue{blx@block}}
 
 \blx@regimcs{%
-  \ifbibfieldms \ifbibfieldmsx \ifdriver \thefield \strfield \csfield \usefield \thelist \thename
+  \ifdriver \thefield \strfield \csfield \usefield \thelist \thename
   \clearfield \clearlist \clearname \restorefield \restorelist \restorename
-  \ifcategory \ifentrycategory \ifkeyword \ifentrykeyword
-  \ifciteseen \ifentryseen \ifciteibid \ifciteidem \ifopcit \ifloccit
+  \ifcategory \ifentrycategory \ifkeyword \ifentrykeyword \ifbibfieldform \ifbibfieldms
+  \ifbibfieldlang \ifciteseen \ifentryseen \ifciteibid \ifciteidem \ifopcit \ifloccit
   \ifcurrentfield \ifcurrentform \ifcurrentlang \ifcurrentlist \ifcurrentname \ifentrytype
-  \iffieldequalcs \iffieldequals \iffieldequalstr \iffieldsequal
+  \iffieldequalcs \iffieldequals \iffieldequalstr \iffieldsequal \ifbibfieldmsvar
   \ifbibmacroundef \iffieldundef \iffieldxref \iflistequalcs \iflistequals
   \iflistsequal \iflistundef \iflistxref \ifmorenames \ifmoreitems
   \ifnameequalcs \ifnameequals \ifnamesequal \ifnameundef \ifnamexref
@@ -5741,9 +5741,48 @@
            {}
            {\listxadd\blx@mslangs{\blx@ms@getlang{#1}}}%
          \csxappto\blx@bbl@data{%
-           \def\expandafter\noexpand\csname abx@field@#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}\endcsname{#3}}}}}
+           \def\expandafter\noexpand\csname abx@field@#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}\endcsname{#3}}%
+         \csxappto\blx@bbl@data{% to simplify some tests later
+           \listcsadd{abx@forms@#2}{\blx@ms@getform{#1}}%
+           \listcsadd{abx@langs@#2@\blx@ms@getform{#1}}{\blx@ms@getlang{#1}}}}}}
     {\csxappto\blx@bbl@data{%
        \def\expandafter\noexpand\csname abx@field@#2\endcsname{#3}}}}
+
+% {bibfield}
+\def\blx@imc@ifbibfieldms#1{%
+  \ifcsdef{blx@msbibfield@#1}}
+
+% {bibfield}
+\def\blx@imc@ifbibfieldmsvar#1{%
+  \ifcsdef{blx@msbibfield@#1}
+    {\def\do##1{%
+       \begingroup
+       \def\do####1{%
+         \expandafter\ifstrequal\expandafter{\blx@form}{##1}
+             {}
+             {\gdef\blx@msvar{true}}%
+         \expandafter\ifstrequal\expandafter{\blx@lang}{####1}
+             {}
+             {\gdef\blx@msvar{true}}}%
+       \dolistcsloop{abx@langs@#1@##1}%
+       \endgroup}%
+     \dolistcsloop{abx@forms@#1}%
+     \ifdef\blx@msvar
+        {\global\undef\blx@msvar\@firstoftwo}
+        {}}
+    {\@secondoftwo}}
+
+% {bibfield}{form}
+\def\blx@imc@ifbibfieldform#1#2{%
+  \ifcsdef{blx@msbibfield@#1}
+    {\ifinlistcs{#2}{abx@forms@#1}}
+    {\@secondoftwo}}
+
+% {bibfield}{form}{lang}
+\def\blx@imc@ifbibfieldlang#1#2#3{%
+  \ifcsdef{blx@msbibfield@#1}
+    {\ifinlistcs{#3}{abx@langs@#1@#2}}
+    {\@secondoftwo}}
 
 % [<form/lang keval>]{field}{value}
 \newrobustcmd{\blx@bbl@fielddef}[3][]{%
@@ -8989,13 +9028,16 @@
     \def\ifloccit{\blx@TE\blx@imc@ifloccit}%
     \def\ifsamepage{\blx@TE\blx@imc@ifsamepage}%
     \def\iffirstonpage{\blx@TE\blx@imc@iffirstonpage}%
-    \def\ifbibfieldmsx#1{\blx@TE{\blx@imc@ifbibfieldmsx{#1}}}%
+    \def\ifbibfieldms#1{\blx@TE{\blx@imc@ifbibfieldms{#1}}}%
     \def\ifcurrentfield#1{\blx@TE{\blx@imc@ifcurrentfield{#1}}}%
     \def\ifcurrentform#1{\blx@TE{\blx@imc@ifcurrentform{#1}}}%
     \def\ifcurrentlang#1{\blx@TE{\blx@imc@ifcurrentlang{#1}}}%
     \def\ifcurrentlist#1{\blx@TE{\blx@imc@ifcurrentlist{#1}}}%
     \def\ifcurrentname#1{\blx@TE{\blx@imc@ifcurrentname{#1}}}%
     \def\ifentrytype#1{\blx@TE{\blx@imc@ifentrytype{#1}}}%
+    \def\ifbibfieldmsvar#1{\blx@TE{\blx@imc@ifbibfieldmsvar{#1}}}%
+    \def\ifbibfieldform#1#2{\blx@TE{\blx@imc@ifbibfieldform{#1}{#2}}}%
+    \def\ifbibfieldlang#1#2#3{\blx@TE{\blx@imc@ifbibfieldlang{#1}{#2}{#3}}}%
     \DeclareExpandableDocumentCommand{\iffieldequalcs}{omm}{\blx@TE{\blx@imc@iffieldequalcs[#1]{#2}{#3}}}%
     \DeclareExpandableDocumentCommand{\iffieldequals}{omm}{\blx@TE{\blx@imc@ifflnequals{field}[#1]{#2}{#3}}}%
     \DeclareExpandableDocumentCommand{\iffieldequalstr}{omm}{\blx@TE{\blx@imc@iffieldequalstr[#1]{#2}{#3}}}%
