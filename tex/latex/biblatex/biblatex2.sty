@@ -5875,41 +5875,47 @@
 \newrobustcmd*{\blx@bbl@listdef}[4][]{%
   \def\NewCount{#3}%
   \def\NewValue{#4}%
-  \ifblank{#1}
-    {\csxappto\blx@bbl@data{%
+  \ifcsdef{blx@msbibfield@#2}
+    {\ifblank{#1}
+      {\csxappto\blx@bbl@data{%
         \csname c@#2\endcsname\NewCount\relax
-        \def\expandafter\noexpand\csname abx@list@#2\endcsname
+        \def\expandafter\noexpand\csname abx@list@#2@\blx@form @\blx@lang\endcsname
         {\expandonce\NewValue}}}
-    {\edef\blx@tempa{\blx@form}%
-     \edef\blx@tempb{\blx@lang}%
-     \setkeys{blx@ms}{#1}%
-     \xifinlist{\blx@tempa}{\blx@msforms}
-       {}
-       {\listxadd\blx@msforms{\blx@tempa}}%
-     \xifinlist{\blx@tempb}{\blx@mslangs}
-       {}
-       {\listxadd\blx@mslangs{\blx@tempb}}%
-     \csxappto\blx@bbl@data{% to simplify some tests later
-       \xifinlistcs{\blx@tempa}{abx@forms@#2}
+      {\edef\blx@tempa{\blx@form}%
+         \edef\blx@tempb{\blx@lang}%
+         \setkeys{blx@ms}{#1}%
+       \xifinlist{\blx@tempa}{\blx@msforms}
          {}
-         {\listcsadd{abx@forms@#2}{\blx@tempa}}%
-       \xifinlistcs{\blx@tempb}{abx@langs@#2@\blx@tempa}
+         {\listxadd\blx@msforms{\blx@tempa}}%
+       \xifinlist{\blx@tempb}{\blx@mslangs}
          {}
-         {\listcsadd{abx@langs@#2@\blx@tempa}{\blx@tempb}}}%
-     \csxappto\blx@bbl@data{%
-       \csname c@#2\endcsname\NewCount\relax
-       \def\expandafter\noexpand\csname abx@list@#2@\blx@tempa @\blx@tempb\endcsname
-       {\expandonce\NewValue}}}}
+         {\listxadd\blx@mslangs{\blx@tempb}}%
+       \csxappto\blx@bbl@data{% to simplify some tests later
+         \xifinlistcs{\blx@tempa}{abx@forms@#2}
+           {}
+           {\listcsadd{abx@forms@#2}{\blx@tempa}}%
+         \xifinlistcs{\blx@tempb}{abx@langs@#2@\blx@tempa}
+           {}
+           {\listcsadd{abx@langs@#2@\blx@tempa}{\blx@tempb}}}%
+       \csxappto\blx@bbl@data{%
+         \csname c@#2\endcsname\NewCount\relax
+         \def\expandafter\noexpand\csname abx@list@#2@\blx@tempa @\blx@tempb\endcsname
+         {\expandonce\NewValue}}}}
+    {\csxappto\blx@bbl@data{%
+     \csname c@#2\endcsname\NewCount\relax
+     \def\expandafter\noexpand\csname abx@list@#2\endcsname
+     {\expandonce\NewValue}}}}
 
 % [<form/lang kevals>]{<name>}{<itemcount>}{<nameoptions>}{<value>}
 \newrobustcmd*{\blx@bbl@namedef}[5][]{%
   \def\NewCount{#3}%
   \def\NewOption{#4}%
   \def\NewValue{#5}%
-  \ifblank{#1}
-    {\csxappto\blx@bbl@data{%
+  \ifcsdef{blx@msbibfield@#2}
+    {\ifblank{#1}
+      {\csxappto\blx@bbl@data{%
         \csname c@#2\endcsname\NewCount\relax
-        \def\expandafter\noexpand\csname abx@name@#2\endcsname
+        \def\expandafter\noexpand\csname abx@name@#2@\blx@form @\blx@lang\endcsname
         {{\expandonce\NewOption}{\expandonce\NewValue}}}}
     {\edef\blx@tempa{\blx@form}%
      \edef\blx@tempb{\blx@lang}%
@@ -5931,6 +5937,10 @@
        \csname c@#2\endcsname\NewCount\relax
        \def\expandafter\noexpand\csname abx@name@#2@\blx@tempa @\blx@tempb\endcsname
        {{\expandonce\NewOption}{\expandonce\NewValue}}}}}
+    {\csxappto\blx@bbl@data{%
+        \csname c@#2\endcsname\NewCount\relax
+        \def\expandafter\noexpand\csname abx@name@#2\endcsname
+        {{\expandonce\NewOption}{\expandonce\NewValue}}}}}
 
 % {<entrykey>,...}
 \protected\def\blx@bbl@set#1{%
