@@ -3655,13 +3655,13 @@
   \ifcategory \ifentrycategory \ifkeyword \ifentrykeyword \ifbibfieldform \ifbibfieldms
   \ifbibfieldlang \ifciteseen \ifentryseen \ifciteibid \ifciteidem \ifopcit \ifloccit
   \ifcurrentfield \ifcurrentform \ifcurrentlang \ifcurrentlist \ifcurrentname \ifentrytype
-  \iffieldequalcs \iffieldequals \iffieldequalstr \iffieldsequal \ifbibfieldmsvar
+  \iffieldequalcs \iffieldequals \iffieldequalstr \iffieldsequal \ifbibfieldvariants
   \ifbibmacroundef \iffieldundef \iffieldxref \iflistequalcs \iflistequals
   \iflistsequal \iflistundef \iflistxref \ifmorenames \ifmoreitems
   \ifnameequalcs \ifnameequals \ifnamesequal \ifnameundef \ifnamexref
   \iffirstonpage \ifsamepage \savefield \savefieldcs \savelist
   \savelistcs \savename \savenamecs \usedriver
-  \ifinteger \ifnumeral \ifnumerals \ifpages
+  \ifinteger \ifnumeral \ifnumerals \ifpages \loopforms \looplangs \loopvariants
   \iffieldint \iffieldnum \iffieldnums \iffieldpages
   \mkpageprefix \mkpagetotal
   \newblock \newunit \setunit \printunit \finentry}
@@ -5743,17 +5743,44 @@
          \csxappto\blx@bbl@data{%
            \def\expandafter\noexpand\csname abx@field@#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}\endcsname{#3}}%
          \csxappto\blx@bbl@data{% to simplify some tests later
-           \listcsadd{abx@forms@#2}{\blx@ms@getform{#1}}%
-           \listcsadd{abx@langs@#2@\blx@ms@getform{#1}}{\blx@ms@getlang{#1}}}}}}
+         \xifinlistcs{\blx@ms@getform{#1}}{abx@forms@#2}
+           {}
+           {\listcsadd{abx@forms@#2}{\blx@ms@getform{#1}}}%
+         \xifinlistcs{\blx@ms@getlang{#1}}{abx@langs@#2@\blx@ms@getform{#1}}
+           {}
+           {\listcsadd{abx@langs@#2@\blx@ms@getform{#1}}{\blx@ms@getlang{#1}}}}}}}
     {\csxappto\blx@bbl@data{%
        \def\expandafter\noexpand\csname abx@field@#2\endcsname{#3}}}}
 
-% {bibfield}
+% {<bibfield>}{<macro>}
+\def\blx@imc@loopvariants#1#2{%
+  \ifcsdef{blx@msbibfield@#1}
+    {\def\do##1{%
+       \begingroup
+         \def\do####1{#2{##1}{####1}}%
+         \dolistcsloop{abx@langs@#1@##1}%
+       \endgroup}%
+     \dolistcsloop{abx@forms@#1}}
+    {\blx@warning@noline{You are trying to \loopvariants on a non-multiscript bibfield '#1'}}}
+
+% {<bibfield>}{<macro>}
+\def\blx@imc@loopforms#1#2{%
+  \ifcsdef{blx@msbibfield@#1}
+    {\forlistcsloop{#2}{abx@forms@#1}}
+    {\blx@warning@noline{You are trying to \loopforms on a non-multiscript bibfield '#1'}}}
+
+% {<bibfield>}{<form>}{<macro>}
+\def\blx@imc@looplangs#1#2#3{%
+  \ifcsdef{blx@msbibfield@#1}
+    {\forlistcsloop{#3}{abx@langs@#1@#2}}
+    {\blx@warning@noline{You are trying to \looplangs on a non-multiscript bibfield '#1'}}}
+
+% {<bibfield>}
 \def\blx@imc@ifbibfieldms#1{%
   \ifcsdef{blx@msbibfield@#1}}
 
-% {bibfield}
-\def\blx@imc@ifbibfieldmsvar#1{%
+% {<bibfield>}
+\def\blx@imc@ifbibfieldvariants#1{%
   \ifcsdef{blx@msbibfield@#1}
     {\def\do##1{%
        \begingroup
@@ -5772,19 +5799,19 @@
         {\@secondoftwo}}
     {\@secondoftwo}}
 
-% {bibfield}{form}
+% {<bibfield>}{<form>}
 \def\blx@imc@ifbibfieldform#1#2{%
   \ifcsdef{blx@msbibfield@#1}
     {\ifinlistcs{#2}{abx@forms@#1}}
     {\@secondoftwo}}
 
-% {bibfield}{form}{lang}
+% {<bibfield>}{<form>}{<lang>}
 \def\blx@imc@ifbibfieldlang#1#2#3{%
   \ifcsdef{blx@msbibfield@#1}
     {\ifinlistcs{#3}{abx@langs@#1@#2}}
     {\@secondoftwo}}
 
-% [<form/lang keval>]{field}{value}
+% [<form/lang keval>]{<field>}{<value>}
 \newrobustcmd{\blx@bbl@fielddef}[3][]{%
   \def\NewValue{#3}%
   \blx@bbl@addfield[#1]{#2}{\expandonce\NewValue}}
@@ -9035,7 +9062,7 @@
     \def\ifcurrentlist#1{\blx@TE{\blx@imc@ifcurrentlist{#1}}}%
     \def\ifcurrentname#1{\blx@TE{\blx@imc@ifcurrentname{#1}}}%
     \def\ifentrytype#1{\blx@TE{\blx@imc@ifentrytype{#1}}}%
-    \def\ifbibfieldmsvar#1{\blx@TE{\blx@imc@ifbibfieldmsvar{#1}}}%
+    \def\ifbibfieldvariants#1{\blx@TE{\blx@imc@ifbibfieldvariants{#1}}}%
     \def\ifbibfieldform#1#2{\blx@TE{\blx@imc@ifbibfieldform{#1}{#2}}}%
     \def\ifbibfieldlang#1#2#3{\blx@TE{\blx@imc@ifbibfieldlang{#1}{#2}{#3}}}%
     \DeclareExpandableDocumentCommand{\iffieldequalcs}{omm}{\blx@TE{\blx@imc@iffieldequalcs[#1]{#2}{#3}}}%
