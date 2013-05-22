@@ -28,7 +28,7 @@
 \ExplSyntaxOn
  \msg_redirect_name:nnn { LaTeX } { xparse / redefine-command }
    { none }
- \ExplSyntaxOff
+\ExplSyntaxOff
 
 \@ifpackagelater{etoolbox}{2010/11/29}
   {}
@@ -59,7 +59,7 @@
 \catcode`\^=7
 \def\blx@nl{^^J}
 
-% Lists to track which forms/langs are present in the .bbl
+% Global lists to track which forms/langs are present in the .bbl
 \global\let\blx@msforms\@empty
 \global\let\blx@mslangs\@empty
 
@@ -3585,7 +3585,7 @@
   \ifcurrentfield \ifcurrentform \ifcurrentlang \ifcurrentlist \ifcurrentname \ifentrytype
   \iffieldequalcs \iffieldequals \iffieldequalstr \iffieldsequal \ifbibfieldvariants
   \ifbibmacroundef \iffieldundef \iffieldxref \iflistequalcs \iflistequals
-  \iflistsequal \iflistundef \iflistxref \ifmorenames \ifmoreitems
+  \iflistsequal \iflistundef \iflistxref \ifmorenames \ifmoreitems \getlang
   \ifnameequalcs \ifnameequals \ifnamesequal \ifnameundef \ifnamexref
   \iffirstonpage \ifsamepage \savefield \savefieldcs \savelist
   \savelistcs \savename \savenamecs \usedriver
@@ -5614,17 +5614,17 @@
 \newrobustcmd{\DeclareFieldInputHandler}[2]{%
   \blx@warning@noline{%
     'DeclareFieldInputHandler' is deprecated, please use Biber source
-    mapping features ('\DeclareSourceMap')}}
+    mapping features ('\DeclareSourcemap')}}
 
 \newrobustcmd*{\DeclareListInputHandler}[2]{%
   \blx@warning@noline{%
     'DeclareListInputHandler' is deprecated, please use Biber source
-    mapping features ('\DeclareSourceMap')}}
+    mapping features ('\DeclareSourcemap')}}
 
 \newrobustcmd*{\DeclareNameInputHandler}[2]{%
   \blx@warning@noline{%
     'DeclareNameInputHandler' is deprecated, please use Biber source
-    mapping features ('\DeclareSourceMap')}}
+    mapping features ('\DeclareSourcemap')}}
 
 % {<entrykey>}{<refsection>}{<field>}{<value>}
 % Only used to add non-ms fields internally
@@ -5665,6 +5665,13 @@
          {\listcsadd{abx@langs@#2@\blx@tempa}{\blx@tempb}}}}}
     {\csxappto\blx@bbl@data{%
       \def\expandafter\noexpand\csname abx@field@#2\endcsname{#3}}}}
+
+            % \ifcsundef{forms@#2}
+            %   {\expandafter\global\expandafter\newcount\expandafter\noexpand\csname forms@#2\endcsname}
+            %   {}}%
+            % \expandafter\advance\csname forms@#2\endcsname\@ne\relax}%
+
+
 
 % {<bibfield>}{<macro>}
 \def\blx@imc@loopvariants#1#2{%
@@ -5712,6 +5719,18 @@
         {\global\undef\blx@msvar\@firstoftwo}
         {\@secondoftwo}}
     {\@secondoftwo}}
+
+% {<bibfield>}{<form>}
+% \def\blx@imc@getlang#1#2{%
+%   \ifcsdef{blx@msbibfield@#1}
+%     {\blx@imc@ifbibfieldform{#1}{#2}
+%       {
+
+% \ifinlistcs{#2}{abx@forms@#1}}
+
+% }
+%       {\@secondoftwo}}
+%     {\@secondoftwo}}
 
 % {<bibfield>}{<form>}
 \def\blx@imc@ifbibfieldform#1#2{%
@@ -5786,7 +5805,7 @@
   \csgappto\blx@bbl@data{%
     \togglefalse{abx@bool@#1}}}
 
-% [<form/lang kevals>]{<list>}{<itemcount>}{<value>}
+% [<form/lang keyval>]{<list>}{<itemcount>}{<value>}
 \newrobustcmd*{\blx@bbl@listdef}[4][]{%
   \def\NewCount{#3}%
   \def\NewValue{#4}%
@@ -5821,7 +5840,7 @@
      \def\expandafter\noexpand\csname abx@list@#2\endcsname
      {\expandonce\NewValue}}}}
 
-% [<form/lang kevals>]{<name>}{<itemcount>}{<nameoptions>}{<value>}
+% [<form/lang keyval>]{<name>}{<itemcount>}{<nameoptions>}{<value>}
 \newrobustcmd*{\blx@bbl@namedef}[5][]{%
   \def\NewCount{#3}%
   \def\NewOption{#4}%
