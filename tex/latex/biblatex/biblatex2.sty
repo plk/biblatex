@@ -2155,6 +2155,13 @@
           \expandafter\@secondoftwo
         \fi}}}
 
+% {<true>}{<false>}
+
+\def\blx@imc@iffirstcitekey{%
+  \ifboolexpr{ test {\ifnumgreater\c@multicitetotal\z@}
+    and test {\ifnumequal\c@multicitecount\@ne}
+    and test {\ifnumequal\c@citecount\@ne} }}
+
 % {<category>}{<true>}{<false>}
 
 \protected\def\blx@imc@ifcategory{%
@@ -3050,7 +3057,8 @@
   \ifcurrentfield \ifcurrentlist \ifcurrentname \ifentrytype
   \iffieldequalcs \iffieldequals \iffieldequalstr \iffieldsequal
   \ifbibmacroundef \iffieldundef \iffieldxref \iflistequalcs \iflistequals
-  \iflistsequal \iflistundef \iflistxref \ifmorenames \ifmoreitems
+  \iflistsequal \iflistundef \iflistxref
+  \ifmorenames \ifmoreitems \iffirstcitekey
   \ifnameequalcs \ifnameequals \ifnamesequal \ifnameundef \ifnamexref
   \iffirstonpage \ifsamepage \savefield \savefieldcs \savelist
   \savelistcs \savename \savenamecs \usedriver
@@ -7077,6 +7085,18 @@
     {}%
   \gappto\blx@hook@citekey@next}
 
+\newrobustcmd*{\AtNextMultiCite}{%
+  \ifundef\blx@hook@mcite@next
+    {\gdef\blx@hook@mcite@next{\global\undef\blx@hook@mcite@next}}
+    {}%
+  \gappto\blx@hook@mcite@next}
+
+\newrobustcmd*{\BeforeNextMultiCite}{%
+  \ifundef\blx@hook@mcite@next@bef
+    {\gdef\blx@hook@mcite@next@bef{\global\undef\blx@hook@mcite@next@bef}}
+    {}%
+  \gappto\blx@hook@mcite@next@bef}
+
 % {<style>]
 
 \newrobustcmd*{\RequireCitationStyle}[1]{%
@@ -7882,8 +7902,10 @@
   \fi
   \blx@checkpunct@ii}
 \def\blx@checkpunct@iii#1\blx@checkpunct@ii{%
+  \global\undef\abx@field@postpunct
   \blx@tempa{\blx@postpunct}}
 \def\blx@checkpunct@iv#1\blx@checkpunct@ii#2&#3{%
+  \gdef\abx@field@postpunct{#3}%
   \edef\blx@tempa{%
     \expandonce\blx@tempa{%
     \ifcsdef{blx@pm@\detokenize{#3}}
@@ -8020,6 +8042,7 @@
   \ifblank{#3}%
     {}
     {\def\abx@field@multipostnote{#3}}%
+  \csuse{blx@hook@mcite@next}%
   \usebibmacro{multiprenote}}
 
 \protected\def\blxendmcites{%
@@ -8067,6 +8090,7 @@
 
 \def\blx@multicite#1#2#3#4{%
   \begingroup
+  \csuse{blx@hook@mcite@next@bef}%
   \def\blx@tempa{#1}%
   \def\blx@tempb{#2}%
   \def\blx@tempc{#3}%
@@ -8327,6 +8351,7 @@
     \def\ifhyperref{\blx@TE\blx@imc@ifhyperref}%
     \def\ifmorenames{\blx@TE\blx@imc@ifmorenames}%
     \def\ifmoreitems{\blx@TE\blx@imc@ifmoreitems}%
+    \def\iffirstcitekey{\blx@TE\blx@imc@iffirstcitekey}%
     \def\ifciteseen{\blx@TE\blx@imc@ifciteseen}%
     \def\ifentryseen{\blx@TE\blx@imc@ifentryseen}%
     \def\ifciteibid{\blx@TE\blx@imc@ifciteibid}%
@@ -8677,35 +8702,34 @@
   n\or o\or p\or q\or r\or s\or t\or u\or v\or w\or x\or y\or z\else
   \blx@warning@entry{Value out of range}\number#1\fi}
 
-\newrobustcmd*{\volcitecmd}[1]{%
-  \begingroup
-  \def\blx@tempa{\endgroup#1}%
-  \@ifstar
-    {\appto\blx@tempa{*}%
-     \blx@volcitecmd@i}
-    {\blx@volcitecmd@i}}
+% {<macro>}[<pre>]{<vol>}[<post>] => <macro>{<pre>}{{<vol>}{<post>}}
 
-\def\blx@volcitecmd@i{%
+\newrobustcmd*{\volcitecmd}{%
+  \AtNextCite{\DeclareFieldAlias{postnote}{volcitenote}}%
+  \begingroup\let\blx@citeargs\blx@volciteargs}
+
+\protected\def\blx@volciteargs#1{%
+  \endgroup
   \@ifnextchar[%]
-    {\blx@volcitecmd@ii}
-    {\blx@volcitecmd@ii[]}}
+    {\blx@volciteargs@i{#1}}
+    {\blx@volciteargs@i{#1}[]}}
 
-\def\blx@volcitecmd@ii[#1]#2{%
-  \appto\blx@tempa{[#1]}%
-  \blx@getformat\blx@tempb{ffd}{}{volcitevolume}%
+\long\def\blx@volciteargs@i#1[#2]#3{%
   \@ifnextchar[%]
-    {\blx@volcitecmd@iii{#2}}
-    {\edef\blx@tempa{\expandonce\blx@tempa[{%
-       \expandonce{\blx@tempb{#2}}}]}%
-     \blx@tempa}}
+    {\blx@volciteargs@ii{#1}{#2}{#3}}
+    {\blx@citeargs@iii{#1}{#2}{{#3}{}}}}
 
-\def\blx@volcitecmd@iii#1[#2]{%
-  \blx@getformat\blx@tempc{ffd}{}{volcitepages}%
-  \edef\blx@tempa{\expandonce\blx@tempa[{%
-    \expandonce{\blx@tempb{#1}}%
-    \noexpand\volcitedelim
-    \expandonce{\blx@tempc{#2}}}]}%
-  \blx@tempa}
+\long\def\blx@volciteargs@ii#1#2#3[#4]{%
+  \blx@citeargs@iii{#1{#2}{{#3}{#4}}}}
+
+\newrobustcmd*{\multivolcitecmd}{%
+  \AtNextCite{\DeclareFieldAlias{postnote}{blx@volcitenote}}%
+  \BeforeNextMultiCite{\let\blx@citeargs\blx@volmciteargs}}
+
+\protected\def\blx@volmciteargs#1{%
+  \@ifnextchar[%]
+    {\blx@volciteargs@i{#1}}
+    {\blx@volciteargs@i{#1}[]}}
 
 %% Control file
 
