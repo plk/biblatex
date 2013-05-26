@@ -5656,10 +5656,22 @@
        \csxappto\blx@bbl@data{% to simplify some tests later
          \xifinlistcs{\blx@multiscriptform}{abx@forms@#2}
            {}
-           {\listcsadd{abx@forms@#2}{\blx@multiscriptform}}%
+           {\listcsadd{abx@forms@#2}{\blx@multiscriptform}%
+            \ifcsundef{formc@#2}% count of forms for this field
+              {\noexpand\newcount\expandafter\noexpand\csname formc@#2\endcsname}
+              {}%
+            \noexpand\advance\expandafter\noexpand\csname formc@#2\endcsname\noexpand\@ne\noexpand\relax}%
          \xifinlistcs{\blx@languagename}{abx@langs@#2@\blx@multiscriptform}
            {}
-           {\listcsadd{abx@langs@#2@\blx@multiscriptform}{\blx@languagename}}}}
+           {\listcsadd{abx@langs@#2@\blx@multiscriptform}{\blx@languagename}}%
+            \ifcsundef{formlangc@#2@\blx@multiscriptform}% count of langs for this form for this field
+              {\noexpand\newcount\expandafter\noexpand\csname formlangc@#2@\blx@multiscriptform\endcsname}
+              {}%
+            \noexpand\advance\expandafter\noexpand\csname formlangc@#2@\blx@multiscriptform\endcsname\noexpand\@ne\noexpand\relax
+            \ifcsundef{langc@#2}% count of langs this field
+              {\noexpand\newcount\expandafter\noexpand\csname langc@#2\endcsname}
+              {}%
+            \noexpand\advance\expandafter\noexpand\csname langc@#2\endcsname\noexpand\@ne\noexpand\relax}}
       {\edef\blx@tempa{\blx@multiscriptform}%
        \edef\blx@tempb{\blx@languagename}%
        \setkeys{blx@ms}{#1}%
@@ -5672,21 +5684,14 @@
        \csxappto\blx@bbl@data{%
          \def\expandafter\noexpand\csname abx@field@#2@\blx@tempa @\blx@tempb\endcsname{#3}}%
        \csxappto\blx@bbl@data{% to simplify some tests later
-       \xifinlistcs{\blx@tempa}{abx@forms@#2}
-         {}
-         {\listcsadd{abx@forms@#2}{\blx@tempa}}%
-       \xifinlistcs{\blx@tempb}{abx@langs@#2@\blx@tempa}
-         {}
-         {\listcsadd{abx@langs@#2@\blx@tempa}{\blx@tempb}}}}}
+         \xifinlistcs{\blx@tempa}{abx@forms@#2}
+           {}
+           {\listcsadd{abx@forms@#2}{\blx@tempa}}%
+         \xifinlistcs{\blx@tempb}{abx@langs@#2@\blx@tempa}
+           {}
+           {\listcsadd{abx@langs@#2@\blx@tempa}{\blx@tempb}}}}}
     {\csxappto\blx@bbl@data{%
       \def\expandafter\noexpand\csname abx@field@#2\endcsname{#3}}}}
-
-            % \ifcsundef{forms@#2}
-            %   {\expandafter\global\expandafter\newcount\expandafter\noexpand\csname forms@#2\endcsname}
-            %   {}}%
-            % \expandafter\advance\csname forms@#2\endcsname\@ne\relax}%
-
-
 
 % {<bibfield>}{<macro>}
 \def\blx@imc@loopvariants#1#2{%
