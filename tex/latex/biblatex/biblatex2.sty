@@ -2654,6 +2654,13 @@
           \expandafter\@secondoftwo
         \fi}}}
 
+% {<true>}{<false>}
+
+\def\blx@imc@iffirstcitekey{%
+  \ifboolexpr{ test {\ifnumgreater\c@multicitetotal\z@}
+    and test {\ifnumequal\c@multicitecount\@ne}
+    and test {\ifnumequal\c@citecount\@ne} }}
+
 % {<category>}{<true>}{<false>}
 \protected\def\blx@imc@ifcategory{%
   \ifdef\abx@field@entrykey
@@ -3585,7 +3592,7 @@
   \ifcurrentfield \ifcurrentform \ifcurrentlang \ifcurrentlist \ifcurrentname \ifentrytype
   \iffieldequalcs \iffieldequals \iffieldequalstr \iffieldsequal \ifbibfieldvariants
   \ifbibmacroundef \iffieldundef \iffieldxref \iflistequalcs \iflistequals
-  \iflistsequal \iflistundef \iflistxref \ifmorenames \ifmoreitems \getlang
+  \iflistsequal \iflistundef \iflistxref \ifmorenames \ifmoreitems \getlang \iffirstcitekey
   \ifnameequalcs \ifnameequals \ifnamesequal \ifnameundef \ifnamexref
   \iffirstonpage \ifsamepage \savefield \savefieldcs \savelist
   \savelistcs \savename \savenamecs \usedriver
@@ -4877,6 +4884,7 @@
   \do{langitalian}%
   \do{langlatin}%
   \do{langnorwegian}%
+  \do{langpolish}%
   \do{langportuguese}%
   \do{langrussian}%
   \do{langspanish}%
@@ -4896,6 +4904,7 @@
   \do{fromitalian}%
   \do{fromlatin}%
   \do{fromnorwegian}%
+  \do{frompolish}%
   \do{fromportuguese}%
   \do{fromrussian}%
   \do{fromspanish}%
@@ -7733,7 +7742,20 @@
     {}%
   \gappto\blx@hook@citekey@next}
 
+\newrobustcmd*{\AtNextMultiCite}{%
+  \ifundef\blx@hook@mcite@next
+    {\gdef\blx@hook@mcite@next{\global\undef\blx@hook@mcite@next}}
+    {}%
+  \gappto\blx@hook@mcite@next}
+
+\newrobustcmd*{\BeforeNextMultiCite}{%
+  \ifundef\blx@hook@mcite@next@bef
+    {\gdef\blx@hook@mcite@next@bef{\global\undef\blx@hook@mcite@next@bef}}
+    {}%
+  \gappto\blx@hook@mcite@next@bef}
+
 % {<style>}
+
 \newrobustcmd*{\RequireCitationStyle}[1]{%
   \blx@inputonce{#1.cbx}{citation style '#1'}{}{}{}
     {\blx@error
@@ -8520,8 +8542,10 @@
   \fi
   \blx@checkpunct@ii}
 \def\blx@checkpunct@iii#1\blx@checkpunct@ii{%
+  \global\undef\abx@field@postpunct
   \blx@tempa{\blx@postpunct}}
 \def\blx@checkpunct@iv#1\blx@checkpunct@ii#2&#3{%
+  \gdef\abx@field@postpunct{#3}%
   \edef\blx@tempa{%
     \expandonce\blx@tempa{%
     \ifcsdef{blx@pm@\detokenize{#3}}
@@ -8653,6 +8677,7 @@
   \ifblank{#3}%
     {}
     {\def\abx@field@multipostnote{#3}}%
+  \csuse{blx@hook@mcite@next}%
   \usebibmacro{multiprenote}}
 
 \protected\def\blxendmcites{%
@@ -8698,6 +8723,7 @@
 %  <init><command>{<wrapper>}{<cites>}{<punct>}
 \def\blx@multicite#1#2#3#4{%
   \begingroup
+  \csuse{blx@hook@mcite@next@bef}%
   \def\blx@tempa{#1}%
   \def\blx@tempb{#2}%
   \def\blx@tempc{#3}%
@@ -8954,6 +8980,7 @@
     \def\ifhyperref{\blx@TE\blx@imc@ifhyperref}%
     \def\ifmorenames{\blx@TE\blx@imc@ifmorenames}%
     \def\ifmoreitems{\blx@TE\blx@imc@ifmoreitems}%
+    \def\iffirstcitekey{\blx@TE\blx@imc@iffirstcitekey}%
     \def\ifciteseen{\blx@TE\blx@imc@ifciteseen}%
     \def\ifentryseen{\blx@TE\blx@imc@ifentryseen}%
     \def\ifciteibid{\blx@TE\blx@imc@ifciteibid}%
@@ -8976,6 +9003,7 @@
     \DeclareExpandableDocumentCommand{\iffieldequals}{omm}{\blx@TE{\blx@imc@ifflnequals{field}[#1]{#2}{#3}}}%
     \DeclareExpandableDocumentCommand{\iffieldequalstr}{omm}{\blx@TE{\blx@imc@iffieldequalstr[#1]{#2}{#3}}}%
     \DeclareExpandableDocumentCommand{\iffieldsequal}{omom}{\blx@TE{\blx@imc@ifflequal{field}[#1]{#2}[#3]{#4}}}%
+    \def\iffbibmacroundef#1{\blx@TE{\blx@imc@ifbibmacroundef{#1}}}%
     \DeclareExpandableDocumentCommand{\iffieldundef}{om}{\blx@TE{\blx@imc@ifflnundef{field}[#1]{#2}}}%
     \DeclareExpandableDocumentCommand{\ifnameequalcs}{omm}{\blx@TE{\blx@imc@ifnameequalcs[#1]{#2}{#3}}}%
     \DeclareExpandableDocumentCommand{\ifnameequals}{omm}{\blx@TE{\blx@imc@ifflnequals{name}[#1]{#2}{#3}}}%
@@ -9310,35 +9338,34 @@
   n\or o\or p\or q\or r\or s\or t\or u\or v\or w\or x\or y\or z\else
   \blx@warning@entry{Value out of range}\number#1\fi}
 
-\newrobustcmd*{\volcitecmd}[1]{%
-  \begingroup
-  \def\blx@tempa{\endgroup#1}%
-  \@ifstar
-    {\appto\blx@tempa{*}%
-     \blx@volcitecmd@i}
-    {\blx@volcitecmd@i}}
+% {<macro>}[<pre>]{<vol>}[<post>] => <macro>{<pre>}{{<vol>}{<post>}}
 
-\def\blx@volcitecmd@i{%
+\newrobustcmd*{\volcitecmd}{%
+  \AtNextCite{\DeclareFieldAlias{postnote}{volcitenote}}%
+  \begingroup\let\blx@citeargs\blx@volciteargs}
+
+\protected\def\blx@volciteargs#1{%
+  \endgroup
   \@ifnextchar[%]
-    {\blx@volcitecmd@ii}
-    {\blx@volcitecmd@ii[]}}
+    {\blx@volciteargs@i{#1}}
+    {\blx@volciteargs@i{#1}[]}}
 
-\def\blx@volcitecmd@ii[#1]#2{%
-  \appto\blx@tempa{[#1]}%
-  \blx@getformat\blx@tempb{ffd}{}{volcitevolume}%
+\long\def\blx@volciteargs@i#1[#2]#3{%
   \@ifnextchar[%]
-    {\blx@volcitecmd@iii{#2}}
-    {\edef\blx@tempa{\expandonce\blx@tempa[{%
-       \expandonce{\blx@tempb{#2}}}]}%
-     \blx@tempa}}
+    {\blx@volciteargs@ii{#1}{#2}{#3}}
+    {\blx@citeargs@iii{#1}{#2}{{#3}{}}}}
 
-\def\blx@volcitecmd@iii#1[#2]{%
-  \blx@getformat\blx@tempc{ffd}{}{volcitepages}%
-  \edef\blx@tempa{\expandonce\blx@tempa[{%
-    \expandonce{\blx@tempb{#1}}%
-    \noexpand\volcitedelim
-    \expandonce{\blx@tempc{#2}}}]}%
-  \blx@tempa}
+\long\def\blx@volciteargs@ii#1#2#3[#4]{%
+  \blx@citeargs@iii{#1{#2}{{#3}{#4}}}}
+
+\newrobustcmd*{\multivolcitecmd}{%
+  \AtNextCite{\DeclareFieldAlias{postnote}{volcitenote}}%
+  \BeforeNextMultiCite{\let\blx@citeargs\blx@volmciteargs}}
+
+\protected\def\blx@volmciteargs#1{%
+  \@ifnextchar[%]
+    {\blx@volciteargs@i{#1}}
+    {\blx@volciteargs@i{#1}[]}}
 
 %% Control file
 

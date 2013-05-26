@@ -210,8 +210,20 @@
      [\thefield{prenote}][\thefield{postnote}]{\cbx@savedkeys}}}
 
 \newrobustcmd{\cbx@textcite}[2]{%
-  \def\cbx@savedcites{#1}#2\cbx@savedcites}
+  \def\cbx@savedcites{#1}#2%
+  \printfield{postpunct}\cbx@savedcites\@empty\nopunct}
 
-\DeclareMultiCiteCommand{\textcites}[\cbx@textcite\footcites]{\textcite}{\multinamedelim}
+\DeclareMultiCiteCommand{\cbx@textcites}[\cbx@textcite\footcites]
+  {\textcite}{\multinamedelim}
+
+\renewrobustcmd*{\textcites}{%
+  \AtNextMultiCite{%
+    \protected@xappto\cbx@savedcites{%
+      (\thefield{multiprenote})(\thefield{multipostnote})}%
+    \iffootnote
+      {}
+      {\clearfield{multiprenote}%
+       \global\clearfield{multipostnote}}}%
+  \cbx@textcites}
 
 \endinput
