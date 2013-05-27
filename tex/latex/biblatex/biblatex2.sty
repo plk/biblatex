@@ -5655,37 +5655,41 @@
 % abx@lang@c@<bibfield>           - count of langs for <bibfield>
 % abx@lang@c@<bibfield>@<form>    - count of langs for <form> of <bibfield>
 
+% {<bibfield>}{<form>}{<lang>}
+\def\blx@bbl@msdata#1#2#3{%
+  % list and count of bibfield forms
+  \csxappto\blx@bbl@data{%
+    \xifinlistcs{#2}{abx@forms@#1}
+      {}
+      {\listcsadd{abx@forms@#1}{#2}%
+       \noexpand\@ifundefined{abx@form@c@#1}%
+         {\noexpand\newcount\expandafter\noexpand\csname abx@form@c@#1\endcsname}
+         {}%
+       \noexpand\advance\expandafter\noexpand\csname abx@form@c@#1\endcsname\@ne\noexpand\relax}%
+    % list and count of bibfield langs
+    \xifinlistcs{\blx@languagename}{abx@langs@#1}
+      {}
+      {\listcsadd{abx@langs@#1}{\blx@languagename}%
+       \noexpand\@ifundefined{abx@lang@c@#1}%
+         {\noexpand\newcount\expandafter\noexpand\csname abx@lang@c@#1\endcsname}
+         {}%
+       \noexpand\advance\expandafter\noexpand\csname abx@lang@c@#1\endcsname\@ne\noexpand\relax}%
+    % list and count of bibfield langs for each form
+   \xifinlistcs{\blx@languagename}{abx@langs@#1@#2}
+      {}
+      {\listcsadd{abx@langs@#1@#2}{#3}%
+       \noexpand\@ifundefined{abx@lang@c@#1@#2}%
+         {\noexpand\newcount\expandafter\noexpand\csname abx@lang@c@#1@#2\endcsname}
+         {}%
+       \noexpand\advance\expandafter\noexpand\csname abx@lang@c@#1@#2\endcsname\noexpand\@ne\noexpand\relax}}}
+
 % [<form/lang keval>]{<field>}{<value>}
 \newrobustcmd*{\blx@bbl@addfield}[3][]{%
   \ifcsdef{blx@msbibfield@#2}
     {\ifblank{#1}% ms bibfield with no form/lang specified
       {\csxappto\blx@bbl@data{%
        \def\expandafter\noexpand\csname abx@field@#2@\blx@multiscriptform @\blx@languagename\endcsname{#3}}%
-       \csxappto\blx@bbl@data{%
-         % list and count of bibfield forms
-         \xifinlistcs{\blx@multiscriptform}{abx@forms@#2}
-           {}
-           {\listcsadd{abx@forms@#2}{\blx@multiscriptform}%
-            \noexpand\@ifundefined{abx@form@c@#2}%
-              {\noexpand\newcount\expandafter\noexpand\csname abx@form@c@#2\endcsname}
-              {}%
-            \noexpand\advance\expandafter\noexpand\csname abx@form@c@#2\endcsname\@ne\noexpand\relax}%
-         % list and count of bibfield langs
-         \xifinlistcs{\blx@languagename}{abx@langs@#2}
-           {}
-           {\listcsadd{abx@langs@#2}{\blx@languagename}%
-            \noexpand\@ifundefined{abx@lang@c@#2}%
-              {\noexpand\newcount\expandafter\noexpand\csname abx@lang@c@#2\endcsname}
-              {}%
-            \noexpand\advance\expandafter\noexpand\csname abx@lang@c@#2\endcsname\@ne\noexpand\relax}%
-         % list and count of bibfield langs for each form
-         \xifinlistcs{\blx@languagename}{abx@langs@#2@\blx@multiscriptform}
-           {}
-           {\listcsadd{abx@langs@#2@\blx@multiscriptform}{\blx@languagename}%
-            \noexpand\@ifundefined{abx@lang@c@#2@\blx@multiscriptform}%
-              {\noexpand\newcount\expandafter\noexpand\csname abx@lang@c@#2@\blx@multiscriptform\endcsname}
-              {}%
-            \noexpand\advance\expandafter\noexpand\csname abx@lang@c@#2@\blx@multiscriptform\endcsname\noexpand\@ne\noexpand\relax}}}
+     \blx@bbl@msdata{#2}{\blx@multiscriptform}{\blx@languagename}}
       {\edef\blx@tempa{\blx@multiscriptform}%
        \edef\blx@tempb{\blx@languagename}%
        \setkeys{blx@ms}{#1}%
@@ -5697,31 +5701,7 @@
          {\listxadd\blx@mslangs{\blx@tempb}}%
        \csxappto\blx@bbl@data{%
          \def\expandafter\noexpand\csname abx@field@#2@\blx@tempa @\blx@tempb\endcsname{#3}}%
-       \csxappto\blx@bbl@data{%
-         % list and count of bibfield forms
-         \xifinlistcs{\blx@tempa}{abx@forms@#2}
-           {}
-           {\listcsadd{abx@forms@#2}{\blx@tempa}%
-            \noexpand\@ifundefined{abx@form@c@#2}%
-              {\noexpand\newcount\expandafter\noexpand\csname abx@form@c@#2\endcsname}
-              {}%
-            \noexpand\advance\expandafter\noexpand\csname abx@form@c@#2\endcsname\@ne\noexpand\relax}%
-         % list and count of bibfield langs
-         \xifinlistcs{\blx@tempb}{abx@langs@#2}
-           {}
-           {\listcsadd{abx@langs@#2}{\blx@tempb}%
-            \noexpand\@ifundefined{abx@lang@c@#2}%
-              {\noexpand\newcount\expandafter\noexpand\csname abx@lang@c@#2\endcsname}
-              {}%
-            \noexpand\advance\expandafter\noexpand\csname abx@lang@c@#2\endcsname\@ne\noexpand\relax}%
-         % list and count of bibfield langs for each form
-         \xifinlistcs{\blx@tempb}{abx@langs@#2@\blx@tempa}
-           {}
-           {\listcsadd{abx@langs@#2@\blx@tempa}{\blx@tempb}%
-            \noexpand\@ifundefined{abx@lang@c@#2@\blx@tempa}%
-              {\noexpand\newcount\expandafter\noexpand\csname abx@lang@c@#2@\blx@tempa\endcsname}
-              {}%
-            \noexpand\advance\expandafter\noexpand\csname abx@lang@c@#2@\blx@tempa\endcsname\@ne\noexpand\relax}}}}
+       \blx@bbl@msdata{#2}{\blx@tempa}{\blx@tempb}}}
     {\csxappto\blx@bbl@data{%
       \def\expandafter\noexpand\csname abx@field@#2\endcsname{#3}}}}
 
@@ -5776,10 +5756,7 @@
 \def\blx@imc@getlang#1#2{%
   \ifcsdef{blx@msbibfield@#1}
     {\blx@imc@ifbibfieldform{#1}{#2}
-      {\typeout{FLC:\expandafter\the\csname abx@lang@c@#1@#2\endcsname}%
-       \typeout{FC:\expandafter\the\csname abx@form@c@#1\endcsname}%
-       \typeout{LC:\expandafter\the\csname abx@lang@c@#1\endcsname}%
-        \expandafter\ifnum\csname abx@lang@c@#1@#2\endcsname = \@ne
+      {\expandafter\ifnum\csname abx@lang@c@#1@#2\endcsname = \@ne
         \def\do##1{##1\listbreak}%
         \dolistcsloop{abx@langs@#1@#2}%
        \else
@@ -5873,13 +5850,7 @@
         \csname c@#2\endcsname\NewCount\relax
         \def\expandafter\noexpand\csname abx@list@#2@\blx@multiscriptform @\blx@languagename\endcsname
         {\expandonce\NewValue}}%
-       \csxappto\blx@bbl@data{% to simplify some tests later
-         \xifinlistcs{\blx@multiscriptform}{abx@forms@#2}
-           {}
-           {\listcsadd{abx@forms@#2}{\blx@multiscriptform}}%
-         \xifinlistcs{\blx@languagename}{abx@langs@#2@\blx@multiscriptform}
-           {}
-           {\listcsadd{abx@langs@#2@\blx@multiscriptform}{\blx@languagename}}}}
+       \blx@bbl@msdata{#2}{\blx@multiscriptform}{\blx@languagename}}
       {\edef\blx@tempa{\blx@multiscriptform}%
          \edef\blx@tempb{\blx@languagename}%
          \setkeys{blx@ms}{#1}%
@@ -5889,17 +5860,11 @@
        \xifinlist{\blx@tempb}{\blx@mslangs}
          {}
          {\listxadd\blx@mslangs{\blx@tempb}}%
-       \csxappto\blx@bbl@data{% to simplify some tests later
-         \xifinlistcs{\blx@tempa}{abx@forms@#2}
-           {}
-           {\listcsadd{abx@forms@#2}{\blx@tempa}}%
-         \xifinlistcs{\blx@tempb}{abx@langs@#2@\blx@tempa}
-           {}
-           {\listcsadd{abx@langs@#2@\blx@tempa}{\blx@tempb}}}%
        \csxappto\blx@bbl@data{%
          \csname c@#2\endcsname\NewCount\relax
          \def\expandafter\noexpand\csname abx@list@#2@\blx@tempa @\blx@tempb\endcsname
-         {\expandonce\NewValue}}}}
+         {\expandonce\NewValue}}%
+       \blx@bbl@msdata{#2}{\blx@tempa}{\blx@tempb}}}
     {\csxappto\blx@bbl@data{%
      \csname c@#2\endcsname\NewCount\relax
      \def\expandafter\noexpand\csname abx@list@#2\endcsname
@@ -5916,33 +5881,21 @@
         \csname c@#2\endcsname\NewCount\relax
         \def\expandafter\noexpand\csname abx@name@#2@\blx@multiscriptform @\blx@languagename\endcsname
         {{\expandonce\NewOption}{\expandonce\NewValue}}}%
-       \csxappto\blx@bbl@data{% to simplify some tests later
-         \xifinlistcs{\blx@multiscriptform}{abx@forms@#2}
-           {}
-           {\listcsadd{abx@forms@#2}{\blx@multiscriptform}}%
-         \xifinlistcs{\blx@languagename}{abx@langs@#2@\blx@multiscriptform}
-           {}
-           {\listcsadd{abx@langs@#2@\blx@multiscriptform}{\blx@languagename}}}}
-    {\edef\blx@tempa{\blx@multiscriptform}%
-     \edef\blx@tempb{\blx@languagename}%
-     \setkeys{blx@ms}{#1}%
-     \xifinlist{\blx@tempa}{\blx@msforms}
-       {}
-       {\listxadd\blx@msforms{\blx@tempa}}%
-     \xifinlist{\blx@tempb}{\blx@mslangs}
-       {}
-       {\listxadd\blx@mslangs{\blx@tempb}}%
-     \csxappto\blx@bbl@data{% to simplify some tests later
-       \xifinlistcs{\blx@tempa}{abx@forms@#2}
+      \blx@bbl@msdata{#2}{\blx@multiscriptform}{\blx@languagename}}
+      {\edef\blx@tempa{\blx@multiscriptform}%
+       \edef\blx@tempb{\blx@languagename}%
+       \setkeys{blx@ms}{#1}%
+       \xifinlist{\blx@tempa}{\blx@msforms}
          {}
-         {\listcsadd{abx@forms@#2}{\blx@tempa}}%
-       \xifinlistcs{\blx@tempb}{abx@langs@#2@\blx@tempa}
+         {\listxadd\blx@msforms{\blx@tempa}}%
+       \xifinlist{\blx@tempb}{\blx@mslangs}
          {}
-         {\listcsadd{abx@langs@#2@\blx@tempa}{\blx@tempb}}}%
-     \csxappto\blx@bbl@data{%
-       \csname c@#2\endcsname\NewCount\relax
-       \def\expandafter\noexpand\csname abx@name@#2@\blx@tempa @\blx@tempb\endcsname
-       {{\expandonce\NewOption}{\expandonce\NewValue}}}}}
+         {\listxadd\blx@mslangs{\blx@tempb}}%
+       \csxappto\blx@bbl@data{%
+         \csname c@#2\endcsname\NewCount\relax
+         \def\expandafter\noexpand\csname abx@name@#2@\blx@tempa @\blx@tempb\endcsname
+         {{\expandonce\NewOption}{\expandonce\NewValue}}}%
+       \blx@bbl@msdata{#2}{\blx@tempa}{\blx@tempb}}}
     {\csxappto\blx@bbl@data{%
         \csname c@#2\endcsname\NewCount\relax
         \def\expandafter\noexpand\csname abx@name@#2\endcsname
