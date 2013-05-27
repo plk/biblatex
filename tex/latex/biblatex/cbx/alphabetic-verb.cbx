@@ -3,6 +3,8 @@
 
 \ExecuteBibliographyOptions{labelalpha,autocite=inline}
 
+\renewcommand*{\iffinalcitedelim}{\iflastcitekey}
+
 \newbibmacro*{cite}{%
   \printtext[bibhyperref]{%
     \printfield{prefixnumber}%
@@ -11,9 +13,9 @@
 
 \newbibmacro*{textcite}{%
   \ifnameundef{labelname}
-    {}
-    {\printnames{labelname}\space}%
-  \bibopenbracket
+    {\printfield[citetitle]{labeltitle}}
+    {\printnames{labelname}}%
+  \addspace\bibopenbracket
   \ifnumequal{\value{citecount}}{1}
     {\usebibmacro{prenote}}
     {}%
@@ -62,12 +64,18 @@
 \DeclareCiteCommand{\textcite}
   {}
   {\usebibmacro{citeindex}%
+   \iffirstcitekey
+     {\setcounter{textcitetotal}{1}}
+     {\stepcounter{textcitetotal}%
+      \textcitedelim}%
    \usebibmacro{textcite}}
-  {\bibclosebracket\multicitedelim}
+  {\bibclosebracket}
   {\usebibmacro{postnote}%
    \bibclosebracket}
 
 \DeclareMultiCiteCommand{\parencites}[\mkbibbrackets]{\parencite}{\multicitedelim}
-\DeclareMultiCiteCommand{\smartcites}[\iffootnote\mkbibbrackets\mkbibfootnote]{\smartcite}{\multicitedelim}
+\DeclareMultiCiteCommand{\smartcites}[\iffootnote\mkbibbrackets\mkbibfootnote]
+  {\smartcite}{\multicitedelim}
+\DeclareMultiCiteCommand{\textcites}{\textcite}{}
 
 \endinput

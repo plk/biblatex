@@ -3,7 +3,10 @@
 
 \ExecuteBibliographyOptions{labeldate,uniquename,uniquelist,pagetracker,
                             ibidtracker=constrict,autocite=inline}
+
 \providecommand*{\mkibid}[1]{#1}
+\renewcommand*{\iffinalcitedelim}{\iflastcitekey}
+
 \newbool{cbx:parens}
 \newbool{cbx:loccit}
 
@@ -18,11 +21,11 @@
     {\ifthenelse{\ifciteibid\AND\NOT\iffirstonpage}
        {\usebibmacro{cite:ibid}}
        {\ifthenelse{\ifnameundef{labelname}\OR\iffieldundef{labelyear}}
-	  {\usebibmacro{cite:label}%
+          {\usebibmacro{cite:label}%
            \setunit{\addspace}}
-	  {\printnames{labelname}%
+          {\printnames{labelname}%
            \setunit{\nameyeardelim}}%
-	\usebibmacro{cite:labelyear+extrayear}}}
+        \usebibmacro{cite:labelyear+extrayear}}}
     {\usebibmacro{cite:shorthand}}}
 
 \newbibmacro*{citeyear}{%
@@ -31,8 +34,8 @@
     {\ifthenelse{\ifciteibid\AND\NOT\iffirstonpage}
        {\usebibmacro{cite:ibid}}
        {\iffieldundef{labelyear}
-	  {\usebibmacro{cite:label}}
-	  {\usebibmacro{cite:labelyear+extrayear}}}}
+          {\usebibmacro{cite:label}}
+          {\usebibmacro{cite:labelyear+extrayear}}}}
     {\usebibmacro{cite:shorthand}}}
 
 \newbibmacro*{textcite}{%
@@ -40,13 +43,13 @@
   \ifnameundef{labelname}
     {\iffieldundef{shorthand}
        {\usebibmacro{cite:label}%
-	\setunit{%
-	  \global\booltrue{cbx:parens}%
-	  \addspace\bibopenparen}%
-	\ifnumequal{\value{citecount}}{1}
-	  {\usebibmacro{prenote}}
-	  {}%
-	\usebibmacro{cite:labelyear+extrayear}}
+        \setunit{%
+          \global\booltrue{cbx:parens}%
+          \addspace\bibopenparen}%
+        \ifnumequal{\value{citecount}}{1}
+          {\usebibmacro{prenote}}
+          {}%
+        \usebibmacro{cite:labelyear+extrayear}}
        {\usebibmacro{cite:shorthand}}}
     {\printnames{labelname}%
      \setunit{%
@@ -58,7 +61,7 @@
      \iffieldundef{shorthand}
        {\ifthenelse{\ifciteibid\AND\NOT\iffirstonpage}
           {\usebibmacro{cite:ibid}}
-	  {\iffieldundef{labelyear}
+          {\iffieldundef{labelyear}
              {\usebibmacro{cite:label}}
              {\usebibmacro{cite:labelyear+extrayear}}}}
        {\usebibmacro{cite:shorthand}}}}
@@ -151,11 +154,16 @@
 \DeclareCiteCommand{\textcite}
   {\boolfalse{cbx:parens}}
   {\usebibmacro{citeindex}%
+   \iffirstcitekey
+     {\setcounter{textcitetotal}{1}}
+     {\stepcounter{textcitetotal}%
+      \textcitedelim}%
    \usebibmacro{textcite}}
   {\ifbool{cbx:parens}
      {\bibcloseparen\global\boolfalse{cbx:parens}}
-     {}%
-   \multicitedelim}
+     {}}
   {\usebibmacro{textcite:postnote}}
+
+\DeclareMultiCiteCommand{\textcites}{\textcite}{}
 
 \endinput

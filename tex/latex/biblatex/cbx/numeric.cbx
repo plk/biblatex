@@ -2,8 +2,14 @@
 [\abx@cbxid]
 
 \ExecuteBibliographyOptions{labelnumber,autocite=inline}
+
 \renewcommand*{\multicitedelim}{\addcomma\space}
+\renewcommand*{\iffinalcitedelim}{%
+  \ifnumequal{\value{textcitecount}}{\value{textcitetotal}-1}}
+
 \providebool{bbx:subentry}
+\newbool{cbx:parens}
+
 \DeclareFieldFormat{entrysetcount}{\mknumalph{#1}}
 
 \newbibmacro*{cite}{%
@@ -16,18 +22,44 @@
 
 \newbibmacro*{textcite}{%
   \iffieldequals{namehash}{\cbx@lasthash}
-    {\multicitedelim}
-    {\cbx@tempa
-     \ifnameundef{labelname}
+    {\setunit{\multicitedelim}}
+    {\ifnameundef{labelname}
        {\printfield[citetitle]{labeltitle}}
        {\printnames{labelname}}%
-     \addspace\bibopenbracket}%
+     \setunit{%
+       \global\booltrue{cbx:parens}%
+       \addspace\bibopenbracket}%
+     \stepcounter{textcitecount}%
+     \savefield{namehash}{\cbx@lasthash}}%
   \ifnumequal{\value{citecount}}{1}
     {\usebibmacro{prenote}}
     {}%
   \usebibmacro{cite}%
-  \savefield{namehash}{\cbx@lasthash}%
-  \gdef\cbx@tempa{\bibclosebracket\multicitedelim}}
+  \setunit{%
+    \ifbool{cbx:parens}
+      {\bibcloseparen\global\boolfalse{cbx:parens}}
+      {}%
+    \textcitedelim}}
+
+\newbibmacro*{textcite:init}{%
+  \ifnumless{\value{multicitecount}}{2}
+    {\global\boolfalse{cbx:parens}%
+     \global\undef\cbx@lasthash}
+    {\global\undef\cbx@lasthash}}
+
+\newbibmacro*{textcite:postnote}{%
+  \usebibmacro{postnote}%
+  \ifthenelse{\value{multicitecount}=\value{multicitetotal}}
+    {\setunit{}%
+     \printtext{%
+       \ifbool{cbx:parens}
+         {\bibcloseparen\global\boolfalse{cbx:parens}}
+         {}}}
+    {\setunit{%
+       \ifbool{cbx:parens}
+         {\bibcloseparen\global\boolfalse{cbx:parens}}
+         {}%
+       \textcitedelim}}}
 
 \DeclareCiteCommand{\cite}[\mkbibbrackets]
   {\usebibmacro{prenote}}
@@ -64,15 +96,6 @@
   {\multicitedelim}
   {\usebibmacro{postnote}}
 
-\DeclareCiteCommand{\textcite}
-  {\let\cbx@tempa=\empty
-   \undef\cbx@lasthash}
-  {\usebibmacro{citeindex}%
-   \usebibmacro{textcite}}
-  {}
-  {\usebibmacro{postnote}%
-   \bibclosebracket}
-
 \DeclareCiteCommand{\supercite}[\mkbibsuperscript]
   {\iffieldundef{prenote}
      {}
@@ -85,8 +108,40 @@
   {\supercitedelim}
   {}
 
+\DeclareCiteCommand{\cbx@textcite}
+  {\usebibmacro{textcite:init}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{textcite}}
+  {}
+  {\usebibmacro{textcite:postnote}}
+
+\DeclareCiteCommand{\textcite}[\cbx@textcite@init\cbx@textcite]
+  {\gdef\cbx@savedkeys{}%
+   \usebibmacro{textcite:init}}
+  {\ifthenelse{\iffirstcitekey\AND\value{multicitetotal}>0}
+     {\protected@xappto\cbx@savedcites{()(\thefield{multipostnote})}%
+      \global\clearfield{multipostnote}}
+     {}%
+   \xappto\cbx@savedkeys{\thefield{entrykey},}%
+   \iffieldequals{namehash}{\cbx@lasthash}
+     {}
+     {\stepcounter{textcitetotal}%
+      \savefield{namehash}{\cbx@lasthash}}}
+  {}
+  {\protected@xappto\cbx@savedcites{%
+     [\thefield{prenote}][\thefield{postnote}]{\cbx@savedkeys}}}
+
+\newrobustcmd{\cbx@textcite@init}[2]{%
+  \setcounter{textcitetotal}{0}%
+  \setcounter{textcitecount}{0}%
+  \def\cbx@savedcites{#1}#2\cbx@savedcites\@empty}
+
+\DeclareMultiCiteCommand{\cbx@textcites}{\cbx@textcite}{}
+\DeclareMultiCiteCommand{\textcites}[\cbx@textcite@init\cbx@textcites]{\textcite}{}
+
 \DeclareMultiCiteCommand{\cites}[\mkbibbrackets]{\cite}{\multicitedelim}
 \DeclareMultiCiteCommand{\parencites}[\mkbibbrackets]{\parencite}{\multicitedelim}
-\DeclareMultiCiteCommand{\smartcites}[\iffootnote\mkbibbrackets\mkbibfootnote]{\smartcite}{\multicitedelim}
+\DeclareMultiCiteCommand{\smartcites}[\iffootnote\mkbibbrackets\mkbibfootnote]
+  {\smartcite}{\multicitedelim}
 
 \endinput
