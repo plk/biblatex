@@ -4058,6 +4058,10 @@
           \blx@imc@ifbibfieldmsx{#2}{#3}
             {\edef\currentform{\blx@tempa}%
              \edef\currentlang{\blx@tempb}%
+             % set up form/lang counters for use in formatting directives
+             \expandafter\c@formcount\csname abx@form@c@#3\endcsname
+             \expandafter\c@langcount\csname abx@lang@c@#3\endcsname
+             % set up babel language for field variant
              \begin{otherlanguage*}{\blx@tempb}%
                \expandafter\expandafter
                \expandafter\blx@theformat
@@ -4070,7 +4074,6 @@
              \expandafter\expandafter
              \expandafter{\csname abx@field@#3\endcsname}%
              \blx@endunit}}}}
-
 
 % [<format>][<form/lang keyval>]{<field>}
 \DeclareExpandableDocumentCommand{\blx@imc@indexfield}
@@ -4158,7 +4161,10 @@
 
 \def\blx@namesetup@i#1#2{%
   \blx@imc@ifbibfieldmsx{#1}{#2}
-    {\edef\currentform{\blx@tempa}%
+    {% set up form/lang counters for use in formatting directives
+     \expandafter\c@formcount\csname abx@form@c@#2\endcsname
+     \expandafter\c@langcount\csname abx@lang@c@#2\endcsname
+     \edef\currentform{\blx@tempa}%
      \edef\currentlang{\blx@tempb}%
      \expandafter\expandafter
      \expandafter\blx@namesetup@ii\csname abx@name@#2@\blx@tempa @\blx@tempb\endcsname}
@@ -4293,7 +4299,10 @@
   \blx@imc@ifbibfieldmsx{#3}{#4}
     {\edef\currentform{\blx@tempa}%
      \edef\currentlang{\blx@tempb}%
-     \letcs\blx@thedata{abx@list@#4@\blx@tempa @\blx@tempb}}
+     \letcs\blx@thedata{abx@list@#4@\blx@tempa @\blx@tempb}%
+     % set up form/lang counters for use in formatting directives
+     \expandafter\c@formcount\csname abx@form@c@#4\endcsname
+     \expandafter\c@langcount\csname abx@lang@c@#4\endcsname}
     {\letcs\blx@thedata{abx@list@#4}}%
   \ifblank{#1}
     {\c@liststart\@ne}
@@ -5667,21 +5676,19 @@
       {}
       {\listcsadd{abx@forms@#1}{#2}%
        \noexpand\@ifundefined{abx@form@c@#1}%
-%         {\noexpand\newcounter{abx@form@c@#1}%
          {\noexpand\newcount\expandafter\noexpand\csname abx@form@c@#1\endcsname}
          {}%
-%       \addtocounter{abx@form@c@#1}\@ne}%
        \noexpand\advance\expandafter\noexpand\csname abx@form@c@#1\endcsname\@ne\noexpand\relax}%
     % list and count of bibfield langs
-    \xifinlistcs{\blx@languagename}{abx@langs@#1}
+    \xifinlistcs{#3}{abx@langs@#1}
       {}
-      {\listcsadd{abx@langs@#1}{\blx@languagename}%
+      {\listcsadd{abx@langs@#1}{#3}%
        \noexpand\@ifundefined{abx@lang@c@#1}%
          {\noexpand\newcount\expandafter\noexpand\csname abx@lang@c@#1\endcsname}
          {}%
        \noexpand\advance\expandafter\noexpand\csname abx@lang@c@#1\endcsname\@ne\noexpand\relax}%
     % list and count of bibfield langs for each form
-   \xifinlistcs{\blx@languagename}{abx@langs@#1@#2}
+   \xifinlistcs{#3}{abx@langs@#1@#2}
       {}
       {\listcsadd{abx@langs@#1@#2}{#3}%
        \noexpand\@ifundefined{abx@lang@c@#1@#2}%
