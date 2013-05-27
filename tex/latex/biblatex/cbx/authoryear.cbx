@@ -2,6 +2,9 @@
 [\abx@cbxid]
 
 \ExecuteBibliographyOptions{labeldate,uniquename,uniquelist,autocite=inline}
+
+\renewcommand*{\iffinalcitedelim}{\iflastcitekey}
+
 \newbool{cbx:parens}
 
 \newbibmacro*{cite}{%
@@ -25,13 +28,13 @@
   \ifnameundef{labelname}
     {\iffieldundef{shorthand}
        {\usebibmacro{cite:label}%
-	\setunit{%
-	  \global\booltrue{cbx:parens}%
-	  \addspace\bibopenparen}%
-	\ifnumequal{\value{citecount}}{1}
-	  {\usebibmacro{prenote}}
-	  {}%
-	\usebibmacro{cite:labelyear+extrayear}}
+        \setunit{%
+          \global\booltrue{cbx:parens}%
+          \addspace\bibopenparen}%
+        \ifnumequal{\value{citecount}}{1}
+          {\usebibmacro{prenote}}
+          {}%
+        \usebibmacro{cite:labelyear+extrayear}}
        {\usebibmacro{cite:shorthand}}}
     {\printnames{labelname}%
      \setunit{%
@@ -119,11 +122,16 @@
 \DeclareCiteCommand{\textcite}
   {\boolfalse{cbx:parens}}
   {\usebibmacro{citeindex}%
+   \iffirstcitekey
+     {\setcounter{textcitetotal}{1}}
+     {\stepcounter{textcitetotal}%
+      \textcitedelim}%
    \usebibmacro{textcite}}
   {\ifbool{cbx:parens}
      {\bibcloseparen\global\boolfalse{cbx:parens}}
-     {}%
-   \multicitedelim}
+     {}}
   {\usebibmacro{textcite:postnote}}
+
+\DeclareMultiCiteCommand{\textcites}{\textcite}{}
 
 \endinput

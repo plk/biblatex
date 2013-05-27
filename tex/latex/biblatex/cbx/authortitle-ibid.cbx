@@ -1,8 +1,12 @@
 \ProvidesFile{authortitle-ibid.cbx}
 [\abx@cbxid]
 
-\ExecuteBibliographyOptions{uniquename,uniquelist,ibidtracker=constrict,pagetracker,autocite=footnote}
+\ExecuteBibliographyOptions{uniquename,uniquelist,ibidtracker=constrict,
+  pagetracker,autocite=footnote}
+
 \providecommand*{\mkibid}[1]{#1}
+\renewcommand*{\iffinalcitedelim}{\iflastcitekey}
+
 \newbool{cbx:parens}
 \newbool{cbx:loccit}
 
@@ -17,10 +21,10 @@
     {\ifthenelse{\ifciteibid\AND\NOT\iffirstonpage}
        {\usebibmacro{cite:ibid}}
        {\ifnameundef{labelname}
-	  {}
-	  {\printnames{labelname}%
+          {}
+          {\printnames{labelname}%
            \setunit{\nametitledelim}}%
-	\usebibmacro{cite:title}}}%
+        \usebibmacro{cite:title}}}%
     {\usebibmacro{cite:shorthand}}}
 
 \newbibmacro*{citetitle}{%
@@ -128,11 +132,16 @@
 \DeclareCiteCommand{\textcite}
   {\boolfalse{cbx:parens}}
   {\usebibmacro{citeindex}%
+   \iffirstcitekey
+     {\setcounter{textcitetotal}{1}}
+     {\stepcounter{textcitetotal}%
+      \textcitedelim}%
    \usebibmacro{textcite}}
   {\ifbool{cbx:parens}
      {\bibcloseparen\boolfalse{cbx:parens}}
-     {}%
-   \multicitedelim}
+     {}}
   {\usebibmacro{textcite:postnote}}
+
+\DeclareMultiCiteCommand{\textcites}{\textcite}{}
 
 \endinput

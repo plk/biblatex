@@ -41,9 +41,25 @@
 \newcommand*{\nametitledelim}{\addcomma\space}
 \newcommand*{\nameyeardelim}{\addspace}
 \newcommand*{\volcitedelim}{\addcomma\space}
-\newrobustcmd*{\mkvolcitenote}[2]{%
-  \printtext[volcitevolume]{#1}%
-  \ifblank{#2}{}{\volcitedelim\printtext[volcitepages]{#2}}}
+\newcommand*{\textcitedelim}{%
+  \iffinalcitedelim
+    {\ifnumgreater{\value{textcitetotal}}{2}
+       {\finalandcomma\space\bibstring{and}\space}
+       {\addspace\bibstring{and}\space}}
+    {\addcomma\space}}
+
+% This is a provisional definition for \iffinalcitedelim{<true>}{<false>}, a
+% test that should expand <true> if the next non-compact citation delimiter
+% is the last one in the citation list printed by \textcite or \textcites.
+
+\newcommand*{\iffinalcitedelim}{\@secondoftwo}
+
+% Define counters for the number of citation labels separated by non-compact
+% delimiters in the citation list printed by \textcite or \textcites. Counter
+% values should be managed by the citation style.
+
+\newcounter{textcitecount}
+\newcounter{textcitetotal}
 
 % Used in the bibliography and the list of shorthands
 
@@ -62,7 +78,7 @@
     {\makebox[\leftmargin][l]{%
        \ifdimless{\leftmargin}{1.25em}
          {\textendash}
-	 {\textemdash}}}}
+         {\textemdash}}}}
 \newcommand*{\relatedpunct}{\addspace}
 \newcommand*{\relateddelim}{\adddot\par\nobreak}
 \newcommand{\mkrelatedstring}{\mainlang}
@@ -245,7 +261,7 @@
        {Option 'backrefstyle=#1' invalid}
        {The option you have supplied is invalid.\MessageBreak
         See the biblatex manual for valid option keys
-	and possible values}}}
+        and possible values}}}
 \newcommand*{\abx@pagerefstyle}{1}
 \csdef{abx@opt@pagerefstyle@none}{-1}
 \csdef{abx@opt@pagerefstyle@two}{0}
@@ -303,6 +319,9 @@
 \DeclareFieldFormat{volcitevolume}{\bibstring{volume}\ppspace#1}
 \DeclareFieldFormat{volcitepages}{\mkpageprefix[pagination]{#1}}
 \DeclareFieldFormat{volcitenote}{\mkvolcitenote#1}
+\newrobustcmd*{\mkvolcitenote}[2]{%
+  \printtext[volcitevolume]{#1}%
+  \ifblank{#2}{}{\volcitedelim\printtext[volcitepages]{#2}}}
 
 % multicite commands
 \DeclareFieldFormat{multiprenote}{#1\isdot}
@@ -346,8 +365,8 @@
     {\href{http://arxiv.org/\abx@arxivpath/#1}{%
        \nolinkurl{#1}%
        \iffieldundef{eprintclass}
-	 {}
-	 {\addspace\texttt{\mkbibbrackets{\thefield{eprintclass}}}}}}
+         {}
+         {\addspace\texttt{\mkbibbrackets{\thefield{eprintclass}}}}}}
     {\nolinkurl{#1}
      \iffieldundef{eprintclass}
        {}
@@ -543,23 +562,23 @@
     {\ifrmnum{#1}
        {\numdef\abx@range@num{\rmntonum{#1}}%
         \def\abx@range@this{2}%
-	\ifnumequal{\abx@range@this}{\abx@range@last}
-	  {}
-	  {\def\abx@range@prev{-1}}}
+        \ifnumequal{\abx@range@this}{\abx@range@last}
+          {}
+          {\def\abx@range@prev{-1}}}
        {\undef\abx@range@num
         \def\abx@range@this{0}%
-	\def\abx@range@prev{-1}}}%
+        \def\abx@range@prev{-1}}}%
   \ifdef\abx@range@num
     {\ifnumequal{\abx@range@num}{\abx@range@prev}
        {\def\abx@range@hold{#1}%
         \numdef\abx@range@diff{\abx@range@diff+1}}
        {\usebibmacro{pageref:dump}%
-	\ifnumgreater{\abx@range@last}{-1}
-	  {\multilistdelim}
-	  {}%
-	\ifhyperref
-	  {\hyperlink{page.#1}{#1}}
-	  {#1}}%
+        \ifnumgreater{\abx@range@last}{-1}
+          {\multilistdelim}
+          {}%
+        \ifhyperref
+          {\hyperlink{page.#1}{#1}}
+          {#1}}%
      \edef\abx@range@prev{\abx@range@num}}
     {\usebibmacro{pageref:dump}%
      \ifnumgreater{\abx@range@last}{-1}
@@ -576,50 +595,50 @@
     {\ifcase\abx@pagerefstyle\relax % two
        \bibrangedash
        \ifhyperref
-	 {\hyperlink{page.\abx@range@hold}{\abx@range@hold}}
-	 {\abx@range@hold}%
+         {\hyperlink{page.\abx@range@hold}{\abx@range@hold}}
+         {\abx@range@hold}%
      \or % three
        \ifnumless{\abx@range@diff}{2}
-	 {\multilistdelim}
-	 {\bibrangedash}%
+         {\multilistdelim}
+         {\bibrangedash}%
        \ifhyperref
-	 {\hyperlink{page.\abx@range@hold}{\abx@range@hold}}
-	 {\abx@range@hold}%
+         {\hyperlink{page.\abx@range@hold}{\abx@range@hold}}
+         {\abx@range@hold}%
      \or % two+
        \ifnumless{\abx@range@diff}{2}
-	 {\sqspace
-	  \ifhyperref
-	    {\hyperlink{page.\abx@range@hold}{\bibstring{sequens}}}
-	    {\bibstring{sequens}}}
-	 {\bibrangedash
-	  \ifhyperref
-	    {\hyperlink{page.\abx@range@hold}{\abx@range@hold}}
-	    {\abx@range@hold}}%
+         {\sqspace
+          \ifhyperref
+            {\hyperlink{page.\abx@range@hold}{\bibstring{sequens}}}
+            {\bibstring{sequens}}}
+         {\bibrangedash
+          \ifhyperref
+            {\hyperlink{page.\abx@range@hold}{\abx@range@hold}}
+            {\abx@range@hold}}%
      \or % three+
        \ifnumless{\abx@range@diff}{2}
-	 {\sqspace
-	  \ifhyperref
-	    {\hyperlink{page.\abx@range@hold}{\bibstring{sequens}}}
-	    {\bibstring{sequens}}}
-	 {\ifnumless{\abx@range@diff}{3}
-	    {\sqspace
-	     \ifhyperref
-	       {\hyperlink{page.\abx@range@hold}{\bibstring{sequentes}}}
-	       {\bibstring{sequentes}}}
-	    {\bibrangedash
-	     \ifhyperref
-	       {\hyperlink{page.\abx@range@hold}{\abx@range@hold}}
-	       {\abx@range@hold}}}%
+         {\sqspace
+          \ifhyperref
+            {\hyperlink{page.\abx@range@hold}{\bibstring{sequens}}}
+            {\bibstring{sequens}}}
+         {\ifnumless{\abx@range@diff}{3}
+            {\sqspace
+             \ifhyperref
+               {\hyperlink{page.\abx@range@hold}{\bibstring{sequentes}}}
+               {\bibstring{sequentes}}}
+            {\bibrangedash
+             \ifhyperref
+               {\hyperlink{page.\abx@range@hold}{\abx@range@hold}}
+               {\abx@range@hold}}}%
      \else % all+
        \ifnumless{\abx@range@diff}{2}
-	 {\sqspace
-	  \ifhyperref
-	    {\hyperlink{page.\abx@range@hold}{\bibstring{sequens}}}
-	    {\bibstring{sequens}}}
-	 {\sqspace
-	  \ifhyperref
-	    {\hyperlink{page.\abx@range@hold}{\bibstring{sequentes}}}
-	    {\bibstring{sequentes}}}%
+         {\sqspace
+          \ifhyperref
+            {\hyperlink{page.\abx@range@hold}{\bibstring{sequens}}}
+            {\bibstring{sequens}}}
+         {\sqspace
+          \ifhyperref
+            {\hyperlink{page.\abx@range@hold}{\bibstring{sequentes}}}
+            {\bibstring{sequentes}}}%
      \fi
      \def\abx@range@diff{0}}
     {}}
@@ -758,7 +777,7 @@
      \ifblank{#3}{}{%
        \ifcapital
          {\mkbibnameprefix{\MakeCapital{#3}}\isdot}
-	 {\mkbibnameprefix{#3}\isdot}%
+         {\mkbibnameprefix{#3}\isdot}%
        \ifpunctmark{'}{}{\bibnamedelimc}}%
      \mkbibnamelast{#1}\isdot
      \ifblank{#4}{}{\bibnamedelimd\mkbibnameaffix{#4}\isdot}%
@@ -1269,9 +1288,12 @@
     \step[fieldsource=dc:publisher,        fieldtarget=BIBERCUSTOMpublisher]
     \step[fieldsource=dc:presentedAt,      fieldtarget=BIBERCUSTOMpresentedat]
     \step[fieldsource=dc:subject,          fieldtarget=BIBERCUSTOMsubject]
-    \step[fieldsource={dcterms:BIBERCUSTOMpartof/bib:Journal},  fieldtarget={dcterms:BIBERCUSTOMpartof/periodical}]
-    \step[fieldsource={dcterms:BIBERCUSTOMpartof/bib:Book},  fieldtarget={dcterms:BIBERCUSTOMpartof/book}]
-    \step[fieldsource={dcterms:BIBERCUSTOMpartof/bib:ConferenceProceedings},  fieldtarget={dcterms:BIBERCUSTOMpartof/proceedings}]
+    \step[fieldsource={dcterms:BIBERCUSTOMpartof/bib:Journal},
+          fieldtarget={dcterms:BIBERCUSTOMpartof/periodical}]
+    \step[fieldsource={dcterms:BIBERCUSTOMpartof/bib:Book},
+          fieldtarget={dcterms:BIBERCUSTOMpartof/book}]
+    \step[fieldsource={dcterms:BIBERCUSTOMpartof/bib:ConferenceProceedings},
+          fieldtarget={dcterms:BIBERCUSTOMpartof/proceedings}]
   }
 }
 
@@ -1726,8 +1748,8 @@
               {\def\abx@classtype{3}}
               {\@ifclassloaded{memoir}
                 {\ifbool{artopt}
-		   {\def\abx@classtype{4}}
-		   {\def\abx@classtype{5}}}
+                   {\def\abx@classtype{4}}
+                   {\def\abx@classtype{5}}}
                 {\ifundef\chapter
                    {}
                    {\def\abx@classtype{1}}}}}}}}}
@@ -2133,9 +2155,12 @@
 \DeclareMultiCiteCommand{\cites}{\cite}{\multicitedelim}
 \DeclareMultiCiteCommand{\parencites}[\mkbibparens]{\parencite}{\multicitedelim}
 \DeclareMultiCiteCommand{\footcites}[\mkbibfootnote]{\footcite}{\multicitedelim}
-\DeclareMultiCiteCommand{\footcitetexts}[\mkbibfootnotetext]{\footcitetext}{\multicitedelim}
-\DeclareMultiCiteCommand{\smartcites}[\iffootnote\mkbibparens\mkbibfootnote]{\smartcite}{\multicitedelim}
-\DeclareMultiCiteCommand{\supercites}[\mkbibsuperscript]{\supercite}{\supercitedelim}
+\DeclareMultiCiteCommand{\footcitetexts}[\mkbibfootnotetext]
+  {\footcitetext}{\multicitedelim}
+\DeclareMultiCiteCommand{\smartcites}[\iffootnote\mkbibparens\mkbibfootnote]
+  {\smartcite}{\multicitedelim}
+\DeclareMultiCiteCommand{\supercites}[\mkbibsuperscript]
+  {\supercite}{\supercitedelim}
 \DeclareMultiCiteCommand{\textcites}{\textcite}{\multicitedelim}
 
 \newrobustcmd*{\Cites}{\bibsentence\cites}
@@ -2289,7 +2314,7 @@
      \iffieldundef{authortype}
        {}
        {\setunit{\addcomma\space}%
-	\usebibmacro{authorstrg}}}
+        \usebibmacro{authorstrg}}}
     {}}
 
 \newbibmacro*{editor}{%
@@ -2345,34 +2370,34 @@
     {}
     {\printtext[authortype]{%
        \ifbibxstring{\thefield{authortype}}
-	 {\ifboolexpr{
-	    test {\ifnumgreater{\value{author}}{1}}
-	    or
-	    test {\ifandothers{author}}
-	  }
-	    {\bibstring{\thefield{authortype}s}}
-	    {\bibstring{\thefield{authortype}}}}
-	 {\thefield{authortype}}}}}
+         {\ifboolexpr{
+            test {\ifnumgreater{\value{author}}{1}}
+            or
+            test {\ifandothers{author}}
+          }
+            {\bibstring{\thefield{authortype}s}}
+            {\bibstring{\thefield{authortype}}}}
+         {\thefield{authortype}}}}}
 
 \newbibmacro*{editorstrg}{%
   \printtext[editortype]{%
     \iffieldundef{editortype}
       {\ifboolexpr{
-	 test {\ifnumgreater{\value{editor}}{1}}
-	 or
-	 test {\ifandothers{editor}}
+         test {\ifnumgreater{\value{editor}}{1}}
+         or
+         test {\ifandothers{editor}}
        }
-	 {\bibstring{editors}}
-	 {\bibstring{editor}}}
+         {\bibstring{editors}}
+         {\bibstring{editor}}}
       {\ifbibxstring{\thefield{editortype}}
-	 {\ifboolexpr{
-	    test {\ifnumgreater{\value{editor}}{1}}
-	    or
-	    test {\ifandothers{editor}}
-	  }
-	    {\bibstring{\thefield{editortype}s}}
-	    {\bibstring{\thefield{editortype}}}}
-	 {\thefield{editortype}}}}}
+         {\ifboolexpr{
+            test {\ifnumgreater{\value{editor}}{1}}
+            or
+            test {\ifandothers{editor}}
+          }
+            {\bibstring{\thefield{editortype}s}}
+            {\bibstring{\thefield{editortype}}}}
+         {\thefield{editortype}}}}}
 
 \newbibmacro*{editor+othersstrg}{%
   \iffieldundef{editortype}
@@ -2400,14 +2425,14 @@
      \appto\abx@tempb{\clearname{commentator}}}
     {\ifnamesequal{editor}{annotator}
        {\appto\abx@tempa{an}%
-	\appto\abx@tempb{\clearname{annotator}}}
+        \appto\abx@tempb{\clearname{annotator}}}
        {}}%
   \ifnamesequal{editor}{introduction}
     {\appto\abx@tempa{in}%
      \appto\abx@tempb{\clearname{introduction}}}
     {\ifnamesequal{editor}{foreword}
        {\appto\abx@tempa{fo}%
-	\appto\abx@tempb{\clearname{foreword}}}
+        \appto\abx@tempb{\clearname{foreword}}}
        {\ifnamesequal{editor}{afterword}
           {\appto\abx@tempa{af}%
            \appto\abx@tempb{\clearname{afterword}}}
@@ -2438,14 +2463,14 @@
      \clearname{commentator}}
     {\ifnamesequal{translator}{annotator}
        {\appto\abx@tempa{an}%
-	\clearname{annotator}}
+        \clearname{annotator}}
        {}}%
   \ifnamesequal{translator}{introduction}
     {\appto\abx@tempa{in}%
      \clearname{introduction}}
     {\ifnamesequal{translator}{foreword}
        {\appto\abx@tempa{fo}%
-	\clearname{foreword}}
+        \clearname{foreword}}
        {\ifnamesequal{translator}{afterword}
           {\appto\abx@tempa{af}%
            \clearname{afterword}}
@@ -2572,14 +2597,14 @@
      \clearname{commentator}}
     {\ifnamesequal{translator}{annotator}
        {\appto\abx@tempa{an}%
-	\clearname{annotator}}
+        \clearname{annotator}}
        {}}%
   \ifnamesequal{translator}{introduction}
     {\appto\abx@tempa{in}%
      \clearname{introduction}}
     {\ifnamesequal{translator}{foreword}
        {\appto\abx@tempa{fo}%
-	\clearname{foreword}}
+        \clearname{foreword}}
        {\ifnamesequal{translator}{afterword}
           {\appto\abx@tempa{af}%
            \clearname{afterword}}
@@ -2722,7 +2747,7 @@
     {\printtext[parens]{%
        \ifnumgreater{\value{pageref}}{1}
          {\bibstring{backrefpages}\ppspace}
-	 {\bibstring{backrefpage}\ppspace}%
+         {\bibstring{backrefpage}\ppspace}%
        \printlist[pageref][-\value{listtotal}]{pageref}}}}
 
 \newbibmacro*{setpageref}{%
@@ -2731,7 +2756,7 @@
     {\printtext{%
        \ifnumgreater{\value{pageref}}{1}
          {\bibstring{backrefpages}\ppspace}
-	 {\bibstring{backrefpage}\ppspace}%
+         {\bibstring{backrefpage}\ppspace}%
        \printlist[pageref][-\value{listtotal}]{pageref}}}}
 
 \newbibmacro*{eprint}{%
