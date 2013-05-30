@@ -4067,13 +4067,12 @@
              \expandafter\c@langcount\csname abx@lang@c@#3\endcsname
              \expandafter\c@formlangcount\csname abx@lang@c@#3@\blx@tempa\endcsname
              % set up babel language for field variant
-             \blx@foreignlanguage{\blx@tempb}{\blx@theformat{\csuse{abx@field@#3@\blx@tempa @\blx@tempb}}}%
-             % \begin{otherlanguage*}{\blx@tempb}%
-             %   \expandafter\expandafter
-             %   \expandafter\blx@theformat
-             %   \expandafter\expandafter
-             %   \expandafter{\csname abx@field@#3@\blx@tempa @\blx@tempb\endcsname}%
-             % \end{otherlanguage*}%
+             \ifdef\blx@thelangenv{\csuse{\blx@thelangenv}{\blx@tempb}}{}%
+               \expandafter\expandafter
+               \expandafter\blx@theformat
+               \expandafter\expandafter
+               \expandafter{\csname abx@field@#3@\blx@tempa @\blx@tempb\endcsname}%
+             \ifdef\blx@thelangenv{\csuse{end\blx@thelangenv}}{}%
              \blx@endunit}
             {\expandafter\expandafter
              \expandafter\blx@theformat
@@ -4099,11 +4098,10 @@
         \blx@imc@ifbibfieldmsx{#2}{#3}
           {\edef\currentform{\blx@tempa}%
            \edef\currentlang{\blx@tempb}%
-           \@expandtwoargs\blx@foreignlanguage{\blx@tempb}{\noexpand\blx@theformat\expandafter{\csname abx@field@#3@\blx@tempa @\blx@tempb\endcsname}}}
-           % \begin{otherlanguage*}{\blx@tempb}%
-           %   \expandafter\blx@theformat\expandafter{\csname abx@field@#3@\blx@tempa @\blx@tempb\endcsname}%
-           % \end{otherlanguage*}}
-          {\expandafter\blx@theformat\expandafter{\csname abx@field@#3\endcsname}}%
+           \ifdef\blx@thelangenv{\csuse{\blx@thelangenv}{\blx@tempb}}{}%
+             \expandafter\expandafter\expandafter\blx@theformat\expandafter\expandafter\expandafter{\csname abx@field@#3@\blx@tempa @\blx@tempb\endcsname}%
+           \ifdef\blx@thelangenv{\csuse{end\blx@thelangenv}}{}}%
+          {\expandafter\expandafter\expandafter\blx@theformat\expandafter\expandafter\expandafter{\csname abx@field@#3\endcsname}}%
         \endgroup}}}
 
 % [<format>]{<file>}
@@ -4235,7 +4233,9 @@
      \else
        \ifdefempty\currentlang
          {\blx@nameparser@i#1}
-         {\blx@foreignlanguage{\currentlang}{\blx@nameparser@i#1}}%
+         {\ifdef\blx@thelangenv{\csuse{\blx@thelangenv}{\currentlang}}{}%
+            \blx@nameparser@i#1
+          \ifdef\blx@thelangenv{\csuse{end\blx@thelangenv}}{}}%
      \fi
      \advance\c@listcount\@ne
      \ifnum\c@listcount>\c@liststop
@@ -4360,7 +4360,9 @@
      \else
        \ifdefempty\currentlang
          {\blx@theformat{#1}}
-         {\blx@foreignlanguage{\currentlang}{\blx@theformat{#1}}}%
+         {\ifdef\blx@thelangenv{\csuse{\blx@thelangenv}{\currentlang}}{}%
+            \blx@theformat{#1}%
+          \ifdef\blx@thelangenv{\csuse{end\blx@thelangenv}}{}}%
      \fi
      \advance\c@listcount\@ne
      \ifnum\c@listcount>\c@liststop
@@ -5382,7 +5384,6 @@
                 \csname\blx@thelangenv\expandafter\endcsname
                 \expandafter{\abx@field@hyphenation}}}}}%
        {}%
-     \global\let\blx@foreignlanguage\foreignlanguage
      \def\blx@imc@mainlang{\select@language{\bbl@main@language}}%
      \blx@langsetup\bbl@main@language}
     {\blx@err@patch{'babel' package}%
@@ -5390,7 +5391,6 @@
 \endgroup
 
 \def\blx@mknobabel{%
-  \global\let\blx@foreignlanguage\@secondoftwo
   \blx@lbxinput{\blx@languagename}
     {}
     {\blx@err@nolang{\blx@languagename}}}
@@ -10642,6 +10642,8 @@
     {\csuse{blx@opt@babel@#1}}
     {\blx@err@invopt{babel=#1}{}}}
 \def\blx@opt@babel@none{%
+  % \newenvironment{blx@nolang}[1]{\@gobble}{}%
+  % \def\blx@thelangenv{blx@nolang}%
   \undef\blx@thelangenv
   \let\blx@hook@initlang\@empty
   \let\blx@hook@endlang\@empty}
