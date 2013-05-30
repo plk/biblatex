@@ -2,15 +2,21 @@
 [\abx@cbxid]
 
 \ExecuteBibliographyOptions{labelnumber,sortcites,autocite=inline}
+
 \renewcommand*{\multicitedelim}{\addcomma\space}
+\renewcommand*{\iffinalcitedelim}{%
+  \ifnumequal{\value{textcitecount}}{\value{textcitetotal}-1}}
+
 \providebool{bbx:subentry}
+\newbool{cbx:parens}
+
 \newcounter{cbx@tempcnta}
 \newcounter{cbx@tempcntb}
 
 \DeclareFieldFormat{entrysetcount}{\mknumalph{#1}}
 
 \newbibmacro*{cite:init}{%
-  \global\let\cbx@tempa=\empty
+  \global\boolfalse{cbx:parens}%
   \global\undef\cbx@lasthash
   \global\undef\cbx@lastnumber
   \global\undef\cbx@lastprefix
@@ -22,7 +28,7 @@
   \iffieldundef{shorthand}
     {\ifbool{bbx:subentry}
        {\iffieldundef{entrysetcount}
-	  {\usebibmacro{cite:comp:comp}}
+          {\usebibmacro{cite:comp:comp}}
           {\usebibmacro{cite:comp:inset}}}
        {\usebibmacro{cite:comp:comp}}}
     {\usebibmacro{cite:comp:shand}}}
@@ -35,17 +41,17 @@
   }
     {\ifnumequal{\thefield{labelnumber}}{\value{cbx@tempcntb}}
        {\savefield{entrykey}{\cbx@lastkey}%
-	\savefield{labelnumber}{\cbx@lastnumber}%
-	\addtocounter{cbx@tempcnta}{1}}
+        \savefield{labelnumber}{\cbx@lastnumber}%
+        \addtocounter{cbx@tempcnta}{1}}
        {\ifnumequal{\thefield{labelnumber}}{\value{cbx@tempcntb}-1}
-	  {}
-	  {\usebibmacro{cite:dump}%
-	   \ifnumgreater{\value{cbx@tempcntb}}{-1}
-	     {\multicitedelim}
-	     {}%
-	   \printtext[bibhyperref]{%
-	     \printfield{prefixnumber}%
-	     \printfield{labelnumber}}}}}
+          {}
+          {\usebibmacro{cite:dump}%
+           \ifnumgreater{\value{cbx@tempcntb}}{-1}
+             {\multicitedelim}
+             {}%
+           \printtext[bibhyperref]{%
+             \printfield{prefixnumber}%
+             \printfield{labelnumber}}}}}
     {\usebibmacro{cite:comp:end}}%
   \setcounter{cbx@tempcntb}{\thefield{labelnumber}}%
   \savefield{prefixnumber}{\cbx@lastprefix}}
@@ -86,7 +92,7 @@
      \bibhyperref[\cbx@lastkey]{%
        \ifdef\cbx@lastprefix
          {\printtext[prefixnumber]{\cbx@lastprefix}}
-	 {}%
+         {}%
        \printtext[labelnumber]{\cbx@lastnumber}}}
     {}%
   \setcounter{cbx@tempcnta}{0}%
@@ -94,19 +100,29 @@
 
 \newbibmacro*{textcite}{%
   \iffieldequals{namehash}{\cbx@lasthash}
-    {\usebibmacro{cite:comp}}
-    {\usebibmacro{cite:dump}\cbx@tempa
+    {\usebibmacro{cite:comp}%
+     \iflastcitekey
+       {\usebibmacro{cite:dump}}
+       {}}
+    {\usebibmacro{cite:dump}%
+     \ifbool{cbx:parens}
+       {\bibclosebracket\global\boolfalse{cbx:parens}}
+       {}%
+     \iffirstcitekey
+       {}
+       {\textcitedelim}%
      \usebibmacro{cite:init}%
      \ifnameundef{labelname}
        {\printfield[citetitle]{labeltitle}}
        {\printnames{labelname}}%
-     \addspace\bibopenbracket
+     \global\booltrue{cbx:parens}%
+     \addspace\bibopenbracket%
      \ifnumequal{\value{citecount}}{1}
        {\usebibmacro{prenote}}
        {}%
-     \usebibmacro{cite:comp}}%
-  \savefield{namehash}{\cbx@lasthash}%
-  \gdef\cbx@tempa{\bibclosebracket\multicitedelim}}
+     \usebibmacro{cite:comp}%
+     \stepcounter{textcitecount}%
+     \savefield{namehash}{\cbx@lasthash}}}
 
 \DeclareCiteCommand{\cite}[\mkbibbrackets]
   {\usebibmacro{cite:init}%
@@ -153,14 +169,6 @@
   {\usebibmacro{cite:dump}%
    \usebibmacro{postnote}}
 
-\DeclareCiteCommand{\textcite}
-  {\usebibmacro{cite:init}}
-  {\usebibmacro{citeindex}%
-   \usebibmacro{textcite}}
-  {}
-  {\usebibmacro{postnote}%
-   \bibclosebracket}
-
 \DeclareCiteCommand{\supercite}[\mkbibsuperscript]
   {\usebibmacro{cite:init}%
    \let\multicitedelim=\supercitedelim
@@ -175,8 +183,43 @@
   {}
   {\usebibmacro{cite:dump}}
 
+\DeclareCiteCommand{\cbx@textcite}
+  {\usebibmacro{cite:init}}
+  {\usebibmacro{citeindex}%
+   \usebibmacro{textcite}}
+  {}
+  {\usebibmacro{postnote}%
+   \ifbool{cbx:parens}
+     {\bibclosebracket\global\boolfalse{cbx:parens}}
+     {}}
+
+\DeclareCiteCommand{\textcite}[\cbx@textcite@init\cbx@textcite]
+  {\gdef\cbx@savedkeys{}%
+   \usebibmacro{cite:init}}
+  {\ifthenelse{\iffirstcitekey\AND\value{multicitetotal}>0}
+     {\protected@xappto\cbx@savedcites{()(\thefield{multipostnote})}%
+      \global\clearfield{multipostnote}}
+     {}%
+   \xappto\cbx@savedkeys{\thefield{entrykey},}%
+   \iffieldequals{namehash}{\cbx@lasthash}
+     {}
+     {\stepcounter{textcitetotal}%
+      \savefield{namehash}{\cbx@lasthash}}}
+  {}
+  {\protected@xappto\cbx@savedcites{%
+     [\thefield{prenote}][\thefield{postnote}]{\cbx@savedkeys}}}
+
+\newrobustcmd{\cbx@textcite@init}[2]{%
+  \setcounter{textcitetotal}{0}%
+  \setcounter{textcitecount}{0}%
+  \def\cbx@savedcites{#1}#2\cbx@savedcites\@empty}
+
+\DeclareMultiCiteCommand{\cbx@textcites}{\cbx@textcite}{}
+\DeclareMultiCiteCommand{\textcites}[\cbx@textcite@init\cbx@textcites]{\textcite}{}
+
 \DeclareMultiCiteCommand{\cites}[\mkbibbrackets]{\cite}{\multicitedelim}
 \DeclareMultiCiteCommand{\parencites}[\mkbibbrackets]{\parencite}{\multicitedelim}
-\DeclareMultiCiteCommand{\smartcites}[\iffootnote\mkbibbrackets\mkbibfootnote]{\smartcite}{\multicitedelim}
+\DeclareMultiCiteCommand{\smartcites}[\iffootnote\mkbibbrackets\mkbibfootnote]
+  {\smartcite}{\multicitedelim}
 
 \endinput
