@@ -6774,6 +6774,10 @@
 \@onlypreamble\AtBeginBibliography
 \@onlypreamble\AtEveryBibitem
 
+\def\blx@imc@UseBibitemHook{\csuse{blx@hook@bibitem}}
+
+\blx@regimcs{\UseBibitemHook}
+
 \newrobustcmd*{\AtNextBibliography}{%
   \ifundef\blx@hook@bibinit@next
     {\gdef\blx@hook@bibinit@next{\global\undef\blx@hook@bibinit@next}}
@@ -7305,8 +7309,14 @@
 
 \newrobustcmd*{\AtEveryCite}{\gappto\blx@hook@cite}
 \newrobustcmd*{\AtEveryCitekey}{\gappto\blx@hook@citekey}
+\newrobustcmd*{\AtEveryMultiCite}{\gappto\blx@hook@mcite}
 \@onlypreamble\AtEveryCite
 \@onlypreamble\AtEveryCitekey
+\@onlypreamble\AtEveryMultiCite
+
+\def\blx@imc@UseEveryCiteHook{\csuse{blx@hook@cite}}
+\def\blx@imc@UseEveryCitekeyHook{\csuse{blx@hook@citekey}}
+\def\blx@imc@UseEveryMultiCiteHook{\csuse{blx@hook@mcite}}
 
 \newrobustcmd*{\AtNextCite}{%
   \ifundef\blx@hook@cite@next
@@ -7326,13 +7336,18 @@
     {}%
   \gappto\blx@hook@mcite@next}
 
-\newrobustcmd*{\BeforeNextMultiCite}{%
-  \ifundef\blx@hook@mcite@next@bef
-    {\gdef\blx@hook@mcite@next@bef{\global\undef\blx@hook@mcite@next@bef}}
-    {}%
-  \gappto\blx@hook@mcite@next@bef}
+\def\blx@imc@UseNextCiteHook{\csuse{blx@hook@cite@next}}
+\def\blx@imc@UseNextCitekeyHook{\csuse{blx@hook@citekey@next}}
+\def\blx@imc@UseNextMultiCiteHook{\csuse{blx@hook@mcite@next}}
 
-% {<style>]
+\def\blx@imc@DeferNextCitekeyHook{\undef\blx@hook@citekey@next}
+
+\blx@regimcs{%
+  \UseEveryCiteHook \UseEveryCitekeyHook \UseEveryMultiCiteHook
+  \UseNextCiteHook \UseNextCitekeyHook \UseNextMultiCiteHook
+  \DeferNextCitekeyHook}
+
+% {<style>}
 
 \newrobustcmd*{\RequireCitationStyle}[1]{%
   \blx@inputonce{#1.cbx}{citation style '#1'}{}{}{}
@@ -8292,13 +8307,14 @@
   \ifnum\c@multicitetotal>\@ne
     \let\blx@ifcitesingle\@secondoftwo
   \fi
+  \csuse{blx@hook@mcite}%
+  \csuse{blx@hook@mcite@next}%
   \ifblank{#2}%
     {}
     {\def\abx@field@multiprenote{#2}}%
   \ifblank{#3}%
     {}
     {\def\abx@field@multipostnote{#3}}%
-  \csuse{blx@hook@mcite@next}%
   \usebibmacro{multiprenote}}
 
 \protected\def\blxendmcites{%
@@ -8346,7 +8362,7 @@
 
 \def\blx@multicite#1#2#3#4{%
   \begingroup
-  \csuse{blx@hook@mcite@next@bef}%
+  \csuse{blx@hook@mcite@before}%
   \def\blx@tempa{#1}%
   \def\blx@tempb{#2}%
   \def\blx@tempc{#3}%
@@ -8975,14 +8991,16 @@
 \long\def\blx@volciteargs@i#1[#2]#3{%
   \@ifnextchar[%]
     {\blx@volciteargs@ii{#1}{#2}{#3}}
-    {\blx@citeargs@iii{#1}{#2}{{#3}{}}}}
+    {\blx@citeargs@iii{#1{#2}{{#3}{}}}}}
 
 \long\def\blx@volciteargs@ii#1#2#3[#4]{%
   \blx@citeargs@iii{#1{#2}{{#3}{#4}}}}
 
 \newrobustcmd*{\multivolcitecmd}{%
   \AtNextCite{\DeclareFieldAlias{postnote}{volcitenote}}%
-  \BeforeNextMultiCite{\let\blx@citeargs\blx@volmciteargs}}
+  \def\blx@hook@mcite@before{%
+    \global\undef\blx@hook@mcite@before
+    \let\blx@citeargs\blx@volmciteargs}}
 
 \protected\def\blx@volmciteargs#1{%
   \@ifnextchar[%]
