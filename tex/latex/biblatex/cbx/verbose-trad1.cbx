@@ -2,12 +2,17 @@
 [\abx@cbxid]
 
 \InitializeCitationStyle{\numgdef{\cbx@resetcount}{\cbx@resetcount+1}}
+
 \DeclareFieldFormat{bibhyperlink}{%
   \bibhyperlink{\iffootnote{f}{t}:\cbx@resetcount:\thefield{entrykey}}{#1}}
 \DeclareFieldFormat{bibhypertarget}{%
   \bibhypertarget{\iffootnote{f}{t}:\cbx@resetcount:\thefield{entrykey}}{#1}}
+
 \newcommand*{\cbx@resetcount}{0}
 \providecommand*{\mkibid}[1]{#1}
+\renewcommand*{\iffinalcitedelim}{%
+  \ifnumequal{\value{textcitecount}}{\value{textcitetotal}-1}}
+
 \newtoggle{cbx:ibidpage}
 \newtoggle{cbx:loccit}
 \newbool{cbx:noidem}
@@ -88,9 +93,8 @@
     \printfield{postnote}}}
 
 \ExecuteBibliographyOptions{citetracker=context,ibidtracker=constrict,
-                            idemtracker=constrict,opcittracker=context,
-			    loccittracker=context,autocite=footnote,
-			    citepages=permit}
+  idemtracker=constrict,opcittracker=context,loccittracker=context,
+  autocite=footnote,citepages=permit}
 
 \newbibmacro*{cite:save}{%
   \csxdef{cbx@lastcite@\thefield{entrykey}}{\the\value{instcount}}%
@@ -201,29 +205,74 @@
   {\multicitedelim}
   {\usebibmacro{cite:postnote}}
 
-\DeclareCiteCommand{\textcite}[\cbx@textcite\footcite]
-  {\gdef\cbx@savedkeys{}}
-  {\printnames{labelname}%
-   \xappto\cbx@savedkeys{\thefield{entrykey},}}
-  {\multinamedelim}
-  {\protected@xappto\cbx@savedcites{%
-     [\thefield{prenote}][\thefield{postnote}]{\cbx@savedkeys}}}
+\newbibmacro*{textcite}{%
+  \ifnameundef{labelname}
+    {\printfield[citetitle]{labeltitle}}
+    {\printnames{labelname}}}
 
-\newrobustcmd{\cbx@textcite}[2]{%
-  \def\cbx@savedcites{#1}#2%
-  \printfield{postpunct}\cbx@savedcites\@empty\nopunct}
+\newbibmacro*{textcite:init}{%
+  \citetrackerfalse%
+  \pagetrackerfalse%
+  \iffirstcitekey
+    {\global\undef\cbx@lasthash}
+    {}}
 
-\DeclareMultiCiteCommand{\cbx@textcites}[\cbx@textcite\footcites]
-  {\textcite}{\multinamedelim}
+\DeclareCiteCommand{\cbx@textcite}
+  {\usebibmacro{textcite:init}}
+  {\iffieldequals{namehash}{\cbx@lasthash}
+     {}
+     {\iffirstcitekey
+        {}
+        {\textcitedelim}%
+      \stepcounter{textcitecount}%
+      \usebibmacro{textcite}%
+      \savefield{namehash}{\cbx@lasthash}}}
+  {}
+  {}
 
-\renewrobustcmd*{\textcites}{%
+\DeclareCiteCommand{\textcite}[\cbx@textcite@init\cbx@textcite\footcite]
+  {\usebibmacro{textcite:init}%
+   \gdef\cbx@savedkeys{}%
+   \DeferNextCitekeyHook}
+  {\ifthenelse{\iffirstcitekey\AND\value{multicitetotal}>0}
+     {\protected@xappto\cbx@footcite@args{%
+        (\thefield{multiprenote})(\thefield{multipostnote})}}
+     {}%
+   \xappto\cbx@savedkeys{\thefield{entrykey},}%
+   \iffieldequals{namehash}{\cbx@lasthash}
+     {}
+     {\stepcounter{textcitetotal}%
+      \savefield{namehash}{\cbx@lasthash}}%
+   \ifnumequal{\value{citecount}}{\value{citetotal}}
+     {\protected@xappto\cbx@textcite@args{{\cbx@savedkeys}}%
+      \protected@xappto\cbx@footcite@args{%
+        [\thefield{prenote}][\thefield{postnote}]{\cbx@savedkeys}}%
+      \iflastcitekey
+        {\protected@xappto\cbx@textcite@args{\thefield{postpunct}}%
+         \protected@xappto\cbx@footcite@args{\nopunct}}
+        {}}
+     {}}
+  {}
+  {}
+
+\newrobustcmd{\cbx@textcite@init}[3]{%
+  \setcounter{textcitetotal}{0}%
+  \setcounter{textcitecount}{0}%
+  \def\cbx@textcite@args{#1}\def\cbx@footcite@args{#2}#3%
+  \cbx@textcite@args\@empty\cbx@footcite@args\@empty}
+
+\DeclareMultiCiteCommand{\cbx@textcites}{\cbx@textcite}{}
+\DeclareMultiCiteCommand{\textcites}
+  [\cbx@textcites@init\cbx@textcites\footcites]{\textcite}{}
+
+\newrobustcmd{\cbx@textcites@init}[3]{%
+  \UseNextMultiCiteHook%
   \AtNextMultiCite{%
-    \protected@xappto\cbx@savedcites{%
-      (\thefield{multiprenote})(\thefield{multipostnote})}%
-    \iffootnote
-      {}
-      {\clearfield{multiprenote}%
-       \global\clearfield{multipostnote}}}%
-  \cbx@textcites}
+    \renewbibmacro{multiprenote}{}%
+    \renewbibmacro{multipostnote}{}}%
+  \setcounter{textcitetotal}{0}%
+  \setcounter{textcitecount}{0}%
+  \def\cbx@textcite@args{#1}\def\cbx@footcite@args{#2}#3%
+  \cbx@textcite@args\@empty\cbx@footcite@args\@empty}
 
 \endinput
