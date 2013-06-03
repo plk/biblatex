@@ -388,8 +388,6 @@
 \newcount\blx@parenlevel@foot
 \expandafter\newcount\csname blx@sectionciteorder@0\endcsname
 
-
-
 \def\blx@uniquename{0}
 \def\blx@uniquelist{0}
 \def\blx@maxbibnames{0}
@@ -3378,7 +3376,8 @@
   \else
     \numdef\blx@tempc\blx@tempd
   \fi
-  \edef\blx@tempb{\blx@range@out@value{\blx@tempb\noexpand\bibrangedash\blx@tempc}}%
+  \edef\blx@tempb{%
+    \blx@range@out@value{\blx@tempb\noexpand\bibrangedash\blx@tempc}}%
   \blx@tempb}
 
 \def\blx@comprange@comp@div{%
@@ -6404,19 +6403,19 @@
       {}
       {\blx@logreq@active{}}}
     {}%
-  % Test to see if we removed any mention of a sorting scheme since last run.
+  % Test if we removed any mention of a sorting scheme since last run.
   % If we did, we need to re-run biber
   \def\do#1{\ifinlist{#1}{\blx@sortschemes}{}{\blx@logreq@active{}}\relax}%
   \dolistloop\blx@lastsortschemes
-  % Test to see if we added any mention of a sorting scheme since last run
+  % Test if we added any mention of a sorting scheme since last run
   % If we did, we need to re-run biber
   \def\do#1{\ifinlist{#1}{\blx@lastsortschemes}{}{\blx@logreq@active{}}\relax}%
   \dolistloop\blx@sortschemes
-  % Test to see if we removed any mention of a shorthand sorting scheme since last run.
+  % Test if we removed any mention of a shorthand sorting scheme since last run.
   % If we did, we need to re-run biber
   \def\do#1{\ifinlist{#1}{\blx@sortschemeslos}{}{\blx@logreq@active{}}\relax}%
   \dolistloop\blx@lastsortschemeslos
-  % Test to see if we added any mention of a shorthand sorting scheme since last run
+  % Test to see if we added any mention of a shorthand sorting scheme since last run.
   % If we did, we need to re-run biber
   \def\do#1{\ifinlist{#1}{\blx@lastsortschemeslos}{}{\blx@logreq@active{}}\relax}%
   \dolistloop\blx@sortschemeslos
@@ -6446,17 +6445,28 @@
               {\let\abx@field@localnumber\@empty}
               {\csnumgdef{blx@labelnumber@\the\c@refsection}{%
                  \csuse{blx@labelnumber@\the\c@refsection}+1}%
-                 \edef\abx@field@localnumber{\csuse{blx@labelnumber@\the\c@refsection}}%
+                 \edef\abx@field@localnumber{%
+                   \csuse{blx@labelnumber@\the\c@refsection}}%
                  \blx@bbl@addentryfield{\abx@field@entrykey}{\the\c@refsection}%
                    {localnumber}{\abx@field@localnumber}}%
-                 \listxadd\blx@localnumaux{\string\abx@aux@number{\the\c@instcount}{\abx@field@entrykey}{\the\c@refsection}{\abx@field@localnumber}}}
+                 \listxadd\blx@localnumaux{%
+                   \string\abx@aux@number
+                     {\the\c@instcount}
+                     {\abx@field@entrykey}
+                     {\the\c@refsection}
+                     {\abx@field@localnumber}}}
              % If localnumbers were already in the .aux, add them
              % again from the .aux. This prevents some cycling
              % problems where pagebreaks change after localnumber
              % settles down and then we need another run which then
              % regenerates localnumber requiring another run but then
              % the pagebreaks change back again ... etc.
-             {\listxadd\blx@localnumaux{\string\abx@aux@number{\the\c@instcount}{\abx@field@entrykey}{\the\c@refsection}{\abx@field@localnumber}}}}
+             {\listxadd\blx@localnumaux{%
+                 \string\abx@aux@number
+                   {\the\c@instcount}
+                   {\abx@field@entrykey}
+                   {\the\c@refsection}
+                   {\abx@field@localnumber}}}}
           {}}%
        {}}
     {}%
@@ -7004,7 +7014,8 @@
   \togglefalse{blx@omitnumbers}%
   \setkeys{blx@bib2}{#1}% ... now we have correct \blx@tempa, set rest of options
   \blx@rest@actives
-  \csxappto{blx@xml@slistsbib}{\blx@xml@slist{entry}{\blx@tempe}{\blx@tempc}{\blx@tempd}}%
+  \csxappto{blx@xml@slistsbib}{%
+    \blx@xml@slist{entry}{\blx@tempe}{\blx@tempc}{\blx@tempd}}%
   \ifdefvoid\blx@tempa
     {\blx@warn@bibempty\endgroup}
     {\blx@bibliography\blx@tempa}}
@@ -7349,7 +7360,8 @@
   \blx@safe@actives
   \setkeys{blx@los2}{#1}% ... now we have correct \blx@tempa, set rest of options
   \blx@rest@actives
-  \csxappto{blx@xml@slistsbib}{\blx@xml@slistlos{shorthand}{\blx@tempe}{\blx@tempc}{\blx@tempd}}%
+  \csxappto{blx@xml@slistsbib}{%
+    \blx@xml@slistlos{shorthand}{\blx@tempe}{\blx@tempc}{\blx@tempd}}%
   \ifdefvoid\blx@tempa
     {\blx@warn@losempty\endgroup}
     {\blx@shorthands\blx@tempa}}
@@ -7760,8 +7772,14 @@
 
 \newrobustcmd*{\AtEveryCite}{\gappto\blx@hook@cite}
 \newrobustcmd*{\AtEveryCitekey}{\gappto\blx@hook@citekey}
+\newrobustcmd*{\AtEveryMultiCite}{\gappto\blx@hook@mcite}
 \@onlypreamble\AtEveryCite
 \@onlypreamble\AtEveryCitekey
+\@onlypreamble\AtEveryMultiCite
+
+\def\blx@imc@UseEveryCiteHook{\csuse{blx@hook@cite}}
+\def\blx@imc@UseEveryCitekeyHook{\csuse{blx@hook@citekey}}
+\def\blx@imc@UseEveryMultiCiteHook{\csuse{blx@hook@mcite}}
 
 \newrobustcmd*{\AtNextCite}{%
   \ifundef\blx@hook@cite@next
@@ -7781,11 +7799,16 @@
     {}%
   \gappto\blx@hook@mcite@next}
 
-\newrobustcmd*{\BeforeNextMultiCite}{%
-  \ifundef\blx@hook@mcite@next@bef
-    {\gdef\blx@hook@mcite@next@bef{\global\undef\blx@hook@mcite@next@bef}}
-    {}%
-  \gappto\blx@hook@mcite@next@bef}
+\def\blx@imc@UseNextCiteHook{\csuse{blx@hook@cite@next}}
+\def\blx@imc@UseNextCitekeyHook{\csuse{blx@hook@citekey@next}}
+\def\blx@imc@UseNextMultiCiteHook{\csuse{blx@hook@mcite@next}}
+
+\def\blx@imc@DeferNextCitekeyHook{\undef\blx@hook@citekey@next}
+
+\blx@regimcs{%
+  \UseEveryCiteHook \UseEveryCitekeyHook \UseEveryMultiCiteHook
+  \UseNextCiteHook \UseNextCitekeyHook \UseNextMultiCiteHook
+  \DeferNextCitekeyHook}
 
 % {<style>}
 
@@ -8704,13 +8727,14 @@
   \ifnum\c@multicitetotal>\@ne
     \let\blx@ifcitesingle\@secondoftwo
   \fi
+  \csuse{blx@hook@mcite}%
+  \csuse{blx@hook@mcite@next}%
   \ifblank{#2}%
     {}
     {\def\abx@field@multiprenote{#2}}%
   \ifblank{#3}%
     {}
     {\def\abx@field@multipostnote{#3}}%
-  \csuse{blx@hook@mcite@next}%
   \usebibmacro{multiprenote}}
 
 \protected\def\blxendmcites{%
@@ -8756,7 +8780,7 @@
 %  <init><command>{<wrapper>}{<cites>}{<punct>}
 \def\blx@multicite#1#2#3#4{%
   \begingroup
-  \csuse{blx@hook@mcite@next@bef}%
+  \csuse{blx@hook@mcite@before}%
   \def\blx@tempa{#1}%
   \def\blx@tempb{#2}%
   \def\blx@tempc{#3}%
@@ -9387,14 +9411,16 @@
 \long\def\blx@volciteargs@i#1[#2]#3{%
   \@ifnextchar[%]
     {\blx@volciteargs@ii{#1}{#2}{#3}}
-    {\blx@citeargs@iii{#1}{#2}{{#3}{}}}}
+    {\blx@citeargs@iii{#1{#2}{{#3}{}}}}}
 
 \long\def\blx@volciteargs@ii#1#2#3[#4]{%
   \blx@citeargs@iii{#1{#2}{{#3}{#4}}}}
 
 \newrobustcmd*{\multivolcitecmd}{%
   \AtNextCite{\DeclareFieldAlias{postnote}{volcitenote}}%
-  \BeforeNextMultiCite{\let\blx@citeargs\blx@volmciteargs}}
+  \def\blx@hook@mcite@before{%
+    \global\undef\blx@hook@mcite@before
+    \let\blx@citeargs\blx@volmciteargs}}
 
 \protected\def\blx@volmciteargs#1{%
   \@ifnextchar[%]
@@ -9674,15 +9700,27 @@
     {\eappto\blx@tempa{%
       \blx@xml@comment{SOURCEMAP}%
       \blx@xml@sourcemap{%
-        \ifcsdef{blx@biber@sourcemap@user}{\csuse{blx@biber@sourcemap@user}}{}%
-        \ifcsdef{blx@biber@sourcemap@style}{\csuse{blx@biber@sourcemap@style}}{}%
-        \ifcsdef{blx@biber@sourcemap@defaults@bibtex}{\csuse{blx@biber@sourcemap@defaults@bibtex}}{}%
-        \ifcsdef{blx@biber@sourcemap@defaults@biblatexml}{\csuse{blx@biber@sourcemap@defaults@biblatexml}}{}%
-        \ifcsdef{blx@biber@sourcemap@defaults@endnotexml}{\csuse{blx@biber@sourcemap@defaults@endnotexml}}{}%
-        \ifcsdef{blx@biber@sourcemap@defaults@ris}{\csuse{blx@biber@sourcemap@defaults@ris}}{}%
-        \ifcsdef{blx@biber@sourcemap@defaults@zoterordfxml}{\csuse{blx@biber@sourcemap@defaults@zoterordfxml}}{}%
-      }%
-    }}
+        \ifcsdef{blx@biber@sourcemap@user}
+          {\csuse{blx@biber@sourcemap@user}}
+          {}%
+        \ifcsdef{blx@biber@sourcemap@style}
+          {\csuse{blx@biber@sourcemap@style}}
+          {}%
+        \ifcsdef{blx@biber@sourcemap@defaults@bibtex}
+          {\csuse{blx@biber@sourcemap@defaults@bibtex}}
+          {}%
+        \ifcsdef{blx@biber@sourcemap@defaults@biblatexml}
+          {\csuse{blx@biber@sourcemap@defaults@biblatexml}}
+          {}%
+        \ifcsdef{blx@biber@sourcemap@defaults@endnotexml}
+          {\csuse{blx@biber@sourcemap@defaults@endnotexml}}
+          {}%
+        \ifcsdef{blx@biber@sourcemap@defaults@ris}
+          {\csuse{blx@biber@sourcemap@defaults@ris}}
+          {}%
+        \ifcsdef{blx@biber@sourcemap@defaults@zoterordfxml}
+          {\csuse{blx@biber@sourcemap@defaults@zoterordfxml}}
+          {}}}}
     {}%
   % labelalpha template
   \eappto\blx@tempa{%
@@ -10303,9 +10341,12 @@
     {\setkeys{blx@ordered@field}{#1}}%
   \advance\blx@tempcnta\@ne
   \ifdefempty{\blx@tempa}
-    {\csxappto{blx@bcf@\blx@tempb}{\noexpand\blx@xml@ordered{\the\blx@tempcnta}{\blx@tempc}{#2}}}
-    {\def\do##1{\blx@addtypeopt{##1}%
-                \csxappto{blx@bcf@\blx@tempb @##1}{\noexpand\blx@xml@ordered{\the\blx@tempcnta}{\blx@tempc}{#2}}}%
+    {\csxappto{blx@bcf@\blx@tempb}{%
+       \noexpand\blx@xml@ordered{\the\blx@tempcnta}{\blx@tempc}{#2}}}
+    {\def\do##1{%
+       \blx@addtypeopt{##1}%
+       \csxappto{blx@bcf@\blx@tempb @##1}{%
+         \noexpand\blx@xml@ordered{\the\blx@tempcnta}{\blx@tempc}{#2}}}%
      \expandafter\docsvlist\expandafter{\blx@tempa}}}
 
 \newcommand*{\blx@orderedld@field}[2][]{%
@@ -10315,17 +10356,23 @@
     {\setkeys{blx@ordered@field}{#1}}%
   \advance\blx@tempcnta\@ne
   \ifdefempty{\blx@tempa}
-    {\csxappto{blx@bcf@\blx@tempb}{\noexpand\blx@xml@ordered{\the\blx@tempcnta}{ type="field"\blx@tempc}{#2}}}
-    {\def\do##1{\blx@addtypeopt{##1}%
-                \csxappto{blx@bcf@\blx@tempb @##1}{\noexpand\blx@xml@ordered{\the\blx@tempcnta}{\blx@tempc}{#2}}}%
+    {\csxappto{blx@bcf@\blx@tempb}{%
+       \noexpand\blx@xml@ordered{\the\blx@tempcnta}{ type="field"\blx@tempc}{#2}}}
+    {\def\do##1{%
+       \blx@addtypeopt{##1}%
+       \csxappto{blx@bcf@\blx@tempb @##1}{%
+         \noexpand\blx@xml@ordered{\the\blx@tempcnta}{\blx@tempc}{#2}}}%
      \expandafter\docsvlist\expandafter{\blx@tempa}}}
 
 \newcommand*{\blx@orderedld@literal}[1]{%
   \advance\blx@tempcnta\@ne
   \ifdefempty{\blx@tempa}
-    {\csxappto{blx@bcf@\blx@tempb}{\noexpand\blx@xml@ordered{\the\blx@tempcnta}{ type="string"}{#1}}}
-    {\def\do##1{\blx@addtypeopt{##1}%
-                \csxappto{blx@bcf@\blx@tempb @##1}{\noexpand\blx@xml@ordered{\the\blx@tempcnta}{ type="string"}{#1}}}%
+    {\csxappto{blx@bcf@\blx@tempb}{%
+       \noexpand\blx@xml@ordered{\the\blx@tempcnta}{ type="string"}{#1}}}
+    {\def\do##1{%
+       \blx@addtypeopt{##1}%
+       \csxappto{blx@bcf@\blx@tempb @##1}{%
+         \noexpand\blx@xml@ordered{\the\blx@tempcnta}{ type="string"}{#1}}}%
      \expandafter\docsvlist\expandafter{\blx@tempa}}}
 
 \define@key{blx@ordered@field}{form}{%

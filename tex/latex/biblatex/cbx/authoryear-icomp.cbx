@@ -241,6 +241,9 @@
 
 \DeclareCiteCommand{\textcite}[\cbx@textcite@init\cbx@textcite]
   {\gdef\cbx@savedkeys{}%
+   \citetrackerfalse%
+   \pagetrackerfalse%
+   \DeferNextCitekeyHook%
    \usebibmacro{cite:init}}
   {\ifthenelse{\iffirstcitekey\AND\value{multicitetotal}>0}
      {\protected@xappto\cbx@savedcites{()(\thefield{multipostnote})}%
@@ -261,7 +264,13 @@
   \def\cbx@savedcites{#1}#2\cbx@savedcites\@empty}
 
 \DeclareMultiCiteCommand{\cbx@textcites}{\cbx@textcite}{}
-\DeclareMultiCiteCommand{\textcites}[\cbx@textcite@init\cbx@textcites]{\textcite}{}
+\DeclareMultiCiteCommand{\textcites}[\cbx@textcites@init\cbx@textcites]{\textcite}{}
+
+\newrobustcmd{\cbx@textcites@init}[2]{%
+  \UseNextMultiCiteHook%
+  \setcounter{textcitetotal}{0}%
+  \setcounter{textcitecount}{0}%
+  \def\cbx@savedcites{#1}#2\cbx@savedcites\@empty}
 
 \DeclareMultiCiteCommand{\cites}{\cite}{\setunit{\multicitedelim}}
 \DeclareMultiCiteCommand{\parencites}[\mkbibparens]
