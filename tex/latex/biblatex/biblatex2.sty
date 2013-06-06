@@ -539,30 +539,26 @@
   \blx@imc@iffieldundef[#1]{#2}
     {}
     {\ifcsdef{blx@msbibfield@#2}
-      {\edef\blx@tempa{\blx@msform}%
-       \edef\blx@tempb{\blx@mslang}%
-       \setkeys{blx@ms}{#1}%
+      {\blx@flset{#1}%
        \expandafter\expandafter\expandafter\docsvlist
        \expandafter\expandafter\expandafter{%
-         \csname abx@field@#2@\blx@tempa @\blx@tempb\endcsname}}}
+         \csname abx@field@#2@\blx@tempa @\blx@tempb\endcsname}}
     {\expandafter\expandafter\expandafter\docsvlist
      \expandafter\expandafter\expandafter{%
-       \csname abx@field@#2\endcsname}}}
+       \csname abx@field@#2\endcsname}}}}
 
 % [<form/lang keyval>]{<handler>}{<field>} => <handler>{<item1>}<handler>{<item2>}...
 \newcommand{\blx@imc@forcsvfield}[3]{%
   \blx@imc@iffieldundef[#1]{#3}
     {}
     {\ifcsdef{blx@msbibfield@#3}
-      {\edef\blx@tempa{\blx@msform}%
-       \edef\blx@tempb{\blx@mslang}%
-       \setkeys{blx@ms}{#1}%
+      {\blx@flset{#1}%
        \expandafter\expandafter\expandafter\blx@imc@forcsvfield@i
        \expandafter\expandafter\expandafter{%
-         \csname abx@field@#3@\blx@tempa @\blx@tempb\endcsname}{#2}}}
+         \csname abx@field@#3@\blx@tempa @\blx@tempb\endcsname}{#2}}
       {\expandafter\expandafter\expandafter\blx@imc@forcsvfield@i
        \expandafter\expandafter\expandafter{%
-         \csname abx@field@#3\endcsname}{#2}}}
+         \csname abx@field@#3\endcsname}{#2}}}}
 
 \def\blx@imc@forcsvfield@i#1#2{\forcsvlist{#2}{#1}}
 
@@ -1610,18 +1606,28 @@
   \appto\nocorrlist{\isdot\adddot\addperiod\addcomma}}
 
 % {<form/lang keyval>}{<field>}
-% This forks on multiscript fields/lists/names, parsing the form/lang spec
-% The two \edefs are there to make sure both options have defaults in case only
-% one is given ([form=<form>]).
+% This tests to see if a bibfield is multiscript or not and if it is,
+% leaves \blx@tempa containing the form and \blx@tempb containing the lang
 \def\blx@imc@ifbibfieldmsx#1#2{%
   \ifcsdef{blx@msbibfield@#2}
-    {\edef\blx@tempa{\blx@msform}%
-     \edef\blx@tempb{\blx@mslang}%
+    {\edef\blx@tempa{\@empty}%
+     \edef\blx@tempb{\@empty}%
      \ifblank{#1}%[]{field}
        {}
        {\IfNoValueTF{#1}%{field}
-        {}
-        {\setkeys{blx@ms}{#1}}}%
+         {}
+         {\setkeys{blx@ms}{#1}}}%
+     \ifdefempty\blx@tempa
+       {\edef\blx@tempa{\blx@msform}}
+       {}%
+     \ifnum\pdf@strcmp{\blx@tempa}{translated}=\z@
+        \ifdefempty\blx@tempb
+          {\edef\blx@tempb{\blx@mstranslang}}
+          {}%
+      \fi%
+      \ifdefempty\blx@tempb
+        {\edef\blx@tempb{\blx@mslang}}
+        {}%
      \@firstoftwo}
     {\@secondoftwo}}
 
@@ -1816,11 +1822,34 @@
   {om}
   {\ifcsdef{blx@msbibfield@#2}
     {\ifblank{#1}%\thefield[]{field}
-      {\csuse{abx@field@#2@\blx@msform @\blx@mslang}}
+      {\csuse{abx@field@#2@\blx@msform @\blx@mslangswitch}}
       {\IfNoValueTF{#1}%\thefield{field}
-        {\csuse{abx@field@#2@\blx@msform @\blx@mslang}}
+        {\csuse{abx@field@#2@\blx@msform @\blx@mslangswitch}}
         {\csuse{abx@field@#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}}}}}
     {\csuse{abx@field@#2}}}
+
+\def\blx@flset#1{%
+  \edef\blx@tempa{\@empty}%
+  \edef\blx@tempb{\@empty}%
+  \setkeys{blx@ms}{#1}%
+  \ifdefempty\blx@tempa
+    {\edef\blx@tempa{\blx@msform}}
+    {}%
+  \ifnum\pdf@strcmp{\blx@tempa}{translated}=\z@
+    \ifdefempty\blx@tempb
+      {\edef\blx@tempb{\blx@mstranslang}}
+      {}%
+  \fi%
+  \ifdefempty\blx@tempb
+    {\edef\blx@tempb{\blx@mslang}}
+    {}}
+
+\def\blx@mslangswitch{%
+  \ifnum\pdf@strcmp{\blx@msform}{translated}=\z@
+    \blx@mstranslang
+  \else
+    \blx@mslang 
+  \fi}
 
 \def\blx@ms@getform#1{%
   \ifnum\pdf@strcmp{\forcsvlist\blx@ms@getform@i{#1}}{}=\z@
@@ -1831,7 +1860,11 @@
 
 \def\blx@ms@getlang#1{%
   \ifnum\pdf@strcmp{\forcsvlist\blx@ms@getlang@i{#1}}{}=\z@
-    \blx@mslang
+    \ifnum\pdf@strcmp{\blx@ms@getform{#1}}{translated}=\z@
+      \blx@mstranslang
+    \else
+      \blx@mslang
+    \fi
   \else
     \forcsvlist\blx@ms@getlang@i{#1}%
   \fi}
@@ -2183,9 +2216,9 @@
   {mom}
   {\ifcsdef{blx@msbibfield@#3}
     {\ifblank{#2}
-      {\csuse{abx@#1@#3@\blx@msform @\blx@mslang}}
+      {\csuse{abx@#1@#3@\blx@msform @\blx@mslangswitch}}
       {\IfNoValueTF{#2}
-        {\ifcsundef{abx@#1@#3@\blx@msform @\blx@mslang}}
+        {\ifcsundef{abx@#1@#3@\blx@msform @\blx@mslangswitch}}
         {\ifcsundef{abx@#1@#3@\blx@ms@getform{#2}@\blx@ms@getlang{#2}}}}}
     {\ifcsundef{abx@#1@#3}}}
 
@@ -2207,11 +2240,11 @@
           % {msfield}{msfield}
           {\blx@imc@ifflequal@i{#1}{#3}{#5}}
           % {msfield}[f/l]{msfield}
-          {\blx@imc@ifflequal@iii{\csuse{abx@#1@#3@\blx@msform @\blx@mslang}}{\blx@imc@ifflequal@ii{#1}{#4}{#5}}}}
+          {\blx@imc@ifflequal@iii{\csuse{abx@#1@#3@\blx@msform @\blx@mslangswitch}}{\blx@imc@ifflequal@ii{#1}{#4}{#5}}}}
         % [f/l]{msfield}[?]{msfield}
         {\IfNoValueTF{#4}
           % [f/l]{msfield}{msfield}
-          {\blx@imc@ifflequal@iii{\blx@imc@ifflequal@ii{#1}{#2}{#3}}{\csuse{abx@#1@#5@\blx@msform @\blx@mslang}}}
+          {\blx@imc@ifflequal@iii{\blx@imc@ifflequal@ii{#1}{#2}{#3}}{\csuse{abx@#1@#5@\blx@msform @\blx@mslangswitch}}}
           % [f/l]{msfield}[f/l]{msfield}
           {\blx@imc@ifflequal@iii{\blx@imc@ifflequal@ii{#1}{#2}{#3}}{\blx@imc@ifflequal@ii{#1}{#4}{#5}}}}}
       % [?]{msfield}[?]{non-msfield}
@@ -2221,7 +2254,7 @@
         % [?]{msfield}{non-msfield}
         {\IfNoValueTF{#2}
           % {msfield}{non-msfield}
-          {\ifcsequal{abx@#1@#2@\blx@msform @\blx@mslang}{abx@#1@#5}}
+          {\ifcsequal{abx@#1@#2@\blx@msform @\blx@mslangswitch}{abx@#1@#5}}
           % [f/l]{msfield}{non-msfield}
           {\blx@imc@ifflequal@iii{\blx@imc@ifflequal@ii{#1}{#2}{#3}}{\csuse{abx@#1@#5}}}}}}
     % [?]{non-msfield}[?]{?}
@@ -2233,7 +2266,7 @@
         % {non-msfield}[?]{msfield}
         {\IfNoValueTF{#4}
           % {non-msfield}{msfield}
-          {\ifcsequal{abx@#1@#5@\blx@msform @\blx@mslang}{abx@#1@#3}}
+          {\ifcsequal{abx@#1@#5@\blx@msform @\blx@mslangswitch}{abx@#1@#3}}
           % {non-msfield}[f/l]{msfield}
           {\blx@imc@ifflequal@iii{\blx@imc@ifflequal@ii{#1}{#4}{#5}}{\csuse{abx@#1@#3}}}}}
       % [?]{non-msfield}[?]{non-msfield}
@@ -2271,9 +2304,9 @@
 \def\blx@imc@ifflequal@ii#1#2#3{%
   \ifcsdef{blx@msbibfield@#3}
     {\ifblank{#2}
-      {\csuse{abx@#1@#3@\blx@msform @\blx@mslang}}
+      {\csuse{abx@#1@#3@\blx@msform @\blx@mslangswitch}}
       {\IfNoValueTF{#2}
-        {\csuse{abx@#1@#3@\blx@msform @\blx@mslang}}
+        {\csuse{abx@#1@#3@\blx@msform @\blx@mslangswitch}}
         {\csuse{abx@#1@#3@\blx@ms@getform{#2}@\blx@ms@getlang{#2}}}}}
     {\csuse{abx@#1@#3}}}
 
@@ -2292,7 +2325,7 @@
       {\blx@ifnamesequal@v{#2}{#4}}%{name}{name}
       {\ifcsdef{blx@msbibfield@#2}%{name}[]{name}
        {\ifcsdef{blx@msbibfield@#4}
-         {\blx@imc@ifnamesequal@i{#2@\blx@msform @\blx@mslang}{#4@\blx@ms@getform{#3}@\blx@ms@getlang{#3}}}%{ms}[]{ms}
+         {\blx@imc@ifnamesequal@i{#2@\blx@msform @\blx@mslangswitch}{#4@\blx@ms@getform{#3}@\blx@ms@getlang{#3}}}%{ms}[]{ms}
          {\blx@warning@noline{You are trying to \ifnamesequal a non-multiscript name '#4' with form/lang arguments}\@secondoftwo}%{ms}[]{non-ms}
        {\ifcsdef{blx@msbibfield@#4}
          {\blx@imc@ifnamesequal@i{#2}{#4@\blx@ms@getform{#3}@\blx@ms@getlang{#3}}}%{non-ms}[]{ms}
@@ -2300,7 +2333,7 @@
     {\IfNoValueTF{#3}
       {\ifcsdef{blx@msbibfield@#2}%[]{name}{name}
         {\ifcsdef{blx@msbibfield@#4}
-          {\blx@imc@ifnamesequal@i{#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}}{#4@\blx@msform @\blx@mslang}}%[]{ms}{ms}
+          {\blx@imc@ifnamesequal@i{#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}}{#4@\blx@msform @\blx@mslangswitch}}%[]{ms}{ms}
           {\blx@imc@ifnamesequal@i{#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}}{#4}}}%[]{ms}{non-ms}
         {\ifcsdef{blx@msbibfield@#4}
           {\blx@warning@noline{You are trying to \ifnamesequal a non-multiscript name '#2' with form/lang arguments}\@secondoftwo}%[]{non-ms}{ms}
@@ -2378,9 +2411,9 @@
                {\global\undef\blx@nefail\@secondoftwo}
                {\@firstoftwo}}
              {\@secondoftwo}}
-      {\blx@imc@ifnamesequal@i{#1@\blx@msform @\blx@mslang}{#2}}}%{ms}{non-ms}
+      {\blx@imc@ifnamesequal@i{#1@\blx@msform @\blx@mslangswitch}{#2}}}%{ms}{non-ms}
     {\ifcsdef{blx@msbibfield@#2}
-      {\blx@imc@ifnamesequal@i{#1}{#2@\blx@msform @\blx@mslang}}%{non-ms}{ms}
+      {\blx@imc@ifnamesequal@i{#1}{#2@\blx@msform @\blx@mslangswitch}}%{non-ms}{ms}
       {\blx@imc@ifnamesequal@i{#1}{#2}}}}%{non-ms}{non-ms}
 
 % [<form/lang keyval>]{<field>}{<macro>}{<true>}{<false>}
@@ -2395,13 +2428,13 @@
     {\@secondoftwo}
     {\ifcsdef{blx@msbibfield@#3}
       {\ifblank{#2}
-        {\expandafter\ifx\csname abx@#1@#3@\blx@msform @\blx@mslang\endcsname#4%
+        {\expandafter\ifx\csname abx@#1@#3@\blx@msform @\blx@mslangswitch\endcsname#4%
          \expandafter\@firstoftwo
          \else
          \expandafter\@secondoftwo
          \fi}
         {\IfNoValueTF{#2}
-          {\expandafter\ifx\csname abx@#1@#3@\blx@msform @\blx@mslang\endcsname#4%
+          {\expandafter\ifx\csname abx@#1@#3@\blx@msform @\blx@mslangswitch\endcsname#4%
            \expandafter\@firstoftwo
            \else
            \expandafter\@secondoftwo
@@ -2422,9 +2455,9 @@
   {omm}
   {\ifcsdef{blx@msbibfield@#2}
     {\ifblank{#1}
-      {\ifcsequal{abx@field@#2@\blx@msform @\blx@mslang}{#3}}
+      {\ifcsequal{abx@field@#2@\blx@msform @\blx@mslangswitch}{#3}}
       {\IfNoValueTF{#1}
-        {\ifcsequal{abx@field@#2@\blx@msform @\blx@mslang}{#3}}
+        {\ifcsequal{abx@field@#2@\blx@msform @\blx@mslangswitch}{#3}}
         {\ifcsequal{abx@field@#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}}{#3}}}}
     {\ifcsequal{abx@field@#2}{#3}}}
 
@@ -2439,9 +2472,9 @@
   {omm}
   {\ifcsdef{blx@msbibfield@#2}
     {\ifblank{#1}
-      {\ifcsequal{abx@name@#2@\blx@msform @\blx@mslang}{#3}}
+      {\ifcsequal{abx@name@#2@\blx@msform @\blx@mslangswitch}{#3}}
       {\IfNoValueTF{#1}
-        {\ifcsequal{abx@name@#2@\blx@msform @\blx@mslang}{#3}}
+        {\ifcsequal{abx@name@#2@\blx@msform @\blx@mslangswitch}{#3}}
         {\ifcsequal{abx@name@#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}}{#3}}}}
     {\ifcsequal{abx@name@#2}{#3}}}
 
@@ -2452,11 +2485,11 @@
     {\ifblank{#1}
       {\expandafter\expandafter\expandafter\ifstrequal
        \expandafter\expandafter\expandafter{%
-       \csname abx@field@#2@\blx@msform @\blx@mslang\endcsname}{#3}}
+       \csname abx@field@#2@\blx@msform @\blx@mslangswitch\endcsname}{#3}}
       {\IfNoValueTF{#1}
         {\expandafter\expandafter\expandafter\ifstrequal
          \expandafter\expandafter\expandafter{%
-         \csname abx@field@#2@\blx@msform @\blx@mslang\endcsname}{#3}}
+         \csname abx@field@#2@\blx@msform @\blx@mslangswitch\endcsname}{#3}}
         {\expandafter\expandafter\expandafter\ifstrequal
          \expandafter\expandafter\expandafter{%
          \csname abx@field@#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}\endcsname}{#3}}}}
@@ -2478,9 +2511,7 @@
 
 % [<form/lang keyval>]{<field>}{xref|crossref}
 \newcommand*{\blx@iffieldxref@i}[3][]{%
-  \edef\blx@tempa{\blx@msform}%
-  \edef\blx@tempb{\blx@mslang}%
-  \setkeys{blx@ms}{#1}%
+  \blx@flset{#1}%
   \begingroup
    \letcs\blx@tempc{abx@field@#3}%
    \letcs\blx@tempd{abx@field@#2@\blx@tempa @\blx@tempb}%
@@ -2524,9 +2555,7 @@
 
 % [<form/lang keyval>]{<plainlist>}{xref|crossref}
 \newcommand*{\blx@iflistxref@i}[3][]{%
-  \edef\blx@tempa{\blx@msform}%
-  \edef\blx@tempb{\blx@mslang}%
-  \setkeys{blx@ms}{#1}%
+  \blx@flset{#1}%
   \begingroup
    \letcs\blx@tempc{abx@field@#3}%
    \letcs\blx@tempd{abx@list@#2@\blx@tempa @\blx@tempb}%
@@ -2559,9 +2588,7 @@
 
 % [<form/lang keyval>]{<namelist>}{xref|crossref}
 \newcommand*{\blx@ifnamexref}[3][]{%
-  \edef\blx@tempa{\blx@msform}%
-  \edef\blx@tempb{\blx@mslang}%
-  \setkeys{blx@ms}{#1}%
+  \blx@flset{#1}%
   \begingroup
    \letcs\blx@tempc{abx@field@#3}%
    \letcs\blx@tempd{abx@name@#2@\blx@tempa @\blx@tempb}%
@@ -2933,12 +2960,12 @@
         {\expandafter\expandafter
          \expandafter\ifinteger
          \expandafter\expandafter
-         \expandafter{\csname abx@field@#2@\blx@msform @\blx@mslang\endcsname}}
+         \expandafter{\csname abx@field@#2@\blx@msform @\blx@mslangswitch\endcsname}}
         {\IfNoValueTF{#1}
           {\expandafter\expandafter
            \expandafter\ifinteger
            \expandafter\expandafter
-           \expandafter{\csname abx@field@#2@\blx@msform @\blx@mslang\endcsname}}
+           \expandafter{\csname abx@field@#2@\blx@msform @\blx@mslangswitch\endcsname}}
           {\expandafter\expandafter
            \expandafter\ifinteger
            \expandafter\expandafter
@@ -3010,12 +3037,12 @@
         {\expandafter\expandafter
          \expandafter\blx@imc@ifnumeral
          \expandafter\expandafter
-         \expandafter{\csname abx@field@#2@\blx@msform @\blx@mslang\endcsname}}
+         \expandafter{\csname abx@field@#2@\blx@msform @\blx@mslangswitch\endcsname}}
         {\IfNoValueTF{#1}
           {\expandafter\expandafter
            \expandafter\blx@imc@ifnumeral
            \expandafter\expandafter
-           \expandafter{\csname abx@field@#2@\blx@msform @\blx@mslang\endcsname}}
+           \expandafter{\csname abx@field@#2@\blx@msform @\blx@mslangswitch\endcsname}}
           {\expandafter\expandafter
            \expandafter\blx@imc@ifnumeral
            \expandafter\expandafter
@@ -3034,12 +3061,12 @@
         {\expandafter\expandafter
          \expandafter\blx@imc@ifnumerals
          \expandafter\expandafter
-         \expandafter{\csname abx@field@#2@\blx@msform @\blx@mslang\endcsname}}
+         \expandafter{\csname abx@field@#2@\blx@msform @\blx@mslangswitch\endcsname}}
         {\IfNoValueTF{#1}
           {\expandafter\expandafter
            \expandafter\blx@imc@ifnumerals
            \expandafter\expandafter
-           \expandafter{\csname abx@field@#2@\blx@msform @\blx@mslang\endcsname}}
+           \expandafter{\csname abx@field@#2@\blx@msform @\blx@mslangswitch\endcsname}}
           {\expandafter\expandafter
            \expandafter\blx@imc@ifnumerals
            \expandafter\expandafter
@@ -3058,12 +3085,12 @@
         {\expandafter\expandafter
          \expandafter\blx@imc@ifpages
          \expandafter\expandafter
-         \expandafter{\csname abx@field@#2@\blx@msform @\blx@mslang\endcsname}}
+         \expandafter{\csname abx@field@#2@\blx@msform @\blx@mslangswitch\endcsname}}
         {\IfNoValueTF{#1}
           {\expandafter\expandafter
            \expandafter\blx@imc@ifpages
            \expandafter\expandafter
-           \expandafter{\csname abx@field@#2@\blx@msform @\blx@mslang\endcsname}}
+           \expandafter{\csname abx@field@#2@\blx@msform @\blx@mslangswitch\endcsname}}
           {\expandafter\expandafter
            \expandafter\blx@imc@ifpages
            \expandafter\expandafter
@@ -5711,11 +5738,9 @@
   \ifcsdef{blx@msbibfield@#2}
     {\ifblank{#1}% ms bibfield with no form/lang specified
       {\csxappto\blx@bbl@data{%
-       \def\expandafter\noexpand\csname abx@field@#2@\blx@msform @\blx@mslang\endcsname{#3}}%
-       \blx@bbl@msdata{#2}{\blx@msform}{\blx@mslang}}
-      {\edef\blx@tempa{\blx@msform}%
-       \edef\blx@tempb{\blx@mslang}%
-       \setkeys{blx@ms}{#1}%
+       \def\expandafter\noexpand\csname abx@field@#2@\blx@msform @\blx@mslangswitch\endcsname{#3}}%
+       \blx@bbl@msdata{#2}{\blx@msform}{\blx@mslangswitch}}
+      {\blx@flset{#1}%
        \xifinlist{\blx@tempa}{\blx@msforms}
          {}
          {\listxadd\blx@msforms{\blx@tempa}}%
@@ -5771,7 +5796,7 @@
          \expandafter\ifstrequal\expandafter{\blx@msform}{##1}
              {}
              {\gdef\blx@msvar{true}}%
-         \expandafter\ifstrequal\expandafter{\blx@mslang}{####1}
+         \expandafter\ifstrequal\expandafter{\blx@mslangswitch}{####1}
              {}
              {\gdef\blx@msvar{true}}}%
        \dolistcsloop{abx@langs@#1@##1}%
@@ -5878,12 +5903,10 @@
     {\ifblank{#1}
       {\csxappto\blx@bbl@data{%
         \csname c@#2\endcsname\NewCount\relax
-        \def\expandafter\noexpand\csname abx@list@#2@\blx@msform @\blx@mslang\endcsname
+        \def\expandafter\noexpand\csname abx@list@#2@\blx@msform @\blx@mslangswitch\endcsname
         {\expandonce\NewValue}}%
-       \blx@bbl@msdata{#2}{\blx@msform}{\blx@mslang}}
-      {\edef\blx@tempa{\blx@msform}%
-         \edef\blx@tempb{\blx@mslang}%
-         \setkeys{blx@ms}{#1}%
+       \blx@bbl@msdata{#2}{\blx@msform}{\blx@mslangswitch}}
+      {\blx@flset{#1}%
        \xifinlist{\blx@tempa}{\blx@msforms}
          {}
          {\listxadd\blx@msforms{\blx@tempa}}%
@@ -5909,12 +5932,10 @@
     {\ifblank{#1}
       {\csxappto\blx@bbl@data{%
         \csname c@#2\endcsname\NewCount\relax
-        \def\expandafter\noexpand\csname abx@name@#2@\blx@msform @\blx@mslang\endcsname
+        \def\expandafter\noexpand\csname abx@name@#2@\blx@msform @\blx@mslangswitch\endcsname
         {{\expandonce\NewOption}{\expandonce\NewValue}}}%
-      \blx@bbl@msdata{#2}{\blx@msform}{\blx@mslang}}
-      {\edef\blx@tempa{\blx@msform}%
-       \edef\blx@tempb{\blx@mslang}%
-       \setkeys{blx@ms}{#1}%
+      \blx@bbl@msdata{#2}{\blx@msform}{\blx@mslangswitch}}
+      {\blx@flset{#1}%
        \xifinlist{\blx@tempa}{\blx@msforms}
          {}
          {\listxadd\blx@msforms{\blx@tempa}}%
@@ -6285,7 +6306,7 @@
 \def\blx@bbl@titles{%
   \ifundef\abx@field@indextitle
     {\csgappto\blx@bbl@data{%
-       \letcs\abx@field@indextitle{abx@field@title@\blx@msform @\blx@mslang}}}
+       \letcs\abx@field@indextitle{abx@field@title@\blx@msform @\blx@mslangswitch}}}
     {}%
   \ifundef\abx@field@indexsorttitle
     {\csgappto\blx@bbl@data{%
@@ -8578,7 +8599,7 @@
 \long\def\blx@citexpunct@ii#1#2[#3]{%
   \@ifnextchar[%]
     {\blx@citexpunct@iii{#1}{#2{#3}}}
-    {\blx@citexpunct@iii{#1}{#2{#3}}[form=\blx@msform,lang=\blx@mslang]}}
+    {\blx@citexpunct@iii{#1}{#2{#3}}[form=\blx@msform,lang=\blx@mslangswitch]}}
 \long\def\blx@citexpunct@iii#1#2[#3]#4{%
     \blx@thecheckpunct{\blxcitecmd{#1}#2{#3}{#4}}}
 
