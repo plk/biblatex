@@ -1,9 +1,12 @@
 \documentclass{ltxdockit}[2011/03/25]
 \usepackage{btxdockit}
 \usepackage{fontspec}
-\setmainfont[Ligatures=TeX]{TeXGyrePagella}
-\setsansfont[Ligatures=TeX]{TexGyreHeros}
-\setmonofont[Ligatures=NoCommon]{TeXGyreCursor}
+\usepackage[mono=false]{libertine}
+% http://www.ctan.org/pkg/dejavu
+\setmonofont[Scale=MatchLowercase]{DejaVu Sans Mono}
+%\setmainfont[Ligatures=TeX]{TeXGyrePagella}
+%\setsansfont[Ligatures=TeX]{TexGyreHeros}
+%\setmonofont[Ligatures=NoCommon]{TeXGyreCursor}
 \usepackage[american]{babel}
 \usepackage[strict]{csquotes}
 \usepackage{tabularx}
@@ -16,11 +19,14 @@
 \areaset[current]{370pt}{700pt}
 \lstset{basicstyle=\ttfamily,keepspaces=true}
 \KOMAoptions{numbers=noenddot}
+\addtokomafont{title}{\sffamily}
 \addtokomafont{paragraph}{\spotcolor}
 \addtokomafont{section}{\spotcolor}
 \addtokomafont{subsection}{\spotcolor}
 \addtokomafont{subsubsection}{\spotcolor}
 \addtokomafont{descriptionlabel}{\spotcolor}
+\setkomafont{caption}{\bfseries\sffamily\spotcolor}
+\setkomafont{captionlabel}{\bfseries\sffamily\spotcolor}
 \pretocmd{\cmd}{\sloppy}{}{}
 \pretocmd{\bibfield}{\sloppy}{}{}
 \pretocmd{\bibtype}{\sloppy}{}{}
@@ -44,7 +50,7 @@
   title={The \sty{biblatex} Package},
   subtitle={Programmable Bibliographies and Citations},
   url={\biblatexhome},
-  author={Philipp Lehman (with Audrey Boruvka, Philip Kime and Joseph Wright)},
+  author={Philipp Lehman \\(with Philip Kime, Audrey Boruvka and Joseph Wright)},
   email={},
   revision={2.6},
   date={30/04/2013}}
@@ -146,7 +152,7 @@ This package provides advanced bibliographic facilities for use with \latex in c
 
 \subsection{License}
 
-Copyright \textcopyright\ 2006--2012 Philipp Lehman. Permission is granted to copy, distribute and\slash or modify this software under the terms of the \lppl, version 1.3.\fnurl{http://www.ctan.org/tex-archive/macros/latex/base/lppl.txt}.
+Copyright \textcopyright\ 2006--2012 Philipp Lehman. 2012--2013 Philip Kime, Audrey Boruvka, Joseph Wright. Permission is granted to copy, distribute and\slash or modify this software under  the terms of the \lppl, version 1.3.\fnurl{http://www.ctan.org/tex-archive/macros/latex/base/lppl.txt}
 
 \subsection{Feedback}
 \label{int:feb}
@@ -198,6 +204,9 @@ The \sty{biblatex} package can use legacy \bibtex as a data backend. While a leg
 \item[etoolbox]
 This \latex package, which is loaded automatically, provides generic programming facilities required by \sty{biblatex}. It is available from \acr{CTAN}.\fnurl{http://www.ctan.org/tex-archive/macros/latex/contrib/etoolbox/}
 
+\item[kvoptions]
+This \latex package, which is also loaded automatically, is used for internal option handling. It is available with the \sty{oberdiek} package bundle from \acr{CTAN}.\fnurl{http://www.ctan.org/pkg/kvoptions}
+
 \item[logreq]
 This \latex package, which is also loaded automatically, provides a frontend for writing machine-readable messages to an auxiliary log file. It is available from \acr{CTAN}.\fnurl{http://www.ctan.org/tex-archive/macros/latex/contrib/logreq/}
 
@@ -217,6 +226,9 @@ The \sty{babel} package provides the core architecture for multilingual typesett
 
 \item[csquotes]
 If this package is available, \sty{biblatex} will use its language sensitive quotation facilities to enclose certain titles in quotation marks. If not, \sty{biblatex} uses quotes suitable for American English as a fallback. When writing in any other language, loading \sty{csquotes} is strongly recommended.\fnurl{http://www.ctan.org/tex-archive/macros/latex/contrib/csquotes/}
+
+\item[xpatch]
+The \sty{xpatch} package extends the patching commands of \sty{etoolbox} to \sty{biblatex} bibliography macros, drivers and formatting directives.\fnurl{http://www.ctan.org/tex-archive/macros/latex/contrib/xpatch/}
 
 \end{marglist}
 
@@ -300,6 +312,9 @@ The \sty{natbib} package supports numeric and author"=year citation schemes, inc
 \item[splitbib]
 The \sty{splitbib} package provides support for bibliographies subdivided by topic. See \sty{bibtopic}.
 
+\item[titlesec]
+The \sty{titlesec} package redefines user-level document division commands such as \cmd{chapter} or \cmd{section}. This approach is not compatible with internal command changes applied by the \sty{biblatex} \texttt{refsection} and \texttt{refsegment} option settings described in \secref{use:opt:pre:gen}.
+
 \item[ucs]
 The \sty{ucs} package provides support for \utf encoded input. Either use \sty{inputenc}'s standard \file{utf8} module or a Unicode enabled engine such as \xetex or \luatex instead.
 
@@ -315,11 +330,11 @@ during processing if it encounters information which comes from a
 compatibility matrix for the recent versions.
 
 \begin{table}
-\begin{center}
-\small
-\begin{tabular}{lllll}
+\tablesetup\centering
+\begin{tabular}{cc}
 \toprule
-Biber version & \biblatex\ version\\
+\sffamily\bfseries\spotcolor Biber version
+  & \sffamily\bfseries\spotcolor \biblatex\ version\\
 \midrule
 1.6 & 2.6\\
 1.5 & 2.5\\
@@ -340,7 +355,6 @@ Biber version & \biblatex\ version\\
 0.9 & 1.4x\\
 \bottomrule
 \end{tabular}
-\end{center}
 \caption{\biber/\biblatex\ compatibility matrix}
 \label{tab:int:pre:bibercompat}
 \end{table}
@@ -1099,35 +1113,37 @@ The gender of the author or the gender of the editor, if there is no author. The
 
 \begin{table}
 \tablesetup
-\begin{tabularx}{\textwidth}{@{}p{100pt}@{}p{150pt}@{}X@{}}
+\begin{tabularx}{\textwidth}{@{}p{80pt}@{}p{170pt}@{}X@{}}
 \toprule
 \multicolumn{1}{@{}H}{Language} &
 \multicolumn{1}{@{}H}{Region/Dialect} &
-\multicolumn{1}{@{}H}{Babel Identifiers} \\
+\multicolumn{1}{@{}H}{Identifiers} \\
 \cmidrule(r){1-1}\cmidrule(r){2-2}\cmidrule{3-3}
-Catalan   & Spain, France, Andorra, Italy & \opt{catalan} \\
-Croatian  & Croatia, Bosnia and Herzegovina, Serbia & \opt{croatian} \\
-Czech     & Czech Republic & \opt{czech} \\
-Danish    & Denmark        & \opt{danish} \\
-Dutch     & Netherlands    & \opt{dutch} \\
-English   & USA            & \opt{american}, \opt{USenglish}, \opt{english} \\
-          & United Kingdom & \opt{british}, \opt{UKenglish} \\
-          & Canada         & \opt{canadian} \\
-          & Australia      & \opt{australian} \\
-          & New Zealand    & \opt{newzealand} \\
-Finnish   & Finland        & \opt{finnish} \\
-French    & France, Canada & \opt{french}, \opt{francais}, \opt{canadien} \\
-German    & Germany        & \opt{german}, \opt{ngerman} \\
-          & Austria        & \opt{austrian}, \opt{naustrian} \\
-Greek     & Greece         & \opt{greek} \\
-Italian   & Italy          & \opt{italian} \\
-Norwegian & Norway         & \opt{norsk}, \opt{nynorsk} \\
-Polish    & Poland         & \opt{polish} \\
-Portuguese& Brazil         & \opt{brazil} \\
-          & Portugal       & \opt{portuges} \\
-Russian   & Russia         & \opt{russian} \\
-Spanish   & Spain          & \opt{spanish} \\
-Swedish   & Sweden         & \opt{swedish} \\
+Catalan      & Spain, France, Andorra, Italy & \opt{catalan} \\
+Croatian     & Croatia, Bosnia and Herzegovina, Serbia & \opt{croatian} \\
+Czech        & Czech Republic & \opt{czech} \\
+Danish       & Denmark        & \opt{danish} \\
+Dutch        & Netherlands    & \opt{dutch} \\
+English      & USA            & \opt{american}, \opt{USenglish}, \opt{english} \\
+             & United Kingdom & \opt{british}, \opt{UKenglish} \\
+             & Canada         & \opt{canadian} \\
+             & Australia      & \opt{australian} \\
+             & New Zealand    & \opt{newzealand} \\
+Finnish      & Finland        & \opt{finnish} \\
+French       & France, Canada & \opt{french} \\
+German       & Germany        & \opt{german} \\
+             & Austria        & \opt{austrian} \\
+German (new) & Germany        & \opt{ngerman} \\
+             & Austria        & \opt{naustrian} \\
+Greek        & Greece         & \opt{greek} \\
+Italian      & Italy          & \opt{italian} \\
+Norwegian    & Norway         & \opt{norwegian}, \opt{norsk}, \opt{nynorsk} \\
+Polish       & Poland         & \opt{polish} \\
+Portuguese   & Brazil         & \opt{brazil} \\
+             & Portugal       & \opt{portuguese}, \opt{portuges} \\
+Russian      & Russia         & \opt{russian} \\
+Spanish      & Spain          & \opt{spanish} \\
+Swedish      & Sweden         & \opt{swedish} \\
 \bottomrule
 \end{tabularx}
 \caption{Supported Languages}
@@ -3412,7 +3428,7 @@ The following additional citation commands are only provided by some of the cita
 \cmditem{textcite}[prenote][postnote]{key}
 \cmditem{Textcite}[prenote][postnote]{key}
 
-These citation commands are provided by all styles that ship with this package. They are intended for use in the flow of text, replacing the subject of a sentence. They print the authors or editors followed by a citation label which is enclosed in parentheses. Depending on the citation style, the label may be a number, the year of publication, an abridged version of the title, or something else. The numeric and alphabetic styles use square brackets instead of parentheses. \cmd{Textcite} is similar to \cmd{textcite} but capitalizes the name prefix of the first name in the citation if the \opt{useprefix} option is enabled, provided that there is a name prefix.
+These citation commands are provided by all styles that ship with this package. They are intended for use in the flow of text, replacing the subject of a sentence. They print the authors or editors followed by a citation label which is enclosed in parentheses. Depending on the citation style, the label may be a number, the year of publication, an abridged version of the title, or something else. The numeric and alphabetic styles use square brackets instead of parentheses. In the verbose styles, the label is provided in a footnote. Trailing punctuation is moved between the author or editor names and the footnote mark. \cmd{Textcite} is similar to \cmd{textcite} but capitalizes the name prefix of the first name in the citation if the \opt{useprefix} option is enabled, provided that there is a name prefix.
 
 \cmditem{smartcite}[prenote][postnote]{key}
 \cmditem{Smartcite}[prenote][postnote]{key}
@@ -3490,7 +3506,7 @@ The multicite version of \cmd{smartcite} and \cmd{Smartcite}, respectively.
 \cmditem{textcites}(pre)(post)[pre][post]{key}|...|[pre][post]{key}
 \cmditem{Textcites}(pre)(post)[pre][post]{key}|...|[pre][post]{key}
 
-The multicite version of \cmd{textcite} and \cmd{Textcite}, respectively. This command is only provided by non-verbose styles.
+The multicite version of \cmd{textcite} and \cmd{Textcite}, respectively.
 
 \cmditem{supercites}(pre)(post)[pre][post]{key}|...|[pre][post]{key}
 
@@ -3591,30 +3607,60 @@ Similar to \cmd{fullcite} but puts the entire citation in a footnote and adds a 
 
 These commands are similar to \cmd{cite} and \cmd{Cite} but intended for references to multi"=volume works which are cited by volume and page number. Instead of the \prm{postnote}, they take a mandatory \prm{volume} and an optional \prm{page} argument. Since they merely compose the postnote and pass it to the \cmd{cite} command provided by the citation style as a \prm{postnote} argument, these commands are style independent. The format of the volume portion is controlled by the field formatting directive \opt{volcitevolume}, the format of the page/text portion is controlled by the field formatting directive \opt{volcitepages} (\secref{aut:fmt:ich}). The delimiter printed between the volume portion and the page/text portion may be modified by redefining the macro \cmd{volcitedelim} (\secref{aut:fmt:fmt}).
 
+\cmditem{volcites}(pre)(post)[pre]{volume}[page]{key}|...|[pre]{volume}[page]{key}
+\cmditem{Volcites}(pre)(post)[pre]{volume}[page]{key}|...|[pre]{volume}[page]{key}
+
+The multicite version of \cmd{volcite} and \cmd{Volcite}, respectively.
+
 \cmditem{pvolcite}[prenote]{volume}[page]{key}
 \cmditem{Pvolcite}[prenote]{volume}[page]{key}
 
 Similar to \cmd{volcite} but based on \cmd{parencite}.
+
+\cmditem{volcites}(pre)(post)[pre]{volume}[page]{key}|...|[pre]{volume}[page]{key}
+\cmditem{volcites}(pre)(post)[pre]{volume}[page]{key}|...|[pre]{volume}[page]{key}
+
+The multicite version of \cmd{pvolcite} and \cmd{Pvolcite}, respectively.
 
 \cmditem{fvolcite}[prenote]{volume}[page]{key}
 \cmditem{ftvolcite}[prenote]{volume}[page]{key}
 
 Similar to \cmd{volcite} but based on \cmd{footcite} and \cmd{footcitetext}, respectively.
 
+\cmditem{volcites}(pre)(post)[pre]{volume}[page]{key}|...|[pre]{volume}[page]{key}
+\cmditem{volcites}(pre)(post)[pre]{volume}[page]{key}|...|[pre]{volume}[page]{key}
+
+The multicite version of \cmd{fvolcite} and \cmd{Fvolcite}, respectively.
+
 \cmditem{svolcite}[prenote]{volume}[page]{key}
 \cmditem{Svolcite}[prenote]{volume}[page]{key}
 
 Similar to \cmd{volcite} but based on \cmd{smartcite}.
+
+\cmditem{volcites}(pre)(post)[pre]{volume}[page]{key}|...|[pre]{volume}[page]{key}
+\cmditem{volcites}(pre)(post)[pre]{volume}[page]{key}|...|[pre]{volume}[page]{key}
+
+The multicite version of \cmd{svolcite} and \cmd{Svolcite}, respectively.
 
 \cmditem{tvolcite}[prenote]{volume}[page]{key}
 \cmditem{Tvolcite}[prenote]{volume}[page]{key}
 
 Similar to \cmd{volcite} but based on \cmd{textcite}.
 
+\cmditem{volcites}(pre)(post)[pre]{volume}[page]{key}|...|[pre]{volume}[page]{key}
+\cmditem{volcites}(pre)(post)[pre]{volume}[page]{key}|...|[pre]{volume}[page]{key}
+
+The multicite version of \cmd{tvolcite} and \cmd{Tvolcite}, respectively.
+
 \cmditem{avolcite}[prenote]{volume}[page]{key}
 \cmditem{Avolcite}[prenote]{volume}[page]{key}
 
 Similar to \cmd{volcite} but based on \cmd{autocite}.
+
+\cmditem{volcites}(pre)(post)[pre]{volume}[page]{key}|...|[pre]{volume}[page]{key}
+\cmditem{volcites}(pre)(post)[pre]{volume}[page]{key}|...|[pre]{volume}[page]{key}
+
+The multicite version of \cmd{avolcite} and \cmd{Avolcite}, respectively.
 
 \cmditem{notecite}[prenote][postnote]{key}
 \cmditem{Notecite}[prenote][postnote]{key}
@@ -4088,7 +4134,17 @@ Prints the comma to be inserted before the final <and> in a list, if applicable 
 Michel Goossens, Frank Mittelbach<<,>> and Alexander Samarin
 \end{lstlisting}
 %
-\cmd{finalandcomma} is the comma before the word <and>. See also \cmd{multinamedelim}, \cmd{finalnamedelim}, and \cmd{revsdnamedelim} in \secref{use:fmt:fmt}.
+\cmd{finalandcomma} is the comma before the word <and>. See also \cmd{multinamedelim}, \cmd{finalnamedelim}, \cmd{textcitedelim}, and \cmd{revsdnamedelim} in \secref{use:fmt:fmt}.
+
+\csitem{finalandsemicolon}
+
+Prints the semicolon to be inserted before the final <and> in a list of lists, if applicable in the respective language. Here is an example:
+
+\begin{lstlisting}[style=latex]{}
+Goossens, Mittelbach, and Samarin; Bertram and Wenworth<<;>> and Knuth
+\end{lstlisting}
+%
+\cmd{finalandsemicolon} is the semicolon before the word <and>. See also \cmd{textcitedelim} in \secref{use:fmt:fmt}.
 
 \cmditem{mkbibordinal}{integer}
 
@@ -9123,7 +9179,10 @@ The delimiter printed between citations if multiple entry keys are passed to a s
 Similar to \cmd{multinamedelim}, but intended for the \cmd{supercite} command only.
 
 \csitem{compcitedelim}
-Similar to \cmd{multicitedelim}, but intended for citation styles which <compress> multiple citations, \ie print the author only once if subsequent citations share the same author etc.
+Similar to \cmd{multicitedelim}, but intended for citation styles that <compress> multiple citations, \ie print the author only once if subsequent citations share the same author etc.
+
+\csitem{textcitedelim}
+Similar to \cmd{multicitedelim}, but intended for \cmd{textcite} and related commands (\secref{use:cit:cbx}).
 
 \csitem{nametitledelim}
 The delimiter to be printed between the author\slash editor and the title. This command should be incorporated in the definition of all citation commands of author-title and some verbose citation styles.
@@ -10911,6 +10970,10 @@ This revision history is a list of changes relevant to users of this package. Ch
 
 \begin{release}{2.7}{2013-??}
 \item Added \cmd{ifentryinbib}\see{aut:aux:tst}
+\item Added \cmd{finalandsemicolon}\see{use:fmt:lng}
+\item Fixed \cmd{textcite} and related commands in the verbose styles\see{use:cit:cbx}
+\item Added multicite variants of \cmd{volcite} and related commands\see{use:cit:spc}
+\item Added new citation delimiter \cmd{textcitedelim} for \cmd{textcite} and related commands into standard styles\see{aut:fmt:fmt}
 \end{release}
 
 \begin{release}{2.6}{2013-04-30}

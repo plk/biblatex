@@ -215,6 +215,12 @@
     {\global\undef\cbx@lasthash}
     {}}
 
+\newbibmacro*{textcite:count}{%
+  \stepcounter{textcitetotal}%
+  \ifnumgreater{\value{labelname}}{\value{textcitemaxnames}}
+    {\setcounter{textcitemaxnames}{\value{labelname}}}
+    {}}
+
 \DeclareCiteCommand{\cbx@textcite}
   {\usebibmacro{textcite:init}}
   {\iffieldequals{namehash}{\cbx@lasthash}
@@ -239,7 +245,7 @@
    \xappto\cbx@savedkeys{\thefield{entrykey},}%
    \iffieldequals{namehash}{\cbx@lasthash}
      {}
-     {\stepcounter{textcitetotal}%
+     {\usebibmacro{textcite:count}%
       \savefield{namehash}{\cbx@lasthash}}%
    \ifnumequal{\value{citecount}}{\value{citetotal}}
      {\protected@xappto\cbx@textcite@args{{\cbx@savedkeys}}%
@@ -256,21 +262,19 @@
 \newrobustcmd{\cbx@textcite@init}[3]{%
   \setcounter{textcitetotal}{0}%
   \setcounter{textcitecount}{0}%
+  \setcounter{textcitemaxnames}{0}%
   \def\cbx@textcite@args{#1}\def\cbx@footcite@args{#2}#3%
-  \cbx@textcite@args\@empty\cbx@footcite@args\@empty}
+  \cbx@textcite@args\empty\cbx@footcite@args\empty}
 
 \DeclareMultiCiteCommand{\cbx@textcites}{\cbx@textcite}{}
 \DeclareMultiCiteCommand{\textcites}
   [\cbx@textcites@init\cbx@textcites\footcites]{\textcite}{}
 
-\newrobustcmd{\cbx@textcites@init}[3]{%
+\let\cbx@textcites@init\cbx@textcite@init
+\pretocmd{\cbx@textcites@init}{%
   \UseNextMultiCiteHook%
   \AtNextMultiCite{%
     \renewbibmacro{multiprenote}{}%
-    \renewbibmacro{multipostnote}{}}%
-  \setcounter{textcitetotal}{0}%
-  \setcounter{textcitecount}{0}%
-  \def\cbx@textcite@args{#1}\def\cbx@footcite@args{#2}#3%
-  \cbx@textcite@args\@empty\cbx@footcite@args\@empty}
+    \renewbibmacro{multipostnote}{}}}{}{}
 
 \endinput
