@@ -1,9 +1,12 @@
 \documentclass{ltxdockit}[2011/03/25]
 \usepackage{btxdockit}
 \usepackage{fontspec}
-\setmainfont[Ligatures=TeX]{TeXGyrePagella}
-\setsansfont[Ligatures=TeX]{TexGyreHeros}
-\setmonofont[Ligatures=NoCommon]{TeXGyreCursor}
+\usepackage[mono=false]{libertine}
+% http://www.ctan.org/pkg/dejavu
+\setmonofont[Scale=MatchLowercase]{DejaVu Sans Mono}
+%\setmainfont[Ligatures=TeX]{TeXGyrePagella}
+%\setsansfont[Ligatures=TeX]{TexGyreHeros}
+%\setmonofont[Ligatures=NoCommon]{TeXGyreCursor}
 \usepackage[american]{babel}
 \usepackage[strict]{csquotes}
 \usepackage{tabularx}
@@ -16,11 +19,14 @@
 \areaset[current]{370pt}{700pt}
 \lstset{basicstyle=\ttfamily,keepspaces=true}
 \KOMAoptions{numbers=noenddot}
+\addtokomafont{title}{\sffamily}
 \addtokomafont{paragraph}{\spotcolor}
 \addtokomafont{section}{\spotcolor}
 \addtokomafont{subsection}{\spotcolor}
 \addtokomafont{subsubsection}{\spotcolor}
 \addtokomafont{descriptionlabel}{\spotcolor}
+\setkomafont{caption}{\bfseries\sffamily\spotcolor}
+\setkomafont{captionlabel}{\bfseries\sffamily\spotcolor}
 \pretocmd{\cmd}{\sloppy}{}{}
 \pretocmd{\bibfield}{\sloppy}{}{}
 \pretocmd{\bibtype}{\sloppy}{}{}
@@ -44,7 +50,7 @@
   title={The \sty{biblatex} Package},
   subtitle={Programmable Bibliographies and Citations},
   url={\biblatexhome},
-  author={Philipp Lehman (with Audrey Boruvka, Philip Kime and Joseph Wright)},
+  author={Philipp Lehman \\(with Philip Kime, Audrey Boruvka and Joseph Wright)},
   email={},
   revision={2.6},
   date={30/04/2013}}
@@ -146,7 +152,7 @@ This package provides advanced bibliographic facilities for use with \latex in c
 
 \subsection{License}
 
-Copyright \textcopyright\ 2006--2012 Philipp Lehman. Permission is granted to copy, distribute and\slash or modify this software under the terms of the \lppl, version 1.3.\fnurl{http://www.ctan.org/tex-archive/macros/latex/base/lppl.txt}.
+Copyright \textcopyright\ 2006--2012 Philipp Lehman. Permission is granted to copy, distribute and\slash or modify this software under the terms of the \lppl, version 1.3.\fnurl{http://www.ctan.org/tex-archive/macros/latex/base/lppl.txt}
 
 \subsection{Feedback}
 \label{int:feb}
@@ -198,6 +204,9 @@ The \sty{biblatex} package can use legacy \bibtex as a data backend. While a leg
 \item[etoolbox]
 This \latex package, which is loaded automatically, provides generic programming facilities required by \sty{biblatex}. It is available from \acr{CTAN}.\fnurl{http://www.ctan.org/tex-archive/macros/latex/contrib/etoolbox/}
 
+\item[kvoptions]
+This \latex package, which is also loaded automatically, is used for internal option handling. It is available with the \sty{oberdiek} package bundle from \acr{CTAN}.\fnurl{http://www.ctan.org/pkg/kvoptions}
+
 \item[logreq]
 This \latex package, which is also loaded automatically, provides a frontend for writing machine-readable messages to an auxiliary log file. It is available from \acr{CTAN}.\fnurl{http://www.ctan.org/tex-archive/macros/latex/contrib/logreq/}
 
@@ -217,6 +226,9 @@ The \sty{babel} package provides the core architecture for multilingual typesett
 
 \item[csquotes]
 If this package is available, \sty{biblatex} will use its language sensitive quotation facilities to enclose certain titles in quotation marks. If not, \sty{biblatex} uses quotes suitable for American English as a fallback. When writing in any other language, loading \sty{csquotes} is strongly recommended.\fnurl{http://www.ctan.org/tex-archive/macros/latex/contrib/csquotes/}
+
+\item[xpatch]
+The \sty{xpatch} package extends the patching commands of \sty{etoolbox} to \sty{biblatex} bibliography macros, drivers and formatting directives.\fnurl{http://www.ctan.org/tex-archive/macros/latex/contrib/xpatch/}
 
 \end{marglist}
 
@@ -300,6 +312,9 @@ The \sty{natbib} package supports numeric and author"=year citation schemes, inc
 \item[splitbib]
 The \sty{splitbib} package provides support for bibliographies subdivided by topic. See \sty{bibtopic}.
 
+\item[titlesec]
+The \sty{titlesec} package redefines user-level document division commands such as \cmd{chapter} or \cmd{section}. This approach is not compatible with internal command changes applied by the \sty{biblatex} \texttt{refsection} and \texttt{refsegment} option settings described in \secref{use:opt:pre:gen}.
+
 \item[ucs]
 The \sty{ucs} package provides support for \utf encoded input. Either use \sty{inputenc}'s standard \file{utf8} module or a Unicode enabled engine such as \xetex or \luatex instead.
 
@@ -315,11 +330,11 @@ during processing if it encounters information which comes from a
 compatibility matrix for the recent versions.
 
 \begin{table}
-\begin{center}
-\small
-\begin{tabular}{lllll}
+\tablesetup\centering
+\begin{tabular}{cc}
 \toprule
-Biber version & \biblatex\ version\\
+\sffamily\bfseries\spotcolor Biber version
+  & \sffamily\bfseries\spotcolor \biblatex\ version\\
 \midrule
 1.6 & 2.6\\
 1.5 & 2.5\\
@@ -340,7 +355,6 @@ Biber version & \biblatex\ version\\
 0.9 & 1.4x\\
 \bottomrule
 \end{tabular}
-\end{center}
 \caption{\biber/\biblatex\ compatibility matrix}
 \label{tab:int:pre:bibercompat}
 \end{table}
@@ -1099,35 +1113,37 @@ The gender of the author or the gender of the editor, if there is no author. The
 
 \begin{table}
 \tablesetup
-\begin{tabularx}{\textwidth}{@{}p{100pt}@{}p{150pt}@{}X@{}}
+\begin{tabularx}{\textwidth}{@{}p{80pt}@{}p{170pt}@{}X@{}}
 \toprule
 \multicolumn{1}{@{}H}{Language} &
 \multicolumn{1}{@{}H}{Region/Dialect} &
-\multicolumn{1}{@{}H}{Babel Identifiers} \\
+\multicolumn{1}{@{}H}{Identifiers} \\
 \cmidrule(r){1-1}\cmidrule(r){2-2}\cmidrule{3-3}
-Catalan   & Spain, France, Andorra, Italy & \opt{catalan} \\
-Croatian  & Croatia, Bosnia and Herzegovina, Serbia & \opt{croatian} \\
-Czech     & Czech Republic & \opt{czech} \\
-Danish    & Denmark        & \opt{danish} \\
-Dutch     & Netherlands    & \opt{dutch} \\
-English   & USA            & \opt{american}, \opt{USenglish}, \opt{english} \\
-          & United Kingdom & \opt{british}, \opt{UKenglish} \\
-          & Canada         & \opt{canadian} \\
-          & Australia      & \opt{australian} \\
-          & New Zealand    & \opt{newzealand} \\
-Finnish   & Finland        & \opt{finnish} \\
-French    & France, Canada & \opt{french}, \opt{francais}, \opt{canadien} \\
-German    & Germany        & \opt{german}, \opt{ngerman} \\
-          & Austria        & \opt{austrian}, \opt{naustrian} \\
-Greek     & Greece         & \opt{greek} \\
-Italian   & Italy          & \opt{italian} \\
-Norwegian & Norway         & \opt{norsk}, \opt{nynorsk} \\
-Polish    & Poland         & \opt{polish} \\
-Portuguese& Brazil         & \opt{brazil} \\
-          & Portugal       & \opt{portuges} \\
-Russian   & Russia         & \opt{russian} \\
-Spanish   & Spain          & \opt{spanish} \\
-Swedish   & Sweden         & \opt{swedish} \\
+Catalan      & Spain, France, Andorra, Italy & \opt{catalan} \\
+Croatian     & Croatia, Bosnia and Herzegovina, Serbia & \opt{croatian} \\
+Czech        & Czech Republic & \opt{czech} \\
+Danish       & Denmark        & \opt{danish} \\
+Dutch        & Netherlands    & \opt{dutch} \\
+English      & USA            & \opt{american}, \opt{USenglish}, \opt{english} \\
+             & United Kingdom & \opt{british}, \opt{UKenglish} \\
+             & Canada         & \opt{canadian} \\
+             & Australia      & \opt{australian} \\
+             & New Zealand    & \opt{newzealand} \\
+Finnish      & Finland        & \opt{finnish} \\
+French       & France, Canada & \opt{french} \\
+German       & Germany        & \opt{german} \\
+             & Austria        & \opt{austrian} \\
+German (new) & Germany        & \opt{ngerman} \\
+             & Austria        & \opt{naustrian} \\
+Greek        & Greece         & \opt{greek} \\
+Italian      & Italy          & \opt{italian} \\
+Norwegian    & Norway         & \opt{norwegian}, \opt{norsk}, \opt{nynorsk} \\
+Polish       & Poland         & \opt{polish} \\
+Portuguese   & Brazil         & \opt{brazil} \\
+             & Portugal       & \opt{portuguese}, \opt{portuges} \\
+Russian      & Russia         & \opt{russian} \\
+Spanish      & Spain          & \opt{spanish} \\
+Swedish      & Sweden         & \opt{swedish} \\
 \bottomrule
 \end{tabularx}
 \caption{Supported Languages}
