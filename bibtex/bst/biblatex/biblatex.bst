@@ -65,6 +65,7 @@ ENTRY {
     eprinttype
     eventdate
     eventtitle
+    eventtitleaddon
     file
     foreword
     gender
@@ -1385,6 +1386,7 @@ FUNCTION {output:fields.1} {
   "eid"             eid             output:write:field
   "eprint"          eprint          output:write:verb
   "eventtitle"      eventtitle      output:write:field
+  "eventtitleaddon" eventtitleaddon output:write:field
   "howpublished"    howpublished    output:write:field
   "hyphenation"     hyphenation     output:write:field
   "indexsorttitle"  indexsorttitle  output:write:field
