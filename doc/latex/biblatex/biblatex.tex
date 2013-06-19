@@ -336,6 +336,7 @@ compatibility matrix for the recent versions.
 \sffamily\bfseries\spotcolor Biber version
   & \sffamily\bfseries\spotcolor \biblatex\ version\\
 \midrule
+1.7 & 2.7\\
 1.6 & 2.6\\
 1.5 & 2.5\\
 1.4 & 2.4\\
@@ -2675,25 +2676,9 @@ Setting this option is equivalent to \kvopt{uniquename}{false}, \kvopt{uniquelis
 
 Specifies the field to consider first when looking for a \bibfield{labelname} candidate. It is essentially prepended to the search list created by \cmd{DeclareLabelname} for just this entry.
 
-\choitem[original]{labelnameform}{original,translated,romanised,uniform}
-
-Specifies the script variant for the field specified with \opt{labelnamefield}, if the datasource you are using supports this.
-
-\choitem[none]{labelnamelang}{<language specifier>}
-
-Specifies the \sty{babel} language variant for the field specified with \opt{labelnamefield} if the datasource you are using supports this. The default, if no \prm{lang} option is set, this means to use the field variant in the datasource which has no explicit language defined.
-
 \valitem{labeltitlefield}{fieldname}
 
 Specifies the field to consider first when looking for a \bibfield{labeltitle} candidate. It is essentially prepended to the search list created by \cmd{DeclareLabeltitle} for just this entry.
-
-\choitem[original]{labeltitleform}{original,translated,romanised,uniform}
-
-Specifies the script variant for the field specified with \opt{labeltitlefield}, if the datasource you are using supports this.
-
-\choitem[none]{labeltitlelang}{<language specifier>}
-
-Specifies the \sty{babel} language variant for the field specified with \opt{labeltitlefield} if the datasource you are using supports this. The default, if no \prm{lang} option is set, this means to use the field variant in the datasource which has no explicit language defined.
 
 \end{optionlist}
 
@@ -6710,18 +6695,6 @@ Here are some examples. The default global \sty{biblatex} alphabetic label templ
 }
 \end{lstlisting}
 %
-Here is an example using form and script variants. We use as the label the left three characters of the <romanised> form of the \bibfield{labelname} field as a preference. If this doesn't exist, we use the <translated> form in the <french> language. If this does not exist, we use the default \bibfield{labelname} from the datasource which has no form or lang specifications.
-
-\begin{lstlisting}[style=latex]{}
-\DeclareLabelalphaTemplate{
-  \labelelement{
-    \field[strwidth=3,strside=left,form=romanised]{<<labelname>>}
-    \field[strwidth=3,strside=left,form=translated,lang=french]{<<labelname>>}
-    \field[strwidth=3,strside=left]{<<labelname>>}
-  }
-}
-\end{lstlisting}
-%
 To get an idea of how the label automatic disambiguation works, consider the following author lists:
 
 \begin{lstlisting}{}
@@ -6959,14 +6932,6 @@ Performs a substring match on the \texttt{left} or \texttt{right} side of the fi
 
 The number of characters to match.
 
-\choitem[original]{form}{original,translated,romanised,uniform}
-
-Specifies the script variant of a field, if the datasource you are using supports this.
-
-\choitem[none]{lang}{<language specifier>}
-
-Specifies the \sty{babel} language variant of a field if the datasource you are using supports this. The default, if no \prm{lang} option is set, this means to use the field variant in the datasource which has no explicit language defined.
-
 \end{optionlist*}
 
 \cmditem{literal}{string}
@@ -7016,18 +6981,6 @@ Here are some examples of sorting schemes. In the first example, we define a sim
   }
   \sort{
     \field{<<year>>}
-  }
-}
-\end{lstlisting}
-%
-Here is an example of specifying particular field scripts and language variants. Here we are sorting on variants of the \bibfield{author} field. First choice is the <translated> form in the <english> language. If this does not exist, then we look for a <romanised> form and if this does not exist, we use the default form.
-
-\begin{lstlisting}[style=latex]{}
-\DeclareSortingScheme{sample}{
-  \sort{
-    \field[form=translated, lang=english]{<<author>>}
-    \field[form=romanised]{<<author>>}
-    \field{<<author>>}
   }
 }
 \end{lstlisting}
@@ -7206,30 +7159,7 @@ Defines the fields to consider when generating the \bibfield{labelname} field (s
 }
 \end{lstlisting}
 %
-The \bibfield{labelname} field may be customized globally or on a per-type basis. If the optional \prm{entrytype} argument is given, the specification applies to the respective entry type. If not, it is applied globally. The \prm{entrytype} argument may be a comma"=separated list of values. This command may only be used in the preamble. \cmd{field} may take the following options:
-
-\begin{optionlist*}
-
-\choitem[original]{form}{original,translated,romanised,uniform}
-
-Specifies the script variant of a field, if the datasource you are using supports this.
-
-\choitem[none]{lang}{<language specifier>}
-
-Specifies the \sty{babel} language variant of a field if the datasource you are using supports this. The default, if no \prm{lang} option is set, this means to use the field variant in the datasource which has no explicit language defined.
-
-\end{optionlist*}
-%
-For example, the following specification for selecting \bibfield{labelname} first looks for an english translation variant of the \bibfield{AUTHOR} field, then a romainsed variant and if neither of these can be found, the default field with no form or lang specifications.
-\begin{lstlisting}[style=latex]{}
-\DeclareLabelname{%
-  \field[form=translated,lang=english]{author}
-  \field[form=romanised]{author}
-  \field{author}
-}
-\end{lstlisting}
-% 
-See \secref{use:opt:bib:ded} for options to override this on a per-entry basis.
+The \bibfield{labelname} field may be customized globally or on a per-type basis. If the optional \prm{entrytype} argument is given, the specification applies to the respective entry type. If not, it is applied globally. The \prm{entrytype} argument may be a comma"=separated list of values. This command may only be used in the preamble.
 
 \cmditem{DeclareLabeldate}[entrytype, \dots]{specification}|\BiberOnlyMark|
 
@@ -7259,30 +7189,7 @@ Defines the fields to consider when generating the \bibfield{labeltitle} field (
 }
 \end{lstlisting}
 %
-The \bibfield{labeltitle} field may be customized globally or on a per-type basis. If the optional \prm{entrytype} argument is given, the specification applies to the respective entry type. If not, it is applied globally. The \prm{entrytype} argument may be a comma"=separated list of values. This command may only be used in the preamble. \cmd{field} may take the following options:
-
-\begin{optionlist*}
-
-\choitem[original]{form}{original,translated,romanised,uniform}
-
-Specifies the script variant of a field, if the datasource you are using supports this.
-
-\choitem[none]{lang}{<language specifier>}
-
-Specifies the \sty{babel} language variant of a field if the datasource you are using supports this. The default, if no \prm{lang} option is set, this means to use the field variant in the datasource which has no explicit language defined.
-
-\end{optionlist*}
-%
-For example, the following specification for selecting \bibfield{labeltitle} first looks for an english translation variant of the \bibfield{TITLE} field, then a romainsed variant and if neither of these can be found, the default field with no form or lang specifications.
-\begin{lstlisting}[style=latex]{}
-\DeclareLabelname{%
-  \field[form=translated,lang=english]{title}
-  \field[form=romanised]{title}
-  \field{title}
-}
-\end{lstlisting}
-%
-See \secref{use:opt:bib:ded} for options to override this on a per-entry basis.
+The \bibfield{labeltitle} field may be customized globally or on a per-type basis. If the optional \prm{entrytype} argument is given, the specification applies to the respective entry type. If not, it is applied globally. The \prm{entrytype} argument may be a comma"=separated list of values. This command may only be used in the preamble.
 
 \end{ltxsyntax}
 
