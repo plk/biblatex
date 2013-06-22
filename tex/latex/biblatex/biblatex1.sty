@@ -69,7 +69,11 @@
     amsrefs,apacite,babelbib,backref,bibtopic,bibunits,chapterbib,
     cite,citeref,drftcite,footbib,inlinebib,jurabib,mcite,mciteplus,
     mlbib,multibbl,multibib,natbib,opcit,overcite,splitbib,ucs}%
-  \@ifpackageloaded{babel}
+  \ifboolexpr{
+    test {\@ifpackageloaded{babel}}
+    and
+    not test {\@ifpackageloaded{polyglossia}}
+  }
     {\iftoggle{blx@autolang}
        {\blx@mkbabel}
        {\blx@mknobabel}}
@@ -4965,10 +4969,7 @@
 \begingroup
 \@makeother\#
 \gdef\blx@mkbabel{%
-  \@ifpackageloaded{polyglossia}
-    {\let\blx@tempa\select@@language}
-    {\let\blx@tempa\select@language}%
-  \pretocmd\blx@tempa{\blx@langsetup{#1}}
+  \pretocmd\select@language{\blx@langsetup{#1}}
     {\ifdef\blx@thelangenv
        {\def\blx@beglang{%
           \blx@clearlang
@@ -4988,10 +4989,7 @@
      \def\blx@imc@mainlang{\select@language{\bbl@main@language}}%
      \blx@langsetup\bbl@main@language}
     {\blx@err@patch{'babel' package}%
-     \blx@mknobabel}%
-  \@ifpackageloaded{polyglossia}
-    {\let\select@@language\blx@tempa}
-    {\let\select@language\blx@tempa}}
+     \blx@mknobabel}}
 \endgroup
 
 \def\blx@mknobabel{%
