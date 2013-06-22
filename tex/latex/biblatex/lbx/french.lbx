@@ -1,65 +1,66 @@
-\ProvidesFile{catalan.lbx}
+\ProvidesFile{french.lbx}
 [\abx@lbxid]
 
-\DeclareRedundantLanguages{catalan}{catalan}
+% Translations by non-native speaker: this file needs an overhaul!
+
+\DeclareRedundantLanguages{french}{french}
 
 \DeclareBibliographyExtras{%
-  \protected\def\bibrangedash{\addnbthinspace -\addnbthinspace}%
-  \protected\def\bibdatedash{\addnbthinspace\textendash\addhpthinspace}%
+  \protected\def\bibrangedash{%
+    \textendash\penalty\hyphenpenalty}% breakable dash
+  \protected\def\bibdatedash{\bibrangedash}%
   \let\finalandcomma=\empty
   \let\finalandsemicolon=\empty
   \def\mkbibordinal{\mkbibmascord}%
-  \protected\def\mkbibmascord#1{%
-    \begingroup
-    \@tempcnta0#1\relax\number\@tempcnta
-    \ifcase\@tempcnta\or r\or n\or r\or t\else\`e\fi		
-    \endgroup}%
-  \protected\def\mkbibfemord#1{\stripzeros{#1}a}%
-  \protected\def\mkbibdatelong#1#2#3{% maintainers: check me
+  \protected\def\mkbibmascord{\lbx@fr@ordinal{er}}%
+  \protected\def\mkbibfemord{\lbx@fr@ordinal{re}}%
+  \protected\def\mkbibneutord{\mkbibmascord}%
+  \protected\def\mkbibdatelong#1#2#3{%
     \iffieldundef{#3}
       {}
       {\stripzeros{\thefield{#3}}%
-       \iffieldundef{#2}
-         {}
-         {\space%
-          \ifthenelse{\thefield{#2}=4}
-            {d'}
-            {\ifthenelse{\thefield{#2}=8}
-               {d'}
-               {\ifthenelse{\thefield{#2}=10}
-                  {d'}
-                  {de\nobreakspace}}}}}%
+       \ifnumequal{\thefield{#3}}{1}
+         {\textsuperscript{er}}
+         {}%
+       \iffieldundef{#2}{}{\nobreakspace}}%
     \iffieldundef{#2}
       {}
       {\mkbibmonth{\thefield{#2}}%
-       \iffieldundef{#1}
-         {}
-         {\space de\nobreakspace}}%
-    \iffieldundef{#1}
-      {}
-      {\iffieldbibstring{#1}{\bibstring{\thefield{#1}}}{\thefield{#1}}}}%
-  \protected\def\mkbibdateshort#1#2#3{% maintainers: check me
+       \iffieldundef{#1}{}{\space}}%
+    \iffieldbibstring{#1}{\bibstring{\thefield{#1}}}{\stripzeros{\thefield{#1}}}}%
+  \protected\def\mkbibdateshort#1#2#3{%
     \iffieldundef{#3}
       {}
-      {\stripzeros{\thefield{#3}}%
-       \iffieldundef{#2}{}{\mbox{-}}}%
+      {\mkdatezeros{\thefield{#3}}%
+       \iffieldundef{#2}{}{/}}%
     \iffieldundef{#2}
       {}
-      {\stripzeros{\thefield{#2}}%
-       \iffieldundef{#1}{}{\mbox{-}}}%
-    \iffieldbibstring{#1}{\bibstring{\thefield{#1}}}{\thefield{#1}}}%
+      {\mkdatezeros{\thefield{#2}}%
+       \iffieldundef{#1}{}{/}}%
+    \iffieldbibstring{#1}{\bibstring{\thefield{#1}}}{\mkdatezeros{\thefield{#1}}}}%
+  \providecommand*{\FDP@thinspace}{\addnbthinspace}% FDP@* -> frenchb.ldf (babel)
+  \providecommand*{\FDP@colonspace}{\addnbspace}%
+  \def\abx@semicolon{%
+    \ifdim\lastkern>\z@\unkern\fi
+    \FDP@thinspace\abx@puncthook{;}}%
+  \def\abx@colon{%
+    \ifdim\lastkern>\z@\unkern\fi
+    \FDP@colonspace\abx@puncthook{:}}%
+  \def\abx@exclam{%
+    \ifdim\lastkern>\z@\unkern\fi
+    \FDP@thinspace\abx@puncthook{!}}%
+  \def\abx@question{%
+    \ifdim\lastkern>\z@\unkern\fi
+    \FDP@thinspace\abx@puncthook{?}}%
   \savecommand\lbx@initnamehook
   \savecommand\lbx@inittitlehook
-  \savecommand\mkbibrangeterse
+  \savecommand\mkbibnamelast
   \savecommand\mkbibordedition
   \savecommand\mkbibordseries
-  \let\lbx@initnamehook=\lbx@ca@smartof
-  \let\lbx@inittitlehook=\lbx@ca@smartof
-  \protected\def\mkbibrangeterse{%
-    \BibliographyWarning{%
-      Date format 'terse' not applicable to\MessageBreak
-      Catalan dates. Using format 'short' instead}%
-    \mkbibrangefull{short}}%
+  \let\lbx@initnamehook=\lbx@fr@smartof
+  \let\lbx@inittitlehook=\lbx@fr@smartof
+  \protected\def\mkbibnamelast#1{%
+    \textsc{\textnohyphenation{#1}}}%
   \def\mkbibordedition{\mkbibfemord}%
   \def\mkbibordseries{\mkbibfemord}%
 }
@@ -67,422 +68,441 @@
 \UndeclareBibliographyExtras{%
   \restorecommand\lbx@initnamehook
   \restorecommand\lbx@inittitlehook
-  \restorecommand\mkbibrangeterse
+  \restorecommand\mkbibnamelast
   \restorecommand\mkbibordedition
   \restorecommand\mkbibordseries
 }
 
 \DeclareBibliographyStrings{%
-  bibliography     = {{Bibliografia}{Bibliografia}},
-  references       = {{Refer\`encies}{Refer\`encies}},
-  shorthands       = {{Llista d'abreviatures}{Abreviatures}},
-  editor           = {{editor}{ed\adddot}},
-  editors          = {{editors}{eds\adddot}},
-  compiler         = {{compilador}{comp\adddot}},% Revisar
-  compilers        = {{compiladors}{comps\adddot}},% Revisar
-  redactor         = {{redactor}{red\adddot}},
-  redactors        = {{redactors}{reds\adddot}},
-  reviser          = {{revisor}{rev\adddot}},
-  revisers         = {{revisors}{revs\adddot}},
-  founder          = {{fundador}{fund\adddot}},
-  founders         = {{fundadors}{funds\adddot}},
-  continuator      = {{continuador}{cont\adddot}},
-  continuators     = {{continuadors}{conts\adddot}},
-  collaborator     = {{co\l.laborador}{co\l.l\adddot}},% \l* -> catalan.ldf (babel)
-  collaborators    = {{co\l.laboradors}{co\l.ls\adddot}},
-  translator       = {{traductor}{trad\adddot}},
-  translators      = {{traductors}{trads\adddot}},
-  commentator      = {{comentarista}{com\adddot}},
-  commentators     = {{comentaristes}{coms\adddot}},
-  annotator        = {{anotador}{anot\adddot}},
-  annotators       = {{anotadors}{anots\adddot}},
-  commentary       = {{comentari}{com\adddot}},
-  annotations      = {{notes}{n\adddot}},
-  introduction     = {{introducci\'o}{intr\adddot}},
-  foreword         = {{pr\`oleg}{pr\`ol\adddot}},
-  afterword        = {{ep{\'\i}leg}{ep\adddot}},
-  editortr         = {{editor i traductor}{ed\adddotspace i trad\adddot}},
-  editorstr        = {{editors i traductors}{eds\adddotspace i trads\adddot}},
-  editorco         = {{editor i comentarista}{ed\adddotspace i com\adddot}},
-  editorsco        = {{editors i comentaristes}{eds\adddotspace i coms\adddot}},
-  editoran         = {{editor i anotador}{ed\adddotspace i anot\adddot}},
-  editorsan        = {{editors i anotadors}{eds\adddotspace i anots\adddot}},
-  editorin         = {{editor i autor de la introducci\'o}
-                      {ed\adddotspace i aut\adddotspace de la intr\adddot}},
-  editorsin        = {{editors i autors de la introducci\'o}
-                      {eds\adddotspace i auts\adddotspace de la intr\adddot}},
-  editorfo         = {{editor i autor del pr\`oleg}
-                      {ed\adddotspace i aut\adddotspace del pr\`ol\adddot}},
-  editorsfo        = {{editors i autors del pr\`oleg}
-                      {eds\adddotspace i auts\adddotspace del pr\`ol\adddot}},
-  editoraf         = {{editor i autor de l'ep{\'\i}leg} %
-                      {ed\adddotspace i aut\adddotspace de l'ep\adddot}},
-  editorsaf        = {{editors i autors de l'ep{\'\i}leg} %
-                      {eds\adddotspace i auts\adddotspace de l'ep\adddot}},
-  editortrco       = {{editor, traductor i comentarista}
-                      {ed.,\addabbrvspace trad\adddotspace i com\adddot}},
-  editorstrco      = {{editors, traductors i comentaristes}
-                      {eds.,\addabbrvspace trads\adddotspace i coms\adddot}},
-  editortran       = {{editor, traductor i anotador}
-                      {ed.,\addabbrvspace trad\adddotspace i anot\adddot}},
-  editorstran      = {{editors, traductors i anotadors}
-                      {eds.,\addabbrvspace trads\adddotspace i anots\adddot}},
-  editortrin       = {{editor, traductor i autor de la introducci\'o}
-                      {ed.,\addabbrvspace trad\adddotspace i aut\adddotspace de la intr\adddot}},
-  editorstrin      = {{editors, traductors i autors de la introducci\'o}
-                      {eds.,\addabbrvspace trads\adddotspace i auts\adddotspace de la intr\adddot}},
-  editortrfo       = {{editor, traductor i autor del pr\`oleg}
-                      {ed.,\addabbrvspace trad\adddotspace i aut\adddotspace del pr\`ol\adddot}},
-  editorstrfo      = {{editors, traductors i autors del pr\`oleg}
-                      {eds.,\addabbrvspace trads\adddotspace i auts\adddotspace del pr\`ol\adddot}},
-  editortraf       = {{editor, traductor i autor de l'ep{\'\i}leg}
-                      {ed.,\addabbrvspace trad\adddotspace i aut\adddotspace de l'ep\adddot}},
-  editorstraf      = {{editors, traductors i autors de l'ep{\'\i}leg}
-                      {eds.,\addabbrvspace trads\adddotspace i auts\adddotspace de l'ep\adddot}},
-  editorcoin       = {{editor, comentarista i autor de la introducci\'o}
-                      {ed.,\addabbrvspace com\adddotspace i aut\adddotspace de la intr\adddot}},
-  editorscoin      = {{editors, comentaristes i autors de la introducci\'o}
-                      {eds.,\addabbrvspace coms\adddotspace i auts\adddotspace de la intr\adddot}},
-  editorcofo       = {{editor, comentarista i autor del pr\`oleg}
-                      {ed.,\addabbrvspace com\adddotspace i aut\adddotspace del pr\`ol\adddot}},
-  editorscofo      = {{editors, comentaristes i autors del pr\`oleg}
-                      {eds.,\addabbrvspace coms\adddotspace i auts\adddotspace del pr\`ol\adddot}},
-  editorcoaf       = {{editor, comentarista i autor de l'ep{\'\i}leg}
-                      {ed.,\addabbrvspace com\adddotspace i aut\adddotspace de l'ep\adddot}},
-  editorscoaf      = {{editors, comentaristes i autors de l'ep{\'\i}leg}
-                      {eds.,\addabbrvspace coms\adddotspace i auts\adddotspace de l'ep\adddot}},
-  editoranin       = {{editor, anotador i autor de la introducci\'o}
-                      {ed.,\addabbrvspace anot\adddotspace i aut\adddotspace de la intr\adddot}},
-  editorsanin      = {{editors, anotadors i autors de la introducci\'o}
-                      {eds.,\addabbrvspace anots\adddotspace i auts\adddotspace de la intr\adddot}}, 
-  editoranfo       = {{editor, anotador i autor del pr\`oleg}
-                      {ed.,\addabbrvspace anot\adddotspace i aut\adddotspace del pr\`ol\adddot}},
-  editorsanfo      = {{editors, anotadors i autors del pr\`oleg}
-                      {eds.,\addabbrvspace anots\adddotspace i auts\adddotspace del pr\`ol\adddot}},
-  editoranaf       = {{editor, anotador i autor de l'ep{\'\i}leg}
-                      {ed.,\addabbrvspace anot\adddotspace i aut\adddotspace de l'ep\adddot}},
-  editorsanaf      = {{editors, anotadors i autors de l'ep{\'\i}leg}
-                      {eds.,\addabbrvspace anots\adddotspace i auts\adddotspace de l'ep\adddot}},
-  editortrcoin     = {{editor, traductor, comentarista i autor de la introducci\'o}
-                      {ed.,\addabbrvspace trad.,\addabbrvspace com\adddotspace i aut\adddotspace de la intr\adddot}},
-  editorstrcoin    = {{editors, traductors, comentaristes i autors de la introducci\'o}
-                      {eds.,\addabbrvspace trads.,\addabbrvspace coms\adddotspace i aut\adddotspace de la intr\adddot}},
-  editortrcofo     = {{editor, traductor, comentarista i autor del pr\`oleg}
-                      {ed.,\addabbrvspace trad.,\addabbrvspace com\adddotspace i aut\adddotspace del pr\`ol\adddot }},
-  editorstrcofo    = {{editors, traductors, comentaristes i autors del pr\`oleg}
-                      {eds.,\addabbrvspace trads.,\addabbrvspace coms\adddotspace i auts\adddotspace del pr\`ol\adddot }},
-  editortrcoaf     = {{editor, traductor, comentarista i autor de l'ep{\'\i}leg}
-                      {ed.,\addabbrvspace trad.,\addabbrvspace com\adddotspace i aut\adddotspace de l'ep\adddot}},
-  editorstrcoaf    = {{editors, traductors, comentaristes i autors de l'ep{\'\i}leg}
-                      {eds.,\addabbrvspace trads.,\addabbrvspace coms\adddotspace i auts\adddotspace de l'ep\adddot}},
-  editortranin     = {{editor, traductor, anotador i autor de la introducci\'o}
-                      {ed.,\addabbrvspace trad.,\addabbrvspace anot\adddotspace i aut\adddotspace de la intr\adddot}},
-  editorstranin    = {{editors, traductors, anotadors i autors de la introducci\'o}
-                      {eds.,\addabbrvspace trads.,\addabbrvspace anots\adddotspace i auts\adddotspace de la intr\adddot}},
-  editortranfo     = {{editor, traductor, anotador i autor del pr\`oleg}
-                      {ed.,\addabbrvspace trad.,\addabbrvspace anot\adddotspace i aut\adddotspace de pr\`ol\adddot}},
-  editorstranfo    = {{editors, traductors, anotadors i autors del pr\`oleg}
-                      {eds.,\addabbrvspace trads.,\addabbrvspace anots\adddotspace i auts\adddotspace de pr\`ol\adddot}},
-  editortranaf     = {{editor, traductor, anotador i autor de l'ep{\'\i}leg}
-                      {ed.,\addabbrvspace trad.,\addabbrvspace anot\adddotspace i aut\adddotspace de l'ep\adddot}},
-  editorstranaf    = {{editors, traductors, anotadors i autors de l'ep{\'\i}leg}
-                      {eds.,\addabbrvspace trads.,\addabbrvspace anots\adddotspace i auts\adddotspace de l'ep\adddot}},
-  translatorco     = {{traductor i comentarista}
-                      {trad\adddotspace i com\adddot}},
-  translatorsco    = {{traductors i comentaristes}
-                     {trads\adddotspace i coms\adddot}},
-  translatoran     = {{traductor i anotador}
-                      {trad\adddotspace i anot\adddot}},
-  translatorsan    = {{traductors i anotadors}
-                      {trads\adddotspace i anots\adddot}},
-  translatorin     = {{traductor i autor de la introducci\'o}
-                      {trad\adddotspace i aut\adddotspace de la intr\adddot}},
-  translatorsin    = {{traductors i autors de la introducci\'o}
-                      {trads\adddotspace i auts\adddotspace de la intr\adddot}},
-  translatorfo     = {{traductor i autor del pr\`oleg}
-                      {trad\adddotspace i aut\adddotspace del pr\`ol\adddot}},
-  translatorsfo    = {{traductors i autors del pr\`oleg}
-                      {trads\adddotspace i auts\adddotspace del pr\`ol\adddot}},
-  translatoraf     = {{traductor i autor de l'ep{\'\i}leg}
-                      {trad\adddotspace i aut\adddotspace de l'ep\adddot}},
-  translatorsaf    = {{traductors i autors de l'ep{\'\i}leg}
-                      {trads\adddotspace i auts\adddotspace de l'ep\adddot}},
-  translatorcoin   = {{traductor, comentarista i autor de la introducci\'o}
-                      {trad.,\addabbrvspace com\adddotspace i aut\adddotspace de la intr\adddotspace}},
-  translatorscoin  = {{traductors, comentaristes i autors de la introducci\'o}
-                      {trads.,\addabbrvspace coms\adddotspace i auts\adddotspace de la intr\adddotspace}},
-  translatorcofo   = {{traductor, comentarista i autor del pr\`oleg}
-                      {trad.,\addabbrvspace com\adddotspace i aut\adddotspace del pr\`ol\adddot}},
-  translatorscofo  = {{traductors, comentaristes i autors del pr\`oleg}
-                      {trads.,\addabbrvspace coms\adddotspace i auts\adddotspace del pr\`ol\adddot}},
-  translatorcoaf   = {{traductor, comentarista i autor de l'ep{\'\i}leg}
-                      {trad.,\addabbrvspace com\adddotspace i aut\adddotspace de l'ep\adddot}},
-  translatorscoaf  = {{traductors, comentaristes i autors de l'ep{\'\i}leg}
-                      {trads.,\addabbrvspace coms\adddotspace i auts\adddotspace de l'ep\adddot}},
-  translatoranin   = {{traductor, anotador i autor de la introducci\'o}
-                      {trad.,\addabbrvspace anot\adddotspace i aut\adddotspace de la intr\adddot}},
-  translatorsanin  = {{traductors, anotadors i autors de la introducci\'o}
-                      {trads.,\addabbrvspace anots\adddotspace i auts\adddotspace de la intr\adddot}},
-  translatoranfo   = {{traductor, anotador i autor del pr\`oleg}
-                      {trad.,\addabbrvspace anot\adddotspace i aut\adddotspace del pr\`ol\adddot}},
-  translatorsanfo  = {{traductors, anotadors i autors del pr\`oleg}
-                      {trads.,\addabbrvspace anots\adddotspace i auts\adddotspace del pr\`ol\adddot}},
-  translatoranaf   = {{traductor, anotador i autor de l'ep{\'\i}leg}
-                      {trad.,\addabbrvspace anot\adddotspace i aut\adddotspace de l'ep\adddot}},
-  translatorsanaf  = {{traductors, anotadors i autors de l'ep{\'\i}leg}
-                      {trads.,\addabbrvspace anots\adddotspace i auts\adddotspace de l'ep\adddot}},
-  byauthor         = {{per}{per}},
-  byeditor         = {{edici\'o a cura \smartof}{ed\adddotspace\smartof}},
-  bycompiler       = {{compilaci\'o a cura \smartof}{comp\adddotspace\smartof}},
-  byredactor       = {{redacci\'o a cura \smartof}{red\adddotspace\smartof}},
-  byreviser        = {{revisi\'o a cura \smartof}{rev\adddotspace\smartof}},
-  byreviewer       = {{revisi\'o a cura \smartof}{rev\adddotspace\smartof}},
-  byfounder        = {{fundat per}{fund\adddotspace per}},
-  bycontinuator    = {{continuat per}{cont\adddotspace per}},
-  bycollaborator   = {{amb la co\l.laboraci\'o \smartof}{amb la co\l.l\adddotspace\smartof}},
-  bytranslator     = {{traducci\'o \lbx@fromlang\ a cura \smartof}{trad\adddotspace\lbx@fromlang\ \smartof}},
-  bycommentator    = {{comentaris a cura \smartof}{com\adddotspace\smartof}},
-  byannotator      = {{notes a cura \smartof}{notes \smartof}},
-  withcommentator  = {{amb comentaris a cura \smartof}{amb com\adddotspace\smartof}},
-  withannotator    = {{amb notes a cura \smartof}{amb notes \smartof}},
-  withintroduction = {{amb una introducci\'o a cura \smartof}{amb una intr\adddotspace\smartof}},
-  withforeword     = {{amb el pr\`oleg a cura \smartof}{amb el pr\`ol\adddotspace\smartof}},
-  withafterword    = {{amb l'ep{\'\i}leg a cura \smartof}{amb l'ep\adddotspace\smartof}},
-  byeditortr       = {{edici\'o i traducci\'o \lbx@fromlang\ a cura \smartof}%
-                      {ed\adddotspace i trad\adddotspace\lbx@fromlang\ \smartof}},
-  byeditorco       = {{edici\'o i comentaris a cura \smartof}%
-                      {ed\adddotspace i com\adddotspace\smartof}},
-  byeditoran       = {{edici\'o i notes a cura \smartof}%
-                      {ed\adddotspace i not\adddotspace\smartof}},
-  byeditorin       = {{edici\'o i introducci\'o a cura \smartof}%
-                      {ed\adddotspace i intr\adddotspace\smartof}},
-  byeditorfo       = {{edici\'o i pr\`oleg a cura \smartof}%
-                      {ed\adddotspace i pr\`ol\adddotspace\smartof}},
-  byeditoraf       = {{edici\'o i ep{\'\i}leg a cura \smartof}%
-                      {ed\adddotspace i ep\adddotspace\smartof}},
-  byeditortrco     = {{edici\'o, traducci\'o \lbx@fromlang\ i comentaris a cura \smartof}%
-                      {ed.,\addabbrvspace trad\adddotspace\lbx@fromlang\ i com\adddotspace\smartof}},
-  byeditortran     = {{edici\'o, traducci\'o \lbx@fromlang\ i notes a cura \smartof}%
-                      {ed.,\addabbrvspace trad\adddotspace\lbx@fromlang\ i not\adddotspace\smartof}},
-  byeditortrin     = {{edici\'o, traducci\'o \lbx@fromlang\ i introducci\'o a cura \smartof}%
-                      {ed,,\addabbrvspace trad\adddotspace\lbx@fromlang\ i intr\adddotspace\smartof}},
-  byeditortrfo     = {{edici\'o, traducci\'o \lbx@fromlang\ i pr\`oleg a cura \smartof}%
-                      {ed.,\addabbrvspace trad\adddotspace\lbx@fromlang\ i pr\`ol\adddotspace\smartof}},
-  byeditortraf     = {{edici\'o, traducci\'o \lbx@fromlang\ i ep{\'\i}leg a cura \smartof}%
-                      {ed.,\addabbrvspace trad\adddotspace\lbx@fromlang\ i ep\adddotspace\smartof}},
-  byeditorcoin     = {{edici\'o, comentaris i introducci\'o a cura \smartof}
-                      {ed.,\addabbrvspace com\adddotspace i intr\adddotspace\smartof}},
-  byeditorcofo     = {{edici\'o, comentaris i pr\`oleg a cura \smartof}
-                      {ed.,\addabbrvspace com\adddotspace i pr\`ol\adddotspace\smartof}},
-  byeditorcoaf     = {{edici\'o, comentaris i ep{\'\i}leg a cura \smartof}%
-                      {ed.,\addabbrvspace com\adddotspace i ep\adddotspace\smartof}},
-  byeditoranin     = {{edici\'o, notes i introducci\'o a cura \smartof}%
-                      {ed.,\addabbrvspace not\adddotspace i introd\adddotspace\smartof}},
-  byeditoranfo     = {{edici\'o, notes i pr\`oleg a cura \smartof}%
-                      {ed.,\addabbrvspace not\adddotspace {\'\i} pr\'ol\adddotspace\smartof}},
-  byeditoranaf     = {{edici\'o, notes i ep{\'\i}leg a cura \smartof}%
-                      {ed.,\addabbrvspace not\adddotspace i ep\adddotspace\smartof}},
-  byeditortrcoin   = {{edici\'o, traducci\'o \lbx@fromlang, comentaris i introducci\'o a cura \smartof}%
-                      {ed.,\addabbrvspace trad\adddotspace \lbx@fromlang, com\adddotspace i intr\adddotspace\smartof}},
-  byeditortrcofo   = {{edici\'o, traducci\'o \lbx@fromlang, comentaris i pr\`oleg a cura \smartof}%
-                      {ed.,\addabbrvspace trad\adddotspace \lbx@fromlang, com\adddotspace i pr\`ol\adddotspace\smartof}},
-  byeditortrcoaf   = {{edici\'o, traducci\'o \lbx@fromlang, comentaris i ep{\'\i}leg a cura \smartof}%
-                      {ed.,\addabbrvspace trad\adddot\ \lbx@fromlang, com\adddot\ i ep\adddot\ \smartof}},
-  byeditortranin   = {{edici\'o, traducci\'o \lbx@fromlang, notes i introducci\'o a cura \smartof}%
-                      {ed.,\addabbrvspace trad\adddot\ \lbx@fromlang, not\adddot\ i intr\adddot\ \smartof}},
-  byeditortranfo   = {{edici\'o, traducci\'o \lbx@fromlang, notes i pr\`oleg a cura \smartof}%
-                      {ed.,\addabbrvspace trad\adddot\ \lbx@fromlang, not\adddot\ i pr\`ol\adddot\ \smartof}},
-  byeditortranaf   = {{edici\'o, traducci\'o \lbx@fromlang, notes i ep{\'\i}leg a cura \smartof}%
-                      {ed.,\addabbrvspace trad\adddot\ \lbx@fromlang, not\adddot\ i ep\adddot\ \smartof}},
-  bytranslatorco   = {{traducci\'o \lbx@fromlang\ i comentaris a cura \smartof}%
-                      {trad\adddot\ \lbx@fromlang\ i com\adddot\ \smartof}},
-  bytranslatoran   = {{traducci\'o \lbx@fromlang\ i notes a cura \smartof}%
-                      {trad\adddot\ \lbx@fromlang\ i not\adddot\ \smartof}},
-  bytranslatorin   = {{traducci\'o \lbx@fromlang\ i introducci\'o a cura \smartof}%
-                      {trad\adddot\ \lbx@fromlang\ i intr\adddot\ \smartof}},
-  bytranslatorfo   = {{traducci\'o \lbx@fromlang\ i pr\`oleg a cura \smartof}%
-                      {trad\adddot\ \lbx@fromlang\ i pr\`ol\adddot\ \smartof}},
-  bytranslatoraf   = {{traducci\'o \lbx@fromlang\ i ep{\'\i}leg a cura \smartof}%
-                      {trad\adddot\ \lbx@fromlang\ i ep\adddot\ \smartof}},
-  bytranslatorcoin = {{traducci\'o \lbx@fromlang, comentaris i introducci\'o a cura \smartof}%
-                      {trad\adddot\ \lbx@fromlang, com\adddot\ i introd\adddot\ \smartof}},
-  bytranslatorcofo = {{traducci\'o \lbx@fromlang, comentaris i pr\`oleg a cura \smartof}%
-                      {trad\adddot\ \lbx@fromlang, com\adddot\ i pr\`ol\adddot\ \smartof}},
-  bytranslatorcoaf = {{traducci\'o \lbx@fromlang, comentaris i ep{\'\i}leg a cura \smartof}%
-                      {trad\adddot\ \lbx@fromlang, com\adddot\ i ep\adddot\ \smartof}},
-  bytranslatoranin = {{traducci\'o \lbx@fromlang, notes i introducci\'o a cura \smartof}%
-                      {trad\adddot\ \lbx@fromlang, not\adddot\ i introd\adddot\ \smartof}},
-  bytranslatoranfo = {{traducci\'o \lbx@fromlang, notes i pr\`oleg a cura \smartof}%
-                      {trad\adddot\ \lbx@fromlang, not\adddot\ i pr\`ol\adddot\ \smartof}},
-  bytranslatoranaf = {{traducci\'o \lbx@fromlang, notes i ep{\'\i}leg a cura \smartof}%
-                      {trad\adddot\ \lbx@fromlang, not\adddot\ i ep\adddot\ \smartof}},
-  and              = {{i}{i}},
-  andothers        = {{et al\adddot}{et al\adddot}},
-  andmore          = {{i m\'es}{i m\'es}},
-  volume           = {{volum}{vol\adddot}},
-  volumes          = {{volums}{vols\adddot}},
+  bibliography     = {{Bibliographie}{Bibliographie}},
+  references       = {{R\'ef\'erences}{R\'ef\'erences}},
+  shorthands       = {{Liste des sigles}{Sigles}},
+  editor           = {{\'editeur}{\'ed\adddot}},
+  editors          = {{\'editeurs}{\'eds\adddot}},
+  compiler         = {{compilateur}{comp\adddot}},
+  compilers        = {{compilateurs}{comp\adddot}},
+  redactor         = {{r\'edacteur}{r\'ed\adddot}},
+  redactors        = {{r\'edacteurs}{r\'ed\adddot}},
+  reviser          = {{r\'eviseur}{r\'ev\adddot}},
+  revisers         = {{r\'eviseurs}{r\'ev\adddot}},
+  founder          = {{fondateur}{fond\adddot}},
+  founders         = {{fondateurs}{fond\adddot}},
+  continuator      = {{continuateur}{cont\adddot}},
+  continuators     = {{continuateurs}{cont\adddot}},
+  collaborator     = {{collaborateur}{coll\adddot}},
+  collaborators    = {{collaborateurs}{coll\adddot}},
+  translator       = {{traducteur}{trad\adddot}},
+  translators      = {{traducteurs}{trad\adddot}},
+  commentator      = {{commentateur}{comm\adddot}},
+  commentators     = {{commentateurs}{comm\adddot}},
+  annotator        = {{annotateur}{annot\adddot}},
+  annotators       = {{annotateurs}{annot\adddot}},
+  commentary       = {{commentaires}{comment\adddot}},
+  annotations      = {{annotations}{annot\adddot}},
+  introduction     = {{introduction}{introd\adddot}},
+  foreword         = {{pr\'eface}{pr\'ef\adddot}},
+  afterword        = {{postface}{postf\adddot}},
+  editortr         = {{\'editeur et traducteur}{\'ed et trad\adddot}},
+  editorstr        = {{\'editeurs et traducteurs}{\'ed\adddot et trad\adddot}},
+  editorco         = {{\'editeur et commentateur}%
+                      {\'ed\adddotspace et comm\adddot}},
+  editorsco        = {{\'editeurs et commentateurs}%
+                      {\'eds\adddotspace et comm\adddot}},
+  editoran         = {{\'editeur et annotateur}%
+                      {\'ed\adddotspace et annot\adddot}},
+  editorsan        = {{\'editeurs et annotateurs}%
+                      {\'eds\adddotspace et annot\adddot}},
+  editorin         = {{\'editeur et introduction}%
+                      {\'ed\adddotspace et introd\adddot}},
+  editorsin        = {{\'editeurs et introduction}%
+                      {\'eds\adddotspace et introd\adddot}},
+  editorfo         = {{\'editeur et pr\'eface}%
+                      {\'ed\adddotspace et pr\'ef\adddot}},
+  editorsfo        = {{\'editeurs et pr\'eface}%
+                      {\'eds\adddotspace et pr\'ef\adddot}},
+  editoraf         = {{\'editeur et postface}%
+                      {\'ed\adddotspace et postf\adddot}},
+  editorsaf        = {{\'editeurs et postface}%
+                      {\'eds\adddotspace et postf\adddot}},
+  editortrco       = {{\'editeur, traducteur et commentateur}%
+                      {\'ed.,\addabbrvspace trans\adddotspace et comm\adddot}},
+  editorstrco      = {{\'editeurs, traducteurs et commentateurs}%
+                      {\'eds.,\addabbrvspace trans\adddotspace et comm\adddot}},
+  editortran       = {{\'editeur, traducteur et annotateur}%
+                      {\'ed.,\addabbrvspace trans\adddotspace et annot\adddot}},
+  editorstran      = {{\'editeurs, traducteurs et annotateurs}%
+                      {\'eds.,\addabbrvspace trans\adddotspace et annot\adddot}},
+  editortrin       = {{\'editeur, traducteur et introduction}%
+                      {\'ed.,\addabbrvspace trans\adddotspace et introd\adddot}},
+  editorstrin      = {{\'editeurs, traducteurs et introduction}%
+                      {\'eds.,\addabbrvspace trans\adddotspace et introd\adddot}},
+  editortrfo       = {{\'editeur, traducteur et pr\'eface}%
+                      {\'ed.,\addabbrvspace trans\adddotspace et pr\'ef\adddot}},
+  editorstrfo      = {{\'editeurs, traducteurs et pr\'eface}%
+                      {\'eds.,\addabbrvspace trans\adddotspace et pr\'ef\adddot}},
+  editortraf       = {{\'editeur, traducteur et postface}%
+                      {\'ed.,\addabbrvspace trans\adddotspace et postf\adddot}},
+  editorstraf      = {{\'editeurs, traducteurs et postface}%
+                      {\'eds.,\addabbrvspace trans\adddot et postf\adddot}},
+  editorcoin       = {{\'editeur, commentateur et introduction}%
+                      {\'ed.,\addabbrvspace comm\adddotspace et introd\adddot}},
+  editorscoin      = {{\'editeurs, commentateurs et introduction}%
+                      {\'eds.,\addabbrvspace comm\adddotspace et introd\adddot}},
+  editorcofo       = {{\'editeur, commentateur et pr\'eface}%
+                      {\'ed.,\addabbrvspace comm\adddotspace et pr\'ef\adddot}},
+  editorscofo      = {{\'editeurs, commentateurs et pr\'eface}%
+                      {\'eds.,\addabbrvspace comm\adddotspace et pr\'ef\adddot}},
+  editorcoaf       = {{\'editeur, commentateur et postface}%
+                      {\'ed.,\addabbrvspace comm\adddotspace et postf\adddot}},
+  editorscoaf      = {{\'editeurs, commentateurs et postface}%
+                      {\'eds.,\addabbrvspace comm\adddotspace et postf\adddot}},
+  editoranin       = {{\'editeur, annotateur et introduction}%
+                      {\'ed.,\addabbrvspace annot\adddotspace et introd\adddot}},
+  editorsanin      = {{\'editeurs, annotateurs et introduction}%
+                      {\'eds.,\addabbrvspace annot\adddotspace et introd\adddot}},
+  editoranfo       = {{\'editeur, annotateur et pr\'eface}%
+                      {\'ed.,\addabbrvspace annot\adddotspace et pr\'ef\adddot}},
+  editorsanfo      = {{\'editeurs, annotateurs et pr\'eface}%
+                      {\'eds.,\addabbrvspace annot\adddotspace et pr\'ef\adddot}},
+  editoranaf       = {{\'editeur, annotateur et postface}%
+                      {\'ed.,\addabbrvspace annot\adddotspace et postf\adddot}},
+  editorsanaf      = {{\'editeurs, annotateurs et postface}%
+                      {\'eds.,\addabbrvspace annot\adddotspace et postf\adddot}},
+  editortrcoin     = {{\'editeur, traducteur, commentateur et introduction}%
+                      {\'ed.,\addabbrvspace trad., comm\adddotspace et introd\adddot}},
+  editorstrcoin    = {{\'editeurs, traducteurs, commentateurs et introduction}%
+                      {\'eds.,\addabbrvspace trad., comm\adddotspace et introd\adddot}},
+  editortrcofo     = {{\'editeur, traducteur, commentateur et pr\'eface}%
+                      {\'ed.,\addabbrvspace trad., comm\adddotspace et pr\'ef\adddot}},
+  editorstrcofo    = {{\'editeurs, traducteurs, commentateurs et pr\'eface}%
+                      {\'eds.,\addabbrvspace trad., comm\adddotspace et pr\'ef\adddot}},
+  editortrcoaf     = {{\'editeur, traducteur, commentateur et postface}%
+                      {\'ed.,\addabbrvspace trad., comm\adddotspace et postf\adddot}},
+  editorstrcoaf    = {{\'editeurs, traducteurs, commentateurs et postface}%
+                      {\'eds.,\addabbrvspace trad., comm\adddotspace et postf\adddot}},
+  editortranin     = {{\'editeur, traducteur, annotateur et introduction}%
+                      {\'ed.,\addabbrvspace trad., annot\adddotspace et introd\adddot}},
+  editorstranin    = {{\'editeurs, traducteurs, annotateurs et introduction}%
+                      {\'eds.,\addabbrvspace trad., annot\adddotspace et introd\adddot}},
+  editortranfo     = {{\'editeur, traducteur, annotateur et pr\'eface}%
+                      {\'ed.,\addabbrvspace trad., annot\adddotspace et pr\'ef\adddot}},
+  editorstranfo    = {{\'editeurs, traducteurs, annotateurs et pr\'eface}%
+                      {\'eds.,\addabbrvspace trad., annot\adddotspace et pr\'ef\adddot}},
+  editortranaf     = {{\'editeur, traducteur, annotateur et postface}%
+                      {\'ed.,\addabbrvspace trad., annot\adddotspace et postf\adddot}},
+  editorstranaf    = {{\'editeurs, traducteurs, annotateurs et postface}%
+                      {\'eds.,\addabbrvspace trad., annot\adddotspace et postf\adddot}},
+  translatorco     = {{traducteur et commentateur}%
+                      {trans\adddotspace et comm\adddot}},
+  translatorsco    = {{traducteurs et commentateurs}%
+                      {trans\adddotspace et comm\adddot}},
+  translatoran     = {{traducteur et annotateur}%
+                      {trans\adddotspace et annot\adddot}},
+  translatorsan    = {{traducteurs et annotateurs}%
+                      {trans\adddotspace et annot\adddot}},
+  translatorin     = {{traduction et introduction}%
+                      {trans\adddotspace et introd\adddot}},
+  translatorsin    = {{traduction et introduction}%
+                      {trans\adddotspace et introd\adddot}},
+  translatorfo     = {{traduction et pr\'eface}%
+                      {trans\adddotspace et pr\'ef\adddot}},
+  translatorsfo    = {{traduction et pr\'eface}%
+                      {trans\adddotspace et pr\'ef\adddot}},
+  translatoraf     = {{traduction et postface}%
+                      {trans\adddotspace et postf\adddot}},
+  translatorsaf    = {{traduction et postface}%
+                      {trans\adddotspace et postf\adddot}},
+  translatorcoin   = {{traduction, commentaire et introduction}%
+                      {trad., comm\adddotspace et introd\adddot}},
+  translatorscoin  = {{traduction, commentaire et introduction}%
+                      {trad., comm\adddotspace et introd\adddot}},
+  translatorcofo   = {{traduction, commentaire et pr\'eface}%
+                      {trad., comm\adddotspace et pr\'ef\adddot}},
+  translatorscofo  = {{traduction, commentaire et pr\'eface}%
+                      {trad., comm\adddotspace et pr\'ef\adddot}},
+  translatorcoaf   = {{traduction, commentaire et postface}%
+                      {trad., comm\adddotspace et postf\adddot}},
+  translatorscoaf  = {{traduction, commentaire et postface}%
+                      {trad., comm\adddotspace et postf\adddot}},
+  translatoranin   = {{traduction, annotations et introduction}%
+                      {trad., annot\adddotspace et introd\adddot}},
+  translatorsanin  = {{traduction, annotations et introduction}%
+                      {trad., annot\adddotspace et introd\adddot}},
+  translatoranfo   = {{traduction, annotations et pr\'eface}%
+                      {trad., annot\adddotspace et pr\'ef\adddot}},
+  translatorsanfo  = {{traduction, annotations et pr\'eface}%
+                      {trad., annot\adddotspace et pr\'ef\adddot}},
+  translatoranaf   = {{traduction, annotations et postface}%
+                      {trad., annot\adddotspace et postf\adddot}},
+  translatorsanaf  = {{traduction, annotations et postface}%
+                      {trad., annot\adddotspace et postf\adddot}},
+  byauthor         = {{par}{par}},
+  byeditor         = {{sous la direction \smartof}{sous la dir\adddotspace\smartof}},
+  bycompiler       = {{compil\'e par}{comp\adddotspace par}},
+  byredactor       = {{r\'edig\'e par}{r\'ed\adddotspace par}},
+  byreviser        = {{r\'evis\'e par}{r\'ev\adddotspace par}},
+  byreviewer       = {{examin\'e par}{ex\adddotspace par}},
+  byfounder        = {{d\'ecouvert par}{d\'ecouv\adddotspace par}},
+  bycontinuator    = {{continu\'e par}{cont\adddotspace par}},
+  bycollaborator   = {{avec la collaboration \smartof}{avec la
+      coll\adddotspace\smartof}},
+  bytranslator     = {{traduit \lbx@lfromlang\ par}{trad\adddotspace \lbx@sfromlang\ par}},
+  bycommentator    = {{comment\'e par}{comm\adddotspace par}},
+  byannotator      = {{annot\'e par}{annot\adddotspace par}},
+  withcommentator  = {{avec des commentaires \smartof}{avec des comment\adddotspace\smartof}},
+  withannotator    = {{avec des annotations \smartof}{avec des annot\adddotspace\smartof}},
+  withintroduction = {{avec une introduction \smartof}{avec une introd\adddotspace\smartof}},
+  withforeword     = {{avec une pr\'eface \smartof}{avec une pr\'ef\adddotspace\smartof}},
+  withafterword    = {{avec une postface \smartof}{avec une postf\adddotspace\smartof}},
+  byeditortr       = {{\'edition \'etablie et traduite \lbx@lfromlang\ par}%
+                      {\'ed\adddotspace \'etablie et trad\adddotspace \lbx@sfromlang\ par}},
+  byeditorco       = {{\'edition \'etablie et comment\'ee par}%
+                      {\'ed\adddotspace \'etablie et comm\adddotspace par}},
+  byeditoran       = {{\'edition \'etablie et annot\'ee par}%
+                      {\'ed\adddotspace \'etablie et annot\adddotspace par}},
+  byeditorin       = {{\'edition \'etablie et introduite par}%
+                      {\'ed\adddotspace \'etablie et introd\adddotspace par}},
+  byeditorfo       = {{\'edition \'etablie et pr\'efac\'ee par}%
+                      {\'ed\adddotspace \'etablie et pr\'ef\adddotspace par}},
+  byeditoraf       = {{\'edition \'etablie et postfac\'ee par}%
+                      {\'ed\adddotspace \'etablie et postf\adddotspace par}},
+  byeditortrco     = {{\'edition \'etablie, traduite \lbx@lfromlang\ et comment\'ee par}%
+                      {\'ed\adddotspace \'etablie, trad\adddotspace \lbx@sfromlang\ et comm\adddotspace par}},
+  byeditortran     = {{\'edition \'etablie, traduite \lbx@lfromlang\ et annot\'ee par}%
+                      {\'ed\adddotspace \'etablie, trad\adddotspace \lbx@sfromlang\ et annot\adddotspace par}},
+  byeditortrin     = {{\'edition \'etablie, traduite \lbx@lfromlang\ et introduite par}%
+                      {\'ed\adddotspace \'etablie, trad\adddotspace \lbx@sfromlang\ et introd\adddotspace par}},
+  byeditortrfo     = {{\'edition \'etablie, traduite \lbx@lfromlang\ et pr\'efac\'ee par}%
+                      {\'ed\adddotspace \'etablie, trad\adddotspace \lbx@sfromlang\ et pr\'ef\adddotspace par}},
+  byeditortraf     = {{\'edition \'etablie, traduite \lbx@lfromlang\ et postfac\'ee par}%
+                      {\'ed\adddotspace \'etablie, trad\adddotspace \lbx@sfromlang\ et postf\adddotspace par}},
+  byeditorcoin     = {{\'edition \'etablie, comment\'ee et introduite par}%
+                      {\'ed\adddotspace \'etablie, comm\adddotspace et introd\adddotspace par}},
+  byeditorcofo     = {{\'edition \'etablie, comment\'ee et pr\'efac\'ee par}%
+                      {\'ed\adddotspace \'etablie, comm\adddotspace et pr\'ef\adddotspace par}},
+  byeditorcoaf     = {{\'edition \'etablie, comment\'ee et postfac\'ee par}%
+                      {\'ed\adddotspace \'etablie, comm\adddotspace et postf\adddotspace par}},
+  byeditoranin     = {{\'edition \'etablie, annot\'ee et introduite par}%
+                      {\'ed\adddotspace \'etablie, annot\adddotspace et introd\adddotspace par}},
+  byeditoranfo     = {{\'edition \'etablie, annot\'ee et pr\'efac\'ee par}%
+                      {\'ed\adddotspace \'etablie, annot\adddotspace et pr\'ef\adddotspace par}},
+  byeditoranaf     = {{\'edition \'etablie, annot\'ee et postfac\'ee par}%
+                      {\'ed\adddotspace \'etablie, annot\adddotspace et postf\adddotspace par}},
+  byeditortrcoin   = {{\'edition \'etablie, traduite \lbx@lfromlang, comment\'ee et introduite par}%
+                      {\'ed\adddotspace \'etablie, trad\adddotspace \lbx@sfromlang, comm\adddotspace et introd\adddotspace par}},
+  byeditortrcofo   = {{\'edition \'etablie, traduite \lbx@lfromlang, comment\'ee et pr\'efac\'ee par}%
+                      {\'ed\adddotspace \'etablie, trad\adddotspace \lbx@sfromlang, comm\adddotspace et pr\'ef\adddotspace par}},
+  byeditortrcoaf   = {{\'edition \'etablie, traduite \lbx@lfromlang, comment\'ee et postfac\'ee par}%
+                      {\'ed\adddotspace \'etablie, trad\adddotspace \lbx@sfromlang, comm\adddotspace et postf\adddotspace par}},
+  byeditortranin   = {{\'edition \'etablie, traduite \lbx@lfromlang, annot\'ee et introduite par}%
+                      {\'ed\adddotspace \'etablie, trad\adddotspace \lbx@sfromlang, annot\adddotspace et introd\adddotspace par}},
+  byeditortranfo   = {{\'edition \'etablie, traduite \lbx@lfromlang, annot\'ee et pr\'efac\'ee par}%
+                      {\'ed\adddotspace \'etablie, trad\adddotspace \lbx@sfromlang, annot\adddotspace et pr\'ef\adddotspace par}},
+  byeditortranaf   = {{\'edition \'etablie, traduite \lbx@lfromlang, annot\'ee et postfac\'ee par}%
+                      {\'ed\adddotspace \'etablie, trad\adddotspace \lbx@sfromlang, annot\adddotspace et postf\adddotspace par}},
+  bytranslatorco   = {{traduit \lbx@lfromlang\ et comment\'e par}%
+                      {trad\adddotspace \lbx@sfromlang\ et comm\adddotspace par}},
+  bytranslatoran   = {{traduit \lbx@lfromlang\ et annot\'e par}%
+                      {trad\adddotspace \lbx@sfromlang\ et annot\adddotspace par}},
+  bytranslatorin   = {{traduit \lbx@lfromlang\ et introduit par}%
+                      {trad\adddotspace \lbx@sfromlang\ et introd\adddotspace par}},
+  bytranslatorfo   = {{traduit \lbx@lfromlang\ et pr\'efac\'e par}%
+                      {trad\adddotspace \lbx@sfromlang\ et pr\'ef\adddotspace par}},
+  bytranslatoraf   = {{traduit \lbx@lfromlang\ et postfac\'e par}%
+                      {trad\adddotspace \lbx@sfromlang\ et postf\adddotspace par}},
+  bytranslatorcoin = {{traduit \lbx@lfromlang, comment\'e et introduit par}%
+                      {trad\adddotspace \lbx@sfromlang, comm\adddotspace et introd\adddotspace par}},
+  bytranslatorcofo = {{traduit \lbx@lfromlang, comment\'e et pr\'efac\'e par}%
+                      {trad\adddotspace \lbx@sfromlang, comm\adddotspace et pr\'ef\adddotspace par}},
+  bytranslatorcoaf = {{traduit \lbx@lfromlang, comment\'e et postfac\'e par}%
+                      {trad\adddotspace \lbx@sfromlang, comm\adddotspace et postf\adddotspace par}},
+  bytranslatoranin = {{traduit \lbx@lfromlang, annot\'e et introduit par}%
+                      {trad\adddotspace \lbx@sfromlang, annot\adddotspace et introd\adddotspace par}},
+  bytranslatoranfo = {{traduit \lbx@lfromlang, annot\'e et pr\'efac\'e par}%
+                      {trad\adddotspace \lbx@sfromlang, annot\adddotspace et pr\'ef\adddotspace par}},
+  bytranslatoranaf = {{traduit \lbx@lfromlang, annot\'e et postfac\'e par}%
+                      {trad\adddotspace \lbx@sfromlang, annot\adddotspace et postf\adddotspace par}},
+  and              = {{et}{et}},
+  andothers        = {{et\addabbrvspace al\adddot}{et\addabbrvspace al\adddot}},
+  andmore          = {{et\addabbrvspace al\adddot}{et\addabbrvspace al\adddot}},
+  volume           = {{tome}{t\adddot}},
+  volumes          = {{tomes}{t\adddot}},
   involumes        = {{en}{en}},
-  jourvol          = {{volum}{vol\adddot}},
-  jourser          = {{s\`erie}{s\`er\adddot}},
-  book             = {{llibre}{ll\adddot}},
-  part             = {{part}{part}},
-  issue            = {{n\'umero}{n\'um\adddot}},
-  newseries        = {{s\`erie nova}{s\`er\adddotspace nova}},
-  oldseries        = {{s\`erie antiga}{s\`er\adddotspace ant\adddot}},
-  edition          = {{edici\'o}{ed\adddot}},
-  reprint          = {{reimpressi\'o}{reimpr\adddot}},
-  reprintof        = {{reimpressi\'o \smartof}{reimpr\adddotspace\smartof}},
-  reprintas        = {{reimpr\`es com}{reimpr\adddotspace com}},
-  reprintfrom      = {{reimpr\`es \smartof}{reimpr\adddotspace\smartof}},
-  reviewof         = {{revisi\'o \smartof}{rev\adddotspace\smartof}},
-  translationof    = {{traducci\'o \smartof}{trad\adddotspace\smartof}},
-  translationas    = {{tradu{\"\i}t com}{trad\adddotspace com}},
-  translationfrom  = {{tradu{\"\i}t del}{trad\adddotspace del}},% FIXME: smartdel
-  origpubas        = {{publicat originalment com}{pub\adddotspace orig\adddotspace com}},
-  origpubin        = {{publicat originalment el}{pub\adddotspace orig\adddotspace el}},
-  astitle          = {{com}{com}},
-  bypublisher      = {{per}{per}},
-  page             = {{p\`agina}{p\`ag\adddot}},
-  pages            = {{p\`agines}{p\`ag\adddot}},
-  column           = {{columna}{col\adddot}},
-  columns          = {{columnes}{cols\adddot}},
-  line             = {{l{\'\i}nia}{l{\'\i}n\adddot}}, 
-  lines            = {{l{\'\i}nies}{l{\'\i}ns\adddot}},
-  nodate           = {{sine data}{s\adddot d\adddot}},
-  verse            = {{vers}{v\adddot}}, 
-  verses           = {{versos}{v\adddot}},
-  section          = {{apartat}{\S}},
-  sections         = {{apartats}{\S}},
-  paragraph        = {{par\`agraf}{\P}},
-  paragraphs       = {{par\`agrafs}{\P}},
-  in               = {{a}{a}},
-  inseries         = {{\smartof}{\smartof}},
-  ofseries         = {{\smartof}{\smartof}},
-  number           = {{n\'umero}{n\'um\adddot}},
-  chapter          = {{cap{\'\i}tol}{cap\adddot}},
-  mathesis         = {{tesi de m\`aster}{tesi de m\`aster}},
-  phdthesis        = {{tesi doctoral}{tesi doct\adddot}},
-  candthesis       = {{tesi de candidatura}{tesi de cand\adddotspace}},
-  resreport        = {{informe de recerca}{inf\adddotspace de rec\adddot}},
-  techreport       = {{informe t\`ecnic}{inf\adddotspace t\`ec\adddot}},
-  software         = {{programari}{prog\adddot}},
-  datacd           = {{CD de dades}{CD de dades}},
-  audiocd          = {{CD d'\`audio}{CD d'\`audio}},
-  version          = {{versi\'o}{ver\adddot}},
-  url              = {{adre\c{c}a}{adr\adddot}},
-  urlfrom          = {{disponible a}{disp\adddotspace a}},
-  urlseen          = {{consultat}{cons\adddotspace}},
-  inpreparation    = {{en preparaci\'o}{en prep\adddot}},
-  inpress          = {{a impremta}{a impr\adddot}},% Per revisar
-  prepublished     = {{pre-publicat}{pre-publicat}},
-  submitted        = {{enviat}{env\adddot}},% Per revisar
-  forthcoming      = {{disponible en breu}{disp\adddotspace en breu}},
-  citedas          = {{d'ara endavant citat com}{d'ara end\adddotspace cit\adddotspace com}},
-  thiscite         = {{aquesta citaci\'o}{a\adddotspace cit\adddot}},
-  seenote          = {{vegeu la nota}{v\adddotspace la n\adddot}},
-  quotedin         = {{citat a}{cit\adddotspace a}},
-  idem             = {{{\'\i}dem}{{\'\i}d\adddot}},
-  idemsf           = {{{\'\i}dem}{{\'\i}d\adddot}},
-  idemsm           = {{{\'\i}dem}{{\'\i}d\adddot}},
-  idemsn           = {{{\'\i}dem}{{\'\i}d\adddot}},
-  idempf           = {{{\'\i}dem}{{\'\i}d\adddot}},
-  idempm           = {{{\'\i}dem}{{\'\i}d\adddot}},
-  idempn           = {{{\'\i}dem}{{\'\i}d\adddot}},
-  idempp           = {{{\'\i}dem}{{\'\i}d\adddot}},
-  ibidem           = {{ib{\'\i}dem}{ib\adddot}},
-  opcit            = {{\`op\adddotspace cit\adddot}{\`op\adddotspace cit\adddot}},
+  jourvol          = {{tome}{t\adddot}},
+  jourser          = {{s\'erie}{s\'er\adddot}},
+  book             = {{livre}{livre}},
+  part             = {{partie}{partie}},
+  issue            = {{\'edition}{\'ed\adddot}},
+  newseries        = {{nouvelle s\'erie}{nouv\adddotspace s\'er\adddot}},
+  oldseries        = {{ancienne s\'erie}{anc\adddotspace s\'er\adddot}},
+  edition          = {{\'edition}{\'ed\adddot}},
+  reprint          = {{r\'eimpression}{r\'eimpr\adddot}},
+  reprintof        = {{r\'eimpression \smartof}{r\'eimpr\adddotspace\smartof}},
+  reprintas        = {{r\'eimpression sous le titre}{r\'eimpr\adddotspace sous le titre}},
+  reprintfrom      = {{r\'eimpression \`a partir \smartof}{r\'eimpr\adddotspace \`a part\adddotspace\smartof}},
+  translationof    = {{traduction \smartof}{trad\adddotspace\smartof}},
+  translationas    = {{traduit sous le titre}{trad\adddotspace sous le titre}},
+  translationfrom  = {{traduit \smartof}{trad\adddotspace\smartof}},
+  reviewof         = {{critique \smartof}{crit.\adddotspace\smartof}},
+  origpubas        = {{publi\'e \`a l'origine sous le titre}{pub\adddotspace \`a l'orig\adddotspace sous le titre}},
+  origpubin        = {{publi\'e \`a l'origine en}{pub\adddotspace \`a l'orig\adddotspace en}},
+  astitle          = {{sous le titre}{sous le titre}},
+  bypublisher      = {{par}{par}},
+  page             = {{page}{p\adddot}},
+  pages            = {{pages}{p\adddot}},
+  column           = {{colonne}{col\adddot}},
+  columns          = {{colonnes}{col\adddot}},
+  line             = {{ligne}{l\adddot}},
+  lines            = {{lignes}{l\adddot}},
+  nodate           = {{pas\space de\space date}{{}p\adddot d\adddot}},
+  verse            = {{vers}{v\adddot}},
+  verses           = {{vers}{v\adddot}},
+  section          = {{section}{\S}},
+  sections         = {{sections}{\S\S}},
+  paragraph        = {{paragraphe}{par\adddot}},
+  paragraphs       = {{paragraphes}{par\adddot}},
+  in               = {{in}{in}},
+  inseries         = {{in}{in}},
+  ofseries         = {{de}{de}},
+  number           = {{num\'ero}{n\textsuperscript{o}}},
+  chapter          = {{chapitre}{chap\adddot}},
+  mathesis         = {{m\'emoire de master}{m\'em\adddot de mast\adddot}},
+  phdthesis        = {{th\`ese de doctorat}{th\`ese de doct\adddot}},
+  candthesis       = {{th\`ese de candidature}{th\`ese de cand\adddot}},
+  resreport        = {{rapport scientifique}{rapp\adddotspace scient\adddot}},
+  techreport       = {{rapport technique}{rapp\adddotspace tech\adddot}},
+  software         = {{logiciel}{logiciel}},
+  datacd           = {{c\'ed\'erom}{c\'ed\'erom}},
+  audiocd          = {{disque compact audio}{CD}},
+  version          = {{version}{version}},
+  url              = {{adresse}{adresse}},
+  urlfrom          = {{disponible \`a l'adresse}{disp\adddotspace \`a l'adr\adddot}},
+  urlseen          = {{visit\'e le}{visit\'e le}},
+  inpreparation    = {{en pr\'eparation}{en pr\'ep\adddot}},
+  submitted        = {{soumis}{soumis}},
+  forthcoming      = {{\`a para\^{\i}tre}{\`a para\adddot}},
+  inpress          = {{sous presse}{sous presse}},
+  prepublished     = {{pr\'epubli\'e}{pr\'epubl\adddot}},
+  citedas          = {{d\'esign\'e ci-apr\`es par}{ci-apr\`es}},
+  thiscite         = {{sp\'ecialement}{sp\'ec\adddot}},
+  seenote          = {{voir note}{cf\adddotspace note}},
+  quotedin         = {{cit\'e dans}{cit\'e dans}},
+  idem             = {{idem}{idem}},
+  idemsm           = {{idem}{idem}},
+  idemsf           = {{eadem}{eadem}},
+  idemsn           = {{idem}{idem}},
+  idempm           = {{eidem}{eidem}},
+  idempf           = {{eaedem}{eaedem}},
+  idempn           = {{eadem}{eadem}},
+  idempp           = {{eidem}{eidem}},
+  ibidem           = {{ibidem}{ibid\adddot}},
+  opcit            = {{op\adddotspace cit\adddot}{op\adddotspace cit\adddot}},
   loccit           = {{loc\adddotspace cit\adddot}{loc\adddotspace cit\adddot}},
   confer           = {{cf\adddot}{cf\adddot}},
-  sequens          = {{seq\adddot}{seq\adddot}},
-  sequentes        = {{et seq\adddot}{et seq\adddot}},
-  passim           = {{p\`assim}{p\`assim}},
-  see              = {{vegeu}{v\adddot}},
-  seealso          = {{vegeu tamb\'e}{v\adddotspace tamb\'e}},
-  backrefpage      = {{vegeu la p\`agina}{v\adddotspace la p\`ag\adddot}},
-  backrefpages     = {{vegeu les p\`agines}{v\adddotspace les p\`ag\adddot}},
-  january          = {{gener}{gen\adddot}},
-  february         = {{febrer}{feb\adddot}},
-  march            = {{mar\c{c}}{mar\adddot}},
-  april            = {{abril}{abr\adddot}},
-  may              = {{maig}{mai\adddot}},
-  june             = {{juny}{jun\adddot}},
-  july             = {{juliol}{jul\adddot}},
-  august           = {{agost}{ago\adddot}},
-  september        = {{setembre}{set\adddot}},
-  october          = {{octubre}{oct\adddot}},
+  sequens          = {{sq\adddot}{sq\adddot}},
+  sequentes        = {{sqq\adddot}{sqq\adddot}},
+  passim           = {{passim}{pass\adddot}},
+  see              = {{cf\adddot}{cf\adddot}},
+  seealso          = {{cf\adddotspace aussi}{cf\adddotspace aussi}},
+  backrefpage      = {{cf\adddotspace page}{cf\adddotspace p\adddot}},
+  backrefpages     = {{cf\adddotspace pages}{cf\adddotspace p\adddot}},
+  january          = {{janvier}{jan\adddot}},
+  february         = {{f\'evrier}{f\'ev\adddot}},
+  march            = {{mars}{mar\adddot}},
+  april            = {{avril}{avr\adddot}},
+  may              = {{mai}{mai}},
+  june             = {{juin}{juin}},
+  july             = {{juillet}{juil\adddot}},
+  august           = {{ao\^ut}{ao\^ut}},
+  september        = {{septembre}{sept\adddot}},
+  october          = {{octobre}{oct\adddot}},
   november         = {{novembre}{nov\adddot}},
-  december         = {{desembre}{des\adddot}},
-  langamerican     = {{angl\`es americ\`a}{ang\adddotspace amer\adddot}},
-  langbrazilian    = {{portugu\`es brasiler}{port\adddotspace bras\adddot}},
-  langcatalan      = {{catal\`a}{catal\`a}},
-  langczech        = {{txec}{txec}},
-  langcroatian     = {{croat}{croat}},
-  langdanish       = {{dan\`es}{dan\adddot}},
-  langdutch        = {{neerland\`es}{neerland\`es}},
-  langenglish      = {{angl\`es}{ang\adddot}},
-  langfinnish      = {{fin\`es}{fin\`es}},
-  langfrench       = {{franc\`es}{fran\adddot}},
-  langgerman       = {{alemany}{alem\adddot}},
+  december         = {{d\'ecembre}{d\'ec\adddot}},
+  langamerican     = {{am\'ericain}{am\'ericain}},
+  langbrazilian    = {{br\'esilien}{br\'esilien}},
+% langcatalan      = {{}{}},% FIXME: missing
+  langcroatian     = {{croate}{croate}},
+% langczech        = {{}{}},% FIXME: missing
+  langdanish       = {{danois}{danois}},
+  langdutch        = {{n\'eerlandais}{n\'eerlandais}},
+  langenglish      = {{anglais}{anglais}},
+  langfinnish      = {{finnois}{finnois}},
+  langfrench       = {{fran\c{c}ais}{fran\c{c}ais}},
+  langgerman       = {{allemand}{allemand}},
   langgreek        = {{grec}{grec}},
-  langitalian      = {{itali\`a}{ital\adddot}},
-  langlatin        = {{llat{\'\i}}{llat{\'\i}}},
-  langnorwegian    = {{noruec}{noruec}},
+  langitalian      = {{italien}{italien}},
+  langlatin        = {{latin}{latin}},
+  langnorwegian    = {{norv\'egien}{norv\'egien}},
 % langpolish       = {{}{}},% FIXME: missing
-  langportuguese   = {{portugu\`es}{port\adddot}},
-  langrussian      = {{rus}{rus}},
-  langspanish      = {{castell\`a}{cast\adddot}},
-  langswedish      = {{suec}{suec}},
-  fromamerican     = {{de l'angl\`es americ\`a}{de l'ang\adddotspace amer\adddot}},
-  frombrazilian    = {{del portugu\`es brasiler}{del port\adddot bras\adddot}},
-  fromcatalan      = {{del catal\`a}{del catal\`a}},
-  fromcroatian     = {{del croat}{del croat}},
-  fromczech        = {{del txec}{del txec}},
-  fromdanish       = {{del dan\`es}{del dan\`es}},
-  fromdutch        = {{del neerland\`es}{del neerl\adddot}},
-  fromenglish      = {{de l'angl\`es}{de l'ang\adddot}},
-  fromfinnish      = {{del fin\`es}{del fin\`es}},
-  fromfrench       = {{del franc\`es}{del fran\adddot}},
-  fromgerman       = {{de l'alemany}{de l'alem\adddot}},
-  fromgreek        = {{del grec}{del grec}},
-  fromitalian      = {{de l'itali\`a}{de l'ital\adddot}},
-  fromlatin        = {{del llat{\'\i}}{del llat{\'\i}}},
-  fromnorwegian    = {{del noruec}{del noruec}},
+  langportuguese   = {{portugais}{portugais}},
+  langrussian      = {{russe}{russe}},
+  langspanish      = {{espagnol}{espagnol}},
+  langswedish      = {{su\'edois}{su\'edois}},
+  fromamerican     = {{de l'am\'ericain}{de l'am\'ericain}},
+  frombrazilian    = {{du br\'esilien}{du br\'esilien}},
+% fromcatalan      = {{}{}},% FIXME: missing
+  fromcroatian     = {{du croate}{du croate}},
+% fromczech        = {{}{}},% FIXME: missing
+  fromdanish       = {{du danois}{du danois}},
+  fromdutch        = {{du n\'eerlandais}{du n\'eerlandais}},
+  fromenglish      = {{de l'anglais}{de l'anglais}},
+  fromfinnish      = {{du finnois}{du finnois}},
+  fromfrench       = {{du fran\c{c}ais}{du fran\c{c}ais}},
+  fromgerman       = {{de l'allemand}{de l'allemand}},
+  fromgreek        = {{du grec}{du grec}},
+  fromitalian      = {{de l'italien}{de l'italien}},
+  fromlatin        = {{du latin}{du latin}},
+  fromnorwegian    = {{du norv\'egien}{du norv\'egien}},
 % frompolish       = {{}{}},% FIXME: missing
-  fromportuguese   = {{del portugu\`es}{del port\adddot}},
-  fromrussian      = {{del rus}{del rus}},
-  fromspanish      = {{del castell\`a}{del cast\adddot}},
-  fromswedish      = {{del suec}{del suec}},
-  countryde        = {{Alemanya}{DE}},
-  countryeu        = {{Uni\'o Europea}{UE}},
-  countryep        = {{Uni\'o Europea}{UE}},
-  countryfr        = {{Fran\c{c}a}{FR}},
-  countryuk        = {{Regne Unit}{GB}},
-  countryus        = {{Estats Units d'Am\`erica}{US}},
-  patent           = {{patent}{pat\adddot}},
-  patentde         = {{patent alemana}{pat\adddot\ alem\adddot}},
-  patenteu         = {{patent europea}{pat\adddot\ eur\adddot}},
-  patentfr         = {{patent francesa}{pat\adddot\ fran\adddot}},
-  patentuk         = {{patent brit\`anica}{pat\adddot\ brit\adddot\adddot}},
-  patentus         = {{patent estatunidenca}{pat\adddot\ EUA}},
-  patreq           = {{so\l.licitud de patent}{so\l.l\adddotspace de pat\adddot}},
-  patreqde         = {{so\l.licitud de patent alemana}{so\l.l\adddotspace de pat\adddot\ alem\adddot}},
-  patreqeu         = {{so\l.licitud de patent europea}{so\l.l\adddotspace de pat\adddot\ eur\adddot}},
-  patreqfr         = {{so\l.licitud de patent francesa}{so\l.l\adddotspace de pat\adddot\ fran\adddot}},
-  patrequk         = {{so\l.licitud de patent brit\`anica}{so\l.l\adddotspace de pat\adddot\ brit\adddot}},
-  patrequs         = {{so\l.licitud de patent estatunidenca}{so\l.l\adddotspace de pat\adddot\ EUA}},
-  file             = {{fitxer}{fitx\adddot}},
-  library          = {{biblioteca}{bibl\adddot}},
-  abstract         = {{resum}{res\adddot}}, 
-  annotation       = {{nota}{n\adddot}}, 
+  fromportuguese   = {{du portugais}{du portugais}},
+  fromrussian      = {{du russe}{du russe}},
+  fromspanish      = {{de l'espagnol}{de l'espagnol}},
+  fromswedish      = {{du su\'edois}{du su\'edois}},
+  countryde        = {{Allemagne}{DE}},
+  countryeu        = {{Union europ\'eenne}{EU}},
+  countryep        = {{Union europ\'eenne}{EP}},
+  countryfr        = {{France}{FR}},
+  countryuk        = {{Royaume-Uni}{GB}},
+  countryus        = {{\'Etats-Unis}{US}},
+  patent           = {{brevet}{brev\adddot}},
+  patentde         = {{brevet allemand}{brev\adddotspace allem\adddot}},
+  patenteu         = {{brevet europ\'een}{brev\adddotspace europ\adddot}},
+  patentfr         = {{brevet fran\c{c}ais}{brev\adddotspace fran\c{c}\adddot}},
+  patentuk         = {{brevet britannique}{brev\adddotspace brit\adddot}},
+  patentus         = {{brevet am\'ericain}{brev\adddotspace am\'er\adddot}},
+  patreq           = {{demande de brevet}{demande de brev\adddot}},
+  patreqde         = {{demande de brevet allemand}{demande de brev\adddotspace allem\adddot}},
+  patreqeu         = {{demande de brevet europ\'een}{demande de brev\adddotspace europ\adddot}},
+  patreqfr         = {{demande de brevet fran\c{c}ais}{demande de brev\adddotspace fran\c{c}\adddot}},
+  patrequk         = {{demande de brevet britannique}{demande de brev\adddotspace brit\adddot}},
+  patrequs         = {{demande de brevet am\'ericain}{demande de brev\adddotspace am\'er\adddot}},
+  file             = {{fichier}{fichier}},
+  library          = {{biblioth\`eque}{biblioth\adddot}},
+  abstract         = {{r\'esum\'e}{r\'es\adddot}},
+  annotation       = {{annotations}{annotations}},
 }
+
+\gdef\lbx@fr@ordinal#1#2{%
+  \begingroup
+  \@tempcnta0#2\relax\number\@tempcnta
+  \@whilenum\@tempcnta>100\do{\advance\@tempcnta-100}%
+  \ifnum\@tempcnta>20
+    \@whilenum\@tempcnta>9\do{\advance\@tempcnta-10}%
+  \fi
+  \ifnum\@tempcnta=\@ne
+    \textsuperscript{#1}%
+  \else
+    \textsuperscript{e}%
+  \fi
+  \endgroup}
 
 \begingroup
 \catcode`\&=3
 
-\gdef\lbx@ca@smartof{%
-  \iftoggle{smartof}{\lbx@ca@smartof@i}{\@gobble}}
+\gdef\lbx@fr@smartof{%
+  \iftoggle{smartof}{\lbx@fr@smartof@i}{\@gobble}}
 
-\protected\long\gdef\lbx@ca@smartof@i#1{%
+\protected\long\gdef\lbx@fr@smartof@i#1{%
   \global\togglefalse{smartof}%
   \begingroup
   \def\forceD##1{a\relax}%
@@ -507,35 +527,35 @@
   \lowercase{\edef\lbx@tempa{#1}}%
   \expandafter\futurelet
   \expandafter\lbx@tempa
-  \expandafter\lbx@ca@smartof@ii
+  \expandafter\lbx@fr@smartof@ii
   \lbx@tempa&}
 
-\gdef\lbx@ca@smartof@ii{%
+\gdef\lbx@fr@smartof@ii{%
   \ifcat\bgroup\noexpand\lbx@tempa
-    \def\lbx@tempa##1{\futurelet\lbx@tempa\lbx@ca@smartof@ii##1}%
+    \def\lbx@tempa##1{\futurelet\lbx@tempa\lbx@fr@smartof@ii##1}%
   \else\ifcat\noexpand~\noexpand\lbx@tempa
-    \def\lbx@tempa##1{\futurelet\lbx@tempa\lbx@ca@smartof@ii}%
+    \def\lbx@tempa##1{\futurelet\lbx@tempa\lbx@fr@smartof@ii}%
   \else\if a\noexpand\lbx@tempa
-    \let\lbx@tempa\lbx@ca@smartof@d
+    \let\lbx@tempa\lbx@fr@smartof@d
   \else\if e\noexpand\lbx@tempa
-    \let\lbx@tempa\lbx@ca@smartof@d
+    \let\lbx@tempa\lbx@fr@smartof@d
   \else\if i\noexpand\lbx@tempa
-    \let\lbx@tempa\lbx@ca@smartof@d
+    \let\lbx@tempa\lbx@fr@smartof@d
   \else\if o\noexpand\lbx@tempa
-    \let\lbx@tempa\lbx@ca@smartof@d
+    \let\lbx@tempa\lbx@fr@smartof@d
   \else\if u\noexpand\lbx@tempa
-    \let\lbx@tempa\lbx@ca@smartof@d
+    \let\lbx@tempa\lbx@fr@smartof@d
   \else\if y\noexpand\lbx@tempa
-    \let\lbx@tempa\lbx@ca@smartof@d
+    \let\lbx@tempa\lbx@fr@smartof@d
   \else\if h\noexpand\lbx@tempa
-    \def\lbx@tempa##1{\futurelet\lbx@tempa\lbx@ca@smartof@ii}%
+    \def\lbx@tempa##1{\futurelet\lbx@tempa\lbx@fr@smartof@ii}%
   \else
-    \let\lbx@tempa\lbx@ca@smartof@de
+    \let\lbx@tempa\lbx@fr@smartof@de
   \fi\fi\fi\fi\fi\fi\fi\fi\fi
   \lbx@tempa}
 
-\gdef\lbx@ca@smartof@d#1&{\endgroup d'}
-\gdef\lbx@ca@smartof@de#1&{\endgroup de\space}
+\gdef\lbx@fr@smartof@d#1&{\endgroup d'}
+\gdef\lbx@fr@smartof@de#1&{\endgroup de\space}
 
 \endgroup
 
