@@ -4965,10 +4965,10 @@
 \begingroup
 \@makeother\#
 \gdef\blx@mkbabel{%
-  \ifdef{\select@@language}
-    {\let\@sl\select@@language}% polyglossia only - can't patch \select@language with >1.2
-    {\let\@sl\select@language}% babel
-  \pretocmd\@sl{\blx@langsetup{#1}}
+  \@ifpackageloaded{polyglossia}
+    {\let\blx@tempa\select@@language}
+    {\let\blx@tempa\select@language}%
+  \pretocmd\blx@tempa{\blx@langsetup{#1}}
     {\ifdef\blx@thelangenv
        {\def\blx@beglang{%
           \blx@clearlang
@@ -4983,12 +4983,15 @@
                   \csname end\blx@thelangenv\endcsname
                   \endgroup}%
                 \csname\blx@thelangenv\expandafter\endcsname
-                \expandafter{\abx@field@hyphenation}}}}}%
+                \expandafter{\abx@field@hyphenation}}}}}
        {}%
      \def\blx@imc@mainlang{\select@language{\bbl@main@language}}%
      \blx@langsetup\bbl@main@language}
     {\blx@err@patch{'babel' package}%
-     \blx@mknobabel}}
+     \blx@mknobabel}%
+  \@ifpackageloaded{polyglossia}
+    {\let\select@@language\blx@tempa}
+    {\let\select@language\blx@tempa}}
 \endgroup
 
 \def\blx@mknobabel{%
