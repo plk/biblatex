@@ -78,12 +78,44 @@
   \ifboolexpr{
     test {\@ifpackageloaded{babel}}
     and
-    not test {\@ifpackageloaded{polyglossia}}
+    test {\@ifpackageloaded{polyglossia}}
   }
-    {\iftoggle{blx@autolang}
-       {\blx@mkbabel}
-       {\blx@mknobabel}}
-    {\blx@mknobabel}%
+  {\blx@error
+    {'babel' and 'polyglossia' loaded}
+    {You have loaded both 'babel' and 'polyglossia' packages}
+  {}}%
+  \ifboolexpr{% babel support
+    test {\@ifpackageloaded{babel}}
+  }
+    {\ifboolexpr{
+      not test {\iftoggle{blx@autolangbib}}
+      and
+      not test {\iftoggle{blx@autolangcite}}}
+       {\blx@mknoautolang}
+       {\blx@mkautolangbabel}}
+    {\@ifpackageloaded{polyglossia}
+      {}
+      {\blx@mknoautolang}}%
+  \ifboolexpr{% polyglossia support
+    test {\@ifpackageloaded{polyglossia}}
+  }
+    {\ifboolexpr{
+      not test {\iftoggle{blx@autolangbib}}
+      and
+      not test {\iftoggle{blx@autolangcite}}}
+       {\blx@mknoautolang}
+       {\blx@mkautolangpoly}}%
+    {\@ifpackageloaded{babel}
+      {}
+      {\blx@mknoautolang}}%
+  \iftoggle{blx@autolangbib}
+    {\global\let\blx@beglangbib\blx@beglang
+     \global\let\blx@endlangbib\blx@endlang}
+    {}%
+  \iftoggle{blx@autolangcite}
+    {\global\let\blx@beglangcite\blx@beglang
+     \global\let\blx@endlangcite\blx@endlang}
+    {}%
   \listxadd\blx@mslangs{\blx@languagename}%
   % mslang isn't an option, just a meta-macro to allow
   % per-entry version
@@ -91,8 +123,9 @@
   \ifundef\blx@mstranslang{\edef\blx@mstranslang{\blx@languagename}}{}% default
   \csuse{abx@extras@\blx@languagename}%
   \csuse{abx@strings@\blx@languagename}%
-  \undef\blx@mkbabel
-  \undef\blx@mknobabel
+  \undef\blx@mkautolangbabel
+  \undef\blx@mkautolangpoly
+  \undef\blx@mknoautolang
   \ifnum\blx@hyperref=\z@
     \blx@mknohyperref
   \else
@@ -441,7 +474,8 @@
 \newtoggle{blx@debug}
 \newtoggle{blx@sortcase}
 \newtoggle{blx@sortupper}
-\newtoggle{blx@autolang}
+\newtoggle{blx@autolangbib}
+\newtoggle{blx@autolangcite}
 \newtoggle{blx@clearlang}
 \newtoggle{blx@defernumbers}
 \newtoggle{blx@omitnumbers}
@@ -3530,9 +3564,9 @@
   \let\abx@macro@bibindex\@empty
   \let\abx@macro@pageref\@empty
   \csuse{blx@hook@bbxinit}#1%
-  \blx@beglang
+  \blx@beglangbib
   \blx@driver{#2}%
-  \blx@endlang
+  \blx@endlangbib
   \endgroup}
 
 % Punctuation
@@ -4105,7 +4139,7 @@
              \expandafter\c@formcount\csname abx@form@c@#3\endcsname
              \expandafter\c@langcount\csname abx@lang@c@#3\endcsname
              \expandafter\c@formlangcount\csname abx@lang@c@#3@\blx@tempa\endcsname
-             % set up babel language for field variant
+             % set up language for field variant
              \ifdef\blx@thelangenv{\csuse{\blx@thelangenv}{\blx@tempb}}{}%
                \expandafter\expandafter
                \expandafter\blx@theformat
@@ -4428,7 +4462,7 @@
      \blx@setoptions@entry
      \addtocounter{instcount}\@ne
      \blx@execute
-     \blx@beglang#3\blx@endlang
+     \blx@beglangbib#3\blx@endlangbib
      \endgroup}
     {}}
 
@@ -4467,13 +4501,13 @@
      \blx@setoptions@entry
      \addtocounter{instcount}\@ne
      \blx@execute
-     \blx@beglang
+     \blx@beglangbib
      \blx@begunit
      \blx@entryset@precode
      \blx@driver{\blx@imc@thefield{entrytype}}
      \blx@entryset@postcode
      \blx@endunit
-     \blx@endlang
+     \blx@endlangbib
      \endgroup}
     {\blx@nounit}}
 
@@ -5382,10 +5416,12 @@
     \expandafter\noexpand\csname abx@noextras@#2\endcsname}}
 
 %% Babel interface
-\def\blx@msbeglang{\begingroup}
-\def\blx@msendlang{\endgroup}
 \def\blx@beglang{\blx@clearlang\begingroup}
 \def\blx@endlang{\endgroup}
+\let\blx@beglangbib\blx@beglang
+\let\blx@endlangbib\blx@endlang
+\let\blx@beglangcite\blx@beglang
+\let\blx@endlangcite\blx@endlang
 \let\blx@hook@endlang\@empty
 \let\blx@hook@initlang\@empty
 \let\blx@imc@mainlang\@empty
@@ -5403,7 +5439,7 @@
 
 \begingroup
 \@makeother\#
-\gdef\blx@mkbabel{%
+\gdef\blx@mkautolangbabel{%
   \pretocmd\select@language{\blx@langsetup{#1}}
     {\ifdef\blx@thelangenv
        {\def\blx@beglang{%
@@ -5424,10 +5460,11 @@
      \def\blx@imc@mainlang{\select@language{\bbl@main@language}}%
      \blx@langsetup\bbl@main@language}
     {\blx@err@patch{'babel' package}%
-     \blx@mknobabel}}
+     \blx@mknoautolang}}
+\gdef\blx@mkautolangpoly{}
 \endgroup
 
-\def\blx@mknobabel{%
+\def\blx@mknoautolang{%
   \blx@lbxinput{\blx@languagename}
     {}
     {\blx@err@nolang{\blx@languagename}}}
@@ -7260,12 +7297,12 @@
        \blx@execute
        \blx@initunit
        \blx@anchor
-       \blx@beglang
+       \blx@beglangbib
        \bibsentence
        \blx@pagetracker
        \blx@driver\abx@field@entrytype
        \blx@postpunct
-       \blx@endlang}%
+       \blx@endlangbib}%
      \endgroup}
     {}}
 
@@ -7452,12 +7489,12 @@
        \csuse{blx@hook@lositem}%
        \blx@execute
        \blx@initunit
-       \blx@beglang
+       \blx@beglangbib
        \bibsentence
        \blx@pagetracker
        \blx@driver{shorthands}%
        \blx@postpunct
-       \blx@endlang}%
+       \blx@endlangbib}%
      \endgroup}
     {}}
 
@@ -8045,6 +8082,7 @@
   \blx@pagetracker
   \csuse{blx@hook@citekey}%
   \csuse{blx@hook@citekey@next}%
+  \blx@beglangcite
   \blx@execute
   \blx@loopcode
   \blx@citecounter
@@ -8057,6 +8095,7 @@
     \def\blx@thecheckpunct{\blx@err@nestcite\@gobble}%
     \blx@postcode
   \fi
+  \blx@endlangcite
   \endgroup}
 
 % cite counter
@@ -10707,15 +10746,33 @@
     {\let\abx@bibmonth\blx@imc@biblstring}}
 
 \DeclareBibliographyOption{language}{%
-  \ifstrequal{#1}{auto}
-    {\toggletrue{blx@autolang}%
-     \def\blx@languagename{english}}
-    {\IfFileExists{#1.lbx}
-       {\togglefalse{blx@autolang}%
-        \edef\blx@languagename{#1}}
-       {\blx@error
-          {Language '#1' not supported}
-          {Failed to find a matching '#1.lbx' file}}}}
+  \togglefalse{blx@autolangbib}%
+  \togglefalse{blx@autolangcite}%
+  \ifboolexpr{
+    test {\ifstrequal{#1}{auto}}
+    or
+    test {\ifstrequal{#1}{autobib}}
+    or
+    test {\ifstrequal{#1}{autocite}}
+  }
+  {\def\blx@languagename{english}%
+   \ifstrequal{#1}{auto}
+    {\toggletrue{blx@autolangbib}%
+     \toggletrue{blx@autolangcite}}
+    {}%
+   \ifstrequal{#1}{autobib}
+    {\toggletrue{blx@autolangbib}}
+    {}%
+   \ifstrequal{#1}{autocite}
+    {\toggletrue{blx@autolangcite}}
+    {}}
+  {\IfFileExists{#1.lbx}
+    {\togglefalse{blx@autolangbib}%
+     \togglefalse{blx@autolangcite}%
+     \edef\blx@languagename{#1}}
+    {\blx@error
+      {Language '#1' not supported}
+      {Failed to find a matching '#1.lbx' file}}}}
 
 \DeclareBibliographyOption{clearlang}[true]{%
   \settoggle{blx@clearlang}{#1}}
@@ -11369,7 +11426,7 @@
   usetranslator=false,indexing=false,abbreviate=true,dateabbrev=true,
   backref=false,backrefsetstyle=setonly,pagetracker=false,ibidtracker=false,
   idemtracker=false,opcittracker=false,loccittracker=false,citetracker=false,
-  citecounter=false,block=none,language=auto,clearlang=true,babel=none,
+  citecounter=false,block=none,language=autobib,clearlang=true,babel=none,
   date=comp,datelabel=comp,origdate=comp,eventdate=comp,urldate=short,autopunct=true,
   punctfont=false,defernumbers=false,refsection=none,refsegment=none,
   citereset=none,hyperref=auto,parentracker,maxparens=3,
