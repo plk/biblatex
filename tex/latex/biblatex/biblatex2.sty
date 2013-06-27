@@ -75,16 +75,7 @@
     amsrefs,apacite,babelbib,backref,bibtopic,bibunits,chapterbib,
     cite,citeref,drftcite,footbib,inlinebib,jurabib,mcite,mciteplus,
     mlbib,multibbl,multibib,natbib,opcit,overcite,splitbib,ucs}%
-  \ifboolexpr{
-    test {\@ifpackageloaded{babel}}
-    and
-    test {\@ifpackageloaded{polyglossia}}
-  }
-  {\blx@error
-    {'babel' and 'polyglossia' loaded}
-    {You have loaded both 'babel' and 'polyglossia' packages}
-  {}}%
-  \ifboolexpr{% babel support
+  \ifboolexpr{% babel/polyglossia support (polyglossia fakes babel load)
     test {\@ifpackageloaded{babel}}
   }
     {\ifboolexpr{
@@ -92,22 +83,8 @@
       and
       not test {\iftoggle{blx@autolangcite}}}
        {\blx@mknoautolang}
-       {\blx@mkautolangbabel}}
-    {\@ifpackageloaded{polyglossia}
-      {}
-      {\blx@mknoautolang}}%
-  \ifboolexpr{% polyglossia support
-    test {\@ifpackageloaded{polyglossia}}
-  }
-    {\ifboolexpr{
-      not test {\iftoggle{blx@autolangbib}}
-      and
-      not test {\iftoggle{blx@autolangcite}}}
-       {\blx@mknoautolang}
-       {\blx@mkautolangpoly}}%
-    {\@ifpackageloaded{babel}
-      {}
-      {\blx@mknoautolang}}%
+       {\blx@mkautolang}}
+    {}%
   \iftoggle{blx@autolangbib}
     {\global\let\blx@beglangbib\blx@beglang
      \global\let\blx@endlangbib\blx@endlang}
@@ -123,8 +100,7 @@
   \ifundef\blx@mstranslang{\edef\blx@mstranslang{\blx@languagename}}{}% default
   \csuse{abx@extras@\blx@languagename}%
   \csuse{abx@strings@\blx@languagename}%
-  \undef\blx@mkautolangbabel
-  \undef\blx@mkautolangpoly
+  \undef\blx@mkautolang
   \undef\blx@mknoautolang
   \ifnum\blx@hyperref=\z@
     \blx@mknohyperref
@@ -5455,8 +5431,11 @@
 
 \begingroup
 \@makeother\#
-\gdef\blx@mkautolangbabel{%
-  \pretocmd\select@language{\blx@langsetup{#1}}
+\gdef\blx@mkautolang{%
+  \@ifpackageloaded{polyglossia}
+    {\let\blx@tempa\xpg@set@language}
+    {\let\blx@tempa\select@language}%
+  \pretocmd\blx@tempa{\blx@langsetup{#1}}
     {\ifdef\blx@thelangenv
        {\def\blx@beglang{%
           \blx@clearlang
@@ -5477,7 +5456,6 @@
      \blx@langsetup\bbl@main@language}
     {\blx@err@patch{'babel' package}%
      \blx@mknoautolang}}
-\gdef\blx@mkautolangpoly{}
 \endgroup
 
 \def\blx@mknoautolang{%
