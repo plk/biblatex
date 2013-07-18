@@ -60,6 +60,7 @@ fi
 
 
 declare VERSION=$2
+declare VERSIONM=`echo -n "$VERSION" | perl -nE 'say s/^(\d+\.\d+)[a-z]/$1/r'`
 declare DATE=`date '+%Y/%m/%d'`
 
 if [[ "$1" = "upload" ]]
@@ -70,7 +71,7 @@ then
       then
         scp build/biblatex-$VERSION.*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/development/
       else
-        scp build/biblatex-$VERSION.*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/biblatex-$VERSION/
+        scp build/biblatex-$VERSION.*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/biblatex-$VERSIONM/
       fi
     exit 0
   fi
