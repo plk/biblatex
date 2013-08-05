@@ -10,6 +10,10 @@
 % references section main date for an entry. Otherwise, if labeldate selects
 % anything other than DATE (or equivalently, YEAR/MONTH), then the
 % citation won't match the reference.
+%
+% However, we also fall back to plain "year" if labelyear is not set
+% because, for example, in the case of sets, skiplab is set and so there is
+% no labelyear.
 
 \RequireBibliographyStyle{standard}
 
@@ -34,11 +38,16 @@
 \def\bbx@opt@mergedate@maximum{%
   \renewbibmacro*{date+extrayear}{%
     \iffieldundef{labelyear}
-      {}
+      {\iffieldundef{year}
+        {}
+        {\printtext[parens]{%
+           \printfield{issue}%
+           \setunit*{\addspace}%
+           \printdateextra}}}
       {\printtext[parens]{%
          \printfield{issue}%
-	 \setunit*{\addspace}%
-	 \printdateextralabel}}}%
+         \setunit*{\addspace}%
+         \printdateextralabel}}}%
   \renewbibmacro*{date}{}%
   \renewbibmacro*{issue+date}{}%
 }
@@ -46,7 +55,9 @@
 \def\bbx@opt@mergedate@compact{%
   \renewbibmacro*{date+extrayear}{%
     \iffieldundef{labelyear}
-      {}
+      {\iffieldundef{year}
+        {}
+        {\printtext[parens]{\printdateextra}}}
       {\printtext[parens]{\printdateextralabel}}}%
   \renewbibmacro*{date}{}%
   \renewbibmacro*{issue+date}{%
@@ -59,10 +70,14 @@
 \def\bbx@opt@mergedate@basic{%
   \renewbibmacro*{date+extrayear}{%
     \iffieldundef{labelyear}
-      {}
+      {\iffieldundef{year}
+        {}
+        {\printtext[parens]{%
+           \printfield{year}%
+           \printfield{extrayear}}}}
       {\printtext[parens]{%
-	 \printfield{labelyear}%
-	 \printfield{extrayear}}}}%
+         \printfield{labelyear}%
+         \printfield{extrayear}}}}%
   \renewbibmacro*{date}{%
     \iffieldundef{month}
       {}
@@ -84,10 +99,14 @@
 \def\bbx@opt@mergedate@minimum{%
   \renewbibmacro*{date+extrayear}{%
     \iffieldundef{labelyear}
-      {}
+      {\iffieldundef{year}
+        {}
+        {\printtext[parens]{%
+         \printfield{year}%
+         \printfield{extrayear}}}}
       {\printtext[parens]{%
-	 \printfield{labelyear}%
-	 \printfield{extrayear}}}}%
+         \printfield{labelyear}%
+         \printfield{extrayear}}}}%
   \renewbibmacro*{date}{%
     \ifboolexpr{
       test {\iffieldundef{month}}
@@ -115,10 +134,14 @@
 \def\bbx@opt@mergedate@false{%
   \renewbibmacro*{date+extrayear}{%
     \iffieldundef{labelyear}
-      {}
+      {\iffieldundef{year}
+        {}
+        {\printtext[parens]{%
+         \printfield{year}%
+         \printfield{extrayear}}}}
       {\printtext[parens]{%
-	 \printfield{labelyear}%
-	 \printfield{extrayear}}}}%
+         \printfield{labelyear}%
+         \printfield{extrayear}}}}%
   \renewbibmacro*{date}{\printdate}%
   \renewbibmacro*{issue+date}{%
     \printtext[parens]{%
