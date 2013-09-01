@@ -1,20 +1,6 @@
 \ProvidesFile{authoryear.bbx}
 [\abx@bbxid]
 
-% authoryear styles are special in the following way:
-
-% The citation labels are "labelname (labelyear)" and since citation
-% labels are the keys into the references section, the fact that the
-% citation uses labelyear means that the references must also. This
-% means we use a special \printdate[extra]label macro to generate the
-% references section main date for an entry. Otherwise, if labeldate selects
-% anything other than DATE (or equivalently, YEAR/MONTH), then the
-% citation won't match the reference.
-%
-% However, we also fall back to plain "year" if labelyear is not set
-% because, for example, in the case of sets, skiplab is set and so there is
-% no labelyear.
-
 \RequireBibliographyStyle{standard}
 
 \DeclareBibliographyOption{dashed}[true]{%
@@ -35,18 +21,31 @@
 
 \def\bbx@opt@mergedate@true{\bbx@opt@mergedate@compact}
 
+% merge date/issue with date label
 \def\bbx@opt@mergedate@maximum{%
   \renewbibmacro*{date+extrayear}{%
-    \printtext[parens]{%
-      \printfield{issue}%
-      \setunit*{\addspace}%
-      \printdateextralabel}}%
+    \iffieldundef{\thefield{datelabelsource}year}
+      {}
+      {\printtext[parens]{%
+         \printfield{issue}%
+         \setunit*{\addspace}%
+         \iffieldsequal{year}{\thefield{datelabelsource}year}
+           {\printdateextralabel}%
+           {\printfield{labelyear}%
+            \printfield{extrayear}}}}}%
   \renewbibmacro*{date}{}%
   \renewbibmacro*{issue+date}{}}
 
+% merge date with date label
 \def\bbx@opt@mergedate@compact{%
   \renewbibmacro*{date+extrayear}{%
-    \printtext[parens]{\printdateextralabel}}%
+    \iffieldundef{\thefield{datelabelsource}year}
+      {}
+      {\printtext[parens]{%
+         \iffieldsequal{year}{\thefield{datelabelsource}year}
+           {\printdateextralabel}%
+           {\printfield{labelyear}%
+            \printfield{extrayear}}}}}%
   \renewbibmacro*{date}{}%
   \renewbibmacro*{issue+date}{%
     \iffieldundef{issue}
@@ -54,11 +53,14 @@
       {\printtext[parens]{\printfield{issue}}}%
     \newunit}}
 
+% merge year-only date with date label
 \def\bbx@opt@mergedate@basic{%
   \renewbibmacro*{date+extrayear}{%
-    \printtext[parens]{%
-      \printfield{labelyear}%
-      \printfield{extrayear}}}%
+    \iffieldundef{\thefield{datelabelsource}year}
+      {}
+      {\printtext[parens]{%
+         \printfield{\thefield{datelabelsource}year}%
+         \printfield{extrayear}}}}%
   \renewbibmacro*{date}{%
     \iffieldundef{month}
       {}
@@ -76,11 +78,14 @@
          \printdate}}%
     \newunit}}
 
+% merge year-only date with year-only date label
 \def\bbx@opt@mergedate@minimum{%
   \renewbibmacro*{date+extrayear}{%
-    \printtext[parens]{%
-      \printfield{labelyear}%
-      \printfield{extrayear}}}%
+    \iffieldundef{\thefield{datelabelsource}year}
+      {}
+      {\printtext[parens]{%
+         \printfield{\thefield{datelabelsource}year}%
+         \printfield{extrayear}}}}%
   \renewbibmacro*{date}{%
     \ifboolexpr{
       test {\iffieldundef{month}}
@@ -104,11 +109,14 @@
          \printdate}}%
     \newunit}}
 
+% don't merge date/issue with date label
 \def\bbx@opt@mergedate@false{%
   \renewbibmacro*{date+extrayear}{%
-    \printtext[parens]{%
-      \printfield{labelyear}%
-      \printfield{extrayear}}}%
+    \iffieldundef{\thefield{datelabelsource}year}
+      {}
+      {\printtext[parens]{%
+         \printfield{\thefield{datelabelsource}year}%
+         \printfield{extrayear}}}}%
   \renewbibmacro*{date}{\printdate}%
   \renewbibmacro*{issue+date}{%
     \printtext[parens]{%
@@ -117,6 +125,7 @@
       \printdate}%
     \newunit}}
 
+% n.b. the default datelabel=year overrides merging of months and days
 \ExecuteBibliographyOptions{labeldate,sorting=nyt,pagetracker,mergedate}
 
 \DeclareFieldFormat{shorthandwidth}{#1}

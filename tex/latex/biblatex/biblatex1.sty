@@ -69,11 +69,7 @@
     amsrefs,apacite,babelbib,backref,bibtopic,bibunits,chapterbib,
     cite,citeref,drftcite,footbib,inlinebib,jurabib,mcite,mciteplus,
     mlbib,multibbl,multibib,natbib,opcit,overcite,splitbib,ucs}%
-  \ifboolexpr{
-    test {\@ifpackageloaded{babel}}
-    and
-    not test {\@ifpackageloaded{polyglossia}}
-  }
+  \@ifpackageloaded{babel}
     {\iftoggle{blx@autolang}
        {\blx@mkbabel}
        {\blx@mknobabel}}
@@ -5033,27 +5029,29 @@
 \begingroup
 \@makeother\#
 \gdef\blx@mkbabel{%
-  \pretocmd\select@language{\blx@langsetup{#1}}
-    {\ifdef\blx@thelangenv
-       {\def\blx@beglang{%
-          \blx@clearlang
-          \begingroup
-          \blx@imc@iffieldundef{hyphenation}
-            {}
-            {\ifcsundef{l@\abx@field@hyphenation}
-               {\blx@warn@nohyph{\abx@field@hyphenation}}
-               {\blx@hook@initlang
-                \def\blx@endlang{%
-                  \blx@hook@endlang
-                  \csname end\blx@thelangenv\endcsname
-                  \endgroup}%
-                \csname\blx@thelangenv\expandafter\endcsname
-                \expandafter{\abx@field@hyphenation}}}}}
-       {}%
-     \def\blx@imc@mainlang{\select@language{\bbl@main@language}}%
-     \blx@langsetup\bbl@main@language}
-    {\blx@err@patch{'babel' package}%
-     \blx@mknobabel}}
+  \blx@langsetup\bbl@main@language
+  \@ifpackageloaded{polyglossia}
+    {}
+    {\pretocmd\select@language{\blx@langsetup{#1}}
+       {\ifdef\blx@thelangenv
+          {\def\blx@beglang{%
+             \blx@clearlang
+             \begingroup
+             \blx@imc@iffieldundef{hyphenation}
+               {}
+               {\ifcsundef{l@\abx@field@hyphenation}
+                  {\blx@warn@nohyph{\abx@field@hyphenation}}
+                  {\blx@hook@initlang
+                   \def\blx@endlang{%
+                     \blx@hook@endlang
+                     \csname end\blx@thelangenv\endcsname
+                     \endgroup}%
+                   \csname\blx@thelangenv\expandafter\endcsname
+                   \expandafter{\abx@field@hyphenation}}}}}
+          {}%
+        \def\blx@imc@mainlang{\select@language{\bbl@main@language}}}
+       {\blx@err@patch{'babel' package}%
+        \blx@mknobabel}}}
 \endgroup
 
 \def\blx@mknobabel{%
@@ -10242,13 +10240,13 @@
 \DeclareBibliographyOption{datelabel}{%
   \ifcsdef{mkbibrange#1}
     {\protected\def\blx@imc@printdatelabel{%
-       \blx@imc@iffieldundef{labelyear}
-         {\csuse{mkbibrange#1}{}}
-         {\csuse{mkbibrange#1}{label}}}%
+       \blx@imc@iffieldundef{year}
+         {\csuse{mkbibrange#1}{label}}
+         {\csuse{mkbibrange#1}{}}}%
      \protected\def\blx@imc@printdateextralabel{%
-       \blx@imc@iffieldundef{labelyear}
-         {\csuse{mkbibrange#1extra}{}}
-         {\csuse{mkbibrange#1extra}{label}}}}
+       \blx@imc@iffieldundef{year}
+         {\csuse{mkbibrange#1extra}{label}}
+         {\csuse{mkbibrange#1extra}{}}}}
     {\blx@err@invopt{datelabel=#1}{}}}
 
 \DeclareBibliographyOption{urldate}{%
