@@ -5356,6 +5356,26 @@
                \csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}%
                \printfield{extrayear}}}}}}}
 
+\newrobustcmd*{\mkbibrangeyear}[1]{%
+  \blx@imc@clearfield{#1month}%
+  \blx@imc@clearfield{#1day}%
+  \blx@imc@clearfield{#1endmonth}%
+  \blx@imc@clearfield{#1endday}%
+  \iffieldsequal{#1year}{#1endyear}
+    {\blx@imc@clearfield{#1endyear}}
+    {}%
+  \mkbibrangefull{short}{#1}}
+
+\newrobustcmd*{\mkbibrangeyearextra}[1]{%
+  \blx@imc@clearfield{#1month}%
+  \blx@imc@clearfield{#1day}%
+  \blx@imc@clearfield{#1endmonth}%
+  \blx@imc@clearfield{#1endday}%
+  \iffieldsequal{#1year}{#1endyear}
+    {\blx@imc@clearfield{#1endyear}}
+    {}%
+  \mkbibrangefullextra{short}{#1}}
+
 \expandafter\newrobustcmd
 \expandafter*\csname mkbibrangeiso8601\endcsname[1]{%
   \iffieldundef{#1year}
@@ -5676,7 +5696,8 @@
   \let\do\blx@imc@clearlist
   \dolistcsloop{blx@biber@datamodel@lists}\do{pageref}%
   \let\do\blx@imc@clearfield
-  \dolistcsloop{blx@biber@datamodel@fields}\do{options}\do{labelyear}\do{labeltitle}\do{labelmonth}\do{labelday}\do{datelabelsource}%
+  \dolistcsloop{blx@biber@datamodel@fields}\do{options}%
+  \do{labeltitle}\do{labelyear}\do{labelmonth}\do{labelday}\do{datelabelsource}%
   \abx@dointernalfields
   \def\do##1{\togglefalse{abx@bool@##1}}%
   \abx@dobooleans
@@ -5697,7 +5718,8 @@
   \let\do\blx@savelist
   \dolistcsloop{blx@biber@datamodel@lists}\do{pageref}%
   \let\do\blx@savefield
-  \dolistcsloop{blx@biber@datamodel@fields}\do{options}\do{labelyear}\do{labeltitle}\do{labelmonth}\do{labelday}\do{datelabelsource}%
+  \dolistcsloop{blx@biber@datamodel@fields}\do{options}%
+  \do{labeltitle}\do{labelyear}\do{labelmonth}\do{labelday}\do{datelabelsource}%
   \abx@dointernalfields
   \let\do\blx@savebool
   \abx@dobooleans
@@ -11187,8 +11209,14 @@
 
 \DeclareBibliographyOption{datelabel}{%
   \ifcsdef{mkbibrange#1}
-    {\protected\def\blx@imc@printdatelabel{\csuse{mkbibrange#1}{label}}%
-     \protected\def\blx@imc@printdateextralabel{\csuse{mkbibrange#1extra}{label}}}
+    {\protected\def\blx@imc@printdatelabel{%
+       \blx@imc@iffieldundef{year}
+         {\csuse{mkbibrange#1}{label}}
+         {\csuse{mkbibrange#1}{}}}%
+     \protected\def\blx@imc@printdateextralabel{%
+       \blx@imc@iffieldundef{year}
+         {\csuse{mkbibrange#1extra}{label}}
+         {\csuse{mkbibrange#1extra}{}}}}
     {\blx@err@invopt{datelabel=#1}{}}}
 
 \DeclareBibliographyOption{urldate}{%
@@ -11207,7 +11235,8 @@
     {\blx@err@invopt{origdate=#1}{}}}
 
 \DeclareBibliographyOption{alldates}{%
-  \ExecuteBibliographyOptions{date=#1,datelabel=#1,urldate=#1,eventdate=#1,origdate=#1}}
+  \ExecuteBibliographyOptions{%
+    date=#1,datelabel=#1,urldate=#1,eventdate=#1,origdate=#1}}
 
 \DeclareBibliographyOption{datezeros}[true]{%
   \ifstrequal{#1}{true}
