@@ -5350,6 +5350,26 @@ The entry key of an item in the \file{bib} file. This is the string used by \sty
 
 When citing a subentry of an entry set, \sty{biblatex} provides the data of the parent \bibtype{set} entry to citation commands. This implies that the \bibfield{entrykey} field holds the entry key of the parent. The entry key of the child entry being cited is provided in the \bibfield{childentrykey} field. This field is only available when citing a subentry of an entry set.
 
+\fielditem{datelabelsource}{literal\BiberOnlyMark}
+
+Holds the prefix coming before <date> of the date field name chosen by \cmd{DeclareLabeldate}. For example, if the label date field is \bibfield{eventdate}, then \bibfield{datelabelsource} will be <event>. In case \cmd{DeclareLabeldate} selects the \bibfield{date} field, then \bibfield{datelabelsource} will be defined but will be an empty string as the prefix coming before <date> in the date label name is empty. This is so that the contents of \bibfield{datelabelsource} can be used in constructing references to the field which \cmd{DeclareLabeldate} chooses. Since \cmd{DeclareLabeldate} can also select literal strings for fallbacks, if \bibfield{datelabelsource} is undefined, then either the \opt{labeldate} package option is set to false or \cmd{DeclareLabeldate} chose a literal string instead of a date field. Bear in mind that \cmd{DeclareLabeldate} can also be used to select non-date fields as a fallback and so \bibfield{datelabelsource} might contain a field name. So, in summary, the rules are
+
+\begin{lstlisting}[style=latex]{}
+\iffieldundef{datalabelsource}
+  {
+    % labeldate package option is not set or \DeclareLabeldate resolved to a literal string
+  }
+  {
+    \iffieldundef{\thefield{datelabelsource}}
+      {
+        % datelabelsource contains a date field name prefix like "", "event", "url" or "orig"
+      }
+      {
+        % datelabelsource contains a non-date field
+      }
+  }
+\end{lstlisting}
+
 \fielditem{entrytype}{string}
 
 The entry type (\bibtype{book}, \bibtype{inbook}, etc.), given in lowercase letters.
