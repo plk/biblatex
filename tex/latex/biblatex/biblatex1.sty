@@ -69,7 +69,11 @@
     amsrefs,apacite,babelbib,backref,bibtopic,bibunits,chapterbib,
     cite,citeref,drftcite,footbib,inlinebib,jurabib,mcite,mciteplus,
     mlbib,multibbl,multibib,natbib,opcit,overcite,splitbib,ucs}%
-  \@ifpackageloaded{babel}
+  \ifboolexpr{
+    test {\@ifpackageloaded{babel}}
+    and
+    not test {\@ifpackageloaded{polyglossia}}
+  }
     {\iftoggle{blx@autolang}
        {\blx@mkbabel}
        {\blx@mknobabel}}
@@ -5029,29 +5033,27 @@
 \begingroup
 \@makeother\#
 \gdef\blx@mkbabel{%
-  \blx@langsetup\bbl@main@language
-  \@ifpackageloaded{polyglossia}
-    {}
-    {\pretocmd\select@language{\blx@langsetup{#1}}
-       {\ifdef\blx@thelangenv
-          {\def\blx@beglang{%
-             \blx@clearlang
-             \begingroup
-             \blx@imc@iffieldundef{hyphenation}
-               {}
-               {\ifcsundef{l@\abx@field@hyphenation}
-                  {\blx@warn@nohyph{\abx@field@hyphenation}}
-                  {\blx@hook@initlang
-                   \def\blx@endlang{%
-                     \blx@hook@endlang
-                     \csname end\blx@thelangenv\endcsname
-                     \endgroup}%
-                   \csname\blx@thelangenv\expandafter\endcsname
-                   \expandafter{\abx@field@hyphenation}}}}}
-          {}%
-        \def\blx@imc@mainlang{\select@language{\bbl@main@language}}}
-       {\blx@err@patch{'babel' package}%
-        \blx@mknobabel}}}
+  \pretocmd\select@language{\blx@langsetup{#1}}
+    {\ifdef\blx@thelangenv
+       {\def\blx@beglang{%
+          \blx@clearlang
+          \begingroup
+          \blx@imc@iffieldundef{hyphenation}
+            {}
+            {\ifcsundef{l@\abx@field@hyphenation}
+               {\blx@warn@nohyph{\abx@field@hyphenation}}
+               {\blx@hook@initlang
+                \def\blx@endlang{%
+                  \blx@hook@endlang
+                  \csname end\blx@thelangenv\endcsname
+                  \endgroup}%
+                \csname\blx@thelangenv\expandafter\endcsname
+                \expandafter{\abx@field@hyphenation}}}}}
+       {}%
+     \def\blx@imc@mainlang{\select@language{\bbl@main@language}}%
+     \blx@langsetup\bbl@main@language}
+    {\blx@err@patch{'babel' package}%
+     \blx@mknobabel}}
 \endgroup
 
 \def\blx@mknobabel{%
