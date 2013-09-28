@@ -65,19 +65,20 @@
     amsrefs,apacite,babelbib,backref,bibtopic,bibunits,chapterbib,
     cite,citeref,drftcite,footbib,inlinebib,jurabib,mcite,mciteplus,
     mlbib,multibbl,multibib,natbib,opcit,overcite,splitbib,ucs}%
-  \ifboolexpr{
-    test {\@ifpackageloaded{babel}}
-    and
-    not test {\@ifpackageloaded{polyglossia}}
-  }
+  \@ifpackageloaded{polyglossia}
     {\iftoggle{blx@autolang}
-       {\blx@mkbabel}
-       {\blx@mknobabel}}
-    {\blx@mknobabel}%
+       {\blx@mkpolyglossia}
+       {\blx@mknomultilang}}
+    {\@ifpackageloaded{babel}
+      {\iftoggle{blx@autolang}
+         {\blx@mkbabel}
+         {\blx@mknomultilang}}
+      {{\blx@mknomultilang}}}%
   \csuse{abx@extras@\blx@languagename}%
   \csuse{abx@strings@\blx@languagename}%
   \undef\blx@mkbabel
-  \undef\blx@mknobabel
+  \undef\blx@mkpolyglossia
+  \undef\blx@mknomultilang
   \ifnum\blx@hyperref=\z@
     \blx@mknohyperref
   \else
@@ -4838,7 +4839,7 @@
     \noexpand\blx@resetpunct
     \expandafter\noexpand\csname abx@noextras@#2\endcsname}}
 
-%% Babel interface
+%% Babel/Polyglossia interface
 
 \def\blx@beglang{\blx@clearlang\begingroup}
 \def\blx@endlang{\endgroup}
@@ -4880,10 +4881,39 @@
      \def\blx@imc@mainlang{\select@language{\bbl@main@language}}%
      \blx@langsetup\bbl@main@language}
     {\blx@err@patch{'babel' package}%
-     \blx@mknobabel}}
+     \blx@mknomultilang}}
+
+\gdef\blx@mkpolyglossia{%
+  \catcode`\_=11% polyglossia uses "_" as a letter
+  \pretocmd\select@language{\blx@langsetup{#1}}
+    {\ifdef\blx@thelangenv
+       {\def\blx@beglang{%
+          \blx@clearlang
+          \begingroup
+          \blx@imc@iffieldundef{hyphenation}
+            {}
+            {\ifcsundef{l@\abx@field@hyphenation}
+               {\blx@warn@nohyph{\abx@field@hyphenation}}
+               {\blx@hook@initlang
+                \def\blx@endlang{%
+                  \blx@hook@endlang
+                  \csname end\blx@thelangenv\endcsname
+                  \endgroup}%
+                \csname\blx@thelangenv\expandafter\endcsname
+                \expandafter{\abx@field@hyphenation}%
+                % These lines are equal to \blx@maplang
+                \blx@resetpunct
+                \csuse{abx@extras@\abx@field@hyphenation}%
+                \csuse{abx@strings@\abx@field@hyphenation}}}}}
+       {}%
+     \def\blx@imc@mainlang{\select@language{\bbl@main@language}}%
+     \blx@langsetup\bbl@main@language}
+    {\blx@err@patch{'polyglossia' package}%
+     \blx@mknomultilang}%
+   \catcode`\_=8}
 \endgroup
 
-\def\blx@mknobabel{%
+\def\blx@mknomultilang{%
   \blx@lbxinput{\blx@languagename}
     {}
     {\blx@err@nolang{\blx@languagename}}}
