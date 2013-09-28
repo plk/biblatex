@@ -67,18 +67,18 @@
     mlbib,multibbl,multibib,natbib,opcit,overcite,splitbib,ucs}%
   \@ifpackageloaded{polyglossia}
     {\iftoggle{blx@autolang}
-       {\blx@mkpolyglossia}
-       {\blx@mknomultilang}}
+       {\blx@mkautolangpoly}
+       {\blx@mknoautolang}}
     {\@ifpackageloaded{babel}
       {\iftoggle{blx@autolang}
-         {\blx@mkbabel}
-         {\blx@mknomultilang}}
-      {{\blx@mknomultilang}}}%
+         {\blx@mkautolangbabel}
+         {\blx@mknoautolang}}
+      {{\blx@mknoautolang}}}%
   \csuse{abx@extras@\blx@languagename}%
   \csuse{abx@strings@\blx@languagename}%
-  \undef\blx@mkbabel
-  \undef\blx@mkpolyglossia
-  \undef\blx@mknomultilang
+  \undef\blx@mkautolangbabel
+  \undef\blx@mkautolangpoly
+  \undef\blx@mknoautolang
   \ifnum\blx@hyperref=\z@
     \blx@mknohyperref
   \else
@@ -4839,8 +4839,7 @@
     \noexpand\blx@resetpunct
     \expandafter\noexpand\csname abx@noextras@#2\endcsname}}
 
-%% Babel/Polyglossia interface
-
+%% babel/polyglossia interface
 \def\blx@beglang{\blx@clearlang\begingroup}
 \def\blx@endlang{\endgroup}
 \let\blx@hook@endlang\@empty
@@ -4860,7 +4859,7 @@
 
 \begingroup
 \@makeother\#
-\gdef\blx@mkbabel{%
+\gdef\blx@mkautolangbabel{%
   \pretocmd\select@language{\blx@langsetup{#1}}
     {\ifdef\blx@thelangenv
        {\def\blx@beglang{%
@@ -4881,9 +4880,9 @@
      \def\blx@imc@mainlang{\select@language{\bbl@main@language}}%
      \blx@langsetup\bbl@main@language}
     {\blx@err@patch{'babel' package}%
-     \blx@mknomultilang}}
+     \blx@mknoautolang}}
 
-\gdef\blx@mkpolyglossia{%
+\gdef\blx@mkautolangpoly{%
   \catcode`\_=11% polyglossia uses "_" as a letter
   \pretocmd\select@language{\blx@langsetup{#1}}
     {\ifdef\blx@thelangenv
@@ -4909,11 +4908,11 @@
      \def\blx@imc@mainlang{\select@language{\bbl@main@language}}%
      \blx@langsetup\bbl@main@language}
     {\blx@err@patch{'polyglossia' package}%
-     \blx@mknomultilang}%
+     \blx@mknoautolang}%
    \catcode`\_=8}
 \endgroup
 
-\def\blx@mknomultilang{%
+\def\blx@mknoautolang{%
   \blx@lbxinput{\blx@languagename}
     {}
     {\blx@err@nolang{\blx@languagename}}}
