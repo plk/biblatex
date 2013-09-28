@@ -69,39 +69,15 @@
     amsrefs,apacite,babelbib,backref,bibtopic,bibunits,chapterbib,
     cite,citeref,drftcite,footbib,inlinebib,jurabib,mcite,mciteplus,
     mlbib,multibbl,multibib,natbib,opcit,overcite,splitbib,ucs}%
-  \ifboolexpr{
-    test {\@ifpackageloaded{babel}}
-    and
-    test {\@ifpackageloaded{polyglossia}}
-  }
-  {\blx@error
-    {'babel' and 'polyglossia' loaded}
-    {You have loaded both 'babel' and 'polyglossia' packages}
-  {}}%
-  \ifboolexpr{% babel support
-    test {\@ifpackageloaded{babel}}
-  }
-    {\ifboolexpr{
-      not test {\iftoggle{blx@autolangbib}}
-      and
-      not test {\iftoggle{blx@autolangcite}}}
-       {\blx@mknoautolang}
-       {\blx@mkautolangbabel}}
-    {\@ifpackageloaded{polyglossia}
-      {}
-      {\blx@mknoautolang}}%
-  \ifboolexpr{% polyglossia support
-    test {\@ifpackageloaded{polyglossia}}
-  }
-    {\ifboolexpr{
-      not test {\iftoggle{blx@autolangbib}}
-      and
-      not test {\iftoggle{blx@autolangcite}}}
-       {\blx@mknoautolang}
-       {\blx@mkautolangpoly}}%
+  \@ifpackageloaded{polyglossia}
+    {\iftoggle{blx@autolang}
+       {\blx@mkautolangpoly}
+       {\blx@mknoautolang}}
     {\@ifpackageloaded{babel}
-      {}
-      {\blx@mknoautolang}}%
+      {\iftoggle{blx@autolang}
+         {\blx@mkautolangbabel}
+         {\blx@mknoautolang}}
+      {{\blx@mknoautolang}}}%
   \iftoggle{blx@autolangbib}
     {\global\let\blx@beglangbib\blx@beglang
      \global\let\blx@endlangbib\blx@endlang}
@@ -5045,7 +5021,7 @@
     \noexpand\blx@resetpunct
     \expandafter\noexpand\csname abx@noextras@#2\endcsname}}
 
-%% Babel interface
+%% babel/polyglossia interface
 \def\blx@beglang{\blx@clearlang\begingroup}
 \def\blx@endlang{\endgroup}
 \let\blx@beglangbib\blx@beglang
@@ -5091,7 +5067,35 @@
      \blx@langsetup\bbl@main@language}
     {\blx@err@patch{'babel' package}%
      \blx@mknoautolang}}
-\gdef\blx@mkautolangpoly{}
+
+\gdef\blx@mkautolangpoly{%
+  \catcode`\_=11% polyglossia uses "_" as a letter
+  \pretocmd\select@language{\blx@langsetup{#1}}
+    {\ifdef\blx@thelangenv
+       {\def\blx@beglang{%
+          \blx@clearlang
+          \begingroup
+          \blx@imc@iffieldundef{hyphenation}
+            {}
+            {\ifcsundef{l@\abx@field@hyphenation}
+               {\blx@warn@nohyph{\abx@field@hyphenation}}
+               {\blx@hook@initlang
+                \def\blx@endlang{%
+                  \blx@hook@endlang
+                  \csname end\blx@thelangenv\endcsname
+                  \endgroup}%
+                \csname\blx@thelangenv\expandafter\endcsname
+                \expandafter{\abx@field@hyphenation}%
+                % These lines are equal to \blx@maplang
+                \blx@resetpunct
+                \csuse{abx@extras@\abx@field@hyphenation}%
+                \csuse{abx@strings@\abx@field@hyphenation}}}}}
+       {}%
+     \def\blx@imc@mainlang{\select@language{\bbl@main@language}}%
+     \blx@langsetup\bbl@main@language}
+    {\blx@err@patch{'polyglossia' package}%
+     \blx@mknoautolang}%
+   \catcode`\_=8}
 \endgroup
 
 \def\blx@mknoautolang{%
