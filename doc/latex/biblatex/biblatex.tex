@@ -221,8 +221,8 @@ The packages listed in this section are not required for \sty{biblatex} to funct
 
 \begin{marglist}
 
-\item[babel]
-The \sty{babel} package provides the core architecture for multilingual typesetting. If you are writing in a language other than American English, using this package is strongly recommended. If loaded, \sty{biblatex} package will detect \sty{babel} automatically.
+\item[babel/polyglossia]
+The \sty{babel} and \sty{polyglossia} packages provides the core architecture for multilingual typesetting. If you are writing in a language other than American English, using one of these packages is strongly recommended. If loaded, \sty{biblatex} package will detect \sty{babel} or \sty{polyglossia} automatically.
 
 \item[csquotes]
 If this package is available, \sty{biblatex} will use its language sensitive quotation facilities to enclose certain titles in quotation marks. If not, \sty{biblatex} uses quotes suitable for American English as a fallback. When writing in any other language, loading \sty{csquotes} is strongly recommended.\fnurl{http://www.ctan.org/tex-archive/macros/latex/contrib/csquotes/}
@@ -271,7 +271,7 @@ The packages listed in this section are not compatible with \sty{biblatex}. Sinc
 % bibtopicprefix
 
 \item[babelbib]
-The \sty{babelbib} package provides support for multilingual bibliographies. This is a standard feature of \sty{biblatex}. Use the \bibfield{hyphenation} field and the package option \opt{babel} for similar functionality. Note that \sty{biblatex} automatically adjusts to the main document language if \sty{babel} is loaded. You only need the above mentioned features if you want to switch languages on a per"=entry basis within the bibliography. See \secref{bib:fld:spc, use:opt:pre:gen} for details. Also see \secref{use:lng}.
+The \sty{babelbib} package provides support for multilingual bibliographies. This is a standard feature of \sty{biblatex}. Use the \bibfield{hyphenation} field and the package option \opt{autolang} for similar functionality. Note that \sty{biblatex} automatically adjusts to the main document language if \sty{babel} or \sty{polyglossia} is loaded. You only need the above mentioned features if you want to switch languages on a per"=entry basis within the bibliography. See \secref{bib:fld:spc, use:opt:pre:gen} for details. Also see \secref{use:lng}.
 
 \item[backref]
 The \sty{backref} package creates back references in the bibliography. See the package options \opt{hyperref} and \opt{backref} in \secref{use:opt:pre:gen} for comparable functionality.
@@ -1159,7 +1159,7 @@ Swedish      & Sweden         & \opt{swedish} \\
 
 \fielditem{hyphenation}{identifier}
 
-The language of the bibliography entry. The identifier must be a language name known to the \sty{babel} package. This information may be used to switch hyphenation patterns and localize strings in the bibliography. Note that the language names are case sensitive. The languages currently supported by this package are given in \tabref{bib:fld:tab1}. Note that \sty{babel} treats the identifier \opt{english} as an alias for \opt{british} or \opt{american}, depending on the babel version. The \sty{biblatex} package always treats it as an alias for \opt{american}. It is preferable to use the language identifiers \opt{american} and \opt{british} to avoid any possible confusion. Compare \bibfield{language} in \secref{bib:fld:dat}.
+The language of the bibliography entry. The identifier must be a language name known to the \sty{babel}/\sty{polyglossia} packages. This information may be used to switch hyphenation patterns and localize strings in the bibliography. Note that the language names are case sensitive. The languages currently supported by this package are given in \tabref{bib:fld:tab1}. Note that \sty{babel}/\sty{polyglossia} treats the identifier \opt{english} as an alias for \opt{british} or \opt{american}, depending on the \sty{babel}/\sty{polyglossia} version. The \sty{biblatex} package always treats it as an alias for \opt{american}. It is preferable to use the language identifiers \opt{american} and \opt{british} to avoid any possible confusion. Compare \bibfield{language} in \secref{bib:fld:dat}.
 
 \fielditem{ids}{comma"=separated list of entrykeys\BiberOnlyMark}
 
@@ -2090,15 +2090,15 @@ This option controls whether the citation commands scan ahead for punctuation ma
 
 \optitem[auto]{language}{\opt{auto}, \prm{language}}
 
-This option controls multilingual support. When set to \opt{auto}, \sty{biblatex} will try to get the main document language from the \sty{babel} package (and fall back to English if \sty{babel} is not available). This is the default behavior. It is also possible to select the document language manually. In this case, the \opt{babel} option below will have no effect. Please refer to \tabref{bib:fld:tab1} for a list of supported languages and the corresponding identifiers.
+This option controls multilingual support. When set to \opt{auto}, \sty{biblatex} will try to get the main document language from the \sty{babel}/\sty{polyglossia} package (and fall back to English if \sty{babel}/\sty{polyglossia} is not available). This is the default behavior. It is also possible to select the document language manually. In this case, the \opt{autolang} option below will have no effect. Please refer to \tabref{bib:fld:tab1} for a list of supported languages and the corresponding identifiers.
 
 \boolitem[true]{clearlang}
 
-If this option is enabled, \sty{biblatex} will automatically clear the \bibfield{language} field of all entries whose language matches the \sty{babel} language of the document (or the language specified explicitly with the \opt{language} option) in order to omit redundant language specifications. The language mappings required by this feature are provided by the \cmd{DeclareRedundantLanguages} command from \secref{aut:lng:cmd}.
+If this option is enabled, \sty{biblatex} will automatically clear the \bibfield{language} field of all entries whose language matches the \sty{babel}/\sty{polyglossia} language of the document (or the language specified explicitly with the \opt{language} option) in order to omit redundant language specifications. The language mappings required by this feature are provided by the \cmd{DeclareRedundantLanguages} command from \secref{aut:lng:cmd}.
 
-\optitem[none]{babel}{\opt{none}, \opt{hyphen}, \opt{other}, \opt{other*}}
+\optitem[none]{autolang}{\opt{none}, \opt{hyphen}, \opt{other}, \opt{other*}}
 
-This option controls which language environment is used if the \sty{babel} package is loaded and a bibliography entry includes a \bibfield{hyphenation} field (see \secref{bib:fld:spc}). Note that \sty{biblatex} automatically adjusts to the main document language if \sty{babel} is loaded. In multilingual documents, it will also continually adjust to the current language as far as citations and the default language of the bibliography is concerned. This option is for switching languages on a per"=entry basis within the bibliography. The possible choices are:
+This option controls which \sty{babel} language environment\footnote{\sty{polyglossia} understands the \sty{babel} language environments too and so this option controls both the \sty{babel} and \sty{polyglossia} language environments.} is used if the \sty{babel}/\sty{polyglossia} package is loaded and a bibliography entry includes a \bibfield{hyphenation} field (see \secref{bib:fld:spc}). Note that \sty{biblatex} automatically adjusts to the main document language if \sty{babel}/\sty{polyglossia} is loaded. In multilingual documents, it will also continually adjust to the current language as far as citations and the default language of the bibliography is concerned. This option is for switching languages on a per"=entry basis within the bibliography. The possible choices are:
 
 \begin{valuelist}
 
@@ -2109,7 +2109,7 @@ Disable this feature, \ie do not use any language environment at all.
 Enclose the entry in a \env{hyphenrules} environment. This will load hyphenation patterns for the language specified in the \env{hyphenation} field of the entry, if available.
 
 \item[other]
-Enclose the entry in an \env{otherlanguage} environment. This will load hyphenation patterns for the specified language, enable all extra definitions which \sty{babel} and \sty{biblatex} provide for the respective language, and translate key terms such as <editor> and <volume>. The extra definitions include localizations of the date format, of ordinals, and similar things.
+Enclose the entry in an \env{otherlanguage} environment. This will load hyphenation patterns for the specified language, enable all extra definitions which \sty{babel}/\sty{polyglossia} and \sty{biblatex} provide for the respective language, and translate key terms such as <editor> and <volume>. The extra definitions include localizations of the date format, of ordinals, and similar things.
 
 \item[other*]
 Enclose the entry in an \env{otherlanguage*} environment. Please note that \sty{biblatex} treats \env{otherlanguage*} like \env{otherlanguage} but other packages may make a distinction in this case.
@@ -3843,7 +3843,7 @@ The \sty{biblatex} package provides translations for key terms such as <edition>
 
 \cmditem{DefineBibliographyStrings}{language}{definitions}
 
-This command is used to define localization strings. The \prm{language} must be a language name known to the \sty{babel} package, \ie one of the identifiers listed in \tabref{bib:fld:tab1} on page \pageref{bib:fld:tab1}. The \prm{definitions} are \keyval pairs which assign an expression to an identifier:
+This command is used to define localization strings. The \prm{language} must be a language name known to the \sty{babel}/\sty{polyglossia} packages, \ie one of the identifiers listed in \tabref{bib:fld:tab1} on page \pageref{bib:fld:tab1}. The \prm{definitions} are \keyval pairs which assign an expression to an identifier:
 
 \begin{lstlisting}[style=latex]{}
 \DefineBibliographyStrings{american}{%
@@ -3858,7 +3858,7 @@ A complete list of all keys supported by default is given is \secref{aut:lng:key
 
 \cmditem{DefineBibliographyExtras}{language}{code}
 
-This command is used to adapt language specific features such as the date format and ordinals. The \prm{language} must be a language name known to the \sty{babel} package. The \prm{code}, which may be arbitrary \latex code, will usually consist of redefinitions of the formatting commands from \secref{use:fmt:lng}.
+This command is used to adapt language specific features such as the date format and ordinals. The \prm{language} must be a language name known to the \sty{babel}/\sty{polyglossia} packages. The \prm{code}, which may be arbitrary \latex code, will usually consist of redefinitions of the formatting commands from \secref{use:fmt:lng}.
 
 \cmditem{UndefineBibliographyExtras}{language}{code}
 
@@ -3867,7 +3867,7 @@ This command is used to restore the original definition of any commands modified
 \cmditem{DefineHyphenationExceptions}{language}{text}
 
 This is a \latex frontend to \tex's \cmd{hyphenation} command which defines hyphenation exceptions.
-The \prm{language} must be a language name known to the \sty{babel} package. The \prm{text} is a whitespace"=separated list of words. Hyphenation points are marked with a dash:
+The \prm{language} must be a language name known to the \sty{babel}/\sty{polyglossia} packages. The \prm{text} is a whitespace"=separated list of words. Hyphenation points are marked with a dash:
 
 \begin{lstlisting}[style=latex]{}
 \DefineHyphenationExceptions{american}{%
@@ -4227,19 +4227,19 @@ An ellipsis symbol with brackets: <[\dots\unkern]>.
 
 \csitem{noligature}
 
-Disables ligatures at this position and adds some space. Use this command to break up standard ligatures like <fi> and <fl>. It is similar to the \verb+"|+ shorthand provided by some language modules of the \sty{babel} package.
+Disables ligatures at this position and adds some space. Use this command to break up standard ligatures like <fi> and <fl>. It is similar to the \verb+"|+ shorthand provided by some language modules of the \sty{babel}/\sty{polyglossia} packages.
 
 \csitem{hyphenate}
 
-A conditional hyphen. In contrast to the standard \cmd{-} command, this one allows hyphenation in the rest of the word. It is similar to the \verb|"-| shorthand provided by some language modules of the \sty{babel} package.
+A conditional hyphen. In contrast to the standard \cmd{-} command, this one allows hyphenation in the rest of the word. It is similar to the \verb|"-| shorthand provided by some language modules of the \sty{babel}/\sty{polyglossia} packages.
 
 \csitem{hyphen}
 
-An explicit, breakable hyphen intended for compound words. In contrast to a literal <\texttt{-}>, this command allows hyphenation in the rest of the word. It is similar to the \verb|"=| shorthand provided by some language modules of the \sty{babel} package.
+An explicit, breakable hyphen intended for compound words. In contrast to a literal <\texttt{-}>, this command allows hyphenation in the rest of the word. It is similar to the \verb|"=| shorthand provided by some language modules of the \sty{babel}/\sty{polyglossia} packages.
 
 \csitem{nbhyphen}
 
-An explicit, non-breakable hyphen intended for compound words. In contrast to a literal <\texttt{-}>, this command does not permit line breaks at the hyphen but still allows hyphenation in the rest of the word. It is similar to the \verb|"~| shorthand provided by some language modules of the \sty{babel} package.
+An explicit, non-breakable hyphen intended for compound words. In contrast to a literal <\texttt{-}>, this command does not permit line breaks at the hyphen but still allows hyphenation in the rest of the word. It is similar to the \verb|"~| shorthand provided by some language modules of the \sty{babel}/\sty{polyglossia} packages.
 
 \csitem{nohyphenation}
 
@@ -4299,7 +4299,7 @@ The American localization module uses \cmd{uspunctuation} from \secref{aut:pct:c
 %
 By default, the <American punctuation> feature is enabled by the \texttt{american} localization module only. The above code is only required if you want American localization without American punctuation. Since standard punctuation is the package default, it would be redundant with any other language.
 
-It is highly advisable to always specify \texttt{american}, \texttt{british}, \texttt{australian}, etc. rather than \texttt{english} when loading the \sty{babel} package to avoid any possible confusion. Older versions of the \sty{babel} package used to treat \opt{english} as an alias for \opt{british}; more recent ones treat it as an alias for \opt{american}. The biblatex package essentially treats \texttt{english} as an alias for \opt{american}, except for the above feature which is only enabled if \texttt{american} is requested explicitly.
+It is highly advisable to always specify \texttt{american}, \texttt{british}, \texttt{australian}, etc. rather than \texttt{english} when loading the \sty{babel}/\sty{polyglossia} packages to avoid any possible confusion. Older versions of the \sty{babel} package used to treat \opt{english} as an alias for \opt{british}; more recent ones treat it as an alias for \opt{american}. The biblatex package essentially treats \texttt{english} as an alias for \opt{american}, except for the above feature which is only enabled if \texttt{american} is requested explicitly.
 
 \subsubsection{Spanish}
 \label{use:loc:esp}
@@ -5000,7 +5000,7 @@ The citation labels generated by this package are assigned to the full list of r
 \subsubsection{Active Characters in Bibliography Headings}
 \label{use:cav:act}
 
-Packages using active characters, such as \sty{babel}, \sty{csquotes}, or \sty{underscore}, usually do not make them active until the beginning of the document body to avoid interference with other packages. A typical example of such an active character is the Ascii quote |"|, which is used by various language modules of the \sty{babel} package. If shorthands such as |"<| and |"a| are used in the argument to \cmd{defbibheading} and the headings are defined in the document preamble, the non-active form of the characters is saved in the heading definition. When the heading is typeset, they do not function as a command but are simply printed literally. The most straightforward solution consists in moving \cmd{defbibheading} after |\begin{document}|. Alternatively, you may use \sty{babel}'s \cmd{shorthandon} and \cmd{shorthandoff} commands to temporarily make the shorthands active in the preamble. The above also applies to bibliography notes and the \cmd{defbibnote} command.
+Packages using active characters, such as \sty{babel}, \sty{polyglossia}, \sty{csquotes}, or \sty{underscore}, usually do not make them active until the beginning of the document body to avoid interference with other packages. A typical example of such an active character is the Ascii quote |"|, which is used by various language modules of the \sty{babel}/\sty{polyglossia} packages. If shorthands such as |"<| and |"a| are used in the argument to \cmd{defbibheading} and the headings are defined in the document preamble, the non-active form of the characters is saved in the heading definition. When the heading is typeset, they do not function as a command but are simply printed literally. The most straightforward solution consists in moving \cmd{defbibheading} after |\begin{document}|. Alternatively, you may use \sty{babel}'s \cmd{shorthandon} and \cmd{shorthandoff} commands to temporarily make the shorthands active in the preamble. The above also applies to bibliography notes and the \cmd{defbibnote} command.
 
 \subsubsection{Grouping in Reference Sections and Segments}
 \label{use:cav:grp}
@@ -5827,7 +5827,7 @@ This command is similar to \cmd{printnames} except that the items in the list ar
 \cmditem{entrydata}{key}{code}
 \cmditem*{entrydata*}{key}{code}
 
-Data commands like \cmd{printfield} normally use the data of the entry currently being processed. You may use \cmd{entrydata} to switch contexts locally. The \prm{key} is the entry key of the entry to use locally. The \prm{code} is arbitrary code to be executed in this context. This code will be executed in a group. See \secref{aut:cav:mif} for an example. Note that this command will automatically switch languages if the \opt{babel} package option is enabled. The starred version \cmd{entrydata*} will clone all fields of the enclosing entry, using field, counter, and other resource names prefixed with the string <\texttt{saved}>. This is useful when comparing two data sets. For example, inside the \prm{code} argument, the \bibfield{author} field holds the author of entry \prm{key} and the author of the enclosing entry is available as \bibfield{savedauthor}. The \cnt{author} counter holds the number of names in the \bibfield{author} field of \prm{key}; the \bibfield{savedauthor} counter refers to the author count of the enclosing entry.
+Data commands like \cmd{printfield} normally use the data of the entry currently being processed. You may use \cmd{entrydata} to switch contexts locally. The \prm{key} is the entry key of the entry to use locally. The \prm{code} is arbitrary code to be executed in this context. This code will be executed in a group. See \secref{aut:cav:mif} for an example. Note that this command will automatically switch languages if the \opt{autolang} package option is enabled. The starred version \cmd{entrydata*} will clone all fields of the enclosing entry, using field, counter, and other resource names prefixed with the string <\texttt{saved}>. This is useful when comparing two data sets. For example, inside the \prm{code} argument, the \bibfield{author} field holds the author of entry \prm{key} and the author of the enclosing entry is available as \bibfield{savedauthor}. The \cnt{author} counter holds the number of names in the \bibfield{author} field of \prm{key}; the \bibfield{savedauthor} counter refers to the author count of the enclosing entry.
 
 \cmditem{entryset}{precode}{postcode}
 
@@ -6692,7 +6692,7 @@ Specifies the script variant of a field, if the datasource you are using support
 
 \choitem[none]{lang}{<language specifier>}
 
-Specifies the \sty{babel} language variant of a field if the datasource you are using supports this. The default, if no \prm{lang} option is set, this means to use the field variant in the datasource which has no explicit language defined.
+Specifies the \sty{babel}/\sty{polyglossia} language variant of a field if the datasource you are using supports this. The default, if no \prm{lang} option is set, this means to use the field variant in the datasource which has no explicit language defined.
 
 \end{optionlist*}
 
@@ -7810,7 +7810,7 @@ otherwise.
 
 \cmditem{usedriver}{code}{entrytype}
 
-Executes the bibliography driver for an \prm{entrytype}. Calling this command in the \prm{loopcode} of a citation command defined with \cmd{DeclareCiteCommand} is a simple way to print full citations similar to a bibliography entry. Commands such as \cmd{newblock}, which are not applicable in a citation, are disabled automatically. Additional initialization commands may be passed as the \prm{code} argument. This argument is executed inside the group in which \cmd{usedriver} runs the respective driver. Note that it is mandatory in terms of the syntax but may be left empty. Also note that this command will automatically switch languages if the \opt{babel} package option is enabled.
+Executes the bibliography driver for an \prm{entrytype}. Calling this command in the \prm{loopcode} of a citation command defined with \cmd{DeclareCiteCommand} is a simple way to print full citations similar to a bibliography entry. Commands such as \cmd{newblock}, which are not applicable in a citation, are disabled automatically. Additional initialization commands may be passed as the \prm{code} argument. This argument is executed inside the group in which \cmd{usedriver} runs the respective driver. Note that it is mandatory in terms of the syntax but may be left empty. Also note that this command will automatically switch languages if the \opt{autolang} package option is enabled.
 
 \cmditem{bibhypertarget}{name}{text}
 
@@ -8028,7 +8028,7 @@ Use this command to temporarily redefine any commands which interfere with the t
 \cmditem{DeclareCaseLangs}{languages}
 \cmditem*{DeclareCaseLangs*}{languages}
 
-Defines the list of languages which are considered by the \cmd{MakeSentenceCase*} command as it converts a string to sentence case. The \prm{languages} argument is a comma"=separated list of \sty{babel} languages identifiers. The regular version of this command replaces the current setting, the starred version appends its argument to the current list. The default setting is:
+Defines the list of languages which are considered by the \cmd{MakeSentenceCase*} command as it converts a string to sentence case. The \prm{languages} argument is a comma"=separated list of \sty{babel}/\sty{polyglossia} languages identifiers. The regular version of this command replaces the current setting, the starred version appends its argument to the current list. The default setting is:
 
 \begin{lstlisting}[style=latex]{}
 \DeclareCaseLangs{%
@@ -8036,7 +8036,7 @@ Defines the list of languages which are considered by the \cmd{MakeSentenceCase*
   USenglish,UKenglish}
 \end{lstlisting}
 %
-See the \sty{babel} manual and \tabref{bib:fld:tab1} for a list of languages identifiers.
+See the \sty{babel}/\sty{polyglossia} manuals and \tabref{bib:fld:tab1} for a list of languages identifiers.
 
 \cmditem{BibliographyWarning}{message}
 
@@ -8400,7 +8400,7 @@ Switches from the current language to the main document language. This can be us
 \subsection{Localization Modules}
 \label{aut:lng}
 
-A localization module provides translations for key terms such as <edition> or <volume> as well as definitions for language specific features such as the date format and ordinals. These definitions are provided in files with the suffix \file{lbx}. The base name of the file must be a language name known to the \sty{babel} package. The \file{lbx} files may also be used to map \sty{babel}'s language names to the backend modules of the \sty{biblatex} package. All localization modules are loaded on demand in the document body. Note that the contents of the file are processed in a group and that the category code of the character \texttt{@} is temporarily set to <letter>.
+A localization module provides translations for key terms such as <edition> or <volume> as well as definitions for language specific features such as the date format and ordinals. These definitions are provided in files with the suffix \file{lbx}. The base name of the file must be a language name known to the \sty{babel}/\sty{polyglossia} packages. The \file{lbx} files may also be used to map \sty{babel}/\sty{polyglossia} language names to the backend modules of the \sty{biblatex} package. All localization modules are loaded on demand in the document body. Note that the contents of the file are processed in a group and that the category code of the character \texttt{@} is temporarily set to <letter>.
 
 \subsubsection{Localization Commands}
 \label{aut:lng:cmd}
@@ -8464,10 +8464,10 @@ This command is only available in \file{lbx} files. It copies the bibliography e
 
 This command corresponds to \cmd{DefineHyphenationExceptions} from \secref{use:lng}. The difference is that it is only available in \file{lbx} files and that the \prm{language} argument is omitted. The hyphenation exceptions will affect the language of the \file{lbx} file currently being processed.
 
-\cmditem{DeclareRedundantLanguages}{language, language, ...}{babel, babel, ...}
+\cmditem{DeclareRedundantLanguages}{language, language, ...}{langid, langid, ...}
 
 This command provides the language mappings required by the \opt{clearlang} option from \secref{use:opt:pre:gen}.
-The \prm{language} is the string given in the \bibfield{language} field (without the optional \texttt{lang} prefix); \prm{babel} is \sty{babel}'s language identifier, as given in the optional argument of \cmd{usepackage} when loading \sty{babel}. This command may be used in \file{lbx} files or in the document preamble. Here are some examples:
+The \prm{language} is the string given in the \bibfield{language} field (without the optional \texttt{lang} prefix); \prm{langid} is \sty{babel}/\sty{polyglossia}'s language identifier, as given in the optional argument of \cmd{usepackage} when loading \sty{babel} or the argument of \cmd{setdefaultlanguage} or \cmd{setotherlanguages} when using \sty{polyglossia}. This command may be used in \file{lbx} files or in the document preamble. Here are some examples:
 
 \begin{lstlisting}[style=latex]{}
 \DeclareRedundantLanguages{french}{french}
@@ -8476,11 +8476,11 @@ The \prm{language} is the string given in the \bibfield{language} field (without
 	canadian,australian,newzealand,USenglish,UKenglish}
 \end{lstlisting}
 %
-Note that this feature needs to be enabled globally with the \opt{clearlang} option from \secref{use:opt:pre:gen}. If it is disabled, all mappings will be ignored. If the \prm{babel} parameter is blank, \sty{biblatex} will clear the mappings for the corresponding \prm{language}, \ie the feature will be disabled for this \prm{language} only.
+Note that this feature needs to be enabled globally with the \opt{clearlang} option from \secref{use:opt:pre:gen}. If it is disabled, all mappings will be ignored. If the \prm{langid} parameter is blank, \sty{biblatex} will clear the mappings for the corresponding \prm{language}, \ie the feature will be disabled for this \prm{language} only.
 
 \cmditem{DeclareLanguageMapping}{language}{file}
 
-This command maps a \sty{babel} language identifier to an \file{lbx} file. The \prm{language} must be a language name known to the \sty{babel} package, \ie one of the identifiers listed in \tabref{bib:fld:tab1}. The \prm{file} argument is the name of an alternative \file{lbx} file without the \texttt{.lbx} suffix. Declaring the same mapping more than once is possible. Subsequent declarations will simply overwrite any previous ones. This command may only be used in the preamble. See \secref{aut:cav:lng} for further details.
+This command maps a \sty{babel}/\sty{polyglossia} language identifier to an \file{lbx} file. The \prm{language} must be a language name known to the \sty{babel}/\sty{polyglossia} package, \ie one of the identifiers listed in \tabref{bib:fld:tab1}. The \prm{file} argument is the name of an alternative \file{lbx} file without the \texttt{.lbx} suffix. Declaring the same mapping more than once is possible. Subsequent declarations will simply overwrite any previous ones. This command may only be used in the preamble. See \secref{aut:cav:lng} for further details.
 
 \cmditem{NewBibliographyString}{key}
 
@@ -10210,7 +10210,7 @@ Since the punctuation after the location is special if there is no publisher, we
 \subsubsection{Custom Localization Modules}
 \label{aut:cav:lng}
 
-Style guides may include provisions as to how strings like <edition> should be abbreviated or they may mandate certain fixed expressions. For example, the \acr{mla} style guide requires authors to use the term <Works~Cited> rather than <Bibliography> or <References> in the heading of the bibliography. Localization commands such as \cmd{DefineBibliographyStrings} from \secref{use:lng} may indeed be used in \file{cbx} and \file{bbx} files to handle such cases. However, overloading style files with translations is rather inconvenient. This is where \cmd{DeclareLanguageMapping} from \secref{aut:lng:cmd} comes into play. This command maps an \file{lbx} file with alternative translations to a \sty{babel} language. For example, you could create a file named \path{french-humanities.lbx} which provides French translations adapted for use in the humanities and map it to the \sty{babel} language \texttt{french} in the preamble or in the configuration file:
+Style guides may include provisions as to how strings like <edition> should be abbreviated or they may mandate certain fixed expressions. For example, the \acr{mla} style guide requires authors to use the term <Works~Cited> rather than <Bibliography> or <References> in the heading of the bibliography. Localization commands such as \cmd{DefineBibliographyStrings} from \secref{use:lng} may indeed be used in \file{cbx} and \file{bbx} files to handle such cases. However, overloading style files with translations is rather inconvenient. This is where \cmd{DeclareLanguageMapping} from \secref{aut:lng:cmd} comes into play. This command maps an \file{lbx} file with alternative translations to a \sty{babel}/\sty{polyglossia} language. For example, you could create a file named \path{french-humanities.lbx} which provides French translations adapted for use in the humanities and map it to the \sty{babel}/\sty{polyglossia} language \texttt{french} in the preamble or in the configuration file:
 
 \begin{lstlisting}[style=latex]{}
 \DeclareLanguageMapping{french}{french-humanities}
@@ -10237,7 +10237,7 @@ Since the alternative \file{lbx} file can inherit strings from the standard \pat
 %
 Alternative \file{lbx} files must ensure that the localization module is complete. They will typically do so by inheriting data from the corresponding standard module. If the language \texttt{american} is mapped to \path{american-mla.lbx}, \sty{biblatex} will not load \path{american.lbx} unless this module is requested explicitly. In the above example, inheriting <strings> and <extras> will cause \sty{biblatex} to load \path{american.lbx} before applying the modifications in \path{american-mla.lbx}.
 
-Note that \cmd{DeclareLanguageMapping} is not intended to handle language variants (\eg American English vs. British English) or \sty{babel} language aliases (\eg \texttt{USenglish} vs. \texttt{american}). For example, \sty{babel} offers the \texttt{USenglish} option which is similar to \texttt{american}. Therefore, \sty{biblatex} ships with an \path{USenglish.lbx} file which simply inherits all data from \path{american.lbx} (which in turn gets the <strings> from \path{english.lbx}). In other words, the mapping of language variants and \sty{babel} language aliases happens on the file level, the point being that \sty{biblatex}'s language support can be extended simply by adding additional \file{lbx} files. There is no need for centralized mapping. If you need support for, say, Portuguese (babel: \file{portuges}), you create a file named \path{portuges.lbx}. If \sty{babel} offered an alias named \texttt{brasil}, you would create \path{brasil.lbx} and inherit the data from \path{portuges.lbx}. In contrast to that, the point of \cmd{DeclareLanguageMapping} is handling \emph{stylistic} variants like <humanities vs. natural sciences> or <\acr{mla} vs. \acr{apa}> etc. which will typically be built on top of existing \file{lbx} files.
+Note that \cmd{DeclareLanguageMapping} is not intended to handle language variants (\eg American English vs. British English) or \sty{babel}/\sty{polyglossia} language aliases (\eg \texttt{USenglish} vs. \texttt{american}). For example, \sty{babel}/\sty{polyglossia} offers the \texttt{USenglish} option which is similar to \texttt{american}. Therefore, \sty{biblatex} ships with an \path{USenglish.lbx} file which simply inherits all data from \path{american.lbx} (which in turn gets the <strings> from \path{english.lbx}). In other words, the mapping of language variants and \sty{babel}/\sty{polyglossia} language aliases happens on the file level, the point being that \sty{biblatex}'s language support can be extended simply by adding additional \file{lbx} files. There is no need for centralized mapping. If you need support for, say, Portuguese (babel/polyglossia: \file{portuges}), you create a file named \path{portuges.lbx}. If \sty{babel}/\sty{polyglossia} offered an alias named \texttt{brasil}, you would create \path{brasil.lbx} and inherit the data from \path{portuges.lbx}. In contrast to that, the point of \cmd{DeclareLanguageMapping} is handling \emph{stylistic} variants like <humanities vs. natural sciences> or <\acr{mla} vs. \acr{apa}> etc. which will typically be built on top of existing \file{lbx} files.
 
 \subsubsection{Grouping}
 \label{aut:cav:grp}
@@ -10872,7 +10872,7 @@ alldates	&\+&\+&\_&\_\\
 arxiv		&\+&\+&\_&\_\\
 autocite	&\+&\+&\_&\_\\
 autopunct	&\+&\+&\_&\_\\
-babel		&\+&\+&\_&\_\\
+autolang		&\+&\+&\_&\_\\
 backend		&\+&\_&\_&\_\\
 backref		&\+&\+&\_&\_\\
 backrefsetstyle	&\+&\+&\_&\_\\
@@ -10972,6 +10972,8 @@ This revision history is a list of changes relevant to users of this package. Ch
 \begin{changelog}
 
 \begin{release}{2.8}{2013}
+\item \sty{polyglossia} support
+\item Renamed \opt{babel} option to \opt{autolang}\see{use:opt:pre:gen}
 \item Corrected Dutch localisation
 \item Added \opt{datelabel=year} option\see{use:opt:pre:gen}
 \item Added \bibfield{datelabelsource} field\see{aut:bbx:fld:gen}
