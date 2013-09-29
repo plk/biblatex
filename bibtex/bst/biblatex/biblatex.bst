@@ -24,6 +24,7 @@ ENTRY {
     hyphenation
     keywords
     label
+    langid
     options
     presort
     shorthand
@@ -1388,7 +1389,6 @@ FUNCTION {output:fields.1} {
   "eventtitle"      eventtitle      output:write:field
   "eventtitleaddon" eventtitleaddon output:write:field
   "howpublished"    howpublished    output:write:field
-  "hyphenation"     hyphenation     output:write:field
   "indexsorttitle"  indexsorttitle  output:write:field
   "indextitle"      indextitle      output:write:field
   "isan"            isan            output:write:field
@@ -1538,6 +1538,16 @@ FUNCTION {output:warning} {
 }
 
 FUNCTION {output:compat.1} {
+  "langid" langid
+  duplicate$ empty$
+    { pop$ hyphenation }
+    { hyphenation empty$
+        'skip$
+        { "hyphenation" "langid" warning:duplicate }
+      if$
+    }
+  if$
+  output:write:field
   "location" location
   duplicate$ empty$
     { pop$ address }
