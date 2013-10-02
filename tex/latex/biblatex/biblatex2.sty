@@ -4896,10 +4896,18 @@
                {\blx@hook@initlang
                 \def\blx@endlang{%
                   \blx@hook@endlang
-                  \csname end\blx@thelangenv\endcsname
+                  % Polyglossia language envs are \<lang>[]
+                  \expandafter\ifstrequal\expandafter{\blx@thelangenv}{langname}
+                    {\csname end\abx@field@langid\endcsname}
+                    {\csname end\blx@thelangenv\endcsname}%
                   \endgroup}%
-                \csname\blx@thelangenv\expandafter\endcsname
-                \expandafter{\abx@field@langid}%
+                \expandafter\ifstrequal\expandafter{\blx@thelangenv}{langname}
+                  {\ifdef\abx@field@langidopts
+                     {\csname\abx@field@langid\expandafter\endcsname\expandafter[\abx@field@langidopts]}
+                     {\csname\abx@field@langid\endcsname}%
+                   }
+                  {\csname\blx@thelangenv\expandafter\endcsname
+                   \expandafter{\abx@field@langid}}%                
                 % These lines are equal to \blx@maplang
                 \blx@resetpunct
                 \csuse{abx@extras@\abx@field@langid}%
@@ -10156,6 +10164,12 @@
   \def\blx@hook@endlang{\blx@postpunct}}
 \def\blx@opt@autolang@other{%
   \def\blx@thelangenv{otherlanguage}%
+  \def\blx@hook@initlang{\@quotereset\@ne}%
+  \def\blx@hook@endlang{\blx@postpunct}}
+\def\blx@opt@autolang@langname{%
+  \@ifpackageloaded{polyglossia}
+    {\def\blx@thelangenv{langname}}
+    {\def\blx@thelangenv{otherlanguage}}%
   \def\blx@hook@initlang{\@quotereset\@ne}%
   \def\blx@hook@endlang{\blx@postpunct}}
 
