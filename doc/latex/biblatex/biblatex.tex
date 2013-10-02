@@ -1160,7 +1160,25 @@ Swedish      & Sweden         & \opt{swedish} \\
 
 \fielditem{langid}{identifier}
 
-The language id of the bibliography entry. The alias \bibfield{hyphenation} is provided for backwards compatibility. The identifier must be a language name known to the \sty{babel}/\sty{polyglossia} packages. This information may be used to switch hyphenation patterns and localize strings in the bibliography. Note that the language names are case sensitive. The languages currently supported by this package are given in \tabref{bib:fld:tab1}. Note that \sty{babel}/\sty{polyglossia} treats the identifier \opt{english} as an alias for \opt{british} or \opt{american}, depending on the \sty{babel}/\sty{polyglossia} version. The \sty{biblatex} package always treats it as an alias for \opt{american}. It is preferable to use the language identifiers \opt{american} and \opt{british} to avoid any possible confusion. Compare \bibfield{language} in \secref{bib:fld:dat}.
+The language id of the bibliography entry. The alias \bibfield{hyphenation} is provided for backwards compatibility. The identifier must be a language name known to the \sty{babel}/\sty{polyglossia} packages. This information may be used to switch hyphenation patterns and localize strings in the bibliography. Note that the language names are case sensitive. The languages currently supported by this package are given in \tabref{bib:fld:tab1}. Note that \sty{babel} treats the identifier \opt{english} as an alias for \opt{british} or \opt{american}, depending on the \sty{babel} version. The \sty{biblatex} package always treats it as an alias for \opt{american}. It is preferable to use the language identifiers \opt{american} and \opt{british} (\sty{babel}) or a language specific option to specify a language variant (\sty{polyglossia}, using the \bibfield{langidopts} field) to avoid any possible confusion. Compare \bibfield{language} in \secref{bib:fld:dat}.
+
+\fielditem{langidopts}{comma"=separated \keyval options}
+
+For \sty{polyglossia} users, allows per-entry language specific options. These are passed to \sty{polyglossia}'s language switching facility when using the package option \opt{autolang=langname}. For example, the fields:
+
+\begin{lstlisting}[style=bibtex]{}
+langid         = {english},
+langidopts     = {variant=british},
+\end{lstlisting}
+%
+would wrap the bibliography entry in:
+
+\begin{lstlisting}[style=latex]{}
+\english[variant=british]
+...
+\endenglish
+\end{lstlisting}
+%
 
 \fielditem{ids}{comma"=separated list of entrykeys\BiberOnlyMark}
 
@@ -2114,6 +2132,9 @@ Enclose the entry in an \env{otherlanguage} environment. This will load hyphenat
 
 \item[other*]
 Enclose the entry in an \env{otherlanguage*} environment. Please note that \sty{biblatex} treats \env{otherlanguage*} like \env{otherlanguage} but other packages may make a distinction in this case.
+
+\item[langname]
+\sty{polyglossia} only. Enclose the entry in a \env{<languagename>} environment. The benefit of this option value for \sty{polyglossia} users is that it takes note of the \bibfield{langidopts} field so that you can add per-language options to an entry (like selecting a language variant). When using \sty{babel}, this option does the same as the \opt{other} option value.
 
 \end{valuelist}
 
@@ -11067,6 +11088,7 @@ This revision history is a list of changes relevant to users of this package. Ch
 \begin{changelog}
 
 \begin{release}{2.8}{2013}
+\item New \bibfield{langidopts}\see{bib:fld:spc}
 \item \bibfield{hyphenation} field renamed to \bibfield{langid}\see{bib:fld:spc}
 \item \sty{polyglossia} support
 \item Renamed \opt{babel} option to \opt{autolang}\see{use:opt:pre:gen}
