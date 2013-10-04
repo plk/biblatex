@@ -4167,15 +4167,15 @@
              \expandafter\c@langcount\csname abx@lang@c@#3\endcsname
              \expandafter\c@formlangcount\csname abx@lang@c@#3@\blx@tempa\endcsname
              % set up language for field variant
-             \ifdef\blx@thelangenv
-               {\csname\blx@thelangenv\expandafter\endcsname\expandafter{\blx@tempb}}
+             \ifdef\blx@theshortlangenv
+               {\blx@hook@initlangshort\csname\blx@theshortlangenv\expandafter\endcsname\expandafter{\blx@tempb}}
                {}%
              \expandafter\expandafter
              \expandafter\blx@theformat
              \expandafter\expandafter
              \expandafter{\csname abx@field@#3@\blx@tempa @\blx@tempb\endcsname}%
-             \ifdef\blx@thelangenv
-               {\csname end\blx@thelangenv\endcsname}
+             \ifdef\blx@theshortlangenv
+               {\blx@hook@endlangshort\csname end\blx@theshortlangenv\endcsname}
                {}%
              \blx@endunit}
             {\expandafter\expandafter
@@ -4202,12 +4202,12 @@
         \blx@imc@ifbibfieldmsx{#2}{#3}
           {\edef\currentform{\blx@tempa}%
            \edef\currentlang{\blx@tempb}%
-           \ifdef\blx@thelangenv
-             {\csname\blx@thelangenv\expandafter\endcsname\expandafter{\blx@tempb}}
+           \ifdef\blx@theshortlangenv
+             {\blx@hook@initlangshort\csname\blx@theshortlangenv\expandafter\endcsname\expandafter{\blx@tempb}}
              {}%
            \expandafter\expandafter\expandafter\blx@theformat\expandafter\expandafter\expandafter{\csname abx@field@#3@\blx@tempa @\blx@tempb\endcsname}%
-           \ifdef\blx@thelangenv
-             {\csname end\blx@thelangenv\endcsname}
+           \ifdef\blx@theshortlangenv
+             {\blx@hook@endlangshort\csname end\blx@theshortlangenv\endcsname}
              {}}%
           {\expandafter\expandafter\expandafter\blx@theformat\expandafter\expandafter\expandafter{\csname abx@field@#3\endcsname}}%
         \endgroup}}}
@@ -4341,12 +4341,12 @@
      \else
        \ifdefempty\currentlang
          {\blx@nameparser@i#1}
-         {\ifdef\blx@thelangenv
-           {\csname\blx@thelangenv\expandafter\endcsname\expandafter{\currentlang}}
+         {\ifdef\blx@theshortlangenv
+           {\blx@hook@initlangshort\csname\blx@theshortlangenv\expandafter\endcsname\expandafter{\currentlang}}
            {}%
           \blx@nameparser@i#1
-          \ifdef\blx@thelangenv
-           {\csname end\blx@thelangenv\endcsname}
+          \ifdef\blx@theshortlangenv
+           {\blx@hook@endlangshort\csname end\blx@theshortlangenv\endcsname}
             {}}%
      \fi
      \advance\c@listcount\@ne
@@ -4472,12 +4472,12 @@
      \else
        \ifdefempty\currentlang
          {\blx@theformat{#1}}
-         {\ifdef\blx@thelangenv
-           {\csname\blx@thelangenv\expandafter\endcsname\expandafter{\currentlang}}
+         {\ifdef\blx@theshortlangenv
+           {\blx@hook@initlangshort\csname\blx@theshortlangenv\expandafter\endcsname\expandafter{\currentlang}}
            {}%
           \blx@theformat{#1}%
-          \ifdef\blx@thelangenv
-            {\csname end\blx@thelangenv\endcsname}
+          \ifdef\blx@theshortlangenv
+            {\blx@hook@endlangshort\csname end\blx@theshortlangenv\endcsname}
             {}}%
      \fi
      \advance\c@listcount\@ne
@@ -5487,6 +5487,8 @@
 \let\blx@endlangcite\blx@endlang
 \let\blx@hook@endlang\@empty
 \let\blx@hook@initlang\@empty
+\let\blx@hook@endlangshort\@empty
+\let\blx@hook@initlangshort\@empty
 \let\blx@imc@mainlang\@empty
 \def\blx@hyphenreset{%
   \ifcsundef{l@\blx@languagename}
@@ -10922,6 +10924,31 @@
   \def\blx@hook@initlang{\@quotereset\@ne}%
   \def\blx@hook@endlang{\blx@postpunct}}
 
+\DeclareBibliographyOption{autolangshort}{%
+  \blx@autolangshort@i{#1}}
+
+\def\blx@autolangshort@i#1{%
+  \ifcsdef{blx@opt@autolangshort@#1}
+    {\csuse{blx@opt@autolangshort@#1}}
+    {\blx@err@invopt{autolangshort=#1}{}}}
+
+\def\blx@opt@autolangshort@none{%
+  \undef\blx@theshortlangenv
+  \let\blx@hook@initlangshort\@empty
+  \let\blx@hook@endlangshort\@empty}
+\def\blx@opt@autolangshort@hyphen{%
+  \def\blx@theshortlangenv{hyphenrules}%
+  \let\blx@hook@initlangshort\@empty
+  \let\blx@hook@endlangshort\@empty}
+\csdef{blx@opt@autolangshort@other*}{%
+  \def\blx@theshortlangenv{otherlanguage*}%
+  \def\blx@hook@initlangshort{\@quotereset\@ne}%
+  \def\blx@hook@endlangshort{\blx@postpunct}}
+\def\blx@opt@autolangshort@other{%
+  \def\blx@theshortlangenv{otherlanguage}%
+  \def\blx@hook@initlangshort{\@quotereset\@ne}%
+  \def\blx@hook@endlangshort{\blx@postpunct}}
+
 \DeclareBibliographyOption{indexing}[true]{%
   \blx@opt@index{#1}}
 \DeclareTypeOption{indexing}[true]{%
@@ -11555,7 +11582,7 @@
   usetranslator=false,indexing=false,abbreviate=true,dateabbrev=true,
   backref=false,backrefsetstyle=setonly,pagetracker=false,ibidtracker=false,
   idemtracker=false,opcittracker=false,loccittracker=false,citetracker=false,
-  citecounter=false,block=none,language=autobib,clearlang=true,autolang=none,
+  citecounter=false,block=none,language=autobib,clearlang=true,autolang=none,autolangshort=none,
   date=comp,datelabel=year,origdate=comp,eventdate=comp,urldate=short,autopunct=true,
   punctfont=false,defernumbers=false,refsection=none,refsegment=none,
   citereset=none,hyperref=auto,parentracker,maxparens=3,
