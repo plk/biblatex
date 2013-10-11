@@ -91,6 +91,8 @@
          {\blx@mkautolangbabel}}
       {\blx@mknoautolang}}%
   % These already have defaults set to basically do nothing
+  % so if the toggles are true, we need to define again since
+  % mkautolang* redefines \blx@{beg,end}lang
   \iftoggle{blx@autolangbib}
     {\global\let\blx@beglangbib\blx@beglang
      \global\let\blx@endlangbib\blx@endlang}
@@ -5507,20 +5509,20 @@
 \gdef\blx@mkautolangbabel{%
   \pretocmd\select@language{\blx@langsetup{#1}}
     {\ifdef\blx@thelangenv
-       {\def\blx@beglang{%
+       {\gdef\blx@beglang{%
           \blx@clearlang
           \begingroup
           \ifdef\abx@field@langid
             {\ifcsundef{l@\abx@field@langid}
                {\blx@warn@nohyph{\abx@field@langid}}
                {\blx@hook@initlang
-                \def\blx@endlang{%
-                  \blx@hook@endlang
-                  \csname end\blx@thelangenv\endcsname
-                  \endgroup}%
                 \csname\blx@thelangenv\expandafter\endcsname
                 \expandafter{\abx@field@langid}}}
-            {}}}
+            {}}%
+        \gdef\blx@endlang{%
+          \blx@hook@endlang
+          \csname end\blx@thelangenv\endcsname
+          \endgroup}}
        {}%
      \def\blx@imc@mainlang{\select@language{\bbl@main@language}}%
      \blx@langsetup\bbl@main@language}
@@ -5531,20 +5533,13 @@
   \catcode`\_=11% polyglossia uses "_" as a letter
   \pretocmd\select@language{\blx@langsetup{#1}}
     {\ifdef\blx@thelangenv
-       {\def\blx@beglang{%
+       {\gdef\blx@beglang{%
           \blx@clearlang
           \begingroup
           \ifdef\abx@field@langid
             {\ifcsundef{l@\abx@field@langid}
                {\blx@warn@nohyph{\abx@field@langid}}
                {\blx@hook@initlang
-                \def\blx@endlang{%
-                  \blx@hook@endlang
-                  % Polyglossia language envs are \<lang>[]
-                  \expandafter\ifstrequal\expandafter{\blx@thelangenv}{langname}
-                    {\csname end\abx@field@langid\endcsname}
-                    {\csname end\blx@thelangenv\endcsname}%
-                  \endgroup}%
                 \expandafter\ifstrequal\expandafter{\blx@thelangenv}{langname}
                   {\ifdef\abx@field@langidopts
                      {\csname\abx@field@langid\expandafter\endcsname\expandafter[\abx@field@langidopts]}
@@ -5555,7 +5550,14 @@
                 \blx@resetpunct
                 \csuse{abx@extras@\abx@field@langid}%
                 \csuse{abx@strings@\abx@field@langid}}}
-            {}}}
+            {}}%
+        \gdef\blx@endlang{%
+          \blx@hook@endlang
+          % Polyglossia language envs are \<lang>[]
+          \expandafter\ifstrequal\expandafter{\blx@thelangenv}{langname}
+          {\csname end\abx@field@langid\endcsname}
+          {\csname end\blx@thelangenv\endcsname}%
+          \endgroup}}
        {}%
      \def\blx@imc@mainlang{\select@language{\bbl@main@language}}%
      \blx@langsetup\bbl@main@language}
