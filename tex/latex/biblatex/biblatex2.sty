@@ -92,14 +92,15 @@
       {\blx@mknoautolang}}%
   % These already have defaults set to basically do nothing
   % so if the toggles are true, we need to define again since
-  % mkautolang* redefines \blx@{beg,end}lang
+  % mkautolang* redefines \blx@beglang
+  % In turn, \blx@beglang defines \blx@endlang and so \blx@beglangcite and
+  % \blx@endlangcite need redefining inside \blx@beglang after \blx@endlang
+  % has been defined.
   \iftoggle{blx@autolangbib}
-    {\global\let\blx@beglangbib\blx@beglang
-     \global\let\blx@endlangbib\blx@endlang}
+    {\let\blx@beglangbib\blx@beglang}
     {}%
   \iftoggle{blx@autolangcite}
-    {\global\let\blx@beglangcite\blx@beglang
-     \global\let\blx@endlangcite\blx@endlang}
+    {\let\blx@beglangcite\blx@beglang}
     {}%
   \listxadd\blx@mslangs{\blx@languagename}%
   % mslang isn't an option, just a meta-macro to allow
@@ -5525,6 +5526,12 @@
                   \blx@hook@endlang
                   \csname end\blx@thelangenv\endcsname
                   \endgroup}%
+                \iftoggle{blx@autolangbib}
+                  {\let\blx@endlangbib\blx@endlang}
+                  {}%
+                \iftoggle{blx@autolangcite}
+                  {\let\blx@endlangcite\blx@endlang}
+                  {}%
                 \csname\blx@thelangenv\expandafter\endcsname
                 \expandafter{\abx@field@langid}}}
             {}}}
@@ -5552,6 +5559,12 @@
                     {\csname end\abx@field@langid\endcsname}
                     {\csname end\blx@thelangenv\endcsname}%
                   \endgroup}%
+                \iftoggle{blx@autolangbib}
+                  {\let\blx@endlangbib\blx@endlang}
+                  {}%
+                \iftoggle{blx@autolangcite}
+                  {\let\blx@endlangcite\blx@endlang}
+                  {}%
                 \ifcsstring{blx@thelangenv}{langname}
                   {\ifdef\abx@field@langidopts
                      {\csname\abx@field@langid\expandafter\endcsname\expandafter[\abx@field@langidopts]}
