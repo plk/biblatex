@@ -1648,10 +1648,10 @@
         \ifdefempty\blx@tempb
           {\edef\blx@tempb{\blx@mstranslang}}
           {}%
-      \fi%
-      \ifdefempty\blx@tempb
-        {\edef\blx@tempb{\blx@mslang}}
-        {}%
+     \fi%
+     \ifdefempty\blx@tempb
+       {\edef\blx@tempb{\blx@mslang}}
+       {}%
      \@firstoftwo}
     {\@secondoftwo}}
 
@@ -2313,10 +2313,10 @@
           {\ifcsdef{abx@#1@#3@##1@####1}
              {\ifcsequal{abx@#1@#2@##1@####1}{abx@#1@#3@##1@####1}
                {}
-               {\global\def\blx@fefail{true}}}
-             {\global\def\blx@fefail{true}}}
+               {\gdef\blx@fefail{true}}}
+             {\gdef\blx@fefail{true}}}
           {\ifcsdef{abx@#1@#3@##1@####1}
-            {\global\def\blx@fefail{true}}
+            {\gdef\blx@fefail{true}}
             {}}}%
           \dolistloop\blx@mslangs
           \endgroup}%
@@ -2414,26 +2414,28 @@
 \def\blx@ifnamesequal@v#1#2{%
   \ifcsdef{blx@msbibfield@#1}
     {\ifcsdef{blx@msbibfield@#2}
-      {\def\do##1{%{ms}{ms}
+      {\def\do##1{% {ms}{ms}
        \begingroup
          \def\do####1{%
            \ifcsdef{abx@name@#1@##1@####1}
-             {\global\def\blx@nenotnull{true}\ifcsdef{abx@name@#2@##1@####1}
-                {\global\def\blx@nenotnull{true}\blx@imc@ifnamesequal@i{#1@##1@####1}{#2@##1@####1}
-                  {}
-                  {\global\def\blx@nefail{true}}}
-                {\global\def\blx@nefail{true}}}
+             {\gdef\blx@nenotnull{true}%
+              \ifcsdef{abx@name@#2@##1@####1}
+                {\gdef\blx@nenotnull{true}%
+                 \blx@imc@ifnamesequal@i{#1@##1@####1}{#2@##1@####1}
+                   {}
+                   {\gdef\blx@nefail{true}}}
+                {\gdef\blx@nefail{true}}}
              {\ifcsdef{abx@name@#2@##1@####1}
-               {\global\def\blx@nefail{true}}
-               {}}}%
+                {\gdef\blx@nefail{true}}
+                {}}}%
              \dolistloop\blx@mslangs
              \endgroup}%
            \dolistloop\blx@msforms
            \ifdef\blx@nenotnull% {ms}{ms} and neither are defined
              {\global\undef\blx@nenotnull
               \ifdef\blx@nefail
-               {\global\undef\blx@nefail\@secondoftwo}
-               {\@firstoftwo}}
+                {\global\undef\blx@nefail\@secondoftwo}
+                {\@firstoftwo}}
              {\@secondoftwo}}
       {\blx@imc@ifnamesequal@i{#1@\blx@msform @\blx@mslangswitch}{#2}}}%{ms}{non-ms}
     {\ifcsdef{blx@msbibfield@#2}
@@ -5572,7 +5574,6 @@
                   {\csname\blx@thelangenv\expandafter\endcsname
                    \expandafter{\abx@field@langid}}%                
                 % These lines are equal to \blx@maplang
-                \blx@resetpunct
                 \csuse{abx@extras@\abx@field@langid}%
                 \csuse{abx@strings@\abx@field@langid}}}
             {}}}
@@ -5580,7 +5581,6 @@
      \def\blx@imc@mainlang{%
        \select@language{\bbl@main@language}%
        % These lines are equal to \blx@maplang
-       \blx@resetpunct
        \csuse{abx@extras@\bbl@main@language}%
        \csuse{abx@strings@\bbl@main@language}}%
      \blx@langsetup\bbl@main@language}
@@ -5913,7 +5913,10 @@
     {\ifblank{#1}% ms bibfield with no form/lang specified
       {\csxappto\blx@bbl@data{%
        \def\expandafter\noexpand\csname abx@field@#2@\blx@msform @\blx@mslangswitch\endcsname{#3}}%
-       \blx@bbl@msdata{#2}{\blx@msform}{\blx@mslangswitch}}
+       \blx@bbl@msdata{#2}{\blx@msform}{\blx@mslangswitch}%
+       \xifinlist{\blx@mslang}{\blx@mslangs}
+         {}
+         {\listxadd\blx@mslangs{\blx@mslang}}}
       {\blx@flset{#1}%
        \xifinlist{\blx@tempa}{\blx@msforms}
          {}
@@ -6079,7 +6082,10 @@
         \csname c@#2\endcsname\NewCount\relax
         \def\expandafter\noexpand\csname abx@list@#2@\blx@msform @\blx@mslangswitch\endcsname
         {\expandonce\NewValue}}%
-       \blx@bbl@msdata{#2}{\blx@msform}{\blx@mslangswitch}}
+       \blx@bbl@msdata{#2}{\blx@msform}{\blx@mslangswitch}%
+       \xifinlist{\blx@mslang}{\blx@mslangs}
+         {}
+         {\listxadd\blx@mslangs{\blx@mslang}}}
       {\blx@flset{#1}%
        \xifinlist{\blx@tempa}{\blx@msforms}
          {}
@@ -6108,7 +6114,10 @@
         \csname c@#2\endcsname\NewCount\relax
         \def\expandafter\noexpand\csname abx@name@#2@\blx@msform @\blx@mslangswitch\endcsname
         {{\expandonce\NewOption}{\expandonce\NewValue}}}%
-      \blx@bbl@msdata{#2}{\blx@msform}{\blx@mslangswitch}}
+       \blx@bbl@msdata{#2}{\blx@msform}{\blx@mslangswitch}%
+       \xifinlist{\blx@mslang}{\blx@mslangs}
+         {}
+         {\listxadd\blx@mslangs{\blx@mslang}}}
       {\blx@flset{#1}%
        \xifinlist{\blx@tempa}{\blx@msforms}
          {}
