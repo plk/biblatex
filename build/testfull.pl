@@ -9,10 +9,12 @@ use File::Spec;
 my $refdir = 'reference';
 my $testdir = 'test/examples';
 
-foreach my $tf (sort <$testdir/*.pdf>) {
+my @files = @ARGV ? @ARGV : sort <$testdir/*.pdf>;
+
+foreach my $tf (@files) {
   (undef, undef, my $file) = File::Spec->splitpath($tf);
   say "Checking '$file'";
-  cmp_pdf($tf, "$refdir/$file");
+  cmp_pdf("$testdir/$file", "$refdir/$file");
 }
 done_testing;
 
