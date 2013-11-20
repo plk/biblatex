@@ -66,14 +66,32 @@
     cite,citeref,drftcite,footbib,inlinebib,jurabib,mcite,mciteplus,
     mlbib,multibbl,multibib,natbib,opcit,overcite,splitbib,ucs}%
   \@ifpackageloaded{polyglossia}
-    {\iftoggle{blx@autolang}
-       {\blx@mkautolangpoly}
-       {\blx@mknoautolang}}
+    {\ifboolexpr{
+      not test {\iftoggle{blx@autolangbib}}
+      and
+      not test {\iftoggle{blx@autolangcite}}}
+       {\blx@mknoautolang}
+       {\blx@mkautolangpoly}}
     {\@ifpackageloaded{babel}
-      {\iftoggle{blx@autolang}
-         {\blx@mkautolangbabel}
-         {\blx@mknoautolang}}
+      {\ifboolexpr{
+        not test {\iftoggle{blx@autolangbib}}
+        and
+        not test {\iftoggle{blx@autolangcite}}}
+         {\blx@mknoautolang}
+         {\blx@mkautolangbabel}}
       {\blx@mknoautolang}}%
+  % These already have defaults set to basically do nothing
+  % so if the toggles are true, we need to define again since
+  % mkautolang* redefines \blx@beglang
+  % In turn, \blx@beglang defines \blx@endlang and so \blx@beglangcite and
+  % \blx@endlangcite need redefining inside \blx@beglang after \blx@endlang
+  % has been defined.
+  \iftoggle{blx@autolangbib}
+    {\let\blx@beglangbib\blx@beglang}
+    {}%
+  \iftoggle{blx@autolangcite}
+    {\let\blx@beglangcite\blx@beglang}
+    {}%
   \csuse{abx@extras@\blx@languagename}%
   \csuse{abx@strings@\blx@languagename}%
   \undef\blx@mkautolangbabel
@@ -422,7 +440,8 @@
 \newtoggle{blx@debug}
 \newtoggle{blx@sortcase}
 \newtoggle{blx@sortupper}
-\newtoggle{blx@autolang}
+\newtoggle{blx@autolangbib}
+\newtoggle{blx@autolangcite}
 \newtoggle{blx@clearlang}
 \newtoggle{blx@defernumbers}
 \newtoggle{blx@omitnumbers}
@@ -3002,9 +3021,9 @@
   \let\abx@macro@bibindex\@empty
   \let\abx@macro@pageref\@empty
   \csuse{blx@hook@bbxinit}#1%
-  \blx@beglang
+  \blx@beglangbib
   \blx@driver{#2}%
-  \blx@endlang
+  \blx@endlangbib
   \endgroup}
 
 % Punctuation
@@ -3850,7 +3869,7 @@
      \blx@setoptions@entry
      \addtocounter{instcount}\@ne
      \blx@execute
-     \blx@beglang#3\blx@endlang
+     \blx@beglangbib#3\blx@endlangbib
      \endgroup}
     {}}
 
@@ -3889,13 +3908,13 @@
      \blx@setoptions@entry
      \addtocounter{instcount}\@ne
      \blx@execute
-     \blx@beglang
+     \blx@beglangbib
      \blx@begunit
      \blx@entryset@precode
      \blx@driver{\blx@imc@thefield{entrytype}}
      \blx@entryset@postcode
      \blx@endunit
-     \blx@endlang
+     \blx@endlangbib
      \endgroup}
     {\blx@nounit}}
 
@@ -4842,6 +4861,10 @@
 %% babel/polyglossia interface
 \def\blx@beglang{\blx@clearlang\begingroup}
 \def\blx@endlang{\endgroup}
+\let\blx@beglangbib\blx@beglang
+\let\blx@endlangbib\blx@endlang
+\let\blx@beglangcite\blx@beglang
+\let\blx@endlangcite\blx@endlang
 \let\blx@hook@endlang\@empty
 \let\blx@hook@initlang\@empty
 \let\blx@imc@mainlang\@empty
@@ -4873,6 +4896,12 @@
                   \blx@hook@endlang
                   \csname end\blx@thelangenv\endcsname
                   \endgroup}%
+                \iftoggle{blx@autolangbib}
+                  {\let\blx@endlangbib\blx@endlang}
+                  {}%
+                \iftoggle{blx@autolangcite}
+                  {\let\blx@endlangcite\blx@endlang}
+                  {}%
                 \csname\blx@thelangenv\expandafter\endcsname
                 \expandafter{\abx@field@langid}}}
             {}}}
@@ -4900,6 +4929,12 @@
                     {\csname end\abx@field@langid\endcsname}
                     {\csname end\blx@thelangenv\endcsname}%
                   \endgroup}%
+                \iftoggle{blx@autolangbib}
+                  {\let\blx@endlangbib\blx@endlang}
+                  {}%
+                \iftoggle{blx@autolangcite}
+                  {\let\blx@endlangcite\blx@endlang}
+                  {}%
                 \ifcsstring{blx@thelangenv}{langname}
                   {\ifdef\abx@field@langidopts
                      {\csname\abx@field@langid\expandafter\endcsname\expandafter[\abx@field@langidopts]}
@@ -6648,12 +6683,12 @@
        \blx@execute
        \blx@initunit
        \blx@anchor
-       \blx@beglang
+       \blx@beglangbib
        \bibsentence
        \blx@pagetracker
        \blx@driver\abx@field@entrytype
        \blx@postpunct
-       \blx@endlang}%
+       \blx@endlangbib}%
      \endgroup}
     {}}
 
@@ -6850,12 +6885,12 @@
        \csuse{blx@hook@lositem}%
        \blx@execute
        \blx@initunit
-       \blx@beglang
+       \blx@beglangbib
        \bibsentence
        \blx@pagetracker
        \blx@driver{shorthands}%
        \blx@postpunct
-       \blx@endlang}%
+       \blx@endlangbib}%
      \endgroup}
     {}}
 
@@ -7456,6 +7491,7 @@
   \blx@pagetracker
   \csuse{blx@hook@citekey}%
   \csuse{blx@hook@citekey@next}%
+  \blx@beglangcite
   \blx@execute
   \blx@loopcode
   \blx@citecounter
@@ -7468,6 +7504,7 @@
     \def\blx@thecheckpunct{\blx@err@nestcite\@gobble}%
     \blx@postcode
   \fi
+  \blx@endlangcite
   \endgroup}
 
 % cite counter
@@ -10127,15 +10164,33 @@
     {\let\abx@bibmonth\blx@imc@biblstring}}
 
 \DeclareBibliographyOption{language}{%
-  \ifstrequal{#1}{auto}
-    {\toggletrue{blx@autolang}%
-     \def\blx@languagename{english}}
-    {\IfFileExists{#1.lbx}
-       {\togglefalse{blx@autolang}%
-        \edef\blx@languagename{#1}}
-       {\blx@error
-          {Language '#1' not supported}
-          {Failed to find a matching '#1.lbx' file}}}}
+  \togglefalse{blx@autolangbib}%
+  \togglefalse{blx@autolangcite}%
+  \ifboolexpr{
+    test {\ifstrequal{#1}{auto}}
+    or
+    test {\ifstrequal{#1}{autobib}}
+    or
+    test {\ifstrequal{#1}{autocite}}
+  }
+  {\def\blx@languagename{english}%
+   \ifstrequal{#1}{auto}
+    {\toggletrue{blx@autolangbib}%
+     \toggletrue{blx@autolangcite}}
+    {}%
+   \ifstrequal{#1}{autobib}
+    {\toggletrue{blx@autolangbib}}
+    {}%
+   \ifstrequal{#1}{autocite}
+    {\toggletrue{blx@autolangcite}}
+    {}}
+  {\IfFileExists{#1.lbx}
+    {\togglefalse{blx@autolangbib}%
+     \togglefalse{blx@autolangcite}%
+     \edef\blx@languagename{#1}}
+    {\blx@error
+      {Language '#1' not supported}
+      {Failed to find a matching '#1.lbx' file}}}}
 
 \DeclareBibliographyOption{clearlang}[true]{%
   \settoggle{blx@clearlang}{#1}}
@@ -10809,7 +10864,7 @@
   usetranslator=false,indexing=false,abbreviate=true,dateabbrev=true,
   backref=false,backrefsetstyle=setonly,pagetracker=false,ibidtracker=false,
   idemtracker=false,opcittracker=false,loccittracker=false,citetracker=false,
-  citecounter=false,block=none,language=auto,clearlang=true,autolang=none,
+  citecounter=false,block=none,language=autobib,clearlang=true,autolang=none,
   date=comp,datelabel=year,origdate=comp,eventdate=comp,urldate=short,
   autopunct=true,punctfont=false,defernumbers=false,
   refsection=none,refsegment=none,citereset=none,hyperref=auto,
