@@ -83,14 +83,18 @@
         not test {\iftoggle{blx@autolangcite}}}
          {\blx@mknoautolang}
          {\blx@mkautolangbabel}}
-      {{\blx@mknoautolang}}}%
+      {\blx@mknoautolang}}%
+  % These already have defaults set to basically do nothing
+  % so if the toggles are true, we need to define again since
+  % mkautolang* redefines \blx@beglang
+  % In turn, \blx@beglang defines \blx@endlang and so \blx@beglangcite and
+  % \blx@endlangcite need redefining inside \blx@beglang after \blx@endlang
+  % has been defined.
   \iftoggle{blx@autolangbib}
-    {\global\let\blx@beglangbib\blx@beglang
-     \global\let\blx@endlangbib\blx@endlang}
+    {\let\blx@beglangbib\blx@beglang}
     {}%
   \iftoggle{blx@autolangcite}
-    {\global\let\blx@beglangcite\blx@beglang
-     \global\let\blx@endlangcite\blx@endlang}
+    {\let\blx@beglangcite\blx@beglang}
     {}%
   \csuse{abx@extras@\blx@languagename}%
   \csuse{abx@strings@\blx@languagename}%
@@ -5066,6 +5070,12 @@
                   \blx@hook@endlang
                   \csname end\blx@thelangenv\endcsname
                   \endgroup}%
+                \iftoggle{blx@autolangbib}
+                  {\let\blx@endlangbib\blx@endlang}
+                  {}%
+                \iftoggle{blx@autolangcite}
+                  {\let\blx@endlangcite\blx@endlang}
+                  {}%
                 \csname\blx@thelangenv\expandafter\endcsname
                 \expandafter{\abx@field@langid}}}}}
        {}%
@@ -5090,8 +5100,18 @@
                   \blx@hook@endlang
                   \csname end\blx@thelangenv\endcsname
                   \endgroup}%
-                \csname\blx@thelangenv\expandafter\endcsname
-                \expandafter{\abx@field@langid}%
+                \iftoggle{blx@autolangbib}
+                  {\let\blx@endlangbib\blx@endlang}
+                  {}%
+                \iftoggle{blx@autolangcite}
+                  {\let\blx@endlangcite\blx@endlang}
+                  {}%
+                \ifcsstring{blx@thelangenv}{langname}
+                  {\ifdef\abx@field@langidopts
+                     {\csname\abx@field@langid\expandafter\endcsname\expandafter[\abx@field@langidopts]}
+                     {\csname\abx@field@langid\endcsname}}
+                  {\csname\blx@thelangenv\expandafter\endcsname
+                   \expandafter{\abx@field@langid}}%                
                 % These lines are equal to \blx@maplang
                 \blx@resetpunct
                 \csuse{abx@extras@\abx@field@langid}%

@@ -25,6 +25,7 @@ ENTRY {
     keywords
     label
     langid
+    langidopts
     options
     presort
     shorthand
@@ -1404,6 +1405,7 @@ FUNCTION {output:fields.2} {
   "issuetitle"      issuetitle      output:write:field
   "iswc"            iswc            output:write:field
   "journalsubtitle" journalsubtitle output:write:field
+  "langidopts"      langidopts      output:write:field
   "library"         library         output:write:field
   "mainsubtitle"    mainsubtitle    output:write:field
   "maintitleaddon"  maintitleaddon  output:write:field
