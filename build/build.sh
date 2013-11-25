@@ -77,6 +77,7 @@ then
   fi
 fi
 
+
 if [[ "$1" = "build" || "$1" = "install" ]]
 then
   find . -name \*~ -print | xargs rm >/dev/null 2>&1
@@ -140,7 +141,10 @@ then
 
   \rm *.{aux,bbl,bcf,blg,log,run.xml,toc,out,lot} 2>/dev/null
 
+  cp biblatex.pdf ../../../build/tds/doc/
+  cp biblatex.pdf ../../../build/flat/doc/
   cd ../../..
+
   echo "Created main documentation ..."
 
   tar zcf build/biblatex-$VERSION.tds.tgz -C build/tds bibtex doc tex
