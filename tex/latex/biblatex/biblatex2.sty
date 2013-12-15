@@ -9691,8 +9691,8 @@
   ~~~~~~<bcf:type\string_pair source="#1" target="#2"#3/>\blx@nl}
 \xdef\blx@xml@inherit@field#1#2#3{%
   ~~~~~~<bcf:field source="#1" target="#2"#3/>\blx@nl}
-\xdef\blx@xml@inherit@block#1{%
-  ~~~~~~<bcf:field source="#1" skip="true"/>\blx@nl}
+\xdef\blx@xml@inherit@block#1#2{%
+  ~~~~~~<bcf:field source="#1"#2 skip="true"/>\blx@nl}
 
 \xdef\blx@xml@nosorts#1{%
   ~~<bcf:nosorts>\blx@nl
@@ -10346,13 +10346,31 @@
   \eappto\blx@tempb{%
     \blx@xml@inherit@field{#2}{#3}{\blx@tempc}}}
 
-\newcommand*{\blx@inherit@block}[1]{%
-  \eappto\blx@tempb{\blx@xml@inherit@block{#1}}}
+\newcommand*{\blx@inherit@block}[1][]{%
+  \let\blx@tempc\@empty
+  \ifblank{#1}
+    {}
+    {\setkeys{blx@inherit@block}{#1}}%
+  \eappto\blx@tempb{\blx@xml@inherit@block{#1}{\blx@tempc}}}
 
 \define@key{blx@inherit@field}{override}[true]{% true|false
   \ifstrequal{#1}{true}
-    {\edef\blx@tempc{ override\string_target="true"}}
-    {\edef\blx@tempc{ override\string_target="false"}}}
+    {\eappto\blx@tempc{ override\string_target="true"}}
+    {\eappto\blx@tempc{ override\string_target="false"}}}
+
+\define@key{blx@inherit@field}{sourceform}{%
+  \eappto\blx@tempc{ source\string_form="#1"}}
+\define@key{blx@inherit@field}{sourcelang}{%
+  \eappto\blx@tempc{ source\string_lang="#1"}}
+\define@key{blx@inherit@field}{targetlang}{%
+  \eappto\blx@tempc{ target\string_lang="#1"}}
+\define@key{blx@inherit@field}{targetlang}{%
+  \eappto\blx@tempc{ target\string_lang="#1"}}
+
+\define@key{blx@inherit@block}{form}{%
+  \eappto\blx@tempc{ form="#1"}}
+\define@key{blx@inherit@block}{lang}{%
+  \eappto\blx@tempc{ lang="#1"}}
 
 \newrobustcmd*{\ResetDataInheritance}{%
   \global\csundef{blx@biber@inherit@data}}
