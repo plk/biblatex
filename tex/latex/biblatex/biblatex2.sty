@@ -65,6 +65,12 @@
     amsrefs,apacite,babelbib,backref,bibtopic,bibunits,chapterbib,
     cite,citeref,drftcite,footbib,inlinebib,jurabib,mcite,mciteplus,
     mlbib,multibbl,multibib,natbib,opcit,overcite,splitbib,ucs}%
+  % Set up sortlocale defaults
+  \ifdefstring\blx@sortlocale{auto}
+    {\ifdef\bbl@main@language% babel or polyglossia is loaded
+      {\edef\blx@sortlocale{\bbl@main@language}}
+      {\def\blx@sortlocale{english}}}
+    {}%
   \@ifpackageloaded{polyglossia}
     {\ifboolexpr{
       not test {\iftoggle{blx@autolangbib}}
@@ -6148,6 +6154,9 @@
         \blx@auxwrite\@mainaux{}{\string\abx@aux@sortscheme{#1}}}%
      \edef\blx@tempd{%
        \blx@xml@sorting{%
+         \ifcsdef{blx@sortdef@locale@#1}
+           {\csuse{blx@sortdef@locale@#1}}
+           {}}{%
          \csuse{blx@biber@sorting@#1}}}}}
 
 \define@key{blx@los1}{sorting}{%
@@ -6162,7 +6171,10 @@
        {\listgadd\blx@sortschemeslos{#1}%
         \blx@auxwrite\@mainaux{}{\string\abx@aux@sortschemelos{#1}}}%
      \edef\blx@tempd{%
-       \blx@xml@sorting{%
+       \blx@xml@sorting{
+         \ifcsdef{blx@sortdef@locale@#1}
+           {\csuse{blx@sortdef@locale@#1}}
+           {}}{%
          \csuse{blx@biber@sorting@#1}}}}}
 
 \define@key{blx@bib1}{section}{%
@@ -6445,6 +6457,9 @@
   \let\blx@tempc\blx@sorting% sorting scheme name from "sorting" option
   \edef\blx@tempd{%
     \blx@xml@sorting{%
+      \ifcsdef{blx@sortdef@locale@\blx@sorting}
+        {\csuse{blx@sortdef@locale@\blx@sorting}}
+        {}}{%
       \csuse{blx@biber@sorting@\blx@sorting}}}% sorting scheme from "sorting" option
   \edef\blx@tempe{\the\c@refsection}% default refsection is current
   \blx@safe@actives
@@ -6809,6 +6824,9 @@
   \def\blx@tempc{shorthand}% default sorting scheme for shorthands
   \edef\blx@tempd{%
     \blx@xml@sorting{%
+      \ifcsdef{blx@sortdef@locale@shorthand}
+        {\csuse{blx@sortdef@locale@shorthand}}
+        {}}{%
       \csuse{blx@biber@sorting@shorthand}}}% default sorting scheme for shorthands
   \let\blx@printbibchecks\relax
   \edef\blx@tempe{\the\c@refsection}% default refsection is current
@@ -9021,9 +9039,9 @@
 \xdef\blx@xml@noinit#1{%
   ~~~~<bcf:noinit value="#1"/>\blx@nl}
 
-\xdef\blx@xml@sorting#1{%
-  ~~<bcf:sorting>\blx@nl
-  #1%
+\xdef\blx@xml@sorting#1#2{%
+  ~~<bcf:sorting\noexpand\ifblank{#1}{}{ locale="#1"}>\blx@nl%
+  #2%
   ~~</bcf:sorting>\blx@nl}
 \xdef\blx@xml@presort#1#2{%
   ~~~~<bcf:presort\noexpand\ifblank{#1}{}{ type="#1"}>%
@@ -9099,6 +9117,7 @@
     \blx@xml@svalue{minitems}{\blx@minitems}%
     \blx@xml@toggle{singletitle}%
     \blx@xml@svalue{sortalphaothers}{\sortalphaothers}%
+    \blx@xml@svalue{sortlocale}{\blx@sortlocale}%
     \blx@xml@svalue{sortscheme}{\blx@sorting}%
     \blx@xml@svalue{uniquelist}{\blx@uniquelist}%
     \blx@xml@svalue{uniquename}{\blx@uniquename}%
@@ -9168,9 +9187,6 @@
       \blx@xml@svalue{mincrossrefs}{\blx@mincrossrefs}%
       \blx@xml@toggle{sortcase}%
       \blx@xml@toggle{sortfirstinits}%
-      \ifdef\blx@sortlocale
-        {\blx@xml@svalue{sortlocale}{\blx@sortlocale}}
-        {}%
       \blx@xml@toggle{sortupper}%
     }%
     \blx@xml@comment{BIBLATEX OPTIONS}%
@@ -9258,7 +9274,7 @@
   \dolistcsloop{blx@biber@datamodel@entrytypes}%
   \eappto\blx@tempa{%
     \blx@xml@comment{SORTING}%
-    \blx@xml@sorting{%
+    \blx@xml@sorting{}{%
       \blx@bcf@presort
       \blx@bcf@exclude
       \csuse{blx@biber@sorting@\blx@sorting}%
@@ -9670,7 +9686,10 @@
 
 % {<name>}{<spec>}
 
-\newrobustcmd*{\DeclareSortingScheme}[2]{%
+\newrobustcmd*{\DeclareSortingScheme}[3][]{%
+  \ifblank{#1}
+    {}
+    {\csgdef{blx@sortdef@locale@#2}{#1}}%
   \begingroup
   \let\sort\blx@sortdef@sort
   \let\name\blx@sortdef@field% legacy pre-biblatex 2.0 compat
@@ -9680,8 +9699,8 @@
   \def\citeorder{\blx@sortdef@field{citeorder}}%
   \blx@tempcnta\z@
   \let\blx@tempa\@empty
-  #2%
-  \global\cslet{blx@biber@sorting@#1}\blx@tempa
+  #3%
+  \global\cslet{blx@biber@sorting@#2}\blx@tempa
   \endgroup}
 \@onlypreamble\DeclareSortingScheme
 
@@ -9988,11 +10007,6 @@
 \DeclareBibliographyOption{sortupper}[true]{%
   \settoggle{blx@sortupper}{#1}}
 
-\DeclareBibliographyOption{sortlocale}{%
-  \ifblank{#1}
-    {\undef\blx@sortlocale}
-    {\edef\blx@sortlocale{\detokenize{#1}}}}
-
 \DeclareBibliographyOption{sortlos}{%
   \blx@warning@noline{%
     sortlos option is deprecated, use 'sorting' option to \string\printshorthands}}
@@ -10161,6 +10175,9 @@
   \ifstrequal{#1}{true}
     {\let\abx@bibmonth\blx@imc@bibsstring}
     {\let\abx@bibmonth\blx@imc@biblstring}}
+
+\DeclareBibliographyOption{sortlocale}{%
+  \edef\blx@sortlocale{\detokenize{#1}}}
 
 \DeclareBibliographyOption{language}{%
   \togglefalse{blx@autolangbib}%
@@ -10857,7 +10874,7 @@
 
 \setkeys{blx@opt@ldt}{style=numeric}
 \setkeys{blx@opt@pre}{%
-  sorting=nty,sortcase,sortupper,sortcites=false,
+  sorting=nty,sortlocale=auto,sortcase,sortupper,sortcites=false,
   maxnames=3,minnames=1,maxalphanames=3,minalphanames=1,
   maxitems=3,minitems=1,mincrossrefs=2,useauthor=true,useeditor=true,
   usetranslator=false,indexing=false,abbreviate=true,dateabbrev=true,
