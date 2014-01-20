@@ -2061,7 +2061,7 @@ This option corresponds to \biber's |--sortupper| command-line option. It has no
 
 \optitem{sortlocale}{\opt{auto}, \prm{locale}}[\BiberOnly]
 
-This option sets the global sorting locale. Every sorting scheme inherits this locale if none is specified using the \prm{locale} option to \cmd{printbibliography}. Setting this to \opt{auto} requests that it be set to the Babel/Polyglossia main document language identifier, if these packages are used and \texttt{en\_US} otherwise. \biber will map Babel/Polyglossia language identifiers into sensible locale identifiers (see the \biber documentation). You can therefore specify either a normal locale identifier like \texttt{de\_DE_phonebook}, \texttt{es_ES} or one of the supported Babel/Polglossia language identifiers if the mapping \biber makes of this is fine for you.
+This option sets the global sorting locale. Every sorting scheme inherits this locale if none is specified using the \prm{locale} option to \cmd{printbibliography}. Setting this to \opt{auto} requests that it be set to the Babel/Polyglossia main document language identifier, if these packages are used and \texttt{en\_US} otherwise. \biber will map Babel/Polyglossia language identifiers into sensible locale identifiers (see the \biber documentation). You can therefore specify either a normal locale identifier like \texttt{de\_DE\_phonebook}, \texttt{es\_ES} or one of the supported Babel/Polglossia language identifiers if the mapping \biber makes of this is fine for you.
 
 \optitem[los]{sortlos}{\opt{bib}, \opt{los}}[\BibTeXOnly]
 
@@ -6968,17 +6968,27 @@ In addition to the predefined sorting schemes discussed in \secref{use:srt}, it 
 
 \cmditem{DeclareSortingScheme}{name}{specification}|\BiberOnlyMark|
 
-Defines the sorting scheme \prm{name}. The \prm{name} is the identifier passed to the \opt{sorting} option (\secref{use:opt:pre:gen}) when selecting the sorting scheme. The \prm{specification} is an undelimited list of \cmd{sort} directives which specify the elements to be considered in the sorting process. Spaces, tabs, and line endings may be used freely to visually arrange the \prm{specification}. Blank lines are not permissible. This command may only be used in the preamble.
+Defines the sorting scheme \prm{name}. The \prm{name} is the identifier passed to the \opt{sorting} option (\secref{use:opt:pre:gen}) when selecting the sorting scheme. The \cmd{DeclareSortingScheme} command supports the following optional arguments:
 
-\cmditem{locale}{\prm{locale}}
+\begin{optionlist*}
 
-Specifies the locale for the sorting scheme. This can be used to tailor a sort to a language whose sort rules are not covered by the standard Unicode Collation Algorithm. You can specify a Babel/Polyglossia language identifier (which \biber will map into a suitable locale, see the \biber documentation) or a real language locale identifier like \texttt{de\_DE\_phonebook}. If not present, the \biblatex global sorting locale setting is inherited from the \opt{sortlocale} option.
+\choitem{locale}{\prm{locale}}
+
+The locale for the sorting scheme which then overrides the global sorting locale in the \opt{sortlocale} option discussed in \secref{use:opt:pre:gen}. 
+
+\end{optionlist*}
+
+The \prm{specification} is an undelimited list of \cmd{sort} directives which specify the elements to be considered in the sorting process. Spaces, tabs, and line endings may be used freely to visually arrange the \prm{specification}. Blank lines are not permissible. This command may only be used in the preamble.
 
 \cmditem{sort}{elements}
 
 Specifies the elements considered in the sorting process. The \prm{elements} are an undelimited list of \cmd{field}, \cmd{literal}, and \cmd{citeorder} commands which are evaluated in the order in which they are given. If an element is defined, it is added to the sort key and the sorting routine skips to the next \cmd{sort} directive. If it is undefined, the next element is evaluated. Since literal strings are always defined, any \cmd{literal} commands should be the sole or the last element in a \cmd{sort} directive. The \cmd{sort} command supports the following optional arguments:
 
 \begin{optionlist*}
+
+\choitem{locale}{\prm{locale}}
+
+Override the locale used for sorting at the level of a particular set of sorting elements. If specified, the locale overrides the locale set at the level of \cmd{DeclareSortingScheme} and also the global setting. See also the discussion of the global sorting locale option \opt{sortlocale} in \secref{use:opt:pre:gen}.
 
 \choitem[ascending]{direction}{ascending, descending}
 
@@ -7128,6 +7138,24 @@ In the next example, we define the same scheme in a more elaborate way, consider
   \sort{
     \field{<<sortyear>>}
     \field{<<year>>}
+  }
+}
+\end{lstlisting}
+%
+Finally, here is an example of a sorting scheme which overrides the global sorting locale and additionally overrides again when sorting by the \bibfield{origtitle} field. Note the use in the scheme-level override of a babel/polyglossia language name instead of a real locale identifier. \biber will map this to a suitable, real locale identifier (in this case, \texttt{sv\_SE}):
+
+\begin{lstlisting}[style=latex]{}
+\DeclareSortingScheme[locale=swedish]{custom}{
+  \sort{
+    \field{<<sortname>>}
+    \field{<<author>>}
+    \field{<<editor>>}
+    \field{<<translator>>}
+    \field{<<sorttitle>>}
+    \field{<<title>>}
+  }
+  \sort[locale=de_DE_phonebook]{
+    \field{<<origtitle>>}
   }
 }
 \end{lstlisting}

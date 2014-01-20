@@ -10398,7 +10398,8 @@
 \newrobustcmd*{\DeclareSortingScheme}[3][]{%
   \ifblank{#1}
     {}
-    {\csgdef{blx@sortdef@locale@#2}{#1}}%
+    {\setkeys{blx@sortdef@sorting}{#1}%
+     \csxdef{blx@sortdef@locale@#2}{\blx@templ}}%
   \begingroup
   \let\sort\blx@sortdef@sort
   \let\name\blx@sortdef@field% legacy pre-biblatex 2.0 compat
@@ -10413,6 +10414,9 @@
   \endgroup}
 \@onlypreamble\DeclareSortingScheme
 
+\define@key{blx@sortdef@sorting}{locale}{% locale name
+  \def\blx@templ{#1}}
+
 \newcommand*{\blx@sortdef@sort}[2][]{%
   \advance\blx@tempcnta\@ne
   \blx@tempcntb\z@
@@ -10426,6 +10430,8 @@
   \eappto\blx@tempa{%
     \blx@xml@sort{\blx@tempc}{\blx@tempb}}}
 
+\define@key{blx@sortdef@sort}{locale}{% locale name
+  \eappto\blx@tempc{ locale="#1"}}
 \define@key{blx@sortdef@sort}{direction}{% ascending|descending
   \ifstrequal{#1}{ascending}
     {\eappto\blx@tempc{ sort\string_direction="ascending"}}
