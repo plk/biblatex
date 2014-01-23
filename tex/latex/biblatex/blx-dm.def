@@ -1,7 +1,7 @@
 % -*- mode: LaTeX -*-
 
 \newbool{dmskipout}%
-\newbool{multiscript}%
+\newbool{variants}%
 
 % Data model .bcf output macros
 \xdef\blx@xml@datamodel#1{%
@@ -69,9 +69,9 @@
   \global\cslet{blx@biber@datamodel@fields}\@empty
   \global\cslet{blx@biber@datamodel@names}\@empty
   \global\cslet{blx@biber@datamodel@lists}\@empty
-  \global\cslet{blx@biber@datamodel@msbibfields}\@empty
+  \global\cslet{blx@biber@datamodel@vbibfields}\@empty
   \begingroup
-  \def\do##1{\global\csundef{blx@msbibfield@##1}}%
+  \def\do##1{\global\csundef{blx@vbibfield@##1}}%
   \dolistloop
   \endgroup}
 
@@ -107,16 +107,16 @@
   \let\blx@dm@datatype\@empty
   \let\blx@dm@format\@empty
   \boolfalse{dmskipout}%
-  \boolfalse{multiscript}%
+  \boolfalse{variants}%
   \let\blx@tempa\@empty
   \setkeys{blx@datamodel@field}{#1}%
   \def\do##1{%
-    \ifboolexpr{% add to list of multiscript fields
-      bool {multiscript}
+    \ifboolexpr{% add to list of variants fields
+      bool {variants}
       and
-      not test {\ifinlistcs{##1}{blx@biber@datamodel@msbibfields}}}
-      {\listcsgadd{blx@biber@datamodel@msbibfields}{##1}%
-       \csgdef{blx@msbibfield@##1}{true}}%Testing via this is expandable
+      not test {\ifinlistcs{##1}{blx@biber@datamodel@vbibfields}}}
+      {\listcsgadd{blx@biber@datamodel@vbibfields}{##1}%
+       \csgdef{blx@vbibfield@##1}{true}}%Testing via this is expandable
       {}%
     \ifboolexpr{% add to list of names if it is a name which appears in .bbl
       not bool {dmskipout}
@@ -184,10 +184,10 @@
     {\appto\blx@tempa{ skip\string_output="true"}%
      \booltrue{dmskipout}}
     {}}
-\define@key{blx@datamodel@field}{multiscript}[true]{% true|false
+\define@key{blx@datamodel@field}{variants}[true]{% true|false
   \ifstrequal{#1}{true}  
-    {\appto\blx@tempa{ multiscript="true"}%
-     \booltrue{multiscript}}
+    {\appto\blx@tempa{ variants="true"}%
+     \booltrue{variants}}
     {}}
 
 \newrobustcmd*{\DeclareDatamodelEntryfields}[2][]{%
@@ -361,7 +361,7 @@
   urlmonth,
   urlyear}
 
-\DeclareDatamodelFields[type=field, datatype=literal, multiscript]{
+\DeclareDatamodelFields[type=field, datatype=literal, variants]{
   abstract,
   addendum,
   annotation,
@@ -444,7 +444,7 @@
   sortkey,
   presort}
 
-\DeclareDatamodelFields[type=list, datatype=literal, multiscript]{
+\DeclareDatamodelFields[type=list, datatype=literal, variants]{
   institution,
   location,
   organization,
@@ -460,7 +460,7 @@
   liste,
   listf}
 
-\DeclareDatamodelFields[type=list, datatype=name, multiscript]{
+\DeclareDatamodelFields[type=list, datatype=name, variants]{
   afterword,
   annotator,
   author,

@@ -59,8 +59,8 @@
 \def\blx@nl{^^J}
 
 % Global lists to track which forms/langs are present in the .bbl
-\global\let\blx@msforms\@empty
-\global\let\blx@mslangs\@empty
+\global\let\blx@vforms\@empty
+\global\let\blx@vlangs\@empty
 
 %% Compatibility
 \AtEndPreamble{%
@@ -107,11 +107,11 @@
   \iftoggle{blx@autolangcite}
     {\let\blx@beglangcite\blx@beglang}
     {}%
-  \listxadd\blx@mslangs{\blx@languagename}%
-  % mslang isn't an option, just a meta-macro to allow
+  \listxadd\blx@vlangs{\blx@languagename}%
+  % vlang isn't an option, just a meta-macro to allow
   % per-entry setting
-  \edef\blx@mslang{\blx@languagename}%
-  \ifundef\blx@mstranslang{\edef\blx@mstranslang{\blx@languagename}}{}% default
+  \edef\blx@vlang{\blx@languagename}%
+  \ifundef\blx@vtranslang{\edef\blx@vtranslang{\blx@languagename}}{}% default
   \csuse{abx@extras@\blx@languagename}%
   \csuse{abx@strings@\blx@languagename}%
   \undef\blx@mkautolangbabel
@@ -567,7 +567,7 @@
 \newcommand{\blx@imc@docsvfield}[2][]{%
   \blx@imc@iffieldundef[#1]{#2}
     {}
-    {\ifcsdef{blx@msbibfield@#2}
+    {\ifcsdef{blx@vbibfield@#2}
       {\blx@flset{#1}%
        \expandafter\expandafter\expandafter\docsvlist
        \expandafter\expandafter\expandafter{%
@@ -580,7 +580,7 @@
 \newcommand{\blx@imc@forcsvfield}[3]{%
   \blx@imc@iffieldundef[#1]{#3}
     {}
-    {\ifcsdef{blx@msbibfield@#3}
+    {\ifcsdef{blx@vbibfield@#3}
       {\blx@flset{#1}%
        \expandafter\expandafter\expandafter\blx@imc@forcsvfield@i
        \expandafter\expandafter\expandafter{%
@@ -865,7 +865,7 @@
 \def\blx@err@nodocdiv#1{%
   \blx@error
     {\@backslashchar#1 not provided by class}
-    {The document class does not seems to support #1s}}
+    {The document class does not seem to support #1s}}
 
 \def\blx@err@nosec#1{%
   \blx@error
@@ -1637,32 +1637,32 @@
 % {<form/lang keyval>}{<field>}
 % This tests to see if a bibfield is multiscript or not and if it is,
 % leaves \blx@tempa containing the form and \blx@tempb containing the lang
-\def\blx@imc@ifbibfieldmsx#1#2{%
-  \ifcsdef{blx@msbibfield@#2}
+\def\blx@imc@ifbibfieldvx#1#2{%
+  \ifcsdef{blx@vbibfield@#2}
     {\edef\blx@tempa{\@empty}%
      \edef\blx@tempb{\@empty}%
      \ifblank{#1}%[]{field}
        {}
        {\IfNoValueTF{#1}%{field}
          {}
-         {\setkeys{blx@ms}{#1}}}%
+         {\setkeys{blx@v}{#1}}}%
      \ifdefempty\blx@tempa
-       {\edef\blx@tempa{\blx@msform}}
+       {\edef\blx@tempa{\blx@vform}}
        {}%
      \ifnum\pdf@strcmp{\blx@tempa}{translated}=\z@
         \ifdefempty\blx@tempb
-          {\edef\blx@tempb{\blx@mstranslang}}
+          {\edef\blx@tempb{\blx@vtranslang}}
           {}%
      \fi%
      \ifdefempty\blx@tempb
-       {\edef\blx@tempb{\blx@mslang}}
+       {\edef\blx@tempb{\blx@vlang}}
        {}%
      \@firstoftwo}
     {\@secondoftwo}}
 
 % keyvals for form/lang options to .bbl macros
-\define@key{blx@ms}{form}{\def\blx@tempa{#1}}
-\define@key{blx@ms}{lang}{\def\blx@tempb{#1}}
+\define@key{blx@v}{form}{\def\blx@tempa{#1}}
+\define@key{blx@v}{lang}{\def\blx@tempb{#1}}
 
 %% Style definition
 
@@ -1843,80 +1843,80 @@
   \ifcsundef{abx@macro@#1}}
 
 
-% This needs to be expandable and so can't use \ifbibfieldmsx as it's not
+% This needs to be expandable and so can't use \ifbibfieldvx as it's not
 % expandable (due, essentially, to \setkeys)
 % Thanks to egreg (http://tex.stackexchange.com/questions/110465)
 % [<form/lang keyval>]{<field>}
 \DeclareExpandableDocumentCommand{\blx@imc@thefield}
   {om}
-  {\ifcsdef{blx@msbibfield@#2}
+  {\ifcsdef{blx@vbibfield@#2}
     {\ifblank{#1}%\thefield[]{field}
-      {\csuse{abx@field@#2@\blx@msform @\blx@mslangswitch}}
+      {\csuse{abx@field@#2@\blx@vform @\blx@vlangswitch}}
       {\IfNoValueTF{#1}%\thefield{field}
-        {\csuse{abx@field@#2@\blx@msform @\blx@mslangswitch}}
-        {\csuse{abx@field@#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}}}}}
+        {\csuse{abx@field@#2@\blx@vform @\blx@vlangswitch}}
+        {\csuse{abx@field@#2@\blx@v@getform{#1}@\blx@v@getlang{#1}}}}}
     {\csuse{abx@field@#2}}}
 
 \def\blx@flset#1{%
   \edef\blx@tempa{\@empty}%
   \edef\blx@tempb{\@empty}%
-  \setkeys{blx@ms}{#1}%
+  \setkeys{blx@v}{#1}%
   \ifdefempty\blx@tempa
-    {\edef\blx@tempa{\blx@msform}}
+    {\edef\blx@tempa{\blx@vform}}
     {}%
   \ifnum\pdf@strcmp{\blx@tempa}{translated}=\z@
     \ifdefempty\blx@tempb
-      {\edef\blx@tempb{\blx@mstranslang}}
+      {\edef\blx@tempb{\blx@vtranslang}}
       {}%
   \fi%
   \ifdefempty\blx@tempb
-    {\edef\blx@tempb{\blx@mslang}}
+    {\edef\blx@tempb{\blx@vlang}}
     {}}
 
-\def\blx@mslangswitch{%
-  \ifnum\pdf@strcmp{\blx@msform}{translated}=\z@
-    \blx@mstranslang
+\def\blx@vlangswitch{%
+  \ifnum\pdf@strcmp{\blx@vform}{translated}=\z@
+    \blx@vtranslang
   \else
-    \blx@mslang 
+    \blx@vlang 
   \fi}
 
-\def\blx@ms@getform#1{%
-  \ifnum\pdf@strcmp{\forcsvlist\blx@ms@getform@i{#1}}{}=\z@
-    \blx@msform
+\def\blx@v@getform#1{%
+  \ifnum\pdf@strcmp{\forcsvlist\blx@v@getform@i{#1}}{}=\z@
+    \blx@vform
   \else
-    \forcsvlist\blx@ms@getform@i{#1}%
+    \forcsvlist\blx@v@getform@i{#1}%
   \fi}
 
-\def\blx@ms@getlang#1{%
-  \ifnum\pdf@strcmp{\forcsvlist\blx@ms@getlang@i{#1}}{}=\z@
-    \ifnum\pdf@strcmp{\blx@ms@getform{#1}}{translated}=\z@
-      \blx@mstranslang
+\def\blx@v@getlang#1{%
+  \ifnum\pdf@strcmp{\forcsvlist\blx@v@getlang@i{#1}}{}=\z@
+    \ifnum\pdf@strcmp{\blx@v@getform{#1}}{translated}=\z@
+      \blx@vtranslang
     \else
-      \blx@mslang
+      \blx@vlang
     \fi
   \else
-    \forcsvlist\blx@ms@getlang@i{#1}%
+    \forcsvlist\blx@v@getlang@i{#1}%
   \fi}
 
-\def\blx@ms@getform@i#1{%
-  \blx@ms@getform@ii#1&}
+\def\blx@v@getform@i#1{%
+  \blx@v@getform@ii#1&}
 
-\def\blx@ms@getform@ii#1=#2&{%
+\def\blx@v@getform@ii#1=#2&{%
   \ifnum\pdf@strcmp{\zap@space#1 \@empty}{form}=\z@
     \zap@space#2 \@empty
   \fi}
 
-\def\blx@ms@getlang@i#1{%
-  \blx@ms@getlang@ii#1&}
+\def\blx@v@getlang@i#1{%
+  \blx@v@getlang@ii#1&}
 
-\def\blx@ms@getlang@ii#1=#2&{%
+\def\blx@v@getlang@ii#1=#2&{%
   \ifnum\pdf@strcmp{\zap@space#1 \@empty}{lang}=\z@
     \zap@space#2 \@empty
   \fi}
 
 \DeclareExpandableDocumentCommand{\blx@imc@strfield}
   {om}
-  {\blx@imc@ifbibfieldmsx{#1}{#2}
+  {\blx@imc@ifbibfieldvx{#1}{#2}
     {\ifcsdef{abx@field@#2@\blx@tempa @\blx@tempb}
       {\detokenize\expandafter\expandafter\expandafter
          {\csname abx@field@#2@\blx@tempa @\blx@tempb\endcsname}}
@@ -1932,7 +1932,7 @@
 % {<command>}[<form/lang keyval>]{<field>}
 \DeclareExpandableDocumentCommand{\blx@imc@usefield}
   {mom}
-  {\blx@imc@ifbibfieldmsx{#2}{#3}
+  {\blx@imc@ifbibfieldvx{#2}{#3}
     {\expandafter\expandafter\expandafter#1%
       \expandafter\expandafter\expandafter{\csname abx@field@#3@\blx@tempa @\blx@tempb\endcsname}}
     {\expandafter\expandafter\expandafter#1%
@@ -1942,14 +1942,14 @@
 % [<form/lang keyval>]{<plainlist>}
 \DeclareExpandableDocumentCommand{\blx@imc@thelist}
   {om}
-  {\blx@imc@ifbibfieldmsx{#1}{#2}
+  {\blx@imc@ifbibfieldvx{#1}{#2}
     {\csuse{abx@list@#2@\blx@tempa @\blx@tempb}}
     {\csuse{abx@list@#2}}}
 
 % [<form/lang keyval>]{<namelist>}
 \DeclareExpandableDocumentCommand{\blx@imc@thename}
   {om}
-  {\blx@imc@ifbibfieldmsx{#1}{#2}
+  {\blx@imc@ifbibfieldvx{#1}{#2}
     {\csuse{abx@name@#2@\blx@tempa @\blx@tempb}}
     {\csuse{abx@name@#2}}}
 
@@ -1957,20 +1957,20 @@
 % With no optional form/lang, clears all form/lang variants of a field
 \newcommand{\blx@imc@clearfield}[2][]{%
   \ifblank{#1}
-    {\ifcsdef{blx@msbibfield@#2}
+    {\ifcsdef{blx@vbibfield@#2}
       {\let\blx@cf\@empty
        \begingroup
        \def\do##1{%
          \begingroup
          \def\do####1{%
            \gappto\blx@cf{\csundef{abx@field@#2@##1@####1}}}%
-         \dolistloop\blx@mslangs
+         \dolistloop\blx@vlangs
          \endgroup}%
-       \dolistloop\blx@msforms
+       \dolistloop\blx@vforms
        \endgroup
        \blx@cf\global\undef\blx@cf}
      {\csundef{abx@field@#2}}}
-    {\blx@imc@ifbibfieldmsx{#1}{#2}
+    {\blx@imc@ifbibfieldvx{#1}{#2}
       {\csundef{abx@field@#2@\blx@tempa @\blx@tempb}}
       {\blx@warning@noline{%
        You are trying to \string\clearfield a non-multiscript field '#2' with form/lang arguments}}}}
@@ -1979,20 +1979,20 @@
 % With no optional form/lang, clears all form/lang variants of a list
 \newcommand{\blx@imc@clearlist}[2][]{%
   \ifblank{#1}
-    {\ifcsdef{blx@msbibfield@#2}
+    {\ifcsdef{blx@vbibfield@#2}
       {\let\blx@cl\@empty
        \begingroup
        \def\do##1{%
          \begingroup
          \def\do####1{%
            \ifcsundef{abx@list@#2@##1@####1}{}{\gappto\blx@cl{\togglefalse{abx@bool@more#2}\csundef{abx@list@#2@##1@####1}\csname c@#2\endcsname\z@}}}%
-         \dolistloop\blx@mslangs
+         \dolistloop\blx@vlangs
          \endgroup}%
-       \dolistloop\blx@msforms
+       \dolistloop\blx@vforms
        \endgroup
        \blx@cl\global\undef\blx@cl}
      {\ifcsundef{abx@list@#2}{}{\togglefalse{abx@bool@more#2}\csundef{abx@list@#2}\csname c@#2\endcsname\z@}}}
-    {\blx@imc@ifbibfieldmsx{#1}{#2}
+    {\blx@imc@ifbibfieldvx{#1}{#2}
       {\csundef{abx@list@#2@\blx@tempa @\blx@tempb}}
       {\blx@warning@noline{%
        You are trying to \string\clearlist a non-multiscript list '#2' with form/lang arguments}}}}
@@ -2001,20 +2001,20 @@
 % With no optional form/lang, clears all form/lang variants of a name list
 \newcommand{\blx@imc@clearname}[2][]{%
   \ifblank{#1}
-    {\ifcsdef{blx@msbibfield@#2}
+    {\ifcsdef{blx@vbibfield@#2}
       {\let\blx@cn\@empty
        \begingroup
        \def\do##1{%
          \begingroup
          \def\do####1{%
            \ifcsundef{abx@name@#2@##1@####1}{}{\gappto\blx@cn{\togglefalse{abx@bool@more#2}\csundef{abx@name@#2@##1@####1}\csname c@#2\endcsname\z@}}}%
-         \dolistloop\blx@mslangs
+         \dolistloop\blx@vlangs
          \endgroup}%
-       \dolistloop\blx@msforms
+       \dolistloop\blx@vforms
        \endgroup
        \blx@cn\global\undef\blx@cn}
      {\ifcsundef{abx@name@#2}{}{\togglefalse{abx@bool@more#2}\csundef{abx@name@#2}\csname c@#2\endcsname\z@}}}
-    {\blx@imc@ifbibfieldmsx{#1}{#2}
+    {\blx@imc@ifbibfieldvx{#1}{#2}
       {\csundef{abx@name@#2@\blx@tempa @\blx@tempb}}
       {\blx@warning@noline{%
        You are trying to \string\clearname a non-multiscript name '#2' with form/lang arguments}}}}
@@ -2022,7 +2022,7 @@
 % [<form/lang keyval>]{<field>}{<macro>}
 \newrobustcmd{\blx@imc@restorefield}[3][]{%
   \ifblank{#1}
-    {\ifcsdef{blx@msbibfield@#2}
+    {\ifcsdef{blx@vbibfield@#2}
       {\begingroup
        \def\do##1{%
          \begingroup
@@ -2030,13 +2030,13 @@
            \ifcsdef{\cstostr{#3}@##1@####1}
              {\gappto\blx@sf{\csletcs{abx@field@#2@##1@####1}{\cstostr{#3}##1####1}}}
              {}}%
-         \dolistloop\blx@mslangs
+         \dolistloop\blx@vlangs
          \endgroup}%
-       \dolistloop\blx@msforms
+       \dolistloop\blx@vforms
        \endgroup
        \blx@sf\global\undef\blx@sf}
       {\cslet{abx@field@#2}{#3}}}
-     {\blx@imc@ifbibfieldmsx{#1}{#2}
+     {\blx@imc@ifbibfieldvx{#1}{#2}
        {\csletcs{abx@field@#2@\blx@tempa @\blx@tempb}{\cstostr{#3}\blx@tempa\blx@tempb}}
        {\blx@warning@noline{%
         You are trying to \string\restorefield a non-multiscript field '#2' with form/lang arguments}}}}
@@ -2044,7 +2044,7 @@
 % [<form/lang keyval>]{<plainlist>}{<macro>}
 \newrobustcmd{\blx@imc@restorelist}[3][]{%
   \ifblank{#1}
-    {\ifcsdef{blx@msbibfield@#2}
+    {\ifcsdef{blx@vbibfield@#2}
       {\begingroup
        \def\do##1{%
          \begingroup
@@ -2052,13 +2052,13 @@
            \ifcsdef{\cstostr{#3}@##1@####1}
              {\gappto\blx@sf{\csletcs{abx@list@#2@##1@####1}{\cstostr{#3}##1####1}}}
              {}}%
-         \dolistloop\blx@mslangs
+         \dolistloop\blx@vlangs
          \endgroup}%
-       \dolistloop\blx@msforms
+       \dolistloop\blx@vforms
        \endgroup
        \blx@sf\global\undef\blx@sf}
       {\cslet{abx@list@#2}{#3}}}
-     {\blx@imc@ifbibfieldmsx{#1}{#2}
+     {\blx@imc@ifbibfieldvx{#1}{#2}
        {\csletcs{abx@list@#2@\blx@tempa @\blx@tempb}{\cstostr{#3}\blx@tempa\blx@tempb}}
        {\blx@warning@noline{%
         You are trying to \string\restorelist a non-multiscript list '#2' with form/lang arguments}}}}
@@ -2066,7 +2066,7 @@
 % [<form/lang keyval>]{<namelist>}{<macro>}
 \newrobustcmd{\blx@imc@restorename}[3][]{%
   \ifblank{#1}
-    {\ifcsdef{blx@msbibfield@#2}
+    {\ifcsdef{blx@vbibfield@#2}
       {\begingroup
        \def\do##1{%
          \begingroup
@@ -2074,13 +2074,13 @@
            \ifcsdef{\cstostr{#3}@##1@####1}
              {\gappto\blx@sf{\csletcs{abx@name@#2@##1@####1}{\cstostr{#3}##1####1}}}
              {}}%
-         \dolistloop\blx@mslangs
+         \dolistloop\blx@vlangs
          \endgroup}%
-       \dolistloop\blx@msforms
+       \dolistloop\blx@vforms
        \endgroup
        \blx@sf\global\undef\blx@sf}
       {\cslet{abx@name@#2}{#3}}}
-     {\blx@imc@ifbibfieldmsx{#1}{#2}
+     {\blx@imc@ifbibfieldvx{#1}{#2}
        {\csletcs{abx@name@#2@\blx@tempa @\blx@tempb}{\cstostr{#3}\blx@tempa\blx@tempb}}
        {\blx@warning@noline{%
         You are trying to \string\restorename a non-multiscript name '#2' with form/lang arguments}}}}
@@ -2096,19 +2096,19 @@
     {\let\@scope\relax}% starred version
     {\let\@scope\global}%
    \IfNoValueTF{#2}
-     {\ifcsdef{blx@msbibfield@#3}
+     {\ifcsdef{blx@vbibfield@#3}
        {\def\do##1{%
           \begingroup
           \def\do####1{%
             \ifcsdef{abx@field@#3@##1@####1}
               {\gappto\blx@sf{\@scope\csletcs{\cstostr{#4}##1####1}{abx@field@#3@##1@####1}}}
               {}}%
-          \dolistloop\blx@mslangs
+          \dolistloop\blx@vlangs
           \endgroup}%
-        \dolistloop\blx@msforms
+        \dolistloop\blx@vforms
         \blx@sf\global\undef\blx@sf}
       {\@scope\letcs#4{abx@field@#3}}}
-     {\blx@imc@ifbibfieldmsx{#2}{#3}
+     {\blx@imc@ifbibfieldvx{#2}{#3}
        {\@scope\csletcs{\cstostr{#4}\blx@tempa\blx@tempb}{abx@field@#3@\blx@tempa @\blx@tempb}}
        {\blx@warning@noline{%
         You are trying to \string\savefield a non-multiscript field '#3' with form/lang arguments}}}}
@@ -2120,19 +2120,19 @@
     {\let\@scope\relax}% starred version
     {\let\@scope\global}%
    \IfNoValueTF{#2}
-     {\ifcsdef{blx@msbibfield@#3}
+     {\ifcsdef{blx@vbibfield@#3}
        {\def\do##1{%
           \begingroup
           \def\do####1{%
             \ifcsdef{abx@list@#3@##1@####1}
               {\gappto\blx@sf{\@scope\csletcs{\cstostr{#4}##1####1}{abx@list@#3@##1@####1}}}
               {}}%
-          \dolistloop\blx@mslangs
+          \dolistloop\blx@vlangs
           \endgroup}%
-        \dolistloop\blx@msforms
+        \dolistloop\blx@vforms
         \blx@sf\global\undef\blx@sf}
       {\@scope\letcs#4{abx@list@#3}}}
-     {\blx@imc@ifbibfieldmsx{#2}{#3}
+     {\blx@imc@ifbibfieldvx{#2}{#3}
        {\@scope\csletcs{\cstostr{#4}\blx@tempa\blx@tempb}{abx@list@#3@\blx@tempa @\blx@tempb}}
        {\blx@warning@noline{%
         You are trying to \string\savelist a non-multiscript list '#3' with form/lang arguments}}}}
@@ -2144,19 +2144,19 @@
     {\let\@scope\relax}% starred version
     {\let\@scope\global}%
    \IfNoValueTF{#2}
-     {\ifcsdef{blx@msbibfield@#3}
+     {\ifcsdef{blx@vbibfield@#3}
        {\def\do##1{%
           \begingroup
           \def\do####1{%
             \ifcsdef{abx@name@#3@##1@####1}
               {\gappto\blx@sf{\@scope\csletcs{\cstostr{#4}##1####1}{abx@name@#3@##1@####1}}}
               {}}%
-          \dolistloop\blx@mslangs
+          \dolistloop\blx@vlangs
           \endgroup}%
-        \dolistloop\blx@msforms
+        \dolistloop\blx@vforms
         \blx@sf\global\undef\blx@sf}
       {\@scope\letcs#4{abx@name@#3}}}
-     {\blx@imc@ifbibfieldmsx{#2}{#3}
+     {\blx@imc@ifbibfieldvx{#2}{#3}
        {\@scope\csletcs{\cstostr{#4}\blx@tempa\blx@tempb}{abx@name@#3@\blx@tempa @\blx@tempb}}
        {\blx@warning@noline{%
         You are trying to \string\savename a non-multiscript name '#3' with form/lang arguments}}}}
@@ -2168,19 +2168,19 @@
     {\let\@scope\relax}% starred version
     {\let\@scope\global}%
    \IfNoValueTF{#2}
-     {\ifcsdef{blx@msbibfield@#3}
+     {\ifcsdef{blx@vbibfield@#3}
        {\def\do##1{%
           \begingroup
           \def\do####1{%
             \ifcsdef{abx@field@#3@##1@####1}
               {\gappto\blx@sf{\@scope\csletcs{#4##1####1}{abx@field@#3@##1@####1}}}
               {}}%
-          \dolistloop\blx@mslangs
+          \dolistloop\blx@vlangs
           \endgroup}%
-        \dolistloop\blx@msforms
+        \dolistloop\blx@vforms
         \blx@sf\global\undef\blx@sf}
       {\@scope\letcs#4{abx@field@#3}}}
-     {\blx@imc@ifbibfieldmsx{#2}{#3}
+     {\blx@imc@ifbibfieldvx{#2}{#3}
        {\@scope\csletcs{#4\blx@tempa\blx@tempb}{abx@field@#3@\blx@tempa @\blx@tempb}}
        {\blx@warning@noline{%
         You are trying to \string\savefieldcs a non-multiscript field '#3' with form/lang arguments}}}}
@@ -2193,19 +2193,19 @@
     {\let\@scope\relax}% starred version
     {\let\@scope\global}%
    \IfNoValueTF{#2}
-     {\ifcsdef{blx@msbibfield@#3}
+     {\ifcsdef{blx@vbibfield@#3}
        {\def\do##1{%
           \begingroup
           \def\do####1{%
             \ifcsdef{abx@list@#3@##1@####1}
               {\gappto\blx@sf{\@scope\csletcs{#4##1####1}{abx@list@#3@##1@####1}}}
               {}}%
-          \dolistloop\blx@mslangs
+          \dolistloop\blx@vlangs
           \endgroup}%
-        \dolistloop\blx@msforms
+        \dolistloop\blx@vforms
         \blx@sf\global\undef\blx@sf}
       {\@scope\letcs#4{abx@list@#3}}}
-     {\blx@imc@ifbibfieldmsx{#2}{#3}
+     {\blx@imc@ifbibfieldvx{#2}{#3}
        {\@scope\csletcs{#4\blx@tempa\blx@tempb}{abx@list@#3@\blx@tempa @\blx@tempb}}
        {\blx@warning@noline{%
         You are trying to \string\savelistcs a non-multiscript list '#3' with form/lang arguments}}}}
@@ -2217,19 +2217,19 @@
     {\let\@scope\relax}% starred version
     {\let\@scope\global}%
    \IfNoValueTF{#2}
-     {\ifcsdef{blx@msbibfield@#3}
+     {\ifcsdef{blx@vbibfield@#3}
        {\def\do##1{%
           \begingroup
           \def\do####1{%
             \ifcsdef{abx@name@#3@##1@####1}
               {\gappto\blx@sf{\@scope\csletcs{#4##1####1}{abx@name@#3@##1@####1}}}
               {}}%
-          \dolistloop\blx@mslangs
+          \dolistloop\blx@vlangs
           \endgroup}%
-        \dolistloop\blx@msforms
+        \dolistloop\blx@vforms
         \blx@sf\global\undef\blx@sf}
       {\@scope\letcs#4{abx@name@#3}}}
-     {\blx@imc@ifbibfieldmsx{#2}{#3}
+     {\blx@imc@ifbibfieldvx{#2}{#3}
        {\@scope\csletcs{#4\blx@tempa\blx@tempb}{abx@name@#3@\blx@tempa @\blx@tempb}}
        {\blx@warning@noline{%
         You are trying to \string\savename a non-multiscript name '#3' with form/lang arguments}}}}
@@ -2243,12 +2243,12 @@
 % Has to be expandable to work in \ifthen
 \DeclareExpandableDocumentCommand{\blx@imc@ifflnundef}
   {mom}
-  {\ifcsdef{blx@msbibfield@#3}
+  {\ifcsdef{blx@vbibfield@#3}
     {\ifblank{#2}
-      {\csuse{abx@#1@#3@\blx@msform @\blx@mslangswitch}}
+      {\csuse{abx@#1@#3@\blx@vform @\blx@vlangswitch}}
       {\IfNoValueTF{#2}
-        {\ifcsundef{abx@#1@#3@\blx@msform @\blx@mslangswitch}}
-        {\ifcsundef{abx@#1@#3@\blx@ms@getform{#2}@\blx@ms@getlang{#2}}}}}
+        {\ifcsundef{abx@#1@#3@\blx@vform @\blx@vlangswitch}}
+        {\ifcsundef{abx@#1@#3@\blx@v@getform{#2}@\blx@v@getlang{#2}}}}}
     {\ifcsundef{abx@#1@#3}}}
 
 % Amazing that these macros were one line in biblatex <3.0. Dealing with
@@ -2259,54 +2259,54 @@
 
 \DeclareExpandableDocumentCommand{\blx@imc@ifflequal}
   {momom}
-  {\ifcsdef{blx@msbibfield@#3}
-    % [?]{msfield}[?]{?}
-    {\ifcsdef{blx@msbibfield@#5}
-      % [?]{msfield}[?]{msfield}
+  {\ifcsdef{blx@vbibfield@#3}
+    % [?]{vfield}[?]{?}
+    {\ifcsdef{blx@vbibfield@#5}
+      % [?]{vfield}[?]{vfield}
       {\IfNoValueTF{#2}
-        % {msfield}[?]{msfield}
+        % {vfield}[?]{vfield}
         {\IfNoValueTF{#4}
-          % {msfield}{msfield}
+          % {vfield}{vfield}
           {\blx@imc@ifflequal@i{#1}{#3}{#5}}
-          % {msfield}[f/l]{msfield}
-          {\blx@imc@ifflequal@iii{\csuse{abx@#1@#3@\blx@msform @\blx@mslangswitch}}{\blx@imc@ifflequal@ii{#1}{#4}{#5}}}}
-        % [f/l]{msfield}[?]{msfield}
+          % {vfield}[f/l]{vfield}
+          {\blx@imc@ifflequal@iii{\csuse{abx@#1@#3@\blx@vform @\blx@vlangswitch}}{\blx@imc@ifflequal@ii{#1}{#4}{#5}}}}
+        % [f/l]{vfield}[?]{vfield}
         {\IfNoValueTF{#4}
-          % [f/l]{msfield}{msfield}
-          {\blx@imc@ifflequal@iii{\blx@imc@ifflequal@ii{#1}{#2}{#3}}{\csuse{abx@#1@#5@\blx@msform @\blx@mslangswitch}}}
-          % [f/l]{msfield}[f/l]{msfield}
+          % [f/l]{vfield}{vfield}
+          {\blx@imc@ifflequal@iii{\blx@imc@ifflequal@ii{#1}{#2}{#3}}{\csuse{abx@#1@#5@\blx@vform @\blx@vlangswitch}}}
+          % [f/l]{vfield}[f/l]{vfield}
           {\blx@imc@ifflequal@iii{\blx@imc@ifflequal@ii{#1}{#2}{#3}}{\blx@imc@ifflequal@ii{#1}{#4}{#5}}}}}
-      % [?]{msfield}[?]{non-msfield}
+      % [?]{vfield}[?]{non-vfield}
       {\IfValueTF{#4}
-        % [?]{msfield}[f/l]{non-msfield}
+        % [?]{vfield}[f/l]{non-vfield}
         {\blx@warning@noline{You are trying to \string\if#1sequal a non-multiscript #1 '#5' with form/lang arguments}\@secondoftwo}
-        % [?]{msfield}{non-msfield}
+        % [?]{vfield}{non-vfield}
         {\IfNoValueTF{#2}
-          % {msfield}{non-msfield}
-          {\ifcsequal{abx@#1@#2@\blx@msform @\blx@mslangswitch}{abx@#1@#5}}
-          % [f/l]{msfield}{non-msfield}
+          % {vfield}{non-vfield}
+          {\ifcsequal{abx@#1@#2@\blx@vform @\blx@vlangswitch}{abx@#1@#5}}
+          % [f/l]{vfield}{non-vfield}
           {\blx@imc@ifflequal@iii{\blx@imc@ifflequal@ii{#1}{#2}{#3}}{\csuse{abx@#1@#5}}}}}}
-    % [?]{non-msfield}[?]{?}
-    {\ifcsdef{blx@msbibfield@#5}
-      % [?]{non-msfield}[?]{msfield}
+    % [?]{non-vfield}[?]{?}
+    {\ifcsdef{blx@vbibfield@#5}
+      % [?]{non-vfield}[?]{vfield}
       {\IfValueTF{#2}
-        % [f/l]{non-msfield}[?]{msfield}
+        % [f/l]{non-vfield}[?]{vfield}
         {\blx@warning@noline{You are trying to \string\if#1sequal a non-multiscript #1 '#3' with form/lang arguments}\@secondoftwo}
-        % {non-msfield}[?]{msfield}
+        % {non-vfield}[?]{vfield}
         {\IfNoValueTF{#4}
-          % {non-msfield}{msfield}
-          {\ifcsequal{abx@#1@#5@\blx@msform @\blx@mslangswitch}{abx@#1@#3}}
-          % {non-msfield}[f/l]{msfield}
+          % {non-vfield}{vfield}
+          {\ifcsequal{abx@#1@#5@\blx@vform @\blx@vlangswitch}{abx@#1@#3}}
+          % {non-vfield}[f/l]{vfield}
           {\blx@imc@ifflequal@iii{\blx@imc@ifflequal@ii{#1}{#4}{#5}}{\csuse{abx@#1@#3}}}}}
-      % [?]{non-msfield}[?]{non-msfield}
+      % [?]{non-vfield}[?]{non-vfield}
       {\IfValueTF{#2}
-        % [f/l]{non-msfield}[?]{non-msfield}
+        % [f/l]{non-vfield}[?]{non-vfield}
         {\blx@warning@noline{You are trying to \string\if#1sequal a non-multiscript #1 '#3' with form/lang arguments}\@secondoftwo}
-        % {non-msfield}[?]{non-msfield}
+        % {non-vfield}[?]{non-vfield}
         {\IfValueTF{#4}
-          % {non-msfield}[f/l]{non-msfield}
+          % {non-vfield}[f/l]{non-vfield}
           {\blx@warning@noline{You are trying to \string\if#1sequal a non-multiscript #1 '#5' with form/lang arguments}\@secondoftwo}
-          % {non-msfield}{non-msfield}
+          % {non-vfield}{non-vfield}
           {\ifcsequal{abx@#1@#3}{abx@#1@#5}}}}}}
 
 % Deal with comparing all forms/langs of two multi-script fields/lists
@@ -2323,20 +2323,20 @@
           {\ifcsdef{abx@#1@#3@##1@####1}
             {\gdef\blx@fefail{true}}
             {}}}%
-          \dolistloop\blx@mslangs
+          \dolistloop\blx@vlangs
           \endgroup}%
-        \dolistloop\blx@msforms
+        \dolistloop\blx@vforms
         \ifdef\blx@fefail
           {\global\undef\blx@fefail\@secondoftwo}
           {\global\undef\blx@fefail\@firstoftwo}}
 
 \def\blx@imc@ifflequal@ii#1#2#3{%
-  \ifcsdef{blx@msbibfield@#3}
+  \ifcsdef{blx@vbibfield@#3}
     {\ifblank{#2}
-      {\csuse{abx@#1@#3@\blx@msform @\blx@mslangswitch}}
+      {\csuse{abx@#1@#3@\blx@vform @\blx@vlangswitch}}
       {\IfNoValueTF{#2}
-        {\csuse{abx@#1@#3@\blx@msform @\blx@mslangswitch}}
-        {\csuse{abx@#1@#3@\blx@ms@getform{#2}@\blx@ms@getlang{#2}}}}}
+        {\csuse{abx@#1@#3@\blx@vform @\blx@vlangswitch}}
+        {\csuse{abx@#1@#3@\blx@v@getform{#2}@\blx@v@getlang{#2}}}}}
     {\csuse{abx@#1@#3}}}
 
 \def\blx@imc@ifflequal@iii#1#2{%
@@ -2352,27 +2352,27 @@
   {\IfNoValueTF{#1}
     {\IfNoValueTF{#3}
       {\blx@ifnamesequal@v{#2}{#4}}%{name}{name}
-      {\ifcsdef{blx@msbibfield@#2}%{name}[]{name}
-       {\ifcsdef{blx@msbibfield@#4}
-         {\blx@imc@ifnamesequal@i{#2@\blx@msform @\blx@mslangswitch}{#4@\blx@ms@getform{#3}@\blx@ms@getlang{#3}}}%{ms}[]{ms}
-         {\blx@warning@noline{You are trying to \ifnamesequal a non-multiscript name '#4' with form/lang arguments}\@secondoftwo}%{ms}[]{non-ms}
-       {\ifcsdef{blx@msbibfield@#4}
-         {\blx@imc@ifnamesequal@i{#2}{#4@\blx@ms@getform{#3}@\blx@ms@getlang{#3}}}%{non-ms}[]{ms}
-         {\blx@warning@noline{You are trying to \ifnamesequal a non-multiscript name '#4' with form/lang arguments}\@secondoftwo}}}}}%{non-ms}[]{non-ms}
+      {\ifcsdef{blx@vbibfield@#2}%{name}[]{name}
+       {\ifcsdef{blx@vbibfield@#4}
+         {\blx@imc@ifnamesequal@i{#2@\blx@vform @\blx@vlangswitch}{#4@\blx@v@getform{#3}@\blx@v@getlang{#3}}}%{v}[]{v}
+         {\blx@warning@noline{You are trying to \ifnamesequal a non-multiscript name '#4' with form/lang arguments}\@secondoftwo}%{v}[]{non-v}
+       {\ifcsdef{blx@vbibfield@#4}
+         {\blx@imc@ifnamesequal@i{#2}{#4@\blx@v@getform{#3}@\blx@v@getlang{#3}}}%{non-v}[]{v}
+         {\blx@warning@noline{You are trying to \ifnamesequal a non-multiscript name '#4' with form/lang arguments}\@secondoftwo}}}}}%{non-v}[]{non-v}
     {\IfNoValueTF{#3}
-      {\ifcsdef{blx@msbibfield@#2}%[]{name}{name}
-        {\ifcsdef{blx@msbibfield@#4}
-          {\blx@imc@ifnamesequal@i{#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}}{#4@\blx@msform @\blx@mslangswitch}}%[]{ms}{ms}
-          {\blx@imc@ifnamesequal@i{#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}}{#4}}}%[]{ms}{non-ms}
-        {\ifcsdef{blx@msbibfield@#4}
-          {\blx@warning@noline{You are trying to \ifnamesequal a non-multiscript name '#2' with form/lang arguments}\@secondoftwo}%[]{non-ms}{ms}
-          {\blx@warning@noline{You are trying to \ifnamesequal a non-multiscript name '#2' with form/lang arguments}\@secondoftwo}}}%[]{non-ms}{non-ms}
-      {\ifcsdef{blx@msbibfield@#2}%[]{name}[]{name}
-        {\ifcsdef{blx@msbibfield@#4}%[]{ms}[]{name}
-          {\blx@imc@ifnamesequal@i{#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}}{#4@\blx@ms@getform{#3}@\blx@ms@getlang{#3}}}%[]{ms}[]{ms}
-          {\blx@warning@noline{You are trying to \ifnamesequal a non-multiscript name '#4' with form/lang arguments}\@secondoftwo}}%[]{ms}[]{non-ms}
-        {\ifcsdef{blx@msbibfield@#4}
-          {\blx@warning@noline{You are trying to \ifnamesequal a non-multiscript name '#2' with form/lang arguments}\@secondoftwo}%[]{non-ms}[]{non-ms}
+      {\ifcsdef{blx@vbibfield@#2}%[]{name}{name}
+        {\ifcsdef{blx@vbibfield@#4}
+          {\blx@imc@ifnamesequal@i{#2@\blx@v@getform{#1}@\blx@v@getlang{#1}}{#4@\blx@vform @\blx@vlangswitch}}%[]{v}{v}
+          {\blx@imc@ifnamesequal@i{#2@\blx@v@getform{#1}@\blx@v@getlang{#1}}{#4}}}%[]{v}{non-v}
+        {\ifcsdef{blx@vbibfield@#4}
+          {\blx@warning@noline{You are trying to \ifnamesequal a non-multiscript name '#2' with form/lang arguments}\@secondoftwo}%[]{non-v}{v}
+          {\blx@warning@noline{You are trying to \ifnamesequal a non-multiscript name '#2' with form/lang arguments}\@secondoftwo}}}%[]{non-v}{non-v}
+      {\ifcsdef{blx@vbibfield@#2}%[]{name}[]{name}
+        {\ifcsdef{blx@vbibfield@#4}%[]{v}[]{name}
+          {\blx@imc@ifnamesequal@i{#2@\blx@v@getform{#1}@\blx@v@getlang{#1}}{#4@\blx@v@getform{#3}@\blx@v@getlang{#3}}}%[]{v}[]{v}
+          {\blx@warning@noline{You are trying to \ifnamesequal a non-multiscript name '#4' with form/lang arguments}\@secondoftwo}}%[]{v}[]{non-v}
+        {\ifcsdef{blx@vbibfield@#4}
+          {\blx@warning@noline{You are trying to \ifnamesequal a non-multiscript name '#2' with form/lang arguments}\@secondoftwo}%[]{non-v}[]{non-v}
           {\blx@warning@noline{You are trying to \ifnamesequal two non-multiscript names '#2' and '#4' with form/lang arguments}\@secondoftwo}}}}}
 
 \def\blx@imc@ifnamesequal@i#1#2{%
@@ -2414,12 +2414,12 @@
     {\appto\blx@tempa{{{#2}{#4}{#6}{#8}}}}}
 
 % Deal with comparing all forms/langs of two names with no f/l specifiers
-% Tricky case when neither are defined and both are ms, must return false which means
+% Tricky case when neither are defined and both are v, must return false which means
 % setting boolean to say if any \ifcsdef was true
 \def\blx@ifnamesequal@v#1#2{%
-  \ifcsdef{blx@msbibfield@#1}
-    {\ifcsdef{blx@msbibfield@#2}
-      {\def\do##1{% {ms}{ms}
+  \ifcsdef{blx@vbibfield@#1}
+    {\ifcsdef{blx@vbibfield@#2}
+      {\def\do##1{% {v}{v}
        \begingroup
          \def\do####1{%
            \ifcsdef{abx@name@#1@##1@####1}
@@ -2433,19 +2433,19 @@
              {\ifcsdef{abx@name@#2@##1@####1}
                 {\gdef\blx@nefail{true}}
                 {}}}%
-             \dolistloop\blx@mslangs
+             \dolistloop\blx@vlangs
              \endgroup}%
-           \dolistloop\blx@msforms
-           \ifdef\blx@nenotnull% {ms}{ms} and neither are defined
+           \dolistloop\blx@vforms
+           \ifdef\blx@nenotnull% {v}{v} and neither are defined
              {\global\undef\blx@nenotnull
               \ifdef\blx@nefail
                 {\global\undef\blx@nefail\@secondoftwo}
                 {\@firstoftwo}}
              {\@secondoftwo}}
-      {\blx@imc@ifnamesequal@i{#1@\blx@msform @\blx@mslangswitch}{#2}}}%{ms}{non-ms}
-    {\ifcsdef{blx@msbibfield@#2}
-      {\blx@imc@ifnamesequal@i{#1}{#2@\blx@msform @\blx@mslangswitch}}%{non-ms}{ms}
-      {\blx@imc@ifnamesequal@i{#1}{#2}}}}%{non-ms}{non-ms}
+      {\blx@imc@ifnamesequal@i{#1@\blx@vform @\blx@vlangswitch}{#2}}}%{v}{non-v}
+    {\ifcsdef{blx@vbibfield@#2}
+      {\blx@imc@ifnamesequal@i{#1}{#2@\blx@vform @\blx@vlangswitch}}%{non-v}{v}
+      {\blx@imc@ifnamesequal@i{#1}{#2}}}}%{non-v}{non-v}
 
 % [<form/lang keyval>]{<field>}{<macro>}{<true>}{<false>}
 \def\blx@imc@iffieldequals{\blx@imc@ifflnequals{field}}
@@ -2457,20 +2457,20 @@
   {momm}
   {\ifundef#4%
     {\@secondoftwo}
-    {\ifcsdef{blx@msbibfield@#3}
+    {\ifcsdef{blx@vbibfield@#3}
       {\ifblank{#2}
-        {\expandafter\ifx\csname abx@#1@#3@\blx@msform @\blx@mslangswitch\endcsname#4%
+        {\expandafter\ifx\csname abx@#1@#3@\blx@vform @\blx@vlangswitch\endcsname#4%
          \expandafter\@firstoftwo
          \else
          \expandafter\@secondoftwo
          \fi}
         {\IfNoValueTF{#2}
-          {\expandafter\ifx\csname abx@#1@#3@\blx@msform @\blx@mslangswitch\endcsname#4%
+          {\expandafter\ifx\csname abx@#1@#3@\blx@vform @\blx@vlangswitch\endcsname#4%
            \expandafter\@firstoftwo
            \else
            \expandafter\@secondoftwo
            \fi}
-          {\expandafter\ifx\csname abx@#1@#3@\blx@ms@getform{#2}@\blx@ms@getlang{#2}\endcsname#4%
+          {\expandafter\ifx\csname abx@#1@#3@\blx@v@getform{#2}@\blx@v@getlang{#2}\endcsname#4%
            \expandafter\@firstoftwo
            \else
            \expandafter\@secondoftwo
@@ -2484,46 +2484,46 @@
 % [<form/lang keyval>]{<field>}{<csname>}{<true>}{<false>}
 \DeclareExpandableDocumentCommand{\blx@imc@iffieldequalcs}
   {omm}
-  {\ifcsdef{blx@msbibfield@#2}
+  {\ifcsdef{blx@vbibfield@#2}
     {\ifblank{#1}
-      {\ifcsequal{abx@field@#2@\blx@msform @\blx@mslangswitch}{#3}}
+      {\ifcsequal{abx@field@#2@\blx@vform @\blx@vlangswitch}{#3}}
       {\IfNoValueTF{#1}
-        {\ifcsequal{abx@field@#2@\blx@msform @\blx@mslangswitch}{#3}}
-        {\ifcsequal{abx@field@#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}}{#3}}}}
+        {\ifcsequal{abx@field@#2@\blx@vform @\blx@vlangswitch}{#3}}
+        {\ifcsequal{abx@field@#2@\blx@v@getform{#1}@\blx@v@getlang{#1}}{#3}}}}
     {\ifcsequal{abx@field@#2}{#3}}}
 
 % [<form/lang keyval>]{<plainlist>}{<csname>}{<true>}{<false>}
 \newcommand*{\blx@imc@iflistequalcs}[2][]{%
-  \blx@imc@ifbibfieldmsx{#1}{#2}
+  \blx@imc@ifbibfieldvx{#1}{#2}
     {\ifcsequal{abx@list@#2@\blx@tempa @\blx@tempb}}
     {\ifcsequal{abx@list@#2}}}
 
 % [<form/lang keyval>]{<namelist>}{<csname>}{<true>}{<false>}
 \DeclareExpandableDocumentCommand{\blx@imc@ifnameequalcs}
   {omm}
-  {\ifcsdef{blx@msbibfield@#2}
+  {\ifcsdef{blx@vbibfield@#2}
     {\ifblank{#1}
-      {\ifcsequal{abx@name@#2@\blx@msform @\blx@mslangswitch}{#3}}
+      {\ifcsequal{abx@name@#2@\blx@vform @\blx@vlangswitch}{#3}}
       {\IfNoValueTF{#1}
-        {\ifcsequal{abx@name@#2@\blx@msform @\blx@mslangswitch}{#3}}
-        {\ifcsequal{abx@name@#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}}{#3}}}}
+        {\ifcsequal{abx@name@#2@\blx@vform @\blx@vlangswitch}{#3}}
+        {\ifcsequal{abx@name@#2@\blx@v@getform{#1}@\blx@v@getlang{#1}}{#3}}}}
     {\ifcsequal{abx@name@#2}{#3}}}
 
 % [<form/lang keyval>]{<field>}{<string>}{<true>}{<false>}
 \DeclareExpandableDocumentCommand{\blx@imc@iffieldequalstr}
   {omm}
-  {\ifcsdef{blx@msbibfield@#2}
+  {\ifcsdef{blx@vbibfield@#2}
     {\ifblank{#1}
       {\expandafter\expandafter\expandafter\ifstrequal
        \expandafter\expandafter\expandafter{%
-       \csname abx@field@#2@\blx@msform @\blx@mslangswitch\endcsname}{#3}}
+       \csname abx@field@#2@\blx@vform @\blx@vlangswitch\endcsname}{#3}}
       {\IfNoValueTF{#1}
         {\expandafter\expandafter\expandafter\ifstrequal
          \expandafter\expandafter\expandafter{%
-         \csname abx@field@#2@\blx@msform @\blx@mslangswitch\endcsname}{#3}}
+         \csname abx@field@#2@\blx@vform @\blx@vlangswitch\endcsname}{#3}}
         {\expandafter\expandafter\expandafter\ifstrequal
          \expandafter\expandafter\expandafter{%
-         \csname abx@field@#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}\endcsname}{#3}}}}
+         \csname abx@field@#2@\blx@v@getform{#1}@\blx@v@getlang{#1}\endcsname}{#3}}}}
     {\expandafter\expandafter\expandafter\ifstrequal
      \expandafter\expandafter\expandafter{%
      \csname abx@field@#2\endcsname}{#3}}}
@@ -2532,7 +2532,7 @@
 \newrobustcmd*{\blx@imc@iffieldxref}[2][]{%
   \blx@imc@iffieldundef[#1]{#2}
     {\@secondoftwo}    
-    {\ifcsdef{blx@msbibfield@#2}
+    {\ifcsdef{blx@vbibfield@#2}
       {\blx@whichxref
         {\blx@iffieldxref@i[#1]{#2}}
         {\@secondoftwo}}
@@ -2576,7 +2576,7 @@
 \newcommand*{\blx@imc@iflistxref}[2][]{%
   \blx@imc@iflistundef[#1]{#2}
     {\@secondoftwo}
-    {\ifcsdef{blx@msbibfield@#2}
+    {\ifcsdef{blx@vbibfield@#2}
       {\blx@whichxref
         {\blx@iflistxref@i[#1]{#2}}
         {\@secondoftwo}}}
@@ -3036,21 +3036,21 @@
   {om}
   {\blx@imc@iffieldundef[#1]{#2}
     {\@secondoftwo}
-    {\ifcsdef{blx@msbibfield@#2}
+    {\ifcsdef{blx@vbibfield@#2}
       {\ifblank{#1}
         {\expandafter\expandafter
          \expandafter\ifinteger
          \expandafter\expandafter
-         \expandafter{\csname abx@field@#2@\blx@msform @\blx@mslangswitch\endcsname}}
+         \expandafter{\csname abx@field@#2@\blx@vform @\blx@vlangswitch\endcsname}}
         {\IfNoValueTF{#1}
           {\expandafter\expandafter
            \expandafter\ifinteger
            \expandafter\expandafter
-           \expandafter{\csname abx@field@#2@\blx@msform @\blx@mslangswitch\endcsname}}
+           \expandafter{\csname abx@field@#2@\blx@vform @\blx@vlangswitch\endcsname}}
           {\expandafter\expandafter
            \expandafter\ifinteger
            \expandafter\expandafter
-           \expandafter{\csname abx@field@#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}\endcsname}}}}
+           \expandafter{\csname abx@field@#2@\blx@v@getform{#1}@\blx@v@getlang{#1}\endcsname}}}}
       {\expandafter\expandafter
        \expandafter\ifinteger
        \expandafter\expandafter
@@ -3113,21 +3113,21 @@
   {om}
   {\blx@imc@iffieldundef[#1]{#2}
     {\@secondoftwo}
-    {\ifcsdef{blx@msbibfield@#2}
+    {\ifcsdef{blx@vbibfield@#2}
       {\ifblank{#1}
         {\expandafter\expandafter
          \expandafter\blx@imc@ifnumeral
          \expandafter\expandafter
-         \expandafter{\csname abx@field@#2@\blx@msform @\blx@mslangswitch\endcsname}}
+         \expandafter{\csname abx@field@#2@\blx@vform @\blx@vlangswitch\endcsname}}
         {\IfNoValueTF{#1}
           {\expandafter\expandafter
            \expandafter\blx@imc@ifnumeral
            \expandafter\expandafter
-           \expandafter{\csname abx@field@#2@\blx@msform @\blx@mslangswitch\endcsname}}
+           \expandafter{\csname abx@field@#2@\blx@vform @\blx@vlangswitch\endcsname}}
           {\expandafter\expandafter
            \expandafter\blx@imc@ifnumeral
            \expandafter\expandafter
-           \expandafter{\csname abx@field@#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}\endcsname}}}}
+           \expandafter{\csname abx@field@#2@\blx@v@getform{#1}@\blx@v@getlang{#1}\endcsname}}}}
       {\expandafter\expandafter
        \expandafter\blx@imc@ifnumeral
        \expandafter\expandafter
@@ -3137,21 +3137,21 @@
   {om}
   {\blx@imc@iffieldundef[#1]{#2}
     {\@secondoftwo}
-    {\ifcsdef{blx@msbibfield@#2}
+    {\ifcsdef{blx@vbibfield@#2}
       {\ifblank{#1}
         {\expandafter\expandafter
          \expandafter\blx@imc@ifnumerals
          \expandafter\expandafter
-         \expandafter{\csname abx@field@#2@\blx@msform @\blx@mslangswitch\endcsname}}
+         \expandafter{\csname abx@field@#2@\blx@vform @\blx@vlangswitch\endcsname}}
         {\IfNoValueTF{#1}
           {\expandafter\expandafter
            \expandafter\blx@imc@ifnumerals
            \expandafter\expandafter
-           \expandafter{\csname abx@field@#2@\blx@msform @\blx@mslangswitch\endcsname}}
+           \expandafter{\csname abx@field@#2@\blx@vform @\blx@vlangswitch\endcsname}}
           {\expandafter\expandafter
            \expandafter\blx@imc@ifnumerals
            \expandafter\expandafter
-           \expandafter{\csname abx@field@#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}\endcsname}}}}
+           \expandafter{\csname abx@field@#2@\blx@v@getform{#1}@\blx@v@getlang{#1}\endcsname}}}}
       {\expandafter\expandafter
        \expandafter\blx@imc@ifnumerals
        \expandafter\expandafter
@@ -3161,21 +3161,21 @@
   {om}
   {\blx@imc@iffieldundef[#1]{#2}
     {\@secondoftwo}
-    {\ifcsdef{blx@msbibfield@#2}
+    {\ifcsdef{blx@vbibfield@#2}
       {\ifblank{#1}
         {\expandafter\expandafter
          \expandafter\blx@imc@ifpages
          \expandafter\expandafter
-         \expandafter{\csname abx@field@#2@\blx@msform @\blx@mslangswitch\endcsname}}
+         \expandafter{\csname abx@field@#2@\blx@vform @\blx@vlangswitch\endcsname}}
         {\IfNoValueTF{#1}
           {\expandafter\expandafter
            \expandafter\blx@imc@ifpages
            \expandafter\expandafter
-           \expandafter{\csname abx@field@#2@\blx@msform @\blx@mslangswitch\endcsname}}
+           \expandafter{\csname abx@field@#2@\blx@vform @\blx@vlangswitch\endcsname}}
           {\expandafter\expandafter
            \expandafter\blx@imc@ifpages
            \expandafter\expandafter
-           \expandafter{\csname abx@field@#2@\blx@ms@getform{#1}@\blx@ms@getlang{#1}\endcsname}}}}
+           \expandafter{\csname abx@field@#2@\blx@v@getform{#1}@\blx@v@getlang{#1}\endcsname}}}}
       {\expandafter\expandafter
        \expandafter\blx@imc@ifpages
        \expandafter\expandafter
@@ -3711,7 +3711,7 @@
   \ifdriver \thefield \strfield \csfield \usefield \thelist \thename
   \clearfield \clearlist \clearname \restorefield \restorelist
   \restorename \ifcategory \ifentrycategory \ifkeyword \ifentrykeyword
-  \ifbibfieldform \ifbibfieldms \ifbibfieldlang \ifciteseen
+  \ifbibfieldform \ifbibfieldv \ifbibfieldlang \ifciteseen
   \ifentryseen \ifentryinbib \ifciteibid \ifciteidem \ifopcit
   \ifloccit \ifcurrentfield \ifcurrentform \ifcurrentlang
   \ifcurrentlist \ifcurrentname \ifentrytype \iffieldequalcs
@@ -4174,7 +4174,7 @@
           \def\currentfield{#3}%
           \let\currentform\@empty
           \let\currentlang\@empty
-          \blx@imc@ifbibfieldmsx{#2}{#3}
+          \blx@imc@ifbibfieldvx{#2}{#3}
             {\edef\currentform{\blx@tempa}%
              \edef\currentlang{\blx@tempb}%
              % set up form/lang counters for use in formatting directives
@@ -4274,7 +4274,7 @@
   \blx@namecodes}
 
 \def\blx@namesetup@i#1#2{%
-  \blx@imc@ifbibfieldmsx{#1}{#2}
+  \blx@imc@ifbibfieldvx{#1}{#2}
     {\edef\currentform{\blx@tempa}%
      \edef\currentlang{\blx@tempb}%
      % set up form/lang counters for use in formatting directives
@@ -4407,7 +4407,7 @@
   \let\currentlang\@empty
   \c@listcount\@ne
   \expandafter\c@listtotal\csname c@#4\endcsname
-  \blx@imc@ifbibfieldmsx{#3}{#4}
+  \blx@imc@ifbibfieldvx{#3}{#4}
     {\edef\currentform{\blx@tempa}%
      \edef\currentlang{\blx@tempb}%
      \letcs\blx@thedata{abx@list@#4@\blx@tempa @\blx@tempb}%
@@ -4665,7 +4665,7 @@
 
 % [<form/lang keyval>]{<field>}{<true>}{<false>}
 \newcommand*{\blx@imc@iffieldbibstring}[2][]{%
-  \blx@imc@ifbibfieldmsx{#1}{#2}
+  \blx@imc@ifbibfieldvx{#1}{#2}
     {\ifcsundef{\abx@str @\detokenize\expandafter
                 \expandafter\expandafter{%
                 \csname abx@field@#2@\blx@tempa @\blx@tempb\endcsname}}
@@ -5747,56 +5747,56 @@
   \let\do\blx@saved@do}
 
 \protected\def\blx@savefield#1{%
-  \ifcsdef{blx@msbibfield@#1}
+  \ifcsdef{blx@vbibfield@#1}
     {\let\blx@sfed\@empty
      \begingroup     
      \def\do##1{%
        \begingroup
          \def\do####1{%
            \ifcsdef{abx@field@#1@##1@####1}
-             {\csgdef{blx@msbibfield@saved#1}{true}% So \thefield{saved#1} works
+             {\csgdef{blx@vbibfield@saved#1}{true}% So \thefield{saved#1} works
               \gappto\blx@sfed{\csletcs{abx@field@saved#1@##1@####1}{abx@field@#1@##1@####1}}}
              {}}%
-         \dolistloop\blx@mslangs
+         \dolistloop\blx@vlangs
        \endgroup}%
-     \dolistloop\blx@msforms
+     \dolistloop\blx@vforms
      \endgroup\blx@sfed\global\undef\blx@sfed}
     {\csletcs{abx@field@saved#1}{abx@field@#1}}}
 
 \protected\def\blx@savelist#1{%
   \csletcs{etb@tgl@abx@bool@moresaved#1}{etb@tgl@abx@bool@more#1}%
-  \ifcsdef{blx@msbibfield@#1}
+  \ifcsdef{blx@vbibfield@#1}
     {\let\blx@sled\@empty
      \begingroup     
      \def\do##1{%
        \begingroup
          \def\do####1{%
            \ifcsdef{abx@list@#1@##1@####1}
-             {\csgdef{blx@msbibfield@saved#1}{true}% So \thefield{saved#1} works
+             {\csgdef{blx@vbibfield@saved#1}{true}% So \thefield{saved#1} works
               \gappto\blx@sled{\csletcs{abx@list@saved#1@##1@####1}{abx@list@#1@##1@####1}}}
              {}}%
-         \dolistloop\blx@mslangs
+         \dolistloop\blx@vlangs
        \endgroup}%
-     \dolistloop\blx@msforms
+     \dolistloop\blx@vforms
      \endgroup\blx@sled\global\undef\blx@sled}
     {\csletcs{abx@list@saved#1}{abx@list@#1}}%
   \csname c@saved#1\endcsname\csname c@#1\endcsname}
 
 \protected\def\blx@savename#1{%
   \csletcs{etb@tgl@abx@bool@moresaved#1}{etb@tgl@abx@bool@more#1}%
-  \ifcsdef{blx@msbibfield@#1}
+  \ifcsdef{blx@vbibfield@#1}
     {\let\blx@sned\@empty
      \begingroup     
      \def\do##1{%
        \begingroup
          \def\do####1{%
            \ifcsdef{abx@name@#1@##1@####1}
-             {\csgdef{blx@msbibfield@saved#1}{true}% So \thefield{saved#1} works
+             {\csgdef{blx@vbibfield@saved#1}{true}% So \thefield{saved#1} works
               \gappto\blx@sned{\csletcs{abx@name@saved#1@##1@####1}{abx@name@#1@##1@####1}}}
              {}}%
-         \dolistloop\blx@mslangs
+         \dolistloop\blx@vlangs
        \endgroup}%
-     \dolistloop\blx@msforms
+     \dolistloop\blx@vforms
      \endgroup\blx@sned\global\undef\blx@sned}
     {\csletcs{abx@name@saved#1}{abx@name@#1}}%
   \csname c@saved#1\endcsname\csname c@#1\endcsname}
@@ -5838,7 +5838,7 @@
     mapping features ('\DeclareSourcemap')}}
 
 % {<entrykey>}{<refsection>}{<field>}{<value>}
-% Only used to add non-ms fields internally
+% Only used to add non-v fields internally
 \long\def\blx@bbl@addentryfield#1#2#3#4{%
   \csxappto{blx@data@#2@#1}{%
     \def\expandafter\noexpand\csname abx@field@#3\endcsname{#4}}}
@@ -5852,7 +5852,7 @@
 % abx@lang@c@<bibfield>@<form>    - count of langs for <form> of <bibfield>
 
 % {<bibfield>}{<form>}{<lang>}
-\def\blx@bbl@msdata#1#2#3{%
+\def\blx@bbl@vdata#1#2#3{%
   % list and count of bibfield forms
   \csxappto\blx@bbl@data{%
     \xifinlistcs{#2}{abx@forms@#1}
@@ -5881,30 +5881,30 @@
 
 % [<form/lang keval>]{<field>}{<value>}
 \newrobustcmd*{\blx@bbl@addfield}[3][]{%
-  \ifcsdef{blx@msbibfield@#2}
-    {\ifblank{#1}% ms bibfield with no form/lang specified
+  \ifcsdef{blx@vbibfield@#2}
+    {\ifblank{#1}% v bibfield with no form/lang specified
       {\csxappto\blx@bbl@data{%
-       \def\expandafter\noexpand\csname abx@field@#2@\blx@msform @\blx@mslangswitch\endcsname{#3}}%
-       \blx@bbl@msdata{#2}{\blx@msform}{\blx@mslangswitch}%
-       \xifinlist{\blx@mslang}{\blx@mslangs}
+       \def\expandafter\noexpand\csname abx@field@#2@\blx@vform @\blx@vlangswitch\endcsname{#3}}%
+       \blx@bbl@vdata{#2}{\blx@vform}{\blx@vlangswitch}%
+       \xifinlist{\blx@vlang}{\blx@vlangs}
          {}
-         {\listxadd\blx@mslangs{\blx@mslang}}}
+         {\listxadd\blx@vlangs{\blx@vlang}}}
       {\blx@flset{#1}%
-       \xifinlist{\blx@tempa}{\blx@msforms}
+       \xifinlist{\blx@tempa}{\blx@vforms}
          {}
-         {\listxadd\blx@msforms{\blx@tempa}}%
-       \xifinlist{\blx@tempb}{\blx@mslangs}
+         {\listxadd\blx@vforms{\blx@tempa}}%
+       \xifinlist{\blx@tempb}{\blx@vlangs}
          {}
-         {\listxadd\blx@mslangs{\blx@tempb}}%
+         {\listxadd\blx@vlangs{\blx@tempb}}%
        \csxappto\blx@bbl@data{%
          \def\expandafter\noexpand\csname abx@field@#2@\blx@tempa @\blx@tempb\endcsname{#3}}%
-       \blx@bbl@msdata{#2}{\blx@tempa}{\blx@tempb}}}
+       \blx@bbl@vdata{#2}{\blx@tempa}{\blx@tempb}}}
     {\csxappto\blx@bbl@data{%
       \def\expandafter\noexpand\csname abx@field@#2\endcsname{#3}}}}
 
 % {<bibfield>}{<macro>}
 \def\blx@imc@loopvariants#1#2{%
-  \ifcsdef{blx@msbibfield@#1}
+  \ifcsdef{blx@vbibfield@#1}
     {\def\do##1{%
        \begingroup
          \def\do####1{#2{##1}{####1}}%
@@ -5915,50 +5915,50 @@
 
 % {<bibfield>}{form}{<macro>}
 \def\blx@imc@loopformlangs#1#2#3{%
-  \ifcsdef{blx@msbibfield@#1}
+  \ifcsdef{blx@vbibfield@#1}
     {\forlistcsloop{#3}{abx@langs@#1@#2}}
     {\blx@warning@noline{You are trying to \string\loopformlangs\space on a non-multiscript bibfield '#1'}}}
 
 
 % {<bibfield>}{<macro>}
 \def\blx@imc@loopforms#1#2{%
-  \ifcsdef{blx@msbibfield@#1}
+  \ifcsdef{blx@vbibfield@#1}
     {\forlistcsloop{#2}{abx@forms@#1}}
     {\blx@warning@noline{You are trying to \string\loopforms\space on a non-multiscript bibfield '#1'}}}
 
 % {<bibfield>}{<form>}{<macro>}
 \def\blx@imc@looplangs#1#2#3{%
-  \ifcsdef{blx@msbibfield@#1}
+  \ifcsdef{blx@vbibfield@#1}
     {\forlistcsloop{#3}{abx@langs@#1@#2}}
     {\blx@warning@noline{You are trying to \string\looplangs\space on a non-multiscript bibfield '#1'}}}
 
 % {<bibfield>}
-\def\blx@imc@ifbibfieldms#1{%
-  \ifcsdef{blx@msbibfield@#1}}
+\def\blx@imc@ifbibfieldv#1{%
+  \ifcsdef{blx@vbibfield@#1}}
 
 % {<bibfield>}
 \def\blx@imc@ifbibfieldvariants#1{%
-  \ifcsdef{blx@msbibfield@#1}
+  \ifcsdef{blx@vbibfield@#1}
     {\def\do##1{%
        \begingroup
        \def\do####1{%
-         \expandafter\ifstrequal\expandafter{\blx@msform}{##1}
+         \expandafter\ifstrequal\expandafter{\blx@vform}{##1}
              {}
-             {\gdef\blx@msvar{true}}%
-         \expandafter\ifstrequal\expandafter{\blx@mslangswitch}{####1}
+             {\gdef\blx@vvar{true}}%
+         \expandafter\ifstrequal\expandafter{\blx@vlangswitch}{####1}
              {}
-             {\gdef\blx@msvar{true}}}%
+             {\gdef\blx@vvar{true}}}%
        \dolistcsloop{abx@langs@#1@##1}%
        \endgroup}%
      \dolistcsloop{abx@forms@#1}%
-     \ifdef{\blx@msvar}
-        {\global\undef\blx@msvar\@firstoftwo}
+     \ifdef{\blx@vvar}
+        {\global\undef\blx@vvar\@firstoftwo}
         {\@secondoftwo}}
     {\@secondoftwo}}
 
 % {<bibfield>}{<form>}
 \def\blx@imc@getlang#1#2{%
-  \ifcsdef{blx@msbibfield@#1}
+  \ifcsdef{blx@vbibfield@#1}
     {\blx@imc@ifbibfieldform{#1}{#2}
       {\expandafter\ifnum\csname abx@lang@c@#1@#2\endcsname = \@ne
         \def\do##1{##1\listbreak}%
@@ -5973,15 +5973,15 @@
 
 % {<bibfield>}{<form>}
 \def\blx@imc@ifbibfieldform#1#2{%
-  \ifcsdef{blx@msbibfield@#1}
+  \ifcsdef{blx@vbibfield@#1}
     {\ifinlistcs{#2}{abx@forms@#1}}
     {\@secondoftwo}}
 
 % {<bibfield>}{<form>}{<lang>} or {<bibfield>}{}{<lang>}
 \def\blx@imc@ifbibfieldlang#1#2#3{%
-  \ifcsdef{blx@msbibfield@#1}
+  \ifcsdef{blx@vbibfield@#1}
     {\ifblank{#2}
-      {\ifinlistcs{#3}{abx@langs@#1@\blx@msform}}
+      {\ifinlistcs{#3}{abx@langs@#1@\blx@vform}}
       {\ifinlistcs{#3}{abx@langs@#1@#2}}}
     {\@secondoftwo}}
 
@@ -6048,28 +6048,28 @@
 \newrobustcmd*{\blx@bbl@listdef}[4][]{%
   \def\NewCount{#3}%
   \def\NewValue{#4}%
-  \ifcsdef{blx@msbibfield@#2}
+  \ifcsdef{blx@vbibfield@#2}
     {\ifblank{#1}
       {\csxappto\blx@bbl@data{%
         \csname c@#2\endcsname\NewCount\relax
-        \def\expandafter\noexpand\csname abx@list@#2@\blx@msform @\blx@mslangswitch\endcsname
+        \def\expandafter\noexpand\csname abx@list@#2@\blx@vform @\blx@vlangswitch\endcsname
         {\expandonce\NewValue}}%
-       \blx@bbl@msdata{#2}{\blx@msform}{\blx@mslangswitch}%
-       \xifinlist{\blx@mslang}{\blx@mslangs}
+       \blx@bbl@vdata{#2}{\blx@vform}{\blx@vlangswitch}%
+       \xifinlist{\blx@vlang}{\blx@vlangs}
          {}
-         {\listxadd\blx@mslangs{\blx@mslang}}}
+         {\listxadd\blx@vlangs{\blx@vlang}}}
       {\blx@flset{#1}%
-       \xifinlist{\blx@tempa}{\blx@msforms}
+       \xifinlist{\blx@tempa}{\blx@vforms}
          {}
-         {\listxadd\blx@msforms{\blx@tempa}}%
-       \xifinlist{\blx@tempb}{\blx@mslangs}
+         {\listxadd\blx@vforms{\blx@tempa}}%
+       \xifinlist{\blx@tempb}{\blx@vlangs}
          {}
-         {\listxadd\blx@mslangs{\blx@tempb}}%
+         {\listxadd\blx@vlangs{\blx@tempb}}%
        \csxappto\blx@bbl@data{%
          \csname c@#2\endcsname\NewCount\relax
          \def\expandafter\noexpand\csname abx@list@#2@\blx@tempa @\blx@tempb\endcsname
          {\expandonce\NewValue}}%
-       \blx@bbl@msdata{#2}{\blx@tempa}{\blx@tempb}}}
+       \blx@bbl@vdata{#2}{\blx@tempa}{\blx@tempb}}}
     {\csxappto\blx@bbl@data{%
      \csname c@#2\endcsname\NewCount\relax
      \def\expandafter\noexpand\csname abx@list@#2\endcsname
@@ -6080,28 +6080,28 @@
   \def\NewCount{#3}%
   \def\NewOption{#4}%
   \def\NewValue{#5}%
-  \ifcsdef{blx@msbibfield@#2}
+  \ifcsdef{blx@vbibfield@#2}
     {\ifblank{#1}
       {\csxappto\blx@bbl@data{%
         \csname c@#2\endcsname\NewCount\relax
-        \def\expandafter\noexpand\csname abx@name@#2@\blx@msform @\blx@mslangswitch\endcsname
+        \def\expandafter\noexpand\csname abx@name@#2@\blx@vform @\blx@vlangswitch\endcsname
         {{\expandonce\NewOption}{\expandonce\NewValue}}}%
-       \blx@bbl@msdata{#2}{\blx@msform}{\blx@mslangswitch}%
-       \xifinlist{\blx@mslang}{\blx@mslangs}
+       \blx@bbl@vdata{#2}{\blx@vform}{\blx@vlangswitch}%
+       \xifinlist{\blx@vlang}{\blx@vlangs}
          {}
-         {\listxadd\blx@mslangs{\blx@mslang}}}
+         {\listxadd\blx@vlangs{\blx@vlang}}}
       {\blx@flset{#1}%
-       \xifinlist{\blx@tempa}{\blx@msforms}
+       \xifinlist{\blx@tempa}{\blx@vforms}
          {}
-         {\listxadd\blx@msforms{\blx@tempa}}%
-       \xifinlist{\blx@tempb}{\blx@mslangs}
+         {\listxadd\blx@vforms{\blx@tempa}}%
+       \xifinlist{\blx@tempb}{\blx@vlangs}
          {}
-         {\listxadd\blx@mslangs{\blx@tempb}}%
+         {\listxadd\blx@vlangs{\blx@tempb}}%
        \csxappto\blx@bbl@data{%
          \csname c@#2\endcsname\NewCount\relax
          \def\expandafter\noexpand\csname abx@name@#2@\blx@tempa @\blx@tempb\endcsname
          {{\expandonce\NewOption}{\expandonce\NewValue}}}%
-       \blx@bbl@msdata{#2}{\blx@tempa}{\blx@tempb}}}
+       \blx@bbl@vdata{#2}{\blx@tempa}{\blx@tempb}}}
     {\csxappto\blx@bbl@data{%
         \csname c@#2\endcsname\NewCount\relax
         \def\expandafter\noexpand\csname abx@name@#2\endcsname
@@ -6462,7 +6462,7 @@
 \def\blx@bbl@titles{%
   \ifundef\abx@field@indextitle
     {\csxappto\blx@bbl@data{%
-       \letcs\noexpand\abx@field@indextitle{abx@field@title@\blx@msform @\blx@mslangswitch}}}
+       \letcs\noexpand\abx@field@indextitle{abx@field@title@\blx@vform @\blx@vlangswitch}}}
     {}%
   \ifundef\abx@field@indexsorttitle
     {\csgappto\blx@bbl@data{%
@@ -8778,7 +8778,7 @@
 \long\def\blx@citexpunct@ii#1#2[#3]{%
   \@ifnextchar[%]
     {\blx@citexpunct@iii{#1}{#2{#3}}}
-    {\blx@citexpunct@iii{#1}{#2{#3}}[form=\blx@msform,lang=\blx@mslangswitch]}}
+    {\blx@citexpunct@iii{#1}{#2{#3}}[form=\blx@vform,lang=\blx@vlangswitch]}}
 \long\def\blx@citexpunct@iii#1#2[#3]#4{%
     \blx@thecheckpunct{\blxcitecmd{#1}#2{#3}{#4}}}
 
@@ -9248,7 +9248,7 @@
     \def\ifloccit{\blx@TE\blx@imc@ifloccit}%
     \def\ifsamepage{\blx@TE\blx@imc@ifsamepage}%
     \def\iffirstonpage{\blx@TE\blx@imc@iffirstonpage}%
-    \def\ifbibfieldms#1{\blx@TE{\blx@imc@ifbibfieldms{#1}}}%
+    \def\ifbibfieldv#1{\blx@TE{\blx@imc@ifbibfieldv{#1}}}%
     \def\ifcurrentfield#1{\blx@TE{\blx@imc@ifcurrentfield{#1}}}%
     \def\ifcurrentform#1{\blx@TE{\blx@imc@ifcurrentform{#1}}}%
     \def\ifcurrentlang#1{\blx@TE{\blx@imc@ifcurrentlang{#1}}}%
@@ -9802,9 +9802,9 @@
     \blx@xml@svalue{minbibnames}{\blx@minbibnames}%
     \blx@xml@svalue{mincitenames}{\blx@mincitenames}%
     \blx@xml@svalue{minitems}{\blx@minitems}%
-    \blx@xml@svalue{msform}{\blx@msform}%
-    \blx@xml@svalue{mslang}{\blx@mslang}%
-    \blx@xml@svalue{mstranslang}{\blx@mstranslang}%
+    \blx@xml@svalue{vform}{\blx@vform}%
+    \blx@xml@svalue{vlang}{\blx@vlang}%
+    \blx@xml@svalue{vtranslang}{\blx@vtranslang}%
     \blx@xml@toggle{singletitle}%
     \blx@xml@svalue{sortalphaothers}{\sortalphaothers}%
     \blx@xml@svalue{sortlocale}{\blx@sortlocale}%
@@ -10717,17 +10717,17 @@
   \blx@warning@noline{%
     sortlos option is deprecated, use 'sorting' option to \string\printshorthands}}
 
-\DeclareBibliographyOption{msform}{%
- \def\blx@msform{#1}
- \listgadd\blx@msforms{#1}}
-\DeclareEntryOption{msform}{%
-  \def\blx@msform{#1}}
-\DeclareEntryOption{mslang}{%
-  \def\blx@mslang{#1}}
-\DeclareBibliographyOption{mstranslang}{%
- \def\blx@mstranslang{#1}}
-\DeclareEntryOption{mstranslang}{%
- \def\blx@mstranslang{#1}}
+\DeclareBibliographyOption{vform}{%
+ \def\blx@vform{#1}
+ \listgadd\blx@vforms{#1}}
+\DeclareEntryOption{vform}{%
+  \def\blx@vform{#1}}
+\DeclareEntryOption{vlang}{%
+  \def\blx@vlang{#1}}
+\DeclareBibliographyOption{vtranslang}{%
+ \def\blx@vtranslang{#1}}
+\DeclareEntryOption{vtranslang}{%
+ \def\blx@vtranslang{#1}}
 
 \DeclareBibliographyOption{maxnames}{%
   \numdef\blx@maxcitenames{#1}%
@@ -11627,7 +11627,7 @@
   date=comp,datelabel=year,origdate=comp,eventdate=comp,urldate=short,autopunct=true,
   punctfont=false,defernumbers=false,refsection=none,refsegment=none,
   citereset=none,hyperref=auto,parentracker,maxparens=3,
-  bibencoding=auto,bibwarn,msform=original}
+  bibencoding=auto,bibwarn,vform=original}
 
 % Load compatibility code
 
