@@ -2097,7 +2097,7 @@ Enclose the entry in an \env{otherlanguage*} environment. Please note that \sty{
 
 \optitem[none]{autolangshort}{\opt{none}, \opt{hyphen}, \opt{other}, \opt{other*}}[\BiberOnly]
 
-As \opt{autolang} but controls the language environment for per-field automatic language switching for fields with a language specification.
+As \opt{autolang} but controls the language environment for per-field automatic language switching for variant enabled fields with a language specification. See \secref{bib:fld:var}.
 
 \boolitem[true]{autopunct}
 
@@ -6770,7 +6770,7 @@ By default, for name list fields, the number of names considered when building t
 
 Specifies the form for the variant enabled field specified with \opt{field}, if the datasource you are using supports this.
 
-\choitem[none]{lang}{<language specifier>}
+\choitem[none]{lang}{\prm{language}}
 
 Specifies the \sty{babel}/\sty{polyglossia} language for the variant enabled field specified with \opt{field} if the datasource you are using supports this. The default, if no \prm{lang} option is set, means to use the field variant in the datasource which has no explicit language defined.
 
@@ -6800,7 +6800,7 @@ Here are some examples. The default global \sty{biblatex} alphabetic label templ
 }
 \end{lstlisting}
 %
-Here is an example using form and script variants. We use as the label the left three characters of the <romanised> form of the \bibfield{labelname} field as a preference. If this doesn't exist, we use the <translated> form in the <french> language. If this does not exist, we use the default \bibfield{labelname} from the datasource which has no form or lang specifications.
+Here is an example using field variants. We use as the label the left three characters of the <romanised> form of the \bibfield{labelname} field as a preference. If this doesn't exist, we use the <translated> form in the <french> language. If this does not exist, we use the default \bibfield{labelname} from the datasource which has no form or lang specifications.
 
 \begin{lstlisting}[style=latex]{}
 \DeclareLabelalphaTemplate{
@@ -7031,11 +7031,19 @@ Whether or not to sort in <uppercase before lowercase> (\texttt{true}) or <lower
 
 \end{optionlist*}
 
-\cmditem{field}[key=value, \dots]{field}
+\cmditem{field}[\prm{options}]{field}
 
-The \cmd{field} element adds a \prm{field} to the sorting specification. If the \prm{field} is undefined, the element is skipped. The \cmd{field} command supports the following optional arguments:
+The \cmd{field} element adds a \prm{field} to the sorting specification. If the \prm{field} is undefined in the entry being sorted, the element is skipped. The \cmd{field} command supports the following \prm{options}:
 
 \begin{optionlist*}
+
+\choitem[original]{form}{original,translated,romanised,uniform}
+
+Specifies the form for the variant enabled field specified with \opt{field}, if the datasource you are using supports this.
+
+\choitem[none]{lang}{\prm{language}}
+
+Specifies the \sty{babel}/\sty{polyglossia} language for the variant enabled field specified with \opt{field} if the datasource you are using supports this. The default, if no \prm{lang} option is set, means to use the field variant in the datasource which has no explicit language defined. 
 
 \choitem[left]{padside}{left, right}
 
@@ -7067,7 +7075,7 @@ The number of characters to match.
 
 Specifies the form for the variant enabled field specified with \opt{field}, if the datasource you are using supports this.
 
-\choitem[none]{lang}{<language specifier>}
+\choitem[none]{lang}{\prm{language}}
 
 Specifies the \sty{babel}/\sty{polyglossia} language for the variant enabled field specified with \opt{field} if the datasource you are using supports this. The default, if no \prm{lang} option is set, means to use the field variant in the datasource which has no explicit language defined.
 
@@ -7336,7 +7344,7 @@ The \bibfield{labelname} field may be customized globally or on a per-type basis
 
 Specifies the form for the variant enabled field specified with \opt{field}, if the datasource you are using supports this.
 
-\choitem[none]{lang}{<language specifier>}
+\choitem[none]{lang}{\prm{language}}
 
 Specifies the \sty{babel}/\sty{polyglossia} language for the variant enabled field specified with \opt{field} if the datasource you are using supports this. The default, if no \prm{lang} option is set, means to use the field variant in the datasource which has no explicit language defined.
 
@@ -7389,13 +7397,13 @@ The \bibfield{labeltitle} field may be customized globally or on a per-type basi
 
 Specifies the form for the variant enabled field specified with \opt{field}, if the datasource you are using supports this.
 
-\choitem[none]{lang}{<language specifier>}
+\choitem[none]{lang}{\prm{language specifier}}
 
 Specifies the \sty{babel}/\sty{polyglossia} language for the variant enabled field specified with \opt{field} if the datasource you are using supports this. The default, if no \prm{lang} option is set, means to use the field variant in the datasource which has no explicit language defined.
 
 \end{optionlist*}
 %
-For example, the following specification for selecting \bibfield{labeltitle} first looks for an english translation variant of the \bibfield{TITLE} field, then a romainsed variant and if neither of these can be found, the default field with no form or lang specifications.
+For example, the following specification for selecting \bibfield{labeltitle} first looks for an English translation variant of the \bibfield{TITLE} field, then a romanised variant and if neither of these can be found, the default field with no form or language specifications.
 \begin{lstlisting}[style=latex]{}
 \DeclareLabelname{%
   \field[form=translated,lang=english]{title}
@@ -7437,9 +7445,31 @@ Sets the \prm{options} for a specific \prm{source} and \prm{target} combination.
 
 Declares inheritance rules. The \prm{source} and \prm{target} arguments specify the parent and the child entry type. Either argument may be a single entry type, a comma"=separated list of types, or an asterisk. The asterisk matches all entry types. The \prm{rules} are an undelimited list of \cmd{inherit} and\slash or \cmd{noinherit} directives. Spaces, tabs, and line endings may be used freely to visually arrange the \prm{rules}. Blank lines are not permissible. This command may only be used in the preamble.
 
-\cmditem{inherit}[option]{source}{target}
+\cmditem{inherit}[\prm{options}]{source}{target}
 
-Defines an inheritance rule by mapping a \prm{source} field to a \prm{target} field. The \prm{option} is the \opt{override} option explained above. When set locally, it takes precedence over any global options set with \cmd{DefaultInheritance}.
+Defines an inheritance rule by mapping a \prm{source} field to a \prm{target} field. The following \prm{option}s may be specified:
+
+\begin{optionlist*}
+
+\boolitem[false]{override} Per-field value of the option mentioned above. If set here, it takes precedence over any global options set with \cmd{DefaultInheritance}.
+
+\choitem[original]{sourceform}{original,translated,romanised,uniform}
+
+Specifies the form for the variant enabled field specified with \opt{source}, if the datasource you are using supports this.
+
+\choitem[none]{sourcelang}{<language specifier>}
+
+Specifies the \sty{babel}/\sty{polyglossia} language for the variant enabled field specified with \opt{source} if the datasource you are using supports this. The default, if no \prm{lang} option is set, means to use the field variant in the datasource which has no explicit language defined.
+
+\choitem[original]{targetform}{original,translated,romanised,uniform}
+
+Specifies the form for the variant enabled field specified with \opt{target}, if the datasource you are using supports this.
+
+\choitem[none]{targetlang}{<language specifier>}
+
+Specifies the \sty{babel}/\sty{polyglossia} language for the variant enabled field specified with \opt{target} if the datasource you are using supports this. The default, if no \prm{lang} option is set, means to use the field variant in the datasource which has no explicit language defined.
+
+\end{optionlist*}
 
 \cmditem{noinherit}{source}
 
@@ -7474,6 +7504,16 @@ This example is similar to the one above but adds one exception: entries of type
 \end{lstlisting}
 %
 So far we have looked at setting up the defaults. For example, \kvopt{all}{true} means that the \bibfield{publisher} field of a source entry is copied to the \bibfield{publisher} field of the target entry. In some cases, however, asymmetric mappings are required. They are defined with \cmd{DeclareDataInheritance}. The above example sets up three typical rules for \bibtype{incollection} entries referencing a \bibtype{collection}. We map the \bibfield{title} and related fields of the source to the corresponding \bibfield{booktitle} fields of the target.
+
+\begin{lstlisting}[style=latex]{}
+\DeclareDataInheritance{<<collection>>}{<<incollection>>}{
+  \inherit[sourceform=romanised, targetform=romanised]{<<title>>}{<<booktitle>>}
+  \inherit[sourceform=romanised, targetform=romanised]{<<subtitle>>}{<<booksubtitle>>}
+  \inherit[sourceform=romanised, targetform=romanised]{<<titleaddon>>}{<<booktitleaddon>>}
+}
+\end{lstlisting}
+%
+This example is the same as the previous one except that it demonstrates inheritance of the romanised variants of the source fields as romanised variants of the target fields.
 
 \begin{lstlisting}[style=latex]{}
 \DeclareDataInheritance{<<mvbook,book>>}{<<inbook,bookinbook>>}{
