@@ -712,6 +712,8 @@ In datasources such as a \file{bib} file, all bibliographic data is specified in
 \subsubsection[Data Field Variants]{Data Field Variants\BiberOnlyMark}
 \label{bib:fld:var}
 
+You can skip this section if you do not need to prepare multilingual bibliographies which need to present more than one language variant of bibliography entries or parts of entries. The extended field variant syntax and options are backwards compatible with standard \bibtex format and \biblatex macros.
+
 To support multilingual bibliographies, data fields can have one or more \emph{variants}. A variant is a combination of a \emph{form} and a \emph{language}. There are four supported forms:
 
 \begin{description}
@@ -721,12 +723,125 @@ To support multilingual bibliographies, data fields can have one or more \emph{v
 \item[uniform] A version of a, for example, name field which is more readily exchangeable. This is important for citation counting systems which need to be able to match names, for example. Such a form of a proper name is not really «translation» and often does not need a language specified.
 \end{description}
 
-The supported languages for a variant are any of the supported Babel/Polyglossia language identifiers and these are used to switch languages on a per-variant basis, if required. \biber supports specification of field variants with an entry in a backwards compatible manner so that existing \file{.bib} databases, do not need to be modified. The format for this in \bibtex format bibliography databases is described in the \biber documentation. A variant enabled field given in the database without any variant specification defaults to the values of the \opt{vform} and \opt{vlang} package/per-entry options. When the form «translated» is selected, the language defauts to the value of the \opt{vtranslang} package/per-entry option. See \secref{use:opt:pre:gen}. The variant enabled fields in the default data model are marked in the right margin.
+The supported languages for a variant are any of the supported Babel/Polyglossia language identifiers and these are used to switch languages on a per-variant basis, if required. \biber supports specification of field variants with an entry in a backwards compatible manner so that existing \file{.bib} databases, do not need to be modified. The format for this in \bibtex format bibliography databases is described in the \biber documentation. A variant enabled field given in the database without any variant specification defaults to the values of the \opt{vform} and \opt{vlang} package/per-entry options. When the form «translated» is selected, the language defaults to the value of the \opt{vtranslang} package/per-entry option. When writing the \file{.bbl}, \biber will set the \opt{form} and \opt{lang} options on the field, copying these from the data source with the exception that data source entries having a \opt{form} identical to the \opt{vform} have their form omitted in the \file{.bbl}. The same applies to the \opt{lang} option of a field and the \opt{vlang} option. See \secref{use:opt:pre:gen}.
+
+Here is an example. Suppose the \bibtex format bibliography contained the following (see the \biber manual for details about this extended variant format):
+
+\begin{lstlisting}[style=bibtex]{}
+@BOOK{test,
+  AUTHOR                       = {Булгаков, Павел and Розенфельд, Борис},
+  AUTHOR_uniform               = {Bulgakov, Pavel and Rosenfeld, Boris},
+  TITLE_original               = {Мухаммад ибн муса ал-Хорезми. Около 783 – около 850},
+  TITLE_romanised              = {Mukhammad al-Khorezmi. Okolo 783 – okolo 850},
+  TITLE_translated_english     = {Mukhammad al-Khorezmi. Ca. 783 – ca. 850},
+  LOCATION_original            = {Москва},
+  LOCATION_romanised           = {Moskva},
+  LOCATION_translated          = {Moscow},
+  PUBLISHER                    = {Наука},
+  PUBLISHER_romanised          = {Nauka},
+  PUBLISHER_translated         = {Science},
+  INSTITUTION                  = {University of Life},
+  DATE                         = {2002-10-01},
+}
+\end{lstlisting}
+%
+With options \opt{vform=original}, \opt{vlang=russian} and \opt{vtranslang=english}, \biber would output a \file{.bbl} entry like this:
+
+\begin{lstlisting}[style=latex]{}
+    \entry{forms1}{book}{}
+      \name{labelname}{2}{}{%
+        {{uniquename=0,hash=e7c368e13a02c9c0f0d3629316eb6227}
+         {Булгаков}
+         {Б\bibinitperiod}
+         {Павел}
+         {П\bibinitperiod}{}{}{}{}}%
+        {{uniquename=0,hash=f5f90439e5cc9d87b2665d584974a41d}
+         {Розенфельд}
+         {Р\bibinitperiod}
+         {Борис}
+         {Б\bibinitperiod}{}{}{}{}}%
+      }
+      \name{author}{2}{}{%
+        {{uniquename=0,hash=e7c368e13a02c9c0f0d3629316eb6227}
+         {Булгаков}
+         {Б\bibinitperiod}
+         {Павел}
+         {П\bibinitperiod}{}{}{}{}}%
+        {{uniquename=0,hash=f5f90439e5cc9d87b2665d584974a41d}
+         {Розенфельд}
+         {Р\bibinitperiod}
+         {Борис}
+         {Б\bibinitperiod}{}{}{}{}}%
+      }
+      \name[form=uniform]{author}{2}{}{%
+        {{hash=d3e42eb37529f4d05f9646c333b5fd5f}
+         {Bulgakov}
+         {B\bibinitperiod}
+         {Pavel}
+         {P\bibinitperiod}{}{}{}{}}%
+        {{hash=87d0ec74cbe7f9e39f5bbc25930f1474}
+         {Rosenfeld}
+         {R\bibinitperiod}
+         {Boris}
+         {B\bibinitperiod}{}{}{}{}}%
+      }
+      \list{institution}{1}{%
+        {University of Life}%
+      }
+      \list{location}{1}{%
+        {Москва}%
+      }
+      \list[form=romanised]{location}{1}{%
+        {Moskva}%
+      }
+      \list[form=translated]{location}{1}{%
+        {Moscow}%
+      }
+      \list{publisher}{1}{%
+        {Наука}%
+      }
+      \list[form=romanised]{publisher}{1}{%
+        {Nauka}%
+      }
+      \list[form=translated]{publisher}{1}{%
+        {Science}%
+      }
+      \strng{namehash}{253fe13319a1daadcda3e2acce242883}
+      \strng{fullhash}{253fe13319a1daadcda3e2acce242883}
+      \field{labelalpha}{БР02}
+      \field{sortinit}{Б}
+      \field{labeltitle}{Мухаммад ибн муса ал-Хорезми. Около 783 – около 850}
+      \true{singletitle}
+      \field{day}{01}
+      \field{month}{10}
+      \field{title}{Мухаммад ибн муса ал-Хорезми. Около 783 – около 850}
+      \field[form=romanised]{title}{Mukhammad al-Khorezmi. Okolo 783 – okolo 850}
+      \field[form=translated]{title}{Mukhammad al-Khorezmi. Ca. 783 – ca. 850}
+      \field{year}{2002}
+    \endentry
+\end{lstlisting}
+%
+In this example, when \biblatex reads the \file{.bbl}, a few things are to be noted:
+
+\begin{itemize}
+\setlength{\itemsep}{0pt}
+\item The \bibfield{labelname} is implicitly \opt{form=original} and \opt{lang=russian}
+\item The \opt{form=translated} fields are all implicitly \opt{lang=english} due to the global \opt{vtranslang} setting. Note that \biber has therefore omitted the explicit language setting for the \bibfield{title} field in the data source since it matches \opt{vtranslang}.
+\end{itemize}
+
+The fields in the \file{.bbl} can then all be accessed by the usual \biblatex macros which are all variant aware so that one is able, for example, to select a particular variant of a field in a style:
+\begin{lstlisting}[style=latex]{}
+\printname[form=uniform]{author}
+\printlist[form=romanised]{pubisher}
+\printfield[form=translated,lang=english]{title}
+\end{lstlisting}
+%
+All macros which allow specific variants to be selected default the \opt{form} option to the \opt{vform} option value, the \opt{lang} option to the \opt{vlang} option value and for \opt{translated} forms, the \opt{lang} option to the \opt{vtranslang} option value. Hence, in the above example, specifying \opt{lang=english} for the translated \bibfield{title} field is not strictly necessary.
 
 \subsubsection{Data Fields}
 \label{bib:fld:dat}
 
-The fields listed in this section are the regular ones holding printable data in the default data model. The name on the left is the default data model name of the field as used by \sty{biblatex} and its backend. The \sty{biblatex} data type is given to the right of the name. See \secref{bib:fld:typ} for explanation of the various data types.
+The fields listed in this section are the regular ones holding printable data in the default data model. The name on the left is the default data model name of the field as used by \sty{biblatex} and its backend. The \sty{biblatex} data type is given to the right of the name. See \secref{bib:fld:typ} for explanation of the various data types. The variant enabled fields in the default data model are marked in the right margin.
 
 \begin{fieldlist}
 
@@ -2423,15 +2538,15 @@ Note that setting \kvopt{texencoding}{\prm{encoding}} will also affect the \opt{
 
 Similar to the \opt{date} option but controls the format of the \bibfield{urldate}.
 
-\optitem[original]{vform}{\opt{original}, \opt{translated}, \opt{romanised}, \opt{uniform}}
+\optitem[original]{vform}{\opt{original}, \opt{translated}, \opt{romanised}, \opt{uniform}}[\BiberOnly]
 
 In macros which support selecting a variant of a data field, the default form to be selected when no form is specified. Can also be set per-entry. See \secref{bib:fld:var}. 
 
-\optitem{vlang}{\prm{language}}
+\optitem{vlang}{\prm{language}}[\BiberOnly]
 
-In macros which support selecting a variant of a data field, the default language to be selected when no language is specified. If not specified, defaults to the \sty{babel}/\sty{polyglossia} main language or otherwise the language specified by the \opt{language} option. Can also be set per-entry. See \secref{bib:fld:var}. 
+In macros which support selecting a variant of a data field, the default language to be selected when no language is specified. If not specified, defaults to the \sty{babel}/\sty{polyglossia} main language or otherwise the language specified by the \opt{language} option. Can also be set per-entry. \biber automatically copies any \bibfield{langid} field in a data source entry into this option on a per-entry basis in order to aid multilingual bibliography processing. See \secref{bib:fld:var}.
 
-\optitem{vtranslang}{\prm{language}}
+\optitem{vtranslang}{\prm{language}}[\BiberOnly]
 
 In macros which support selecting a variant of a data field, the default language to be selected when no language is specified and the «translated» form is selected. If not specified, defaults to the \sty{babel}/\sty{polyglossia} main language or otherwise the language specified by the \opt{language} option. Can also be set per-entry. See \secref{bib:fld:var}. 
 
@@ -6768,11 +6883,11 @@ By default, for name list fields, the number of names considered when building t
 
 \choitem[original]{form}{original,translated,romanised,uniform}
 
-Specifies the form for the variant enabled field specified with \opt{field}, if the datasource you are using supports this.
+Specifies the form for the variant enabled field specified with \opt{field}, if the datasource you are using supports this. If absent, default to the value of the \opt{vform} option. See \secref{bib:fld:var} and \secref{use:opt:pre:gen}.
 
 \choitem[none]{lang}{\prm{language}}
 
-Specifies the \sty{babel}/\sty{polyglossia} language for the variant enabled field specified with \opt{field} if the datasource you are using supports this. The default, if no \prm{lang} option is set, means to use the field variant in the datasource which has no explicit language defined.
+Specifies the \sty{babel}/\sty{polyglossia} language for the variant enabled field specified with \opt{field} if the datasource you are using supports this. If absent, default to the value of the \opt{vlang} option or \opt{vtranslang} if the \opt{form=translated}. See \secref{bib:fld:var} and \secref{use:opt:pre:gen}.
 
 \end{optionlist*}
 
@@ -7039,11 +7154,11 @@ The \cmd{field} element adds a \prm{field} to the sorting specification. If the 
 
 \choitem[original]{form}{original,translated,romanised,uniform}
 
-Specifies the form for the variant enabled field specified with \opt{field}, if the datasource you are using supports this.
+Specifies the form for the variant enabled field specified with \opt{field}, if the datasource you are using supports this. If absent, default to the value of the \opt{vform} option. See \secref{bib:fld:var} and \secref{use:opt:pre:gen}.
 
 \choitem[none]{lang}{\prm{language}}
 
-Specifies the \sty{babel}/\sty{polyglossia} language for the variant enabled field specified with \opt{field} if the datasource you are using supports this. The default, if no \prm{lang} option is set, means to use the field variant in the datasource which has no explicit language defined. 
+Specifies the \sty{babel}/\sty{polyglossia} language for the variant enabled field specified with \opt{field} if the datasource you are using supports this. If absent, default to the value of the \opt{vlang} option or \opt{vtranslang} if the \opt{form=translated}. See \secref{bib:fld:var} and \secref{use:opt:pre:gen}.
 
 \choitem[left]{padside}{left, right}
 
@@ -7073,11 +7188,11 @@ The number of characters to match.
 
 \choitem[original]{form}{original,translated,romanised,uniform}
 
-Specifies the form for the variant enabled field specified with \opt{field}, if the datasource you are using supports this.
+Specifies the form for the variant enabled field specified with \opt{field}, if the datasource you are using supports this. If absent, default to the value of the \opt{vform} option. See \secref{bib:fld:var} and \secref{use:opt:pre:gen}.
 
 \choitem[none]{lang}{\prm{language}}
 
-Specifies the \sty{babel}/\sty{polyglossia} language for the variant enabled field specified with \opt{field} if the datasource you are using supports this. The default, if no \prm{lang} option is set, means to use the field variant in the datasource which has no explicit language defined.
+Specifies the \sty{babel}/\sty{polyglossia} language for the variant enabled field specified with \opt{field} if the datasource you are using supports this. If absent, default to the value of the \opt{vlang} option or \opt{vtranslang} if the \opt{form=translated}. See \secref{bib:fld:var} and \secref{use:opt:pre:gen}.
 
 \end{optionlist*}
 
@@ -7342,11 +7457,11 @@ The \bibfield{labelname} field may be customized globally or on a per-type basis
 
 \choitem[original]{form}{original,translated,romanised,uniform}
 
-Specifies the form for the variant enabled field specified with \opt{field}, if the datasource you are using supports this.
+Specifies the form for the variant enabled field specified with \opt{field}, if the datasource you are using supports this. If absent, default to the value of the \opt{vform} option. See \secref{bib:fld:var} and \secref{use:opt:pre:gen}.
 
 \choitem[none]{lang}{\prm{language}}
 
-Specifies the \sty{babel}/\sty{polyglossia} language for the variant enabled field specified with \opt{field} if the datasource you are using supports this. The default, if no \prm{lang} option is set, means to use the field variant in the datasource which has no explicit language defined.
+Specifies the \sty{babel}/\sty{polyglossia} language for the variant enabled field specified with \opt{field} if the datasource you are using supports this. If absent, default to the value of the \opt{vlang} option or \opt{vtranslang} if the \opt{form=translated}. See \secref{bib:fld:var} and \secref{use:opt:pre:gen}.
 
 \end{optionlist*}
 %
@@ -7395,11 +7510,11 @@ The \bibfield{labeltitle} field may be customized globally or on a per-type basi
 
 \choitem[original]{form}{original,translated,romanised,uniform}
 
-Specifies the form for the variant enabled field specified with \opt{field}, if the datasource you are using supports this.
+Specifies the form for the variant enabled field specified with \opt{field}, if the datasource you are using supports this. If absent, default to the value of the \opt{vform} option. See \secref{bib:fld:var} and \secref{use:opt:pre:gen}.
 
-\choitem[none]{lang}{\prm{language specifier}}
+\choitem[none]{lang}{\prm{language}}
 
-Specifies the \sty{babel}/\sty{polyglossia} language for the variant enabled field specified with \opt{field} if the datasource you are using supports this. The default, if no \prm{lang} option is set, means to use the field variant in the datasource which has no explicit language defined.
+Specifies the \sty{babel}/\sty{polyglossia} language for the variant enabled field specified with \opt{field} if the datasource you are using supports this. If absent, default to the value of the \opt{vlang} option or \opt{vtranslang} if the \opt{form=translated}. See \secref{bib:fld:var} and \secref{use:opt:pre:gen}.
 
 \end{optionlist*}
 %
