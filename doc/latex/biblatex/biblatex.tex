@@ -698,7 +698,7 @@ In datasources such as a \file{bib} file, all bibliographic data is specified in
 
 \item[URI fields] are processed in verbatim mode and may contain special characters. They are also URL-escaped if they don't look like they already are. The typical example of a uri field is \bibfield{url}.
 
-\item[Comma"=separated value fields] A comma"=separated list of literal values. Examples are the \bibfield{keywords} and \bibfield{options} fields.
+\item[Separated value fields] A separated list of literal values. Examples are the \bibfield{keywords} and \bibfield{options} fields. The separator is always a comma when using \bibtex as the backend but can be configured to be any Perl regular expression when using \biber via the \opt{xsvsep} option which defaults to the usual \bibtex comma surrounded by optional whitespace.
 
 \item[Pattern fields] A literal field which must match a particular pattern. An example is the \bibfield{gender} field from \secref{bib:fld:spc}.
 
@@ -1238,7 +1238,7 @@ The fields listed in this section do not hold printable data but serve a differe
 
 This field holds an entry key for the cross"=referencing feature. Child entries with a \bibfield{crossref} field inherit data from the parent entry specified in the \bibfield{crossref} field. If the number of child entries referencing a specific parent entry hits a certain threshold, the parent entry is automatically added to the bibliography even if it has not been cited explicitly. The threshold is settable with the \opt{mincrossrefs} package option from \secref{use:opt:pre:gen}. Style authors should note that whether or not the \bibfield{crossref} fields of the child entries are defined on the \sty{biblatex} level depends on the availability of the parent entry. If the parent entry is available, the \bibfield{crossref} fields of the child entries will be defined. If not, the child entries still inherit the data from the parent entry but their \bibfield{crossref} fields will be undefined. Whether the parent entry is added to the bibliography implicitly because of the threshold or explicitly because it has been cited does not matter. See also the \bibfield{xref} field in this section as well as \secref{bib:cav:ref}.
 
-\fielditem{entryset}{comma"=separated values}
+\fielditem{entryset}{separated values}
 
 This field is specific to entry sets. See \secref{use:use:set} for details. This field is consumed by the backend processing and does not appear in the \path{.bbl}.
 
@@ -1293,9 +1293,9 @@ Swedish      & Sweden         & \opt{swedish} \\
 
 The language id of the bibliography entry. The alias \bibfield{hyphenation} is provided for backwards compatibility. The identifier must be a language name known to the \sty{babel}/\sty{polyglossia} packages. This information may be used to switch hyphenation patterns and localize strings in the bibliography. Note that the language names are case sensitive. The languages currently supported by this package are given in \tabref{bib:fld:tab1}. Note that \sty{babel} treats the identifier \opt{english} as an alias for \opt{british} or \opt{american}, depending on the \sty{babel} version. The \sty{biblatex} package always treats it as an alias for \opt{american}. It is preferable to use the language identifiers \opt{american} and \opt{british} (\sty{babel}) or a language specific option to specify a language variant (\sty{polyglossia}, using the \bibfield{langidopts} field) to avoid any possible confusion. Compare \bibfield{language} in \secref{bib:fld:dat}.
 
-\fielditem{langidopts}{comma"=separated \keyval options}
+\fielditem{langidopts}{literal}
 
-For \sty{polyglossia} users, allows per-entry language specific options. These are passed to \sty{polyglossia}'s language switching facility when using the package option \opt{autolang=langname}. For example, the fields:
+For \sty{polyglossia} users, allows per-entry language specific options. The literal value of this field is passed to \sty{polyglossia}'s language switching facility when using the package option \opt{autolang=langname}. For example, the fields:
 
 \begin{lstlisting}[style=bibtex]{}
 langid         = {english},
@@ -1311,7 +1311,7 @@ would wrap the bibliography entry in:
 \end{lstlisting}
 %
 
-\fielditem{ids}{comma"=separated list of entrykeys\BiberOnlyMark}
+\fielditem{ids}{separated list of entrykeys\BiberOnlyMark}
 
 Citation key aliases for the main citation key. An entry may be cited by any of its aliases and \sty{biblatex} will treat the citation as if it had used the primary citation key. This is to aid users who change their citation keys but have legacy documents which use older keys for the same entry. This field is consumed by the backend processing and does not appear in the \path{.bbl}.
 
@@ -1327,23 +1327,23 @@ indexsorttitle = {LATEX Companion},
 %
 Style authors should note that \sty{biblatex} automatically copies the value of either the \bibfield{indextitle} or the \bibfield{title} field to \bibfield{indexsorttitle} if the latter field is undefined.
 
-\fielditem{keywords}{comma"=separated values}
+\fielditem{keywords}{separated values}
 
-A comma"=separated list of keywords. These keywords are intended for the bibliography filters (see \secref{use:bib:bib, use:use:div}), they are usually not printed. Note that spaces after commas are ignored.
+A separated list of keywords. These keywords are intended for the bibliography filters (see \secref{use:bib:bib, use:use:div}), they are usually not printed. Note that with the default separator (comma), spaces around the separator are ignored.
 
-\fielditem{options}{comma"=separated \keyval options}
+\fielditem{options}{separated \keyval options}
 
-A comma"=separated list of entry options in \keyval notation. This field is used to set options on a per"=entry basis. See \secref{use:opt:bib} for details. Note that citation and bibliography styles may define additional entry options.
+A separated list of entry options in \keyval notation. This field is used to set options on a per"=entry basis. See \secref{use:opt:bib} for details. Note that citation and bibliography styles may define additional entry options.
 
 \fielditem{presort}{string}
 
 A special field used to modify the sorting order of the bibliography. This field is the first item the sorting routine considers when sorting the bibliography, hence it may be used to arrange the entries in groups. This may be useful when creating subdivided bibliographies with the bibliography filters. Please refer to \secref{use:srt} for further details. Also see \secref{aut:ctm:srt}. This field is consumed by the backend processing and does not appear in the \path{.bbl}.
 
-\fielditem{related}{comma"=separated values\BiberOnlyMark}
+\fielditem{related}{separated values\BiberOnlyMark}
 
 Citation keys of other entries which have a relationship to this entry. The relationship is specified by the \bibfield{relatedtype} field. Please refer to \secref{use:rel} for further details.
 
-\fielditem{relatedoptions}{comma"=separated values\BiberOnlyMark}
+\fielditem{relatedoptions}{separated values\BiberOnlyMark}
 
 Per"=type options to set for a related entry. Note that this does not set the options on the related entry itself, only the \opt{dataonly} clone which is used as a datasource for the parent entry.
 
@@ -1377,9 +1377,9 @@ A field used to modify the sorting order of the bibliography. If present, this f
 
 A field used to modify the sorting order of the bibliography. If present, this field is used instead of the \bibfield{year} field when sorting the bibliography. Please refer to \secref{use:srt} for further details. This field is consumed by the backend processing and does not appear in the \path{.bbl}.
 
-\fielditem{xdata}{comma"=separated list of entrykeys\BiberOnlyMark}
+\fielditem{xdata}{separated list of entrykeys\BiberOnlyMark}
 
-This field inherits data from one or more \bibtype{xdata} entries. Conceptually, the \bibfield{xdata} field is related to \bibfield{crossref} and \bibfield{xref}: \bibfield{crossref} establishes a logical parent/child relation and inherits data; \bibfield{xref} establishes as logical parent/child relation without inheriting data; \bibfield{xdata} inherits data without establishing a relation. The value of the \bibfield{xdata} may be a single entry key or a comma"=separated list of keys. See \secref{use:use:xdat} for further details. This field is consumed by the backend processing and does not appear in the \path{.bbl}.
+This field inherits data from one or more \bibtype{xdata} entries. Conceptually, the \bibfield{xdata} field is related to \bibfield{crossref} and \bibfield{xref}: \bibfield{crossref} establishes a logical parent/child relation and inherits data; \bibfield{xref} establishes as logical parent/child relation without inheriting data; \bibfield{xdata} inherits data without establishing a relation. The value of the \bibfield{xdata} may be a single entry key or a separated list of keys. See \secref{use:use:xdat} for further details. This field is consumed by the backend processing and does not appear in the \path{.bbl}.
 
 \fielditem{xref}{entry key}
 
@@ -4827,7 +4827,7 @@ An entry set is a group of entries which are cited as a single reference and lis
 
 \paragraph{Static entry sets}
 
-\BiberOnlyMark Static entry sets are defined in the \file{bib} file like any other entry. When using \biber as the backend, defining an entry set is as simple as adding an entry of type \bibtype{set}. The entry has an \bibfield{entryset} field defining the members of the set as a comma"=separated list of entry keys:
+\BiberOnlyMark Static entry sets are defined in the \file{bib} file like any other entry. When using \biber as the backend, defining an entry set is as simple as adding an entry of type \bibtype{set}. The entry has an \bibfield{entryset} field defining the members of the set as a separated list of entry keys:
 
 \begin{lstlisting}[style=bibtex]{}
 <<@Set>>{<<set1>>,
@@ -4894,7 +4894,7 @@ The \bibtype{xdata} entry type serves as a data container holding one or more fi
 }
 \end{lstlisting}
 %
-Using a comma"=separated list of keys in its \bibfield{xdata} field, an entry may inherit data from several \bibtype{xdata} entries. Cascading \bibtype{xdata} entries are supported as well, \ie an \bibtype{xdata} entry may reference one or more other \bibtype{xdata} entries:
+Using a separated list of keys in its \bibfield{xdata} field, an entry may inherit data from several \bibtype{xdata} entries. Cascading \bibtype{xdata} entries are supported as well, \ie an \bibtype{xdata} entry may reference one or more other \bibtype{xdata} entries:
 
 \begin{lstlisting}[style=bibtex]{}
 @XData{macmillan:name,
@@ -6142,7 +6142,7 @@ The related entries feature comprises the following components:
 %
 The special fields are \bibfield{related}, \bibfield{relatedtype}, \bibfield{relatedstring} and \bibfield{relatedoptions}:
 \begin{keymarglist}
-\item[related] A comma"=separated list of keys of entries which are related to this entry in some way. Note the the order of the keys is important. The data from multiple related entries is printed in the order of the keys listed in this field.
+\item[related] A separated list of keys of entries which are related to this entry in some way. Note the the order of the keys is important. The data from multiple related entries is printed in the order of the keys listed in this field.
 \item[relatedtype] The type of relationship. This serves three purposes. If the value of this field resolves to a localization string identifier, then the resulting localized string is printed before the data from the related entries. Secondly, if there is a macro called \texttt{related:\prm{relatedtype}}, this is used to format the data from the related entries. If no such macro exists, then the macro \texttt{related:default} is used. Lastly, if there is a format named \texttt{related:\prm{relatedtype}}, then it is used to format both the localized string and related entry data. If there is no related type specific format, the \texttt{related} format is used.
 \item[relatedstring] If an entry contains this field, then if value of the field resolves to a localization string identifier, the localization key value specified is printed before data from the related entries. If the field does not specify a localization key, its value is printed literally. If both \bibfield{relatedtype} and \bibfield{relatedstring} are present in an entry, \bibfield{relatedstring} is used for the pre-data string (but \bibfield{relatedtype} is still used to determine the macro and format to use when printing the data).
 \item[relatedoptions] A list of per"=entry options to set on the related entry (actually on the clone of the related entry which is used as a data source---the actual related entry is not modified because it might be cited directly itself).
@@ -6631,7 +6631,7 @@ Set the type of the field as described in \secref{bib:fld:typ}. Is typically <fi
 
 \valitem{format}{field format}
 
-Any special format of the field. Normally unspecified but can take the value <csv>. Used internally by \biber for various things.
+Any special format of the field. Normally unspecified but can take the value <xsv> which tells \biber that this field has a separated values format. The exact separator can be controlled with the \biber option \opt{xsvsep} and defaults to the expected comma surrounded by optional whitespace.
 
 \valitem{datatype}{field datatype}
 
