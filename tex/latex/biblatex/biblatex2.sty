@@ -537,6 +537,9 @@
   \blx@idemreset@force
   \blx@opcitreset@force
   \blx@loccitreset@force
+  % List to track all aliases in a section. We need to output all aliases
+  % to the .bcf every time so that they are visible to biber
+  \global\cslet{blx@keyaliases@\the\c@refsection}\@empty
   \ifcsundef{blx@segm@\the\c@refsection @\the\c@refsegment}
     {\global\cslet{blx@segm@\the\c@refsection @\the\c@refsegment}\@empty}
     {}}
@@ -6290,8 +6293,13 @@
     Please verify the spelling and rerun\MessageBreak
     LaTeX afterwards}}
 
+% We create an alias resolving macro and also a list of aliases
+% which we need to add to the .bcf. We need to resolve the aliases
+% for internal use but we always want the aliases themselves in the .bcf
+% so that biber can correctly use and resolve them too.
 \protected\def\blx@bbl@keyalias#1#2{%
-  \csgdef{blx@keyalias@\the\c@refsection @#1}{\detokenize{#2}}}
+  \csgdef{blx@keyalias@\the\c@refsection @#1}{\detokenize{#2}}%
+  \listcsgadd{blx@keyaliases@\the\c@refsection}{#1}}
 
 % {<entrykey>}{<entrytype>}{<options>}
 \protected\def\blx@bbl@entry#1#2#3{%
@@ -7711,6 +7719,15 @@
   \global\c@refsection\z@}
 
 \def\blx@endrefsection@biber{%
+  % make sure we always output aliases to the .bcf otherwise after their
+  % first resolution by biber, they will be invisible to subsequent biber
+  % runs since biblatex will resolve the \keyalias{} macro to the main
+  % entry key, biber won't put \keyalias{}in the .bbl on subsequent runs
+  % and biblatex will report a missing citekey
+  \def\do##1{%
+    \global\advance\csname blx@sectionciteorder@\the\c@refsection\endcsname\@ne
+    \blx@auxwrite\blx@bcfout{}{\blx@xml@citekey{##1}{\expandafter\the\csname blx@sectionciteorder@\the\c@refsection\endcsname}}}%
+  \dolistcsloop{blx@keyaliases@\the\c@refsection}%
   \ifnum\c@refsection>\z@
     \blx@auxwrite\blx@bcfout{}{%
       \blx@xml@endsection\blx@nl
