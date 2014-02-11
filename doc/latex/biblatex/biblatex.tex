@@ -703,7 +703,7 @@ In datasources such as a \file{bib} file, all bibliographic data is specified in
 \subsubsection[Data Field Variants]{Data Field Variants\BiberOnlyMark}
 \label{bib:fld:var}
 
-You can skip this section if you do not need to prepare multilingual bibliographies which need to present more than one language variant of bibliography entries or parts of entries. The extended field variant syntax and options are backwards compatible with standard \bibtex format and \biblatex macros.
+You can ignore this section if you do not need to prepare multilingual bibliographies which need to present more than one language variant of bibliography entries or parts of entries. The extended field variant syntax and options are backwards compatible with standard \bibtex format and \biblatex macros.
 
 To support multilingual bibliographies, data fields can have one or more \emph{variants}. A variant is a combination of a \emph{form} and a \emph{language}. There are four supported forms:
 
@@ -824,10 +824,19 @@ The fields in the \file{.bbl} can then all be accessed by the usual \biblatex ma
 \begin{lstlisting}[style=latex]{}
 \printname[form=uniform]{author}
 \printlist[form=romanised]{pubisher}
-\printfield[form=translated,lang=english]{title}
+\printfield[form=translated,lang=german]{title}
 \end{lstlisting}
 %
 All macros which allow specific variants to be selected default the \opt{form} option to the \opt{vform} option value, the \opt{lang} option to the \opt{vlang} option value and for \opt{translated} forms, the \opt{lang} option to the \opt{vtranslang} option value. Hence, in the above example, specifying \opt{lang=english} for the translated \bibfield{title} field is not strictly necessary.
+
+If a data source entry contains a variant enabled field in both an unqualified and equivalent qualified variant (given the \opt{vform} and \opt{vlang} option settings), then the last one in the entry is used. For example, given \opt{vform=original} and \opt{vlang=english}:
+
+\begin{lstlisting}[style=bibtex]{}
+author = {Fred Smith},
+author_original_default = {Jack Jones}
+\end{lstlisting}
+%
+would result in the \bibfield{author} being set to «Jack Jones».
 
 \subsubsection{Data Fields}
 \label{bib:fld:dat}
@@ -2203,7 +2212,7 @@ Enclose the entry in an \env{otherlanguage*} environment. Please note that \sty{
 
 \optitem[none]{autolangshort}{\opt{none}, \opt{hyphen}, \opt{other}, \opt{other*}}[\BiberOnly]
 
-As \opt{autolang} but controls the language environment for per-field automatic language switching for variant enabled fields with a language specification. See \secref{bib:fld:var}.
+As \opt{autolang} but controls the language environment for short text printed via per-field automatic language switching for variant enabled fields with a language specification. See \secref{bib:fld:var}.
 
 \boolitem[false]{autolangshortstrings}[\BiberOnly]
 
@@ -3734,13 +3743,12 @@ The following commands are provided by the core of \sty{biblatex}. They are inte
 \cmditem{Citeauthor}[prenote][postnote]{key}
 \cmditem*{Citeauthor*}[prenote][postnote]{key}
 
-These commands print the authors. Strictly speaking, it prints the \bibfield{labelname} list, which may be the
-\bibfield{author}, the \bibfield{editor}, or the \bibfield{translator}. \cmd{Citeauthor} is similar to \cmd{citeauthor} but capitalizes the name prefix of the first name in the citation if the \opt{useprefix} option is enabled, provided that there is a name prefix. The starred variants effectively force maxcitenames to 1 for just this command on so only print the first name in the labelname list (potentially followed by the «et al» string if there are more names). This allows more natural textual flow when refering to a paper in the singular when otherwise \cmd{citeauthor} would generate a (naturally plural) list of names.
+These commands print the authors. Strictly speaking, it prints the \bibfield{labelname} list, which may be the \bibfield{author}, the \bibfield{editor}, or the \bibfield{translator} (\bibtex) or which can be defined using the \cmd{DeclareLabelname} macro (\biber, see \secref{aut:ctm:fld}). \cmd{Citeauthor} is similar to \cmd{citeauthor} but capitalizes the name prefix of the first name in the citation if the \opt{useprefix} option is enabled, provided that there is a name prefix. The starred variants effectively force maxcitenames to 1 for just this command on so only print the first name in the \bibfield{labelname} list (potentially followed by the «et al» string if there are more names). This allows more natural textual flow when refering to a paper in the singular when otherwise \cmd{citeauthor} would generate a (naturally plural) list of names.
 
 \cmditem{citetitle}[prenote][postnote]{key}
 \cmditem*{citetitle*}[prenote][postnote]{key}
 
-This command prints the title. It will use the abridged title in the \bibfield{shorttitle} field, if available. Otherwise it falls back to the full title found in the \bibfield{title} field. The starred variant always prints the full title.
+This command prints either the \bibfield{labeltitle} field (\bibtex) or the title field selected with \cmd{DeclareLabeltitle} (\biber, see \secref{aut:ctm:fld}). It will use the abridged title in the \bibfield{shorttitle} field, if available. The starred variant always prints the full title found in the \bibfield{title} field.
 
 \cmditem{citeyear}[prenote][postnote]{key}
 \cmditem*{citeyear*}[prenote][postnote]{key}
@@ -3867,17 +3875,19 @@ Similar to \cmd{notecite} but the notes are printed in a footnote.
 
 The following commands are also provided by the core of \sty{biblatex}. They grant access to all lists and fields at a lower level.
 
+When selecting a particular language variant of a field or list using the \prm{form} and/or \prm{lang} options, the \opt{autolangshort} package option determines which Babel/Polyglossia language environment to use when printing the field/list. The \opt{autolangshortstrings} package option determines whether localization string switching will be performed in addition to Babel/Polyglossia language environment switching. See the example in the documentation for \cmd{printlist} in \secref{aut:bib:dat}.
+
 \begin{ltxsyntax}
 
-\cmditem{citename}[prenote][postnote]{key}[format]{name list}
+\cmditem{citename}[prenote][postnote]{key}[format][form=\opt{form}\ensuremath\rangle,\ensuremath\langle lang=\opt{lang}]{name list}
 
 The \prm{format} is a formatting directive defined with \cmd{DeclareNameFormat}. Formatting directives are discussed in \secref{aut:bib:fmt}. If this optional argument is omitted, this command falls back to the format \texttt{citename}. The last argument is the name of a \prm{name list}, in the sense explained in \secref{bib:fld}.
 
-\cmditem{citelist}[prenote][postnote]{key}[format]{literal list}
+\cmditem{citelist}[prenote][postnote]{key}[format][form=\opt{form}\ensuremath\rangle,\ensuremath\langle lang=\opt{lang}]{literal list}
 
 The \prm{format} is a formatting directive defined with \cmd{DeclareListFormat}. Formatting directives are discussed in \secref{aut:bib:fmt}. If this optional argument is omitted, this command falls back to the format \texttt{citelist}. The last argument is the name of a \prm{literal list}, in the sense explained in \secref{bib:fld}.
 
-\cmditem{citefield}[prenote][postnote]{key}[format]{field}
+\cmditem{citefield}[prenote][postnote]{key}[format][form=\opt{form}\ensuremath\rangle,\ensuremath\langle lang=\opt{lang}]{field}
 
 The \prm{format} is a formatting directive defined with \cmd{DeclareFieldFormat}. Formatting directives are discussed in \secref{aut:bib:fmt}. If this optional argument is omitted, this command falls back to the format \texttt{citefield}. The last argument is the name of a \prm{field}, in the sense explained in \secref{bib:fld}.
 
@@ -5934,17 +5944,33 @@ This section introduces the main data interface of the \sty{biblatex} package. T
 
 \begin{ltxsyntax}
 
-\cmditem{printfield}[format]{field}
+\cmditem{printfield}[format][form=\opt{form}\ensuremath\rangle,\ensuremath\langle lang=\opt{lang}]{field}
 
-This command prints a \prm{field} using the formatting directive \prm{format}, as defined with \cmd{DeclareFieldFormat}. If a type"=specific \prm{format} has been declared, the type"=specific formatting directive takes precedence over the generic one. If the \prm{field} is undefined, nothing is printed. If the \prm{format} is omitted, \cmd{printfield} tries using the name of the field as a format name. For example, if the \bibfield{title} field is to be printed and the \prm{format} is not specified, it will try to use the field format \texttt{title}.\footnote{In other words, \texttt{\textbackslash printfield\{title\}} is equivalent to \texttt{\textbackslash printfield[title]\{title\}}.} In this case, any type"=specific formatting directive will also take precedence over the generic one. If all of these formats are undefined, it falls back to \texttt{default} as a last resort. Note that \cmd{printfield} provides the name of the field currently being processed in \cmd{currentfield} for use in field formatting directives.
+This command prints a \prm{field} (optionally, a variant of the field specified by the \prm{form} and/or \prm{lang} keyval options, see \secref{bib:fld:var}) using the formatting directive \prm{format}, as defined with \cmd{DeclareFieldFormat}. If a type"=specific \prm{format} has been declared, the type"=specific formatting directive takes precedence over the generic one. If the \prm{field} is undefined, nothing is printed. If the \prm{format} is omitted, \cmd{printfield} tries using the name of the field as a format name. For example, if the \bibfield{title} field is to be printed and the \prm{format} is not specified, it will try to use the field format \texttt{title}.\footnote{In other words, \texttt{\textbackslash printfield\{title\}} is equivalent to \texttt{\textbackslash printfield[title]\{title\}}.} In this case, any type"=specific formatting directive will also take precedence over the generic one. If all of these formats are undefined, it falls back to \texttt{default} as a last resort. Note that \cmd{printfield} provides the name of the field currently being processed in \cmd{currentfield} for use in field formatting directives.
 
-\cmditem{printlist}[format][start\ensuremath\rangle--\ensuremath\langle stop]{literal list}
+When selecting a particular language variant of the field using the \prm{form} and/or \prm{lang} options, the \opt{autolangshort} package option determines which Babel/Polyglossia language environment to use when printing the field. The \opt{autolangshortstrings} package option determines whether localization string switching will be performed in addition to Babel/Polyglossia language environment switching. See the example in \cmd{printlist} below.
 
-This command loops over all items in a \prm{literal list}, starting at item number \prm{start} and stopping at item number \prm{stop}, including \prm{start} and \prm{stop} (all lists are numbered starting at~1). Each item is printed using the formatting directive \prm{format}, as defined with \cmd{DeclareListFormat}. If a type"=specific \prm{format} has been declared, the type"=specific formatting directive takes precedence over the generic one. If the \prm{literal list} is undefined, nothing is printed. If the \prm{format} is omitted, \cmd{printlist} tries using the name of the list as a format name. In this case, any type"=specific formatting directive will also take precedence over the generic one. If all of these formats are undefined, it falls back to \texttt{default} as a last resort. The \prm{start} argument defaults to 1; \prm{stop} defaults to the total number of items in the list. If the total number is greater than \prm{maxitems}, \prm{stop} defaults to \prm{minitems} (see \secref{use:opt:pre:gen}). See \cmd{printnames} for further details. Note that \cmd{printlist} provides the name of the literal list currently being processed in \cmd{currentlist} for use in list formatting directives.
+\cmditem{printlist}[format][start\ensuremath\rangle--\ensuremath\langle stop][form=\opt{form}\ensuremath\rangle,\ensuremath\langle lang=\opt{lang}]{literal list}
 
-\cmditem{printnames}[format][start\ensuremath\rangle--\ensuremath\langle stop]{name list}
+This command loops over all items in a \prm{literal list} (optionally, a variant of the literal list specified by the \prm{form} and/or \prm{lang} keyval options, see \secref{bib:fld:var}), starting at item number \prm{start} and stopping at item number \prm{stop}, including \prm{start} and \prm{stop} (all lists are numbered starting at~1). Each item is printed using the formatting directive \prm{format}, as defined with \cmd{DeclareListFormat}. If a type"=specific \prm{format} has been declared, the type"=specific formatting directive takes precedence over the generic one. If the \prm{literal list} is undefined, nothing is printed. If the \prm{format} is omitted, \cmd{printlist} tries using the name of the list as a format name. In this case, any type"=specific formatting directive will also take precedence over the generic one. If all of these formats are undefined, it falls back to \texttt{default} as a last resort. The \prm{start} argument defaults to 1; \prm{stop} defaults to the total number of items in the list. If the total number is greater than \prm{maxitems}, \prm{stop} defaults to \prm{minitems} (see \secref{use:opt:pre:gen}). See \cmd{printnames} for further details. Note that \cmd{printlist} provides the name of the literal list currently being processed in \cmd{currentlist} for use in list formatting directives.
 
-This command loops over all items in a \prm{name list}, starting at item number \prm{start} and stopping at item number \prm{stop}, including \prm{start} and \prm{stop} (all lists are numbered starting at~1). Each item is printed using the formatting directive \prm{format}, as defined with \cmd{DeclareNameFormat}. If a type"=specific \prm{format} has been declared, the type"=specific formatting directive takes precedence over the generic one. If the \prm{name list} is undefined, nothing is printed. If the \prm{format} is omitted, \cmd{printnames} tries using the name of the list as a format name. In this case, any type"=specific formatting directive will also take precedence over the generic one. If all of these formats are undefined, it falls back to \texttt{default} as a last resort. The \prm{start} argument defaults to 1; \prm{stop} defaults to the total number of items in the list. If the total number is greater than \prm{maxnames}, \prm{stop} defaults to \prm{minnames} (see \secref{use:opt:pre:gen}). If you want to select a range but use the default list format, the first optional argument must still be given, but is left empty:
+When selecting a particular language variant of the field using the \prm{form} and/or \prm{lang} options, the \opt{autolangshort} package option determines which Babel/Polyglossia language environment to use when printing the field. The \opt{autolangshortstrings} package option determines whether localization string switching will be performed in addition to Babel/Polyglossia language environment switching. For example assuming \opt{autolangshort=other*} and \opt{autolangshortstrings=true} along with the following \file{.bib} field:
+
+\begin{lstlisting}[style=bibtex]{}
+location_translated_german = {place1a"=place1b and place2}
+\end{lstlisting}
+%
+Then the following macro call:
+
+\begin{lstlisting}[style=latex]{}
+\printlist[][][form=translated,lang=german]{location}
+\end{lstlisting}
+%
+would result in «place1a-place1b und place2». Note that the the \opt{autolangshort} setting has caused the Babel/Polyglossia shorthand to be interpreted (assuming you loaded Babel/Polyglossia with shorthands enabled) and also that the \opt{autolangshortstrings} setting caused the \biblatex \file{german.lbx} to be loaded and the «\opt{and}» localization string to be switched.
+
+\cmditem{printnames}[format][start\ensuremath\rangle--\ensuremath\langle stop][form=\opt{form}\ensuremath\rangle,\ensuremath\langle lang=\opt{lang}]{name list}
+
+This command loops over all items in a \prm{name list} (optionally, a variant of the name list specified by the \prm{form} and/or \prm{lang} keyval options, see \secref{bib:fld:var}), starting at item number \prm{start} and stopping at item number \prm{stop}, including \prm{start} and \prm{stop} (all lists are numbered starting at~1). Each item is printed using the formatting directive \prm{format}, as defined with \cmd{DeclareNameFormat}. If a type"=specific \prm{format} has been declared, the type"=specific formatting directive takes precedence over the generic one. If the \prm{name list} is undefined, nothing is printed. If the \prm{format} is omitted, \cmd{printnames} tries using the name of the list as a format name. In this case, any type"=specific formatting directive will also take precedence over the generic one. If all of these formats are undefined, it falls back to \texttt{default} as a last resort. The \prm{start} argument defaults to 1; \prm{stop} defaults to the total number of items in the list. If the total number is greater than \prm{maxnames}, \prm{stop} defaults to \prm{minnames} (see \secref{use:opt:pre:gen}). If you want to select a range but use the default list format, the first optional argument must still be given, but is left empty:
 
 \begin{lstlisting}[style=latex]{}
 \printnames[][1-3]{...}
@@ -5965,6 +5991,8 @@ If you want to override \prm{maxnames} and \prm{minnames} and force printing of 
 \end{lstlisting}
 
 Whenever \cmd{printnames} and \cmd{printlist} process a list, information concerning the current state is accessible by way of four counters: the \cnt{listtotal} counter holds the total number of items in the current list, \cnt{listcount} holds the number of the item currently being processed, \cnt{liststart} is the \prm{start} argument passed to \cmd{printnames} or \cmd{printlist}, \cnt{liststop} is the \prm{stop} argument. These counters are intended for use in list formatting directives. \cnt{listtotal} may also be used in the second optional argument to \cmd{printnames} and \cmd{printlist}. Note that these counters are local to list formatting directives and do not hold meaningful values when used anywhere else. For every list, there is also a counter by the same name which holds the total number of items in the corresponding list. For example, the \cnt{author} counter holds the total number of items in the \bibfield{author} list. These counters are similar to \cnt{listtotal} except that they may also be used independently of list formatting directives. There are also \cnt{maxnames} and \cnt{minnames} as well as \cnt{maxitems} and \cnt{minitems} counters which hold the values of the corresponding package options. See \secref{aut:fmt:ilc} for a complete list of such internal counters. Note that \cmd{printnames} provides the name of the name list currently being processed in \cmd{currentname} for use in name formatting directives.
+
+When selecting a particular language variant of the field using the \prm{form} and/or \prm{lang} options, the \opt{autolangshort} package option determines which Babel/Polyglossia language environment to use when printing the field. The \opt{autolangshortstrings} package option determines whether localization string switching will be performed in addition to Babel/Polyglossia language environment switching. See the example in \cmd{printlist} above.
 
 \cmditem{printtext}[format]{text}
 
@@ -6913,7 +6941,7 @@ Here are some examples. The default global \sty{biblatex} alphabetic label templ
 }
 \end{lstlisting}
 %
-Here is an example using field variants. We use as the label the left three characters of the <romanised> form of the \bibfield{labelname} field as a preference. If this doesn't exist, we use the <translated> form in the <french> language. If this does not exist, we use the default \bibfield{labelname} from the datasource which has no form or lang specifications.
+Here is an example using field variants. We use as the label the left three characters of the <romanised> form of the \bibfield{labelname} field as a preference. If this doesn't exist, we use the <translated> form in the <french> language. If this does not exist, we use the default \bibfield{labelname} from the datasource which has no variant specification.
 
 \begin{lstlisting}[style=latex]{}
 \DeclareLabelalphaTemplate{
@@ -7463,9 +7491,9 @@ Specifies the \sty{babel}/\sty{polyglossia} language for the variant enabled fie
 
 \end{optionlist*}
 %
-For example, the following specification for selecting \bibfield{labelname} first looks for an english translation variant of the \bibfield{AUTHOR} field, then a romanised variant and if neither of these can be found, the default field with no form or lang specifications.
+For example, the following specification for selecting \bibfield{labelname} first looks for an english translation variant of the \bibfield{AUTHOR} field, then a romanised variant and if neither of these can be found, the default field with no variant specification.
 \begin{lstlisting}[style=latex]{}
-\DeclareLabeltitle{%
+\DeclareLabelname{%
   \field[form=translated,lang=english]{author}
   \field[form=romanised]{author}
   \field{author}
@@ -7516,9 +7544,9 @@ Specifies the \sty{babel}/\sty{polyglossia} language for the variant enabled fie
 
 \end{optionlist*}
 %
-For example, the following specification for selecting \bibfield{labeltitle} first looks for an English translation variant of the \bibfield{TITLE} field, then a romanised variant and if neither of these can be found, the default field with no form or language specifications.
+For example, the following specification for selecting \bibfield{labeltitle} first looks for an English translation variant of the \bibfield{TITLE} field, then a romanised variant and if neither of these can be found, the default field with no variant specification.
 \begin{lstlisting}[style=latex]{}
-\DeclareLabelname{%
+\DeclareLabeltitle{%
   \field[form=translated,lang=english]{title}
   \field[form=romanised]{title}
   \field{title}
