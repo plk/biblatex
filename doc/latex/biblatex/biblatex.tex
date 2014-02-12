@@ -827,6 +827,8 @@ The fields in the \file{.bbl} can then all be accessed by the usual \biblatex ma
 \printfield[form=translated,lang=german]{title}
 \end{lstlisting}
 %
+Macros which allow specification of variants take an optional \prm{variantspec} parameter which is a keyval item consisting of a \opt{form=} key option and/or a \opt{lang=} key option.
+
 All macros which allow specific variants to be selected default the \opt{form} option to the \opt{vform} option value, the \opt{lang} option to the \opt{vlang} option value and for \opt{translated} forms, the \opt{lang} option to the \opt{vtranslang} option value. Hence, in the above example, specifying \opt{lang=english} for the translated \bibfield{title} field is not strictly necessary.
 
 If a data source entry contains a variant enabled field in both an unqualified and equivalent qualified variant (given the \opt{vform} and \opt{vlang} option settings), then the last one in the entry is used. For example, given \opt{vform=original} and \opt{vlang=english}:
@@ -3877,19 +3879,19 @@ Similar to \cmd{notecite} but the notes are printed in a footnote.
 
 The following commands are also provided by the core of \sty{biblatex}. They grant access to all lists and fields at a lower level.
 
-\BiberOnlyMark When selecting a particular language variant of a field or list using the \prm{form} and/or \prm{lang} options, the \opt{autolangshort} package option determines which Babel/Polyglossia language environment to use when printing the field/list. The \opt{autolangshortstrings} package option determines whether localization string switching will be performed in addition to Babel/Polyglossia language environment switching. See the example in the documentation for \cmd{printlist} in \secref{aut:bib:dat}.
+\BiberOnlyMark When selecting a particular language variant of a field or list using the \prm{variantspec} option (see \secref{bib:fld:var}), the \opt{autolangshort} package option determines which Babel/Polyglossia language environment to use when printing the field/list. The \opt{autolangshortstrings} package option determines whether localization string switching will be performed in addition to Babel/Polyglossia language environment switching. See the example in the documentation for \cmd{printlist} in \secref{aut:bib:dat}.
 
 \begin{ltxsyntax}
 
-\cmditem{citename}[prenote][postnote]{key}[format][form=\opt{form}\ensuremath\rangle,\ensuremath\langle lang=\opt{lang}]{name list}
+\cmditem{citename}[prenote][postnote]{key}[format][variantspec]{name list}
 
 The \prm{format} is a formatting directive defined with \cmd{DeclareNameFormat}. Formatting directives are discussed in \secref{aut:bib:fmt}. If this optional argument is omitted, this command falls back to the format \texttt{citename}. The last argument is the name of a \prm{name list}, in the sense explained in \secref{bib:fld}.
 
-\cmditem{citelist}[prenote][postnote]{key}[format][form=\opt{form}\ensuremath\rangle,\ensuremath\langle lang=\opt{lang}]{literal list}
+\cmditem{citelist}[prenote][postnote]{key}[format][variantspec]{literal list}
 
 The \prm{format} is a formatting directive defined with \cmd{DeclareListFormat}. Formatting directives are discussed in \secref{aut:bib:fmt}. If this optional argument is omitted, this command falls back to the format \texttt{citelist}. The last argument is the name of a \prm{literal list}, in the sense explained in \secref{bib:fld}.
 
-\cmditem{citefield}[prenote][postnote]{key}[format][form=\opt{form}\ensuremath\rangle,\ensuremath\langle lang=\opt{lang}]{field}
+\cmditem{citefield}[prenote][postnote]{key}[format][variantspec]{field}
 
 The \prm{format} is a formatting directive defined with \cmd{DeclareFieldFormat}. Formatting directives are discussed in \secref{aut:bib:fmt}. If this optional argument is omitted, this command falls back to the format \texttt{citefield}. The last argument is the name of a \prm{field}, in the sense explained in \secref{bib:fld}.
 
@@ -5944,16 +5946,15 @@ The data interface are the facilities used to format and print all bibliographic
 
 This section introduces the main data interface of the \sty{biblatex} package. These are the commands doing most of the work, \ie they actually print the data provided in lists and fields.
 
-\BiberOnlyMark Commands which support variant enabled fields allow the specification of optional 
-\prm{form} and/or \prm{lang} keyval options, see \secref{bib:fld:var} in which case they operate on only the specified field variant. When selecting a particular language variant of the field using the \prm{form} and/or \prm{lang} options, the \opt{autolangshort} package option determines which Babel/Polyglossia language environment to use when printing the field/list. The \opt{autolangshortstrings} package option determines whether localization string switching will be performed in addition to Babel/Polyglossia language environment switching. See the example in \cmd{printlist} below.
+\BiberOnlyMark Commands which support variant enabled fields allow the specification of an optional \prm{variantspec} option (see \secref{bib:fld:var}) in which case they operate on only the specified field variant. When selecting a particular language variant of the field using the \prm{variantspec} option, the \opt{autolangshort} package option determines which Babel/Polyglossia language environment to use when printing the field/list. The \opt{autolangshortstrings} package option determines whether localization string switching will be performed in addition to Babel/Polyglossia language environment switching. See the example in \cmd{printlist} below.
 
 \begin{ltxsyntax}
 
-\cmditem{printfield}[format][form=\opt{form}\ensuremath\rangle,\ensuremath\langle lang=\opt{lang}]{field}
+\cmditem{printfield}[format][variantspec]{field}
 
 This command prints a \prm{field} using the formatting directive \prm{format}, as defined with \cmd{DeclareFieldFormat}. If a type"=specific \prm{format} has been declared, the type"=specific formatting directive takes precedence over the generic one. If the \prm{field} is undefined, nothing is printed. If the \prm{format} is omitted, \cmd{printfield} tries using the name of the field as a format name. For example, if the \bibfield{title} field is to be printed and the \prm{format} is not specified, it will try to use the field format \texttt{title}.\footnote{In other words, \texttt{\textbackslash printfield\{title\}} is equivalent to \texttt{\textbackslash printfield[title]\{title\}}.} In this case, any type"=specific formatting directive will also take precedence over the generic one. If all of these formats are undefined, it falls back to \texttt{default} as a last resort. Note that \cmd{printfield} provides the name of the field currently being processed in \cmd{currentfield} for use in field formatting directives.
 
-\cmditem{printlist}[format][start\ensuremath\rangle--\ensuremath\langle stop][form=\opt{form}\ensuremath\rangle,\ensuremath\langle lang=\opt{lang}]{literal list}
+\cmditem{printlist}[format][start\ensuremath\rangle--\ensuremath\langle stop][variantspec]{literal list}
 
 This command loops over all items in a \prm{literal list}, starting at item number \prm{start} and stopping at item number \prm{stop}, including \prm{start} and \prm{stop} (all lists are numbered starting at~1). Each item is printed using the formatting directive \prm{format}, as defined with \cmd{DeclareListFormat}. If a type"=specific \prm{format} has been declared, the type"=specific formatting directive takes precedence over the generic one. If the \prm{literal list} is undefined, nothing is printed. If the \prm{format} is omitted, \cmd{printlist} tries using the name of the list as a format name. In this case, any type"=specific formatting directive will also take precedence over the generic one. If all of these formats are undefined, it falls back to \texttt{default} as a last resort. The \prm{start} argument defaults to 1; \prm{stop} defaults to the total number of items in the list. If the total number is greater than \prm{maxitems}, \prm{stop} defaults to \prm{minitems} (see \secref{use:opt:pre:gen}). See \cmd{printnames} for further details. Note that \cmd{printlist} provides the name of the literal list currently being processed in \cmd{currentlist} for use in list formatting directives.
 
@@ -5971,7 +5972,7 @@ Then the following macro call:
 %
 would result in «place1a-place1b und place2». Note that the the \opt{autolangshort} setting has caused the Babel/Polyglossia shorthand to be interpreted (assuming you loaded Babel/Polyglossia with shorthands enabled) and also that the \opt{autolangshortstrings} setting caused the \biblatex \file{german.lbx} to be loaded and the «\opt{and}» localization string to be switched.
 
-\cmditem{printnames}[format][start\ensuremath\rangle--\ensuremath\langle stop][form=\opt{form}\ensuremath\rangle,\ensuremath\langle lang=\opt{lang}]{name list}
+\cmditem{printnames}[format][start\ensuremath\rangle--\ensuremath\langle stop][variantspec]{name list}
 
 This command loops over all items in a \prm{name list}, starting at item number \prm{start} and stopping at item number \prm{stop}, including \prm{start} and \prm{stop} (all lists are numbered starting at~1). Each item is printed using the formatting directive \prm{format}, as defined with \cmd{DeclareNameFormat}. If a type"=specific \prm{format} has been declared, the type"=specific formatting directive takes precedence over the generic one. If the \prm{name list} is undefined, nothing is printed. If the \prm{format} is omitted, \cmd{printnames} tries using the name of the list as a format name. In this case, any type"=specific formatting directive will also take precedence over the generic one. If all of these formats are undefined, it falls back to \texttt{default} as a last resort. The \prm{start} argument defaults to 1; \prm{stop} defaults to the total number of items in the list. If the total number is greater than \prm{maxnames}, \prm{stop} defaults to \prm{minnames} (see \secref{use:opt:pre:gen}). If you want to select a range but use the default list format, the first optional argument must still be given, but is left empty:
 
@@ -7726,68 +7727,68 @@ Expands to the unformatted \prm{literal list}. If the list is undefined, this co
 
 Expands to the unformatted \prm{name list}. If the list is undefined, this command expands to an empty string. Note that this command will dump the \prm{name list} in the internal format used by this package. This format is not suitable for printing.
 
-\cmditem{savefield}[form=\opt{form}\ensuremath\rangle,\ensuremath\langle lang=\opt{lang}]{field}{macro}
-\cmditem*{savefield*}[form=\opt{form}\ensuremath\rangle,\ensuremath\langle lang=\opt{lang}]{field}{macro}
+\cmditem{savefield}[variantspec]{field}{macro}
+\cmditem*{savefield*}[variantspec]{field}{macro}
 
 Copies an unformatted \prm{field} to a \prm{macro}. The regular form of this command defines the \prm{macro} globally, the starred one works locally.\\
-\BiberOnlyMark For variant enabled fields, saves all field variants unless a specific variant is specified with the \prm{form} and/or \prm{lang} options. You will receive a warning if you specify a \prm{form} and/or \prm{lang} for a field which is not variant enabled.
+\BiberOnlyMark For variant enabled fields, saves all field variants unless a specific variant is specified with the \prm{variantspec} option (see \secref{bib:fld:var}). You will receive a warning if you specify a \prm{variantspec} for a field which is not variant enabled.
 
-\cmditem{savelist}[form=\opt{form}\ensuremath\rangle,\ensuremath\langle lang=\opt{lang}]{literal list}{macro}
-\cmditem*{savelist*}[form=\opt{form}\ensuremath\rangle,\ensuremath\langle lang=\opt{lang}]{literal list}{macro}
+\cmditem{savelist}[variantspec]{literal list}{macro}
+\cmditem*{savelist*}[variantspec]{literal list}{macro}
 
 Copies an unformatted \prm{literal list} to a \prm{macro}. The regular form of this command defines the \prm{macro} globally, the starred one works locally.\\
-\BiberOnlyMark For variant enabled lists, saves all list variants unless a specific variant is specified with the \prm{form} and/or \prm{lang} options. You will receive a warning if you specify a \prm{form} and/or \prm{lang} for a list which is not variant enabled.
+\BiberOnlyMark For variant enabled lists, saves all list variants unless a specific variant is specified with the \prm{variantspec} option (see \secref{bib:fld:var}). You will receive a warning if you specify a \prm{variantspec} for a list which is not variant enabled.
 
-\cmditem{savename}[form=\opt{form}\ensuremath\rangle,\ensuremath\langle lang=\opt{lang}]{name list}{macro}
-\cmditem*{savename*}[form=\opt{form}\ensuremath\rangle,\ensuremath\langle lang=\opt{lang}]{name list}{macro}
+\cmditem{savename}[variantspec]{name list}{macro}
+\cmditem*{savename*}[variantspec]{name list}{macro}
 
 Copies an unformatted \prm{name list} to a \prm{macro}. The regular form of this command defines the \prm{macro} globally, the starred one works locally.\\
-\BiberOnlyMark For variant enabled name lists, saves all name list variants unless a specific variant is specified with the \prm{form} and/or \prm{lang} options. You will receive a warning if you specify a \prm{form} and/or \prm{lang} for a name list which is not variant enabled.
+\BiberOnlyMark For variant enabled name lists, saves all name list variants unless a specific variant is specified with the \prm{variantspec} option (see \secref{bib:fld:var}). You will receive a warning if you specify a \prm{variantspec} for a name list which is not variant enabled.
 
-\cmditem{savefieldcs}[form=\opt{form}\ensuremath\rangle,\ensuremath\langle lang=\opt{lang}]{field}{csname}
-\cmditem*{savefieldcs*}[form=\opt{form}\ensuremath\rangle,\ensuremath\langle lang=\opt{lang}]{field}{csname}
+\cmditem{savefieldcs}[variantspec]{field}{csname}
+\cmditem*{savefieldcs*}[variantspec]{field}{csname}
 
 Similar to \cmd{savefield}, but takes the control sequence name \prm{csname} (without a leading backslash) as an argument, rather than a macro name.
 
-\cmditem{savelistcs}[form=\opt{form}\ensuremath\rangle,\ensuremath\langle lang=\opt{lang}]{literal list}{csname}
-\cmditem*{savelistcs*}[form=\opt{form}\ensuremath\rangle,\ensuremath\langle lang=\opt{lang}]{literal list}{csname}
+\cmditem{savelistcs}[variantspec]{literal list}{csname}
+\cmditem*{savelistcs*}[variantspec]{literal list}{csname}
 
 Similar to \cmd{savelist}, but takes the control sequence name \prm{csname} (without a leading backslash) as an argument, rather than a macro name.
 
-\cmditem{savenamecs}[form=\opt{form}\ensuremath\rangle,\ensuremath\langle lang=\opt{lang}]{name list}{csname}
-\cmditem*{savenamecs*}[form=\opt{form}\ensuremath\rangle,\ensuremath\langle lang=\opt{lang}]{name list}{csname}
+\cmditem{savenamecs}[variantspec]{name list}{csname}
+\cmditem*{savenamecs*}[variantspec]{name list}{csname}
 
 Similar to \cmd{savename}, but takes the control sequence name \prm{csname} (without a leading backslash) as an argument, rather than a macro name.
 
-\cmditem{restorefield}[form=\opt{form}\ensuremath\rangle,\ensuremath\langle lang=\opt{lang}]{field}{macro}
+\cmditem{restorefield}[variantspec]{field}{macro}
 
 Restores a \prm{field} from a \prm{macro} defined with \cmd{savefield} before. The field is restored within a local scope.\\
-\BiberOnlyMark For variant enabled fields, restores all field variants unless a specific variant is specified with the \prm{form} and/or \prm{lang} options. You will receive a warning if you specify a \prm{form} and/or \prm{lang} for a field which is not variant enabled.
+\BiberOnlyMark For variant enabled fields, restores all field variants unless a specific variant is specified with the \prm{variantspec} option (see \secref{bib:fld:var}). You will receive a warning if you specify a \prm{variantspec} for a field which is not variant enabled.
 
-\cmditem{restorelist}[form=\opt{form}\ensuremath\rangle,\ensuremath\langle lang=\opt{lang}]{literal list}{macro}
+\cmditem{restorelist}[variantspec]{literal list}{macro}
 
 Restores a \prm{literal list} from a \prm{macro} defined with \cmd{savelist} before. The list is restored within a local scope.\\
-\BiberOnlyMark For variant enabled lists, restores all list variants unless a specific variant is specified with the \prm{form} and/or \prm{lang} options. You will receive a warning if you specify a \prm{form} and/or \prm{lang} for a list which is not variant enabled.
+\BiberOnlyMark For variant enabled lists, restores all list variants unless a specific variant is specified with the \prm{variantspec} option (see \secref{bib:fld:var}). You will receive a warning if you specify a \prm{variantspec} for a list which is not variant enabled.
 
-\cmditem{restorename}[form=\opt{form}\ensuremath\rangle,\ensuremath\langle lang=\opt{lang}]{name list}{macro}
+\cmditem{restorename}[variantspec]{name list}{macro}
 
 Restores a \prm{name list} from a \prm{macro} defined with \cmd{savename} before. The list is restored within a local scope.\\
-\BiberOnlyMark For variant enabled name lists, restores all name list variants unless a specific variant is specified with the \prm{form} and/or \prm{lang} options. You will receive a warning if you specify a \prm{form} and/or \prm{lang} for a name list which is not variant enabled.
+\BiberOnlyMark For variant enabled name lists, restores all name list variants unless a specific variant is specified with the \prm{variantspec} option (see \secref{bib:fld:var}). You will receive a warning if you specify a \prm{variantspec} for a name list which is not variant enabled.
 
-\cmditem{clearfield}[form=\opt{form}\ensuremath\rangle,\ensuremath\langle lang=\opt{lang}]{field}
+\cmditem{clearfield}[variantspec]{field}
 
 Clears the \prm{field} within a local scope. A field cleared in this way is treated as undefined by subsequent data commands.\\
-\BiberOnlyMark For variant enabled fields, clears all field variants unless a specific variant is specified with the \prm{form} and/or \prm{lang} options. You will receive a warning if you specify a \prm{form} and/or \prm{lang} for a field which is not variant enabled.
+\BiberOnlyMark For variant enabled fields, clears all field variants unless a specific variant is specified with the \prm{variantspec} option (see \secref{bib:fld:var}). You will receive a warning if you specify a \prm{variantspec} for a field which is not variant enabled.
 
-\cmditem{clearlist}[form=\opt{form}\ensuremath\rangle,\ensuremath\langle lang=\opt{lang}]{literal list}
+\cmditem{clearlist}[variantspec]{literal list}
 
 Clears the \prm{literal list} within a local scope. A list cleared in this way is treated as undefined by subsequent data commands.\\
-\BiberOnlyMark For variant enabled lists, clears all list variants unless a specific variant is specified with the \prm{form} and/or \prm{lang} options. You will receive a warning if you specify a \prm{form} and/or \prm{lang} for a list which is not variant enabled.
+\BiberOnlyMark For variant enabled lists, clears all list variants unless a specific variant is specified with the \prm{variantspec} option (see \secref{bib:fld:var}). You will receive a warning if you specify a \prm{variantspec} for a list which is not variant enabled.
 
-\cmditem{clearname}[form=\opt{form}\ensuremath\rangle,\ensuremath\langle lang=\opt{lang}]{name list}
+\cmditem{clearname}[variantspec]{name list}
 
 Clears the \prm{name list} within a local scope. A name list cleared in this way is treated as undefined by subsequent data commands.\\
-\BiberOnlyMark For variant enabled name lists, clears all name list variants unless a specific variant is specified with the \prm{form} and/or \prm{lang} options. You will receive a warning if you specify a \prm{form} and/or \prm{lang} for a name list which is not variant enabled.
+\BiberOnlyMark For variant enabled name lists, clears all name list variants unless a specific variant is specified with the \prm{variantspec} option (see \secref{bib:fld:var}). You will receive a warning if you specify a \prm{variantspec} for a name list which is not variant enabled.
 
 \end{ltxsyntax}
 
@@ -7810,17 +7811,37 @@ Expands to \prm{true} if the \prm{literal list} is undefined, and to \prm{false}
 
 Expands to \prm{true} if the \prm{name list} is undefined, and to \prm{false} otherwise.
 
-\cmditem{iffieldsequal}[form=\opt{form}\ensuremath\rangle,\ensuremath\langle lang=\opt{lang}]{field 1}[form=\opt{form}\ensuremath\rangle,\ensuremath\langle lang=\opt{lang}]{field 2}{true}{false}
+\cmditem{iffieldsequal}[variantspec]{field 1}[variantspec]{field 2}{true}{false}
 
-Expands to \prm{true} if the values of \prm{field 1} and \prm{field 2} are equal, and to \prm{false} otherwise.
+Expands to \prm{true} if the values of \prm{field 1} and \prm{field 2} are equal, and to \prm{false} otherwise.\\
+\BiberOnlyMark When \prm{field 1} or \prm{field 2} is a variant enabled field, a warning will be generated if a comparison is attempted between several variants and a single variant or between several variants and non variant enabled field. Comparing two variant enabled fields with no \prm{variantspec} option (see \secref{bib:fld:var}) specified for either field will compare \emph{all} variants of the fields and return true if and only if the two fields have exactly the same variants and the values of those variants are identical. For example, suppose \prm{vfield 1} and \prm{vfield 2} are both variant enabled fields and \prm{nvfield3} is a non variant enabled field:
 
-\cmditem{iflistsequal}{literal list 1}{literal list 2}{true}{false}
+\begin{lstlisting}[style=latex]{}
+\iffieldsequal[form=translated,lang=german]{<<vfield1>>}{<<vfield2>>}{true}{false}
+\end{lstlisting}
+%
+Will generate a warning as we are trying to compare one particular variant of \prm{vfield1} with all variants of \prm{vfield2}.
 
-Expands to \prm{true} if the values of \prm{literal list 1} and \prm{literal list 2} are equal, and to \prm{false} otherwise.
+\begin{lstlisting}[style=latex]{}
+\iffieldsequal[form=translated,lang=german]{<<vfield1>>}{<<nvfield3>>}{true}{false}
+\end{lstlisting}
+%
+This example is fine as we are comparing one particular variant of \prm{vfield1} with a non variant enabled field \prm{nvfield3}.
+%
+\begin{lstlisting}[style=latex]{}
+\iffieldsequal[form=translated,lang=german]{<<vfield1>>}
+              [form=translated,lang=german]{<<vfield2>>}{true}{false}
+\end{lstlisting}
+%
+This is also fine as we are comparing specific variants of two variant enabled fields
 
-\cmditem{ifnamesequal}{name list 1}{name list 2}{true}{false}
+\cmditem{iflistsequal}[variantspec]{literal list 1}[variantspec]{literal list 2}{true}{false}
 
-Expands to \prm{true} if the values of \prm{name list 1} and \prm{name list 2} are equal, and to \prm{false} otherwise.
+Expands to \prm{true} if the values of \prm{literal list 1} and \prm{literal list 2} are equal, and to \prm{false} otherwise. Comparison of variant enabled lists is handled as for \cmd{iffieldsequal} above.
+
+\cmditem{ifnamesequal}[variantspec]{name list 1}[variantspec]{name list 2}{true}{false}
+
+Expands to \prm{true} if the values of \prm{name list 1} and \prm{name list 2} are equal, and to \prm{false} otherwise. Comparison of variant enabled name lists is handled as for \cmd{iffieldsequal} above.
 
 \cmditem{iffieldequals}{field}{macro}{true}{false}
 
