@@ -2665,7 +2665,7 @@
   \fi
   \endgroup}
 
-% [<form/lang keyval>]{<string>}{<true>}{<false>}
+% {<string>}{<true>}{<false>}
 \protected\def\blx@imc@ifcurrentlist#1{%
   \begingroup
   \def\blx@tempa{#1}%
@@ -2676,7 +2676,7 @@
   \fi
   \endgroup}
 
-% [<form/lang keyval>]{<string>}{<true>}{<false>}
+% {<string>}{<true>}{<false>}
 \protected\def\blx@imc@ifcurrentname#1{%
   \begingroup
   \def\blx@tempa{#1}%
@@ -3135,6 +3135,7 @@
        \expandafter\expandafter
        \expandafter{\csname abx@field@#2\endcsname}}}}
 
+% [<form/lang keyval>]{<field>}{<true>}{<false>}
 \DeclareExpandableDocumentCommand{\blx@imc@iffieldnums}
   {om}
   {\blx@imc@iffieldundef[#1]{#2}
@@ -3159,6 +3160,7 @@
        \expandafter\expandafter
        \expandafter{\csname abx@field@#2\endcsname}}}}
 
+% [<form/lang keyval>]{<field>}{<true>}{<false>}
 \DeclareExpandableDocumentCommand{\blx@imc@iffieldpages}
   {om}
   {\blx@imc@iffieldundef[#1]{#2}
@@ -5942,15 +5944,10 @@
       \def\expandafter\noexpand\csname abx@field@#2\endcsname{#3}}}}
 
 % {<bibfield>}{<macro>}
-\def\blx@imc@loopvariants#1#2{%
+\def\blx@imc@loopforms#1#2{%
   \ifcsdef{blx@vbibfield@#1}
-    {\def\do##1{%
-       \begingroup
-         \def\do####1{#2{##1}{####1}}%
-         \dolistcsloop{abx@langs@#1@##1}%
-       \endgroup}%
-     \dolistcsloop{abx@forms@#1}}
-    {\blx@warning@noline{You are trying to \string\loopvariants\space on a non variant enabled bibfield '#1'}}}
+    {\forlistcsloop{#2}{abx@forms@#1}}
+    {\blx@warning@noline{You are trying to \string\loopforms\space on a non variant enabled bibfield '#1'}}}
 
 % {<bibfield>}{form}{<macro>}
 \def\blx@imc@loopformlangs#1#2#3{%
@@ -5958,18 +5955,18 @@
     {\forlistcsloop{#3}{abx@langs@#1@#2}}
     {\blx@warning@noline{You are trying to \string\loopformlangs\space on a non variant enabled bibfield '#1'}}}
 
-
 % {<bibfield>}{<macro>}
-\def\blx@imc@loopforms#1#2{%
-  \ifcsdef{blx@vbibfield@#1}
-    {\forlistcsloop{#2}{abx@forms@#1}}
-    {\blx@warning@noline{You are trying to \string\loopforms\space on a non variant enabled bibfield '#1'}}}
-
-% {<bibfield>}{<form>}{<macro>}
-\def\blx@imc@looplangs#1#2#3{%
-  \ifcsdef{blx@vbibfield@#1}
-    {\forlistcsloop{#3}{abx@langs@#1@#2}}
-    {\blx@warning@noline{You are trying to \string\looplangs\space on a non variant enabled bibfield '#1'}}}
+\def\blx@imc@loopvariants#1#2{%
+  \blx@imc@iffieldundef{#1}% Need this to prevent errors
+    {}
+    {\ifcsdef{blx@vbibfield@#1}
+      {\def\do##1{%
+         \begingroup
+           \def\do####1{#2{##1}{####1}}%
+           \dolistcsloop{abx@langs@#1@##1}%
+         \endgroup}%
+       \dolistcsloop{abx@forms@#1}}
+      {\blx@warning@noline{You are trying to \string\loopvariants\space on a non variant enabled bibfield '#1'}}}}
 
 % {<bibfield>}
 \def\blx@imc@ifbibfieldv#1{%
