@@ -7,7 +7,7 @@ build.sh help
 build.sh install <version> <tds_root>
 build.sh build <version>
 build.sh test
-build.sh upload <version> [ \"DEV\" ]
+build.sh upload <version> [ \"DEV\" | \"EXP\"]
 
 With the \"DEV\" argument, uploads to the SourceForge development
 folder instead of the <version> numbered folder
@@ -70,6 +70,9 @@ then
       if [[ "$3" = "DEV" ]]
       then
         scp build/biblatex-$VERSION.*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/development/
+      elif [[ "$3" = "EXP" ]]
+      then
+        scp build/biblatex-$VERSION.*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/experimental/
       else
         scp build/biblatex-$VERSION.*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/biblatex-$VERSIONM/
       fi
