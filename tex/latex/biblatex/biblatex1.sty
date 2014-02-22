@@ -69,6 +69,13 @@
     amsrefs,apacite,babelbib,backref,bibtopic,bibunits,chapterbib,
     cite,citeref,drftcite,footbib,inlinebib,jurabib,mcite,mciteplus,
     mlbib,multibbl,multibib,natbib,opcit,overcite,splitbib,ucs}%
+  \def\blx@langstrings{}%
+  % Set up sortlocale defaults
+  \ifdefstring\blx@sortlocale{auto}
+    {\ifdef\bbl@main@language% babel or polyglossia is loaded
+      {\edef\blx@sortlocale{\bbl@main@language}}
+      {\def\blx@sortlocale{english}}}
+    {}%
   \@ifpackageloaded{polyglossia}
     {\ifboolexpr{
       not test {\iftoggle{blx@autolangbib}}
@@ -5081,6 +5088,7 @@
                 \csname\blx@thelangenv\expandafter\endcsname
                 \expandafter{\abx@field@langid}}}}}
        {}%
+     \def\blx@langstrings{}%
      \def\blx@imc@mainlang{\select@language{\bbl@main@language}}%
      \blx@langsetup\bbl@main@language}
     {\blx@err@patch{'babel' package}%
@@ -5119,6 +5127,11 @@
                 \csuse{abx@extras@\abx@field@langid}%
                 \csuse{abx@strings@\abx@field@langid}}}}}
        {}%
+     % polyglossia needs this - it doesn't get the
+     % strings by automatically set for some reason
+     \def\blx@langstrings{%
+       \csuse{abx@extras@\languagename}%
+       \csuse{abx@strings@\languagename}}
      \def\blx@imc@mainlang{\select@language{\bbl@main@language}}%
      \blx@langsetup\bbl@main@language}
     {\blx@err@patch{'polyglossia' package}%
@@ -6615,6 +6628,7 @@
   \blx@safe@actives
   \setkeys{blx@bhd}{#1}%
   \blx@rest@actives
+  \blx@langstrings
   \blx@bibheading\blx@theheading\blx@thetitle
   \endgroup}
 
@@ -6767,6 +6781,7 @@
 % {<entrykey>,...}
 
 \def\blx@bibliography{%
+  \blx@langstrings
   \blx@bibheading\blx@theheading\blx@thetitle
   \blx@bibnote\blx@theprenote
   \begingroup
@@ -6997,6 +7012,7 @@
   \else
     \@restonecolfalse
   \fi
+  \blx@langstrings
   \blx@bibheading\blx@theheading\blx@thetitle
   \blx@bibnote\blx@theprenote
   \begingroup
