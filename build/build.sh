@@ -216,7 +216,10 @@ PDFLaTeX errors/warnings
     exec 4>&1 7>&2 # save stdout/stderr
     exec 1>/dev/null 2>&1 # redirect them from here
     pdflatex -interaction=batchmode ${f%.tex}
-    biber --onlylog ${f%.tex}
+    # using output safechars as we are using fontenc and ascii in the test files
+    # so that we can use the same test files with bibtex which only likes ascii
+    # biber complains when outputting ascii from it's internal UTF-8
+    biber --output_safechars --onlylog ${f%.tex}
     pdflatex -interaction=batchmode ${f%.tex}
     pdflatex -interaction=batchmode ${f%.tex}
     exec 1>&4 4>&- # restore stdout

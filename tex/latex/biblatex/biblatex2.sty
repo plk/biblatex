@@ -5625,21 +5625,21 @@
     {\ifdefempty\abx@field@localnumber
       {}% only if omitnumbers=true
       {\ifundef\abx@field@shorthand
-        {\ifdef\abx@field@localnumber
+        {\iftoggle{blx@defernumbers}
           {}% only if defernumbers=true
           {\csnumgdef{blx@labelnumber@\the\c@refsection}{%
               \csuse{blx@labelnumber@\the\c@refsection}+1}%
            \edef\abx@field@localnumber{%
-              \csuse{blx@labelnumber@\the\c@refsection}}}%
-          \blx@bbl@fieldedef{labelnumber}{\abx@field@localnumber}%
-          \iftoggle{blx@skipbib}
-            {}
-            {\blx@setlabwidth{\labelnumberwidth}{%
-                \csuse{abx@ffd@*@labelnumberwidth}{%
-                  \ifdef\abx@field@prefixnumber
-                    {\csuse{abx@ffd@*@prefixnumber}{\abx@field@prefixnumber}}
-                    {}%
-                  \abx@field@localnumber}}}}
+              \csuse{blx@labelnumber@\the\c@refsection}}%
+           \blx@bbl@fieldedef{labelnumber}{\abx@field@localnumber}%
+         \iftoggle{blx@skipbib}
+           {}
+           {\blx@setlabwidth{\labelnumberwidth}{%
+              \csuse{abx@ffd@*@labelnumberwidth}{%
+                \ifdef\abx@field@prefixnumber
+                  {\csuse{abx@ffd@*@prefixnumber}{\abx@field@prefixnumber}}
+                  {}%
+                \abx@field@localnumber}}}}}
         {\csgappto\blx@bbl@data{\let\abx@field@labelnumber\abx@field@shorthand}%
          \iftoggle{blx@skipbib}
            {}
@@ -5766,14 +5766,6 @@
 \protected\def\abx@aux@sortschemelos#1{%
   \listgadd{\blx@lastsortschemeslos}{#1}}
 
-% {<instcount>}{<entrykey>}{<refsection>}{<labelnumber>}
-\protected\def\blx@aux@number#1#2#3#4{%
-  \blx@bbl@addentryfield{\detokenize{#2}}{#3}{localnumber}{#4}%
-  \global\toggletrue{blx@localnumber}%
-  \ifblank{#4}
-    {}
-    {\csgdef{blx@labelnumber@#3}{#4}}}
-
 % Here we mustn't change the checksum if we used localnumbers from the
 % .aux file as this means that deferred numbering is
 % complete. Otherwise we get in an endless rerun loop because the
@@ -5841,6 +5833,15 @@
     {}%
   \endgroup}
 
+% {<instcount>}{<entrykey>}{<refsection>}{<labelnumber>}
+\protected\def\blx@aux@number#1#2#3#4{%
+  \blx@bbl@addentryfield{\detokenize{#2}}{#3}{localnumber}{#4}%
+  \blx@bbl@addentryfield{\detokenize{#2}}{#3}{labelnumber}{#4}%
+  \global\toggletrue{blx@localnumber}%
+  \ifblank{#4}
+    {}
+    {\csgdef{blx@labelnumber@#3}{#4}}}
+
 % Called as part of bib output for an entry
 % Only used when defernumbers=true
 \def\blx@addlabelnumber{%
@@ -5861,18 +5862,18 @@
                 \blx@bbl@addentryfield{\abx@field@entrykey}{\the\c@refsection}%
                     {localnumber}{\abx@field@localnumber}}}
             {}%
-           % If localnumbers were already in the .aux, add them
-           % again from the .aux. This prevents some cycling
-           % problems where pagebreaks change after localnumber
-           % settles down and then we need another run which then
-           % regenerates localnumber requiring another run but then
-           % the pagebreaks change back again ... etc.
-           \listxadd\blx@localnumaux{%
-              \string\abx@aux@number%
-                {\the\c@instcount}%
-                {\abx@field@entrykey}%
-                {\the\c@refsection}%
-                {\abx@field@localnumber}}}
+          % If localnumbers were already in the .aux, add them
+          % again from the .aux. This prevents some cycling
+          % problems where pagebreaks change after localnumber
+          % settles down and then we need another run which then
+          % regenerates localnumber requiring another run but then
+          % the pagebreaks change back again ... etc.
+          \listxadd\blx@localnumaux{%
+             \string\abx@aux@number%
+               {\the\c@instcount}%
+               {\abx@field@entrykey}%
+               {\the\c@refsection}%
+               {\abx@field@localnumber}}}
          {}}%
        {}}
     {}%
