@@ -473,7 +473,7 @@
 \newtoggle{blx@setonly}
 \newtoggle{blx@dataonly}
 \newtoggle{blx@skipbib}
-\newtoggle{blx@skiplos}
+\newtoggle{blx@skipbiblist}
 \newtoggle{blx@skiplab}
 \newtoggle{blx@citation}
 \newtoggle{blx@bibliography}
@@ -487,8 +487,8 @@
 \global\let\blx@cites\@empty
 \global\let\blx@sortschemes\@empty
 \global\let\blx@lastsortschemes\@empty
-\global\let\blx@sortschemeslos\@empty
-\global\let\blx@lastsortschemeslos\@empty
+\global\let\blx@biblists\@empty
+\global\let\blx@lastbiblists\@empty
 \global\let\blx@lastcites\@empty
 \global\let\blx@localnumaux\@empty
 
@@ -935,8 +935,8 @@
 \def\blx@warn@bibempty{%
   \@latex@warning{Empty bibliography}}
 
-\def\blx@warn@losempty{%
-  \@latex@warning{Empty list of shorthands}}
+\def\blx@warn@biblistempty#1{%
+  \@latex@warning{Empty biblist '#1'}}
 
 \def\blx@inf@refsec{%
   \blx@info{Reference section=\the\c@refsection}}%
@@ -5443,19 +5443,19 @@
     {}
     {\blx@addpageref{\abx@field@entrykey}}%
   \nottoggle{blx@setonly}
-    {\listcsxadd{blx@slists@\the\c@refsection @entry@\blx@slist@name}{\abx@field@entrykey}}
+    {\listcsxadd{blx@slists@\the\c@refsection @entry@\blx@slist@scheme}{\abx@field@entrykey}}
     {\global\toggletrue{blx@addset}%
      \toggletrue{blx@skipbib}%
-     \toggletrue{blx@skiplos}%
+     \toggletrue{blx@skipbiblist}%
      \toggletrue{blx@skiplab}}%
   \nottoggle{blx@skipbib}
-    {\listcsxadd{blx@slistsbib@\the\c@refsection @entry@\blx@slist@name}{\abx@field@entrykey}%
+    {\listcsxadd{blx@slistsbib@\the\c@refsection @entry@\blx@slist@scheme}{\abx@field@entrykey}%
      \listcsxadd{blx@type@\the\c@refsection @\abx@field@entrytype}{\abx@field@entrykey}%
      \ifdef\abx@field@entrysubtype
        {\listcsxadd{blx@subt@\the\c@refsection @\abx@field@entrysubtype}{\abx@field@entrykey}}
        {}}
     {}%
-  \nottoggle{blx@skiplos}
+  \nottoggle{blx@skipbiblist}
     {\blx@bbl@shorthand}
     {}%
   \nottoggle{blx@skiplab}
@@ -5514,7 +5514,7 @@
   % Used at endentry, when reading .bbl
   % only do this for the global sorting list otherwise we increment
   % the labelnumbers for each sortlist
-  \ifdefstrequal{\blx@slist@name}{\blx@sorting}
+  \ifdefstrequal{\blx@slist@scheme}{\blx@sorting}
     {\ifdefempty\abx@field@localnumber
       {}% only if omitnumbers=true
       {\ifundef\abx@field@shorthand
@@ -5656,8 +5656,8 @@
 
 % {<sortschemename>}
 % Get the saved information on which shorthand sorting schemes were mentioned last run
-\protected\def\abx@aux@sortschemelos#1{%
-  \listgadd{\blx@lastsortschemeslos}{#1}}
+\protected\def\abx@aux@biblist#1{%
+  \listgadd{\blx@lastbiblists}{#1}}
 
 % Here we mustn't change the checksum if we used localnumbers from the
 % .aux file as this means that deferred numbering is
@@ -5692,8 +5692,8 @@
   % already tested for more or less cites between runs by now, we are
   % testing here for exactly the same cites by treating the cite and
   % lastcite lists as strings and comparing them. This doesn't apply
-  % to shorthand sortschemes as nobody wants to sort shorthands with
-  % "none" anyway, it makes no sense
+  % to biblist sortschemes as nobody wants to sort biblists with
+  % "none", since it makes no sense
   \ifinlist{none}{\blx@sortschemes}
     {\ifdefstrequal{\blx@cites}{\blx@lastcites}
       {}
@@ -5707,14 +5707,14 @@
   % If we did, we need to re-run biber
   \def\do#1{\ifinlist{#1}{\blx@lastsortschemes}{}{\blx@logreq@active{}}\relax}%
   \dolistloop\blx@sortschemes
-  % Test if we removed any mention of a shorthand sorting scheme since last run.
+  % Test if we removed any mention of a bibist since last run.
   % If we did, we need to re-run biber
-  \def\do#1{\ifinlist{#1}{\blx@sortschemeslos}{}{\blx@logreq@active{}}\relax}%
-  \dolistloop\blx@lastsortschemeslos
+ZZ  \def\do#1{\ifinlist{#1}{\blx@biblists}{}{\blx@logreq@active{}}\relax}%
+  \dolistloop\blx@lastbiblists
   % Test to see if we added any mention of a shorthand sorting scheme since last run.
   % If we did, we need to re-run biber
-  \def\do#1{\ifinlist{#1}{\blx@lastsortschemeslos}{}{\blx@logreq@active{}}\relax}%
-  \dolistloop\blx@sortschemeslos
+  \def\do#1{\ifinlist{#1}{\blx@lastbiblists}{}{\blx@logreq@active{}}\relax}%
+  \dolistloop\blx@biblists
   % If we have to run biber or latex again and we are using defernumbers,
   % don't write the localnumber information to the .aux file yet as we will
   % potentially have to regenerate sorting order first in biber
@@ -5789,15 +5789,15 @@
     {}}
 
 % {<entrykey>}{<refsection>}{<numberprefix>}
-
 \protected\def\blx@aux@numprefix#1#2#3{%
   \blx@bbl@addentryfield{\detokenize{#1}}{#2}{prefixnumber}{#3}}
 
+% {<sortlistname>}{<sortlistsortscheme>}
 \def\blx@bbl@slist#1#2{%
   \begingroup
-  \def\blx@slist@name{#2}%
-  % This macro (\key) will only be called in shorthand lists
-  \def\key##1{\listcsxadd{blx@slistsbib@\the\c@refsection @shorthand@#2}{\detokenize{##1}}}}
+  \def\blx@slist@scheme{#2}%
+  % This macro (\key) will only be called in sortlists of type "list"
+  \def\key##1{\listcsxadd{blx@slistsbib@\the\c@refsection @#1@#2}{\detokenize{##1}}}}
 \let\blx@bbl@endslist\endgroup
 
 \def\blx@addpageref#1{%
@@ -5981,8 +5981,8 @@
     #2\undef\skipentry}}
 
 % options
-\% We need a 2-pass structure for options in \printbibliography and
-% \printshorthands because section and/or sorting have to be set before any
+% We need a 2-pass structure for options in \printbibliography and
+% \printbiblist because section and/or sorting have to be set before any
 % other options and these also determine which list to use for later filtering
 \define@key{blx@bib1}{segment}{}
 \define@key{blx@bib1}{type}{}
@@ -6007,25 +6007,25 @@
 \define@key{blx@bib2}{section}{}
 \define@key{blx@bib2}{sorting}{}
 
-\define@key{blx@los1}{segment}{}
-\define@key{blx@los1}{type}{}
-\define@key{blx@los1}{nottype}{}
-\define@key{blx@los1}{subtype}{}
-\define@key{blx@los1}{notsubtype}{}
-\define@key{blx@los1}{keyword}{}
-\define@key{blx@los1}{notkeyword}{}
-\define@key{blx@los1}{category}{}
-\define@key{blx@los1}{notcategory}{}
-\define@key{blx@los1}{filter}{}
-\define@key{blx@los1}{check}{}
-\define@key{blx@los1}{heading}{}
-\define@key{blx@los1}{env}{}
-\define@key{blx@los1}{title}{}
-\define@key{blx@los1}{prenote}{}
-\define@key{blx@los1}{postnote}{}
+\define@key{blx@biblist1}{segment}{}
+\define@key{blx@biblist1}{type}{}
+\define@key{blx@biblist1}{nottype}{}
+\define@key{blx@biblist1}{subtype}{}
+\define@key{blx@biblist1}{notsubtype}{}
+\define@key{blx@biblist1}{keyword}{}
+\define@key{blx@biblist1}{notkeyword}{}
+\define@key{blx@biblist1}{category}{}
+\define@key{blx@biblist1}{notcategory}{}
+\define@key{blx@biblist1}{filter}{}
+\define@key{blx@biblist1}{check}{}
+\define@key{blx@biblist1}{heading}{}
+\define@key{blx@biblist1}{env}{}
+\define@key{blx@biblist1}{title}{}
+\define@key{blx@biblist1}{prenote}{}
+\define@key{blx@biblist1}{postnote}{}
 
-\define@key{blx@los2}{section}{}
-\define@key{blx@los2}{sorting}{}
+\define@key{blx@biblist2}{section}{}
+\define@key{blx@biblist2}{sorting}{}
 
 \define@key{blx@bib1}{sorting}{%
   \ifcsundef{blx@biber@sorting@#1}
@@ -6045,17 +6045,17 @@
            {}}{%
          \csuse{blx@biber@sorting@#1}}}}}
 
-\define@key{blx@los1}{sorting}{%
+\define@key{blx@biblist1}{sorting}{%
   \ifcsundef{blx@biber@sorting@#1}
     {\blx@err@invopt{sorting=#1}{}}%
     {\blx@printbibchecks
      \def\blx@tempc{#1}%
-     % Add the sortscheme to the list of shorthand sortschemes
+     % Add the sortscheme to the list of  sortschemes for this biblist
      % so we can compare on next run
-     \ifinlist{#1}{\blx@sortschemeslos}
+     \ifinlist{#1}{\blx@biblists}
        {}
-       {\listgadd\blx@sortschemeslos{#1}%
-        \blx@auxwrite\@mainaux{}{\string\abx@aux@sortschemelos{#1}}}%
+       {\listgadd\blx@biblists{#1}%
+        \blx@auxwrite\@mainaux{}{\string\abx@aux@biblist{#1}}}%
      \edef\blx@tempd{%
        \blx@xml@sorting{%
          \ifcsdef{blx@sortdef@locale@#1}
@@ -6069,7 +6069,7 @@
     {\c@refsection#1\relax
      \def\blx@tempe{#1}}}
 
-\define@key{blx@los1}{section}{%
+\define@key{blx@biblist1}{section}{%
   \ifcsundef{blx@sections@#1}
     {\blx@err@nosec{#1}}
     {\c@refsection#1\relax
@@ -6086,7 +6086,7 @@
     {\c@refsection#1\relax}}
 
 \define@key{blx@bib2}{segment}{\blx@key@segment{#1}}
-\define@key{blx@los2}{segment}{\blx@key@segment{#1}}
+\define@key{blx@biblist2}{segment}{\blx@key@segment{#1}}
 
 \def\blx@key@segment#1{%
   \ifcsundef{blx@segm@\the\c@refsection @#1}
@@ -6098,7 +6098,7 @@
      \blx@filter\blx@tempa{blx@segm@\the\c@refsection @#1}}}
 
 \define@key{blx@bib2}{type}{\blx@key@type{#1}}
-\define@key{blx@los2}{type}{\blx@key@type{#1}}
+\define@key{blx@biblist2}{type}{\blx@key@type{#1}}
 
 \def\blx@key@type#1{%
   \ifcsundef{blx@type@\the\c@refsection @#1}
@@ -6117,7 +6117,7 @@
            Use 'filter' and '\string\defbibfilter' with OR conjunctions}}}}
 
 \define@key{blx@bib2}{nottype}{\blx@key@nottype{#1}}
-\define@key{blx@los2}{nottype}{\blx@key@nottype{#1}}
+\define@key{blx@biblist2}{nottype}{\blx@key@nottype{#1}}
 
 \def\blx@key@nottype#1{%
   \ifcsundef{blx@type@\the\c@refsection @#1}
@@ -6126,7 +6126,7 @@
      \blx@notfilter\blx@tempa{blx@type@\the\c@refsection @#1}}}
 
 \define@key{blx@bib2}{subtype}{\blx@key@subtype{#1}}
-\define@key{blx@los2}{subtype}{\blx@key@subtype{#1}}
+\define@key{blx@biblist2}{subtype}{\blx@key@subtype{#1}}
 
 \def\blx@key@subtype#1{%
   \ifcsundef{blx@subt@\the\c@refsection @#1}
@@ -6145,7 +6145,7 @@
            Use 'filter' and '\string\defbibfilter' with OR conjunctions}}}}
 
 \define@key{blx@bib2}{notsubtype}{\blx@key@notsubtype{#1}}
-\define@key{blx@los2}{notsubtype}{\blx@key@notsubtype{#1}}
+\define@key{blx@biblist2}{notsubtype}{\blx@key@notsubtype{#1}}
 
 \def\blx@key@notsubtype#1{%
   \ifcsundef{blx@subt@\the\c@refsection @#1}
@@ -6154,7 +6154,7 @@
      \blx@notfilter\blx@tempa{blx@subt@\the\c@refsection @#1}}}
 
 \define@key{blx@bib2}{keyword}{\blx@key@keyword{#1}}
-\define@key{blx@los2}{keyword}{\blx@key@keyword{#1}}
+\define@key{blx@biblist2}{keyword}{\blx@key@keyword{#1}}
 
 \def\blx@key@keyword#1{%
   \ifcsundef{blx@keyw@\the\c@refsection @\detokenize{#1}}
@@ -6164,7 +6164,7 @@
      \blx@filter\blx@tempa{blx@keyw@\the\c@refsection @\detokenize{#1}}}}
 
 \define@key{blx@bib2}{notkeyword}{\blx@key@notkeyword{#1}}
-\define@key{blx@los2}{notkeyword}{\blx@key@notkeyword{#1}}
+\define@key{blx@biblist2}{notkeyword}{\blx@key@notkeyword{#1}}
 
 \def\blx@key@notkeyword#1{%
   \ifcsundef{blx@keyw@\the\c@refsection @\detokenize{#1}}
@@ -6173,7 +6173,7 @@
      \blx@notfilter\blx@tempa{blx@keyw@\the\c@refsection @\detokenize{#1}}}}
 
 \define@key{blx@bib2}{category}{\blx@key@category{#1}}
-\define@key{blx@los2}{category}{\blx@key@category{#1}}
+\define@key{blx@biblist2}{category}{\blx@key@category{#1}}
 
 \def\blx@key@category#1{%
   \ifcsundef{blx@catg@\detokenize{#1}}
@@ -6183,7 +6183,7 @@
      \blx@filter\blx@tempa{blx@catg@\detokenize{#1}}}}
 
 \define@key{blx@bib2}{notcategory}{\blx@key@notcategory{#1}}
-\define@key{blx@los2}{notcategory}{\blx@key@notcategory{#1}}
+\define@key{blx@biblist2}{notcategory}{\blx@key@notcategory{#1}}
 
 \def\blx@key@notcategory#1{%
   \ifcsundef{blx@catg@#1}
@@ -6192,7 +6192,7 @@
      \blx@notfilter\blx@tempa{blx@catg@#1}}}
 
 \define@key{blx@bib2}{filter}{\blx@key@filter{#1}}
-\define@key{blx@los2}{filter}{\blx@key@filter{#1}}
+\define@key{blx@biblist2}{filter}{\blx@key@filter{#1}}
 
 \def\blx@key@filter#1{%
   \ifcsdef{blx@filter@#1}
@@ -6205,7 +6205,7 @@
         Use \string\defbibfilter\space to define it}}}
 
 \define@key{blx@bib2}{check}{\blx@key@bibcheck{#1}}
-\define@key{blx@los2}{check}{\blx@key@bibcheck{#1}}
+\define@key{blx@biblist2}{check}{\blx@key@bibcheck{#1}}
 
 \def\blx@key@bibcheck#1{%
   \ifcsdef{blx@bibcheck@#1}
@@ -6218,7 +6218,7 @@
 
 \define@key{blx@bhd}{heading}{\blx@key@heading{#1}}
 \define@key{blx@bib2}{heading}{\blx@key@heading{#1}}
-\define@key{blx@los2}{heading}{\blx@key@heading{#1}}
+\define@key{blx@biblist2}{heading}{\blx@key@heading{#1}}
 \define@key{blx@bbs}{heading}{\blx@key@heading{#1}}
 \define@key{blx@bbg}{heading}{\blx@key@heading{#1}}
 
@@ -6231,7 +6231,7 @@
      {\def\blx@theheading{#1}}}
 
 \define@key{blx@bib2}{env}{\blx@key@env{#1}}
-\define@key{blx@los2}{env}{\blx@key@env{#1}}
+\define@key{blx@biblist2}{env}{\blx@key@env{#1}}
 \define@key{blx@bbs}{env}{\blx@key@env{#1}}
 \define@key{blx@bbg}{env}{\blx@key@env{#1}}
 \define@key{blx@bbc}{env}{\blx@key@env{#1}}
@@ -6246,10 +6246,10 @@
 
 \define@key{blx@bhd}{title}{\def\blx@thetitle{#1}}
 \define@key{blx@bib2}{title}{\def\blx@thetitle{#1}}
-\define@key{blx@los2}{title}{\def\blx@thetitle{#1}}
+\define@key{blx@biblist2}{title}{\def\blx@thetitle{#1}}
 
 \define@key{blx@bib2}{prenote}{\blx@key@prenote{#1}}
-\define@key{blx@los2}{prenote}{\blx@key@prenote{#1}}
+\define@key{blx@biblist2}{prenote}{\blx@key@prenote{#1}}
 \define@key{blx@bbs}{prenote}{\blx@key@prenote{#1}}
 \define@key{blx@bbg}{prenote}{\blx@key@prenote{#1}}
 \define@key{blx@bbc}{prenote}{\blx@key@prenote{#1}}
@@ -6262,7 +6262,7 @@
      {\def\blx@theprenote{#1}}}
 
 \define@key{blx@bib2}{postnote}{\blx@key@postnote{#1}}
-\define@key{blx@los2}{postnote}{\blx@key@postnote{#1}}
+\define@key{blx@biblist2}{postnote}{\blx@key@postnote{#1}}
 \define@key{blx@bbs}{postnote}{\blx@key@postnote{#1}}
 \define@key{blx@bbg}{postnote}{\blx@key@postnote{#1}}
 \define@key{blx@bbc}{postnote}{\blx@key@postnote{#1}}
@@ -6624,7 +6624,6 @@
   \gappto\blx@hook@bibinit@next}
 
 % page tracker
-
 \def\blx@pagetracker@context{%
   \blx@leavevmode
   \ifbool{@filesw}
@@ -6638,7 +6637,6 @@
     {}}
 
 % {<instcount>}{<page>}
-
 \protected\def\blx@aux@page#1#2{%
   \csgdef{blx@page@#1}{#2}%
   \blx@addpagesum{#1}{#2}}
@@ -6683,47 +6681,52 @@
 
 \appto\blx@mknohyperref{\let\blx@anchor\relax}
 
-% List of shorthands
-\newrobustcmd*{\printshorthands}{%
-  \begingroup
-  \edef\on@line{\on@line}%
+% Legacy alias for \printshorthands
+\def\printshorthands{%
   \@ifnextchar[%]
     {\blx@printshorthands}
     {\blx@printshorthands[]}}
 
-\def\blx@printshorthands[#1]{%
+\def\blx@printshorthands[#1]{\printbiblist[#1]{shorthands}}
+
+% Custom bibliography list
+% [<otions>]{biblistname}
+\newrobustcmd*{\printbiblist}[2][]{%
+  \begingroup
+  \edef\on@line{\on@line}%
   \toggletrue{blx@tempa}%
   \toggletrue{blx@tempb}%
-  \def\blx@theheading{shorthands}%
-  \def\blx@theenv{shorthands}%
+  \def\blx@theheading{#2}%
+  \def\blx@theenv{#2}%
+  \def\blx@thebiblist{#2}%
   \let\blx@theprenote\@empty
   \let\blx@thepostnote\@empty
   \let\blx@thetitle\@empty
   % defaults
   \let\blx@tempa\@empty% before there is a .bbl, this must not be undef
-  \def\blx@tempc{shorthand}% default sorting scheme for shorthands
+  \def\blx@tempc{#2}% default sorting scheme for list
   \edef\blx@tempd{%
     \blx@xml@sorting{%
-      \ifcsdef{blx@sortdef@locale@shorthand}
-        { locale="\csuse{blx@sortdef@locale@shorthand}"}
+      \ifcsdef{blx@sortdef@locale@#2}
+        { locale="\csuse{blx@sortdef@locale@#2}"}
         {}}{%
-      \csuse{blx@biber@sorting@shorthand}}}% default sorting scheme for shorthands
+      \csuse{blx@biber@sorting@#2}}}% default sorting scheme for list
   \let\blx@printbibchecks\relax
   \edef\blx@tempe{\the\c@refsection}% default refsection is current
   \blx@safe@actives
-  \setkeys{blx@los1}{#1}% Set sorting and section only, if present ...
+  \setkeys{blx@biblist1}{#1}% Set sorting and section only, if present ...
   \blx@rest@actives
-  \ifcsvoid{blx@slistsbib@\blx@tempe @shorthand@\blx@tempc}
+  \ifcsvoid{blx@slistsbib@\blx@tempe @#2@\blx@tempc}
     {}
-    {\letcs\blx@tempa{blx@slistsbib@\blx@tempe @shorthand@\blx@tempc}}%
+    {\letcs\blx@tempa{blx@slistsbib@\blx@tempe @#2@\blx@tempc}}%
   \blx@safe@actives
-  \setkeys{blx@los2}{#1}% ... now we have correct \blx@tempa, set rest of options
+  \setkeys{blx@biblist2}{#1}% ... now we have correct \blx@tempa, set rest of options
   \blx@rest@actives
   \csxappto{blx@xml@slistsbib}{%
-    \blx@xml@slistlos{shorthand}{\blx@tempe}{\blx@tempc}{\blx@tempd}}%
+    \blx@xml@slistlos{#2}{list}{\blx@tempe}{\blx@tempc}{\blx@tempd}}%
   \ifdefvoid\blx@tempa
-    {\blx@warn@losempty\endgroup}
-    {\blx@shorthands\blx@tempa}}
+    {\blx@warn@biblistempty{#2}\endgroup}
+    {\blx@biblist\blx@tempa}}
 
 \def\blx@printbibchecks{%
   \togglefalse{blx@tempa}%
@@ -6734,7 +6737,7 @@
        {\global\let\blx@printbibchecks\relax}}}
 
 % {<entrykey>,...}
-\def\blx@shorthands{%
+\def\blx@biblist{%
   \if@twocolumn
     \@restonecoltrue\onecolumn
   \else
@@ -6746,14 +6749,14 @@
   \begingroup
   \blx@bibinit
   \let\@noitemerr\@empty
-  \let\blx@noitem\blx@warn@losempty
+  \def\blx@noitem{\blx@warn@biblistempty{\blx@thebiblist}}%
   \csuse{blx@env@\blx@theenv}%
-  \csuse{blx@hook@losinit}%
-  \let\blx@do\blx@lositem
-  \let\blx@done\blx@endshorthands
+  \csuse{blx@hook@biblistinit}%
+  \let\blx@do\blx@biblistitem
+  \let\blx@done\blx@endbiblist
   \blx@listloop}
 
-\def\blx@endshorthands{%
+\def\blx@endbiblist{%
   \csuse{blx@endenv@\blx@theenv}%
   \blx@noitem
   \endgroup
@@ -6761,13 +6764,13 @@
   \endgroup
   \if@restonecol\twocolumn\fi}
 
-\newrobustcmd*{\AtBeginShorthands}{\gappto\blx@hook@losinit}
-\newrobustcmd*{\AtEveryLositem}{\gappto\blx@hook@lositem}
+\newrobustcmd*{\AtBeginShorthands}{\gappto\blx@hook@biblistinit}
+\newrobustcmd*{\AtEveryLositem}{\gappto\blx@hook@biblistitem}
 \@onlypreamble\AtBeginShorthands
 \@onlypreamble\AtEveryLositem
 
 % {<entrykey>}
-\def\blx@lositem#1{%
+\def\blx@biblistitem#1{%
   \blx@ifdata{#1}
     {\begingroup
      \blx@getdata{#1}%
@@ -6778,13 +6781,13 @@
        \blx@setoptions@entry
        \addtocounter{instcount}\@ne
        \csuse{blx@item@\blx@theenv}\relax
-       \csuse{blx@hook@lositem}%
+       \csuse{blx@hook@biblistitem}%
        \blx@execute
        \blx@initunit
        \blx@beglangbib
        \bibsentence
        \blx@pagetracker
-       \blx@driver{shorthands}%
+       \blx@driver{\blx@thebiblist}%
        \blx@postpunct
        \blx@endlangbib}%
      \endgroup}
@@ -8955,13 +8958,13 @@
   ~~</bcf:section>}
 
 \xdef\blx@xml@slist#1#2#3#4{%
-  ~~<bcf:sortlist section="#2" type="#1" label="#3">\blx@nl
+  ~~<bcf:sortlist section="#2" name="#3" type="#1" sortscheme="#3">\blx@nl
   #4%
   ~~</bcf:sortlist>\blx@nl}
-\xdef\blx@xml@slistlos#1#2#3#4{%
-  ~~<bcf:sortlist section="#2" type="#1" label="#3">\blx@nl
+\xdef\blx@xml@slistlos#1#2#3#4#5{%
+  ~~<bcf:sortlist section="#3" name="#1" type="#2" sortscheme="#4">\blx@nl
   ~~~~<bcf:filter type="field">shorthand</bcf:filter>\blx@nl
-  #4%
+  #5%
   ~~</bcf:sortlist>\blx@nl}
 
 \xdef\blx@xml@bibdata#1#2{%
@@ -9048,7 +9051,7 @@
     \blx@xml@toggle{singletitle}%
     \blx@xml@toggle{skipbib}%
     \blx@xml@toggle{skiplab}%
-    \blx@xml@toggle{skiplos}%
+    \blx@xml@toggle{skipbiblist}%
     \blx@xml@svalue{uniquelist}{\blx@uniquelist}%
     \blx@xml@svalue{uniquename}{\blx@uniquename}%
     \blx@xml@toggle{useauthor}%
@@ -9575,7 +9578,6 @@
 \@onlypreamble\ResetDataInheritance
 
 % {<name>}{<spec>}
-
 \newrobustcmd*{\DeclareSortingScheme}[3][]{%
   \ifblank{#1}
     {}
@@ -9905,7 +9907,7 @@
 
 \DeclareBibliographyOption{sortlos}{%
   \blx@warning@noline{%
-    sortlos option is deprecated, use 'sorting' option to \string\printshorthands}}
+    sortlos option is deprecated, use 'sorting' option to \string\printbiblist}}
 
 \DeclareBibliographyOption{maxnames}{%
   \numdef\blx@maxcitenames{#1}%
@@ -10723,10 +10725,19 @@
 \DeclareEntryOption{skipbib}[true]{%
   \settoggle{blx@skipbib}{#1}}
 
-\DeclareTypeOption{skiplos}[true]{%
-  \settoggle{blx@skiplos}{#1}}
-\DeclareEntryOption{skiplos}[true]{%
-  \settoggle{blx@skiplos}{#1}}
+\DeclareTypeOption{skiplos}{%
+  \blx@warning@noline{%
+    skiplos option is deprecated, use 'skipbiblist' instead}%
+  \settoggle{blx@skipbiblist}{#1}}
+\DeclareEntryOption{skiplos}{%
+  \blx@warning@noline{%
+    skiplos option is deprecated, use 'skipbiblist' instead}%
+  \settoggle{blx@skipbiblist}{#1}}
+
+\DeclareTypeOption{skipbiblist}[true]{%
+  \settoggle{blx@skipbiblist}{#1}}
+\DeclareEntryOption{skipbiblist}[true]{%
+  \settoggle{blx@skipbiblist}{#1}}
 
 \DeclareTypeOption{skiplab}[true]{%
   \settoggle{blx@skiplab}{#1}}
@@ -10735,11 +10746,11 @@
 
 \DeclareTypeOption{dataonly}[true]{%
   \settoggle{blx@skipbib}{#1}%
-  \settoggle{blx@skiplos}{#1}%
+  \settoggle{blx@skipbiblist}{#1}%
   \settoggle{blx@skiplab}{#1}}
 \DeclareEntryOption{dataonly}[true]{%
   \settoggle{blx@skipbib}{#1}%
-  \settoggle{blx@skiplos}{#1}%
+  \settoggle{blx@skipbiblist}{#1}%
   \settoggle{blx@skiplab}{#1}}
 
 % Option processor/scheduler
