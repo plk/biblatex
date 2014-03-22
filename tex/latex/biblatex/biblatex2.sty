@@ -5280,52 +5280,6 @@
        \ifx\blx@tempa\@empty\else,\fi
        \unexpanded{#1}\ifblank{#2}{}{=\unexpanded{#2}}}}}
 
-% \blx@data@<section>@<entrykey>        data hook
-%                                       key -> data
-% \blx@miss@<section>                   missing entries (blacklist)
-%                                       section -> keys [internal list]
-% \blx@sort@<section>                   all entries, sorted
-%                                       section -> keys [internal list]
-% \blx@sbib@<section>                   all entries in bibliography, sorted
-%                                       section -> keys [internal list]
-% \blx@bsee@<section>                   seen citations, document body
-%                                       section -> keys [internal list]
-% \blx@fsee@<section>                   seen citations, footnotes
-%                                       section -> keys [internal list]
-% \blx@type@<section>@<entrytype>       type hash
-%                                       type -> keys [internal list]
-% \blx@subt@<section>@<entrytype>       subtype hash
-%                                       subtype -> keys [internal list]
-% \blx@segm@<section>@<segment>         segment hash
-%                                       segment -> keys [internal list]
-% \blx@keyw@<section>@<keyword>         keyword hash
-%                                       keyword -> keys [internal list]
-% \blx@losh@<section>                   shorthand hash
-%                                       section -> keys [internal list]
-% \blx@slistsbib@<section>@<sectiontype>@<sectionname> all entries in
-%                                       bibliography of a type sorted
-%                                       in a particular way
-%                                       section -> keys [internal list]
-%                                       sectiontype -> "shorthand" or "entry"
-%                                       sectionname -> sort scheme name
-% \blx@slists@<section>@<sectiontype>@<sectionname> all entries of a type sorted
-%                                       in a particular way
-%                                       section -> keys [internal list]
-%                                       sectiontype -> "shorthand" or "entry"
-%                                       sectionname -> sort scheme name
-% \blx@catg@<category>                  category hash, global
-%                                       category -> keys [internal list]
-% \blx@set@<section>@<entrykey>         parent -> child mapping (dynamic entry sets)
-%                                       key -> key,key,... [csv list]
-% \blx@setp@<section>@<entrykey>        parent -> child mapping (entry sets)
-%                                       key -> key,key,... [csv list]
-% \blx@setc@<section>@<entrykey>        child -> parent mapping (entry sets)
-%                                       key -> key
-% \blx@seti@<section>@<entrykey>        child -> index mapping (entry sets)
-%                                       key -> index
-% \blx@pref@<section>@<entrykey>        pageref hook, temporary
-%                                       key -> pages [internal list]
-
 \def\blx@ifdata#1{%
   \ifcsdef{blx@data@\the\c@refsection @#1}}
 \let\blx@imc@ifentryinbib\blx@ifdata
@@ -5455,6 +5409,9 @@
        {\listcsxadd{blx@subt@\the\c@refsection @\abx@field@entrysubtype}{\abx@field@entrykey}}
        {}}
     {}%
+  % It's not certain that a biblist will use the shorthand field but since
+  % it's likely, here we call a macro to set a label width based on it if
+  % not asked to skip for this entry
   \nottoggle{blx@skipbiblist}
     {\blx@bbl@shorthand}
     {}%
@@ -5890,6 +5847,7 @@ ZZ  \def\do#1{\ifinlist{#1}{\blx@biblists}{}{\blx@logreq@active{}}\relax}%
   {\endlist}
   {\item}
 
+% This is here as a legacy default setting for \printshorthands
 \defbibenvironment{shorthands}
   {\list{\thefield{shorthand}}{%
      \labelwidth\shorthandwidth
@@ -6364,7 +6322,7 @@ ZZ  \def\do#1{\ifinlist{#1}{\blx@biblists}{}{\blx@logreq@active{}}\relax}%
   \setkeys{blx@bib2}{#1}% ... now we have correct \blx@tempa, set rest of options
   \blx@rest@actives
   \csxappto{blx@xml@slistsbib}{%
-    \blx@xml@slist{entry}{\blx@tempe}{\blx@tempc}{\blx@tempd}}%
+    \blx@xml@slist{\blx@tempc}{entry}{\blx@tempe}{\blx@tempc}{\blx@tempd}{}}%
   \ifdefvoid\blx@tempa
     {\blx@warn@bibempty\endgroup}
     {\blx@bibliography\blx@tempa}}
@@ -6696,15 +6654,15 @@ ZZ  \def\do#1{\ifinlist{#1}{\blx@biblists}{}{\blx@logreq@active{}}\relax}%
   \edef\on@line{\on@line}%
   \toggletrue{blx@tempa}%
   \toggletrue{blx@tempb}%
-  \def\blx@theheading{#2}%
-  \def\blx@theenv{#2}%
+  \def\blx@theheading{#2}% default to list name
+  \def\blx@theenv{#2}% default to list name
   \def\blx@thebiblist{#2}%
   \let\blx@theprenote\@empty
   \let\blx@thepostnote\@empty
   \let\blx@thetitle\@empty
   % defaults
   \let\blx@tempa\@empty% before there is a .bbl, this must not be undef
-  \def\blx@tempc{#2}% default sorting scheme for list
+  \def\blx@tempc{#2}% default sorting scheme for list is same name as list name
   \edef\blx@tempd{%
     \blx@xml@sorting{%
       \ifcsdef{blx@sortdef@locale@#2}
@@ -6723,7 +6681,7 @@ ZZ  \def\do#1{\ifinlist{#1}{\blx@biblists}{}{\blx@logreq@active{}}\relax}%
   \setkeys{blx@biblist2}{#1}% ... now we have correct \blx@tempa, set rest of options
   \blx@rest@actives
   \csxappto{blx@xml@slistsbib}{%
-    \blx@xml@slistlos{#2}{list}{\blx@tempe}{\blx@tempc}{\blx@tempd}}%
+    \blx@xml@slist{#2}{list}{\blx@tempe}{\blx@tempc}{\blx@tempd}{\csuse{blx@biber@biblistfilters@#2}}}%
   \ifdefvoid\blx@tempa
     {\blx@warn@biblistempty{#2}\endgroup}
     {\blx@biblist\blx@tempa}}
@@ -6751,7 +6709,7 @@ ZZ  \def\do#1{\ifinlist{#1}{\blx@biblists}{}{\blx@logreq@active{}}\relax}%
   \let\@noitemerr\@empty
   \def\blx@noitem{\blx@warn@biblistempty{\blx@thebiblist}}%
   \csuse{blx@env@\blx@theenv}%
-  \csuse{blx@hook@biblistinit}%
+  \csuse{blx@hook@biblistinit@\blx@thebiblist}%
   \let\blx@do\blx@biblistitem
   \let\blx@done\blx@endbiblist
   \blx@listloop}
@@ -6764,10 +6722,17 @@ ZZ  \def\do#1{\ifinlist{#1}{\blx@biblists}{}{\blx@logreq@active{}}\relax}%
   \endgroup
   \if@restonecol\twocolumn\fi}
 
-\newrobustcmd*{\AtBeginShorthands}{\gappto\blx@hook@biblistinit}
-\newrobustcmd*{\AtEveryLositem}{\gappto\blx@hook@biblistitem}
+% Legacy aliases
+\def\AtBeginShorthands{\AtBeginBiblist{shorthands}}
+\def\AtEveryLositem{\AtEveryBiblistItem{shorthands}}
 \@onlypreamble\AtBeginShorthands
 \@onlypreamble\AtEveryLositem
+
+% {<biblistname>}
+\newrobustcmd*{\AtBeginBiblist}[1]{\csgappto{blx@hook@biblistinit@#1}}
+\newrobustcmd*{\AtEveryBiblistItem}[1]{\csgappto{blx@hook@biblistitem@#1}}
+\@onlypreamble\AtBeginBiblist
+\@onlypreamble\AtEveryBiblistItem
 
 % {<entrykey>}
 \def\blx@biblistitem#1{%
@@ -6781,7 +6746,7 @@ ZZ  \def\do#1{\ifinlist{#1}{\blx@biblists}{}{\blx@logreq@active{}}\relax}%
        \blx@setoptions@entry
        \addtocounter{instcount}\@ne
        \csuse{blx@item@\blx@theenv}\relax
-       \csuse{blx@hook@biblistitem}%
+       \csuse{blx@hook@biblistitem@\blx@thebiblist}%
        \blx@execute
        \blx@initunit
        \blx@beglangbib
@@ -8957,15 +8922,17 @@ ZZ  \def\do#1{\ifinlist{#1}{\blx@biblists}{}{\blx@logreq@active{}}\relax}%
 \xdef\blx@xml@endsection{%
   ~~</bcf:section>}
 
-\xdef\blx@xml@slist#1#2#3#4{%
-  ~~<bcf:sortlist section="#2" name="#3" type="#1" sortscheme="#3">\blx@nl
-  #4%
-  ~~</bcf:sortlist>\blx@nl}
-\xdef\blx@xml@slistlos#1#2#3#4#5{%
+\xdef\blx@xml@slist#1#2#3#4#5#6{%
   ~~<bcf:sortlist section="#3" name="#1" type="#2" sortscheme="#4">\blx@nl
-  ~~~~<bcf:filter type="field">shorthand</bcf:filter>\blx@nl
+  #6%
   #5%
   ~~</bcf:sortlist>\blx@nl}
+\xdef\blx@xml@slistfilterorbegin{%
+  ~~~~<bcf:filteror>\blx@nl}
+\xdef\blx@xml@slistfilterorend{%
+  ~~~~</bcf:filteror>\blx@nl}
+\xdef\blx@xml@slistfilter#1#2{%
+  ~~~~<bcf:filter type="#1">#2</bcf:filter>\blx@nl}
 
 \xdef\blx@xml@bibdata#1#2{%
   ~~<bcf:bibdata section="#1">\blx@nl
@@ -9576,6 +9543,35 @@ ZZ  \def\do#1{\ifinlist{#1}{\blx@biblists}{}{\blx@logreq@active{}}\relax}%
 \newrobustcmd*{\ResetDataInheritance}{%
   \global\csundef{blx@biber@inherit@data}}
 \@onlypreamble\ResetDataInheritance
+
+% {<name>}{<spec>}
+\newrobustcmd*{\DeclareBiblistFilter}[2]{%
+  \begingroup
+  \let\filteror\blx@biblistfilteror
+  \let\filter\blx@biblistfilter
+  \let\blx@tempa\@empty
+  #2%
+  \global\cslet{blx@biber@biblistfilters@#1}\blx@tempa
+  \endgroup}
+
+\@onlypreamble\DeclareBiblistFilter
+
+\newcommand*{\blx@biblistfilteror}[1]{%
+  \eappto\blx@tempa{\blx@xml@slistfilterorbegin}%
+  #1%
+  \eappto\blx@tempa{\blx@xml@slistfilterorend}}
+
+\newcommand*{\blx@biblistfilter}[1][2]{%
+  \let\blx@tempc\@empty
+  \let\blx@tempd\@empty
+  \setkeys{blx@biblistfilter@filter}{#1}%
+  \eappto\blx@tempa{%
+    \blx@xml@slistfilter{\blx@tempc}{\blx@tempd}}}
+
+\define@key{blx@biblistfilter@filter}{type}{%
+  \def\blx@tempc{#1}}
+\define@key{blx@biblistfilter@filter}{filter}{%
+  \def\blx@tempd{#1}}
 
 % {<name>}{<spec>}
 \newrobustcmd*{\DeclareSortingScheme}[3][]{%
