@@ -6,7 +6,7 @@ use Test::Deep;
 use CAM::PDF;
 use File::Spec;
 
-my $refdir = 'reference';
+my $refdir = '../doc/latex/biblatex/examples';
 my $testdir = 'test/examples';
 
 my @files = @ARGV ? @ARGV : sort <$testdir/*.pdf>;

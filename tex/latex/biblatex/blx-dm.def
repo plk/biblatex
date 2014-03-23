@@ -1,6 +1,7 @@
 % -*- mode: LaTeX -*-
 
 \newbool{dmskipout}%
+\newbool{dmlabelfield}%
 \newbool{variants}%
 
 % Data model .bcf output macros
@@ -65,6 +66,7 @@
   \global\cslet{blx@biber@datamodel@entrytypes}\@empty}
 
 \newrobustcmd*{\ResetDatamodelFields}{%
+  \global\cslet{blx@biber@datamodel@labelfields}\@empty
   \global\cslet{blx@bcf@datamodel@fields}\@empty
   \global\cslet{blx@biber@datamodel@fields}\@empty
   \global\cslet{blx@biber@datamodel@names}\@empty
@@ -107,10 +109,19 @@
   \let\blx@dm@datatype\@empty
   \let\blx@dm@format\@empty
   \boolfalse{dmskipout}%
+  \boolfalse{dmlabelfield}%
   \boolfalse{variants}%
   \let\blx@tempa\@empty
   \setkeys{blx@datamodel@field}{#1}%
   \def\do##1{%
+    \ifboolexpr{% add to list of label fields
+      not bool {dmskipout}
+      and
+      bool {dmlabelfield}
+      and
+      not test {\ifinlistcs{##1}{blx@biber@datamodel@labelfields}}}
+        {\listcsgadd{blx@biber@datamodel@labelfields}{##1}}
+        {}%
     \ifboolexpr{% add to list of variants fields
       bool {variants}
       and
@@ -183,6 +194,11 @@
   \ifstrequal{#1}{true}  
     {\appto\blx@tempa{ skip\string_output="true"}%
      \booltrue{dmskipout}}
+    {}}
+\define@key{blx@datamodel@field}{label}[true]{% true|false
+  \ifstrequal{#1}{true}
+    {\appto\blx@tempa{ label="true"}%
+     \booltrue{dmlabelfield}}
     {}}
 \define@key{blx@datamodel@field}{variants}[true]{% true|false
   \ifstrequal{#1}{true}  
@@ -390,9 +406,6 @@
   reprinttitle,
   series,
   shorthandintro,
-  shortjournal,
-  shortseries,
-  shorttitle,
   subtitle,
   title,
   titleaddon,
@@ -430,6 +443,12 @@
   version,
   volume,
   volumes}
+
+\DeclareDatamodelFields[type=field, datatype=literal, label=true]{
+  shorthand,
+  shortjournal,
+  shortseries,
+  shorttitle}
 
 \DeclareDatamodelFields[type=field, datatype=datepart, nullok]{
   urlendyear,
@@ -475,10 +494,14 @@
   introduction,
   shortauthor,
   shorteditor,
-  translator,
   namea,
   nameb,
-  namec}
+  namec,
+  translator}
+
+\DeclareDatamodelFields[type=list, datatype=name, label=true, variants]{
+  shortauthor,
+  shorteditor}
 
 \DeclareDatamodelFields[type=list, datatype=name, skipout]{sortname}
 
