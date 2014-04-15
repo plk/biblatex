@@ -710,7 +710,7 @@ In datasources such as a \file{bib} file, all bibliographic data is specified in
 
 You can ignore this section if you do not need to prepare multilingual bibliographies which need to present more than one language variant of bibliography entries or parts of entries. The extended field variant syntax and options are backwards compatible with standard \bibtex format and \biblatex macros.
 
-To support multilingual bibliographies, data fields can have one or more \emph{variants}. A variant is a combination of a \emph{form} and a \emph{language}. There are four supported forms:
+To support multilingual bibliographies, data fields can have one or more \emph{variants}. A variant is a combination of a \emph{form} and a \emph{language}. This information is used by \biber to perform some consistency and validity checks but mostly it is for use by styles which might decide to present different form or language variants of a field in addition to the most common form or variant (displaying a translated form of a field in addition to the original field, for example). Another use case is for styles which need to format certain form or language variants of a field in a particular way, for example names in languages which default always to <Last First>. By default, there are four supported forms:
 
 \begin{description}
 \item[original] The default form for all fields which support variants.
@@ -718,6 +718,22 @@ To support multilingual bibliographies, data fields can have one or more \emph{v
 \item[romanised] A romanised form of a field whose original is in a non roman script.
 \item[uniform] A version of a, for example, name field which is more readily exchangeable. This is important for citation counting systems which need to be able to match names, for example. Such a form of a proper name is not really «translation» and often does not need a language specified.
 \end{description}
+
+The list of supported forms can be customised using \cmd{DeclareVariantforms}:
+
+\begin{ltxsyntax}
+
+\cmditem{DeclareVariantforms}{forms}|\BiberOnlyMark|
+
+Declares the (csv format) list of valid variant forms.
+
+\end{ltxsyntax}
+
+If there is no \cmd{DeclareVariantforms} specification, the default is
+
+\begin{lstlisting}[style=latex]{}
+\DeclareVariantforms{original,translated,romanised,uniform}
+\end{lstlisting}
 
 The supported languages for a variant are any of the supported Babel/Polyglossia language identifiers and these are used to switch languages on a per-variant basis, if required. \biber supports specification of field variants with an entry in a backwards compatible manner so that existing \file{.bib} databases, do not need to be modified. The format for this in \bibtex format bibliography databases is described in the \biber documentation. A variant enabled field given in the database without any variant specification defaults to the values of the \opt{vform} and \opt{vlang} package/per-entry options. When the form «translated» is selected, the language defaults to the value of the \opt{vtranslang} package/per-entry option. When writing the \file{.bbl}, \biber will set the \opt{form} and \opt{lang} options on the field, copying these from the data source with the exception that data source entries having a \opt{form} identical to the \opt{vform} have their form omitted in the \file{.bbl}. The same applies to the \opt{lang} option of a field and the \opt{vlang} option. See \secref{use:opt:pre:gen}.
 
@@ -2558,9 +2574,9 @@ Note that setting \kvopt{texencoding}{\prm{encoding}} will also affect the \opt{
 
 Similar to the \opt{date} option but controls the format of the \bibfield{urldate}.
 
-\optitem[original]{vform}{\opt{original}, \opt{translated}, \opt{romanised}, \opt{uniform}}[\BiberOnly]
+\optitem[original]{vform}{\prm{form}}[\BiberOnly]
 
-In macros which support selecting a variant of a data field, the default form to be selected when no form is specified. Can also be set per-entry. See \secref{bib:fld:var}. 
+In macros which support selecting a variant of a data field, the default form to be selected when no form is specified. Can also be set per-entry. See \secref{bib:fld:var}. For allowed variant forms, see \secref{bib:fld:var}.
 
 \optitem{vlang}{\prm{language}}[\BiberOnly]
 
@@ -2884,11 +2900,11 @@ Setting this option is equivalent to \kvopt{uniquename}{false}, \kvopt{uniquelis
 
 Specifies the field to consider first when looking for a \bibfield{labelname} candidate. It is essentially prepended to the search list created by \cmd{DeclareLabelname} for just this entry.
 
-\choitem[original]{labelnameform}{original,translated,romanised,uniform}
+\choitem[original]{labelnameform}{\prm{form}}
 
-Specifies the form for the variant enabled field specified with \opt{labelnamefield}, if the datasource you are using supports this.
+Specifies the form for the variant enabled field specified with \opt{labelnamefield}, if the datasource you are using supports this. For allowed variant forms, see \secref{bib:fld:var}.
 
-\choitem[none]{labelnamelang}{<language specifier>}
+\choitem[none]{labelnamelang}{\prm{language specifier}}
 
 Specifies the \sty{babel}/\sty{polyglossia} language for the variant enabled field specified with \opt{labelnamefield} if the datasource you are using supports this. The default, if no \prm{lang} option is set, this means to use the field variant in the datasource which has no explicit language defined.
 
@@ -2896,11 +2912,11 @@ Specifies the \sty{babel}/\sty{polyglossia} language for the variant enabled fie
 
 Specifies the field to consider first when looking for a \bibfield{labeltitle} candidate. It is essentially prepended to the search list created by \cmd{DeclareLabeltitle} for just this entry.
 
-\choitem[original]{labeltitleform}{original,translated,romanised,uniform}
+\choitem[original]{labeltitleform}{\prm{form}}
 
-Specifies the form for the variant enabled field specified with \opt{labeltitlefield}, if the datasource you are using supports this.
+Specifies the form for the variant enabled field specified with \opt{labeltitlefield}, if the datasource you are using supports this. For allowed variant forms, see \secref{bib:fld:var}.
 
-\choitem[none]{labeltitlelang}{<language specifier>}
+\choitem[none]{labeltitlelang}{\prm{language specifier}}
 
 Specifies the \sty{babel}/\sty{polyglossia} language for the variant enabled field specified with \opt{labeltitlefield} if the datasource you are using supports this. The default, if no \prm{lang} option is set, means to use the field variant in the datasource which has no explicit language defined.
 
@@ -6337,10 +6353,10 @@ A mapping step. Each step is applied sequentially to every relevant entry where 
 \valitem{typesource}{entrytype}
 \valitem{typetarget}{entrytype}
 \valitem{fieldsource}{entryfield}
-\valitem{fieldsourceform}{original,translated,romanised,uniform}
+\valitem{fieldsourceform}{form}
 \valitem{fieldsourcelang}{language}
 \valitem{fieldtarget}{entryfield}
-\valitem{fieldtargetform}{original,translated,romanised,uniform}
+\valitem{fieldtargetform}{form}
 \valitem{fieldtargetlang}{language}
 \valitem{match}{regexp}
 \valitem{notmatch}{regexp}
@@ -6996,9 +7012,9 @@ Only use this \cmd{field} specification if it is a name list field with \texttt{
 
 By default, for name list fields, the number of names considered when building the label obeys the \cnt{maxalphanames}\slash \cnt{minalphanames} truncation. This option can be used to override this with an explicit upper limit of how many names to consider. This is useful if you have some very long name lists which might result in a very long label.
 
-\choitem[original]{form}{original,translated,romanised,uniform}
+\choitem[original]{form}{\prm{form}}
 
-Specifies the form for the variant enabled field specified with \opt{field}, if the datasource you are using supports this. If absent, default to the value of the \opt{vform} option. See \secref{bib:fld:var} and \secref{use:opt:pre:gen}.
+Specifies the form for the variant enabled field specified with \opt{field}, if the datasource you are using supports this. If absent, default to the value of the \opt{vform} option. See \secref{bib:fld:var} and \secref{use:opt:pre:gen}. For allowed variant forms, see \secref{bib:fld:var}.
 
 \choitem[none]{lang}{\prm{language}}
 
@@ -7267,9 +7283,9 @@ The \cmd{field} element adds a \prm{field} to the sorting specification. If the 
 
 \begin{optionlist*}
 
-\choitem[original]{form}{original,translated,romanised,uniform}
+\choitem[original]{form}{\prm{form}}
 
-Specifies the form for the variant enabled field specified with \opt{field}, if the datasource you are using supports this. If absent, default to the value of the \opt{vform} option. See \secref{bib:fld:var} and \secref{use:opt:pre:gen}.
+Specifies the form for the variant enabled field specified with \opt{field}, if the datasource you are using supports this. If absent, default to the value of the \opt{vform} option. See \secref{bib:fld:var} and \secref{use:opt:pre:gen}. For allowed variant forms, see \secref{bib:fld:var}.
 
 \choitem[none]{lang}{\prm{language}}
 
@@ -7301,9 +7317,9 @@ Performs a substring match on the \texttt{left} or \texttt{right} side of the fi
 
 The number of characters to match.
 
-\choitem[original]{form}{original,translated,romanised,uniform}
+\choitem[original]{form}{\prm{form}}
 
-Specifies the form for the variant enabled field specified with \opt{field}, if the datasource you are using supports this. If absent, default to the value of the \opt{vform} option. See \secref{bib:fld:var} and \secref{use:opt:pre:gen}.
+Specifies the form for the variant enabled field specified with \opt{field}, if the datasource you are using supports this. If absent, default to the value of the \opt{vform} option. See \secref{bib:fld:var} and \secref{use:opt:pre:gen}. For allowed variant forms, see \secref{bib:fld:var}.
 
 \choitem[none]{lang}{\prm{language}}
 
@@ -7608,9 +7624,9 @@ The \bibfield{labelname} field may be customized globally or on a per-type basis
 
 \begin{optionlist*}
 
-\choitem[original]{form}{original,translated,romanised,uniform}
+\choitem[original]{form}{\prm{form}}
 
-Specifies the form for the variant enabled field specified with \opt{field}, if the datasource you are using supports this. If absent, default to the value of the \opt{vform} option. See \secref{bib:fld:var} and \secref{use:opt:pre:gen}.
+Specifies the form for the variant enabled field specified with \opt{field}, if the datasource you are using supports this. If absent, default to the value of the \opt{vform} option. See \secref{bib:fld:var} and \secref{use:opt:pre:gen}. For allowed variant forms, see \secref{bib:fld:var}.
 
 \choitem[none]{lang}{\prm{language}}
 
@@ -7661,9 +7677,9 @@ The \bibfield{labeltitle} field may be customized globally or on a per-type basi
 
 \begin{optionlist*}
 
-\choitem[original]{form}{original,translated,romanised,uniform}
+\choitem[original]{form}{\prm{form}}
 
-Specifies the form for the variant enabled field specified with \opt{field}, if the datasource you are using supports this. If absent, default to the value of the \opt{vform} option. See \secref{bib:fld:var} and \secref{use:opt:pre:gen}.
+Specifies the form for the variant enabled field specified with \opt{field}, if the datasource you are using supports this. If absent, default to the value of the \opt{vform} option. See \secref{bib:fld:var} and \secref{use:opt:pre:gen}. For allowed variant forms, see \secref{bib:fld:var}.
 
 \choitem[none]{lang}{\prm{language}}
 
@@ -7721,19 +7737,19 @@ Defines an inheritance rule by mapping a \prm{source} field to a \prm{target} fi
 
 \boolitem[false]{override} Per-field value of the option mentioned above. If set here, it takes precedence over any global options set with \cmd{DefaultInheritance}.
 
-\choitem[original]{sourceform}{original,translated,romanised,uniform}
+\choitem[original]{sourceform}{\prm{form}}
 
-Specifies the form for the variant enabled field specified with \opt{source}, if the datasource you are using supports this.
+Specifies the form for the variant enabled field specified with \opt{source}, if the datasource you are using supports this. For allowed variant forms, see \secref{bib:fld:var}.
 
-\choitem[none]{sourcelang}{<language specifier>}
+\choitem[none]{sourcelang}{\prm{language specifier}}
 
 Specifies the \sty{babel}/\sty{polyglossia} language for the variant enabled field specified with \opt{source} if the datasource you are using supports this. The default, if no \prm{lang} option is set, means to use the field variant in the datasource which has no explicit language defined.
 
-\choitem[original]{targetform}{original,translated,romanised,uniform}
+\choitem[original]{targetform}{\prm{form}}
 
-Specifies the form for the variant enabled field specified with \opt{target}, if the datasource you are using supports this.
+Specifies the form for the variant enabled field specified with \opt{target}, if the datasource you are using supports this. For allowed variant forms, see \secref{bib:fld:var}.
 
-\choitem[none]{targetlang}{<language specifier>}
+\choitem[none]{targetlang}{\prm{language specifier}}
 
 Specifies the \sty{babel}/\sty{polyglossia} language for the variant enabled field specified with \opt{target} if the datasource you are using supports this. The default, if no \prm{lang} option is set, means to use the field variant in the datasource which has no explicit language defined.
 

@@ -9701,6 +9701,9 @@
   ~~~~~~<bcf:value order="#1"#2%
   >#3</bcf:value>\blx@nl}
 
+\xdef\blx@xml@value#1{%
+  ~~~~~~<bcf:value>#1</bcf:value>\blx@nl}
+
 \xdef\blx@xml@sourcemap#1{%
   ~~<bcf:sourcemap>\blx@nl
   #1%
@@ -9851,6 +9854,7 @@
     \blx@xml@svalue{sortscheme}{\blx@sorting}%
     \blx@xml@svalue{uniquelist}{\blx@uniquelist}%
     \blx@xml@svalue{uniquename}{\blx@uniquename}%
+    \blx@xml@mvalue{variantforms}{\blx@bcf@variantforms}%
     \blx@xml@toggle{useauthor}%
     \blx@xml@toggle{useeditor}%
     \blx@xml@toggle{useprefix}%
@@ -10039,6 +10043,18 @@
     \immediate\closeout\blx@bcfout}}
 
 %% Customisation
+
+% variant forms
+\newrobustcmd*{\DeclareVariantforms}[1]{%
+  \begingroup
+  \let\blx@tempa\@empty
+  \def\do##1{%
+    \eappto\blx@tempa{%
+      \blx@xml@value{##1}}}%
+  \docsvlist{#1}%
+  \global\cslet{blx@bcf@variantforms}\blx@tempa
+  \endgroup}
+\@onlypreamble\DeclareVariantforms
 
 % nosort
 \newrobustcmd*{\DeclareNosort}[1]{%
@@ -10275,7 +10291,7 @@
   \eappto\blx@tempb{%
     \blx@xml@labelalpha@part{\blx@tempc}{#2}}}
 
-% script form - original | translated | romanised | uniform
+% script form
 \define@key{blx@latem@field}{form}{%
   \appto\blx@tempc{ form="#1"}}
 \define@key{blx@latem@field}{lang}{%
@@ -10527,7 +10543,7 @@
   \eappto\blx@tempb{%
     \blx@xml@sortitem{\blx@tempd}{#2}}}
 
-% script form - original | translated | romanised | uniform
+% script form
 \define@key{blx@sortdef@field}{form}{%
   \appto\blx@tempd{ form="#1"}}
 \define@key{blx@sortdef@field}{lang}{%
