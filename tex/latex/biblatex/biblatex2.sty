@@ -110,7 +110,10 @@
     {}%
   \listxadd\blx@vlangs{\blx@languagename}%
   \edef\blx@vlang{\blx@languagename}%
-  \ifundef\blx@vtranslang{\edef\blx@vtranslang{\blx@languagename}}{}% default
+  \edef\blx@ovlang{\blx@languagename}%
+  \ifundef\blx@vtranslang{%
+    \edef\blx@vtranslang{\blx@languagename}%
+    \edef\blx@ovtranslang{\blx@languagename} }{}% default
   \csuse{abx@extras@\blx@languagename}%
   \csuse{abx@strings@\blx@languagename}%
   \undef\blx@mkautolangbabel
@@ -4580,6 +4583,11 @@
 \blx@regimcs{%
   \printtext \printfield \printlist \printnames \printfile
   \indexfield \indexlist \indexnames \entrydata \entryset}
+
+% Allow global switching of default form/lang aft
+\def\vform#1{\def\blx@vform{#1}}
+\def\vlang#1{\def\blx@vlang{#1}}
+\def\vtranslang#1{\def\blx@vtranslang{#1}}
 
 %% Localization
 
@@ -9845,9 +9853,9 @@
     \blx@xml@svalue{minbibnames}{\blx@minbibnames}%
     \blx@xml@svalue{mincitenames}{\blx@mincitenames}%
     \blx@xml@svalue{minitems}{\blx@minitems}%
-    \blx@xml@svalue{vform}{\blx@vform}%
-    \blx@xml@svalue{vlang}{\blx@vlang}%
-    \blx@xml@svalue{vtranslang}{\blx@vtranslang}%
+    \blx@xml@svalue{vform}{\blx@ovform}%
+    \blx@xml@svalue{vlang}{\blx@ovlang}%
+    \blx@xml@svalue{vtranslang}{\blx@ovtranslang}%
     \blx@xml@toggle{singletitle}%
     \blx@xml@svalue{sortalphaothers}{\sortalphaothers}%
     \blx@xml@svalue{sortlocale}{\blx@sortlocale}%
@@ -10808,15 +10816,21 @@
   \blx@warning@noline{%
     sortlos option is deprecated, use 'sorting' option to \string\printbiblist}}
 
+% Global options set two internal options, one which must be passed through
+% to biber, (the o* options) and a normal one which can be changed in the
+% document in order to easily change globally which variant \print* use
 \DeclareBibliographyOption{vform}{%
- \def\blx@vform{#1}
+ \def\blx@vform{#1}%
+ \def\blx@ovform{#1}
  \listgadd\blx@vforms{#1}}
 \DeclareEntryOption{vform}{%
   \def\blx@vform{#1}}
 \DeclareEntryOption{vlang}{%
-  \def\blx@vlang{#1}}
+  \def\blx@vlang{#1}%
+  \def\blx@ovlang{#1}}
 \DeclareBibliographyOption{vtranslang}{%
- \def\blx@vtranslang{#1}}
+ \def\blx@vtranslang{#1}%
+ \def\blx@ovtranslang{#1}}
 \DeclareEntryOption{vtranslang}{%
  \def\blx@vtranslang{#1}}
 
