@@ -723,7 +723,7 @@ The list of supported forms can be customised using \cmd{DeclareVariantforms}:
 
 \begin{ltxsyntax}
 
-\cmditem{DeclareVariantforms}{forms}|\BiberOnlyMark|
+\cmditem{DeclareVariantforms}{forms}\BiberOnlyMark
 
 Declares the (csv format) list of valid variant forms. \biber will ignore any field form variants not specified by this macro.
 
@@ -734,6 +734,8 @@ If there is no \cmd{DeclareVariantforms} specification, the default is
 \begin{lstlisting}[style=latex]{}
 \DeclareVariantforms{original,translated,romanised,uniform}
 \end{lstlisting}
+%
+If you wish to customise this, be sure to keep these defaults in your specification---they must be present.
 
 The supported languages for a variant are any of the supported Babel/Polyglossia language identifiers and these are used to switch languages on a per-variant basis, if required. \biber supports specification of field variants with an entry in a backwards compatible manner so that existing \file{.bib} databases, do not need to be modified. The format for this in \bibtex format bibliography databases is described in the \biber documentation. A variant enabled field given in the database without any variant specification defaults to the values of the \opt{vform} and \opt{vlang} package/per-entry options. When the form «translated» is selected, the language defaults to the value of the \opt{vtranslang} package/per-entry option. When writing the \file{.bbl}, \biber will set the \opt{form} and \opt{lang} options on the field, copying these from the data source with the exception that data source entries having a \opt{form} identical to the \opt{vform} have their form omitted in the \file{.bbl}. The same applies to the \opt{lang} option of a field and the \opt{vlang} option. See \secref{use:opt:pre:gen}.
 
@@ -864,10 +866,9 @@ would result in the \bibfield{author} being set to «Jack Jones».
 There are a few helper macros which reset \opt{vform}, \opt{vlang} and \opt{vtranslang} globally within \biblatex (but don't change what is passed to \biber which always gets the global package settings or defaults for these options).
 
 \begin{ltxsyntax}
-
-\cmditem{vform}{form}|\BiberOnlyMark|
-\cmditem{vlang}{lang}|\BiberOnlyMark|
-\cmditem{vtranslang}{lang}|\BiberOnlyMark|
+\cmditem{vform}{form}\BiberOnlyMark
+\cmditem{vlang}{lang}\BiberOnlyMark
+\cmditem{vtranslang}{lang}\BiberOnlyMark
 
 These macros redefine globally the default \opt{vform}, \opt{vlang} or \opt{vtranslang} options. This is useful since the \cmd{print*} macros use these defaults in case no explicit option is passed and so you could print two bibliographies, one for the \opt{original} field variant forms and one for the \opt{romanised} forms like this:
 \end{ltxsyntax}
@@ -878,6 +879,33 @@ These macros redefine globally the default \opt{vform}, \opt{vlang} or \opt{vtra
 \vform{romanised}
 \printbibliography
 \end{lstlisting}
+%
+You might want to switch these global settings but only in order to pick up fields which have the specified forms/langs. This is the purpose of the \cmd{vfallback*} commands:
+
+\begin{ltxsyntax}
+\cmditem{vfallbackon}\BiberOnlyMark
+\cmditem{vfallbackoff}\BiberOnlyMark
+\end{ltxsyntax}
+%
+Use \cmd{vfallbackon} to turn variant fallback on and \cmd{vfallbackoff} to turn it off. The default is \cmd{vfallbackon}. Variant fallback means that if a particular variant is not found for a field, a fallback will be looked for using the global default form and lang (specified via the package options). Such a fallback ignores any currently modified global values set by using \cmd{vform}, \cmd{vlang} or \cmd{vtranslang}. For example, perhaps you have an entry like this:
+
+\begin{lstlisting}[style=bibtex]{}
+author = {Alan Smith},
+title = {Un Titel}
+title_translated_english = {A title}
+\end{lstlisting}
+%
+You could print two bibliographies, one with french titles and one with english. Assuming that your package \opt{vlang} option is set to <\opt{french}>:
+
+\begin{lstlisting}[style=latex]{}
+\printbibliography
+\selectlanguage{english}
+\vform{translated}
+\vtranslang{english}
+\printbibliography
+\end{lstlisting}
+%
+Since \cmd{vfallbackon} is enabled by default, this means that even though the \bibfield{author} has no \opt{translated/english} variant (as it is by default \opt{original/french} due to the package options), it will be used anyway as a fallback. With \cmd{vfallbackoff}, the entry in the second bibliography would be missing the \bibfield{author} field since there is no \opt{translated/english} author field.
 
 Data source field form and language variant support is only possible when using \biber.
 
@@ -3684,7 +3712,7 @@ In addition to the \bibtype{set} entry type, \biblatex also supports dynamic ent
 
 \begin{ltxsyntax}
 
-\cmditem{defbibentryset}{key}{key1,key2,key3, \dots}|\BiberOnlyMark|
+\cmditem{defbibentryset}{key}{key1,key2,key3, \dots}\BiberOnlyMark
 
 The \prm{key} is the entry key of the set, which is used like any other entry key when referring to the set. The \prm{key} must be unique and it must not conflict with any other entry key. The second argument is a comma"=separated list of the entry keys which make up the set. \cmd{defbibentryset} implies the equivalent of a \cmd{nocite} command, \ie all sets which are declared are also added to the bibliography. When declaring the same set more than once, only the first invocation of \cmd{defbibentryset} will define the set. Subsequent definitions of the same \prm{key} are ignored and work like \cmd{nocite}\prm{key}. Dynamic entry sets defined in the document body are local to the enclosing \env{refsection} environment, if any. Otherwise, they are assigned to reference section~0. Those defined in the preamble are assigned to reference section~0. Note that dynamic entry sets require \biber. They will not work with any other backend. See \secref{use:use:set} for further details.
 
@@ -4229,13 +4257,13 @@ The separator inserted between <units> in the sense explained in \secref{aut:pct
 \csitem{finentrypunct}
 The punctuation printed at the very end of every bibliography entry, usually a period. The default definition is a period.
 
-\csitem{entrysetpunct}|\BiberOnlyMark|
+\csitem{entrysetpunct}\BiberOnlyMark
 The punctuation printed between bibliography subentries of an entry set. The default definition is a semicolon and a space.
 
-\csitem{bibnamedelima}|\BiberOnlyMark|
+\csitem{bibnamedelima}\BiberOnlyMark
 This delimiter controls the spacing between the elements which make up a name part. It is inserted automatically after the first name element if the element is less than three characters long and before the last element. The default definition is an interword space penalized by the value of the \cnt{highnamepenalty} counter (\secref{use:fmt:len}). Please refer to \secref{use:cav:nam} for further details.
 
-\csitem{bibnamedelimb}|\BiberOnlyMark|
+\csitem{bibnamedelimb}\BiberOnlyMark
 This delimiter is inserted between the elements which make up a name part where \cmd{bibnamedelima} does not apply. The default definition is an interword space penalized by the value of the \cnt{lownamepenalty} counter (\secref{use:fmt:len}). Please refer to \secref{use:cav:nam} for further details.
 
 \csitem{bibnamedelimc}
@@ -4244,16 +4272,16 @@ This delimiter controls the spacing between name parts. It is inserted between t
 \csitem{bibnamedelimd}
 This delimiter is inserted between all name parts where \cmd{bibnamedelimc} does not apply. The default definition is an interword space penalized by the value of the \cnt{lownamepenalty} counter (\secref{use:fmt:len}). Please refer to \secref{use:cav:nam} for further details.
 
-\csitem{bibnamedelimi}|\BiberOnlyMark|
+\csitem{bibnamedelimi}\BiberOnlyMark
 This delimiter replaces \cmd{bibnamedelima/b} after initials. Note that this only applies to initials given as such in the \file{bib} file, not to the initials automatically generated by \biblatex which use their own set of delimiters.
 
-\csitem{bibinitperiod}|\BiberOnlyMark|
+\csitem{bibinitperiod}\BiberOnlyMark
 The punctuation inserted after initials unless \cmd{bibinithyphendelim} applies. The default definition is a period (\cmd{adddot}). Please refer to \secref{use:cav:nam} for further details.
 
-\csitem{bibinitdelim}|\BiberOnlyMark|
+\csitem{bibinitdelim}\BiberOnlyMark
 The spacing inserted between multiple initials unless \cmd{bibinithyphendelim} applies. The default definition is an unbreakable interword space. Please refer to \secref{use:cav:nam} for further details.
 
-\csitem{bibinithyphendelim}|\BiberOnlyMark|
+\csitem{bibinithyphendelim}\BiberOnlyMark
 The punctuation inserted between the initials of hyphenated name parts, replacing \cmd{bibinitperiod} and \cmd{bibinitdelim}. The default definition is a period followed by an unbreakable hyphen. Please refer to \secref{use:cav:nam} for further details.
 
 \csitem{bibindexnamedelima}
@@ -4362,7 +4390,7 @@ The delimiter printed between the author\slash editor and the year by author-yea
 \csitem{labelalphaothers}
 A string to be appended to the non"=numeric portion of the \bibfield{labelalpha} field (\ie the field holding the citation label used by alphabetic citation styles) if the number of authors\slash editors exceeds the \opt{maxalphanames} threshold or the \bibfield{author}\slash \bibfield{editor} list was truncated in the \file{bib} file with the keyword <\texttt{and others}>. This will typically be a single character such as a plus sign or an asterisk. The default is a plus sign. This command may also be redefined to an empty string to disable this feature. In any case, it must be redefined in the preamble.
 
-\csitem{sortalphaothers}|\BiberOnlyMark|
+\csitem{sortalphaothers}\BiberOnlyMark
 Similar to \cmd{labelalphaothers} but used in the sorting process. Setting it to a different value is advisable if the latter contains formatting commands, for example:
 
 \begin{lstlisting}[style=latex]{}
@@ -4423,7 +4451,7 @@ The commands in this section are language specific. When redefining them, you ne
 
 The language specific dash to be used for ranges of numbers.
 
-\csitem{bibrangessep}|\BiberOnlyMark|
+\csitem{bibrangessep}\BiberOnlyMark
 
 The language specific separator to be used between multiple ranges.
 
@@ -6307,7 +6335,7 @@ in a defined order. See the \biblatex\ manual regarding these macros:\\[2ex]
 
 \begin{ltxsyntax}
 
-\cmditem{DeclareSourcemap}{specification}|\BiberOnlyMark|
+\cmditem{DeclareSourcemap}{specification}\BiberOnlyMark
 
 Defines source data modification (mapping) rules which can be used to perform any combination of the following tasks:
 
@@ -6435,7 +6463,7 @@ be changed (used as \texttt{fieldset}, \texttt{fieldtarget} or changed using \te
 
 \begin{ltxsyntax}
 
-\cmditem{DeclareStyleSourcemap}{specification}|\BiberOnlyMark|
+\cmditem{DeclareStyleSourcemap}{specification}\BiberOnlyMark
 
 This command sets the source mappings used by a style. Such mappings are conceptually separate from user mappings defined with \cmd{DeclareSourcemap} and are applied directly after user maps. The syntax is identical to \cmd{DeclareSourcemap}. This command is provided for style authors so that any maps defined for the style do not interfere with user maps or the default driver maps defined with \cmd{DeclareDriverSourcemap}. This command is for use in style files and can only be used once---subsequent uses will overwrite earlier definitions.
 
@@ -6443,7 +6471,7 @@ This command sets the source mappings used by a style. Such mappings are concept
 
 \begin{ltxsyntax}
 
-\cmditem{DeclareDriverSourcemap}[datatype=driver]{specification}|\BiberOnlyMark|
+\cmditem{DeclareDriverSourcemap}[datatype=driver]{specification}\BiberOnlyMark
 
 This command sets the driver default source mappings for the specified \prm{driver}. Such mappings are conceptually separate from user mappings defined with \cmd{DeclareSourcemap} and style mapping defined with \cmd{DeclareStyleSourcemap}. They consist of mappings which are part of the driver setup. Users should not normally need to change these. Driver default mapping are applied after user mappings (\cmd{DeclareSourcemap}) and style mappings (\cmd{DeclareStyleSourcemap}). These defaults are described in Appendix \secref{apx:maps}. The \prm{specification} is identical to that for \cmd{DeclareSourcemap} but without the \cmd{maps} elements: the \prm{specification} is just a list of \cmd{map} elements since each \cmd{DeclareDriverSourcemap} only applies to one datatype driver. See the default definitions in Appendix \secref{apx:maps} for examples.
 
@@ -6717,7 +6745,7 @@ This example assumes you have created a field called \bibfield{autourl} using th
 %
 Any entry with a \bibfield{title} field matching <A Title> will be completely ignored.
 %
-\subsubsection{Data Model Specification}|\BiberOnlyMark|
+\subsubsection{Data Model Specification}\BiberOnlyMark
 \label{aut:ctm:dm}
 
 The data model which \biblatex uses consists of four main elements:
@@ -6752,7 +6780,7 @@ Alternatively, the name of the data model file can be different from any of the 
 
 \begin{ltxsyntax}
 
-\cmditem{DeclareDatamodelEntrytypes}[options]{entrytypes}|\BiberOnlyMark|
+\cmditem{DeclareDatamodelEntrytypes}[options]{entrytypes}\BiberOnlyMark
 
 Declares the comma"=separated list of \prm{entrytypes} to be valid entrytypes in the data model. As usual in \tex csv lists, make sure each element is immediately followed by a comma or the closing brace---no extraneous whitespace.
 
@@ -6764,7 +6792,7 @@ This entrytype is not output to the \file{.bbl}. Typically used for special entr
 
 \end{optionlist*}
 
-\cmditem{DeclareDatamodelFields}[options]{fields}|\BiberOnlyMark|
+\cmditem{DeclareDatamodelFields}[options]{fields}\BiberOnlyMark
 
 Declares the comma"=separated list of \prm{fields} to be valid fields in the data model with associated comma"=separated \prm{options}. The \prm{type} and \prm{datatype} options are mandatory. All valid \prm{options} are:
 
@@ -6796,11 +6824,11 @@ The field can be used as a label in a bibliography or bibliography list. Specify
 
 \end{optionlist*}
 
-\cmditem{DeclareDatamodelEntryfields}[entrytypes]{fields}|\BiberOnlyMark|
+\cmditem{DeclareDatamodelEntryfields}[entrytypes]{fields}\BiberOnlyMark
 
 Declares that the comma"=separated list of \prm{fields} is valid for the comma"=separated list of \prm{entrytypes}. If \prm{entrytypes} is not given, the fields are valid for all entrytypes. As usual in \tex csv lists, make sure each element is immediately followed by a comma or the closing brace---no extraneous whitespace.
 
-\cmditem{DeclareDatamodelConstraints}[entrytypes]{specification}|\BiberOnlyMark|
+\cmditem{DeclareDatamodelConstraints}[entrytypes]{specification}\BiberOnlyMark
 
 If a comma"=separated list of \prm{entrytypes} is given, the constraints apply only to those entrytypes. The \prm{specification} is an undelimited list of \cmd{constraint} directives which specify a constraint. Spaces, tabs, and line endings may be used freely to visually arrange the \prm{specification}. Blank lines are not permissible.
 
@@ -6956,7 +6984,7 @@ Alphabetic styles use a label to identify bibliography entries. This label is co
 
 \begin{ltxsyntax}
 
-\cmditem{DeclareLabelalphaTemplate}[entrytype, \dots]{specification}|\BiberOnlyMark|
+\cmditem{DeclareLabelalphaTemplate}[entrytype, \dots]{specification}\BiberOnlyMark
 
 Defines the alphabetic label template for the given entrytypes. If no entrytypes are specified in the first argument, then the global label template is defined. The \prm{specification} is an undelimited list of \cmd{labelelement} directives which specify the elements used to build the label. Spaces, tabs, and line endings may be used freely to visually arrange the \prm{specification}. Blank lines are not permissible. This command may only be used in the preamble.
 
@@ -7253,7 +7281,7 @@ In addition to the predefined sorting schemes discussed in \secref{use:srt}, it 
 
 \begin{ltxsyntax}
 
-\cmditem{DeclareSortingScheme}[options]{name}{specification}|\BiberOnlyMark|
+\cmditem{DeclareSortingScheme}[options]{name}{specification}\BiberOnlyMark
 
 Defines the sorting scheme \prm{name}. The \prm{name} is the identifier passed to the \opt{sorting} option (\secref{use:opt:pre:gen}) when selecting the sorting scheme. The \cmd{DeclareSortingScheme} command supports the following optional arguments:
 
@@ -7457,11 +7485,11 @@ Finally, here is an example of a sorting scheme which overrides the global sorti
 
 \begin{ltxsyntax}
 
-\cmditem{DeclareSortExclusion}{entrytype, \dots}{field, \dots}|\BiberOnlyMark|
+\cmditem{DeclareSortExclusion}{entrytype, \dots}{field, \dots}\BiberOnlyMark
 
 Specifies fields to be excluded from sorting on a per-type basis. The \prm{entrytype} argument and the \prm{field} argument may be a comma"=separated list of values. A blank \prm{field} argument will clear all exclusions for this \prm{entrytype}. This command may only be used in the preamble.
 
-\cmditem{DeclarePresort}[entrytype, \dots]{string}|\BiberOnlyMark|
+\cmditem{DeclarePresort}[entrytype, \dots]{string}\BiberOnlyMark
 
 Specifies a string to be used to automatically populate the \bibfield{presort} field of entries without a \bibfield{presort} field. The \bibfield{presort} may be defined globally or on a per-type basis. If the optional \prm{entrytype} argument is given, the \prm{string} applies to the respective entry type. If not, it serves as the global default value. Specifying an \prm{entrytype} in conjunction with a blank \prm{string} will clear the type-specific setting. The \prm{entrytype} argument may be a comma"=separated list of values. This command may only be used in the preamble.
 
@@ -7473,7 +7501,7 @@ Specifies a string to be used to automatically populate the \bibfield{presort} f
 When using customisable bibliography lists (See \secref{use:bib:biblist}), usually one wants to return in the \file{.bbl} only those entries which have the particular fields which the bibliography list is summarising. For example, when printing a normal list of shorthands, you want the list returned by \biber in the \file{.bbl} to contain only those entries which have a \bibfield{shorthand} field. This is accomplished by defining a bibliography list filter using the \cmd{DeclareBiblistFilter} command. This differs from the filters defined using \cmd{defbibfilter} (see \secref{use:bib:flt}) since the filters defined by \cmd{defbibfilter} run inside \biblatex after the \file{.bbl} has been generated. In addition, bibliography lists in the \file{.bbl} do not contain entry data, only the citation keys for the entries and so no filtering by \biblatex using \cmd{defbibfilter} is possible for bibliography lists.
 
 \begin{ltxsyntax}
-\cmditem{DeclareBiblistFilter}{name}{specification}|\BiberOnlyMark|
+\cmditem{DeclareBiblistFilter}{name}{specification}\BiberOnlyMark
 
 Defines a bibliography list filter with \prm{name}. The \prm{specification} consists of one or more \cmd{filter} or \cmd{filteror} macros, all of which must be satisfied for the entry to pass the filter:
 
@@ -7512,7 +7540,7 @@ Generating initials for name parts from a given name involves some difficulties 
 
 \begin{ltxsyntax}
 
-\cmditem{DeclareNoinit}{specification}|\BiberOnlyMark|
+\cmditem{DeclareNoinit}{specification}\BiberOnlyMark
 
 Defines regular expressions to strip from names before generating initials. The \prm{specification} is an undelimited list of \cmd{noinit} directives which specify the regular expressions to remove from the name. Spaces, tabs and line endings may be used freely to visually arrange the \prm{specification}. Blank lines are not permissible. This command may only be used in the preamble.
 
@@ -7542,7 +7570,7 @@ It can be useful to fine tune sorting so that it ignores certain parts of partic
 
 \begin{ltxsyntax}
 
-\cmditem{DeclareNosort}{specification}|\BiberOnlyMark|
+\cmditem{DeclareNosort}{specification}\BiberOnlyMark
 
 Defines regular expressions to strip from particular fields or types of fields when sorting. The \prm{specification} is an undelimited list of \cmd{nosort} directives which specify the regular expressions to remove from particular fields or type of field. Spaces, tabs and line endings may be used freely to visually arrange the \prm{specification}. Blank lines are not permissible. This command may only be used in the preamble.
 
@@ -7624,7 +7652,7 @@ Some of the automatically generated fields from \secref{aut:bbx:fld:lab} may be 
 
 \begin{ltxsyntax}
 
-\cmditem{DeclareLabelname}[entrytype, \dots]{specification}|\BiberOnlyMark|
+\cmditem{DeclareLabelname}[entrytype, \dots]{specification}\BiberOnlyMark
 
 Defines the fields to consider when generating the \bibfield{labelname} field (see \secref{aut:bbx:fld:lab}). The \prm{specification} is an ordered list of \cmd{field} commands. The fields are checked in the order listed and the first field which is available will be used as \bibfield{labelname}. This is the default definition:
 
@@ -7663,7 +7691,7 @@ For example, the following specification for selecting \bibfield{labelname} firs
 % 
 See \secref{use:opt:bib:ded} for options to override this on a per-entry basis.
 
-\cmditem{DeclareLabeldate}[entrytype, \dots]{specification}|\BiberOnlyMark|
+\cmditem{DeclareLabeldate}[entrytype, \dots]{specification}\BiberOnlyMark
 
 Defines the date components to consider when generating \bibfield{labelyear}, \bibfield{labelmonth} and \bibfield{labelday} fields (see \secref{aut:bbx:fld:lab}). The \prm{specification} is an ordered list of \cmd{field} or \cmd{literal} commands. The items are checked in the order listed and the first item which is available will be used to popluate the \bibfield{labelyear}, \bibfield{labelmonth} and \bibfield{labelday} fields. Note that the \cmd{field} items do not have to be datetype <date> in the data model so that you can create pseudo-year labels by, for example, using a \bibfield{pubstate} field contents, if available, as the year label by defining \cmd{DeclareLabeldate} suitably. Note also that a \cmd{literal} command will always be used when found and so this should always be the last thing in the list. If the value of a \cmd{literal} command is a valid localization string, then this will be resolved in the current language, otherwise the value is used as a literal string as-is. This is the default definition:
 
@@ -7680,7 +7708,7 @@ Defines the date components to consider when generating \bibfield{labelyear}, \b
 Note that the \bibfield{date} field is split by the backend into \bibfield{year}, \bibfield{month} which are also valid fields in the default data model. In order to support legacy data which directly sets \bibfield{year} and/or \bibfield{month}, the specification <\bibfield{date}> in \cmd{DeclareLabeldate} will also match \bibfield{year} and \bibfield{month} fields, if present.
 The \bibfield{labelyear}, \bibfield{labelmonth} and \bibfield{labelday} fields may be customized globally or on a per-type basis. If the optional \prm{entrytype} argument is given, the specification applies to the respective entry type. If not, it is applied globally. The \prm{entrytype} argument may be a comma"=separated list of values. This command may only be used in the preamble. See also \secref{aut:bbx:fld:dat}.
 
-\cmditem{DeclareLabeltitle}[entrytype, \dots]{specification}|\BiberOnlyMark|
+\cmditem{DeclareLabeltitle}[entrytype, \dots]{specification}\BiberOnlyMark
 
 Defines the fields to consider when generating the \bibfield{labeltitle} field (see \secref{aut:bbx:fld:lab}). The \prm{specification} is an ordered list of \cmd{field} commands. The fields are checked in the order listed and the first field which is available will be used as \bibfield{labeltitle}. This is the default definition:
 
@@ -7725,7 +7753,7 @@ See \secref{use:opt:bib:ded} for options to override this on a per-entry basis.
 
 \begin{ltxsyntax}
 
-\cmditem{DefaultInheritance}[exceptions]{options}|\BiberOnlyMark|
+\cmditem{DefaultInheritance}[exceptions]{options}\BiberOnlyMark
 
 Configures the default inheritance behavior. This command may only be used in the preamble. The default behavior may be customized be setting the following \prm{options}:
 
@@ -7743,7 +7771,7 @@ The optional \prm{exceptions} are an undelimited list of \cmd{except} directives
 
 Sets the \prm{options} for a specific \prm{source} and \prm{target} combination. The \prm{source} and \prm{target} arguments specify the parent and the child entry type. The asterisk matches all types and is permissible in either argument.
 
-\cmditem{DeclareDataInheritance}{source, \dots}{target, \dots}{rules}|\BiberOnlyMark|
+\cmditem{DeclareDataInheritance}{source, \dots}{target, \dots}{rules}\BiberOnlyMark
 
 Declares inheritance rules. The \prm{source} and \prm{target} arguments specify the parent and the child entry type. Either argument may be a single entry type, a comma"=separated list of types, or an asterisk. The asterisk matches all entry types. The \prm{rules} are an undelimited list of \cmd{inherit} and\slash or \cmd{noinherit} directives. Spaces, tabs, and line endings may be used freely to visually arrange the \prm{rules}. Blank lines are not permissible. This command may only be used in the preamble.
 
@@ -7777,7 +7805,7 @@ Specifies the \sty{babel}/\sty{polyglossia} language for the variant enabled fie
 
 Unconditionally prevents inheritance of the \prm{source} field.
 
-\csitem{ResetDataInheritance}|\BiberOnlyMark|
+\csitem{ResetDataInheritance}\BiberOnlyMark
 
 Clears all inheritance rules defined with \cmd{DeclareDataInheritance}. This command may only be used in the preamble.
 
@@ -8260,10 +8288,10 @@ Expands to \prm{true} when located in a footnote, and to \prm{false} otherwise. 
 
 This counter indicates how many times the entry currently being processed is cited in the current reference section. Note that this feature needs to be enabled explicitly with the package option \opt{citecounter}. If the option is set to \texttt{context}, citations in the body text and in footnotes are counted separately. In this case, \cnt{citecounter} will hold the value of the context it is used in.
 
-\cntitem{uniquename}|\BiberOnlyMark|
+\cntitem{uniquename}\BiberOnlyMark
 This counter refers to the \bibfield{labelname} list. It is set on a per-name basis. Its value is \texttt{0} if the last name is unique, \texttt{1} if adding the other parts of the name (first name, prefix, suffix) as initials will make it unique, and \texttt{2} if the full name is required to disambiguate the name. This information is required by author-year and author-title citation schemes which add additional parts of the name when citing different authors with the same last name. For example, if there is one <John Doe> and one <Edward Doe> in the list of references, this counter will be set to \texttt{1}. If there is one <John Doe> and one <Jane Doe>, the value of the counter will be \texttt{2}. If the option is set to \texttt{init}\slash \texttt{allinit}\slash \texttt{mininit}, the counter will be limited to \texttt{1}. This is useful for citations styles which use initials to disambiguate names but never print the full name in citations. If adding the initials is not sufficient to disambiguate the name, \cnt{uniquename} will also be set to \texttt{0} for that name. This feature needs to be enabled explicitly with the package option \opt{uniquename}. Note that the \cnt{uniquename} counter is local to \cmd{printnames} and that it is only set for the \bibfield{labelname} list and to the name list \bibfield{labelname} has been derived from (typically \bibfield{author} or \bibfield{editor}). Its value is zero in any other context, i.e., it must be evaluated in the name formatting directives handling name lists. See \secref{aut:cav:amb} for further details and practical examples.
 
-\cntitem{uniquelist}|\BiberOnlyMark|
+\cntitem{uniquelist}\BiberOnlyMark
 This counter refers to the \bibfield{labelname} list. It is set on a per-field basis. Its value indicates the number of names required to disambiguate the name list if automatic \cnt{maxnames}\slash \cnt{minnames} truncation would lead to ambiguous citations. For example, if there is one work by <Doe\slash Smith\slash Johnson> and another one by <Doe\slash Edwards\slash Williams>, setting \kvopt{maxnames}{1} would lead to <Doe et al.> in both cases. In this case, \cnt{uniquelist} would be set to \texttt{2} on the \bibfield{labelname} lists of both entries because at least the first two names are required to disambiguate them. Note that the \cnt{uniquelist} counter is local to \cmd{printnames} and that it is only set for the \bibfield{labelname} list and to the name list \bibfield{labelname} has been derived from (typically \bibfield{author} or \bibfield{editor}). Its value is zero in any other context. If available, the \cnt{uniquelist} value will be used automatically by \cmd{printnames} when processing the name list, \ie it will automatically override \cnt{maxnames}\slash \cnt{minnames}. This feature needs to be enabled explicitly with the package option \opt{uniquelist}. See \secref{aut:cav:amb} for further details and practical examples.
 
 \cntitem{parenlevel}
@@ -9646,10 +9674,10 @@ This section corresponds to \secref{use:fmt:fmt} in the user part of the manual.
 
 \begin{ltxsyntax}
 
-\csitem{bibnamedelima}|\BiberOnlyMark|
+\csitem{bibnamedelima}\BiberOnlyMark
 This delimiter controls the spacing between the elements which make up a name part. It is inserted automatically by the backend after the first name element if the element is less than three characters long and before the last element. The default definition is \cmd{addhighpenspace}, \ie a space penalized by the value of the \cnt{highnamepenalty} counter (\secref{use:fmt:len}). Please refer to \secref{use:cav:nam} for further details.
 
-\csitem{bibnamedelimb}|\BiberOnlyMark|
+\csitem{bibnamedelimb}\BiberOnlyMark
 This delimiter controls the spacing between the elements which make up a name part. It is inserted automatically by the backend between all name elements where \cmd{bibnamedelima} does not apply. The default definition is \cmd{addlowpenspace}, \ie a space penalized by the value of the \cnt{lownamepenalty} counter (\secref{use:fmt:len}). Please refer to \secref{use:cav:nam} for further details.
 
 \csitem{bibnamedelimc}
@@ -9658,16 +9686,16 @@ This delimiter controls the spacing between name parts. The default name formats
 \csitem{bibnamedelimd}
 This delimiter controls the spacing between name parts. The default name formats use it between all name parts where \cmd{bibnamedelimc} does not apply. The default definition is \cmd{addlowpenspace}, \ie a space penalized by the value of the \cnt{lownamepenalty} counter (\secref{use:fmt:len}). Please refer to \secref{use:cav:nam} for further details.
 
-\csitem{bibnamedelimi}|\BiberOnlyMark|
+\csitem{bibnamedelimi}\BiberOnlyMark
 This delimiter replaces \cmd{bibnamedelima/b} after initials. Note that this only applies to initials given as such in the \file{bib} file, not to the initials automatically generated by \biblatex which use their own set of delimiters.
 
-\csitem{bibinitperiod}|\BiberOnlyMark|
+\csitem{bibinitperiod}\BiberOnlyMark
 The punctuation inserted automatically by the backend after all initials unless \cmd{bibinithyphendelim} applies. The default definition is a period (\cmd{adddot}). Please refer to \secref{use:cav:nam} for further details.
 
-\csitem{bibinitdelim}|\BiberOnlyMark|
+\csitem{bibinitdelim}\BiberOnlyMark
 The spacing inserted automatically by the backend between multiple initials unless \cmd{bibinithyphendelim} applies. The default definition is an unbreakable interword space. Please refer to \secref{use:cav:nam} for further details.
 
-\csitem{bibinithyphendelim}|\BiberOnlyMark|
+\csitem{bibinithyphendelim}\BiberOnlyMark
 The punctuation inserted automatically by the backend between the initials of hyphenated name parts, replacing \cmd{bibinitperiod} and \cmd{bibinitdelim}. The default definition is a period followed by an unbreakable hyphen. Please refer to \secref{use:cav:nam} for further details.
 
 \csitem{bibindexnamedelima}
@@ -9980,7 +10008,7 @@ This command strips leading zeros from a number. It is intended for date formatt
 
 A special field formatting directive which is used internally by \biblatex. When the bibliographic data is read from the \file{bbl} file, \biblatex measures the values of all \bibfield{shorthand} fields and sets the length register \cmd{shorthandwidth} to the width of the widest shorthand (see \secref{aut:fmt:ilc}). In order to determine the correct width, the package considers two factors: the definition of \cmd{bibfont} and this formatting directive. All styles should adjust this directive such that it corresponds to the format used in the list of shorthands.
 
-\optitem{<labelfield>width}|\BiberOnlyMark| 
+\optitem{<labelfield>width}\BiberOnlyMark 
 
 With \biber, for every field marked as a <Label field> in the data model, a formatting directive is created as per \texttt{shorthandwidth} above. Since \bibfield{shorthand} is so marked in the default data model, this functionality is a superset of that described for \texttt{shorthandwidth}.
 
@@ -10045,7 +10073,7 @@ The length registers and counters discussed here are used by \biblatex to pass i
 
 This length register indicates the width of the widest \bibfield{shorthand}. Bibliography styles should incorporate this length in the definition of the list of shorthands, if applicable.
 
-\lenitem{<labelfield>width}|\BiberOnlyMark|
+\lenitem{<labelfield>width}\BiberOnlyMark
 
 With \biber, for every field marked as a <Label field> in the data model, a length register is created as per \texttt{shorthandwidth} above. Since \bibfield{shorthand} is so marked in the default data model, this functionality is a superset of that described for \texttt{shorthandwidth}.
 
@@ -10179,7 +10207,7 @@ When using \biber, this is just an alias for:
 \AtBeginBiblist{shorthand}{code}
 \end{lstlisting}
 
-\cmditem{AtBeginBiblist}{biblistname}{code}|\BiberOnlyMark|
+\cmditem{AtBeginBiblist}{biblistname}{code}\BiberOnlyMark
 
 Appends the \prm{code} to an internal hook executed at the beginning of the bibliography list \prm{biblistname}. The \prm{code} is executed at the beginning of the bibliography list, immediately after the \prm{begin code} of \cmd{defbibenvironment}. This command may only be used in the preamble.
 
@@ -10197,7 +10225,7 @@ When using \biber, this is just an alias for:
 \AtEveryBiblistitem{shorthand}{code}
 \end{lstlisting}
 
-\cmditem{AtEveryBiblistitem}{biblistname}{code}|\BiberOnlyMark|
+\cmditem{AtEveryBiblistitem}{biblistname}{code}\BiberOnlyMark
 
 Appends the \prm{code} to an internal hook executed at the beginning of every item in the bibliography list named \prm{biblistname}. The \prm{code} is executed immediately after the \prm{item code} of \cmd{defbibenvironment}. The bibliographic data of the respective entry is available at this point. This command may only be used in the preamble.
 
