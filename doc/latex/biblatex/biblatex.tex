@@ -6408,9 +6408,12 @@ A mapping step. Each step is applied sequentially to every relevant entry where 
 \valitem{notmatch}{regexp}
 \valitem{replace}{regexp}
 \valitem{fieldset}{entryfield}
+\valitem{fieldsetform}{form}
+\valitem{fieldsetlang}{language}
 \valitem{fieldvalue}{string}
 \boolitem[false]{append}
 \boolitem[false]{final}
+\boolitem[false]{nogeneralisevariants}
 \boolitem[false]{null}
 \boolitem[false]{origfield}
 \boolitem[false]{origfieldval}
@@ -6427,22 +6430,61 @@ For all boolean \cmd{step} options, the short form \opt{option} is equivalent to
   select the entries which you want to apply this to using prior
   mapping steps.
 \item Change the \texttt{typesource} \prm{entrytype} to the
-  \texttt{typetarget} \prm{entrytype}, if defined. If
-  \texttt{final} is \texttt{true} then if the \prm{entrytype} of the entry is not \texttt{typesource}, processing of the parent \cmd{map} immediately terminates.
-\item Change the \texttt{fieldsource} \prm{entryfield} (optionally a particular variant specified with \texttt{fieldsourceform} and/or \texttt{fieldsourcelang}) to
-  \texttt{fieldtarget} (optionally a particular variant specified with \texttt{fieldtargetform} and/or \texttt{fieldtargetlang}), if defined. If \texttt{final} is \texttt{true} then if there is no \texttt{fieldsource} \prm{entryfield} in the entry, processing of the parent \cmd{map} immediately terminates.
-\item If \texttt{match} is defined but
-  \texttt{replace} is not, only apply the step if the \texttt{fieldsource} \prm{entryfield} matches the
-  \texttt{match} regular expression (logic is reversed if you use \texttt{notmatch} instead)\footnote{Regular expressions are full Perl 5.16 regular expressions. This means you may need to deal with special characters, see examples.}. You may use capture parenthesis as usual and refer to these (\$1\ldots\$9) in later \texttt{fieldvalue} specifications. This allows you to pull out parts of some fields and put these parts in other fields.
-\item Perform a regular expression match and replace on the value of the \texttt{fieldsource} \prm{entryfield} if \texttt{match} and \texttt{replace} are defined.
-\item If \texttt{fieldset} is defined, then its value is \prm{entryfield}
-  which will be set to a value specified by further options. If
-  \texttt{overwrite} is false for this step and the field to set already
-  exists then the map step is ignored. If \texttt{final} is also true for
-  this step, then processing of the parent map stops at this point. If
-  \texttt{append} is true, then the value to set is appended to the current
-  value of \prm{entryfield}. The value to set is specified by a mandatory
-  one and only one of the following options:
+  \texttt{typetarget} \prm{entrytype}, if defined. If \texttt{final}
+  is \texttt{true} then if the \prm{entrytype} of the entry is not
+  \texttt{typesource}, processing of the parent \cmd{map} immediately
+  terminates.
+\item Change the \texttt{fieldsource} \prm{entryfield} (optionally a
+  particular variant specified with \texttt{fieldsourceform} and/or
+  \texttt{fieldsourcelang}) to \texttt{fieldtarget} (optionally a
+  particular variant specified with \texttt{fieldtargetform} and/or
+  \texttt{fieldtargetlang}), if defined. If neither
+  \texttt{fieldsource} nor \texttt{fieldlang} are specified, all
+  variants of \texttt{fieldsource} will be mapped to corresponding
+  variants of \texttt{fieldtarget} (unless
+  \texttt{nogeneralisevariants} is defined for this step). If only
+  \texttt{fieldsourceform} is specified, the mapping will select the
+  variant of the field with the specified form, whatever the language
+  of the field variant. If there is more than one field variant with
+  the same \texttt{fieldsourceform} and different language, the
+  \texttt{fieldsource} will not be selected. If only
+  \texttt{fieldsourcelang} is specified, the mapping will select the
+  variant of the field with the specified language, whatever the form
+  of the field variant. If there is more than one field variant with
+  the same \texttt{fieldsourcelang} and different form, the
+  \texttt{fieldsource} will not be selected. If \texttt{final} is
+  \texttt{true} then if there is no \texttt{fieldsource}
+  \prm{entryfield} in the entry, processing of the parent \cmd{map}
+  immediately terminates.
+\item If \texttt{match} is defined but \texttt{replace} is not, only
+  apply the step if the \texttt{fieldsource} \prm{entryfield} matches
+  the \texttt{match} regular expression (logic is reversed if you use
+  \texttt{notmatch} instead)\footnote{Regular expressions are full
+    Perl 5.16 regular expressions. This means you may need to deal
+    with special characters, see examples.}. You may use capture
+  parenthesis as usual and refer to these (\$1\ldots\$9) in later
+  \texttt{fieldvalue} specifications. This allows you to pull out
+  parts of some fields and put these parts in other fields.
+\item Perform a regular expression match and replace on the value of
+  the \texttt{fieldsource} \prm{entryfield} if \texttt{match} and
+  \texttt{replace} are defined. If \texttt{fieldsourceform} and
+  \texttt{fieldsourcelang} are not specified, operates on all variants
+  of \texttt{fieldsource} unless \texttt{nogeneralisevariants} is
+  defined for this step.
+\item If \texttt{fieldset} is defined, then its value is
+  \prm{entryfield} which will be set to a value specified by further
+  options (optionally a specific variant chosen using
+  \texttt{fieldsetform} and \texttt{fieldsetlang}). If neither are
+  specified, all variants of \texttt{fieldset} will be operated on
+  when specifying \texttt{null} or \texttt{fieldvalue} (unless
+  \texttt{nogeneralisevariants} is defined for this step). If
+  \texttt{overwrite} is false for this step and the field to set
+  already exists then the map step is ignored. If \texttt{final} is
+  also true for this step, then processing of the parent map stops at
+  this point. If \texttt{append} is true, then the value to set is
+  appended to the current value of \prm{entryfield}. The value to set
+  is specified by a mandatory one and only one of the following
+  options:
   \begin{itemize}
     \item\ \texttt{fieldvalue} --- The \texttt{fieldset} \prm{entryfield} is set to the \texttt{fieldvalue} \prm{string}
     \item\ \texttt{null} --- The \texttt{fieldset} \prm{entryfield} is ignored, as if it did not exist in the datasource
@@ -6745,6 +6787,21 @@ This example assumes you have created a field called \bibfield{autourl} using th
 %
 Any entry with a \bibfield{title} field matching <A Title> will be completely ignored.
 %
+\begin{lstlisting}[style=latex]{}
+\DeclareSourcemap{
+  \maps[datatype=bibtex]{
+    \map{
+      \step[fieldset=<<addendum>>, null]
+    }
+    \map{
+      \step[fieldset=<<note>>, null, nogeneralisevariants]
+    }
+  }
+}
+\end{lstlisting}
+%
+Removes all variants of the \bibfield{addendum} field. Removes only the variant unqualified \bibfield{note} field, leaving any specific variants in the entry.
+
 \subsubsection{Data Model Specification}\BiberOnlyMark
 \label{aut:ctm:dm}
 
