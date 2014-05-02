@@ -355,10 +355,16 @@
 \def\thelisttotal{\the\c@listtotal}
 \newcounter{listcount}
 \def\thelistcount{\the\c@listcount}
+\newcounter{listelementcount}
+\def\thelistelementcount{\the\c@listelementcount}
 \newcounter{liststart}
 \def\theliststart{\the\c@liststart}
+\newcounter{listelementstart}
+\def\thelistelementstart{\the\c@listelementstart}
 \newcounter{liststop}
 \def\theliststop{\the\c@liststop}
+\newcounter{listelementstop}
+\def\thelistelementstop{\the\c@listelementstop}
 \newcounter{citecount}
 \def\thecitecount{\the\c@citecount}
 \newcounter{citetotal}
@@ -4084,6 +4090,10 @@
 %% Main formatting commands
 
 % [<entrytype>]{<name>}{<definiton>}
+\newrobustcmd*{\DeclareNameElementFormat}{%
+  \@ifstar
+    {\blx@defformat\blx@defnameformat{ned}*}
+    {\blx@defformat\blx@defnameformat{ned}{}}}
 \newrobustcmd*{\DeclareNameFormat}{%
   \@ifstar
     {\blx@defformat\blx@defnameformat{nfd}*}
@@ -4093,6 +4103,10 @@
     {\blx@defformat\blx@defnameformat{nid}*}
     {\blx@defformat\blx@defnameformat{nid}{}}}
 
+\newrobustcmd*{\DeclareListElementFormat}{%
+  \@ifstar
+    {\blx@defformat\blx@defplainformat{led}*}
+    {\blx@defformat\blx@defplainformat{led}{}}}
 \newrobustcmd*{\DeclareListFormat}{%
   \@ifstar
     {\blx@defformat\blx@defplainformat{lfd}*}
@@ -4193,22 +4207,30 @@
 % [<entrytype>]{<name>}
 \newrobustcmd*{\savefieldformat}[2][*]{\blx@save{abx@ffd@#1@#2}}
 \newrobustcmd*{\savelistformat}[2][*]{\blx@save{abx@lfd@#1@#2}}
+\newrobustcmd*{\savelistelementformat}[2][*]{\blx@save{abx@led@#1@#2}}
 \newrobustcmd*{\savenameformat}[2][*]{\blx@save{abx@nfd@#1@#2}}
+\newrobustcmd*{\savenameelementformat}[2][*]{\blx@save{abx@ned@#1@#2}}
 
 \newrobustcmd*{\restorefieldformat}[2][*]{\blx@restore{abx@ffd@#1@#2}}
 \newrobustcmd*{\restorelistformat}[2][*]{\blx@restore{abx@lfd@#1@#2}}
+\newrobustcmd*{\restorelistelementformat}[2][*]{\blx@restore{abx@led@#1@#2}}
 \newrobustcmd*{\restorenameformat}[2][*]{\blx@restore{abx@nfd@#1@#2}}
+\newrobustcmd*{\restorenameelementformat}[2][*]{\blx@restore{abx@ned@#1@#2}}
 
 % [<entrytype>]{<name>}{<true>}{<false>}
 \newrobustcmd*{\iffieldformatundef}[2][*]{\ifcsundef{abx@ffd@#1@#2}}
 \newrobustcmd*{\iflistformatundef}[2][*]{\ifcsundef{abx@lfd@#1@#2}}
+\newrobustcmd*{\iflistelementformatundef}[2][*]{\ifcsundef{abx@led@#1@#2}}
 \newrobustcmd*{\ifnameformatundef}[2][*]{\ifcsundef{abx@nfd@#1@#2}}
+\newrobustcmd*{\ifnameelementformatundef}[2][*]{\ifcsundef{abx@ned@#1@#2}}
 
 % [<entrytype>]{<alias>}[<entrytype>]{<name>}
 \newrobustcmd*{\DeclareNameAlias}{\blx@defalias{nfd}}
+\newrobustcmd*{\DeclareNameElementAlias}{\blx@defalias{ned}}
 \newrobustcmd*{\DeclareIndexNameAlias}{\blx@defalias{nid}}
 
 \newrobustcmd*{\DeclareListAlias}{\blx@defalias{lfd}}
+\newrobustcmd*{\DeclareListElementAlias}{\blx@defalias{led}}
 \newrobustcmd*{\DeclareIndexListAlias}{\blx@defalias{lid}}
 
 \newrobustcmd*{\DeclareFieldAlias}{\blx@defalias{ffd}}
@@ -4295,6 +4317,47 @@
        {\blx@nounit}}
     {\blx@nounit}}
 
+% [<format>]{<elem>}[<form/lang keyval>]{<namelist>}
+\DeclareDocumentCommand{\blx@imc@printnameelement}
+  {omom}
+  {\edef\Format{\IfValueTF{#1}{#1}{}}%
+   \IfNoValueTF{#3}% Have to fully expand the args before calling blx@print*
+     {\protected@edef\z{\noexpand\blx@printnameelement{\Format}{#2}{#4}}\z}
+     {\ifblank{#3}
+       {\protected@edef\z{\noexpand\blx@printnameelement{\Format}{#2}{#4}}\z}
+       {\protected@edef\z{\noexpand\blx@printnameelement{\Format}{#2}[#3]{#4}}\z}}}
+
+% {<format>}{<elem>}[<form/lang keyval>]{<namelist>}
+\DeclareDocumentCommand{\blx@printnameelement}
+  {mmom}
+  {\blx@imc@ifnameundef[#3]{#4}
+     {\blx@nounit}
+     {\begingroup% otherwise the formats in \blx@printnames are overridden
+      \blx@getformat\blx@theformat{ned}{#1}{#4}%
+      \ifdefvoid\blx@theformat
+        {\blx@nounit}
+        {\blx@begunit
+         \blx@nameelementsetup{#2}{#3}{#4}%
+         \blx@imc@ifbibfieldvx{name}{#3}{#4}
+           {\edef\currentform{\blx@tempa}%
+            \edef\currentlang{\blx@tempb}%
+             % set up language for field variant
+             \ifdef\blx@theshortlangenv
+               {\iftoggle{blx@autolangshortstrings}
+                 {\blx@langsetup{\blx@tempb}% must call this to load the .lbx
+                  \csuse{abx@extras@\blx@tempb}% now switch lang strings
+                  \csuse{abx@strings@\blx@tempb}}
+                 {}%
+                \blx@hook@initlangshort\csname\blx@theshortlangenv\expandafter\endcsname\expandafter{\blx@tempb}}
+               {}%
+            \expandafter\blx@nameelementparser\blx@thedata{}&%
+            \ifdef\blx@theshortlangenv
+              {\blx@hook@endlangshort\csname end\blx@theshortlangenv\endcsname}
+              {}}
+           {\expandafter\blx@nameelementparser\blx@thedata{}&}%
+         \blx@endunit}%
+      \endgroup}}
+
 % [<format>][<start>-<stop>][<form/lang keyval>]{<namelist>}
 \protected\def\blx@imc@printnames{%
   \blx@listargs\blx@printnames}
@@ -4328,7 +4391,27 @@
            {\expandafter\blx@nameparser\blx@thedata{}&}%
          \blx@endunit}}}
 
-% {<start>}{<stop>}{<form/lang keyval>}{<plainlist>}
+% {<elem>}{<form/lang keyval>}{<namelist>}
+\def\blx@nameelementsetup#1#2#3{%
+  \def\currentlist{#3}%
+  \let\currentform\@empty
+  \let\currentlang\@empty
+  \c@listelementcount\@ne
+  \c@listelementstart#1\relax
+  \c@listelementstop#1\relax
+  \blx@imc@ifbibfieldvx{name}{#2}{#3}
+    {\edef\currentform{\blx@tempa}%
+     \edef\currentlang{\blx@tempb}%
+     \expandafter\expandafter
+     \expandafter\blx@nameelementsetup@i\csname abx@name@#3@\blx@tempa @\blx@tempb\endcsname}
+    {\expandafter\expandafter
+     \expandafter\blx@nameelementsetup@i\csname abx@name@#3\endcsname}}
+
+\def\blx@nameelementsetup@i#1#2{%
+  % Ignore #1 which is the global name options
+  \def\blx@thedata{#2}}
+
+% {<start>}{<stop>}{<form/lang keyval>}{<namelist>}
 \def\blx@namesetup#1#2#3#4{%
   \def\currentname{#4}%
   \let\currentform\@empty
@@ -4424,6 +4507,24 @@
   \let\bibnamedelimi\bibindexnamedelimi}
 
 % {<name1>}{<name2>}{...}
+\long\def\blx@nameelementparser#1{%
+  \ifblank{#1}
+    {\blx@namebreak}
+    {\ifnum\c@listelementcount<\c@listelementstart
+     \else
+       \blx@nameelementparser@i#1%
+     \fi
+     \advance\c@listelementcount\@ne
+     \ifnum\c@listelementcount>\c@listelementstop
+       \expandafter\blx@namebreak
+     \fi
+     \blx@nameelementparser}}
+
+\long\def\blx@nameelementparser@i#1{%
+  % Ignore #1 which is the name specific options
+  \blx@theformat}
+
+% {<name1>}{<name2>}{...}
 \long\def\blx@nameparser#1{%
   \ifblank{#1}
     {\blx@namebreak}
@@ -4472,6 +4573,48 @@
          {\protected@edef\z{\noexpand#1{\Format}{\Start}{\Stop}}\z}
          {\protected@edef\z{\noexpand#1{\Format}{\Start}{\Stop}[#4]}\z}}}
 
+
+% [<format>]{<elem>}[<form/lang keyval>]{<plainlist>}
+\DeclareDocumentCommand{\blx@imc@printlistelement}
+  {omom}
+  {\edef\Format{\IfValueTF{#1}{#1}{}}%
+   \IfNoValueTF{#3}% Have to fully expand the args before calling blx@print*
+     {\protected@edef\z{\noexpand\blx@printlistelement{\Format}{#2}{#4}}\z}
+     {\ifblank{#3}
+       {\protected@edef\z{\noexpand\blx@printlistelement{\Format}{#2}{#4}}\z}
+       {\protected@edef\z{\noexpand\blx@printlistelement{\Format}{#2}[#3]{#4}}\z}}}
+
+% {<format>}{<elem>}[<form/lang keyval>]{<plainlist>}
+\DeclareDocumentCommand{\blx@printlistelement}
+  {mmom}
+  {\blx@imc@iflistundef[#3]{#4}
+     {\blx@nounit}
+     {\begingroup% otherwise the formats in \blx@printlist are overridden
+      \blx@getformat\blx@theformat{led}{#1}{#4}%
+      \ifdefvoid\blx@theformat
+        {\blx@nounit}
+        {\blx@begunit
+         \blx@listelementsetup{#2}{#3}{#4}%
+         \blx@imc@ifbibfieldvx{list}{#3}{#4}
+           {\edef\currentform{\blx@tempa}%
+            \edef\currentlang{\blx@tempb}%
+             % set up language for field variant
+             \ifdef\blx@theshortlangenv
+               {\iftoggle{blx@autolangshortstrings}
+                 {\blx@langsetup{\blx@tempb}% must call this to load the .lbx
+                  \csuse{abx@extras@\blx@tempb}% now switch lang strings
+                  \csuse{abx@strings@\blx@tempb}}
+                 {}%
+                \blx@hook@initlangshort\csname\blx@theshortlangenv\expandafter\endcsname\expandafter{\blx@tempb}}
+               {}%
+            \expandafter\blx@listelementparser\blx@thedata{}&%
+            \ifdef\blx@theshortlangenv
+              {\blx@hook@endlangshort\csname end\blx@theshortlangenv\endcsname}
+              {}}
+           {\expandafter\blx@listelementparser\blx@thedata{}&}%
+         \blx@endunit}%
+      \endgroup}}
+
 % [<format>][<start>-<stop>][<form/lang keyval>]{<plainlist>}
 \protected\def\blx@imc@printlist{%
   \blx@listargs\blx@printlist}
@@ -4504,6 +4647,20 @@
               {}}
            {\expandafter\blx@listparser\blx@thedata{}&}%
          \blx@endunit}}}
+
+% {<elem>}{<form/lang keyval>}{<plainlist>}
+\def\blx@listelementsetup#1#2#3{%
+  \def\currentlist{#3}%
+  \let\currentform\@empty
+  \let\currentlang\@empty
+  \c@listelementcount\@ne
+  \c@listelementstart#1\relax
+  \c@listelementstop#1\relax
+  \blx@imc@ifbibfieldvx{list}{#2}{#3}
+    {\edef\currentform{\blx@tempa}%
+     \edef\currentlang{\blx@tempb}%
+     \letcs\blx@thedata{abx@list@#3@\blx@tempa @\blx@tempb}}
+    {\letcs\blx@thedata{abx@list@#3}}}
 
 % {<start>}{<stop>}{<form/lang keyval>}{<plainlist>}
 \def\blx@listsetup#1#2#3#4{%
@@ -4543,6 +4700,36 @@
        \fi
      \fi}}
 
+% {<item1>}{<item2>}{...}
+\long\def\blx@listparser#1{%
+  \ifblank{#1}
+    {\blx@listbreak}
+    {\ifnum\c@listcount<\c@liststart
+     \else
+       \blx@theformat{#1}%
+     \fi
+     \advance\c@listcount\@ne
+     \ifnum\c@listcount>\c@liststop
+       \expandafter\blx@listbreak
+     \fi
+     \blx@listparser}}
+
+% {<item1>}{<item2>}{...}
+\long\def\blx@listelementparser#1{%
+  \ifblank{#1}
+    {\blx@listbreak}
+    {\ifnum\c@listelementcount<\c@listelementstart
+     \else
+       \blx@theformat{#1}%
+     \fi
+     \advance\c@listelementcount\@ne
+     \ifnum\c@listelementcount>\c@listelementstop
+       \expandafter\blx@listbreak
+     \fi
+     \blx@listelementparser}}
+
+\long\def\blx@listbreak#1&{}
+
 % [<format>][<start>-<stop>][<form/lang keyval>]{<plainlist>}
 \protected\def\blx@imc@indexlist{%
   \blx@listargs\blx@indexlist}
@@ -4559,22 +4746,6 @@
         \blx@listsetup{#2}{#3}{#4}{#5}%
         \expandafter\blx@listparser\blx@thedata{}&%
         \endgroup}}}
-
-% {<item1>}{<item2>}{...}
-\long\def\blx@listparser#1{%
-  \ifblank{#1}
-    {\blx@listbreak}
-    {\ifnum\c@listcount<\c@liststart
-     \else
-       \blx@theformat{#1}%
-     \fi
-     \advance\c@listcount\@ne
-     \ifnum\c@listcount>\c@liststop
-       \expandafter\blx@listbreak
-     \fi
-     \blx@listparser}}
-
-\long\def\blx@listbreak#1&{}
 
 % <*>{<key>}{<code>}
 \protected\def\blx@imc@entrydata{%
@@ -4643,8 +4814,8 @@
     {\blx@nounit}}
 
 \blx@regimcs{%
-  \printtext \printfield \printlist \printnames \printfile
-  \indexfield \indexlist \indexnames \entrydata \entryset}
+  \printtext \printfield \printlist \printlistelement \printnames \printnameelement
+  \printfile \indexfield \indexlist \indexnames \entrydata \entryset}
 
 % Allow global switching of default form/lang
 \def\vform#1{\gdef\blx@vform{#1}}
