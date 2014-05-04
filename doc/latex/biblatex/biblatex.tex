@@ -6193,6 +6193,29 @@ This could be achieved by:
 %
 The formats in the example are very basic so that the idea is clear. In general, you will pass |\value{listcount}| as the \prm{element} so that you refer to the same particular name in the other variant. Note that the formats have the same name for both \cmd{printnames} and \cmd{printnameelement}---this is not necessary but just to indicate that internally, the formats are in different namespaces so that you won't get infinite loops.
 
+It is also possible to omit a particular name element variant in case it is not needed:
+
+\begin{lstlisting}[style=bibtex,escapechar=+]
+  AUTHOR = {+Булгаков, Павел and Розенфельд, Борис and John Smith+},
+  AUTHOR_uniform = {Bulgakov, Pavel and Rosenfeld, Boris and *},
+\end{lstlisting}
+%
+Here the |*| marks a null name element. The particular character which marks this in a name list should correspond to the \biber option |--variant-null-name| (the default is |*|). Such name elements will be blank in the \file{.bbl} (\bibtex parsing rules mean they can't be blank in the \file{.bib} itself, hence the marker) and so you can test for them in the element format and omit them entirely:
+
+\begin{lstlisting}[style=latex]
+\DeclareNameElementFormat{test}{%
+  \ifstrempty{#1}
+    {}
+    {\mkbibparens{\mkbibemph{#1}, \mkbibemph{#3}}}}
+\DeclareNameFormat{test}{%
+  #1, #3\space\printnameelement[test]{\value{listcount}}[form=uniform]{author}
+}
+\printnames[test]{author}
+\end{lstlisting}
+%
+This would result in:\\[2ex]
+Булгаков, Павел (Bulgakov, Pavel) and Розенфельд, Борис (Rosenfeld, Boris) and John Smith\\[2ex]
+
 \cmditem{printtext}[format]{text}
 
 This command prints \prm{text}, which may be printable text or arbitrary code generating printable text. It clears the punctuation buffer before inserting \prm{text} and informs \biblatex that printable text has been inserted. This ensures that all preceding and following \cmd{newblock} and \cmd{newunit} commands have the desired effect. \cmd{printfield} and \cmd{printnames} as well as \cmd{bibstring} and its companion commands (see \secref{aut:str}) do that automatically. Using this command is required if a bibliography styles inserts literal text (including the commands from \secref{aut:pct:pct, aut:pct:spc}) to ensure that block and unit punctuation works as advertised in \secref{aut:pct:new}. The optional \prm{format} argument specifies a field formatting directive to be used to format \prm{text}. This may also be useful when several fields are to be printed as one chunk, for example, by enclosing the entire chunk in parentheses or quotation marks. If a type"=specific \prm{format} has been declared, the type"=specific formatting directive takes precedence over the generic one. If the \prm{format} is omitted, the \prm{text} is printed as is. See also \secref{aut:cav:pct} for some practical hints.
