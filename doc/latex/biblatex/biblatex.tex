@@ -6193,14 +6193,14 @@ This could be achieved by:
 %
 The formats in the example are very basic so that the idea is clear. In general, you will pass |\value{listcount}| as the \prm{element} so that you refer to the same particular name in the other variant. Note that the formats have the same name for both \cmd{printnames} and \cmd{printnameelement}---this is not necessary but just to indicate that internally, the formats are in different namespaces so that you won't get infinite loops.
 
-It is also possible to omit a particular name element variant in case it is not needed:
+It is also possible to omit a particular list element variant in case it is not needed:
 
 \begin{lstlisting}[style=bibtex,escapechar=+]
   AUTHOR = {+Булгаков, Павел and Розенфельд, Борис and John Smith+},
   AUTHOR_uniform = {Bulgakov, Pavel and Rosenfeld, Boris and *},
 \end{lstlisting}
 %
-Here the |*| marks a null name element. The particular character which marks this in a name list should correspond to the \biber option |--variant-null-name| (the default is |*|). Such name elements will be blank in the \file{.bbl} (\bibtex parsing rules mean they can't be blank in the \file{.bib} itself, hence the marker) and so you can test for them in the element format and omit them entirely:
+Here the |*| marks a null list element. The particular character which marks this in a name list should correspond to the \biber option |--variant-null-list| (the default is |*|). Such name elements will be blank in the \file{.bbl} (\bibtex parsing rules mean they can't be blank in the \file{.bib} itself, hence the marker) and so you can test for them in the element format and omit them entirely:
 
 \begin{lstlisting}[style=latex]
 \DeclareNameElementFormat{test}{%
@@ -6214,7 +6214,20 @@ Here the |*| marks a null name element. The particular character which marks thi
 \end{lstlisting}
 %
 This would result in:\\[2ex]
-Булгаков, Павел (Bulgakov, Pavel) and Розенфельд, Борис (Rosenfeld, Boris) and John Smith\\[2ex]
+Булгаков, Павел (Bulgakov, Pavel) and Розенфельд, Борис (Rosenfeld, Boris) and John Smith
+%
+When sorting using lists with null elements, \biber uses instead the corresponding element from the default variant for the list being used. For example when sorting using the |uniform| form of the \bibfield{author} field:
+
+\begin{lstlisting}[style=bibtex,escapechar=+]
+  AUTHOR = {+Булгаков, Павел and Розенфельд, Борис and John Smith+},
+  AUTHOR_uniform = {Bulgakov, Pavel and Rosenfeld, Boris and *},
+\end{lstlisting}
+%
+\biber will sort this |uniform| field as if it were:
+
+\begin{lstlisting}[style=bibtex,escapechar=+]
+  AUTHOR_uniform = {Bulgakov, Pavel and Rosenfeld, Boris and John Smith},
+\end{lstlisting}
 
 \cmditem{printtext}[format]{text}
 
