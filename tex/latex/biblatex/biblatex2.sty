@@ -1883,12 +1883,11 @@
 \DeclareExpandableDocumentCommand{\blx@imc@thefield}
   {om}
   {\ifcsdef{blx@vbibfield@#2}
-    {\ifblank{#1}%\thefield[]{field}
-      {\csuse{abx@field@#2@\blx@vform @\blx@vlangswitch}}
-      {\IfNoValueTF{#1}%\thefield{field}
-        {\csuse{abx@field@#2@\blx@vform @\blx@vlangswitch}}
-        {\csuse{abx@field@#2@\blx@v@getform{#1}@\blx@v@getlang{#1}}}}}
-    {\csuse{abx@field@#2}}}
+   {\ifboolexpe{ test {\ifblank{#1}} or
+                 test {\IfNoValueTF{#1}} }
+     {\csuse{abx@field@#2@\blx@vform @\blx@vlangswitch}}
+     {\csuse{abx@field@#2@\blx@v@getform{#1}@\blx@v@getlang{#1}}}}
+   {\csuse{abx@field@#2}}}
 
 \def\blx@flset#1{%
   \edef\blx@tempa{\@empty}%
@@ -2128,7 +2127,8 @@
   {\IfBooleanTF{#1}
     {\let\@scope\relax}% starred version
     {\let\@scope\global}%
-   \IfNoValueTF{#2}
+   \ifboolexpr{ test {\ifblank{#2}} or
+                test {\IfNoValueTF{#2}} }
      {\ifcsdef{blx@vbibfield@#3}
        {\def\do##1{%
           \begingroup
@@ -2152,7 +2152,8 @@
   {\IfBooleanTF{#1}
     {\let\@scope\relax}% starred version
     {\let\@scope\global}%
-   \IfNoValueTF{#2}
+   \ifboolexpr{ test {\ifblank{#2}} or
+                test {\IfNoValueTF{#2}} }
      {\ifcsdef{blx@vbibfield@#3}
        {\def\do##1{%
           \begingroup
@@ -2176,7 +2177,8 @@
   {\IfBooleanTF{#1}
     {\let\@scope\relax}% starred version
     {\let\@scope\global}%
-   \IfNoValueTF{#2}
+   \ifboolexpr{ test {\ifblank{#2}} or
+                test {\IfNoValueTF{#2}} }
      {\ifcsdef{blx@vbibfield@#3}
        {\def\do##1{%
           \begingroup
@@ -2200,7 +2202,8 @@
   {\IfBooleanTF{#1}
     {\let\@scope\relax}% starred version
     {\let\@scope\global}%
-   \IfNoValueTF{#2}
+   \ifboolexpr{ test {\ifblank{#2}} or
+                test {\IfNoValueTF{#2}} }
      {\ifcsdef{blx@vbibfield@#3}
        {\def\do##1{%
           \begingroup
@@ -2225,7 +2228,8 @@
   {\IfBooleanTF{#1}
     {\let\@scope\relax}% starred version
     {\let\@scope\global}%
-   \IfNoValueTF{#2}
+   \ifboolexpr{ test {\ifblank{#2}} or
+                test {\IfNoValueTF{#2}} }
      {\ifcsdef{blx@vbibfield@#3}
        {\def\do##1{%
           \begingroup
@@ -2249,7 +2253,8 @@
   {\IfBooleanTF{#1}
     {\let\@scope\relax}% starred version
     {\let\@scope\global}%
-   \IfNoValueTF{#2}
+   \ifboolexpr{ test {\ifblank{#2}} or
+                test {\IfNoValueTF{#2}} }
      {\ifcsdef{blx@vbibfield@#3}
        {\def\do##1{%
           \begingroup
@@ -2277,20 +2282,15 @@
 \DeclareExpandableDocumentCommand{\blx@imc@ifflnundef}
   {mom}
   {\ifcsdef{blx@vbibfield@#3}
-    {\ifblank{#2}%{}[]{field}
+   {\ifboolexpe{ test {\ifblank{#2}} or
+                 test {\IfNoValueTF{#2}} }
       {\iftoggle{blx@vfallback}
         {\ifcsundef{abx@#1@#3@\blx@vform @\blx@vlangswitch}
           {\ifcsundef{abx@#1@#3@\blx@ovform @\blx@ovlang}}
           {\ifcsundef{abx@#1@#3@\blx@vform @\blx@vlangswitch}}}
         {\ifcsundef{abx@#1@#3@\blx@vform @\blx@vlangswitch}}}
-      {\IfNoValueTF{#2}%{}{field}
-        {\iftoggle{blx@vfallback}
-          {\ifcsundef{abx@#1@#3@\blx@vform @\blx@vlangswitch}
-            {\ifcsundef{abx@#1@#3@\blx@ovform @\blx@ovlang}}
-            {\ifcsundef{abx@#1@#3@\blx@vform @\blx@vlangswitch}}}
-          {\ifcsundef{abx@#1@#3@\blx@vform @\blx@vlangswitch}}}
-        {\ifcsundef{abx@#1@#3@\blx@v@getform{#2}@\blx@v@getlang{#2}}}}}
-    {\ifcsundef{abx@#1@#3}}}
+      {\ifcsundef{abx@#1@#3@\blx@v@getform{#2}@\blx@v@getlang{#2}}}}
+   {\ifcsundef{abx@#1@#3}}}
 
 % Amazing that these macros were one line in biblatex <3.0. Dealing with
 % variants complicates them enormously
@@ -2304,25 +2304,30 @@
     % [?]{vfield}[?]{?}
     {\ifcsdef{blx@vbibfield@#5}
       % [?]{vfield}[?]{vfield}
-      {\IfNoValueTF{#2}
+      {\ifboolexpr{ test {\ifblank{#2}} or
+                    test {\IfNoValueTF{#2}} }
         % {vfield}[?]{vfield}
-        {\IfNoValueTF{#4}
+        {\ifboolexpr{ test {\ifblank{#4}} or
+                      test {\IfNoValueTF{#4}} }
           % {vfield}{vfield}
           {\blx@imc@ifflequal@i{#1}{#3}{#5}}
           % {vfield}[f/l]{vfield}
           {\blx@imc@ifflequal@iii{\csuse{abx@#1@#3@\blx@vform @\blx@vlangswitch}}{\blx@imc@ifflequal@ii{#1}{#4}{#5}}}}
         % [f/l]{vfield}[?]{vfield}
-        {\IfNoValueTF{#4}
+        {\ifboolexpr{ test {\ifblank{#4}} or
+                      test {\IfNoValueTF{#4}} }
           % [f/l]{vfield}{vfield}
           {\blx@imc@ifflequal@iii{\blx@imc@ifflequal@ii{#1}{#2}{#3}}{\csuse{abx@#1@#5@\blx@vform @\blx@vlangswitch}}}
           % [f/l]{vfield}[f/l]{vfield}
           {\blx@imc@ifflequal@iii{\blx@imc@ifflequal@ii{#1}{#2}{#3}}{\blx@imc@ifflequal@ii{#1}{#4}{#5}}}}}
       % [?]{vfield}[?]{non-vfield}
-      {\IfValueTF{#4}
+      {\ifboolexpr{ test {\ifblank{#4}} or
+                    test {\IfNoValueTF{#4}} }
         % [?]{vfield}[f/l]{non-vfield}
         {\blx@warning@noline{You are trying to \string\if#1sequal a non variant enabled #1 '#5' with form/lang arguments}\@secondoftwo}
         % [?]{vfield}{non-vfield}
-        {\IfNoValueTF{#2}
+        {\ifboolexpr{ test {\ifblank{#2}} or
+                      test {\IfNoValueTF{#2}} }
           % {vfield}{non-vfield}
           {\ifcsequal{abx@#1@#2@\blx@vform @\blx@vlangswitch}{abx@#1@#5}}
           % [f/l]{vfield}{non-vfield}
@@ -2334,7 +2339,8 @@
         % [f/l]{non-vfield}[?]{vfield}
         {\blx@warning@noline{You are trying to \string\if#1sequal a non variant enabled #1 '#3' with form/lang arguments}\@secondoftwo}
         % {non-vfield}[?]{vfield}
-        {\IfNoValueTF{#4}
+        {\ifboolexpr{ test {\ifblank{#4}} or
+                      test {\IfNoValueTF{#4}} }
           % {non-vfield}{vfield}
           {\ifcsequal{abx@#1@#5@\blx@vform @\blx@vlangswitch}{abx@#1@#3}}
           % {non-vfield}[f/l]{vfield}
@@ -2373,11 +2379,10 @@
 
 \def\blx@imc@ifflequal@ii#1#2#3{%
   \ifcsdef{blx@vbibfield@#3}
-    {\ifblank{#2}
+    {\ifboolexpr{ test {\ifblank{#2}} or
+                  test {\IfNoValueTF{#2}} }
       {\csuse{abx@#1@#3@\blx@vform @\blx@vlangswitch}}
-      {\IfNoValueTF{#2}
-        {\csuse{abx@#1@#3@\blx@vform @\blx@vlangswitch}}
-        {\csuse{abx@#1@#3@\blx@v@getform{#2}@\blx@v@getlang{#2}}}}}
+      {\csuse{abx@#1@#3@\blx@v@getform{#2}@\blx@v@getlang{#2}}}}
     {\csuse{abx@#1@#3}}}
 
 \def\blx@imc@ifflequal@iii#1#2{%
@@ -2390,8 +2395,10 @@
 % [<form/lang keyval>]{<namelist1>}[<form/lang keyval>]{<namelist2>}{<true>}{<false>}
 \DeclareDocumentCommand{\blx@imc@ifnamesequal}
   {omom}
-  {\IfNoValueTF{#1}
-    {\IfNoValueTF{#3}
+   {\ifboolexpr{ test {\ifblank{#1}} or
+                 test {\IfNoValueTF{#1}} }
+    {\ifboolexpr{ test {\ifblank{#3}} or
+                  test {\IfNoValueTF{#3}} }
       {\blx@ifnamesequal@v{#2}{#4}}%{name}{name}
       {\ifcsdef{blx@vbibfield@#2}%{name}[]{name}
        {\ifcsdef{blx@vbibfield@#4}
@@ -2400,7 +2407,8 @@
        {\ifcsdef{blx@vbibfield@#4}
          {\blx@imc@ifnamesequal@i{#2}{#4@\blx@v@getform{#3}@\blx@v@getlang{#3}}}%{non-v}[]{v}
          {\blx@warning@noline{You are trying to \ifnamesequal a non variant enabled name '#4' with form/lang arguments}\@secondoftwo}}}}}%{non-v}[]{non-v}
-    {\IfNoValueTF{#3}
+   {\ifboolexpr{ test {\ifblank{#3}} or
+                 test {\IfNoValueTF{#3}} }
       {\ifcsdef{blx@vbibfield@#2}%[]{name}{name}
         {\ifcsdef{blx@vbibfield@#4}
           {\blx@imc@ifnamesequal@i{#2@\blx@v@getform{#1}@\blx@v@getlang{#1}}{#4@\blx@vform @\blx@vlangswitch}}%[]{v}{v}
@@ -2505,7 +2513,8 @@
          \else
          \expandafter\@secondoftwo
          \fi}
-        {\IfNoValueTF{#2}
+       {\ifboolexpr{ test {\ifblank{#2}} or
+                     test {\IfNoValueTF{#2}} }
           {\expandafter\ifx\csname abx@#1@#3@\blx@vform @\blx@vlangswitch\endcsname#4%
            \expandafter\@firstoftwo
            \else
@@ -2528,7 +2537,8 @@
   {\ifcsdef{blx@vbibfield@#2}
     {\ifblank{#1}
       {\ifcsequal{abx@field@#2@\blx@vform @\blx@vlangswitch}{#3}}
-      {\IfNoValueTF{#1}
+      {\ifboolexpr{ test {\ifblank{#1}} or
+                    test {\IfNoValueTF{#1}} }
         {\ifcsequal{abx@field@#2@\blx@vform @\blx@vlangswitch}{#3}}
         {\ifcsequal{abx@field@#2@\blx@v@getform{#1}@\blx@v@getlang{#1}}{#3}}}}
     {\ifcsequal{abx@field@#2}{#3}}}
@@ -2545,7 +2555,8 @@
   {\ifcsdef{blx@vbibfield@#2}
     {\ifblank{#1}
       {\ifcsequal{abx@name@#2@\blx@vform @\blx@vlangswitch}{#3}}
-      {\IfNoValueTF{#1}
+      {\ifboolexpr{ test {\ifblank{#1}} or
+                    test {\IfNoValueTF{#1}} }
         {\ifcsequal{abx@name@#2@\blx@vform @\blx@vlangswitch}{#3}}
         {\ifcsequal{abx@name@#2@\blx@v@getform{#1}@\blx@v@getlang{#1}}{#3}}}}
     {\ifcsequal{abx@name@#2}{#3}}}
@@ -2558,7 +2569,8 @@
       {\expandafter\expandafter\expandafter\ifstrequal
        \expandafter\expandafter\expandafter{%
        \csname abx@field@#2@\blx@vform @\blx@vlangswitch\endcsname}{#3}}
-      {\IfNoValueTF{#1}
+      {\ifboolexpr{ test {\ifblank{#1}} or
+                    test {\IfNoValueTF{#1}} }
         {\expandafter\expandafter\expandafter\ifstrequal
          \expandafter\expandafter\expandafter{%
          \csname abx@field@#2@\blx@vform @\blx@vlangswitch\endcsname}{#3}}
@@ -3082,7 +3094,8 @@
          \expandafter\ifinteger
          \expandafter\expandafter
          \expandafter{\csname abx@field@#2@\blx@vform @\blx@vlangswitch\endcsname}}
-        {\IfNoValueTF{#1}
+        {\ifboolexpr{ test {\ifblank{#1}} or
+                      test {\IfNoValueTF{#1}} }
           {\expandafter\expandafter
            \expandafter\ifinteger
            \expandafter\expandafter
@@ -3159,7 +3172,8 @@
          \expandafter\blx@imc@ifnumeral
          \expandafter\expandafter
          \expandafter{\csname abx@field@#2@\blx@vform @\blx@vlangswitch\endcsname}}
-        {\IfNoValueTF{#1}
+        {\ifboolexpr{ test {\ifblank{#1}} or
+                      test {\IfNoValueTF{#1}} }
           {\expandafter\expandafter
            \expandafter\blx@imc@ifnumeral
            \expandafter\expandafter
@@ -3184,7 +3198,8 @@
          \expandafter\blx@imc@ifnumerals
          \expandafter\expandafter
          \expandafter{\csname abx@field@#2@\blx@vform @\blx@vlangswitch\endcsname}}
-        {\IfNoValueTF{#1}
+        {\ifboolexpr{ test {\ifblank{#1}} or
+                      test {\IfNoValueTF{#1}} }
           {\expandafter\expandafter
            \expandafter\blx@imc@ifnumerals
            \expandafter\expandafter
@@ -3209,7 +3224,8 @@
          \expandafter\blx@imc@ifpages
          \expandafter\expandafter
          \expandafter{\csname abx@field@#2@\blx@vform @\blx@vlangswitch\endcsname}}
-        {\IfNoValueTF{#1}
+        {\ifboolexpr{ test {\ifblank{#1}} or
+                      test {\IfNoValueTF{#1}} }
           {\expandafter\expandafter
            \expandafter\blx@imc@ifpages
            \expandafter\expandafter
@@ -4222,7 +4238,8 @@
   {oom}
   {\blx@imc@iffieldundef[#2]{#3}
      {\blx@nounit}
-     {\IfNoValueTF{#1}% undef with xparse means special "-NoValue-"
+     {\ifboolexpr{ test {\ifblank{#1}} or
+                   test {\IfNoValueTF{#1}} }
         {\def\Format{}}
         {\def\Format{#1}}%
       \blx@getformat\blx@theformat{ffd}{\Format}{#3}%
@@ -4289,7 +4306,8 @@
 \DeclareDocumentCommand{\blx@imc@printnameelement}
   {omom}
   {\edef\Format{\IfValueTF{#1}{#1}{}}%
-   \IfNoValueTF{#3}% Have to fully expand the args before calling blx@print*
+   \ifboolexpr{ test {\ifblank{#3}} or
+                test {\IfNoValueTF{#3}} }
      {\protected@edef\z{\noexpand\blx@printnameelement{\Format}{#2}{#4}}\z}
      {\ifblank{#3}
        {\protected@edef\z{\noexpand\blx@printnameelement{\Format}{#2}{#4}}\z}
@@ -4528,29 +4546,27 @@
   {\edef\Format{\IfValueTF{#2}{#2}{}}%
    \let\Start\@empty%
    \let\Stop\@empty%
-   \IfNoValueTF{#3}%
+   \ifboolexpr{ test {\ifblank{#3}} or
+                test {\IfNoValueTF{#3}} }
      {}% #3 is completely missing, not even []
      {\edef\Start{\@firstoftwo#3}%
       \edef\Stop{\@secondoftwo#3}%
       \expandafter\IfNoValueTF\expandafter{\Stop}% Work around bug in xparse<=2013/03/12
         {\edef\Stop{}}
         {}}%
-     \IfNoValueTF{#4}% Have to fully expand the args before calling blx@print*
+     \ifboolexpr{ test {\ifblank{#4}} or
+                  test {\IfNoValueTF{#4}} }
        {\protected@edef\z{\noexpand#1{\Format}{\Start}{\Stop}}\z}
-       {\ifblank{#4}
-         {\protected@edef\z{\noexpand#1{\Format}{\Start}{\Stop}}\z}
-         {\protected@edef\z{\noexpand#1{\Format}{\Start}{\Stop}[#4]}\z}}}
-
+       {\protected@edef\z{\noexpand#1{\Format}{\Start}{\Stop}[#4]}\z}}
 
 % [<format>]{<elem>}[<form/lang keyval>]{<plainlist>}
 \DeclareDocumentCommand{\blx@imc@printlistelement}
   {omom}
   {\edef\Format{\IfValueTF{#1}{#1}{}}%
-   \IfNoValueTF{#3}% Have to fully expand the args before calling blx@print*
+   \ifboolexpr{ test {\ifblank{#3}} or
+                test {\IfNoValueTF{#3}} }
      {\protected@edef\z{\noexpand\blx@printlistelement{\Format}{#2}{#4}}\z}
-     {\ifblank{#3}
-       {\protected@edef\z{\noexpand\blx@printlistelement{\Format}{#2}{#4}}\z}
-       {\protected@edef\z{\noexpand\blx@printlistelement{\Format}{#2}[#3]{#4}}\z}}}
+     {\protected@edef\z{\noexpand\blx@printlistelement{\Format}{#2}[#3]{#4}}\z}}
 
 % {<format>}{<elem>}[<form/lang keyval>]{<plainlist>}
 \DeclareDocumentCommand{\blx@printlistelement}
@@ -10817,6 +10833,20 @@
 \def\blx@sortexlude@i#1{%
   \appto\blx@tempa{\blx@xml@exclude{#1}}}
 
+% {<fallbackspec_1> ... <fallbackspec_n>}
+\newrobustcmd*{\DeclareVariantFallbacks}[1]{%
+  \begingroup
+  \let\blx@tempa\@empty
+  \let\vfallback\blx@vfallback
+  \endgroup}
+\@onlypreamble\DeclareVariantFallbacks
+
+\newcommand*{\blx@vfallback}[1][2]{%
+  \let\blx@tempb\@empty
+  \let\blx@tempc\@empty
+  \setkeys{blx@vfallback}{#1}%
+  \blx@xml@vfallback{\blx@tempb}{\blx@tempc}}
+
 % [<type,type,...>]{<field,field,...>}
 \newrobustcmd*{\DeclareLabelname}[2][]{%
   \begingroup
@@ -10832,6 +10862,7 @@
   \endgroup}
 \@onlypreamble\DeclareLabelname
 
+% [<type,type,...>]{<field,field,...>}
 \newrobustcmd*{\DeclareLabeltitle}[2][]{%
   \begingroup
   \let\blx@tempa\@empty
@@ -10850,6 +10881,7 @@
   \blx@warning@noline{%
     'DeclareLabelyear' is deprecated, please use 'DeclareLabeldate'}}
 
+% [<type,type,...>]{<field,field,...>}
 \newrobustcmd*{\DeclareLabeldate}[2][]{%
   \begingroup
   \let\blx@tempa\@empty
