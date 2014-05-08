@@ -9989,6 +9989,14 @@
 \xdef\blx@xml@noinit#1{%
   ~~~~<bcf:noinit value="#1"/>\blx@nl}
 
+\xdef\blx@xml@vfallbacks#1{%
+  ~~<bcf:variantfallbacks>\blx@nl%
+  #1%
+  ~~</bcf:variantfallbacks>\blx@nl}
+
+\xdef\blx@xml@vfallback#1{%
+  ~~~~<bcf:variantfallback#1/>\blx@nl}
+
 \xdef\blx@xml@sorting#1#2{%
   ~~<bcf:sorting#1>\blx@nl%
   #2%
@@ -10160,6 +10168,10 @@
        \endgroup}%
      \dolistloop\blx@opts@type}
     {}%
+  % variantfallbacks
+  \eappto\blx@tempa{%
+      \blx@xml@comment{VARIANT FALLBACKS}%    
+      \blx@xml@vfallbacks{\blx@bcf@vfallbacks}}%
   % sourcemap
   \ifbool{sourcemap}
     {\eappto\blx@tempa{%
@@ -10836,16 +10848,21 @@
 % {<fallbackspec_1> ... <fallbackspec_n>}
 \newrobustcmd*{\DeclareVariantFallbacks}[1]{%
   \begingroup
-  \let\blx@tempa\@empty
   \let\vfallback\blx@vfallback
+  #1%
   \endgroup}
 \@onlypreamble\DeclareVariantFallbacks
 
 \newcommand*{\blx@vfallback}[1][2]{%
-  \let\blx@tempb\@empty
-  \let\blx@tempc\@empty
+  \let\blx@tempa\@empty
   \setkeys{blx@vfallback}{#1}%
-  \blx@xml@vfallback{\blx@tempb}{\blx@tempc}}
+  \xappto\blx@bcf@vfallbacks{%
+    \blx@xml@vfallback{\blx@tempa}}}
+
+\define@key{blx@vfallback}{form}{%
+  \appto\blx@tempa{ form="#1"}}
+\define@key{blx@vfallback}{lang}{%
+  \appto\blx@tempa{ lang="#1"}}
 
 % [<type,type,...>]{<field,field,...>}
 \newrobustcmd*{\DeclareLabelname}[2][]{%
