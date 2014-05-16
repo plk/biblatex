@@ -737,7 +737,7 @@ If there is no \cmd{DeclareVariantforms} specification, the default is
 %
 If you wish to customise this, be sure to keep these defaults in your specification---they must be present.
 
-The supported languages for a variant are any of the supported Babel/Polyglossia language identifiers and these are used to switch languages on a per-variant basis, if required. \biber supports specification of field variants with an entry in a backwards compatible manner so that existing \file{.bib} databases, do not need to be modified. The format for this in \bibtex format bibliography databases is described in the \biber documentation. A variant enabled field given in the database without any variant specification defaults to the values of the \opt{vform} and \opt{vlang} package/per-entry options. When the form «translated» is selected, the language defaults to the value of the \opt{vtranslang} package/per-entry option. When writing the \file{.bbl}, \biber will set the \opt{form} and \opt{lang} options on the field, copying these from the data source with the exception that data source entries having a \opt{form} identical to the \opt{vform} have their form omitted in the \file{.bbl}. The same applies to the \opt{lang} option of a field and the \opt{vlang} option. See \secref{use:opt:pre:gen}.
+The supported languages for a variant are any of the supported Babel/Polyglossia language identifiers and these are used to switch languages on a per-variant basis, if required. \biber supports specification of field variants with an entry in a backwards compatible manner so that existing \file{.bib} databases, do not need to be modified. The format for this in \bibtex format bibliography databases is described in the \biber documentation. A variant enabled field given in the database without any variant specification defaults to the values of the \opt{vform} and \opt{vlang} package/per-entry options. When the form «translated» is selected, the language defaults to the value of the \opt{vtranslang} package/per-entry option. When writing the \file{.bbl}, \biber will set the \opt{form} and \opt{lang} options on the field, copying these from the data source. See \secref{use:opt:pre:gen}.
 
 Here is an example. Suppose the \bibtex format bibliography contained the following (see the \biber manual for details about this extended variant format):
 
@@ -775,7 +775,7 @@ With options \kvopt{vform}{original}, \kvopt{vlang}{russian} and \kvopt{vtransla
          {+Борис+}
          {+Б+\bibinitperiod}{}{}{}{}}%
       }
-      \name{author}{2}{}{%
+      \name[form=original,lang=russian]{author}{2}{}{%
         {{uniquename=0,hash=e7c368e13a02c9c0f0d3629316eb6227}
          {+Булгаков+}
          {+Б+\bibinitperiod}
@@ -787,7 +787,7 @@ With options \kvopt{vform}{original}, \kvopt{vlang}{russian} and \kvopt{vtransla
          {+Борис+}
          {+Б+\bibinitperiod}{}{}{}{}}%
       }
-      \name[form=uniform]{author}{2}{}{%
+      \name[form=uniform,lang=russian]{author}{2}{}{%
         {{hash=d3e42eb37529f4d05f9646c333b5fd5f}
          {Bulgakov}
          {B\bibinitperiod}
@@ -799,25 +799,25 @@ With options \kvopt{vform}{original}, \kvopt{vlang}{russian} and \kvopt{vtransla
          {Boris}
          {B\bibinitperiod}{}{}{}{}}%
       }
-      \list{institution}{1}{%
+      \list[form=original,lang=russian]{institution}{1}{%
         {University of Life}%
       }
-      \list{location}{1}{%
+      \list[form=original,lang=russian]{location}{1}{%
         {+Москва+}%
       }
-      \list[form=romanised]{location}{1}{%
+      \list[form=romanised,lang=russian]{location}{1}{%
         {Moskva}%
       }
-      \list[form=translated]{location}{1}{%
+      \list[form=translated,lang=english]{location}{1}{%
         {Moscow}%
       }
-      \list{publisher}{1}{%
+      \list[form=original,lang=russian]{publisher}{1}{%
         {+Наука+}%
       }
-      \list[form=romanised]{publisher}{1}{%
+      \list[form=romanised,lang=russian]{publisher}{1}{%
         {Nauka}%
       }
-      \list[form=translated]{publisher}{1}{%
+      \list[form=translated,lang=english]{publisher}{1}{%
         {Science}%
       }
       \strng{namehash}{253fe13319a1daadcda3e2acce242883}
@@ -828,9 +828,9 @@ With options \kvopt{vform}{original}, \kvopt{vlang}{russian} and \kvopt{vtransla
       \true{singletitle}
       \field{day}{01}
       \field{month}{10}
-      \field{title}{+Мухаммад ибн муса ал-Хорезми. Около 783 – около 850+}
-      \field[form=romanised]{title}{Mukhammad al-Khorezmi. Okolo 783 – okolo 850}
-      \field[form=translated]{title}{Mukhammad al-Khorezmi. Ca. 783 – ca. 850}
+      \field[form=original,lang=russian]{title}{+Мухаммад ибн муса ал-Хорезми. Около 783 – около 850+}
+      \field[form=romanised,lang=russian]{title}{Mukhammad al-Khorezmi. Okolo 783 – okolo 850}
+      \field[form=translated,lang=english]{title}{Mukhammad al-Khorezmi. Ca. 783 – ca. 850}
       \field{year}{2002}
     \endentry
 \end{lstlisting}
@@ -840,7 +840,7 @@ In this example, when \biblatex reads the \file{.bbl}, a few things are to be no
 \begin{itemize}
 \setlength{\itemsep}{0pt}
 \item The \bibfield{labelname} is implicitly \kvopt{form}{original} and \kvopt{lang}{russian}
-\item The \kvopt{form}{translated} fields are all implicitly \kvopt{lang}{english} due to the global \opt{vtranslang} setting. Note that \biber has therefore omitted the explicit language setting for the \bibfield{title} field in the data source since it matches \opt{vtranslang}.
+\item The \kvopt{form}{translated} fields are all \kvopt{lang}{english} due to the global \opt{vtranslang} setting.
 \end{itemize}
 
 The fields in the \file{.bbl} can then all be accessed by the usual \biblatex macros which are all variant aware so that one is able, for example, to select a particular variant of a field in a style:
@@ -891,7 +891,7 @@ Use \cmd{vfallbackon} to turn variant fallback on and \cmd{vfallbackoff} to turn
 
 \begin{lstlisting}[style=bibtex]
 author = {Alan Smith},
-title = {Un Titel}
+title = {Un Titel},
 title_translated_english = {A title}
 \end{lstlisting}
 %
@@ -906,6 +906,32 @@ You could print two bibliographies, one with french titles and one with english.
 \end{lstlisting}
 %
 Since \cmd{vfallbackon} is enabled by default, this means that even though the \bibfield{author} has no \opt{translated/english} variant (as it is by default \opt{original/french} due to the package options), it will be used anyway as a fallback. With \cmd{vfallbackoff}, the entry in the second bibliography would be missing the \bibfield{author} field since there is no \opt{translated/english} author field.
+
+\begin{ltxsyntax}
+\cmditem{DeclareVariantFallbacks}{specification}\BiberOnlyMark
+
+The \prm{specification} consists of one or more \cmd{vfallback} commands:
+
+\cmditem{vfallback}
+
+Each \cmd{vfallback} macro takes following optional arguments (although at least one must be specified):
+
+\begin{optionlist*}
+\choitem{form}{\prm{form}}
+\choitem{lang}{\prm{lang}}
+\end{optionlist*}
+\end{ltxsyntax}
+%
+\cmd{DeclareVariantFallbacks} defines a fallback chain of variants which \biber uses  if no value is found when looking for a variant corresponding to the global defaults (defined with \cmd{vform}, \cmd{vlang}/\cmd{vtranslang}). The default value is:
+
+\begin{lstlisting}[style=latex]
+\DeclareVariantFallbacks{
+  \vfallback[form=original]
+  \vfallback[form=romanised]
+}
+\end{lstlisting}
+%
+This means that if when sorting, define labels, processing inheritance etc. and \biber is looking for, say, a translated variant of a field by default due to the global \cmd{vform} option, if there is no such variant for a field, \biber will look first for an <original> form of the field and then for a <romanised> form before giving up. \biber also uses this fallback chain when filling in null list entries as described in \secref{aut:bib:dat}.
 
 Data source field form and language variant support is only possible when using \biber.
 
@@ -6200,34 +6226,7 @@ It is also possible to omit a particular list element variant in case it is not 
   AUTHOR_uniform = {Bulgakov, Pavel and Rosenfeld, Boris and *},
 \end{lstlisting}
 %
-Here the |*| marks a null list element. The particular character which marks this in a name list should correspond to the \biber option |--variant-null-list| (the default is |*|). Such name elements will be blank in the \file{.bbl} (\bibtex parsing rules mean they can't be blank in the \file{.bib} itself, hence the marker) and so you can test for them in the element format and omit them entirely:
-
-\begin{lstlisting}[style=latex]
-\DeclareNameElementFormat{test}{%
-  \ifstrempty{#1}
-    {}
-    {\mkbibparens{\mkbibemph{#1}, \mkbibemph{#3}}}}
-\DeclareNameFormat{test}{%
-  #1, #3\space\printnameelement[test]{\value{listcount}}[form=uniform]{author}
-}
-\printnames[test]{author}
-\end{lstlisting}
-%
-This would result in:\\[2ex]
-Булгаков, Павел (Bulgakov, Pavel) and Розенфельд, Борис (Rosenfeld, Boris) and John Smith
-%
-When sorting using lists with null elements, \biber uses instead the corresponding element from the default variant for the list being used. For example when sorting using the |uniform| form of the \bibfield{author} field:
-
-\begin{lstlisting}[style=bibtex,escapechar=+]
-  AUTHOR = {+Булгаков, Павел and Розенфельд, Борис and John Smith+},
-  AUTHOR_uniform = {Bulgakov, Pavel and Rosenfeld, Boris and *},
-\end{lstlisting}
-%
-\biber will sort this |uniform| field as if it were:
-
-\begin{lstlisting}[style=bibtex,escapechar=+]
-  AUTHOR_uniform = {Bulgakov, Pavel and Rosenfeld, Boris and John Smith},
-\end{lstlisting}
+Here the |*| marks a null list element. The particular character which marks this in a name list should correspond to the \biber option |--variant-null-list| (the default is |*|). \biber will resolve such null list elements using the variant fallback chain specified with \cmd{DeclareVariantFallbacks} (see \secref{bib:fld:var}).
 
 \cmditem{printtext}[format]{text}
 
