@@ -5696,7 +5696,12 @@
          % Need to know if we set any localnumber from .aux file, not
          % just current item. Otherwise, we may just write new
          % localnumbers but not existing ones
-         {\nottoggle{blx@localnumber}
+         % Also, don't want to regenerate localnumber for any key in a
+         % refsection which we've already seen because this has the nasty
+         % side-effect of incrementing the localnum counter
+         {\ifboolexpr { not togl {blx@localnumber}
+                        and
+                        test {\ifcsundef{blx@defer@\the\c@refsection @\abx@field@entrykey}} }
             {\iftoggle{blx@omitnumbers}
                {\let\abx@field@localnumber\@empty}
                {\csnumgdef{blx@labelnumber@\the\c@refsection}{%
@@ -5712,12 +5717,17 @@
           % settles down and then we need another run which then
           % regenerates localnumber requiring another run but then
           % the pagebreaks change back again ... etc.
-          \listxadd\blx@localnumaux{%
-             \string\abx@aux@number%
-               {\the\c@instcount}%
-               {\abx@field@entrykey}%
-               {\the\c@refsection}%
-               {\abx@field@localnumber}}}
+          \ifcsundef{blx@defer@\the\c@refsection @\abx@field@entrykey}
+            {\listxadd\blx@localnumaux{%
+               \string\abx@aux@number%
+                 {\the\c@instcount}%
+                 {\abx@field@entrykey}%
+                 {\the\c@refsection}%
+                 {\abx@field@localnumber}}%
+               % record that we have already generated and output localnum
+               % for this key in this refsection
+               \csgdef{blx@defer@\the\c@refsection @\abx@field@entrykey}{}}
+           {}}
          {}}%
        {}}
     {}%
