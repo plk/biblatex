@@ -5468,12 +5468,23 @@
       {}% only if omitnumbers=true
       {\ifundef\abx@field@shorthand
         {\iftoggle{blx@defernumbers}
-          {}% only if defernumbers=true
+          % only if defernumbers=true, we have to define localnumber to
+          % something to stop labelnumberwidth def complaining on first
+          % post-backend run since there will be nothing in the .aux yet
+          % for defernums localnumbers. On the second post-backend run,
+          % it will have a value correct for generating labelnumberwidth
+          % We also have to define a dummy value for labelnumber here for
+          % first post-backend runs otherwise references to labelnumber
+          % in cite styles like numeric-comp will die.
+          {\ifundef\abx@field@localnumber
+            {\numdef\abx@field@localnumber{0}%
+             \blx@bbl@fielddef{labelnumber}{0}}
+            {}}
           {\csnumgdef{blx@labelnumber@\the\c@refsection}{%
               \csuse{blx@labelnumber@\the\c@refsection}+1}%
            \edef\abx@field@localnumber{%
               \csuse{blx@labelnumber@\the\c@refsection}}%
-           \blx@bbl@fieldedef{labelnumber}{\abx@field@localnumber}%
+           \blx@bbl@fieldedef{labelnumber}{\abx@field@localnumber}}%
          \iftoggle{blx@skipbib}
            {}
            {\blx@setlabwidth{\labelnumberwidth}{%
@@ -5481,7 +5492,7 @@
                 \ifdef\abx@field@prefixnumber
                   {\csuse{abx@ffd@*@prefixnumber}{\abx@field@prefixnumber}}
                   {}%
-                \abx@field@localnumber}}}}}
+                \abx@field@localnumber}}}}
         {\csgappto\blx@bbl@data{\let\abx@field@labelnumber\abx@field@shorthand}%
          \iftoggle{blx@skipbib}
            {}
