@@ -234,7 +234,7 @@
     {\blx@err@patch{floats}}%
   \ifdef\TX@endtabularx % tabularx/memoir
     {\pretocmd\TX@endtabularx
-      {\addtocounter{tabx@nest}{1}}% track nestes tabularx environments
+      {\addtocounter{tabx@nest}{1}}% track nested tabularx environments
       {}
       {\blx@err@patch{'tabularx'}}%
       % no need to conditionalise on top-level tabx as the search/replace
@@ -242,14 +242,14 @@
      \patchcmd\TX@endtabularx
       {\edef\TX@ckpt{\cl@@ckpt}}
       {\edef\TX@ckpt{\cl@@ckpt\abx@resttrackers}%
-        \abx@savetrackers}
+       \abx@savetrackers}
       {}
       {\blx@err@patch{'tabularx'}}%
      \apptocmd\TX@endtabularx
       {\ifnum\value{tabx@nest}=1% only clear trackers for top-level tabularx
-        \abx@cleartrackers
-        \fi
-        \addtocounter{tabx@nest}{-1}}
+         \abx@cleartrackers
+       \fi
+       \addtocounter{tabx@nest}{-1}}
       {}
       {\blx@err@patch{'tabularx'}}}
     {}%
@@ -6645,19 +6645,8 @@
     {\ifdefempty\abx@field@localnumber
       {}% only if omitnumbers=true
       {\ifundef\abx@field@shorthand
-        {\iftoggle{blx@defernumbers}
-          % only if defernumbers=true, we have to define localnumber to
-          % something to stop labelnumberwidth def complaining on first
-          % post-backend run since there will be nothing in the .aux yet
-          % for defernums localnumbers. On the second post-backend run,
-          % it will have a value correct for generating labelnumberwidth
-          % We also have to define a dummy value for labelnumber here for
-          % first post-backend runs otherwise references to labelnumber
-          % in cite styles like numeric-comp will die.
-          {\ifundef\abx@field@localnumber
-            {\numdef\abx@field@localnumber{0}%
-             \blx@bbl@fielddef{labelnumber}{0}}
-            {}}
+       {\ifdef\abx@field@localnumber
+          {}% only if defernumbers=true
           {\csnumgdef{blx@labelnumber@\the\c@refsection}{%
               \csuse{blx@labelnumber@\the\c@refsection}+1}%
            \edef\abx@field@localnumber{%
@@ -6848,11 +6837,11 @@
   % If we did, we need to re-run biber
   \def\do#1{\ifinlist{#1}{\blx@lastsortschemes}{}{\blx@logreq@active{}}\relax}%
   \dolistloop\blx@sortschemes
-  % Test if we removed any mention of a bibist since last run.
+  % Test if we removed any mention of a biblist since last run.
   % If we did, we need to re-run biber
   \def\do#1{\ifinlist{#1}{\blx@biblists}{}{\blx@logreq@active{}}\relax}%
   \dolistloop\blx@lastbiblists
-  % Test to see if we added any mention of a shorthand sorting scheme since last run.
+  % Test to see if we added any mention of a biblist sorting scheme since last run.
   % If we did, we need to re-run biber
   \def\do#1{\ifinlist{#1}{\blx@lastbiblists}{}{\blx@logreq@active{}}\relax}%
   \dolistloop\blx@biblists
@@ -8021,6 +8010,11 @@
   % entry key, biber won't put \keyalias{}in the .bbl on subsequent runs
   % and biblatex will report a missing citekey
   \def\do##1{%
+    % Make sure this counter exists. Sometimes it might not when using, e.g:
+    % refsection=chapter and \includeonly to put in the chapters.
+    \ifcsname blx@sectionciteorder@\the\c@refsection\endcsname\else
+      \expandafter\newcount\csname blx@sectionciteorder@\the\c@refsection\endcsname
+    \fi
     \global\advance\csname blx@sectionciteorder@\the\c@refsection\endcsname\@ne
     \blx@auxwrite\blx@bcfout{}{\blx@xml@citekey{##1}{\expandafter\the\csname blx@sectionciteorder@\the\c@refsection\endcsname}}}%
   \dolistcsloop{blx@keyaliases@\the\c@refsection}%
