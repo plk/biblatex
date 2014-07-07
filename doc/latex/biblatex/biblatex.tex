@@ -3247,6 +3247,17 @@ Since \bibfield{shortjournal} is defined in the default data model as a <Label f
 Naturally all defaults can be overridden by options to \cmd{printbiblist} and definitions of the environments, filters etc. and in this way arbitrary types of bibliography lists can be printed containing a variety of information from the bibliography data.
 \end{ltxsyntax}
 
+Bibliography lists are often used to print lists of various kinds of shorthands and this can result in duplicate entries if more than one bibliography entry has the same shorthand. For example, several journal articles in the same journal would result in duplicate entries in a list of journal shorthands. You can use the fact that such lists automatically pick up a \cmd{bibcheck} with the same name as the list to define a check to remove duplicates. If you are defining a list to print all of the journal shorthands using the \bibfield{shortjournal} field, you could define a \cmd{bibcheck} like this:
+
+\begin{lstlisting}[style=latex]{}
+\defbibcheck{shortjournal}{%
+  \iffieldundef{shortjournal}{\skipentry}{}%
+  \iffieldundef{journal}{\skipentry}{%
+    \ifcsdef{\strfield{journal}}
+      {\skipentry}
+      {\savefieldcs{journal}{\strfield{journal}}}}}
+\end{lstlisting}
+
 \subsubsection{Bibliography Sections}
 \label{use:bib:sec}
 
