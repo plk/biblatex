@@ -4134,7 +4134,6 @@
   \do{translatorsanaf}%
   \do{byauthor}%
   \do{byeditor}%
-  \do{byeditor}%
   \do{bycompiler}%
   \do{byredactor}%
   \do{byreviser}%
@@ -4773,6 +4772,11 @@
 \begingroup
 \@makeother\#
 \gdef\blx@mkautolangbabel{%
+  \ifundef\bbl@main@language
+    {\blx@error
+      {No default babel language defined}
+      {You must define a default language for babel}}
+    {}%
   \pretocmd\select@language{\blx@langsetup{#1}}
     {\ifdef\blx@thelangenv
        {\def\blx@beglang{%
@@ -4803,6 +4807,11 @@
      \blx@mknoautolang}}
 
 \gdef\blx@mkautolangpoly{%
+  \ifundef\bbl@main@language
+    {\blx@error
+      {No default polyglossia language defined}
+      {You must define a default language for polyglossia}}
+    {}%
   \catcode`\_=11% polyglossia uses "_" as a letter
   \pretocmd\select@language{\blx@langsetup{#1}}
     {\ifdef\blx@thelangenv
@@ -5484,8 +5493,10 @@
     {\ifdefempty\abx@field@localnumber
       {}% only if omitnumbers=true
       {\ifundef\abx@field@shorthand
-       {\ifdef\abx@field@localnumber
-          {}% only if defernumbers=true
+        {\iftoggle{blx@defernumbers}
+          % only if defernumbers=true
+          {\let\abx@field@localnumber\@empty}% This must be defined for
+                                             % real setting of localnumber during entry output
           {\csnumgdef{blx@labelnumber@\the\c@refsection}{%
               \csuse{blx@labelnumber@\the\c@refsection}+1}%
            \edef\abx@field@localnumber{%
@@ -6574,7 +6585,7 @@
 \let\blx@bibcheck\relax
 
 \def\blx@initsep{%
-  \blx@imc@iffieldundef{bibinitsephash}
+  \blx@imc@iffieldundef{sortinithash}
     {}
     {\ifnum\c@instcount>\@ne
        \blx@imc@iffieldequals{sortinithash}\blx@previnithash
@@ -8549,7 +8560,9 @@
     \blx@usqcheck@i\blx@tempa
   \fi
   \if\noexpand\@let@token\relax
-    \blx@usqcheck@i\blx@tempb
+    \ifx\relax\@let@token
+      \blx@usqcheck@i\blx@tempb
+    \fi
   \fi
   \expandafter\blx@usqcheck@ii\blx@quotepunct\relax&}
 

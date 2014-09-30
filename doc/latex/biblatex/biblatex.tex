@@ -128,6 +128,13 @@
 \newrobustcmd*{\LFMark}{%
   \leavevmode\marginpar{\LF}}
 
+% following snippet is based on code by Michael Ummels (TeX Stack Exchange)
+% <http://tex.stackexchange.com/a/13073/8305>
+\makeatletter
+  \newcommand\fnurl@[1]{\footnote{\url@{#1}}}
+  \DeclareRobustCommand{\fnurl}{\hyper@normalise\fnurl@}
+\makeatother
+
 \hyphenation{%
   star-red
   bib-lio-gra-phy
@@ -143,7 +150,7 @@
 \section{Introduction}
 \label{int}
 
-This document is a systematic reference manual for the \biblatex package. Look at the sample documents which ship with \biblatex to get a first impression.\fnurl{\biblatexctan/doc/examples}
+This document is a systematic reference manual for the \biblatex package. Look at the sample documents which ship with \biblatex to get a first impression.\fnurl{\biblatexctan doc/examples}
 For a quick start guide, browse \secref{int:abt, bib:typ, bib:fld, bib:use, use:opt, use:xbx, use:bib, use:cit, use:use}.
 
 \subsection[About]{About \biblatex}
@@ -2620,7 +2627,7 @@ Whether or not to update the \cnt{uniquelist} counter, see \secref{aut:aux:tst} 
 \item[minyear] Disambiguate the \bibfield{labelname} list only if the truncated list is identical to another one with the same \bibfield{labelyear}. This mode of operation is useful for author-year styles and requires \kvopt{labeldate}{true}.
 \end{valuelist}
 %
-Note that the \opt{uniquelist} option will also affect the \cmd{ifsingletitle} test and the \bibfield{extrayear} field. See \secref{aut:cav:amb} for further details and practical examples. See \secref{aut:cav:amb} for further details and practical examples.
+Note that the \opt{uniquelist} option will also affect the \cmd{ifsingletitle} test and the \bibfield{extrayear} field. See \secref{aut:cav:amb} for further details and practical examples.
 
 \end{optionlist}
 
@@ -2704,10 +2711,15 @@ The following options are only settable on a per"=entry basis in the \bibfield{o
 If this option is enabled, the entry is excluded from the bibliography but it may still be cited.
 \BiberOnlyMark With \biber, this option is also settable on a per-type basis.
 
-\boolitem[false]{skiplos}
+\boolitem[false]{skiplos}[\BibTeXOnly]
 
+If this option is enabled, the entry is excluded from the list of shorthands. It is still included in the bibliography and it may also be cited by shorthand. This option is deprecated when using \biber as the backend. Use \opt{skipbiblist} instead.
+
+\boolitem[false]{skipbiblist}[\BiberOnly]
+
+This is the same as the \opt{skiplos} option when using the \bibtex backend. It is renamed for \biber to be consistent with the more generalised bibliography list functionality See \secref{use:bib:biblist}.
 If this option is enabled, the entry is excluded from the list of shorthands. It is still included in the bibliography and it may also be cited by shorthand.
-\BiberOnlyMark With \biber, this option is also settable on a per-type basis.
+This option is also settable on a per-type basis.
 
 \boolitem[false]{skiplab}
 
@@ -2716,7 +2728,7 @@ If this option is enabled, \biblatex will not assign any labels to the entry. It
 
 \boolitem[false]{dataonly}
 
-Setting this option is equivalent to \kvopt{uniquename}{false}, \kvopt{uniquelist}{false, }\opt{skipbib}, \opt{skiplos}, and \opt{skiplab}. It is not required for normal operation. Use it with care.
+Setting this option is equivalent to \kvopt{uniquename}{false}, \kvopt{uniquelist}{false, }\opt{skipbib}, \opt{skiplos}/\opt{skipbiblist}, and \opt{skiplab}. It is not required for normal operation. Use it with care.
 \BiberOnlyMark With \biber, this option is also settable on a per-type basis.
 
 \valitem{labelnamefield}{fieldname}
@@ -2970,7 +2982,7 @@ Multiple relations to the same entry are also possible:
 %
 Note the the order of the keys in lists of multiple related entries is important. The data from multiple related entries is printed in the order of the keys listed in this field. See \secref{aut:ctm:rel} for a more details on the mechanisms behind this feature. You can turn this feature off using the package option \opt{related} from \secref{use:opt:pre:gen}.
 
-You can use the \bibfield{relatedoptions} to set options on the related entry data clone. This is useful if you need to override the \opt{dataonly} option which is set by default on all related entry clones. For example, if you will expose some of the names in the related clone in your document, you may want to have them disambiguated from names in other entries but normally this won't happen as related clones have the per"=entry \opt{dataonly} option set and this in turn sets \kvopt{uniquename}{false} and \kvopt{uniquelist}{false}. In such a case, you can set \bibfield{relatedoptions} to just \opt{skiplab, skipbib, skiplos}.
+You can use the \bibfield{relatedoptions} to set options on the related entry data clone. This is useful if you need to override the \opt{dataonly} option which is set by default on all related entry clones. For example, if you will expose some of the names in the related clone in your document, you may want to have them disambiguated from names in other entries but normally this won't happen as related clones have the per"=entry \opt{dataonly} option set and this in turn sets \kvopt{uniquename}{false} and \kvopt{uniquelist}{false}. In such a case, you can set \bibfield{relatedoptions} to just \opt{skiplab, skipbib, skiplos/skipbiblist}.
 
 \subsection{Sorting Options}
 \label{use:srt}
@@ -5502,7 +5514,7 @@ When citing a subentry of an entry set, \biblatex provides the data of the paren
 Holds the prefix coming before <date> of the date field name chosen by \cmd{DeclareLabeldate}. For example, if the label date field is \bibfield{eventdate}, then \bibfield{datelabelsource} will be <event>. In case \cmd{DeclareLabeldate} selects the \bibfield{date} field, then \bibfield{datelabelsource} will be defined but will be an empty string as the prefix coming before <date> in the date label name is empty. This is so that the contents of \bibfield{datelabelsource} can be used in constructing references to the field which \cmd{DeclareLabeldate} chooses. Since \cmd{DeclareLabeldate} can also select literal strings for fallbacks, if \bibfield{datelabelsource} is undefined, then either the \opt{labeldate} package option is set to false or \cmd{DeclareLabeldate} chose a literal string instead of a date field. Bear in mind that \cmd{DeclareLabeldate} can also be used to select non-date fields as a fallback and so \bibfield{datelabelsource} might contain a field name. So, in summary, the rules are
 
 \begin{lstlisting}[style=latex]{}
-\iffieldundef{datalabelsource}
+\iffieldundef{datelabelsource}
   {
     % labeldate package option is not set or \DeclareLabeldate resolved to a literal string
   }
@@ -9680,7 +9692,7 @@ The length registers and counters discussed here are used by \biblatex to pass i
 
 This length register indicates the width of the widest \bibfield{shorthand}. Bibliography styles should incorporate this length in the definition of the list of shorthands, if applicable.
 
-\lenitem{<labelfield>width}|\BiberOnlyMark|
+\lenitem{<labelfield>width}\BiberOnlyMark
 
 With \biber, for every field marked as a <Label field> in the data model, a length register is created as per \texttt{shorthandwidth} above. Since \bibfield{shorthand} is so marked in the default data model, this functionality is a superset of that described for \texttt{shorthandwidth}.
 
@@ -11209,6 +11221,7 @@ refsegment	&\+&\+&\_&\_\\
 safeinputenc	&\+&\+&\_&\_\\
 singletitle	&\+&\+&\+&\_\\
 skipbib		&\_&\_&\+&\+\\
+skipbiblist	&\_&\_&\+&\+\\
 skiplab		&\_&\_&\+&\+\\
 skiplos		&\_&\_&\+&\+\\
 sortcase	&\+&\+&\_&\_\\
