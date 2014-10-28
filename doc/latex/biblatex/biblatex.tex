@@ -745,48 +745,10 @@ If you wish to customise this, be sure to keep these defaults in your specificat
 
 The supported languages for a variant are any of the supported Babel/Polyglossia language identifiers and these are used to switch languages on a per-variant basis, if required. \biber supports specification of field variants with an entry in a backwards compatible manner so that existing \file{.bib} databases, do not need to be modified. The format for this in \bibtex format bibliography databases is described in the \biber documentation. A variant enabled field given in the database without any variant specification defaults to the values of the \opt{vform} and \opt{vlang} package/per-entry options. When the form «translated» is selected, the language defaults to the value of the \opt{vtranslang} package/per-entry option. When writing the \file{.bbl}, \biber will set the \opt{form} and \opt{lang} options on the field, copying these from the data source. See \secref{use:opt:pre:gen}.
 
-There are two <modes> for multiscript support in \biblatex. The mode is a global setting controlled by the option \opt{msmode }which can also be set per-entrytype and per-entry. The two modes available are <entry> mode and <db> mode. The default mode is <entry> mode.
-
-In <entry> multiscript mode, the variant specifications for a field exist to inform only \emph{how} a field is printed. In <db> multiscript mode, the variant specifications are used to specify both \emph{which} variant is printed \emph{and} how it is printed.
-
-In <entry> mode, \biblatex uses the variant information in the field name to potentially switch language settings, depending on the \opt{autolangshort*} options. It is guaranteed that in <entry> mode, there is no more than one variant per field in an entry as \biber will ensure this---any duplicate fields, regardless of the variant, will be overwritten. This mode is intended for automatic language switching for entries where the language/script of fields may not all be the same, as in a French article in an Italian collection. For example, given the following entry in a document typeset with babel/polyglossia main language set to <french> and with \opt{autolangshort} set to <hyphenation> (see the \biber manual for details about this extended variant \file{.bib} format):
-
-\begin{lstlisting}[style=bibtex,escapechar=+]
-@incollection{Canart1982,
-  OPTIONS              = {msmode=entry},
-  ADDRESS              = {Milan},
-  AUTHOR               = {Paul Canart},
-  BOOKSUBTITLE_italian = {raccolta di studi in memoria di Agostino
-                          Pertusi},
-  BOOKTITLE_italian    = {Bisanzio e l'Italia},
-  NUMBER               = {22},
-  PAGES                = {19-28},
-  PUBLISHER            = {Publisher},
-  PUBLISHER_italian    = {Vita e pensiero},
-  SERIES_italian       = {Pubblicazioni della Università Cattolica
-                          del Sacro Cuore. Scienze filologiche e
-                          letteratura},
-  TITLE                = {Cinq manuscrits transférés directement
-                          du monastère de Stoudios à celui de Grottiest},
-  YEAR                 = {1982}
-}
-\end{lstlisting}
-
-\biblatex would print the \bibfield{BOOKSUBTITLE}, \bibfield{BOOKTITLE}, \bibfield{PUBLISHER} and \bibfield{SERIES} fields using italian hyphenation. The \bibfield{PUBLISHER} with no variant specification above would be overwritten by the succeeding one by \biber, thus guaranteeing that only one variant of each field is present in the \file{.bbl} in <entry> mode. In <entry> mode, the data printing commands:
-
-\begin{lstlisting}[style=latex]
-\printfield
-\printlist
-\printname
-\end{lstlisting}
-%
-do not need to be qualified with the variants in the \file{.bib} file since there should be no more than one variant per field and \biblatex with automatically use the field variant to print the field.
-
-<db> mode is intended for entries where multiple variants of fields are maintained in the same entry, as for a book in Cyrillic script which sometimes needs to be cited in romanised form or even in translated form and language. The particular form/lang selected to be printed are determined by the \opt{vform}, \opt{vlang} and \opt{vtranslang} options. Here is an example---suppose the \bibtex format bibliography contained the following:
+Here is an example---suppose the \bibtex format bibliography contained the following:
 
 \begin{lstlisting}[style=bibtex,escapechar=+]
 @BOOK{test,
-  OPTIONS                  = {msmode=db},
   AUTHOR                   = {+Булгаков, Павел and Розенфельд, Борис+},
   AUTHOR_uniform           = {Bulgakov, Pavel and Rosenfeld, Boris},
   TITLE_original           = {+Мухаммад ибн муса ал-Хорезми. Около 783 – около 850+},
@@ -949,12 +911,43 @@ You could print two bibliographies, one with french titles and one with english.
 \printbibliography
 \end{lstlisting}
 %
-Since \cmd{vfallbackon} is enabled by default, this means that even though the \bibfield{author} has no \opt{translated/english} variant (as it is by default \opt{original/french} due to the package options), it will be used anyway as a fallback. With \cmd{vfallbackoff}, the entry in the second bibliography would be missing the \bibfield{author} field since there is no \opt{translated/english} author field. Variant fallback is only used when \opt{msmode} is set to <db> since it makes no sense in <entry> multiscript mode.
+Since \cmd{vfallbackon} is enabled by default, this means that even though the \bibfield{author} has no \opt{translated/english} variant (as it is by default \opt{original/french} due to the package options), it will be used anyway as a fallback. With \cmd{vfallbackoff}, the entry in the second bibliography would be missing the \bibfield{author} field since there is no \opt{translated/english} author field.
+
+Setting \opt{vlang} to <\texttt{*}> means that \biblatex will use whichever language is found for a field variant with form \opt{vform}. This assumes of course that your entry contains only one language variant with form \opt{vform} otherwise the behaviour will not be well defined. For example:
+
+\begin{lstlisting}[style=bibtex,escapechar=+]
+@BOOKINBOOK{BHG225,
+  BOOKTITLE_latin         = {Acta Apocryphorum Apostolorum},
+  DATE                    = {1903},
+  LOCATION                = {Leipzig},
+  PUBLISHER               = {Hermann Mendelssohn},
+  PAGES                   = {292-302},
+  TITLE_original_greek    = {+Περίοδοι καὶ μαρτύριον τοῦ ἁγίου Βαρνάβα τοῦ ἀποστόλου+},
+  TITLE_uniform_latin     = {Acta Barnabae},
+  TITLE_translated_french = {Actes de Barnabé},
+  VOLUME                  = {2.2},
+}
+\end{lstlisting}
+%
+With fallback enabled and global variant settings \opt{vform} <original> and \opt{vlang} <\texttt{*}>, the selected \bibfield{BOOKTITLE} and \bibfield{TITILE} fields for printing will be:
+
+\begin{lstlisting}[style=latex,escapechar=+]
+TITLE     = +Περίοδοι καὶ μαρτύριον τοῦ ἁγίου Βαρνάβα τοῦ ἀποστόλου+
+BOOKTITLE = Acta Apocryphorum Apostolorum
+\end{lstlisting}
+%
+This is because the <original> language variants will be selected due to the \opt{vlang} wildcard. If we reset the current \opt{vform} to <uniform> in the document with \cmd{vform}, then we would get:
+\begin{lstlisting}[style=latex,escapechar=+]
+TITLE     = Acta Barnabae
+BOOKTITLE = Acta Apocryphorum Apostolorum
+\end{lstlisting}
+%
+This is because the <uniform> variant of \bibfield{TITLE} would be selected, regardless of the language, due to the \opt{vlang} wildcard but the \bibfield{BOOKTITLE} would fall back to the global <original> form and then the \opt{vlang} wildcard would select whatever language variant of the <original> form exists.
 
 \begin{ltxsyntax}
 \cmditem{DeclareVariantFallbacks}{specification}\BiberOnlyMark
 
-The \prm{specification} consists of one or more \cmd{vfallback} commands:
+This defines variant fallbacks used by \biber when processing sorting, labels and inheritance. It has nothing to do with the general \biblatex fallbacks for \opt{vform} and \opt{vlang}. The \prm{specification} consists of one or more \cmd{vfallback} commands:
 
 \cmditem{vfallback}
 
@@ -2581,10 +2574,6 @@ Similar to \opt{minnames}, but affecting all literal lists (\bibfield{publisher}
 \intitem[1]{minnames}
 
 A limit affecting all lists of names (\bibfield{author}, \bibfield{editor}, etc.). If a list holds more than \prm{maxnames} names, it is automatically truncated to \prm{minnames} names. The \prm{minnames} value must be smaller than or equal to \prm{maxnames}. \opt{minnames} is the master option which sets both \opt{minbibnames} and \opt{mincitenames}.
-
-\optitem[entry]{msmode}{\opt{db}, \opt{entry}}[\BiberOnly]
-
-Selects the global multiscript mode. See \secref{bib:fld:var}.
 
 \optitem[foot+end]{notetype}{\opt{foot+end}, \opt{footonly}, \opt{endonly}}
 
@@ -7965,7 +7954,7 @@ Defines the fields to consider when generating the \bibfield{labelname} field (s
 %
 The \bibfield{labelname} field may be customized globally or on a per-type basis. If the optional \prm{entrytype} argument is given, the specification applies to the respective entry type. If not, it is applied globally. The \prm{entrytype} argument may be a comma"=separated list of values. This command may only be used in the preamble. \cmd{field} may take the following options:
 
-\cmditem{DeclareLabeldate}[entrytype, \dots]{specification}\BiberOnlyMark
+\begin{optionlist*}
 
 \choitem[original]{form}{\prm{form}}
 
@@ -11688,7 +11677,6 @@ mincitenames	&\+&\+&\+&\+\\
 mincrossrefs	&\+&\+&\_&\_\\
 minitems	&\+&\+&\+&\+\\
 minnames	&\+&\+&\+&\+\\
-msmode    &\+&\+&\+&\+\\
 natbib		&\+&\_&\_&\_\\
 notetype	&\+&\+&\_&\_\\
 opcittracker	&\+&\+&\_&\_\\
