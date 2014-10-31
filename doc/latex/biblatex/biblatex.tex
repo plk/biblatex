@@ -913,7 +913,7 @@ You could print two bibliographies, one with french titles and one with english.
 %
 Since \cmd{vfallbackon} is enabled by default, this means that even though the \bibfield{author} has no \opt{translated/english} variant (as it is by default \opt{original/french} due to the package options), it will be used anyway as a fallback. With \cmd{vfallbackoff}, the entry in the second bibliography would be missing the \bibfield{author} field since there is no \opt{translated/english} author field.
 
-Setting \opt{vlang} to <\texttt{*}> means that \biblatex will use whichever language is found for a field variant with form \opt{vform}. This assumes of course that your entry contains only one language variant with form \opt{vform} otherwise the behaviour will not be well defined. For example:
+Setting \opt{autovlang=true} means that \biblatex will use whichever language is found for a field variant with form \opt{vform}. This assumes of course that your entry contains only one language variant with form \opt{vform} otherwise the behaviour will not be well defined. For example:
 
 \begin{lstlisting}[style=bibtex,escapechar=+]
 @BOOKINBOOK{BHG225,
@@ -929,20 +929,20 @@ Setting \opt{vlang} to <\texttt{*}> means that \biblatex will use whichever lang
 }
 \end{lstlisting}
 %
-With fallback enabled and global variant settings \opt{vform} <original> and \opt{vlang} <\texttt{*}>, the selected \bibfield{BOOKTITLE} and \bibfield{TITLE} fields for printing will be:
+With fallback enabled and global variant settings \opt{vform} <original> and \opt{autovlang=true} the selected \bibfield{BOOKTITLE} and \bibfield{TITLE} fields for printing will be:
 
 \begin{lstlisting}[style=latex,escapechar=+]
 TITLE     = +Περίοδοι καὶ μαρτύριον τοῦ ἁγίου Βαρνάβα τοῦ ἀποστόλου+
 BOOKTITLE = Acta Apocryphorum Apostolorum
 \end{lstlisting}
 %
-This is because the <original> language variants will be selected due to the \opt{vlang} wildcard. If we reset the current \opt{vform} to <uniform> in the document with \cmd{vform}, then we would get:
+This is because the <original> language variants will be selected due to the \opt{autovlang} setting. If we reset the current \opt{vform} to <uniform> in the document with \cmd{vform}, then we would get:
 \begin{lstlisting}[style=latex,escapechar=+]
 TITLE     = Acta Barnabae
 BOOKTITLE = Acta Apocryphorum Apostolorum
 \end{lstlisting}
 %
-This is because the <uniform> variant of \bibfield{TITLE} would be selected, regardless of the language, due to the \opt{vlang} wildcard but the \bibfield{BOOKTITLE} would fall back to the global <original> form and then the \opt{vlang} wildcard would select whatever language variant of the <original> form exists.
+This is because the <uniform> variant of \bibfield{TITLE} would be selected, regardless of the language, due to the \opt{autovlang} setting but the \bibfield{BOOKTITLE} would fall back to the global <original> form and then the \opt{autovlang} setting would select whatever language variant of the <original> form exists.
 
 \begin{ltxsyntax}
 \cmditem{DeclareVariantFallbacks}{specification}\BiberOnlyMark
@@ -2324,10 +2324,6 @@ See \secref{use:use:epr} for details on support for arXiv and electronic publish
 
 This option controls the behavior of the \cmd{autocite} command discussed in \secref{use:cit:aut}. The \opt{plain} option makes \cmd{autocite} behave like \cmd{cite}, \opt{inline} makes it behave like \cmd{parencite}, \opt{footnote} makes it behave like \cmd{footcite}, and \opt{superscript} makes it behave like \cmd{supercite}. The options \opt{plain}, \opt{inline}, and \opt{footnote} are always available, the \opt{superscript} option is only provided by the numeric citation styles which come with this package. The citation style may also define additional options. The default setting of this option depends on the selected citation style, see \secref{use:xbx:cbx}.
 
-\boolitem[true]{clearlang}
-
-If this option is enabled, \biblatex will automatically clear the \bibfield{language} field of all entries whose language matches the \sty{babel}/\sty{polyglossia} language of the document (or the language specified explicitly with the \opt{language} option) in order to omit redundant language specifications. The language mappings required by this feature are provided by the \cmd{DeclareRedundantLanguages} command from \secref{aut:lng:cmd}.
-
 \optitem[none]{autolang}{\opt{none}, \opt{hyphen}, \opt{other}, \opt{other*}, \opt{langname}}
 
 This option controls which \sty{babel} language environment\footnote{\sty{polyglossia} understands the \sty{babel} language environments too and so this option controls both the \sty{babel} and \sty{polyglossia} language environments.} is used if the \sty{babel}/\sty{polyglossia} package is loaded and a bibliography entry includes a \bibfield{langid} field (see \secref{bib:fld:spc}). Note that \biblatex automatically adjusts to the main document language if \sty{babel}/\sty{polyglossia} is loaded. In multilingual documents, it will also continually adjust to the current language as far as citations and the default language of the bibliography is concerned. This option is for switching languages on a per"=entry basis within the bibliography. The possible choices are:
@@ -2362,6 +2358,10 @@ When \opt{autolangshort} is set to anything other than \opt{none}, this option d
 \boolitem[true]{autopunct}
 
 This option controls whether the citation commands scan ahead for punctuation marks. See \secref{use:cit} and \cmd{DeclareAutoPunctuation} in \secref{aut:pct:cfg} for details.
+
+\boolitem[true]{autovlang}[\BiberOnly]
+
+This option controls whether the language variant for a bibfield is looked for first in the field itself rather than using the global \opt{vlang} setting. See \secref{bib:fld:var}. This option can be set per"=entrytype and per"=entry.
 
 \boolitem[false]{backref}
 
@@ -11622,6 +11622,7 @@ autopunct	&\+&\+&\_&\_\\
 autolang		&\+&\+&\_&\_\\
 autolangshort		&\+&\+&\_&\_\\
 autolangshortstrings		&\+&\+&\_&\_\\
+autovlang &\+&\+&\+&\+\\
 backend		&\+&\_&\_&\_\\
 backref		&\+&\+&\_&\_\\
 backrefsetstyle	&\+&\+&\_&\_\\
