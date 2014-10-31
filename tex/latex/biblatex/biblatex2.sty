@@ -96,7 +96,7 @@
          {\blx@mknoautolang}
          {\blx@mkautolangbabel}}
       {\blx@mknoautolang}}%
-  % These already have defaults set to basically do nothing
+  % \blx@beglang already has defaults set to basically do nothing
   % so if the toggles are true, we need to define again since
   % mkautolang* redefines \blx@beglang
   % In turn, \blx@beglang defines \blx@endlang and so \blx@beglangcite and
@@ -112,9 +112,6 @@
   \ifundef\blx@vlang
     {\edef\blx@vlang{\blx@languagename}%
      \edef\blx@ovlang{\blx@languagename}}
-    {}%
-  \expandafter\ifstrequal\expandafter{\blx@vlang}{*}
-    {\edef\blx@ovlang{\blx@languagename}}
     {}%
   \ifundef\blx@vtranslang{%
     \edef\blx@vtranslang{\blx@languagename}%
@@ -482,6 +479,7 @@
 \newtoggle{blx@autolangbib}
 \newtoggle{blx@autolangcite}
 \newtoggle{blx@autolangshortstrings}
+\newtoggle{blx@autovlang}
 \newtoggle{blx@clearlang}
 \newtoggle{blx@defernumbers}
 \newtoggle{blx@omitnumbers}
@@ -1679,7 +1677,7 @@
      % If fallbacks are enabled
      \iftoggle{blx@vfallback}
        % If vlang is wildcard
-      {\expandafter\ifstrequal\expandafter{\blx@vlang}{*}
+      {\iftoggle{blx@autovlang}
          % try with vform
         {\ifdefempty\blx@tempa
           {\edef\blx@tempa{\blx@vform}}
@@ -1749,14 +1747,14 @@
    {\ifboolexpe{ test {\ifblank{#2}} or
                  test {\IfNoValueTF{#2}} }
       {\iftoggle{blx@vfallback}
-        {\expandafter\ifstrequal\expandafter{\blx@vlang}{*}
+        {\iftoggle{blx@autovlang}
           {\ifcsundef{abx@langs@#3@\blx@vform}
             {\ifcsundef{abx@langs@#3@\blx@ovform}}
             {\ifcsundef{abx@langs@#3@\blx@vform}}}
           {\ifcsundef{abx@#1@#3@\blx@vform @\blx@vlangswitch}
             {\ifcsundef{abx@#1@#3@\blx@ovform @\blx@ovlang}}
             {\ifcsundef{abx@#1@#3@\blx@vform @\blx@vlangswitch}}}}
-        {\expandafter\ifstrequal\expandafter{\blx@vlang}{*}
+        {\iftoggle{blx@autovlang}
           {\ifcsundef{abx@langs@#3@\blx@vform}}
           {\ifcsundef{abx@#1@#3@\blx@vform @\blx@vlangswitch}}}}
       {\ifcsundef{abx@#1@#3@\blx@v@getform{#2}@\blx@v@getlang{#2}}}}
@@ -10205,6 +10203,7 @@
   \blx@xml@comment{GLOBAL}%
   \blx@xml@options{biblatex}{global}{%
     \blx@xml@svalue{alphaothers}{\labelalphaothers}%
+    \blx@xml@toggle{autovlang}%
     \blx@xml@toggle{labelalpha}%
     \blx@xml@mvalue{labelnamespec}{\blx@bcf@labelnamespec}%
     \blx@xml@toggle{labeltitle}%
@@ -10240,6 +10239,7 @@
 \def\blx@bcf@options@type#1{%
   \blx@xml@comment{#1}%
   \blx@xml@options{biblatex}{#1}{%
+    \blx@xml@toggle{autovlang}%
     \blx@xml@toggle{labelalpha}%
     \blx@xml@mvalue{labelnamespec}{%
       \ifcsdef{blx@bcf@labelnamespec@#1}
@@ -11241,6 +11241,14 @@
  \def\blx@vtranslang{#1}%
  \def\blx@ovtranslang{#1}}
 
+% Determines whether to first look for lang in the bibfield specification itself
+\DeclareBibliographyOption{autovlang}[true]{%
+  \settoggle{blx@autovlang}{#1}}
+\DeclareTypeOption{autovlang}[true]{%
+  \settoggle{blx@autovlang}{#1}}
+\DeclareEntryOption{autovlang}[true]{%
+  \settoggle{blx@autovlang}{#1}}
+
 \DeclareBibliographyOption{maxnames}{%
   \numdef\blx@maxcitenames{#1}%
   \numdef\blx@maxbibnames{#1}}
@@ -12152,7 +12160,7 @@
   date=comp,datelabel=year,origdate=comp,eventdate=comp,urldate=short,autopunct=true,
   punctfont=false,defernumbers=false,refsection=none,refsegment=none,
   citereset=none,hyperref=auto,parentracker,maxparens=3,
-  bibencoding=auto,bibwarn,vform=original}
+  bibencoding=auto,bibwarn,vform=original,autovlang=true}
 
 % Load compatibility code
 
