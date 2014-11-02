@@ -3444,49 +3444,60 @@
 \setcounter{mincompwidth}{1}
 \def\abx@rangeproclimit{100000}
 
+% {<rangefield>}
+\newcommand*{\frangelen}[1]{%
+  \ifcsdef{abx@range@#1}
+    {\csuse{abx@range@#1}}
+    {}}
+
+% {<string>}
 % This mustn't be robust as it's likely to be used mainly tests and so
 % needs to be expandable
-% {<string>}
-\newcommand*{\rangelen}[1]{%
-  \blx@rangelen@range#1\bibrangedash\bibrangedash&}
+\newcommand*\rangelen[1]{%
+  \ifblank{#1}
+    {0}%
+    {%
+      \expandafter\blx@rangelen@range\romannumeral-`\q%
+      #1\bibrangedash\bibrangedash&%
+    }%
+  }
 
 \def\blx@rangelen@range#1\bibrangedash#2\bibrangedash#3&{%
   \ifblank{#3}
     {\blx@rangelen@hyphen#1--&}
-    {\ifblank{#2}
-       {0}% n\bibrangedash
-       {\ifblank{#1}
-          {0}% \bibrangedash n
-          {\blx@rangelen@check{#1}{#2}}}}}
-
+    {\blx@rangelen@check{#1}{#2}}%
+}
 \def\blx@rangelen@hyphen#1-#2-#3&{%
   \ifblank{#3}
-    {1}% n
-    {\ifblank{#2}
-       {\ifblank{#1}
-          {\let\blx@tempb\@empty}
-          {\def\blx@tempb{#1}}%
-        \blx@rangelen@hyphen@i#3&}
-       {\ifblank{#1}
-          {0}% -n
-          {\blx@rangelen@check{#1}{#2}}}}}
-
-\def\blx@rangelen@hyphen@i#1-#2&{%
-  \ifblank{#1#2}
-    {0}% n-
-    {\notblank{#1}
-       {\ifdefempty\blx@tempb
-          {0}
-          {\expandafter\blx@rangelen@check
-           \expandafter{\blx@tempb}{#1}}}
-       {\blx@rangelen@hyphen@i#2&}}}
-
+    {1}% No range at all: assume one page
+    {\blx@rangelen@check{#1}{#2}}%
+}
 \def\blx@rangelen@check#1#2{%
-  \blx@imc@ifinteger{#1}
-    {\blx@imc@ifinteger{#2}
-       {\the\numexpr#2-#1\relax}% n-m
-       {0}}
-    {0}}
+  \expandafter\blx@rangelen@check@aux
+    \number\numexpr
+      \blx@rangelen@check@int{#2}
+      -
+      \blx@rangelen@check@int{#1}
+      + 1
+    \relax
+    &\stop
+}
+\def\blx@rangelen@check@aux#1&#2\stop{%
+  \ifblank{#2}
+    {#1}
+    {-1}%
+}
+\def\blx@rangelen@check@int#1{%
+  \ifblank{#1}
+    {0&}
+    {%
+      \if\number\numexpr0#1-0#1\relax0
+        #1
+      \else
+        0&
+      \fi
+    }%
+}
 
 % <*>[<postpro>]{<string>}
 \newrobustcmd*{\mkcomprange}{%
@@ -4893,7 +4904,7 @@
   \let\bibstring\blx@imc@bibxstring
   \let\biblstring\blx@imc@bibxlstring
   \let\bibsstring\blx@imc@bibxsstring
-  \MakeLowercase{\edef\blx@tempa{#3}}%
+  \lowercase{\edef\blx@tempa{#3}}%
   \ifcsundef{#2@\blx@tempa}
     {\blx@warn@nostring\blx@tempa
      \blx@endnounit}
@@ -4918,7 +4929,7 @@
   \let\bibstring\blx@imc@bibxstring
   \let\biblstring\blx@imc@bibxlstring
   \let\bibsstring\blx@imc@bibxsstring
-  \MakeLowercase{\edef\blx@tempa{#3}}%
+  \lowercase{\edef\blx@tempa{#3}}%
   \ifcsundef{#2@\blx@tempa}
     {\blx@warn@nostring\blx@tempa
      \blx@endnounit}
@@ -4941,7 +4952,7 @@
   \let\bibstring\blx@imc@bibxstring
   \let\biblstring\blx@imc@bibxlstring
   \let\bibsstring\blx@imc@bibxsstring
-  \MakeLowercase{\edef\blx@tempa{#3}}%
+  \lowercase{\edef\blx@tempa{#3}}%
   \ifcsundef{#2@\blx@tempa}
     {\blx@warn@nostring\blx@tempa
      \blx@endnounit}
@@ -4964,7 +4975,7 @@
   \let\bibstring\blx@imc@bibxstring
   \let\biblstring\blx@imc@bibxlstring
   \let\bibsstring\blx@imc@bibxsstring
-  \MakeLowercase{\edef\blx@tempa{#3}}%
+  \lowercase{\edef\blx@tempa{#3}}%
   \ifcsundef{#2@\blx@tempa}
     {\blx@warn@nostring\blx@tempa
      \blx@endnounit}
@@ -6197,6 +6208,11 @@
   \csxappto{blx@data@#2@#1}{%
     \def\expandafter\noexpand\csname abx@field@#3\endcsname{#4}}}
 
+% {<rangefield>}{<value>}
+\protected\def\blx@bbl@rangedef#1#2{%
+  \csxappto\blx@bbl@data{%
+    \def\expandafter\noexpand\csname abx@range@#1\endcsname{#2}}}
+
 % A lot of information about forms/langs is created in \addfield, \listdef and \namedef
 % abx@variants@<bibfield>         - list of variants for <bibfield>
 % abx@forms@<bibfield>            - list of forms for <bibfield>
@@ -6848,6 +6864,7 @@
   \let\name\blx@bbl@namedef
   \let\list\blx@bbl@listdef
   \let\field\blx@bbl@fielddef
+  \let\range\blx@bbl@rangedef
   \let\strng\blx@bbl@stringdef
   \let\cnt\blx@bbl@cntdef
   \let\true\blx@bbl@booltrue
