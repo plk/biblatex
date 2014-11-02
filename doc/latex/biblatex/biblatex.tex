@@ -49,8 +49,8 @@
   url={\biblatexhome},
   author={Philipp Lehman \\(with Philip Kime, Audrey Boruvka and Joseph Wright)},
   email={},
-  revision={2.9a},
-  date={24/06/2014}}
+  revision={3.0},
+  date={10/11/2014}}
 
 \hypersetup{%
   pdftitle={The \biblatex Package},
@@ -8210,7 +8210,7 @@ p. 5, p. 123, p. 423
 
 \cmditem{rangelen}{text}
 
-This command will parse its argument as a range and return the length of the range. It will return 0 for open-ended ranges.
+This command will parse its argument as a range and return the length of the range. It will return -1 for open-ended ranges.
 
 \begin{lstlisting}[style=latex]{}
 \rangelen{5-10} returns '5'
@@ -8219,10 +8219,42 @@ This command will parse its argument as a range and return the length of the ran
 \rangelen{5} returns '1'
 \end{lstlisting}
 %
-This can be used as part of tests in styles which require, for example, <f> as a suffix for ranges of only two pages, for example, when a page range <36-37> should be printed as <36f>. This could be done using \cmd{ifnumcomp}:
+This can be used as part of tests in styles which require, for example, <f> as a suffix for ranges of only two pages as when a page range <36-37> should be printed as <36f>. This could be done using \cmd{ifnumcomp}:
 
 \begin{lstlisting}[style=latex]{}
 \ifnumcomp{\rangelen{\thefield{pages}}}{=}{1}{add 'f'}{do nothing}
+\end{lstlisting}
+
+\cmditem{frangelen}{rangefield}\BiberOnlyMark
+
+Takes the name of a bibfield declared as a range field in the data model and returns the length of the range. This is calculated by \biber, can handle many special cases and is generally more robust than \cmd{rangelen}. It will return -1 for open ended ranges. Specifically \cmd{frangelen} can:
+
+\begin{itemize}
+\item Calculate the total of multiple ranges in the same field such as <1-10, 20-30>
+\item Handle implicit ranges such as <22-4> and <130-33>
+\item Handle roman numeral ranges in upper and lower case and consisting of both ASCII and Unicode roman numeral representations.
+\end{itemize}
+%
+Here are some examples:
+
+\begin{tabular}{ll}
+pages = <10> & |\frangelen{pages}| returns '1'\\
+pages = <10-15> & |\frangelen{pages}| returns '6'\\
+pages = <10-15,47-53> & |\frangelen{pages}| returns '13'\\
+pages = <10-> & |\frangelen{pages}| returns '-1'\\
+pages = <-10> & |\frangelen{pages}| returns '-1'\\
+pages = <48-9> & |\frangelen{pages}| returns '2'\\
+pages = <172-77> & |\frangelen{pages}| returns '6'\\
+pages = <i-vi> & |\frangelen{pages}| returns '6'\\
+pages = <X-XX> & |\frangelen{pages}| returns '11'\\
+pages = <ⅥⅠ-ⅻ> & |\frangelen{pages}| returns '6'\\
+pages = <ⅥⅠ-ⅻ, 145-7, 135-39> & |\frangelen{pages}| returns '14'
+\end{tabular}
+
+As with \cmd{rangelen}, \cmd{frangelen} can be used in tests:
+
+\begin{lstlisting}[style=latex]{}
+\ifnumcomp{\frangelen{pages}}{=}{1}{add 'f'}{do nothing}
 \end{lstlisting}
 
 \cmditem{DeclareNumChars}{characters}
@@ -11252,7 +11284,11 @@ This revision history is a list of changes relevant to users of this package. Ch
 
 \begin{changelog}
 
-\begin{release}{2.9a}{2014}
+\begin{release}{3.0}{2014}
+\item New range calculation command \cmd{frangelen}\see{aut:aux:msc}
+\end{release}
+
+\begin{release}{2.9a}{2014-06-25}
 \item \texttt{resetnumbers} now allows passing a number to reset to\see{use:bib:bib}
 \end{release}
 
