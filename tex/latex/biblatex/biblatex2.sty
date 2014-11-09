@@ -480,6 +480,7 @@
 \newtoggle{blx@citeindex}
 \newtoggle{blx@bibindex}
 \newtoggle{blx@localnumber}
+\newtoggle{blx@refcontext}
 
 % Initialise some lists which track changing citations/sortschemes
 % etc. between runs
@@ -5121,10 +5122,10 @@
     {\csdef{blx@nih@#1}##1{#2}}}
 \@onlypreamble\DeclareNameInputHandler
 
-% {<entrykey>}{<refsection>}{<field>}{<value>}
-\long\def\blx@bbl@addentryfield#1#2#3#4{%
-  \csxappto{blx@data@#2@\blx@refcontext@sorting @#1}{%
-    \def\expandafter\noexpand\csname abx@field@#3\endcsname{#4}}}
+% {<entrykey>}{<refsection>}{<field>}{<sort context>}{<value>}
+\long\def\blx@bbl@addentryfield#1#2#3#4#5{%
+  \csxappto{blx@data@#2@#4@#1}{%
+    \def\expandafter\noexpand\csname abx@field@#3\endcsname{#5}}}
 
 % {<rangefield>}{<value>}
 \protected\def\blx@bbl@rangedef#1#2{%
@@ -5387,7 +5388,6 @@
      \global\togglefalse{blx@addset}}
     {}%
   \endgroup
-  \csnumgdef{blx@labelnumber@\the\c@refsection}{0}%
   \iftoggle{blx@reencode}{\blx@reencode}{}}
 
 % {<entrykey>}
@@ -5505,42 +5505,40 @@
   % Used at endentry, when reading .bbl
   % only do this for the global sorting list otherwise we increment
   % the labelnumbers for each sortlist
-  \ifdefstrequal{\blx@slist@scheme}{\blx@sorting}
-    {\ifdefempty\abx@field@localnumber
-      {}% only if omitnumbers=true
-      {\ifundef\abx@field@shorthand
-        {\iftoggle{blx@defernumbers}
-          % only if defernumbers=true, we have to define localnumber to
-          % something to stop labelnumberwidth def complaining on first
-          % post-backend run since there will be nothing in the .aux yet
-          % for defernums localnumbers. On the second post-backend run,
-          % it will have a value correct for generating labelnumberwidth
-          % We also have to define a dummy value for labelnumber here for
-          % first post-backend runs otherwise references to labelnumber
-          % in cite styles like numeric-comp will die.
-          {\ifundef\abx@field@localnumber
-            {\numdef\abx@field@localnumber{0}%
-             \blx@bbl@fielddef{labelnumber}{0}}
-            {}}
-          {\csnumgdef{blx@labelnumber@\the\c@refsection}{%
-              \csuse{blx@labelnumber@\the\c@refsection}+1}%
-           \edef\abx@field@localnumber{%
-              \csuse{blx@labelnumber@\the\c@refsection}}%
-           \blx@bbl@fieldedef{labelnumber}{\abx@field@localnumber}}%
-         \iftoggle{blx@skipbib}
-           {}
-           {\blx@setlabwidth{\labelnumberwidth}{%
-              \csuse{abx@ffd@*@labelnumberwidth}{%
-                \ifdef\abx@field@prefixnumber
-                  {\csuse{abx@ffd@*@prefixnumber}{\abx@field@prefixnumber}}
-                  {}%
-                \abx@field@localnumber}}}}
-        {\csgappto\blx@bbl@data{\let\abx@field@labelnumber\abx@field@shorthand}%
-         \iftoggle{blx@skipbib}
-           {}
-           {\blx@setlabwidth{\labelnumberwidth}{%
-              \csuse{abx@ffd@*@labelnumberwidth}{\abx@field@shorthand}}}}}}
-   {}}
+  \ifdefempty\abx@field@localnumber
+  {}% only if omitnumbers=true
+  {\ifundef\abx@field@shorthand
+    {\iftoggle{blx@defernumbers}
+      % only if defernumbers=true, we have to define localnumber to
+      % something to stop labelnumberwidth def complaining on first
+      % post-backend run since there will be nothing in the .aux yet
+      % for defernums localnumbers. On the second post-backend run,
+      % it will have a value correct for generating labelnumberwidth
+      % We also have to define a dummy value for labelnumber here for
+      % first post-backend runs otherwise references to labelnumber
+      % in cite styles like numeric-comp will die.
+      {\ifundef\abx@field@localnumber
+        {\numdef\abx@field@localnumber{0}%
+          \blx@bbl@fielddef{labelnumber}{0}}
+        {}}
+      {\csnumgdef{blx@labelnumber@\the\c@refsection @\blx@slist@scheme}{%
+          \csuse{blx@labelnumber@\the\c@refsection @\blx@slist@scheme}+1}%
+        \edef\abx@field@localnumber{%
+          \csuse{blx@labelnumber@\the\c@refsection @\blx@slist@scheme}}%
+        \blx@bbl@fieldedef{labelnumber}{\abx@field@localnumber}}%
+      \iftoggle{blx@skipbib}
+        {}
+        {\blx@setlabwidth{\labelnumberwidth}{%
+           \csuse{abx@ffd@*@labelnumberwidth}{%
+              \ifdef\abx@field@prefixnumber
+                {\csuse{abx@ffd@*@prefixnumber}{\abx@field@prefixnumber}}
+                {}%
+              \abx@field@localnumber}}}}
+    {\csgappto\blx@bbl@data{\let\abx@field@labelnumber\abx@field@shorthand}%
+      \iftoggle{blx@skipbib}
+        {}
+        {\blx@setlabwidth{\labelnumberwidth}{%
+           \csuse{abx@ffd@*@labelnumberwidth}{\abx@field@shorthand}}}}}}
 
 \def\blx@bbl@prefixnumber{%
   \ifdef\abx@field@prefixnumber
@@ -5731,14 +5729,14 @@
     {}%
   \endgroup}
 
-% {<instcount>}{<entrykey>}{<refsection>}{<labelnumber>}
-\protected\def\blx@aux@number#1#2#3#4{%
-  \blx@bbl@addentryfield{\detokenize{#2}}{#3}{localnumber}{#4}%
-  \blx@bbl@addentryfield{\detokenize{#2}}{#3}{labelnumber}{#4}%
+% {<instcount>}{<entrykey>}{<refsection>}{<sort context>}{<labelnumber>}
+\protected\def\blx@aux@number#1#2#3#4#5{%
+  \blx@bbl@addentryfield{\detokenize{#2}}{#3}{localnumber}{#4}{#5}%
+  \blx@bbl@addentryfield{\detokenize{#2}}{#3}{labelnumber}{#4}{#5}%
   \global\toggletrue{blx@localnumber}%
-  \ifblank{#4}
+  \ifblank{#5}
     {}
-    {\csgdef{blx@labelnumber@#3}{#4}}}
+    {\csgdef{blx@labelnumber@#3@#4}{#5}}}
 
 % Called as part of bib output for an entry
 % Only used when defernumbers=true
@@ -5758,12 +5756,12 @@
                         test {\ifcsundef{blx@defer@\the\c@refsection @\abx@field@entrykey}} }
             {\iftoggle{blx@omitnumbers}
                {\let\abx@field@localnumber\@empty}
-               {\csnumgdef{blx@labelnumber@\the\c@refsection}{%
-                  \csuse{blx@labelnumber@\the\c@refsection}+1}%
+               {\csnumgdef{blx@labelnumber@\the\c@refsection @\blx@refcontext@sorting}{%
+                  \csuse{blx@labelnumber@\the\c@refsection @\blx@refcontext@sorting}+1}%
                 \edef\abx@field@localnumber{%
-                  \csuse{blx@labelnumber@\the\c@refsection}}%
+                  \csuse{blx@labelnumber@\the\c@refsection @\blx@refcontext@sorting}}%
                 \blx@bbl@addentryfield{\abx@field@entrykey}{\the\c@refsection}%
-                    {localnumber}{\abx@field@localnumber}}}
+                    {localnumber}{\blx@refcontext@sorting}{\abx@field@localnumber}}}
             {}%
           % If localnumbers were already in the .aux, add them
           % again from the .aux. This prevents some cycling
@@ -5777,6 +5775,7 @@
                  {\the\c@instcount}%
                  {\abx@field@entrykey}%
                  {\the\c@refsection}%
+                 {\blx@refcontext@sorting}%
                  {\abx@field@localnumber}}%
                % record that we have already generated and output localnum
                % for this key in this refsection
@@ -5794,18 +5793,18 @@
           {\edef\abx@field@prefixnumber{\expandonce\blx@prefixnumbers}%
            \ifundef\abx@field@prefixnumber
              {\blx@bbl@addentryfield{\abx@field@entrykey}{\the\c@refsection}%
-                {prefixnumber}{\expandonce\abx@field@prefixnumber}}
+                {prefixnumber}{\blx@refcontext@sorting}{\expandonce\abx@field@prefixnumber}}
              {}%
            \blx@auxwrite\@mainaux{}{%
               \string\blx@aux@numprefix{\abx@field@entrykey}%
-                {\the\c@refsection}{\expandonce\abx@field@prefixnumber}}}
+                {\the\c@refsection}{\blx@refcontext@sorting}{\expandonce\abx@field@prefixnumber}}}
           {}}
        {}}
     {}}
 
-% {<entrykey>}{<refsection>}{<numberprefix>}
-\protected\def\blx@aux@numprefix#1#2#3{%
-  \blx@bbl@addentryfield{\detokenize{#1}}{#2}{prefixnumber}{#3}}
+% {<entrykey>}{<refsection>}{<sorting context}{<numberprefix>}
+\protected\def\blx@aux@numprefix#1#2#3#4{%
+  \blx@bbl@addentryfield{\detokenize{#1}}{#2}{prefixnumber}{#3}{#4}}
 
 % {<sortlistname>}{<sortlistsortscheme>}
 \def\blx@bbl@slist#1#2{%
@@ -5813,7 +5812,9 @@
   \def\blx@slist@scheme{#2}%
   % This macro (\key) will only be called in sortlists of type "list"
   \def\key##1{\listcsxadd{blx@slistsbib@\the\c@refsection @#1@#2}{\detokenize{##1}}}}
-\let\blx@bbl@endslist\endgroup
+\def\blx@bbl@endslist{%
+  \csnumgdef{blx@labelnumber@\the\c@refsection @\blx@slist@scheme}{0}%
+  \endgroup}
 
 \def\blx@addpageref#1{%
   \begingroup
@@ -5860,7 +5861,8 @@
     {}%
   \blx@bblend
   \endgroup
-  \csnumgdef{blx@labelnumber@\the\c@refsection}{0}}
+  % global sorting as this is called at BeginDocument
+  \csnumgdef{blx@labelnumber@\the\c@refsection @\blx@sorting}{0}}
 
 \def\blx@reencode{%
   \begingroup
@@ -6268,10 +6270,10 @@
 \define@key{blx@bib2}{resetnumbers}[true]{%
   \iftoggle{blx@defernumbers}
     {\ifstrequal{#1}{true}
-       {\csnumdef{blx@labelnumber@\the\c@refsection}{0}}
+       {\csnumdef{blx@labelnumber@\the\c@refsection @\blx@refcontext@sorting}{0}}
        {\ifstrequal{#1}{false}
          {}
-         {\csnumdef{blx@labelnumber@\the\c@refsection}{#1-1}}}}
+         {\csnumdef{blx@labelnumber@\the\c@refsection @\blx@refcontext@sorting}{#1-1}}}}
     {\blx@warning{%
        Option 'resetnumbers' requires 'defernumbers=true'.\MessageBreak
        Ignoring 'resetnumbers=true'}}}
@@ -6288,7 +6290,7 @@
 \define@key{blx@bib2}{prefixnumbers}{%
   \def\blx@prefixnumbers{#1}%
   \iftoggle{blx@defernumbers}
-    {\csnumdef{blx@labelnumber@\the\c@refsection}{0}}
+    {\csnumdef{blx@labelnumber@\the\c@refsection @\blx@refcontext@sorting}{0}}
     {\iftoggle{blx@labelnumber}
        {\blx@warning{%
           Option 'prefixnumbers' requires global\MessageBreak
@@ -6841,11 +6843,16 @@
   \refcontext}
 
 \def\refcontext[#1]{%
-  \setkeys{blx@refcontext}{#1}%
-  \ifcsundef{blx@biber@sorting@\blx@refcontext@sorting}
-    {\blx@err@invopt{sorting=\blx@refcontext@sorting}{}}
-    {}}
+  \iftoggle{blx@refcontext}
+    {\blx@err@nestenv{refcontext}%
+     \endrefcontext}
+    {\toggletrue{blx@refcontext}%
+     \setkeys{blx@refcontext}{#1}%
+     \ifcsundef{blx@biber@sorting@\blx@refcontext@sorting}
+       {\blx@err@invopt{sorting=\blx@refcontext@sorting}{}}
+       {}}}
 
+% Reset to global sorting when we leave a ref context (since they can't be nested)
 \protected\def\endrefcontext{%
   \xdef\blx@refcontext@sorting{\blx@sorting}}
 
@@ -10677,7 +10684,7 @@
      \let\blx@thelabelnumber\blx@addlabelnumber
      \let\abx@aux@number\blx@aux@number}
     {\let\blx@thelabelnumber\relax
-     \let\abx@aux@number\@gobblefour}}
+     \let\abx@aux@number\@gobblefive}}
 
 \DeclareBibliographyOption{refsection}{%
   \ifcsdef{blx@opt@refsection@#1}
