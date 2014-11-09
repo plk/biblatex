@@ -476,7 +476,6 @@
 \newtoggle{blx@skiplab}
 \newtoggle{blx@citation}
 \newtoggle{blx@bibliography}
-\newtoggle{blx@reencode}
 \newtoggle{blx@citeindex}
 \newtoggle{blx@bibindex}
 \newtoggle{blx@localnumber}
@@ -5387,8 +5386,7 @@
     {\blx@addset
      \global\togglefalse{blx@addset}}
     {}%
-  \endgroup
-  \iftoggle{blx@reencode}{\blx@reencode}{}}
+  \endgroup}
 
 % {<entrykey>}
 \protected\def\blx@bbl@missing#1{%
@@ -5832,22 +5830,10 @@
 
 \def\blx@bblinput{%
   \begingroup
-  \iftoggle{blx@reencode}
-    {\ifdef\inpenc@prehook
-       {\inpenc@prehook{}%
-        \inpenc@posthook{}}
-       {}%
-     \inputencoding\blx@bibencoding}
-    {}%
   \blx@info@noline{Trying to load bibliographic data..}%
   \blx@blxinit
   \blx@bblfile@biber
-  \endgroup
-  \iftoggle{blx@reencode}
-    {\ifdef\@enablequotes
-       {\@enablequotes}
-       {}}
-    {}}
+  \endgroup}
 
 \def\blx@bblfile@biber{%
   \blx@secinit
@@ -5863,33 +5849,6 @@
   \endgroup
   % global sorting as this is called at BeginDocument
   \csnumgdef{blx@labelnumber@\the\c@refsection @\blx@sorting}{0}}
-
-\def\blx@reencode{%
-  \begingroup
-  \abx@hook@reencode
-  \let\protect\@unexpandable@protect
-  \def\do##1{\cslet{abx@name@##1}\relax}%
-  \abx@donames
-  \def\do##1{\cslet{abx@list@##1}\relax}%
-  \abx@dolists
-  \def\do##1{\cslet{abx@field@##1}\relax}%
-  \abx@dofields
-  \do{options}%
-  \abx@dointernalfields
-  \long\def\abx@field@execute##1{%
-    \unexpanded{\abx@field@execute{##1}}}%
-  \csuse{abx@preamble}%
-  \def\do##1{%
-    \csxdef{blx@data@\the\c@refsection @\blx@refcontext@sorting @##1}{%
-      \csuse{blx@data@\the\c@refsection @\blx@refcontext@sorting @##1}}}%
-  \dolistcsloop{blx@slists@\the\c@refsection @entry@\blx@refcontext@sorting}%
-  \endgroup}
-
-\def\abx@hook@reencode{%
-  \ifdef\@enablequotes{\@enablequotes}{}%
-  \def\IeC##1{\unexpanded{\IeC{##1}}}%
-  \let~\relax
-}
 
 %% Bibliography
 
@@ -10967,28 +10926,23 @@
     {\ifdefstring\blx@bibencoding{ascii}
        {\blx@info@noline{%
           Data encoding '\blx@bibencoding' specified.\MessageBreak
-          No need to reencode data}%
-        \togglefalse{blx@reencode}}
+          No need to reencode data}}
        {\ifdefstring\blx@bibencoding{auto}
           {\let\blx@bibencoding\blx@texencoding
            \blx@info@noline{%
              Automatic encoding selection.\MessageBreak
-             Assuming data encoding '\blx@bibencoding'}
-           \togglefalse{blx@reencode}}
+             Assuming data encoding '\blx@bibencoding'}}
           {\ifdefstrequal\blx@bibencoding\blx@texencoding
              {\blx@info@noline{%
                 Data encoding '\blx@bibencoding' specified.\MessageBreak
-                No need to reencode data}%
-              \togglefalse{blx@reencode}}
+                No need to reencode data}}
              {\blx@info@noline{%
                    Data encoding '\blx@bibencoding' specified.\MessageBreak
-                   Backend will reencode on the fly}%
-                 \togglefalse{blx@reencode}}}}}
+                   Backend will reencode on the fly}}}}}
     {\def\blx@bibencoding{ascii}%
      \blx@info@noline{%
         Data encoding not specified.\MessageBreak
-        Assuming '\blx@bibencoding'}%
-     \togglefalse{blx@reencode}}%
+        Assuming '\blx@bibencoding'}}%
   \ifboolexpr{%
     togl {blx@safeinputenc}
     and ( test {\@ifpackageloaded{inputenc}}
