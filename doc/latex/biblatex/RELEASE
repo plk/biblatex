@@ -1,3 +1,43 @@
+RELEASE NOTES FOR VERSION 3.0
+
+* Biber version 2.0 is required for biblatex 3.0
+* A new reference context mechanism to allow for future extensions has been
+  introduced. Effectively, this means the following. The 'sorting' option
+  to \printbibliography and \printbiblist is 
+  deprecated. You should use the 'sorting' option to \newrefcontext or
+  the \begin{refcontext}\end{refcontext} environment. This allows the
+  sorting list context wider scope over citations etc. too. For example,
+  some information in citations like extrayear depends on the sort list
+  order but citations were always determined by the data from the global
+  sort list. Therefore it was not too difficult to get into a situation
+  where citations were incorrect for a bibliography list with a custom
+  sorting scheme:
+
+    \usepackage[sorting=nty]{biblatex}
+    \cite{test1}
+    \cite{test2}
+    \printbibliography[sorting=nyt]
+
+  In this case, the citation labels may not match the bibliography
+  because the data used to generate the citations was drawn from a
+  different sort list. This was a general issue that entry data was
+  assumed to be the same over all bibliography lists. Only the order of
+  entries was assumed to be different, which is incorrect. The order of
+  items in a bibliography list can impact the actual data contents of
+  items in the case of things like the extra* fields. Now, the above can
+  be solved using the new refcontext mechanism which exposes the sorting
+  context to biblatex:
+
+    \usepackage[sorting=nty]{biblatex}
+    \newrefcontext[sorting=nyt]
+    \cite{test1}
+    \cite{test2}
+    \printbibliography
+
+  In this case, the \cite commands pull their data from the "nyt" sorting
+  list data which is also used by the following \printbibliography
+  This is all for biber only.
+
 RELEASE NOTES FOR VERSION 2.9a
 
 * Biber version 1.9 is required for biblatex 2.9a
