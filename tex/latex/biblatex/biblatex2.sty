@@ -113,9 +113,6 @@
     {\edef\blx@vlang{\blx@languagename}%
      \edef\blx@ovlang{\blx@languagename}}
     {}%
-  \ifundef\blx@vtranslang{%
-    \edef\blx@vtranslang{\blx@languagename}%
-    \edef\blx@ovtranslang{\blx@languagename}}{}% default
   \csuse{abx@extras@\blx@languagename}%
   \csuse{abx@strings@\blx@languagename}%
   \undef\blx@mkautolangbabel
@@ -1656,12 +1653,12 @@
 % This tests to see if a bibfield is variant enabled or not and if it is,
 % leaves \blx@tempa containing the form and \blx@tempb containing the lang
 % If vfallback is true, if no form/lang was passed and there is no field with
-% the currently overridden global values (via \vform, \vlang or
-% \vtranslang), then the form and lang this puts into tempa and tempb are the
+% the currently overridden global values (via \vform or \vlang), then the
+% form and lang this puts into tempa and tempb are the 
 % package global defaults instead of any currently overridden global
 % settings. This provides a "fallback" onto the global defaults which many
-% people want when globally changing things with \vform, \vlang and
-% \vtranslang - they only want these to pick up fields that actually have
+% people want when globally changing things with \vform and \vlang - they
+% only want these to pick up fields that actually have 
 % the overridden setting, otherwise still use the global defaults.
 % We also have to deal with vlang=* which is a fallback to the (supposedly)
 % only lang for the vform/ovform
@@ -1693,36 +1690,23 @@
            {\forlistcsloop{\def\blx@tempb}{abx@langs@#3@\blx@tempa}}
            {}%
          \@firstoftwo}
-        % vlang is not wildcard - first try with vform and vlang/vtranslang
+        % vlang is not wildcard - first try with vform and vlang
         {\ifdefempty\blx@tempa
           {\edef\blx@tempa{\blx@vform}}
           {}%
-         \ifnum\pdf@strcmp{\blx@tempa}{translated}=\z@
-           \ifdefempty\blx@tempb
-             {\edef\blx@tempb{\blx@vtranslang}}
-             {}%
-         \fi%
          \ifdefempty\blx@tempb
            {\edef\blx@tempb{\blx@vlang}}
            {}%
          \ifcsdef{abx@#1@#3@\blx@tempa @\blx@tempb}
            {\@firstoftwo}
            % if not, try with fallback ov*
-           {\edef\blx@tempa{\blx@ovform}
-            \ifnum\pdf@strcmp{\blx@tempa}{translated}=\z@
-              \edef\blx@tempb{\blx@ovtranslang}
-            \fi%
-            \edef\blx@tempb{\blx@ovlang}
+           {\edef\blx@tempa{\blx@ovform}%
+            \edef\blx@tempb{\blx@ovlang}%
             \@firstoftwo}}}
       % If no fallbacks, just try with v*
       {\ifdefempty\blx@tempa
           {\edef\blx@tempa{\blx@vform}}
           {}%
-         \ifnum\pdf@strcmp{\blx@tempa}{translated}=\z@
-           \ifdefempty\blx@tempb
-             {\edef\blx@tempb{\blx@vtranslang}}
-             {}%
-         \fi%
          \ifdefempty\blx@tempb
            {\edef\blx@tempb{\blx@vlang}}
            {}%
@@ -1748,12 +1732,12 @@
           {\ifcsundef{abx@langs@#3@\blx@vform}
             {\ifcsundef{abx@langs@#3@\blx@ovform}}
             {\ifcsundef{abx@langs@#3@\blx@vform}}}
-          {\ifcsundef{abx@#1@#3@\blx@vform @\blx@vlangswitch}
+          {\ifcsundef{abx@#1@#3@\blx@vform @\blx@vlang}
             {\ifcsundef{abx@#1@#3@\blx@ovform @\blx@ovlang}}
-            {\ifcsundef{abx@#1@#3@\blx@vform @\blx@vlangswitch}}}}
+            {\ifcsundef{abx@#1@#3@\blx@vform @\blx@vlang}}}}
         {\iftoggle{blx@autovlang}
           {\ifcsundef{abx@langs@#3@\blx@vform}}
-          {\ifcsundef{abx@#1@#3@\blx@vform @\blx@vlangswitch}}}}
+          {\ifcsundef{abx@#1@#3@\blx@vform @\blx@vlang}}}}
       {\ifcsundef{abx@#1@#3@\blx@v@getform{#2}@\blx@v@getlang{#2}}}}
    {\ifcsundef{abx@#1@#3}}}
 
@@ -1945,7 +1929,7 @@
   {\ifcsdef{blx@vbibfield@#2}
    {\ifboolexpe{ test {\ifblank{#1}} or
                  test {\IfNoValueTF{#1}} }
-     {\csuse{abx@field@#2@\blx@vform @\blx@vlangswitch}}
+     {\csuse{abx@field@#2@\blx@vform @\blx@vlang}}
      {\csuse{abx@field@#2@\blx@v@getform{#1}@\blx@v@getlang{#1}}}}
    {\csuse{abx@field@#2}}}
 
@@ -1956,21 +1940,9 @@
   \ifdefempty\blx@tempa
     {\edef\blx@tempa{\blx@vform}}
     {}%
-  \ifnum\pdf@strcmp{\blx@tempa}{translated}=\z@
-    \ifdefempty\blx@tempb
-      {\edef\blx@tempb{\blx@vtranslang}}
-      {}%
-  \fi%
   \ifdefempty\blx@tempb
     {\edef\blx@tempb{\blx@vlang}}
     {}}
-
-\def\blx@vlangswitch{%
-  \ifnum\pdf@strcmp{\blx@vform}{translated}=\z@
-    \blx@vtranslang
-  \else
-    \blx@vlang 
-  \fi}
 
 \def\blx@v@getform#1{%
   \ifnum\pdf@strcmp{\forcsvlist\blx@v@getform@i{#1}}{}=\z@
@@ -1981,11 +1953,7 @@
 
 \def\blx@v@getlang#1{%
   \ifnum\pdf@strcmp{\forcsvlist\blx@v@getlang@i{#1}}{}=\z@
-    \ifnum\pdf@strcmp{\blx@v@getform{#1}}{translated}=\z@
-      \blx@vtranslang
-    \else
-      \blx@vlang
-    \fi
+    \blx@vlang
   \else
     \forcsvlist\blx@v@getlang@i{#1}%
   \fi}
@@ -2438,12 +2406,12 @@
           % {vfield}{vfield}
           {\blx@imc@ifflequal@i{#1}{#3}{#5}}
           % {vfield}[f/l]{vfield}
-          {\blx@imc@ifflequal@iii{\csuse{abx@#1@#3@\blx@vform @\blx@vlangswitch}}{\blx@imc@ifflequal@ii{#1}{#4}{#5}}}}
+          {\blx@imc@ifflequal@iii{\csuse{abx@#1@#3@\blx@vform @\blx@vlang}}{\blx@imc@ifflequal@ii{#1}{#4}{#5}}}}
         % [f/l]{vfield}[?]{vfield}
         {\ifboolexpr{ test {\ifblank{#4}} or
                       test {\IfNoValueTF{#4}} }
           % [f/l]{vfield}{vfield}
-          {\blx@imc@ifflequal@iii{\blx@imc@ifflequal@ii{#1}{#2}{#3}}{\csuse{abx@#1@#5@\blx@vform @\blx@vlangswitch}}}
+          {\blx@imc@ifflequal@iii{\blx@imc@ifflequal@ii{#1}{#2}{#3}}{\csuse{abx@#1@#5@\blx@vform @\blx@vlang}}}
           % [f/l]{vfield}[f/l]{vfield}
           {\blx@imc@ifflequal@iii{\blx@imc@ifflequal@ii{#1}{#2}{#3}}{\blx@imc@ifflequal@ii{#1}{#4}{#5}}}}}
       % [?]{vfield}[?]{non-vfield}
@@ -2455,7 +2423,7 @@
         {\ifboolexpr{ test {\ifblank{#2}} or
                       test {\IfNoValueTF{#2}} }
           % {vfield}{non-vfield}
-          {\ifcsequal{abx@#1@#2@\blx@vform @\blx@vlangswitch}{abx@#1@#5}}
+          {\ifcsequal{abx@#1@#2@\blx@vform @\blx@vlang}{abx@#1@#5}}
           % [f/l]{vfield}{non-vfield}
           {\blx@imc@ifflequal@iii{\blx@imc@ifflequal@ii{#1}{#2}{#3}}{\csuse{abx@#1@#5}}}}}}
     % [?]{non-vfield}[?]{?}
@@ -2468,7 +2436,7 @@
         {\ifboolexpr{ test {\ifblank{#4}} or
                       test {\IfNoValueTF{#4}} }
           % {non-vfield}{vfield}
-          {\ifcsequal{abx@#1@#5@\blx@vform @\blx@vlangswitch}{abx@#1@#3}}
+          {\ifcsequal{abx@#1@#5@\blx@vform @\blx@vlang}{abx@#1@#3}}
           % {non-vfield}[f/l]{vfield}
           {\blx@imc@ifflequal@iii{\blx@imc@ifflequal@ii{#1}{#4}{#5}}{\csuse{abx@#1@#3}}}}}
       % [?]{non-vfield}[?]{non-vfield}
@@ -2507,7 +2475,7 @@
   \ifcsdef{blx@vbibfield@#3}
     {\ifboolexpe{ test {\ifblank{#2}} or
                   test {\IfNoValueTF{#2}} }
-      {\csuse{abx@#1@#3@\blx@vform @\blx@vlangswitch}}
+      {\csuse{abx@#1@#3@\blx@vform @\blx@vlang}}
       {\csuse{abx@#1@#3@\blx@v@getform{#2}@\blx@v@getlang{#2}}}}
     {\csuse{abx@#1@#3}}}
 
@@ -2528,7 +2496,7 @@
       {\blx@ifnamesequal@v{#2}{#4}}%{name}{name}
       {\ifcsdef{blx@vbibfield@#2}%{name}[]{name}
        {\ifcsdef{blx@vbibfield@#4}
-         {\blx@imc@ifnamesequal@i{#2@\blx@vform @\blx@vlangswitch}{#4@\blx@v@getform{#3}@\blx@v@getlang{#3}}}%{v}[]{v}
+         {\blx@imc@ifnamesequal@i{#2@\blx@vform @\blx@vlang}{#4@\blx@v@getform{#3}@\blx@v@getlang{#3}}}%{v}[]{v}
          {\blx@warning@noline{You are trying to \ifnamesequal a non variant enabled name '#4' with form/lang arguments}\@secondoftwo}}%{v}[]{non-v}
        {\ifcsdef{blx@vbibfield@#4}
          {\blx@imc@ifnamesequal@i{#2}{#4@\blx@v@getform{#3}@\blx@v@getlang{#3}}}%{non-v}[]{v}
@@ -2537,7 +2505,7 @@
                  test {\IfNoValueTF{#3}} }
       {\ifcsdef{blx@vbibfield@#2}%[]{name}{name}
         {\ifcsdef{blx@vbibfield@#4}
-          {\blx@imc@ifnamesequal@i{#2@\blx@v@getform{#1}@\blx@v@getlang{#1}}{#4@\blx@vform @\blx@vlangswitch}}%[]{v}{v}
+          {\blx@imc@ifnamesequal@i{#2@\blx@v@getform{#1}@\blx@v@getlang{#1}}{#4@\blx@vform @\blx@vlang}}%[]{v}{v}
           {\blx@imc@ifnamesequal@i{#2@\blx@v@getform{#1}@\blx@v@getlang{#1}}{#4}}}%[]{v}{non-v}
         {\ifcsdef{blx@vbibfield@#4}
           {\blx@warning@noline{You are trying to \ifnamesequal a non variant enabled name '#2' with form/lang arguments}\@secondoftwo}%[]{non-v}{v}
@@ -2617,9 +2585,9 @@
                 {\global\undef\blx@nefail\@secondoftwo}
                 {\@firstoftwo}}
              {\@secondoftwo}}
-      {\blx@imc@ifnamesequal@i{#1@\blx@vform @\blx@vlangswitch}{#2}}}%{v}{non-v}
+      {\blx@imc@ifnamesequal@i{#1@\blx@vform @\blx@vlang}{#2}}}%{v}{non-v}
     {\ifcsdef{blx@vbibfield@#2}
-      {\blx@imc@ifnamesequal@i{#1}{#2@\blx@vform @\blx@vlangswitch}}%{non-v}{v}
+      {\blx@imc@ifnamesequal@i{#1}{#2@\blx@vform @\blx@vlang}}%{non-v}{v}
       {\blx@imc@ifnamesequal@i{#1}{#2}}}}%{non-v}{non-v}
 
 % [<form/lang keyval>]{<field>}{<macro>}{<true>}{<false>}
@@ -2634,14 +2602,14 @@
     {\@secondoftwo}
     {\ifcsdef{blx@vbibfield@#3}
       {\ifblank{#2}
-        {\expandafter\ifx\csname abx@#1@#3@\blx@vform @\blx@vlangswitch\endcsname#4%
+        {\expandafter\ifx\csname abx@#1@#3@\blx@vform @\blx@vlang\endcsname#4%
          \expandafter\@firstoftwo
          \else
          \expandafter\@secondoftwo
          \fi}
        {\ifboolexpr{ test {\ifblank{#2}} or
                      test {\IfNoValueTF{#2}} }
-          {\expandafter\ifx\csname abx@#1@#3@\blx@vform @\blx@vlangswitch\endcsname#4%
+          {\expandafter\ifx\csname abx@#1@#3@\blx@vform @\blx@vlang\endcsname#4%
            \expandafter\@firstoftwo
            \else
            \expandafter\@secondoftwo
@@ -2662,10 +2630,10 @@
   {omm}
   {\ifcsdef{blx@vbibfield@#2}
     {\ifblank{#1}
-      {\ifcsequal{abx@field@#2@\blx@vform @\blx@vlangswitch}{#3}}
+      {\ifcsequal{abx@field@#2@\blx@vform @\blx@vlang}{#3}}
       {\ifboolexpr{ test {\ifblank{#1}} or
                     test {\IfNoValueTF{#1}} }
-        {\ifcsequal{abx@field@#2@\blx@vform @\blx@vlangswitch}{#3}}
+        {\ifcsequal{abx@field@#2@\blx@vform @\blx@vlang}{#3}}
         {\ifcsequal{abx@field@#2@\blx@v@getform{#1}@\blx@v@getlang{#1}}{#3}}}}
     {\ifcsequal{abx@field@#2}{#3}}}
 
@@ -2680,10 +2648,10 @@
   {omm}
   {\ifcsdef{blx@vbibfield@#2}
     {\ifblank{#1}
-      {\ifcsequal{abx@name@#2@\blx@vform @\blx@vlangswitch}{#3}}
+      {\ifcsequal{abx@name@#2@\blx@vform @\blx@vlang}{#3}}
       {\ifboolexpr{ test {\ifblank{#1}} or
                     test {\IfNoValueTF{#1}} }
-        {\ifcsequal{abx@name@#2@\blx@vform @\blx@vlangswitch}{#3}}
+        {\ifcsequal{abx@name@#2@\blx@vform @\blx@vlang}{#3}}
         {\ifcsequal{abx@name@#2@\blx@v@getform{#1}@\blx@v@getlang{#1}}{#3}}}}
     {\ifcsequal{abx@name@#2}{#3}}}
 
@@ -2694,12 +2662,12 @@
     {\ifblank{#1}
       {\expandafter\expandafter\expandafter\ifstrequal
        \expandafter\expandafter\expandafter{%
-       \csname abx@field@#2@\blx@vform @\blx@vlangswitch\endcsname}{#3}}
+       \csname abx@field@#2@\blx@vform @\blx@vlang\endcsname}{#3}}
       {\ifboolexpr{ test {\ifblank{#1}} or
                     test {\IfNoValueTF{#1}} }
         {\expandafter\expandafter\expandafter\ifstrequal
          \expandafter\expandafter\expandafter{%
-         \csname abx@field@#2@\blx@vform @\blx@vlangswitch\endcsname}{#3}}
+         \csname abx@field@#2@\blx@vform @\blx@vlang\endcsname}{#3}}
         {\expandafter\expandafter\expandafter\ifstrequal
          \expandafter\expandafter\expandafter{%
          \csname abx@field@#2@\blx@v@getform{#1}@\blx@v@getlang{#1}\endcsname}{#3}}}}
@@ -3219,13 +3187,13 @@
         {\expandafter\expandafter
          \expandafter\ifinteger
          \expandafter\expandafter
-         \expandafter{\csname abx@field@#2@\blx@vform @\blx@vlangswitch\endcsname}}
+         \expandafter{\csname abx@field@#2@\blx@vform @\blx@vlang\endcsname}}
         {\ifboolexpr{ test {\ifblank{#1}} or
                       test {\IfNoValueTF{#1}} }
           {\expandafter\expandafter
            \expandafter\ifinteger
            \expandafter\expandafter
-           \expandafter{\csname abx@field@#2@\blx@vform @\blx@vlangswitch\endcsname}}
+           \expandafter{\csname abx@field@#2@\blx@vform @\blx@vlang\endcsname}}
           {\expandafter\expandafter
            \expandafter\ifinteger
            \expandafter\expandafter
@@ -3297,13 +3265,13 @@
         {\expandafter\expandafter
          \expandafter\blx@imc@ifnumeral
          \expandafter\expandafter
-         \expandafter{\csname abx@field@#2@\blx@vform @\blx@vlangswitch\endcsname}}
+         \expandafter{\csname abx@field@#2@\blx@vform @\blx@vlang\endcsname}}
         {\ifboolexpr{ test {\ifblank{#1}} or
                       test {\IfNoValueTF{#1}} }
           {\expandafter\expandafter
            \expandafter\blx@imc@ifnumeral
            \expandafter\expandafter
-           \expandafter{\csname abx@field@#2@\blx@vform @\blx@vlangswitch\endcsname}}
+           \expandafter{\csname abx@field@#2@\blx@vform @\blx@vlang\endcsname}}
           {\expandafter\expandafter
            \expandafter\blx@imc@ifnumeral
            \expandafter\expandafter
@@ -3323,13 +3291,13 @@
         {\expandafter\expandafter
          \expandafter\blx@imc@ifnumerals
          \expandafter\expandafter
-         \expandafter{\csname abx@field@#2@\blx@vform @\blx@vlangswitch\endcsname}}
+         \expandafter{\csname abx@field@#2@\blx@vform @\blx@vlang\endcsname}}
         {\ifboolexpr{ test {\ifblank{#1}} or
                       test {\IfNoValueTF{#1}} }
           {\expandafter\expandafter
            \expandafter\blx@imc@ifnumerals
            \expandafter\expandafter
-           \expandafter{\csname abx@field@#2@\blx@vform @\blx@vlangswitch\endcsname}}
+           \expandafter{\csname abx@field@#2@\blx@vform @\blx@vlang\endcsname}}
           {\expandafter\expandafter
            \expandafter\blx@imc@ifnumerals
            \expandafter\expandafter
@@ -3349,13 +3317,13 @@
         {\expandafter\expandafter
          \expandafter\blx@imc@ifpages
          \expandafter\expandafter
-         \expandafter{\csname abx@field@#2@\blx@vform @\blx@vlangswitch\endcsname}}
+         \expandafter{\csname abx@field@#2@\blx@vform @\blx@vlang\endcsname}}
         {\ifboolexpr{ test {\ifblank{#1}} or
                       test {\IfNoValueTF{#1}} }
           {\expandafter\expandafter
            \expandafter\blx@imc@ifpages
            \expandafter\expandafter
-           \expandafter{\csname abx@field@#2@\blx@vform @\blx@vlangswitch\endcsname}}
+           \expandafter{\csname abx@field@#2@\blx@vform @\blx@vlang\endcsname}}
           {\expandafter\expandafter
            \expandafter\blx@imc@ifpages
            \expandafter\expandafter
@@ -4962,7 +4930,6 @@
 % Allow global switching of default form/lang
 \def\vform#1{\gdef\blx@vform{#1}}
 \def\vlang#1{\gdef\blx@vlang{#1}}
-\def\vtranslang#1{\gdef\blx@vtranslang{#1}}
 \def\vfallbackon{\global\toggletrue{blx@vfallback}}
 \def\vfallbackoff{\global\togglefalse{blx@vfallback}}
 
@@ -6395,7 +6362,7 @@
          \expandafter\ifstrequal\expandafter{\blx@vform}{##1}
              {}
              {\gdef\blx@vvar{true}}%
-         \expandafter\ifstrequal\expandafter{\blx@vlangswitch}{####1}
+         \expandafter\ifstrequal\expandafter{\blx@vlang}{####1}
              {}
              {\gdef\blx@vvar{true}}}%
        \dolistcsloop{abx@langs@#1@##1}%
@@ -6527,9 +6494,9 @@
     {\ifblank{#1}
       {\csxappto\blx@bbl@data{%
         \csname c@#2\endcsname\NewCount\relax
-        \def\expandafter\noexpand\csname abx@list@#2@\blx@vform @\blx@vlangswitch\endcsname
+        \def\expandafter\noexpand\csname abx@list@#2@\blx@vform @\blx@vlang\endcsname
         {\expandonce\NewValue}}%
-       \blx@bbl@vdata{#2}{\blx@vform}{\blx@vlangswitch}%
+       \blx@bbl@vdata{#2}{\blx@vform}{\blx@vlang}%
        \xifinlist{\blx@vlang}{\blx@vlangs}
          {}
          {\listxadd\blx@vlangs{\blx@vlang}}}
@@ -6559,9 +6526,9 @@
     {\ifblank{#1}
       {\csxappto\blx@bbl@data{%
         \csname c@#2\endcsname\NewCount\relax
-        \def\expandafter\noexpand\csname abx@name@#2@\blx@vform @\blx@vlangswitch\endcsname
+        \def\expandafter\noexpand\csname abx@name@#2@\blx@vform @\blx@vlang\endcsname
         {{\expandonce\NewOption}{\expandonce\NewValue}}}%
-       \blx@bbl@vdata{#2}{\blx@vform}{\blx@vlangswitch}%
+       \blx@bbl@vdata{#2}{\blx@vform}{\blx@vlang}%
        \xifinlist{\blx@vlang}{\blx@vlangs}
          {}
          {\listxadd\blx@vlangs{\blx@vlang}}}
@@ -6906,7 +6873,7 @@
 \def\blx@bbl@titles{%
   \ifundef\abx@field@indextitle
     {\csxappto\blx@bbl@data{%
-       \letcs\noexpand\abx@field@indextitle{abx@field@title@\blx@vform @\blx@vlangswitch}}}
+       \letcs\noexpand\abx@field@indextitle{abx@field@title@\blx@vform @\blx@vlang}}}
     {}%
   \ifundef\abx@field@indexsorttitle
     {\csgappto\blx@bbl@data{%
@@ -7647,7 +7614,7 @@
   \setkeys{blx@bib2}{#1}% ... now we have correct \blx@tempa, set rest of options
   \blx@rest@actives
   \csxappto{blx@xml@slistsbib}{%
-    \blx@xml@slist{\blx@refcontext@sorting}{entry}{\blx@tempe}{\blx@refcontext@sorting}{\blx@tempd}{}{\blx@vform}{\blx@vlang}{\blx@vtranslang}}%
+    \blx@xml@slist{\blx@refcontext@sorting}{entry}{\blx@tempe}{\blx@refcontext@sorting}{\blx@tempd}{}{\blx@vform}{\blx@vlang}}%
   \ifdefvoid\blx@tempa
     {\blx@warn@bibempty\endgroup}
     {\blx@bibliography\blx@tempa}}
@@ -8031,7 +7998,7 @@
     {}%
   \blx@rest@actives
   \csxappto{blx@xml@slistsbib}{%
-    \blx@xml@slist{#2}{list}{\blx@tempe}{\blx@tempc}{\blx@tempd}{\csuse{blx@biber@biblistfilters@#2}}{\blx@vform}{\blx@vlang}{\blx@vtranslang}}%
+    \blx@xml@slist{#2}{list}{\blx@tempe}{\blx@tempc}{\blx@tempd}{\csuse{blx@biber@biblistfilters@#2}}{\blx@vform}{\blx@vlang}}%
   \ifdefvoid\blx@tempa
     {\blx@warn@biblistempty{#2}\endgroup}
     {\blx@biblist\blx@tempa}}
@@ -9300,7 +9267,7 @@
 \long\def\blx@citexpunct@ii#1#2[#3]{%
   \@ifnextchar[%]
     {\blx@citexpunct@iii{#1}{#2{#3}}}
-    {\blx@citexpunct@iii{#1}{#2{#3}}[form=\blx@vform,lang=\blx@vlangswitch]}}
+    {\blx@citexpunct@iii{#1}{#2{#3}}[form=\blx@vform,lang=\blx@vlang]}}
 \long\def\blx@citexpunct@iii#1#2[#3]#4{%
     \blx@thecheckpunct{\blxcitecmd{#1}#2{#3}{#4}}}
 
@@ -10290,8 +10257,8 @@
 \xdef\blx@xml@endsection{%
   ~~</bcf:section>}
 
-\xdef\blx@xml@slist#1#2#3#4#5#6#7#8#9{%
-  ~~<bcf:sortlist section="#3" name="#1" type="#2" sortscheme="#4" form="#7" lang="#8" translang="#9">\blx@nl
+\xdef\blx@xml@slist#1#2#3#4#5#6#7#8{%
+  ~~<bcf:sortlist section="#3" name="#1" type="#2" sortscheme="#4" form="#7" lang="#8">\blx@nl
   #6%
   #5%
   ~~</bcf:sortlist>\blx@nl}
@@ -10357,7 +10324,6 @@
     \blx@xml@mvalue{variantforms}{\blx@bcf@variantforms}%
     \blx@xml@svalue{vform}{\blx@ovform}%
     \blx@xml@svalue{vlang}{\blx@ovlang}%
-    \blx@xml@svalue{vtranslang}{\blx@ovtranslang}%
   }%
 }
 
@@ -11361,12 +11327,6 @@
 \DeclareEntryOption{vlang}{%
   \def\blx@vlang{#1}%
   \def\blx@ovlang{#1}}
-\DeclareBibliographyOption{vtranslang}{%
- \def\blx@vtranslang{#1}%
- \def\blx@ovtranslang{#1}}
-\DeclareEntryOption{vtranslang}{%
- \def\blx@vtranslang{#1}%
- \def\blx@ovtranslang{#1}}
 
 % Determines whether to first look for lang in the bibfield specification itself
 \DeclareBibliographyOption{autovlang}[true]{%
