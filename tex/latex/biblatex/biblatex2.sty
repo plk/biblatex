@@ -464,9 +464,6 @@
 \newtoggle{blx@terseinits}
 \newtoggle{blx@firstinits}
 \newtoggle{blx@sortfirstinits}
-\newtoggle{blx@useauthor}
-\newtoggle{blx@useeditor}
-\newtoggle{blx@usetranslator}
 \newtoggle{blx@useprefix}
 \newtoggle{blx@addset}
 \newtoggle{blx@setonly}
@@ -3102,9 +3099,6 @@
   \def\ifbibindex{\iftoggle{blx@bibindex}}%
   \def\iffootnote{\iftoggle{blx@footnote}}%
   \def\ifuseprefix{\iftoggle{blx@useprefix}}%
-  \def\ifuseauthor{\iftoggle{blx@useauthor}}%
-  \def\ifuseeditor{\iftoggle{blx@useeditor}}%
-  \def\ifusetranslator{\iftoggle{blx@usetranslator}}%
   \def\ifterseinits{\iftoggle{blx@terseinits}}%
   \def\iffirstinits{\iftoggle{blx@firstinits}}%
   \def\ifsingletitle{\iftoggle{abx@bool@singletitle}}%
@@ -5015,6 +5009,31 @@
 
 \def\abx@dobooleans{%
   \do{singletitle}}
+
+
+% Name toggles like \ifauthor etc. need to be dynamically created for all
+% name datatypes in the data model and we have to do this here after the
+% datamodel is available. Need to be careful about expansions here as these
+% go into hooks to be executed later
+
+% Define name toggles
+\def\do#1{\newtoggle{blx@use#1}}
+\dolistcsloop{blx@biber@datamodel@names}
+
+% Define name toggle checking macros
+\let\blx@nametoggles\@empty
+\def\do#1{\gappto\blx@nametoggles{\expandafter\def\csname ifuse#1\endcsname{\iftoggle{blx@use#1}}}}
+\dolistcsloop{blx@biber@datamodel@names}
+\eappto\blx@blxinit{\expandafter\expandonce\noexpand\blx@nametoggles}
+
+% Define ifthen interface name toggle checking macros
+\let\blx@nametogglesit\@empty
+\def\do#1{\gappto\blx@nametogglesit{\expandafter\def\csname ifuse#1\endcsname{\blx@TE{\iftoggle{blx@use#1}}}}}
+\dolistcsloop{blx@biber@datamodel@names}
+\expandafter\def\expandafter\blx@nametogglesite\expandafter{\expandonce\blx@nametogglesit}
+\appto\blx@blxinit{\appto\blx@TE@hook{\blx@nametogglesite}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \def\do#1{%
   \newcounter{#1}%
@@ -8490,9 +8509,6 @@
     \def\ifbibindex{\blx@TE{\iftoggle{blx@bibindex}}}%
     \def\iffootnote{\blx@TE{\iftoggle{blx@footnote}}}%
     \def\ifuseprefix{\blx@TE{\iftoggle{blx@useprefix}}}%
-    \def\ifuseauthor{\blx@TE{\iftoggle{blx@useauthor}}}%
-    \def\ifuseeditor{\blx@TE{\iftoggle{blx@useeditor}}}%
-    \def\ifusetranslator{\blx@TE{\iftoggle{blx@usetranslator}}}%
     \def\ifterseinits{\blx@TE{\iftoggle{blx@terseinits}}}%
     \def\iffirstinits{\blx@TE{\iftoggle{blx@firstinits}}}%
     \def\ifsingletitle{\blx@TE{\iftoggle{abx@bool@singletitle}}}%
@@ -9016,10 +9032,8 @@
     \blx@xml@svalue{sortscheme}{\blx@sorting}%
     \blx@xml@svalue{uniquelist}{\blx@uniquelist}%
     \blx@xml@svalue{uniquename}{\blx@uniquename}%
-    \blx@xml@toggle{useauthor}%
-    \blx@xml@toggle{useeditor}%
     \blx@xml@toggle{useprefix}%
-    \blx@xml@toggle{usetranslator}%
+    \blx@xml@nametoggles
   }%
 }
 
@@ -9056,10 +9070,8 @@
     \blx@xml@toggle{skipbiblist}%
     \blx@xml@svalue{uniquelist}{\blx@uniquelist}%
     \blx@xml@svalue{uniquename}{\blx@uniquename}%
-    \blx@xml@toggle{useauthor}%
-    \blx@xml@toggle{useeditor}%
     \blx@xml@toggle{useprefix}%
-    \blx@xml@toggle{usetranslator}%
+    \blx@xml@nametoggles
   }%
 }
 
@@ -9072,6 +9084,10 @@
   \edef\sortalphaothers{\sortalphaothers}%
   \blx@xmlsanitizeafter{\def\labelalphaothers}{\labelalphaothers}%
   \blx@xmlsanitizeafter{\def\sortalphaothers}{\sortalphaothers}%
+  % Expand the global use* name toggles
+  \let\blx@xml@nametoggles\@empty
+  \def\do##1{\eappto\blx@xml@nametoggles{\blx@xml@toggle{use##1}}}%
+  \dolistcsloop{blx@biber@datamodel@names}
   \edef\blx@tempa{%
     \blx@xml@file
     \blx@xml@comment{BIBER OPTIONS}%
@@ -9091,6 +9107,10 @@
     {\def\do##1{%
        \begingroup
        \blx@setoptions@type{##1}%
+       % Expand the type use* name toggles
+       \let\blx@xml@nametoggles\@empty
+       \def\do####1{\eappto\blx@xml@nametoggles{\blx@xml@toggle{use####1}}}%
+       \dolistcsloop{blx@biber@datamodel@names}
        \begingroup
        \let\protect\relax
        \blx@checkoptions@type
