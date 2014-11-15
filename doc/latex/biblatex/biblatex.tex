@@ -675,6 +675,8 @@ In datasources such as a \file{bib} file, all bibliographic data is specified in
 
 \item[Name lists] are parsed and split up into the individual items at the \texttt{and} delimiter. Each item in the list is then dissected into four name components: the first name, the name prefix (von, van, of, da, de, della, \dots), the last name, and the name suffix (junior, senior, \dots). Name lists may be truncated in the \file{bib} file with the keyword <\texttt{and others}>. Typical examples of name lists are \bibfield{author} and \bibfield{editor}.
 
+\BiberOnlyMark With \biber, name list fields automatically have an \cmd{ifuse*} test created as per the name lists in the default data model (see \secref{aut:aux:tst}). They are also automatically have a \opt{ifuse*} option created which controls labelling and sorting behaviour with the name (see \secref{use:opt:bib:hyb}).
+
 \item[Literal lists] are parsed and split up into the individual items at the \texttt{and} delimiter but not dissected further. Literal lists may be truncated in the \file{bib} file with the keyword <\texttt{and others}>. There are two subtypes:
 
 \begin{description}
@@ -2666,17 +2668,17 @@ The following options are settable on a per"=entry basis in the \bibfield{option
 \boolitem[true]{useauthor}
 
 Whether the \bibfield{author} is used in labels and considered during sorting. This may be useful if an entry includes an \bibfield{author} field but is usually not cited by author for some reason. Setting \kvopt{useauthor}{false} does not mean that the \bibfield{author} is ignored completely. It means that the \bibfield{author} is not used in labels and ignored during sorting. The entry will then be alphabetized by \bibfield{editor} or \bibfield{title}. With the standard styles, the \bibfield{author} is printed after the title in this case. See also \secref{use:srt}.
-\BiberOnlyMark With \biber, this option is also settable on a per-type basis.
+\BiberOnlyMark With \biber, this option is also settable on a per-type and per-entry basis.
 
 \boolitem[true]{useeditor}
 
 Whether the \bibfield{editor} replaces a missing \bibfield{author} in labels and during sorting. This may be useful if an entry includes an \bibfield{editor} field but is usually not cited by editor. Setting \kvopt{useeditor}{false} does not mean that the \bibfield{editor} is ignored completely. It means that the \bibfield{editor} does not replace a missing \bibfield{author} in labels and during sorting. The entry will then be alphabetized by \bibfield{title}. With the standard styles, the \bibfield{editor} is printed after the title in this case. See also \secref{use:srt}.
-\BiberOnlyMark With \biber, this option is also settable on a per-type basis.
+\BiberOnlyMark With \biber, this option is also settable on a per-type and per-entry basis.
 
 \boolitem[false]{usetranslator}
 
 Whether the \bibfield{translator} replaces a missing \bibfield{author}\slash \bibfield{editor} in labels and during sorting. Setting \kvopt{usetranslator}{true} does not mean that the \bibfield{translator} overrides the \bibfield{author}\slash \bibfield{editor}. It means that the \bibfield{translator} is considered as a fallback if the \bibfield{author}\slash \bibfield{editor} is missing or if \opt{useauthor} and \opt{useeditor} are set to \texttt{false}. In other words, in order to cite a book by translator rather than by author, you need to set the following options:
-\BiberOnlyMark With \biber, this option is also settable on a per-type basis.
+\BiberOnlyMark With \biber, this option is also settable on a per-type and per-entry basis.
 
 \begin{lstlisting}[style=bibtex]{}
 @Book{...,
@@ -2687,6 +2689,18 @@ Whether the \bibfield{translator} replaces a missing \bibfield{author}\slash \bi
 \end{lstlisting}
 %
 With the standard styles, the \bibfield{translator} is printed after the title by default. See also \secref{use:srt}.
+
+\boolitem[false]{use$<$name$>$}
+
+As per \opt{useauthor}, \opt{useeditor} and \opt{usetranslator}, all name lists defined in the data model have an option controlling their behaviour in sorting and labelling automatically defined. An internal toggle is automatically created for all name lists in the data model, called \opt{blx@useuse$<$name$>$}. Unlike \opt{useauthor}, \opt{useeditor} and \opt{usetranslator}, any other \opt{use$<$name$>$} options may not be set as a package option in \cmd{usepackage} but may be set with \cmd{ExecuteBibliographyOptions}. For example, after defining a new name list \bibfield{proofreader} field in the data model (see \secref{aut:ctm:dm}, you can add options to enable/disable its use in sorting/labelling by putting this in the preamble:
+
+\begin{lstlisting}[style=latex]{}
+\makeatletter
+\DeclareBibliographyOption{useproofreader}[true]{%
+  \settoggle{blx@useproofreader}{#1}}
+\ExecuteBibliographyOptions{useproofreader=true}
+\makeatother
+\end{lstlisting}
 
 \boolitem[false]{useprefix}
 
@@ -2989,7 +3003,7 @@ You can use the \bibfield{relatedoptions} to set options on the related entry da
 
 This package supports various sorting schemes for the bibliography. The sorting scheme is selected with the \opt{sorting} package option from \secref{use:opt:pre:gen}. Apart from the regular data fields there are also some special fields which may be used to optimize the sorting of the bibliography. \Apxref{apx:srt:a1, apx:srt:a2} give an outline of the alphabetic sorting schemes supported by \biblatex. Chronological sorting schemes are listed in \apxref{apx:srt:chr}. A few explanations concerning these schemes are in order.
 
-The first item considered in the sorting process is always the \bibfield{presort} field of the entry. If this field is undefined, \biblatex will use the default value <\texttt{mm}> as a presort string. The next item considered is the \bibfield{sortkey} field. If this field is defined, it serves as the master sort key. Apart from the \bibfield{presort} field, no further data is considered in this case. If the \bibfield{sortkey} field is undefined, sorting continues with the name. The package will try using the \bibfield{sortname}, \bibfield{author}, \bibfield{editor}, and \bibfield{translator} fields, in this order. Which fields are considered also depends on the setting of the \opt{useauthor}, \opt{useeditor}, and \opt{usetranslator} options. If all three of them are disabled, the \bibfield{sortname} field is ignored as well. Note that all name fields are responsive to \opt{maxnames} and \opt{minnames}. If no name field is available, either because all of them are undefined or because \opt{useauthor}, \opt{useeditor}, and \opt{usetranslator} are disabled, \biblatex will fall back to the \bibfield{sorttitle} and \bibfield{title} fields as a last resort. The remaining items are, in various order: the \bibfield{sortyear} field, if defined, or the first four digits of the \bibfield{year} field otherwise; the \bibfield{sorttitle} field, if defined, or the \bibfield{title} field otherwise; the \bibfield{volume} field, which is padded to four digits with leading zeros, or the string \texttt{0000} otherwise. Note that the sorting schemes shown in \apxref{apx:srt:a2} include an additional item: \bibfield{labelalpha} is the label used by <alphabetic> bibliography styles. Strictly speaking, the string used for sorting is \bibfield{labelalpha}~+ \bibfield{extraalpha}. The sorting schemes in \apxref{apx:srt:a2} are intended to be used in conjunction with alphabetic styles only.
+The first item considered in the sorting process is always the \bibfield{presort} field of the entry. If this field is undefined, \biblatex will use the default value <\texttt{mm}> as a presort string. The next item considered is the \bibfield{sortkey} field. If this field is defined, it serves as the master sort key. Apart from the \bibfield{presort} field, no further data is considered in this case. If the \bibfield{sortkey} field is undefined, sorting continues with the name. The package will try using the \bibfield{sortname}, \bibfield{author}, \bibfield{editor}, and \bibfield{translator} fields, in this order. Which fields are considered also depends on the setting of the \opt{use$<$name$>$} options. If all such options are disabled, the \bibfield{sortname} field is ignored as well. Note that all name fields are responsive to \opt{maxnames} and \opt{minnames}. If no name field is available, either because all of them are undefined or because all \opt{use$<$name$>$} options are disabled, \biblatex will fall back to the \bibfield{sorttitle} and \bibfield{title} fields as a last resort. The remaining items are, in various order: the \bibfield{sortyear} field, if defined, or the first four digits of the \bibfield{year} field otherwise; the \bibfield{sorttitle} field, if defined, or the \bibfield{title} field otherwise; the \bibfield{volume} field, which is padded to four digits with leading zeros, or the string \texttt{0000} otherwise. Note that the sorting schemes shown in \apxref{apx:srt:a2} include an additional item: \bibfield{labelalpha} is the label used by <alphabetic> bibliography styles. Strictly speaking, the string used for sorting is \bibfield{labelalpha}~+ \bibfield{extraalpha}. The sorting schemes in \apxref{apx:srt:a2} are intended to be used in conjunction with alphabetic styles only.
 
 The chronological sorting schemes presented in \apxref{apx:srt:chr} also make use of the \bibfield{presort} and \bibfield{sortkey} fields, if defined. The next item considered is the \bibfield{sortyear} or the \bibfield{year} field, depending on availability. The \opt{ynt} scheme extracts the first four Arabic figures from the field. If both fields are undefined, the string \texttt{9999} is used as a fallback value. This means that all entries without a year will be moved to the end of the list. The \opt{ydnt} scheme is similar in concept but sorts the year in descending order. As with the \opt{ynt} scheme, the string \texttt{9999} is used as a fallback value. The remaining items are similar to the alphabetic sorting schemes discussed above. Note that the \opt{ydnt} sorting scheme will only sort the date in descending order. All other items are sorted in ascending order as usual.
 
@@ -5633,7 +5647,7 @@ The <alphabetic> citation scheme usually requires a letter to be appended to the
 
 \listitem{labelname}{name}
 
-The name to be printed in citations. This list is a copy of either the \bibfield{shortauthor}, the \bibfield{author}, the \bibfield{shorteditor}, the \bibfield{editor}, or the \bibfield{translator} list, which are normally checked for in this order. If no authors and editors are available, this list is undefined. Note that this list is also responsive to the \opt{useauthor}, \opt{useeditor}, and \opt{usetranslator} options, see \secref{use:opt:bib}. Citation styles should use this list when printing the name in a citation. This list is provided for convenience only and does not carry any additional meaning.
+The name to be printed in citations. This list is a copy of either the \bibfield{shortauthor}, the \bibfield{author}, the \bibfield{shorteditor}, the \bibfield{editor}, or the \bibfield{translator} list, which are normally checked for in this order. If no authors and editors are available, this list is undefined. Note that this list is also responsive to the \opt{use$<$name$>$}, options, see \secref{use:opt:bib}. Citation styles should use this list when printing the name in a citation. This list is provided for convenience only and does not carry any additional meaning.
 \BiberOnlyMark With \biber, this field may be customized. See \secref{aut:ctm:fld} for details.
 
 \fielditem{labelnumber}{literal}
@@ -7225,7 +7239,7 @@ This sorts «two» before «one», even though lexically, «one» would sort bef
 
 \end{ltxsyntax}
 
-Here are some examples of sorting schemes. In the first example, we define a simple name\slash title\slash year scheme. The name element may be either the \bibfield{author}, the \bibfield{editor}, or the \bibfield{translator}. Given this specification, the sorting routine will use the first element which is available and continue with the \bibfield{title}. Note that the options \opt{useauthor}, \opt{useeditor}, and \opt{usetranslator} are considered automatically in the sorting process:
+Here are some examples of sorting schemes. In the first example, we define a simple name\slash title\slash year scheme. The name element may be either the \bibfield{author}, the \bibfield{editor}, or the \bibfield{translator}. Given this specification, the sorting routine will use the first element which is available and continue with the \bibfield{title}. Note that the options \opt{use$<$name$>$} options are considered automatically in the sorting process:
 
 \begin{lstlisting}[style=latex]{}
 \DeclareSortingScheme{sample}{
@@ -7790,15 +7804,19 @@ Expands to \prm{true} if the \opt{useprefix} option is enabled (either globally 
 
 \cmditem{ifuseauthor}{true}{false}
 
-Expands to \prm{true} if the \opt{useauthor} option is enabled (either globally or for the current entry), and \prm{false} otherwise. See \secref{use:opt:bib} for details on this option.
+This is just a particular case of the \cmd{ifuse$<$name$>$} macro below but is mentioned here as \bibfield{author} is part of the default data model. Expands to \prm{true} if the \opt{useauthor} option is enabled (either globally or for the current entry), and \prm{false} otherwise. See \secref{use:opt:bib} for details on this option.
 
 \cmditem{ifuseeditor}{true}{false}
 
-Expands to \prm{true} if the \opt{useeditor} option is enabled (either globally or for the current entry), and \prm{false} otherwise. See \secref{use:opt:bib} for details on this option.
+This is just a particular case of the \cmd{ifuse$<$name$>$} macro below but is mentioned here as \bibfield{editor} is part of the default data model. Expands to \prm{true} if the \opt{useeditor} option is enabled (either globally or for the current entry), and \prm{false} otherwise. See \secref{use:opt:bib} for details on this option.
 
 \cmditem{ifusetranslator}{true}{false}
 
-Expands to \prm{true} if the \opt{usetranslator} option is enabled (either globally or for the current entry), and \prm{false} otherwise. See \secref{use:opt:bib} for details on this option.
+This is just a particular case of the \cmd{ifuse$<$name$>$} macro below but is mentioned here as \bibfield{translator} is part of the default data model. Expands to \prm{true} if the \opt{usetranslator} option is enabled (either globally or for the current entry), and \prm{false} otherwise. See \secref{use:opt:bib} for details on this option.
+
+\cmditem{ifuse$<$name$>$}{true}{false}
+
+Expands to \prm{true} if the \opt{use$<$name$>$} option is enabled (either globally or for the current entry), and \prm{false} otherwise. See \secref{use:opt:bib} for details on this option.
 
 \cmditem{ifsingletitle}{true}{false}
 
@@ -11314,11 +11332,9 @@ texencoding	&\+&\+&\_&\_\\
 uniquelist	&\+&\+&\+&\+\\
 uniquename	&\+&\+&\+&\+\\
 urldate		&\+&\+&\_&\_\\
-url		&\+&\+&\_&\_\\ % style
-useauthor	&\+&\+&\+&\+\\
-useeditor	&\+&\+&\+&\+\\
+url		&\+&\+&\_&\_\\
 useprefix	&\+&\+&\+&\+\\
-usetranslator	&\+&\+&\+&\+\\
+use$<$name$>$	&\+&\+&\+&\+\\
 \end{longtable}
 \endgroup
 
