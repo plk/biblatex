@@ -478,6 +478,11 @@
 \newtoggle{blx@localnumber}
 \newtoggle{blx@refcontext}
 
+% Option scope trackers for passing to .bcf
+\global\let\blx@globalopts\@empty
+\global\let\blx@typeopts\@empty
+\global\let\blx@entryopts\@empty
+
 % Initialise some lists which track changing citations/sortschemes
 % etc. between runs
 \global\let\blx@cites\@empty
@@ -506,6 +511,10 @@
 
 \newcommand*{\labelalphaothers}{+}
 \newcommand*{\sortalphaothers}{\labelalphaothers}
+\listadd\blx@globalopts{alphaothers}% for passing to the .bcf
+\listadd\blx@typeopts{alphaothers}% for passing to the .bcf
+\listadd\blx@globalopts{sortalphaothers}% for passing to the .bcf
+\listadd\blx@typeopts{sortalphaothers}% for passing to the .bcf
 
 \def\blx@secinit{%
   \csgdef{blx@sections@\the\c@refsection}{true}% just to say we have a section for tests later
@@ -729,6 +738,7 @@
 \edef\blx@ver@bcf{%
   \detokenize{<bcf:controlfile version="}\blx@bcfversion
   \detokenize{" xmlns:bcf="https://sourceforge.net/projects/biblatex">}}
+\listadd\blx@globalopts{controlversion}% for passing to the .bcf
 
 % {<true>}{<false>}
 \newrobustcmd*{\lbx@ifutfinput}{\ifboolexpr{%
@@ -1662,6 +1672,9 @@
 
 % {<key>}[<value>]{<code>}
 \newrobustcmd*{\DeclareBibliographyOption}[1]{%
+  \ifinlist{#1}\blx@globalopts
+    {}
+    {\listadd\blx@globalopts{#1}}%
   \@ifnextchar[%]
     {\blx@defbibopt{#1}}
     {\blx@defbibopt{#1}[]}}
@@ -1677,6 +1690,9 @@
 
 % {<key>}[<value>]{<code>}
 \newrobustcmd*{\DeclareTypeOption}[1]{%
+  \ifinlist{#1}\blx@typeopts
+    {}
+    {\listadd\blx@typeopts{#1}}%
   \@ifnextchar[%]
     {\blx@deftypeopt{#1}}
     {\blx@deftypeopt{#1}[]}}
@@ -1690,6 +1706,9 @@
 
 % {<key>}[<value>]{<code>}
 \newrobustcmd*{\DeclareEntryOption}[1]{%
+  \ifinlist{#1}\blx@entryopts
+    {}
+    {\listadd\blx@entryopts{#1}}%
   \@ifnextchar[%]
     {\blx@defentryopt{#1}}
     {\blx@defentryopt{#1}[]}}
@@ -5032,6 +5051,12 @@
 \dolistcsloop{blx@biber@datamodel@names}
 \expandafter\def\expandafter\blx@nametogglesite\expandafter{\expandonce\blx@nametogglesit}
 \appto\blx@blxinit{\appto\blx@TE@hook{\blx@nametogglesite}}
+
+% Define \ifuse<name> options scope for biber
+\def\do#1{\listadd\blx@globalopts{use#1}%
+           \listadd\blx@typeopts{use#1}%
+           \listadd\blx@entryopts{use#1}}
+\dolistcsloop{blx@biber@datamodel@names}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -9005,7 +9030,21 @@
   #2}}
 \xdef\blx@xml@toggle#1{%
   \blx@xml@svalue{#1}{\noexpand\iftoggle{blx@#1}{1}{0}}}
+\xdef\blx@xml@options@scope#1#2{%
+  ~~<bcf:optionscope type="#1">\blx@nl
+  #2%
+  ~~</bcf:optionscope>\blx@nl}
+\xdef\blx@xml@option@scope#1{%
+  ~~~~<bcf:option>#1</bcf:option>\blx@nl}
 \endgroup
+
+\def\blx@bcf@options@scope{%
+  \blx@xml@options@scope{GLOBAL}{%
+    \forlistloop\blx@xml@option@scope\blx@globalopts}%
+  \blx@xml@options@scope{PER_TYPE}{%
+    \forlistloop\blx@xml@option@scope\blx@typeopts}%
+  \blx@xml@options@scope{PER_ENTRY}{%
+    \forlistloop\blx@xml@option@scope\blx@entryopts}}
 
 \def\blx@bcf@options@global{%
   \blx@xml@comment{GLOBAL}%
@@ -9119,6 +9158,10 @@
        \endgroup}%
      \dolistloop\blx@opts@type}
     {}%
+  % options scope
+  \eappto\blx@tempa{%
+    \blx@xml@comment{BIBLATEX OPTION SCOPE}%
+    \blx@bcf@options@scope}
   % sourcemap
   \ifbool{sourcemap}
     {\eappto\blx@tempa{%
@@ -9420,6 +9463,7 @@
     {\blx@biber@latem{#2}{global}}
     {\forcsvlist{\blx@biber@latem{#2}}{#1}}}
 \@onlypreamble\DeclareLabelalphaTemplate
+\listadd\blx@globalopts{labelalphatemplate}% for passing to the .bcf
 
 \def\blx@biber@latem#1#2{%
   \begingroup
@@ -9555,7 +9599,6 @@
   \eappto\blx@tempc{ override\string_target="#1"}}
 
 % {<type,type,...>}{<type,type,...>}{<spec>}
-
 \newrobustcmd*{\DeclareDataInheritance}[3]{%
   \begingroup
   \let\blx@tempa\@empty
@@ -9577,8 +9620,9 @@
 \def\blx@inherit@ii#1#2{%
   \eappto\blx@tempa{\blx@xml@inherit@type{#1}{#2}{}}}
 
-% [<options>]{<source>}{<target>}
+\listadd\blx@globalopts{inheritance}% for passing to the .bcf
 
+% [<options>]{<source>}{<target>}
 \newcommand*{\blx@inherit@field}[3][]{%
   \let\blx@tempc\@empty
   \ifblank{#1}
@@ -9650,6 +9694,7 @@
   \global\cslet{blx@biber@sorting@#2}\blx@tempa
   \endgroup}
 \@onlypreamble\DeclareSortingScheme
+\listadd\blx@globalopts{sortscheme}% for passing to the .bcf
 
 \define@key{blx@sortdef@sorting}{locale}{% locale name
   \def\blx@templ{#1}}
@@ -9734,6 +9779,9 @@
        {\forcsvlist\blx@undefpresort{#1}}}%
   \endgroup}
 \@onlypreamble\DeclarePresort
+\listadd\blx@globalopts{presort}% for passing to the .bcf
+\listadd\blx@typeopts{presort}% for passing to the .bcf
+\listadd\blx@entryopts{presort}% for passing to the .bcf
 
 \def\blx@defpresort#1#2{%
   \csxdef{blx@bcf@presort@#2}{\blx@xml@presort{#2}{#1}}}
@@ -9742,6 +9790,7 @@
 
 \newrobustcmd*{\DeclareSortExclusion}[2]{%
   \forcsvlist{\blx@sortexlude{#2}}{#1}}
+\listadd\blx@typeopts{sortexclusion}% for passing to the .bcf
 
 \def\blx@sortexlude#1#2{%
   \begingroup
@@ -9771,6 +9820,8 @@
   #2%
   \endgroup}
 \@onlypreamble\DeclareLabelname
+\listadd\blx@globalopts{labelnamespec}% for passing to the .bcf
+\listadd\blx@typeopts{labelnamespec}% for passing to the .bcf
 
 \newrobustcmd*{\DeclareLabeltitle}[2][]{%
   \begingroup
@@ -9785,6 +9836,8 @@
   #2%
   \endgroup}
 \@onlypreamble\DeclareLabeltitle
+\listadd\blx@globalopts{labeltitlespec}% for passing to the .bcf
+\listadd\blx@typeopts{labeltitlespec}% for passing to the .bcf
 
 \newrobustcmd*{\DeclareLabelyear}[2][]{%
   \blx@warning@noline{%
@@ -9804,6 +9857,8 @@
   #2%
   \endgroup}
 \@onlypreamble\DeclareLabeldate
+\listadd\blx@globalopts{labeldatespec}% for passing to the .bcf
+\listadd\blx@typeopts{labeldatespec}% for passing to the .bcf
 
 \newcommand*{\blx@ordered@field}[2][]{%
   \let\blx@tempc\@empty
@@ -10068,6 +10123,10 @@
 \DeclareTypeOption{maxalphanames}{%
   \numdef\blx@maxalphanames{#1}}
 \DeclareTypeOption{minalphanames}{%
+  \numdef\blx@minalphanames{#1}}
+\DeclareEntryOption{maxalphanames}{%
+  \numdef\blx@maxalphanames{#1}}
+\DeclareEntryOption{minalphanames}{%
   \numdef\blx@minalphanames{#1}}
 
 \appto\blx@checkoptions@global{%
