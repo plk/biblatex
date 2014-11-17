@@ -493,9 +493,6 @@
 \newtoggle{blx@terseinits}
 \newtoggle{blx@firstinits}
 \newtoggle{blx@sortfirstinits}
-\newtoggle{blx@useauthor}
-\newtoggle{blx@useeditor}
-\newtoggle{blx@usetranslator}
 \newtoggle{blx@useprefix}
 \newtoggle{blx@addset}
 \newtoggle{blx@setonly}
@@ -511,6 +508,11 @@
 \newtoggle{blx@vfallback}
 \toggletrue{blx@vfallback}
 \newtoggle{blx@refcontext}
+
+% Option scope trackers for passing to .bcf
+\global\let\blx@globalopts\@empty
+\global\let\blx@typeopts\@empty
+\global\let\blx@entryopts\@empty
 
 % Initialise some lists which track changing citations/sortschemes
 % etc. between runs
@@ -539,6 +541,10 @@
 
 \newcommand*{\labelalphaothers}{+}
 \newcommand*{\sortalphaothers}{\labelalphaothers}
+\listadd\blx@globalopts{alphaothers}% for passing to the .bcf
+\listadd\blx@typeopts{alphaothers}% for passing to the .bcf
+\listadd\blx@globalopts{sortalphaothers}% for passing to the .bcf
+\listadd\blx@typeopts{sortalphaothers}% for passing to the .bcf
 
 \def\blx@secinit{%
   \csgdef{blx@sections@\the\c@refsection}{true}% just to say we have a section for tests later
@@ -771,6 +777,7 @@
 \edef\blx@ver@bcf{%
   \detokenize{<bcf:controlfile version="}\blx@bcfversion
   \detokenize{" xmlns:bcf="https://sourceforge.net/projects/biblatex">}}
+\listadd\blx@globalopts{controlversion}% for passing to the .bcf
 
 % {<true>}{<false>}
 \newrobustcmd*{\lbx@ifutfinput}{\ifboolexpr{%
@@ -1786,6 +1793,9 @@
 
 % {<key>}[<value>]{<code>}
 \newrobustcmd*{\DeclareBibliographyOption}[1]{%
+  \ifinlist{#1}\blx@globalopts
+    {}
+    {\listadd\blx@globalopts{#1}}%
   \@ifnextchar[%]
     {\blx@defbibopt{#1}}
     {\blx@defbibopt{#1}[]}}
@@ -1801,6 +1811,9 @@
 
 % {<key>}[<value>]{<code>}
 \newrobustcmd*{\DeclareTypeOption}[1]{%
+  \ifinlist{#1}\blx@typeopts
+    {}
+    {\listadd\blx@typeopts{#1}}%
   \@ifnextchar[%]
     {\blx@deftypeopt{#1}}
     {\blx@deftypeopt{#1}[]}}
@@ -1814,6 +1827,9 @@
 
 % {<key>}[<value>]{<code>}
 \newrobustcmd*{\DeclareEntryOption}[1]{%
+  \ifinlist{#1}\blx@entryopts
+    {}
+    {\listadd\blx@entryopts{#1}}%
   \@ifnextchar[%]
     {\blx@defentryopt{#1}}
     {\blx@defentryopt{#1}[]}}
@@ -3915,9 +3931,6 @@
   \def\ifbibindex{\iftoggle{blx@bibindex}}%
   \def\iffootnote{\iftoggle{blx@footnote}}%
   \def\ifuseprefix{\iftoggle{blx@useprefix}}%
-  \def\ifuseauthor{\iftoggle{blx@useauthor}}%
-  \def\ifuseeditor{\iftoggle{blx@useeditor}}%
-  \def\ifusetranslator{\iftoggle{blx@usetranslator}}%
   \def\ifterseinits{\iftoggle{blx@terseinits}}%
   \def\iffirstinits{\iftoggle{blx@firstinits}}%
   \def\ifsingletitle{\iftoggle{abx@bool@singletitle}}%
@@ -6108,6 +6121,37 @@
 
 \def\abx@dobooleans{%
   \do{singletitle}}
+
+
+% Name toggles like \ifauthor etc. need to be dynamically created for all
+% name datatypes in the data model and we have to do this here after the
+% datamodel is available. Need to be careful about expansions here as these
+% go into hooks to be executed later
+
+% Define name toggles
+\def\do#1{\newtoggle{blx@use#1}}
+\dolistcsloop{blx@biber@datamodel@names}
+
+% Define name toggle checking macros
+\let\blx@nametoggles\@empty
+\def\do#1{\gappto\blx@nametoggles{\expandafter\def\csname ifuse#1\endcsname{\iftoggle{blx@use#1}}}}
+\dolistcsloop{blx@biber@datamodel@names}
+\eappto\blx@blxinit{\expandafter\expandonce\noexpand\blx@nametoggles}
+
+% Define ifthen interface name toggle checking macros
+\let\blx@nametogglesit\@empty
+\def\do#1{\gappto\blx@nametogglesit{\expandafter\def\csname ifuse#1\endcsname{\blx@TE{\iftoggle{blx@use#1}}}}}
+\dolistcsloop{blx@biber@datamodel@names}
+\expandafter\def\expandafter\blx@nametogglesite\expandafter{\expandonce\blx@nametogglesit}
+\appto\blx@blxinit{\appto\blx@TE@hook{\blx@nametogglesite}}
+
+% Define \ifuse<name> options scope for biber
+\def\do#1{\listadd\blx@globalopts{use#1}%
+           \listadd\blx@typeopts{use#1}%
+           \listadd\blx@entryopts{use#1}}
+\dolistcsloop{blx@biber@datamodel@names}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \def\do#1{%
   \newcounter{#1}%
@@ -9779,9 +9823,6 @@
     \def\ifbibindex{\blx@TE{\iftoggle{blx@bibindex}}}%
     \def\iffootnote{\blx@TE{\iftoggle{blx@footnote}}}%
     \def\ifuseprefix{\blx@TE{\iftoggle{blx@useprefix}}}%
-    \def\ifuseauthor{\blx@TE{\iftoggle{blx@useauthor}}}%
-    \def\ifuseeditor{\blx@TE{\iftoggle{blx@useeditor}}}%
-    \def\ifusetranslator{\blx@TE{\iftoggle{blx@usetranslator}}}%
     \def\ifterseinits{\blx@TE{\iftoggle{blx@terseinits}}}%
     \def\iffirstinits{\blx@TE{\iftoggle{blx@firstinits}}}%
     \def\ifsingletitle{\blx@TE{\iftoggle{abx@bool@singletitle}}}%
@@ -9841,6 +9882,7 @@
     {\textciquote\endgroup}
     {\blx@setpostpunct\textciquote\endgroup}}
 
+
 \def\blx@usqcheck#1#2{%
   \def\blx@tempa{#1}%
   \def\blx@tempb{#2}%
@@ -9851,24 +9893,22 @@
     \blx@usqcheck@i\blx@tempa
   \fi
   \if\noexpand\@let@token\relax
-    \ifx\relax\@let@token
-      \blx@usqcheck@i\blx@tempb
-    \fi
+    \expandafter\blx@usqcheck@iv
   \fi
   \expandafter\blx@usqcheck@ii\blx@quotepunct\relax&}
 
 \def\blx@usqcheck@i#1#2&{\fi#1}
-
-\def\blx@usqcheck@ii#1{%
-  \if\noexpand#1\relax
-    \blx@usqcheck@i\blx@tempa
-  \fi
-  \if\noexpand#1\noexpand\@let@token
-    \blx@usqcheck@i{\blx@usqcheck@iii\blx@tempa}%
-  \fi
-  \blx@usqcheck@ii}
-
-\def\blx@usqcheck@iii#1#2{#2#1}
+\def\blx@usqcheck@iv#1&#2{%
+  \begingroup
+    \escapechar=-1 %
+    \edef\blx@tempa{\expandafter\@gobble\string#2}%
+    \expandafter\endgroup
+    \ifx\blx@tempa\@empty
+    \else
+      \blx@usqcheck@i\blx@tempb
+    \fi
+    #1&#2%
+}
 
 \newrobustcmd*{\mkbibemph}{\emph}
 \protected\long\def\blx@imc@mkbibemph#1{%
@@ -10289,7 +10329,21 @@
   #2}}
 \xdef\blx@xml@toggle#1{%
   \blx@xml@svalue{#1}{\noexpand\iftoggle{blx@#1}{1}{0}}}
+\xdef\blx@xml@options@scope#1#2{%
+  ~~<bcf:optionscope type="#1">\blx@nl
+  #2%
+  ~~</bcf:optionscope>\blx@nl}
+\xdef\blx@xml@option@scope#1{%
+  ~~~~<bcf:option>#1</bcf:option>\blx@nl}
 \endgroup
+
+\def\blx@bcf@options@scope{%
+  \blx@xml@options@scope{GLOBAL}{%
+    \forlistloop\blx@xml@option@scope\blx@globalopts}%
+  \blx@xml@options@scope{PER_TYPE}{%
+    \forlistloop\blx@xml@option@scope\blx@typeopts}%
+  \blx@xml@options@scope{PER_ENTRY}{%
+    \forlistloop\blx@xml@option@scope\blx@entryopts}}
 
 \def\blx@bcf@options@global{%
   \blx@xml@comment{GLOBAL}%
@@ -10317,10 +10371,8 @@
     \blx@xml@svalue{sortscheme}{\blx@sorting}%
     \blx@xml@svalue{uniquelist}{\blx@uniquelist}%
     \blx@xml@svalue{uniquename}{\blx@uniquename}%
-    \blx@xml@toggle{useauthor}%
-    \blx@xml@toggle{useeditor}%
     \blx@xml@toggle{useprefix}%
-    \blx@xml@toggle{usetranslator}%
+    \blx@xml@nametoggles
     \blx@xml@mvalue{variantforms}{\blx@bcf@variantforms}%
     \blx@xml@svalue{vform}{\blx@ovform}%
     \blx@xml@svalue{vlang}{\blx@ovlang}%
@@ -10361,10 +10413,8 @@
     \blx@xml@toggle{skipbiblist}%
     \blx@xml@svalue{uniquelist}{\blx@uniquelist}%
     \blx@xml@svalue{uniquename}{\blx@uniquename}%
-    \blx@xml@toggle{useauthor}%
-    \blx@xml@toggle{useeditor}%
     \blx@xml@toggle{useprefix}%
-    \blx@xml@toggle{usetranslator}%
+    \blx@xml@nametoggles
   }%
 }
 
@@ -10377,6 +10427,10 @@
   \edef\sortalphaothers{\sortalphaothers}%
   \blx@xmlsanitizeafter{\def\labelalphaothers}{\labelalphaothers}%
   \blx@xmlsanitizeafter{\def\sortalphaothers}{\sortalphaothers}%
+  % Expand the global use* name toggles
+  \let\blx@xml@nametoggles\@empty
+  \def\do##1{\eappto\blx@xml@nametoggles{\blx@xml@toggle{use##1}}}%
+  \dolistcsloop{blx@biber@datamodel@names}
   \edef\blx@tempa{%
     \blx@xml@file
     \blx@xml@comment{BIBER OPTIONS}%
@@ -10396,6 +10450,10 @@
     {\def\do##1{%
        \begingroup
        \blx@setoptions@type{##1}%
+       % Expand the type use* name toggles
+       \let\blx@xml@nametoggles\@empty
+       \def\do####1{\eappto\blx@xml@nametoggles{\blx@xml@toggle{use####1}}}%
+       \dolistcsloop{blx@biber@datamodel@names}
        \begingroup
        \let\protect\relax
        \blx@checkoptions@type
@@ -10404,6 +10462,10 @@
        \endgroup}%
      \dolistloop\blx@opts@type}
     {}%
+  % options scope
+  \eappto\blx@tempa{%
+    \blx@xml@comment{BIBLATEX OPTION SCOPE}%
+    \blx@bcf@options@scope}
   % variantfallbacks
   \eappto\blx@tempa{%
       \blx@xml@comment{VARIANT FALLBACKS}%    
@@ -10525,6 +10587,7 @@
   \global\cslet{blx@bcf@variantforms}\blx@tempa
   \endgroup}
 \@onlypreamble\DeclareVariantforms
+\listadd\blx@globalopts{variantforms}% for passing to the .bcf
 
 % nosort
 \newrobustcmd*{\DeclareNosort}[1]{%
@@ -10731,6 +10794,8 @@
     {\blx@biber@latem{#2}{global}}
     {\forcsvlist{\blx@biber@latem{#2}}{#1}}}
 \@onlypreamble\DeclareLabelalphaTemplate
+\listadd\blx@globalopts{labelalphatemplate}% for passing to the .bcf
+\listadd\blx@typeopts{labelalphatemplate}% for passing to the .bcf
 
 \def\blx@biber@latem#1#2{%
   \begingroup
@@ -10885,6 +10950,8 @@
 \def\blx@inherit@ii#1#2{%
   \eappto\blx@tempa{\blx@xml@inherit@type{#1}{#2}{}}}
 
+\listadd\blx@globalopts{inheritance}% for passing to the .bcf
+
 % [<options>]{<source>}{<target>}
 \newcommand*{\blx@inherit@field}[3][]{%
   \let\blx@tempc\@empty
@@ -10976,6 +11043,7 @@
   \global\cslet{blx@biber@sorting@#2}\blx@tempa
   \endgroup}
 \@onlypreamble\DeclareSortingScheme
+\listadd\blx@globalopts{sortscheme}% for passing to the .bcf
 
 \define@key{blx@sortdef@sorting}{locale}{% locale name
   \def\blx@templ{#1}}
@@ -11059,6 +11127,9 @@
        {\forcsvlist\blx@undefpresort{#1}}}%
   \endgroup}
 \@onlypreamble\DeclarePresort
+\listadd\blx@globalopts{presort}% for passing to the .bcf
+\listadd\blx@typeopts{presort}% for passing to the .bcf
+\listadd\blx@entryopts{presort}% for passing to the .bcf
 
 \def\blx@defpresort#1#2{%
   \csxdef{blx@bcf@presort@#2}{\blx@xml@presort{#2}{#1}}}
@@ -11067,6 +11138,7 @@
 
 \newrobustcmd*{\DeclareSortExclusion}[2]{%
   \forcsvlist{\blx@sortexlude{#2}}{#1}}
+\listadd\blx@typeopts{sortexclusion}% for passing to the .bcf
 
 \def\blx@sortexlude#1#2{%
   \begingroup
@@ -11115,6 +11187,8 @@
   #2%
   \endgroup}
 \@onlypreamble\DeclareLabelname
+\listadd\blx@globalopts{labelnamespec}% for passing to the .bcf
+\listadd\blx@typeopts{labelnamespec}% for passing to the .bcf
 
 % [<type,type,...>]{<field,field,...>}
 \newrobustcmd*{\DeclareLabeltitle}[2][]{%
@@ -11130,6 +11204,8 @@
   #2%
   \endgroup}
 \@onlypreamble\DeclareLabeltitle
+\listadd\blx@globalopts{labeltitlespec}% for passing to the .bcf
+\listadd\blx@typeopts{labeltitlespec}% for passing to the .bcf
 
 \newrobustcmd*{\DeclareLabelyear}[2][]{%
   \blx@warning@noline{%
@@ -11150,6 +11226,8 @@
   #2%
   \endgroup}
 \@onlypreamble\DeclareLabeldate
+\listadd\blx@globalopts{labeldatespec}% for passing to the .bcf
+\listadd\blx@typeopts{labeldatespec}% for passing to the .bcf
 
 \newcommand*{\blx@ordered@field}[2][]{%
   \let\blx@tempc\@empty
@@ -11439,6 +11517,10 @@
 \DeclareTypeOption{maxalphanames}{%
   \numdef\blx@maxalphanames{#1}}
 \DeclareTypeOption{minalphanames}{%
+  \numdef\blx@minalphanames{#1}}
+\DeclareEntryOption{maxalphanames}{%
+  \numdef\blx@maxalphanames{#1}}
+\DeclareEntryOption{minalphanames}{%
   \numdef\blx@minalphanames{#1}}
 
 \appto\blx@checkoptions@global{%
@@ -12029,6 +12111,10 @@
   \ifcsdef{blx@opt@uniquelist@#1}
     {\letcs\blx@uniquelist{blx@opt@uniquelist@#1}}
     {\blx@err@invopt{uniquelist=#1}{}}}
+\DeclareEntryOption{uniquelist}[true]{%
+  \ifcsdef{blx@opt@uniquelist@#1}
+    {\letcs\blx@uniquelist{blx@opt@uniquelist@#1}}
+    {\blx@err@invopt{uniquelist=#1}{}}}
 \def\blx@opt@uniquelist@false{0}
 \def\blx@opt@uniquelist@true{1}
 \def\blx@opt@uniquelist@minyear{2}
@@ -12038,6 +12124,10 @@
     {\letcs\blx@uniquename{blx@opt@uniquename@#1}}
     {\blx@err@invopt{uniquename=#1}{}}}
 \DeclareTypeOption{uniquename}[true]{%
+  \ifcsdef{blx@opt@uniquename@#1}
+    {\letcs\blx@uniquename{blx@opt@uniquename@#1}}
+    {\blx@err@invopt{uniquename=#1}{}}}
+\DeclareEntryOption{uniquename}[true]{%
   \ifcsdef{blx@opt@uniquename@#1}
     {\letcs\blx@uniquename{blx@opt@uniquename@#1}}
     {\blx@err@invopt{uniquename=#1}{}}}

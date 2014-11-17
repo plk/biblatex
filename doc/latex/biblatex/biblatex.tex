@@ -669,6 +669,8 @@ In datasources such as a \file{bib} file, all bibliographic data is specified in
 
 \item[Name lists] are parsed and split up into the individual items at the \texttt{and} delimiter. Each item in the list is then dissected into four name components: the first name, the name prefix (von, van, of, da, de, della, \dots), the last name, and the name suffix (junior, senior, \dots). Name lists may be truncated in the \file{bib} file with the keyword <\texttt{and others}>. Typical examples of name lists are \bibfield{author} and \bibfield{editor}.
 
+\BiberOnlyMark With \biber, name list fields automatically have an \cmd{ifuse*} test created as per the name lists in the default data model (see \secref{aut:aux:tst}). They are also automatically have a \opt{ifuse*} option created which controls labelling and sorting behaviour with the name (see \secref{use:opt:bib:hyb}).
+
 \item[Literal lists] are parsed and split up into the individual items at the \texttt{and} delimiter but not dissected further. Literal lists may be truncated in the \file{bib} file with the keyword <\texttt{and others}>. There are two subtypes:
 
 \begin{description}
@@ -2947,17 +2949,17 @@ The following options are settable on a per"=entry basis in the \bibfield{option
 \boolitem[true]{useauthor}
 
 Whether the \bibfield{author} is used in labels and considered during sorting. This may be useful if an entry includes an \bibfield{author} field but is usually not cited by author for some reason. Setting \kvopt{useauthor}{false} does not mean that the \bibfield{author} is ignored completely. It means that the \bibfield{author} is not used in labels and ignored during sorting. The entry will then be alphabetized by \bibfield{editor} or \bibfield{title}. With the standard styles, the \bibfield{author} is printed after the title in this case. See also \secref{use:srt}.
-\BiberOnlyMark With \biber, this option is also settable on a per-type basis.
+\BiberOnlyMark With \biber, this option is also settable on a per-type and per-entry basis.
 
 \boolitem[true]{useeditor}
 
 Whether the \bibfield{editor} replaces a missing \bibfield{author} in labels and during sorting. This may be useful if an entry includes an \bibfield{editor} field but is usually not cited by editor. Setting \kvopt{useeditor}{false} does not mean that the \bibfield{editor} is ignored completely. It means that the \bibfield{editor} does not replace a missing \bibfield{author} in labels and during sorting. The entry will then be alphabetized by \bibfield{title}. With the standard styles, the \bibfield{editor} is printed after the title in this case. See also \secref{use:srt}.
-\BiberOnlyMark With \biber, this option is also settable on a per-type basis.
+\BiberOnlyMark With \biber, this option is also settable on a per-type and per-entry basis.
 
 \boolitem[false]{usetranslator}
 
 Whether the \bibfield{translator} replaces a missing \bibfield{author}\slash \bibfield{editor} in labels and during sorting. Setting \kvopt{usetranslator}{true} does not mean that the \bibfield{translator} overrides the \bibfield{author}\slash \bibfield{editor}. It means that the \bibfield{translator} is considered as a fallback if the \bibfield{author}\slash \bibfield{editor} is missing or if \opt{useauthor} and \opt{useeditor} are set to \texttt{false}. In other words, in order to cite a book by translator rather than by author, you need to set the following options:
-\BiberOnlyMark With \biber, this option is also settable on a per-type basis.
+\BiberOnlyMark With \biber, this option is also settable on a per-type and per-entry basis.
 
 \begin{lstlisting}[style=bibtex]
 @Book{...,
@@ -2968,6 +2970,18 @@ Whether the \bibfield{translator} replaces a missing \bibfield{author}\slash \bi
 \end{lstlisting}
 %
 With the standard styles, the \bibfield{translator} is printed after the title by default. See also \secref{use:srt}.
+
+\boolitem[false]{use$<$name$>$}
+
+As per \opt{useauthor}, \opt{useeditor} and \opt{usetranslator}, all name lists defined in the data model have an option controlling their behaviour in sorting and labelling automatically defined. An internal toggle is automatically created for all name lists in the data model, called \opt{blx@useuse$<$name$>$}. Unlike \opt{useauthor}, \opt{useeditor} and \opt{usetranslator}, any other \opt{use$<$name$>$} options may not be set as a package option in \cmd{usepackage} but may be set with \cmd{ExecuteBibliographyOptions}. For example, after defining a new name list \bibfield{proofreader} field in the data model (see \secref{aut:ctm:dm}, you can add options to enable/disable its use in sorting/labelling by putting this in the preamble:
+
+\begin{lstlisting}[style=latex]{}
+\makeatletter
+\DeclareBibliographyOption{useproofreader}[true]{%
+  \settoggle{blx@useproofreader}{#1}}
+\ExecuteBibliographyOptions{useproofreader=true}
+\makeatother
+\end{lstlisting}
 
 \boolitem[false]{useprefix}
 
@@ -3286,7 +3300,7 @@ You can use the \bibfield{relatedoptions} to set options on the related entry da
 
 This package supports various sorting schemes for the bibliography. The sorting scheme is selected with the \opt{sorting} package option from \secref{use:opt:pre:gen}. Apart from the regular data fields there are also some special fields which may be used to optimize the sorting of the bibliography. \Apxref{apx:srt:a1, apx:srt:a2} give an outline of the alphabetic sorting schemes supported by \biblatex. Chronological sorting schemes are listed in \apxref{apx:srt:chr}. A few explanations concerning these schemes are in order.
 
-The first item considered in the sorting process is always the \bibfield{presort} field of the entry. If this field is undefined, \biblatex will use the default value <\texttt{mm}> as a presort string. The next item considered is the \bibfield{sortkey} field. If this field is defined, it serves as the master sort key. Apart from the \bibfield{presort} field, no further data is considered in this case. If the \bibfield{sortkey} field is undefined, sorting continues with the name. The package will try using the \bibfield{sortname}, \bibfield{author}, \bibfield{editor}, and \bibfield{translator} fields, in this order. Which fields are considered also depends on the setting of the \opt{useauthor}, \opt{useeditor}, and \opt{usetranslator} options. If all three of them are disabled, the \bibfield{sortname} field is ignored as well. Note that all name fields are responsive to \opt{maxnames} and \opt{minnames}. If no name field is available, either because all of them are undefined or because \opt{useauthor}, \opt{useeditor}, and \opt{usetranslator} are disabled, \biblatex will fall back to the \bibfield{sorttitle} and \bibfield{title} fields as a last resort. The remaining items are, in various order: the \bibfield{sortyear} field, if defined, or the first four digits of the \bibfield{year} field otherwise; the \bibfield{sorttitle} field, if defined, or the \bibfield{title} field otherwise; the \bibfield{volume} field, which is padded to four digits with leading zeros, or the string \texttt{0000} otherwise. Note that the sorting schemes shown in \apxref{apx:srt:a2} include an additional item: \bibfield{labelalpha} is the label used by <alphabetic> bibliography styles. Strictly speaking, the string used for sorting is \bibfield{labelalpha}~+ \bibfield{extraalpha}. The sorting schemes in \apxref{apx:srt:a2} are intended to be used in conjunction with alphabetic styles only.
+The first item considered in the sorting process is always the \bibfield{presort} field of the entry. If this field is undefined, \biblatex will use the default value <\texttt{mm}> as a presort string. The next item considered is the \bibfield{sortkey} field. If this field is defined, it serves as the master sort key. Apart from the \bibfield{presort} field, no further data is considered in this case. If the \bibfield{sortkey} field is undefined, sorting continues with the name. The package will try using the \bibfield{sortname}, \bibfield{author}, \bibfield{editor}, and \bibfield{translator} fields, in this order. Which fields are considered also depends on the setting of the \opt{use$<$name$>$} options. If all such options are disabled, the \bibfield{sortname} field is ignored as well. Note that all name fields are responsive to \opt{maxnames} and \opt{minnames}. If no name field is available, either because all of them are undefined or because all \opt{use$<$name$>$} options are disabled, \biblatex will fall back to the \bibfield{sorttitle} and \bibfield{title} fields as a last resort. The remaining items are, in various order: the \bibfield{sortyear} field, if defined, or the first four digits of the \bibfield{year} field otherwise; the \bibfield{sorttitle} field, if defined, or the \bibfield{title} field otherwise; the \bibfield{volume} field, which is padded to four digits with leading zeros, or the string \texttt{0000} otherwise. Note that the sorting schemes shown in \apxref{apx:srt:a2} include an additional item: \bibfield{labelalpha} is the label used by <alphabetic> bibliography styles. Strictly speaking, the string used for sorting is \bibfield{labelalpha}~+ \bibfield{extraalpha}. The sorting schemes in \apxref{apx:srt:a2} are intended to be used in conjunction with alphabetic styles only.
 
 The chronological sorting schemes presented in \apxref{apx:srt:chr} also make use of the \bibfield{presort} and \bibfield{sortkey} fields, if defined. The next item considered is the \bibfield{sortyear} or the \bibfield{year} field, depending on availability. The \opt{ynt} scheme extracts the first four Arabic figures from the field. If both fields are undefined, the string \texttt{9999} is used as a fallback value. This means that all entries without a year will be moved to the end of the list. The \opt{ydnt} scheme is similar in concept but sorts the year in descending order. As with the \opt{ynt} scheme, the string \texttt{9999} is used as a fallback value. The remaining items are similar to the alphabetic sorting schemes discussed above. Note that the \opt{ydnt} sorting scheme will only sort the date in descending order. All other items are sorted in ascending order as usual.
 
@@ -5951,7 +5965,7 @@ The <alphabetic> citation scheme usually requires a letter to be appended to the
 
 \listitem{labelname}{name}
 
-The name to be printed in citations. This list is a copy of either the \bibfield{shortauthor}, the \bibfield{author}, the \bibfield{shorteditor}, the \bibfield{editor}, or the \bibfield{translator} list, which are normally checked for in this order. If no authors and editors are available, this list is undefined. Note that this list is also responsive to the \opt{useauthor}, \opt{useeditor}, and \opt{usetranslator} options, see \secref{use:opt:bib}. Citation styles should use this list when printing the name in a citation. This list is provided for convenience only and does not carry any additional meaning.
+The name to be printed in citations. This list is a copy of either the \bibfield{shortauthor}, the \bibfield{author}, the \bibfield{shorteditor}, the \bibfield{editor}, or the \bibfield{translator} list, which are normally checked for in this order. If no authors and editors are available, this list is undefined. Note that this list is also responsive to the \opt{use$<$name$>$}, options, see \secref{use:opt:bib}. Citation styles should use this list when printing the name in a citation. This list is provided for convenience only and does not carry any additional meaning.
 \BiberOnlyMark With \biber, this field may be customized. See \secref{aut:ctm:fld} for details.
 
 \fielditem{labelnumber}{literal}
@@ -7737,7 +7751,7 @@ This sorts «two» before «one», even though lexically, «one» would sort bef
 
 \end{ltxsyntax}
 
-Here are some examples of sorting schemes. In the first example, we define a simple name\slash title\slash year scheme. The name element may be either the \bibfield{author}, the \bibfield{editor}, or the \bibfield{translator}. Given this specification, the sorting routine will use the first element which is available and continue with the \bibfield{title}. Note that the options \opt{useauthor}, \opt{useeditor}, and \opt{usetranslator} are considered automatically in the sorting process:
+Here are some examples of sorting schemes. In the first example, we define a simple name\slash title\slash year scheme. The name element may be either the \bibfield{author}, the \bibfield{editor}, or the \bibfield{translator}. Given this specification, the sorting routine will use the first element which is available and continue with the \bibfield{title}. Note that the options \opt{use$<$name$>$} options are considered automatically in the sorting process:
 
 \begin{lstlisting}[style=latex]
 \DeclareSortingScheme{sample}{
@@ -8429,15 +8443,19 @@ Expands to \prm{true} if the \opt{useprefix} option is enabled (either globally 
 
 \cmditem{ifuseauthor}{true}{false}
 
-Expands to \prm{true} if the \opt{useauthor} option is enabled (either globally or for the current entry), and \prm{false} otherwise. See \secref{use:opt:bib} for details on this option.
+This is just a particular case of the \cmd{ifuse$<$name$>$} macro below but is mentioned here as \bibfield{author} is part of the default data model. Expands to \prm{true} if the \opt{useauthor} option is enabled (either globally or for the current entry), and \prm{false} otherwise. See \secref{use:opt:bib} for details on this option.
 
 \cmditem{ifuseeditor}{true}{false}
 
-Expands to \prm{true} if the \opt{useeditor} option is enabled (either globally or for the current entry), and \prm{false} otherwise. See \secref{use:opt:bib} for details on this option.
+This is just a particular case of the \cmd{ifuse$<$name$>$} macro below but is mentioned here as \bibfield{editor} is part of the default data model. Expands to \prm{true} if the \opt{useeditor} option is enabled (either globally or for the current entry), and \prm{false} otherwise. See \secref{use:opt:bib} for details on this option.
 
 \cmditem{ifusetranslator}{true}{false}
 
-Expands to \prm{true} if the \opt{usetranslator} option is enabled (either globally or for the current entry), and \prm{false} otherwise. See \secref{use:opt:bib} for details on this option.
+This is just a particular case of the \cmd{ifuse$<$name$>$} macro below but is mentioned here as \bibfield{translator} is part of the default data model. Expands to \prm{true} if the \opt{usetranslator} option is enabled (either globally or for the current entry), and \prm{false} otherwise. See \secref{use:opt:bib} for details on this option.
+
+\cmditem{ifuse$<$name$>$}{true}{false}
+
+Expands to \prm{true} if the \opt{use$<$name$>$} option is enabled (either globally or for the current entry), and \prm{false} otherwise. See \secref{use:opt:bib} for details on this option.
 
 \cmditem{ifsingletitle}{true}{false}
 
@@ -11784,14 +11802,11 @@ texencoding	&\+&\+&\_&\_\\
 uniquelist	&\+&\+&\+&\+\\
 uniquename	&\+&\+&\+&\+\\
 urldate		&\+&\+&\_&\_\\
-url		&\+&\+&\_&\_\\ % style
-useauthor	&\+&\+&\+&\+\\
-useeditor	&\+&\+&\+&\+\\
+url		&\+&\+&\_&\_\\
 useprefix	&\+&\+&\+&\+\\
-usetranslator	&\+&\+&\+&\+\\
+use$<$name$>$	&\+&\+&\+&\+\\
 vform &\+&\+&\_&\+\\
-vlang &\+&\+&\_&\+\\
-vtranslang &\+&\+&\_&\+\\
+vlang &\+&\+&\_&\+
 \end{longtable}
 \endgroup
 
@@ -11805,6 +11820,7 @@ This revision history is a list of changes relevant to users of this package. Ch
 \begin{release}{3.0}{2014}
 \item New range calculation command \cmd{frangelen}\see{aut:aux:msc}
 \item New bibliography context functionality\see{use:bib:context}
+\item Name lists in the data model now automatically create internals for \cmd{ifuse$<$name$>$} tests and booleans\see{use:opt:bib:hyb} and \see{aut:aux:tst}
 \end{release}
 
 \begin{release}{2.9a}{2014-06-25}
@@ -11932,254 +11948,254 @@ This revision history is a list of changes relevant to users of this package. Ch
 \item Added \cmd{citeyear*} and \cmd{citedate*}\see{use:cit:txt}
 \end{release}
 
-\begin{release}{1.7}{2011-11-13}
-\item Added \texttt{xdata} containers\see{use:use:xdat}\BiberOnlyMark
-\item Added special entry type \bibfield{xdata}\see{bib:typ:blx}\BiberOnlyMark
-\item Added special field \bibfield{xdata}\see{bib:fld:spc}\BiberOnlyMark
-\item Support \opt{maxnames}/\opt{minnames} globally/per-type/per-entry\see{use:opt:pre:gen}\BiberOnlyMark
-\item Support \opt{maxbibnames}/\opt{minbibnames} globally/per-type/per-entry\see{use:opt:pre:gen}\BiberOnlyMark
-\item Support \opt{maxcitenames}/\opt{mincitenames} globally/per-type/per-entry\see{use:opt:pre:gen}\BiberOnlyMark
-\item Support \opt{maxitems}/\opt{minitems} globally/per-type/per-entry\see{use:opt:pre:gen}\BiberOnlyMark
-\item Support \opt{maxalphanames}/\opt{minalphanames} globally/per-type/per-entry\see{use:opt:pre:int}\BiberOnlyMark
-\item Support \opt{uniquelist} globally/per-type/per-entry\see{use:opt:pre:int}\BiberOnlyMark
-\item Support \opt{uniquename} globally/per-type/per-entry\see{use:opt:pre:int}\BiberOnlyMark
-\item Added \cmd{textcite} and \cmd{textcites} to all \texttt{verbose} citation styles\see{use:xbx:cbx}
-\item Added special field formats \texttt{date}, \texttt{urldate}, \texttt{origdate}, \texttt{eventdate}\see{aut:fmt:ich}
-\item Added \cmd{mkcomprange*}\see{aut:aux:msc}
-\item Added \cmd{mkfirstpage*}\see{aut:aux:msc}
-\item Added \cmd{volcitedelim}\see{aut:fmt:fmt}
-\item Added missing documentation for \cmd{ifentrytype}\see{aut:aux:tst}
-\item Added \cmd{mkbibneutord}\see{use:fmt:lng}
-\item Added counter \cnt{biburlnumpenalty}\see{aut:fmt:len}
-\item Added counter \cnt{biburlucpenalty}\see{aut:fmt:len}
-\item Added counter \cnt{biburllcpenalty}\see{aut:fmt:len}
-\item Added localization keys \texttt{book}, \texttt{part}, \texttt{issue}, \texttt{forthcoming}\see{aut:lng:key}
-\item Added some \texttt{lang...} and \texttt{from...} localization keys\see{aut:lng:key}
-\item Expanded documentation\see{apx:opt}
-\item Added support for Russian (Oleg Domanov)
-\item Updated support for Dutch (Pieter Belmans)
-\item Fixed compatibility issue with \sty{textcase} package
-\item Fixed some bugs
-\end{release}
+% \begin{release}{1.7}{2011-11-13}
+% \item Added \texttt{xdata} containers\see{use:use:xdat}\BiberOnlyMark
+% \item Added special entry type \bibfield{xdata}\see{bib:typ:blx}\BiberOnlyMark
+% \item Added special field \bibfield{xdata}\see{bib:fld:spc}\BiberOnlyMark
+% \item Support \opt{maxnames}/\opt{minnames} globally/per-type/per-entry\see{use:opt:pre:gen}\BiberOnlyMark
+% \item Support \opt{maxbibnames}/\opt{minbibnames} globally/per-type/per-entry\see{use:opt:pre:gen}\BiberOnlyMark
+% \item Support \opt{maxcitenames}/\opt{mincitenames} globally/per-type/per-entry\see{use:opt:pre:gen}\BiberOnlyMark
+% \item Support \opt{maxitems}/\opt{minitems} globally/per-type/per-entry\see{use:opt:pre:gen}\BiberOnlyMark
+% \item Support \opt{maxalphanames}/\opt{minalphanames} globally/per-type/per-entry\see{use:opt:pre:int}\BiberOnlyMark
+% \item Support \opt{uniquelist} globally/per-type/per-entry\see{use:opt:pre:int}\BiberOnlyMark
+% \item Support \opt{uniquename} globally/per-type/per-entry\see{use:opt:pre:int}\BiberOnlyMark
+% \item Added \cmd{textcite} and \cmd{textcites} to all \texttt{verbose} citation styles\see{use:xbx:cbx}
+% \item Added special field formats \texttt{date}, \texttt{urldate}, \texttt{origdate}, \texttt{eventdate}\see{aut:fmt:ich}
+% \item Added \cmd{mkcomprange*}\see{aut:aux:msc}
+% \item Added \cmd{mkfirstpage*}\see{aut:aux:msc}
+% \item Added \cmd{volcitedelim}\see{aut:fmt:fmt}
+% \item Added missing documentation for \cmd{ifentrytype}\see{aut:aux:tst}
+% \item Added \cmd{mkbibneutord}\see{use:fmt:lng}
+% \item Added counter \cnt{biburlnumpenalty}\see{aut:fmt:len}
+% \item Added counter \cnt{biburlucpenalty}\see{aut:fmt:len}
+% \item Added counter \cnt{biburllcpenalty}\see{aut:fmt:len}
+% \item Added localization keys \texttt{book}, \texttt{part}, \texttt{issue}, \texttt{forthcoming}\see{aut:lng:key}
+% \item Added some \texttt{lang...} and \texttt{from...} localization keys\see{aut:lng:key}
+% \item Expanded documentation\see{apx:opt}
+% \item Added support for Russian (Oleg Domanov)
+% \item Updated support for Dutch (Pieter Belmans)
+% \item Fixed compatibility issue with \sty{textcase} package
+% \item Fixed some bugs
+% \end{release}
 
-\begin{release}{1.6}{2011-07-29}
-\item Added special field \bibfield{sortshorthand}\see{bib:fld:spc}\BiberOnlyMark
-\item Revised options \opt{maxnames}/\opt{minnames}\see{use:opt:pre:gen}
-\item Options \opt{maxcitenames}/\opt{mincitenames} now supported by backend\see{use:opt:pre:gen}\BiberOnlyMark
-\item Options \opt{maxbibnames}/\opt{minbibnames} now supported by backend\see{use:opt:pre:gen}\BiberOnlyMark
-\item Added options \opt{maxalphanames}/\opt{minalphanames}\see{use:opt:pre:int}\BiberOnlyMark
-\item Removed local options \opt{maxnames}/\opt{minnames} from \cmd{printbibliography}\see{use:bib:bib}
-\item Removed local options \opt{maxitems}/\opt{minitems} from \cmd{printbibliography}\see{use:bib:bib}
-\item Removed local options \opt{maxnames}/\opt{minnames} from \cmd{bibbysection}\see{use:bib:bib}
-\item Removed local options \opt{maxitems}/\opt{minitems} from \cmd{bibbysection}\see{use:bib:bib}
-\item Removed local options \opt{maxnames}/\opt{minnames} from \cmd{bibbysegment}\see{use:bib:bib}
-\item Removed local options \opt{maxitems}/\opt{minitems} from \cmd{bibbysegment}\see{use:bib:bib}
-\item Removed local options \opt{maxnames}/\opt{minnames} from \cmd{bibbycategory}\see{use:bib:bib}
-\item Removed local options \opt{maxitems}/\opt{minitems} from \cmd{bibbycategory}\see{use:bib:bib}
-\item Removed local options \opt{maxnames}/\opt{minnames} from \cmd{printshorthands}\see{use:bib:biblist}
-\item Removed local options \opt{maxitems}/\opt{minitems} from \cmd{printshorthands}\see{use:bib:biblist}
-\item Added special field format \bibfield{volcitevolume}\see{use:cit:spc}
-\item Added special field format \bibfield{volcitepages}\see{use:cit:spc}
-\item Added special field \bibfield{hash}\see{aut:bbx:fld:gen}\BiberOnlyMark
-\item Added \cmd{mkcomprange}\see{aut:aux:msc}
-\item Added \cmd{mkfirstpage}\see{aut:aux:msc}
-\item Removed \cmd{mkpagefirst}\see{aut:aux:msc}
-\item Fixed some bugs
-\end{release}
+% \begin{release}{1.6}{2011-07-29}
+% \item Added special field \bibfield{sortshorthand}\see{bib:fld:spc}\BiberOnlyMark
+% \item Revised options \opt{maxnames}/\opt{minnames}\see{use:opt:pre:gen}
+% \item Options \opt{maxcitenames}/\opt{mincitenames} now supported by backend\see{use:opt:pre:gen}\BiberOnlyMark
+% \item Options \opt{maxbibnames}/\opt{minbibnames} now supported by backend\see{use:opt:pre:gen}\BiberOnlyMark
+% \item Added options \opt{maxalphanames}/\opt{minalphanames}\see{use:opt:pre:int}\BiberOnlyMark
+% \item Removed local options \opt{maxnames}/\opt{minnames} from \cmd{printbibliography}\see{use:bib:bib}
+% \item Removed local options \opt{maxitems}/\opt{minitems} from \cmd{printbibliography}\see{use:bib:bib}
+% \item Removed local options \opt{maxnames}/\opt{minnames} from \cmd{bibbysection}\see{use:bib:bib}
+% \item Removed local options \opt{maxitems}/\opt{minitems} from \cmd{bibbysection}\see{use:bib:bib}
+% \item Removed local options \opt{maxnames}/\opt{minnames} from \cmd{bibbysegment}\see{use:bib:bib}
+% \item Removed local options \opt{maxitems}/\opt{minitems} from \cmd{bibbysegment}\see{use:bib:bib}
+% \item Removed local options \opt{maxnames}/\opt{minnames} from \cmd{bibbycategory}\see{use:bib:bib}
+% \item Removed local options \opt{maxitems}/\opt{minitems} from \cmd{bibbycategory}\see{use:bib:bib}
+% \item Removed local options \opt{maxnames}/\opt{minnames} from \cmd{printshorthands}\see{use:bib:biblist}
+% \item Removed local options \opt{maxitems}/\opt{minitems} from \cmd{printshorthands}\see{use:bib:biblist}
+% \item Added special field format \bibfield{volcitevolume}\see{use:cit:spc}
+% \item Added special field format \bibfield{volcitepages}\see{use:cit:spc}
+% \item Added special field \bibfield{hash}\see{aut:bbx:fld:gen}\BiberOnlyMark
+% \item Added \cmd{mkcomprange}\see{aut:aux:msc}
+% \item Added \cmd{mkfirstpage}\see{aut:aux:msc}
+% \item Removed \cmd{mkpagefirst}\see{aut:aux:msc}
+% \item Fixed some bugs
+% \end{release}
 
-\begin{release}{1.5a}{2011-06-17}
-\item Fixed some bugs
-\end{release}
+% \begin{release}{1.5a}{2011-06-17}
+% \item Fixed some bugs
+% \end{release}
 
-\begin{release}{1.5}{2011-06-08}
-\item Added option \kvopt{uniquename}{mininit/minfull}\see{use:opt:pre:int}\BiberOnlyMark
-\item Added option \kvopt{uniquelist}{minyear}\see{use:opt:pre:int}\BiberOnlyMark
-\item Updated documentation of \cnt{uniquename} counter\see{aut:aux:tst}\BiberOnlyMark
-\item Updated documentation of \cnt{uniquelist} counter\see{aut:aux:tst}\BiberOnlyMark
-\item Expanded documentation for \opt{uniquename/uniquelist} options\see{aut:cav:amb}\BiberOnlyMark
-\item Added editorial role \texttt{reviser}\see{bib:use:edr}
-\item Added localization keys \texttt{reviser}, \texttt{revisers}, \texttt{byreviser}\see{aut:lng:key}
-\item Added bibliography heading \texttt{none}\see{use:bib:hdg}
-\item Fixed some \sty{memoir} compatibility issues
-\end{release}
+% \begin{release}{1.5}{2011-06-08}
+% \item Added option \kvopt{uniquename}{mininit/minfull}\see{use:opt:pre:int}\BiberOnlyMark
+% \item Added option \kvopt{uniquelist}{minyear}\see{use:opt:pre:int}\BiberOnlyMark
+% \item Updated documentation of \cnt{uniquename} counter\see{aut:aux:tst}\BiberOnlyMark
+% \item Updated documentation of \cnt{uniquelist} counter\see{aut:aux:tst}\BiberOnlyMark
+% \item Expanded documentation for \opt{uniquename/uniquelist} options\see{aut:cav:amb}\BiberOnlyMark
+% \item Added editorial role \texttt{reviser}\see{bib:use:edr}
+% \item Added localization keys \texttt{reviser}, \texttt{revisers}, \texttt{byreviser}\see{aut:lng:key}
+% \item Added bibliography heading \texttt{none}\see{use:bib:hdg}
+% \item Fixed some \sty{memoir} compatibility issues
+% \end{release}
 
-\begin{release}{1.4c}{2011-05-12}
-\item Fixed some bugs
-\end{release}
+% \begin{release}{1.4c}{2011-05-12}
+% \item Fixed some bugs
+% \end{release}
 
-\begin{release}{1.4b}{2011-04-12}
-\item Fixed some bugs
-\end{release}
+% \begin{release}{1.4b}{2011-04-12}
+% \item Fixed some bugs
+% \end{release}
 
-\begin{release}{1.4a}{2011-04-06}
-\item Enable \opt{uniquename} and \opt{uniquelist} in all \texttt{authortitle} styles\see{use:xbx:cbx}
-\item Enable \opt{uniquename} and \opt{uniquelist} in all \texttt{authoryear} styles\see{use:xbx:cbx}
-\item Fixed some bugs
-\end{release}
+% \begin{release}{1.4a}{2011-04-06}
+% \item Enable \opt{uniquename} and \opt{uniquelist} in all \texttt{authortitle} styles\see{use:xbx:cbx}
+% \item Enable \opt{uniquename} and \opt{uniquelist} in all \texttt{authoryear} styles\see{use:xbx:cbx}
+% \item Fixed some bugs
+% \end{release}
 
-\begin{release}{1.4}{2011-03-31}
-\item Added package option \opt{uniquelist}\see{use:opt:pre:int}\BiberOnlyMark
-\item Added special counter \cnt{uniquelist}\see{aut:aux:tst}\BiberOnlyMark
-\item Revised and improved package option \opt{uniquename}\see{use:opt:pre:int}\BiberOnlyMark
-\item Revised and improved special counter \cnt{uniquename}\see{aut:aux:tst}\BiberOnlyMark
-\item Added \cmd{bibnamedelimi}\see{use:fmt:fmt}\BiberOnlyMark
-\item Added \cmd{bibindexnamedelima}\see{use:fmt:fmt}
-\item Added \cmd{bibindexnamedelimb}\see{use:fmt:fmt}
-\item Added \cmd{bibindexnamedelimc}\see{use:fmt:fmt}
-\item Added \cmd{bibindexnamedelimd}\see{use:fmt:fmt}
-\item Added \cmd{bibindexnamedelimi}\see{use:fmt:fmt}
-\item Added \cmd{bibindexinitperiod}\see{use:fmt:fmt}
-\item Added \cmd{bibindexinitdelim}\see{use:fmt:fmt}
-\item Added \cmd{bibindexinithyphendelim}\see{use:fmt:fmt}
-\item Fixed conflict with some \acr{AMS} classes
-\end{release}
+% \begin{release}{1.4}{2011-03-31}
+% \item Added package option \opt{uniquelist}\see{use:opt:pre:int}\BiberOnlyMark
+% \item Added special counter \cnt{uniquelist}\see{aut:aux:tst}\BiberOnlyMark
+% \item Revised and improved package option \opt{uniquename}\see{use:opt:pre:int}\BiberOnlyMark
+% \item Revised and improved special counter \cnt{uniquename}\see{aut:aux:tst}\BiberOnlyMark
+% \item Added \cmd{bibnamedelimi}\see{use:fmt:fmt}\BiberOnlyMark
+% \item Added \cmd{bibindexnamedelima}\see{use:fmt:fmt}
+% \item Added \cmd{bibindexnamedelimb}\see{use:fmt:fmt}
+% \item Added \cmd{bibindexnamedelimc}\see{use:fmt:fmt}
+% \item Added \cmd{bibindexnamedelimd}\see{use:fmt:fmt}
+% \item Added \cmd{bibindexnamedelimi}\see{use:fmt:fmt}
+% \item Added \cmd{bibindexinitperiod}\see{use:fmt:fmt}
+% \item Added \cmd{bibindexinitdelim}\see{use:fmt:fmt}
+% \item Added \cmd{bibindexinithyphendelim}\see{use:fmt:fmt}
+% \item Fixed conflict with some \acr{AMS} classes
+% \end{release}
 
-\begin{release}{1.3a}{2011-03-18}
-\item Fixed some bugs
-\end{release}
+% \begin{release}{1.3a}{2011-03-18}
+% \item Fixed some bugs
+% \end{release}
 
-\begin{release}{1.3}{2011-03-14}
-\item Support \bibtype{thesis} with \bibfield{isbn}\see{bib:typ:blx}
-\item Updated \opt{terseinits} option\see{use:opt:pre:gen}
-\item Allow macros in argument to \cmd{addbibresource} and friends\see{use:bib:res}
-\item Allow macros in argument to \cmd{bibliography}\see{use:bib:res}
-\item Introducing experimental support for Zotero \acr{RDF}/\acr{XML}\see{use:bib:res}\BiberOnlyMark
-\item Introducing experimental support for EndNote \acr{XML}\see{use:bib:res}\BiberOnlyMark
-\item Added option \opt{citecounter}\see{use:opt:pre:int}
-\item Added \cnt{citecounter}\see{aut:aux:tst}
-\item Added \cmd{smartcite} and \cmd{Smartcite}\see{use:cit:cbx}
-\item Added \cmd{smartcites} and \cmd{Smartcites}\see{use:cit:mlt}
-\item Added \cmd{svolcite} and \cmd{Svolcite}\see{use:cit:spc}
-\item Added \cmd{bibnamedelima}\see{use:fmt:fmt}\BiberOnlyMark
-\item Added \cmd{bibnamedelimb}\see{use:fmt:fmt}\BiberOnlyMark
-\item Added \cmd{bibnamedelimc}\see{use:fmt:fmt}
-\item Added \cmd{bibnamedelimd}\see{use:fmt:fmt}
-\item Added \cmd{bibinitperiod}\see{use:fmt:fmt}\BiberOnlyMark
-\item Added \cmd{bibinitdelim}\see{use:fmt:fmt}\BiberOnlyMark
-\item Added \cmd{bibinithyphendelim}\see{use:fmt:fmt}\BiberOnlyMark
-\item Expanded documentation\see{use:cav:nam}
-\item Added \prm{position} parameter \texttt{f} to \cmd{DeclareAutoCiteCommand}\see{aut:cbx:cbx}
-\end{release}
+% \begin{release}{1.3}{2011-03-14}
+% \item Support \bibtype{thesis} with \bibfield{isbn}\see{bib:typ:blx}
+% \item Updated \opt{terseinits} option\see{use:opt:pre:gen}
+% \item Allow macros in argument to \cmd{addbibresource} and friends\see{use:bib:res}
+% \item Allow macros in argument to \cmd{bibliography}\see{use:bib:res}
+% \item Introducing experimental support for Zotero \acr{RDF}/\acr{XML}\see{use:bib:res}\BiberOnlyMark
+% \item Introducing experimental support for EndNote \acr{XML}\see{use:bib:res}\BiberOnlyMark
+% \item Added option \opt{citecounter}\see{use:opt:pre:int}
+% \item Added \cnt{citecounter}\see{aut:aux:tst}
+% \item Added \cmd{smartcite} and \cmd{Smartcite}\see{use:cit:cbx}
+% \item Added \cmd{smartcites} and \cmd{Smartcites}\see{use:cit:mlt}
+% \item Added \cmd{svolcite} and \cmd{Svolcite}\see{use:cit:spc}
+% \item Added \cmd{bibnamedelima}\see{use:fmt:fmt}\BiberOnlyMark
+% \item Added \cmd{bibnamedelimb}\see{use:fmt:fmt}\BiberOnlyMark
+% \item Added \cmd{bibnamedelimc}\see{use:fmt:fmt}
+% \item Added \cmd{bibnamedelimd}\see{use:fmt:fmt}
+% \item Added \cmd{bibinitperiod}\see{use:fmt:fmt}\BiberOnlyMark
+% \item Added \cmd{bibinitdelim}\see{use:fmt:fmt}\BiberOnlyMark
+% \item Added \cmd{bibinithyphendelim}\see{use:fmt:fmt}\BiberOnlyMark
+% \item Expanded documentation\see{use:cav:nam}
+% \item Added \prm{position} parameter \texttt{f} to \cmd{DeclareAutoCiteCommand}\see{aut:cbx:cbx}
+% \end{release}
 
-\begin{release}{1.2a}{2011-02-13}
-\item Fix in \cmd{mkbibmonth}\see{aut:fmt:ich}
-\end{release}
+% \begin{release}{1.2a}{2011-02-13}
+% \item Fix in \cmd{mkbibmonth}\see{aut:fmt:ich}
+% \end{release}
 
-\begin{release}{1.2}{2011-02-12}
-\item Added entry type \bibtype{mvbook}\see{bib:typ:blx}
-\item Added entry type \bibtype{mvcollection}\see{bib:typ:blx}
-\item Added entry type \bibtype{mvproceedings}\see{bib:typ:blx}
-\item Added entry type \bibtype{mvreference}\see{bib:typ:blx}
-\item Introducing remote resources\see{use:bib:res}\BiberOnlyMark
-\item Introducing experimental \acr{RIS} support\see{use:bib:res}\BiberOnlyMark
-\item Added \cmd{addbibresource}\see{use:bib:res}
-\item \cmd{bibliography} now deprecated\see{use:bib:res}
-\item \cmd{bibliography*} replaced by \cmd{addglobalbib}\see{use:bib:res}
-\item Added \cmd{addsectionbib}\see{use:bib:res}
-\item Updated and expanded documentation\see{bib:cav:ref}
-\item Introducing smart \bibfield{crossref} data inheritance\see{bib:cav:ref:bbr}\BiberOnlyMark
-\item Introducing \bibfield{crossref} configuration interface\see{aut:ctm:ref}\BiberOnlyMark
-\item Added \cmd{DefaultInheritance}\see{aut:ctm:ref}\BiberOnlyMark
-\item Added \cmd{DeclareDataInheritance}\see{aut:ctm:ref}\BiberOnlyMark
-\item Added \cmd{ResetDataInheritance}\see{aut:ctm:ref}\BiberOnlyMark
-\item Added \cmd{ifkeyword}\see{aut:aux:tst}
-\item Added \cmd{ifentrykeyword}\see{aut:aux:tst}
-\item Added \cmd{ifcategory}\see{aut:aux:tst}
-\item Added \cmd{ifentrycategory}\see{aut:aux:tst}
-\item Added \cmd{ifdriver}\see{aut:aux:tst}
-\item Added \cmd{forcsvfield}\see{aut:aux:msc}
-\item Extended \cmd{mkpageprefix}\see{aut:aux:msc}
-\item Extended \cmd{mkpagetotal}\see{aut:aux:msc}
-\item Extended \cmd{mkpagefirst}\see{aut:aux:msc}
-\item Added localization key \texttt{inpreparation}\see{aut:lng:key}
-\item Rearranged manual slightly, moving some tables to the appendix
-\end{release}
+% \begin{release}{1.2}{2011-02-12}
+% \item Added entry type \bibtype{mvbook}\see{bib:typ:blx}
+% \item Added entry type \bibtype{mvcollection}\see{bib:typ:blx}
+% \item Added entry type \bibtype{mvproceedings}\see{bib:typ:blx}
+% \item Added entry type \bibtype{mvreference}\see{bib:typ:blx}
+% \item Introducing remote resources\see{use:bib:res}\BiberOnlyMark
+% \item Introducing experimental \acr{RIS} support\see{use:bib:res}\BiberOnlyMark
+% \item Added \cmd{addbibresource}\see{use:bib:res}
+% \item \cmd{bibliography} now deprecated\see{use:bib:res}
+% \item \cmd{bibliography*} replaced by \cmd{addglobalbib}\see{use:bib:res}
+% \item Added \cmd{addsectionbib}\see{use:bib:res}
+% \item Updated and expanded documentation\see{bib:cav:ref}
+% \item Introducing smart \bibfield{crossref} data inheritance\see{bib:cav:ref:bbr}\BiberOnlyMark
+% \item Introducing \bibfield{crossref} configuration interface\see{aut:ctm:ref}\BiberOnlyMark
+% \item Added \cmd{DefaultInheritance}\see{aut:ctm:ref}\BiberOnlyMark
+% \item Added \cmd{DeclareDataInheritance}\see{aut:ctm:ref}\BiberOnlyMark
+% \item Added \cmd{ResetDataInheritance}\see{aut:ctm:ref}\BiberOnlyMark
+% \item Added \cmd{ifkeyword}\see{aut:aux:tst}
+% \item Added \cmd{ifentrykeyword}\see{aut:aux:tst}
+% \item Added \cmd{ifcategory}\see{aut:aux:tst}
+% \item Added \cmd{ifentrycategory}\see{aut:aux:tst}
+% \item Added \cmd{ifdriver}\see{aut:aux:tst}
+% \item Added \cmd{forcsvfield}\see{aut:aux:msc}
+% \item Extended \cmd{mkpageprefix}\see{aut:aux:msc}
+% \item Extended \cmd{mkpagetotal}\see{aut:aux:msc}
+% \item Extended \cmd{mkpagefirst}\see{aut:aux:msc}
+% \item Added localization key \texttt{inpreparation}\see{aut:lng:key}
+% \item Rearranged manual slightly, moving some tables to the appendix
+% \end{release}
 
-\begin{release}{1.1b}{2011-02-04}
-\item Added option \opt{texencoding}\see{use:opt:pre:gen}\BiberOnlyMark
-\item Added option \opt{safeinputenc}\see{use:opt:pre:gen}\BiberOnlyMark
-\item Expanded documentation\see{bib:cav:enc:enc}
-\item Improved \opt{mergedate} option of bibliography style \texttt{authoryear}\see{use:xbx:bbx}
-\item Removed \opt{pass} option of \cmd{DeclareSortingScheme}\see{aut:ctm:srt}\BiberOnlyMark
-\item Fixed some bugs
-\end{release}
+% \begin{release}{1.1b}{2011-02-04}
+% \item Added option \opt{texencoding}\see{use:opt:pre:gen}\BiberOnlyMark
+% \item Added option \opt{safeinputenc}\see{use:opt:pre:gen}\BiberOnlyMark
+% \item Expanded documentation\see{bib:cav:enc:enc}
+% \item Improved \opt{mergedate} option of bibliography style \texttt{authoryear}\see{use:xbx:bbx}
+% \item Removed \opt{pass} option of \cmd{DeclareSortingScheme}\see{aut:ctm:srt}\BiberOnlyMark
+% \item Fixed some bugs
+% \end{release}
 
-\begin{release}{1.1a}{2011-01-08}
-\item Added unsupported entry type \bibtype{bibnote}\see{bib:typ:ctm}
-\item Added \cmd{bibliography*}\see{use:bib:res}
-\item Fixed some bugs
-\end{release}
+% \begin{release}{1.1a}{2011-01-08}
+% \item Added unsupported entry type \bibtype{bibnote}\see{bib:typ:ctm}
+% \item Added \cmd{bibliography*}\see{use:bib:res}
+% \item Fixed some bugs
+% \end{release}
 
-\begin{release}{1.1}{2011-01-05}
-\item Added option \opt{maxbibnames}\see{use:opt:pre:gen}
-\item Added option \opt{minbibnames}\see{use:opt:pre:gen}
-\item Added option \opt{maxcitenames}\see{use:opt:pre:gen}
-\item Added option \opt{mincitenames}\see{use:opt:pre:gen}
-\item Fixed \kvopt{idemtracker}{strict} and \kvopt{idemtracker}{constrict}\see{use:opt:pre:int}
-\item Added option \opt{mergedate} to bibliography style \texttt{authoryear}\see{use:xbx:bbx}
-\item Added support for \opt{prefixnumbers} to bibliography style \texttt{alphabetic}\see{use:xbx:bbx}
-\item Made option \bibfield{useprefix} settable on a per-type basis\see{use:opt:bib}\BiberOnlyMark
-\item Made option \bibfield{useauthor} settable on a per-type basis\see{use:opt:bib}\BiberOnlyMark
-\item Made option \bibfield{useeditor} settable on a per-type basis\see{use:opt:bib}\BiberOnlyMark
-\item Made option \opt{usetranslator} settable on a per-type basis\see{use:opt:bib}\BiberOnlyMark
-\item Made option \opt{skipbib} settable on a per-type basis\see{use:opt:bib}\BiberOnlyMark
-\item Made option \opt{skiplos} settable on a per-type basis\see{use:opt:bib}\BiberOnlyMark
-\item Made option \opt{skiplab} settable on a per-type basis\see{use:opt:bib}\BiberOnlyMark
-\item Made option \opt{dataonly} settable on a per-type basis\see{use:opt:bib}\BiberOnlyMark
-\item Made option \opt{labelalpha} settable on a per-type basis\see{use:opt:pre:int}\BiberOnlyMark
-\item Made option \opt{labelnumber} settable on a per-type basis\see{use:opt:pre:int}
-\item Made option \opt{labelyear} settable on a per-type basis\see{use:opt:pre:int}\BiberOnlyMark
-\item Made option \opt{singletitle} settable on a per-type basis\see{use:opt:pre:int}\BiberOnlyMark
-\item Made option \opt{uniquename} settable on a per-type basis\see{use:opt:pre:int}\BiberOnlyMark
-\item Made option \opt{indexing} settable on a per-type basis\see{use:opt:pre:gen}
-\item Made option \opt{indexing} settable on a per-entry basis\see{use:opt:pre:gen}
-\item Extended \cmd{ExecuteBibliographyOptions}\see{use:cfg:opt}
-\item Added \cmd{citedate}\see{use:cit:txt}
-\item Improved static entry sets\see{use:use:set}\BiberOnlyMark
-\item Introducing dynamic entry sets\see{use:use:set}\BiberOnlyMark
-\item Added \cmd{defbibentryset}\see{use:bib:set}\BiberOnlyMark
-\item Added option \opt{mcite}\see{use:opt:ldt}\BiberOnlyMark
-\item Added \sty{mcite}\slash\sty{mciteplus}-like commands\see{use:cit:mct}\BiberOnlyMark
-\item Added \cmd{sortalphaothers}\see{use:fmt:fmt}\BiberOnlyMark
-\item Extended \cmd{DeclareNameFormat}\see{aut:bib:fmt}
-\item Extended \cmd{DeclareIndexNameFormat}\see{aut:bib:fmt}
-\item Extended \cmd{DeclareListFormat}\see{aut:bib:fmt}
-\item Extended \cmd{DeclareIndexListFormat}\see{aut:bib:fmt}
-\item Extended \cmd{DeclareFieldFormat}\see{aut:bib:fmt}
-\item Extended \cmd{DeclareIndexFieldFormat}\see{aut:bib:fmt}
-\item Added \cmd{DeclareNameFormat*}\see{aut:bib:fmt}
-\item Added \cmd{DeclareIndexNameFormat*}\see{aut:bib:fmt}
-\item Added \cmd{DeclareListFormat*}\see{aut:bib:fmt}
-\item Added \cmd{DeclareIndexListFormat*}\see{aut:bib:fmt}
-\item Added \cmd{DeclareFieldFormat*}\see{aut:bib:fmt}
-\item Added \cmd{DeclareIndexFieldFormat*}\see{aut:bib:fmt}
-\item Introducing configurable sorting schemes\BiberOnlyMark
-\item Added \cmd{DeclareSortingScheme}\see{aut:ctm:srt}\BiberOnlyMark
-\item Added \cmd{DeclarePresort}\see{aut:ctm:srt}\BiberOnlyMark
-\item Added \cmd{DeclareSortExclusion}\see{aut:ctm:srt}\BiberOnlyMark
-\item Added \cmd{DeclareLabelname}\see{aut:ctm:fld}\BiberOnlyMark
-\item Added \cmd{DeclareLabelyear}\see{aut:ctm:fld}\BiberOnlyMark
-\item Improved special field \bibfield{labelname}\see{aut:bbx:fld}\BiberOnlyMark
-\item Improved special field \bibfield{labelyear}\see{aut:bbx:fld}\BiberOnlyMark
-\item Added \cmd{entrydata*}\see{aut:bib:dat}
-\item Added \cmd{RequireBiber}\see{aut:aux:msc}
-\item Added option \opt{check} to \cmd{printbibliography}\see{use:bib:bib}
-\item Added option \opt{check} to \cmd{printshorthands}\see{use:bib:biblist}
-\item Added \cmd{defbibcheck}\see{use:bib:flt}
-\item Updated support for Portuguese (José Carlos Santos)
-\item Fixed conflict with \sty{titletoc}
-\item Fixed some bugs
-\end{release}
+% \begin{release}{1.1}{2011-01-05}
+% \item Added option \opt{maxbibnames}\see{use:opt:pre:gen}
+% \item Added option \opt{minbibnames}\see{use:opt:pre:gen}
+% \item Added option \opt{maxcitenames}\see{use:opt:pre:gen}
+% \item Added option \opt{mincitenames}\see{use:opt:pre:gen}
+% \item Fixed \kvopt{idemtracker}{strict} and \kvopt{idemtracker}{constrict}\see{use:opt:pre:int}
+% \item Added option \opt{mergedate} to bibliography style \texttt{authoryear}\see{use:xbx:bbx}
+% \item Added support for \opt{prefixnumbers} to bibliography style \texttt{alphabetic}\see{use:xbx:bbx}
+% \item Made option \bibfield{useprefix} settable on a per-type basis\see{use:opt:bib}\BiberOnlyMark
+% \item Made option \bibfield{useauthor} settable on a per-type basis\see{use:opt:bib}\BiberOnlyMark
+% \item Made option \bibfield{useeditor} settable on a per-type basis\see{use:opt:bib}\BiberOnlyMark
+% \item Made option \opt{usetranslator} settable on a per-type basis\see{use:opt:bib}\BiberOnlyMark
+% \item Made option \opt{skipbib} settable on a per-type basis\see{use:opt:bib}\BiberOnlyMark
+% \item Made option \opt{skiplos} settable on a per-type basis\see{use:opt:bib}\BiberOnlyMark
+% \item Made option \opt{skiplab} settable on a per-type basis\see{use:opt:bib}\BiberOnlyMark
+% \item Made option \opt{dataonly} settable on a per-type basis\see{use:opt:bib}\BiberOnlyMark
+% \item Made option \opt{labelalpha} settable on a per-type basis\see{use:opt:pre:int}\BiberOnlyMark
+% \item Made option \opt{labelnumber} settable on a per-type basis\see{use:opt:pre:int}
+% \item Made option \opt{labelyear} settable on a per-type basis\see{use:opt:pre:int}\BiberOnlyMark
+% \item Made option \opt{singletitle} settable on a per-type basis\see{use:opt:pre:int}\BiberOnlyMark
+% \item Made option \opt{uniquename} settable on a per-type basis\see{use:opt:pre:int}\BiberOnlyMark
+% \item Made option \opt{indexing} settable on a per-type basis\see{use:opt:pre:gen}
+% \item Made option \opt{indexing} settable on a per-entry basis\see{use:opt:pre:gen}
+% \item Extended \cmd{ExecuteBibliographyOptions}\see{use:cfg:opt}
+% \item Added \cmd{citedate}\see{use:cit:txt}
+% \item Improved static entry sets\see{use:use:set}\BiberOnlyMark
+% \item Introducing dynamic entry sets\see{use:use:set}\BiberOnlyMark
+% \item Added \cmd{defbibentryset}\see{use:bib:set}\BiberOnlyMark
+% \item Added option \opt{mcite}\see{use:opt:ldt}\BiberOnlyMark
+% \item Added \sty{mcite}\slash\sty{mciteplus}-like commands\see{use:cit:mct}\BiberOnlyMark
+% \item Added \cmd{sortalphaothers}\see{use:fmt:fmt}\BiberOnlyMark
+% \item Extended \cmd{DeclareNameFormat}\see{aut:bib:fmt}
+% \item Extended \cmd{DeclareIndexNameFormat}\see{aut:bib:fmt}
+% \item Extended \cmd{DeclareListFormat}\see{aut:bib:fmt}
+% \item Extended \cmd{DeclareIndexListFormat}\see{aut:bib:fmt}
+% \item Extended \cmd{DeclareFieldFormat}\see{aut:bib:fmt}
+% \item Extended \cmd{DeclareIndexFieldFormat}\see{aut:bib:fmt}
+% \item Added \cmd{DeclareNameFormat*}\see{aut:bib:fmt}
+% \item Added \cmd{DeclareIndexNameFormat*}\see{aut:bib:fmt}
+% \item Added \cmd{DeclareListFormat*}\see{aut:bib:fmt}
+% \item Added \cmd{DeclareIndexListFormat*}\see{aut:bib:fmt}
+% \item Added \cmd{DeclareFieldFormat*}\see{aut:bib:fmt}
+% \item Added \cmd{DeclareIndexFieldFormat*}\see{aut:bib:fmt}
+% \item Introducing configurable sorting schemes\BiberOnlyMark
+% \item Added \cmd{DeclareSortingScheme}\see{aut:ctm:srt}\BiberOnlyMark
+% \item Added \cmd{DeclarePresort}\see{aut:ctm:srt}\BiberOnlyMark
+% \item Added \cmd{DeclareSortExclusion}\see{aut:ctm:srt}\BiberOnlyMark
+% \item Added \cmd{DeclareLabelname}\see{aut:ctm:fld}\BiberOnlyMark
+% \item Added \cmd{DeclareLabelyear}\see{aut:ctm:fld}\BiberOnlyMark
+% \item Improved special field \bibfield{labelname}\see{aut:bbx:fld}\BiberOnlyMark
+% \item Improved special field \bibfield{labelyear}\see{aut:bbx:fld}\BiberOnlyMark
+% \item Added \cmd{entrydata*}\see{aut:bib:dat}
+% \item Added \cmd{RequireBiber}\see{aut:aux:msc}
+% \item Added option \opt{check} to \cmd{printbibliography}\see{use:bib:bib}
+% \item Added option \opt{check} to \cmd{printshorthands}\see{use:bib:biblist}
+% \item Added \cmd{defbibcheck}\see{use:bib:flt}
+% \item Updated support for Portuguese (José Carlos Santos)
+% \item Fixed conflict with \sty{titletoc}
+% \item Fixed some bugs
+% \end{release}
 
-\begin{release}{1.0}{2010-11-19}
-\item First officially stable release
-\item Renamed option \kvopt{bibencoding}{inputenc} to \kvopt{bibencoding}{auto}\see{use:opt:pre:gen}
-\item Made \kvopt{bibencoding}{auto} the package default\see{use:opt:pre:gen}
-\item Added option \kvopt{backend}{bibtexu}\see{use:opt:pre:gen}
-\item Slightly updated documentation\see{bib:cav:enc}
-\item Updated support for Dutch (Alexander van Loon)
-\item Updated support for Italian (Andrea Marchitelli)
-\end{release}
+% \begin{release}{1.0}{2010-11-19}
+% \item First officially stable release
+% \item Renamed option \kvopt{bibencoding}{inputenc} to \kvopt{bibencoding}{auto}\see{use:opt:pre:gen}
+% \item Made \kvopt{bibencoding}{auto} the package default\see{use:opt:pre:gen}
+% \item Added option \kvopt{backend}{bibtexu}\see{use:opt:pre:gen}
+% \item Slightly updated documentation\see{bib:cav:enc}
+% \item Updated support for Dutch (Alexander van Loon)
+% \item Updated support for Italian (Andrea Marchitelli)
+% \end{release}
 
 %\begin{release}{0.9e}{2010-10-09}
 %\item Updated and expanded manual\see{bib:cav:enc}
