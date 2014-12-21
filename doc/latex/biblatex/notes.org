@@ -184,4 +184,58 @@ this effectively means that the sorting-dependent things cannot be sorted
 on since biber does not "generate" vform/vlang anyway.
 
 What depends on context in ms? Everything?
-Do labeltitle, labelname etc. need to have form/lang?
+
+Do these really need form/lang per field? They are all processed by biber so if they
+need it, it needs passing in .bcf section. How could refcontext determine these?
+
+inheritance
+labeltitle 
+labeltitleyear 
+labelname
+sorting specs
+
+They probably do need these so that they can be chosen globally since they shouldn't change across
+refcontexts otherwise it would be very confusing since different cites/bibiographies would have
+different values. sorting specs are ok to have form/lang since without this you can't fine tune
+sorting specs.
+
+Sorting specs form/lang have overrides thus:
+
+global
+  refcontext
+    per-field
+
+because a printbibliography/printbiblist happens inside a refcontext.
+
+The others have no macro which occurs in a refcontext and so they have:
+
+global
+  per-field
+
+
+What does DeclareVariantFallbacks do?
+
+* They determine data and so multiple settings in refcontexts would need to create multiple data
+  versions in the .bbl. The only multiple data context for an entry in the .bbl is a sorting list.
+
+
+# None of these can be used to generate sorting information otherwise there
+# would be a circular dependency:
+# sortinit
+# sortinithash
+# extrayear
+# extratitle
+# extratitleyear
+# extraalpha
+
+
+
+8148 - add form and lang as refcontext options
+       replace all blx@vform/blx@vlang with \blx@refcontext@form/\blx@refcontext@lang
+
+labeltitle/labelname without form/lang but use label*source{field} in bltx to resolve these
+to a form/lang so that they can be per refcontext
+
+
+
+
