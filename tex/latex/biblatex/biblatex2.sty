@@ -3537,17 +3537,21 @@
 
 % [<format>]{<field>}
 \newrobustcmd*{\blx@imc@printfield}[2][]{%
-  \blx@imc@iffieldundef{#2}
+  % Resolve labeltitle
+  \ifstrequal{#2}{labeltitle}
+    {\edef\blx@tempa{\blx@imc@thefield{labeltitlesource}}}
+    {\def\blx@tempa{#2}}%
+  \blx@imc@iffieldundef{\blx@tempa}
     {\blx@nounit}
-    {\blx@getformat\blx@theformat{ffd}{#1}{#2}%
+    {\blx@getformat\blx@theformat{ffd}{#1}{\blx@tempa}%
      \ifdefvoid\blx@theformat
        {\blx@nounit}
        {\blx@begunit
-        \def\currentfield{#2}%
+        \def\currentfield{\blx@tempa}%
         \expandafter\expandafter
         \expandafter\blx@theformat
         \expandafter\expandafter
-        \expandafter{\csname abx@field@#2\endcsname}%
+        \expandafter{\csname abx@field@\blx@tempa\endcsname}%
         \blx@endunit}}}
 
 % [<format>]{<field>}
@@ -3596,13 +3600,17 @@
 
 % {<format>}{<start>}{<stop>}{<namelist>}
 \def\blx@printnames#1#2#3#4{%
-  \blx@imc@ifnameundef{#4}
+  % Resolve labelname
+  \ifstrequal{#4}{labelname}
+    {\edef\blx@tempa{\blx@imc@thefield{labelnamesource}}}
+    {\def\blx@tempa{#4}}%
+  \blx@imc@ifnameundef{\blx@tempa}
     {\blx@nounit}
-    {\blx@getformat\blx@theformat{nfd}{#1}{#4}%
+    {\blx@getformat\blx@theformat{nfd}{#1}{\blx@tempa}%
      \ifdefvoid\blx@theformat
        {\blx@nounit}
        {\blx@begunit
-        \blx@namesetup{#2}{#3}{#4}%
+        \blx@namesetup{#2}{#3}{\blx@tempa}%
         \expandafter\blx@nameparser\blx@thedata{}&%
         \blx@endunit}}}
 
@@ -4938,7 +4946,6 @@
 
 \def\abx@donames{%
   \dolistcsloop{blx@biber@datamodel@names}%
-  \do{labelname}%
 }
 
 \def\abx@dolists{%
@@ -5017,7 +5024,6 @@
   \do{fullhash}%
   \do{labelalpha}%
   \do{labelnumber}%
-  \do{labeltitle}%
   \do{labeltitleyear}%
   \do{labeldate}%
   \do{localnumber}%
@@ -5081,7 +5087,7 @@
   \abx@dolists
   \let\do\blx@imc@clearfield
   \abx@dofields
-  \do{options}\do{labeltitle}\do{labelyear}\do{labelmonth}\do{labelday}\do{datelabelsource}%
+  \do{options}\do{labelyear}\do{labelmonth}\do{labelday}\do{datelabelsource}%
   \abx@dointernalfields
   \def\do##1{\togglefalse{abx@bool@##1}}%
   \abx@dobooleans
@@ -5103,7 +5109,7 @@
   \abx@dolists
   \let\do\blx@savefield
   \abx@dofields
-  \do{options}\do{labeltitle}\do{labelyear}\do{labelmonth}\do{labelday}\do{datelabelsource}%
+  \do{options}\do{labelyear}\do{labelmonth}\do{labelday}\do{datelabelsource}%
   \abx@dointernalfields
   \let\do\blx@savebool
   \abx@dobooleans
