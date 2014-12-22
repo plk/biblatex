@@ -478,6 +478,21 @@
 \newtoggle{blx@localnumber}
 \newtoggle{blx@refcontext}
 
+% Special fields which need resolution using the information provided by biber
+\listadd\abx@rfields{labeltitle}
+\def\abx@dorfields{%
+  \dolistcsloop{abx@rfields}%
+}
+% Just in case we ever have lists to instantiate like labelname etc.
+%\listadd\abx@rlists{}
+% \def\abx@dorlists{%
+%   \dolistcsloop{abx@rlists}%
+% }
+\listadd\abx@rnames{labelname}
+\def\abx@dornames{%
+  \dolistcsloop{abx@rnames}%
+}
+
 % Option scope trackers for passing to .bcf
 \global\let\blx@globalopts\@empty
 \global\let\blx@typeopts\@empty
@@ -3537,21 +3552,17 @@
 
 % [<format>]{<field>}
 \newrobustcmd*{\blx@imc@printfield}[2][]{%
-  % Resolve labeltitle
-  \ifstrequal{#2}{labeltitle}
-    {\edef\blx@tempa{\blx@imc@thefield{labeltitlesource}}}
-    {\def\blx@tempa{#2}}%
-  \blx@imc@iffieldundef{\blx@tempa}
+  \blx@imc@iffieldundef{#2}
     {\blx@nounit}
-    {\blx@getformat\blx@theformat{ffd}{#1}{\blx@tempa}%
+    {\blx@getformat\blx@theformat{ffd}{#1}{#2}%
      \ifdefvoid\blx@theformat
        {\blx@nounit}
        {\blx@begunit
-        \def\currentfield{\blx@tempa}%
+        \edef\currentfield{#2}%
         \expandafter\expandafter
         \expandafter\blx@theformat
         \expandafter\expandafter
-        \expandafter{\csname abx@field@\blx@tempa\endcsname}%
+        \expandafter{\csname abx@field@#2\endcsname}%
         \blx@endunit}}}
 
 % [<format>]{<field>}
@@ -3562,7 +3573,7 @@
      \ifdefvoid\blx@theformat
        {}
        {\begingroup
-        \def\currentfield{#2}%
+        \edef\currentfield{#2}%
         \letcs\blx@tempa{abx@field@#2}%
         \expandafter\blx@theformat\expandafter{\blx@tempa}%
         \endgroup}}}
@@ -3600,17 +3611,13 @@
 
 % {<format>}{<start>}{<stop>}{<namelist>}
 \def\blx@printnames#1#2#3#4{%
-  % Resolve labelname
-  \ifstrequal{#4}{labelname}
-    {\edef\blx@tempa{\blx@imc@thefield{labelnamesource}}}
-    {\def\blx@tempa{#4}}%
-  \blx@imc@ifnameundef{\blx@tempa}
+  \blx@imc@ifnameundef{#4}
     {\blx@nounit}
-    {\blx@getformat\blx@theformat{nfd}{#1}{\blx@tempa}%
+    {\blx@getformat\blx@theformat{nfd}{#1}{#4}%
      \ifdefvoid\blx@theformat
        {\blx@nounit}
        {\blx@begunit
-        \blx@namesetup{#2}{#3}{\blx@tempa}%
+        \blx@namesetup{#2}{#3}{#4}%
         \expandafter\blx@nameparser\blx@thedata{}&%
         \blx@endunit}}}
 
@@ -5072,7 +5079,9 @@
   \appto\abx@dobooleans{\do{more#1}}}
 
 \abx@donames
+\abx@dornames
 \abx@dolists
+%\abx@dorlists
 \def\do#1{\newtoggle{abx@bool@#1}}
 \abx@dobooleans
 
@@ -5374,6 +5383,22 @@
 
 \def\blx@getdata#1{%
   \csuse{blx@data@\the\c@refsection @\blx@refcontext@sorting @#1}%
+  \def\do##1{%
+    \ifcsdef{abx@field@##1source}
+      {\expandafter\def\csname abx@field@##1\endcsname{\csuse{abx@field@\csuse{abx@field@##1source}}}}%
+      {}}%
+  \dolistloop{\abx@rfields}%    
+  % Just in case we ever have lists to instantiate like labelname etc.
+  % \def\do##1{%
+  %   \ifcsdef{abx@field@##1source}
+  %     {\csletcs{abx@list@##1}{abx@list@\csuse{abx@field@##1source}}}
+  %     {}}%
+  % \dolistloop{\abx@rlists}%    
+  \def\do##1{%
+    \ifcsdef{abx@field@##1source}
+      {\csletcs{abx@name@##1}{abx@name@\csuse{abx@field@##1source}}}
+      {}}%
+  \dolistloop{\abx@rnames}%    
   \blx@setcitecounter}
 
 \def\blx@getdata@cite#1{%
