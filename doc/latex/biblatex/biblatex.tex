@@ -947,34 +947,6 @@ BOOKTITLE = Acta Apocryphorum Apostolorum
 %
 This is because the <uniform> variant of \bibfield{TITLE} would be selected, regardless of the language, due to the \opt{autovlang} setting but the \bibfield{BOOKTITLE} would fall back to the global <original> form and then the \opt{autovlang} setting would select whatever language variant of the <original> form exists.
 
-\begin{ltxsyntax}
-\cmditem{DeclareVariantFallbacks}{specification}\BiberOnlyMark
-
-This defines variant fallbacks used by \biber when processing sorting, labels and inheritance. It has nothing to do with the general \biblatex fallbacks for \opt{vform} and \opt{vlang}. The \prm{specification} consists of one or more \cmd{vfallback} commands:
-
-\cmditem{vfallback}
-
-Each \cmd{vfallback} macro takes following optional arguments (although at least one must be specified):
-
-\begin{optionlist*}
-\choitem{form}{\prm{form}}
-\choitem{lang}{\prm{lang}}
-\end{optionlist*}
-\end{ltxsyntax}
-%
-\cmd{DeclareVariantFallbacks} defines a fallback chain of variants which \biber uses  if no value is found when looking for a variant corresponding to the global defaults (defined with \cmd{vform}, \cmd{vlang}/\cmd{vtranslang}). The default value is:
-
-\begin{lstlisting}[style=latex]
-\DeclareVariantFallbacks{
-  \vfallback[form=original]
-  \vfallback[form=romanised]
-}
-\end{lstlisting}
-%
-This means that if when sorting, define labels, processing inheritance etc. and \biber is looking for, say, a translated variant of a field by default due to the global \cmd{vform} option, if there is no such variant for a field, \biber will look first for an <original> form of the field and then for a <romanised> form before giving up. \biber also uses this fallback chain when filling in null list entries as described in \secref{aut:bib:dat}.
-
-Data source field form and language variant support is only possible when using \biber.
-
 \subsubsection{Data Fields}
 \label{bib:fld:dat}
 
@@ -6396,7 +6368,7 @@ It is also possible to omit a particular list element variant in case it is not 
   AUTHOR_uniform = {Bulgakov, Pavel and Rosenfeld, Boris and *},
 \end{lstlisting}
 %
-Here the |*| marks a null list element. The particular character which marks this in a name list should correspond to the \biber option |--variant-null-list| (the default is |*|). \biber will resolve such null list elements using the variant fallback chain specified with \cmd{DeclareVariantFallbacks} (see \secref{bib:fld:var}).
+Here the |*| marks a null list element. The particular character which marks this in a name list should correspond to the \biber option |--variant-null-list| (the default is |*|). \biber will resolve such null list elements using the fallback chain specified with the global \cmd{vform} and \cmd{vlang} settings.
 
 \cmditem{printtext}[format]{text}
 
@@ -8084,22 +8056,6 @@ Defines an inheritance rule by mapping a \prm{source} field to a \prm{target} fi
 
 \boolitem[false]{override} Per-field value of the option mentioned above. If set here, it takes precedence over any global options set with \cmd{DefaultInheritance}.
 
-\choitem[original]{sourceform}{\prm{form}}
-
-Specifies the form for the variant enabled field specified with \opt{source}, if the datasource you are using supports this. For allowed variant forms, see \secref{bib:fld:var}.
-
-\choitem[none]{sourcelang}{\prm{language specifier}}
-
-Specifies the \sty{babel}/\sty{polyglossia} language for the variant enabled field specified with \opt{source} if the datasource you are using supports this. The default, if no \prm{lang} option is set, means to use the field variant in the datasource which has no explicit language defined.
-
-\choitem[original]{targetform}{\prm{form}}
-
-Specifies the form for the variant enabled field specified with \opt{target}, if the datasource you are using supports this. For allowed variant forms, see \secref{bib:fld:var}.
-
-\choitem[none]{targetlang}{\prm{language specifier}}
-
-Specifies the \sty{babel}/\sty{polyglossia} language for the variant enabled field specified with \opt{target} if the datasource you are using supports this. The default, if no \prm{lang} option is set, means to use the field variant in the datasource which has no explicit language defined.
-
 \end{optionlist*}
 
 \cmditem{noinherit}{source}
@@ -8137,16 +8093,6 @@ This example is similar to the one above but adds one exception: entries of type
 \end{lstlisting}
 %
 So far we have looked at setting up the defaults. For example, \kvopt{all}{true} means that the \bibfield{publisher} field of a source entry is copied to the \bibfield{publisher} field of the target entry. In some cases, however, asymmetric mappings are required. They are defined with \cmd{DeclareDataInheritance}. The above example sets up three typical rules for \bibtype{incollection} entries referencing a \bibtype{collection}. We map the \bibfield{title} and related fields of the source to the corresponding \bibfield{booktitle} fields of the target.
-
-\begin{lstlisting}[style=latex]
-\DeclareDataInheritance{<<collection>>}{<<incollection>>}{
-  \inherit[sourceform=romanised, targetform=romanised]{<<title>>}{<<booktitle>>}
-  \inherit[sourceform=romanised, targetform=romanised]{<<subtitle>>}{<<booksubtitle>>}
-  \inherit[sourceform=romanised, targetform=romanised]{<<titleaddon>>}{<<booktitleaddon>>}
-}
-\end{lstlisting}
-%
-This example is the same as the previous one except that it demonstrates inheritance of the romanised variants of the source fields as romanised variants of the target fields.
 
 \begin{lstlisting}[style=latex]
 \DeclareDataInheritance{<<mvbook,book>>}{<<inbook,bookinbook>>}{
