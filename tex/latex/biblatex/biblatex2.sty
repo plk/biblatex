@@ -110,7 +110,7 @@
     {}%
   \listxadd\blx@vlangs{\blx@languagename}%
   \ifundef\blx@vlang
-    {\edef\blx@vlang{\blx@languagename}}
+    {\edef\blx@vlang{\blx@languagename,*}}
     {}%
   \csuse{abx@extras@\blx@languagename}%
   \csuse{abx@strings@\blx@languagename}%
@@ -475,7 +475,6 @@
 \newtoggle{blx@autolangbib}
 \newtoggle{blx@autolangcite}
 \newtoggle{blx@autolangshortstrings}
-\newtoggle{blx@autovlang}
 \newtoggle{blx@clearlang}
 \newtoggle{blx@defernumbers}
 \newtoggle{blx@omitnumbers}
@@ -504,8 +503,6 @@
 \newtoggle{blx@citeindex}
 \newtoggle{blx@bibindex}
 \newtoggle{blx@localnumber}
-\newtoggle{blx@vfallback}
-\toggletrue{blx@vfallback}
 \newtoggle{blx@refcontext}
 
 % Special fields which need resolution using the information provided by biber
@@ -1673,92 +1670,151 @@
 
 % This tests to see if a bibfield is variant enabled or not and if it is,
 % leaves \blx@tempa containing the form and \blx@tempb containing the lang
-% If vfallback is true, if no form/lang was passed and there is no field with
-% the currently overridden global values (via a refcontext), then the
-% form and lang this puts into tempa and tempb are the 
-% package global defaults instead of any currently overridden global
-% settings. This provides a "fallback" onto the global defaults which many
-% people want when globally changing things with \vform and \vlang - they
-% only want these to pick up fields that actually have 
-% the overridden setting, otherwise still use the global defaults.
-
+% If there is no explicit form or lang, the fallback chain from the
+% refcontext is tried
 % {field|list|name}{<form/lang keyval>}{<field>}
 \def\blx@imc@ifbibfieldvx#1#2#3{%
   \ifcsdef{blx@vbibfield@#3}
     {\edef\blx@tempa{\@empty}%
      \edef\blx@tempb{\@empty}%
+     \edef\blx@tempc{\@empty}%
+     \edef\blx@tempd{\@empty}%
      \ifboolexpr{ test {\ifblank{#2}} or
                   test {\IfNoValueTF{#2}} }
        {}
        {\setkeys{blx@v}{#2}}%
-     % If fallbacks are enabled
-     \iftoggle{blx@vfallback}
-       % If vlang is wildcard
-      {\iftoggle{blx@autovlang}
-         % try with refcontext vform
-        {\ifdefempty\blx@tempa
-          {\edef\blx@tempa{\blx@refcontext@form}}
-          {}%
-         % is there a vform variant of this field with any langs?
-         % if not, fallback to vform
-         \ifcsundef{abx@langs@#3@\blx@tempa}
-           {\edef\blx@tempa{\blx@vform}}
-           {}%
-         % and then try lang from field
-         \ifdefempty\blx@tempb
-           {\forlistcsloop{\def\blx@tempb}{abx@langs@#3@\blx@tempa}}
-           {}%
-         \@firstoftwo}
-        % vlang is not wildcard - first try with refcontext vform and vlang
-        {\ifdefempty\blx@tempa
-          {\edef\blx@tempa{\blx@refcontext@form}}
-          {}%
-         \ifdefempty\blx@tempb
-           {\edef\blx@tempb{\blx@refcontext@lang}}
-           {}%
-         \ifcsdef{abx@#1@#3@\blx@tempa @\blx@tempb}
-           {\@firstoftwo}
-           % if not, try with fallback v*
-           {\edef\blx@tempa{\blx@vform}%
-            \edef\blx@tempb{\blx@vlang}%
-            \@firstoftwo}}}
-      % If no fallbacks, just try with v*
-      {\ifdefempty\blx@tempa
-          {\edef\blx@tempa{\blx@refcontext@form}}
-          {}%
-         \ifdefempty\blx@tempb
-           {\edef\blx@tempb{\blx@refcontext@lang}}
-           {}%
-         \ifcsdef{abx@#1@#3@\blx@tempa @\blx@tempb}
-           {\@firstoftwo}
-           {\@secondoftwo}}}
-    % Not a variant field
-    {\@secondoftwo}}
+       % form is not explicit
+       \ifdefempty\blx@tempa
+         {\def\do##1{%
+            \def\blx@tempc{##1}%
+            \ifstrequal{##1}{*}
+              {\def\blx@tempc{\blx@getfirstinlist{abx@forms@#3}}}
+              {}%
+            \ifcsdef{abx@forms@\blx@tempc}%
+              {\ifdefempty\blx@tempb
+                {\def\do####1{%
+                   \def\blx@tempd{####1}%
+                   \ifstrequal{####1}{*}
+                     {\def\blx@tempd{\blx@getfirstinlist{abx@langs@#3}}}
+                     {}%
+                 \ifcsdef{abx@#1@#3@##1@\blx@tempd}
+                   {\def\blx@tempa{\blx@tempc}%
+                    \def\blx@tempb{\blx@tempd}}
+                   {}}%
+                 \docsvlist{\blx@refcontext@lang}}
+               {}}
+              {\ifcsdef{abx@#1@#3@\blx@tempc @\blx@tempb}
+                {\def\blx@tempa{\blx@tempc}}
+                {}}}
+           \docsvlist{\blx@refcontext@form}}
+         % lang is not explicit
+          {\ifdefempty\blx@tempb
+            {\def\do##1{%
+               \def\blx@tempd{##1}%
+               \ifstrequal{##1}{*}
+                 {\def\blx@tempd{\blx@getfirstinlist{abx@langs@#3}}}
+                 {}%
+              \ifcsdef{abx@forms@\blx@tempa}
+                {\ifcsdef{abx@#1@#3@\blx@tempa @\blx@tempd}
+                  {\def\blx@tempb{\blx@tempd}}
+                  {}}
+                {}}%
+              \docsvlist{\blx@refcontext@lang}}
+            {\ifcsdef{abx@#1@#3@\blx@tempa @\blx@tempb}
+              {\@firstoftwo}
+              {\@secondoftwo}}}}
+        \@secondoftwo}
+
+\def\blx@getfirstinlist#1{%
+  \def\do##1{##1\listbreak}%
+  \dolistcsloop{#1}}
+
+% \def\blx@imc@ifbibfieldvx#1#2#3{%
+%   \ifcsdef{blx@vbibfield@#3}
+%     {\edef\blx@tempa{\@empty}%
+%      \edef\blx@tempb{\@empty}%
+%      \ifboolexpr{ test {\ifblank{#2}} or
+%                   test {\IfNoValueTF{#2}} }
+%        {}
+%        {\setkeys{blx@v}{#2}}%
+%      % If fallbacks are enabled
+%      \iftoggle{blx@vfallback}
+%        % If vlang is wildcard
+%       {\iftoggle{blx@autovlang}
+%          % try with refcontext vform
+%         {\ifdefempty\blx@tempa
+%           {\edef\blx@tempa{\blx@refcontext@form}}
+%           {}%
+%          % is there a vform variant of this field with any langs?
+%          % if not, fallback to vform
+%          \ifcsundef{abx@langs@#3@\blx@tempa}
+%            {\edef\blx@tempa{\blx@vform}}
+%            {}%
+%          % and then try lang from field
+%          \ifdefempty\blx@tempb
+%            {\forlistcsloop{\def\blx@tempb}{abx@langs@#3@\blx@tempa}}
+%            {}%
+%          \@firstoftwo}
+%         % vlang is not wildcard - first try with refcontext vform and vlang
+%         {\ifdefempty\blx@tempa
+%           {\edef\blx@tempa{\blx@refcontext@form}}
+%           {}%
+%          \ifdefempty\blx@tempb
+%            {\edef\blx@tempb{\blx@refcontext@lang}}
+%            {}%
+%          \ifcsdef{abx@#1@#3@\blx@tempa @\blx@tempb}
+%            {\@firstoftwo}
+%            % if not, try with fallback v*
+%            {\edef\blx@tempa{\blx@vform}%
+%             \edef\blx@tempb{\blx@vlang}%
+%             \@firstoftwo}}}
+%       % If no fallbacks, just try with v*
+%       {\ifdefempty\blx@tempa
+%           {\edef\blx@tempa{\blx@refcontext@form}}
+%           {}%
+%          \ifdefempty\blx@tempb
+%            {\edef\blx@tempb{\blx@refcontext@lang}}
+%            {}%
+%          \ifcsdef{abx@#1@#3@\blx@tempa @\blx@tempb}
+%            {\@firstoftwo}
+%            {\@secondoftwo}}}
+%     % Not a variant field
+%     {\@secondoftwo}}
 
 % keyvals for form/lang options to .bbl macros
 \define@key{blx@v}{form}{\edef\blx@tempa{#1}}
 \define@key{blx@v}{lang}{\edef\blx@tempb{#1}}
 
-% See notes to \blx@imc@ifbibfieldvx as to what this is doing with the vfallback
 % {field|list|name}[<form/lang keyval>]{<field>}
 \DeclareExpandableDocumentCommand{\blx@imc@ifflnundef}
   {mom}
   {\ifcsdef{blx@vbibfield@#3}
    {\ifboolexpe{ test {\ifblank{#2}} or
                  test {\IfNoValueTF{#2}} }
-      {\iftoggle{blx@vfallback}
-        {\iftoggle{blx@autovlang}
-          {\ifcsundef{abx@langs@#3@\blx@refcontext@form}
-            {\ifcsundef{abx@langs@#3@\blx@vform}}
-            {\ifcsundef{abx@langs@#3@\blx@refcontext@form}}}
-          {\ifcsundef{abx@#1@#3@\blx@refcontext@form @\blx@refcontext@lang}
-            {\ifcsundef{abx@#1@#3@\blx@vform @\blx@vlang}}
-            {\ifcsundef{abx@#1@#3@\blx@refcontext@form @\blx@refcontext@lang}}}}
-        {\iftoggle{blx@autovlang}
-          {\ifcsundef{abx@langs@#3@\blx@refcontext@form}}
-          {\ifcsundef{abx@#1@#3@\blx@refcontext@form @\blx@refcontext@lang}}}}
+      {}
       {\ifcsundef{abx@#1@#3@\blx@v@getform{#2}@\blx@v@getlang{#2}}}}
    {\ifcsundef{abx@#1@#3}}}
+ 
+% \DeclareExpandableDocumentCommand{\blx@imc@ifflnundef}
+%   {mom}
+%   {\ifcsdef{blx@vbibfield@#3}
+%    {\ifboolexpe{ test {\ifblank{#2}} or
+%                  test {\IfNoValueTF{#2}} }
+%       {\iftoggle{blx@vfallback}
+%         {\iftoggle{blx@autovlang}
+
+%           {\ifcsundef{abx@langs@#3@\blx@refcontext@form}
+%             {\ifcsundef{abx@langs@#3@\blx@vform}}
+%             {\ifcsundef{abx@langs@#3@\blx@refcontext@form}}}
+%           {\ifcsundef{abx@#1@#3@\blx@refcontext@form @\blx@refcontext@lang}
+%             {\ifcsundef{abx@#1@#3@\blx@vform @\blx@vlang}}
+%             {\ifcsundef{abx@#1@#3@\blx@refcontext@form @\blx@refcontext@lang}}}}
+
+%         {\iftoggle{blx@autovlang}
+%           {\ifcsundef{abx@langs@#3@\blx@refcontext@form}}
+%           {\ifcsundef{abx@#1@#3@\blx@refcontext@form @\blx@refcontext@lang}}}}
+%       {\ifcsundef{abx@#1@#3@\blx@v@getform{#2}@\blx@v@getlang{#2}}}}
+%    {\ifcsundef{abx@#1@#3}}}
 
 %% Style definition
 
@@ -4951,9 +5007,6 @@
 \blx@regimcs{%
   \printtext \printfield \printlist \printlistelement \printnames \printnameelement
   \printfile \indexfield \indexlist \indexnames \entrydata \entryset}
-
-\def\vfallbackon{\global\toggletrue{blx@vfallback}}
-\def\vfallbackoff{\global\togglefalse{blx@vfallback}}
 
 %% Localization
 
@@ -10375,7 +10428,6 @@
   \blx@xml@comment{GLOBAL}%
   \blx@xml@options{biblatex}{global}{%
     \blx@xml@svalue{alphaothers}{\labelalphaothers}%
-    \blx@xml@toggle{autovlang}%
     \blx@xml@toggle{labelalpha}%
     \blx@xml@mvalue{labelnamespec}{\blx@bcf@labelnamespec}%
     \blx@xml@toggle{labeltitle}%
@@ -10408,7 +10460,6 @@
 \def\blx@bcf@options@type#1{%
   \blx@xml@comment{#1}%
   \blx@xml@options{biblatex}{#1}{%
-    \blx@xml@toggle{autovlang}%
     \blx@xml@toggle{labelalpha}%
     \blx@xml@mvalue{labelnamespec}{%
       \ifcsdef{blx@bcf@labelnamespec@#1}
@@ -11401,17 +11452,6 @@
 \listadd\blx@entryopts{vform}% for passing to the .bcf
 \listadd\blx@entryopts{vlang}% for passing to the .bcf
 
-% Determines whether to first look for lang in the bibfield specification itself
-\DeclareBibliographyOption{autovlang}[true]{%
-  \settoggle{blx@autovlang}{#1}}
-\DeclareTypeOption{autovlang}[true]{%
-  \settoggle{blx@autovlang}{#1}}
-\DeclareEntryOption{autovlang}[true]{%
-  \settoggle{blx@autovlang}{#1}}
-\listadd\blx@globalopts{autovlang}% for passing to the .bcf
-\listadd\blx@typeopts{autovlang}% for passing to the .bcf
-\listadd\blx@entryopts{autovlang}% for passing to the .bcf
-
 \DeclareBibliographyOption{maxnames}{%
   \numdef\blx@maxcitenames{#1}%
   \numdef\blx@maxbibnames{#1}}
@@ -12322,7 +12362,7 @@
   date=comp,datelabel=year,origdate=comp,eventdate=comp,urldate=short,autopunct=true,
   punctfont=false,defernumbers=false,refsection=none,refsegment=none,
   citereset=none,hyperref=auto,parentracker,maxparens=3,
-  bibencoding=auto,bibwarn,vform=original,autovlang=true}
+  bibencoding=auto,bibwarn,vform={original,*}}
 
 % Load compatibility code
 
