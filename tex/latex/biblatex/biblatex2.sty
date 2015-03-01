@@ -1686,17 +1686,15 @@
        % form is not explicit
        \ifdefempty\blx@tempa
          {\def\do##1{%
-            \def\blx@tempc{##1}%
             \ifstrequal{##1}{*}
               {\def\blx@tempc{\blx@getfirstinlist{abx@forms@#3}}}
-              {}%
+              {\def\blx@tempc{##1}}%
             \ifcsdef{abx@forms@\blx@tempc}%
               {\ifdefempty\blx@tempb
                 {\def\do####1{%
-                   \def\blx@tempd{####1}%
                    \ifstrequal{####1}{*}
                      {\def\blx@tempd{\blx@getfirstinlist{abx@langs@#3}}}
-                     {}%
+                     {\def\blx@tempd{####1}}%
                  \ifcsdef{abx@#1@#3@##1@\blx@tempd}
                    {\def\blx@tempa{\blx@tempc}%
                     \def\blx@tempb{\blx@tempd}}
@@ -1710,10 +1708,9 @@
          % lang is not explicit
           {\ifdefempty\blx@tempb
             {\def\do##1{%
-               \def\blx@tempd{##1}%
                \ifstrequal{##1}{*}
                  {\def\blx@tempd{\blx@getfirstinlist{abx@langs@#3}}}
-                 {}%
+                 {\def\blx@tempd{##1}}%
               \ifcsdef{abx@forms@\blx@tempa}
                 {\ifcsdef{abx@#1@#3@\blx@tempa @\blx@tempd}
                   {\def\blx@tempb{\blx@tempd}}
@@ -1786,12 +1783,25 @@
 \define@key{blx@v}{lang}{\edef\blx@tempb{#1}}
 
 % {field|list|name}[<form/lang keyval>]{<field>}
+% \iffieldundef{title}
 \DeclareExpandableDocumentCommand{\blx@imc@ifflnundef}
   {mom}
   {\ifcsdef{blx@vbibfield@#3}
    {\ifboolexpe{ test {\ifblank{#2}} or
                  test {\IfNoValueTF{#2}} }
-      {}
+      {\edef\blx@tempa{\@empty}%
+       \edef\blx@tempb{\@empty}%
+       \def\do##1{%
+         \ifstrequal{##1}{*}
+           {\def\blx@tempa{\blx@getfirstinlist{abx@forms@#3}}}
+           {\def\blx@tempa{##1}}%
+          \def\do####1{%
+            \ifstrequal{##1}{*}
+              {\def\blx@tempb{\blx@getfirstinlist{abx@langs@#3}}}
+              {\def\blx@tempb{##1}}%
+              \ifcsundef{abx@#1@#3@\blx@tempa @\blx@tempb}}%
+          \docsvlist{\blx@refcontext@lang}}%
+        \docsvlist{\blx@refcontext@form}}
       {\ifcsundef{abx@#1@#3@\blx@v@getform{#2}@\blx@v@getlang{#2}}}}
    {\ifcsundef{abx@#1@#3}}}
  
@@ -11440,10 +11450,6 @@
   \blx@warning@noline{%
     sortlos option is deprecated, use 'sorting' option to \string\printbiblist}}
 
-% Set two internal options, one which must be passed through
-% to biber, (the o* options) and a normal one which can be changed in the
-% document in order to easily change globally which variant \print* use
-% The o* options are also used as the fallback when \variantfallback is true
 \DeclareBibliographyOption{vform}{%
  \def\blx@vform{#1}%
  \def\blx@refcontext@form{#1}%
