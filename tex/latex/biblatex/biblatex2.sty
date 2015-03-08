@@ -6665,6 +6665,12 @@
         \def\expandafter\noexpand\csname abx@name@#2\endcsname
         {{\expandonce\NewOption}{\expandonce\NewValue}}}}}
 
+% blx@setp@<rs>@<sp> = map of set parent <sp> in a refsection <rs> to csv
+%                      of set children
+% blx@seti@<rs>@<sc> = position of set child <sc> in entry set in
+%                      refsection <rs>
+% blx@setc@<rs>@<sc> = map of set child <sc> in refsection <rs> to set parent
+
 % {<entrykey>,...}
 \protected\def\blx@bbl@set#1{%
   \blx@bbl@fieldedef{entryset}{\detokenize{#1}}%
@@ -8475,6 +8481,15 @@
 
 % {<category>}{<entrykey>,...}
 \def\blx@addtocategory#1#2{%
+  % If we are adding a set member to a category, make sure we also add the
+  % set parent if it is cited. If it is cited, we should be using the set
+  % parent in the category, not the set child member. blx@setc@... will
+  % only exist if the set parent is also cited as it is only defined when a
+  % member contains \inset which only happens when the set parent is cited.
+  \ifcsdef{blx@setc@\the\c@refsection @#2}
+    {\blx@auxwrite\@mainaux{}{\string\abx@aux@category{#1}{\csuse{blx@setc@\the\c@refsection @#2}}}%
+     \abx@aux@category{#1}{\csuse{blx@setc@\the\c@refsection @#2}}}
+    {}%
   \blx@auxwrite\@mainaux{}{\string\abx@aux@category{#1}{#2}}%
   \abx@aux@category{#1}{#2}}
 
