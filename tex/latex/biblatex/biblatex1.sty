@@ -8887,7 +8887,7 @@
     {\textciquote\endgroup}
     {\blx@setpostpunct\textciquote\endgroup}}
 
-\def\blx@usqcheck#1#2{%
+\long\def\blx@usqcheck#1#2{%
   \def\blx@tempa{#1}%
   \def\blx@tempb{#2}%
   \ifx\@let@token\space
@@ -8897,20 +8897,35 @@
     \blx@usqcheck@i\blx@tempa
   \fi
   \if\noexpand\@let@token\relax
-    \blx@usqcheck@i\blx@tempb
+    \expandafter\blx@usqcheck@iv
   \fi
   \expandafter\blx@usqcheck@ii\blx@quotepunct\relax&}
 
-\def\blx@usqcheck@i#1#2&{\fi#1}
+\long\def\blx@usqcheck@i#1#2&{\fi#1}
 
-\def\blx@usqcheck@ii#1{%
+\long\def\blx@usqcheck@ii#1{%
   \if\noexpand#1\relax
     \blx@usqcheck@i\blx@tempa
   \fi
   \if\noexpand#1\noexpand\@let@token
     \blx@usqcheck@i{\blx@usqcheck@iii\blx@tempa}%
   \fi
-  \blx@usqcheck@ii}
+  \blx@usqcheck@ii
+}
+ 
+\long\def\blx@usqcheck@iii#1#2{#2#1}
+ 
+\long\def\blx@usqcheck@iv#1&#2{%
+  \begingroup
+    \escapechar=-1 %
+    \edef\blx@tempa{\expandafter\@gobble\string#2}%
+    \expandafter\endgroup
+    \ifx\blx@tempa\@empty
+    \else
+      \blx@usqcheck@i\blx@tempb
+    \fi
+    #1&#2%
+}
 
 \def\blx@usqcheck@iii#1#2{#2#1}
 
