@@ -9046,6 +9046,13 @@
 \xdef\blx@xml@nolabel#1{%
   ~~~~<bcf:nolabel value="#1"/>\blx@nl}
 
+\xdef\blx@xml@nolabelwidthcounts#1{%
+  ~~<bcf:nolabelwidthcounts>\blx@nl
+  #1%
+  ~~</bcf:nolabelwidthcounts>\blx@nl}
+\xdef\blx@xml@nolabelwidthcount#1{%
+  ~~~~<bcf:nolabelwidthcount value="#1"/>\blx@nl}
+
 \xdef\blx@xml@sorting#1#2{%
   ~~<bcf:sorting#1>\blx@nl%
   #2%
@@ -9298,6 +9305,15 @@
       }%
     }}
     {}%
+  % nolabel
+  \ifcsdef{blx@biber@nolabelwidthcount}
+    {\eappto\blx@tempa{%
+      \blx@xml@comment{NOLABELWIDTHCOUNT}%
+      \blx@xml@nolabelwidthcounts{%
+        \csuse{blx@biber@nolabelwidthcount}%
+      }%
+    }}
+    {}%
   % nosort
   \ifcsdef{blx@biber@nosort}
     {\eappto\blx@tempa{%
@@ -9369,6 +9385,20 @@
 \newcommand*{\blx@nolabel}[1]{%
   \eappto\blx@tempa{%
     \blx@xml@nolabel{#1}}}
+
+% nolabelwidthcount
+\newrobustcmd*{\DeclareNolabelwidthcount}[1]{%
+  \begingroup
+  \let\nolabel\blx@nolabelwidthcount
+  \let\blx@tempa\@empty
+  #1%
+  \global\cslet{blx@biber@nolabelwidthcount}\blx@tempa
+  \endgroup}
+\@onlypreamble\DeclareNolabelwidthcount
+
+\newcommand*{\blx@nolabelwidthcount}[1]{%
+  \eappto\blx@tempa{%
+    \blx@xml@nolabelwidthcount{#1}}}
 
 % nosort
 \newrobustcmd*{\DeclareNosort}[1]{%
