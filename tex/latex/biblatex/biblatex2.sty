@@ -5592,7 +5592,16 @@
   % the labelnumbers for each sortlist
   \ifdefempty\abx@field@localnumber
   {}% only if omitnumbers=true
-  {\ifundef\abx@field@shorthand
+  {\ifcsundef{abx@ffd@\blx@imc@thefield{entrytype}@labelnumberwidth}
+     {\letcs{\@lnw@labelnumberwidth}{abx@ffd@*@labelnumberwidth}}
+     {\letcs{\@lnw@labelnumberwidth}{abx@ffd@\blx@imc@thefield{entrytype}@labelnumberwidth}}%
+   \ifcsundef{abx@ffd@\blx@imc@thefield{entrytype}@prefixnumber}
+     {\letcs{\@lnw@prefixnumber}{abx@ffd@*@prefixnumber}}
+     {\letcs{\@lnw@prefixnumber}{abx@ffd@\blx@imc@thefield{entrytype}@prefixnumber}}%
+   \ifcsundef{abx@ffd@\blx@imc@thefield{entrytype}@labelnumber}
+     {\letcs{\@lnw@labelnumber}{abx@ffd@*@labelnumber}}
+     {\letcs{\@lnw@labelnumber}{abx@ffd@\blx@imc@thefield{entrytype}@labelnumber}}%
+   \ifundef\abx@field@shorthand
     {\iftoggle{blx@defernumbers}
       % only if defernumbers=true, we have to define localnumber to
       % something to stop labelnumberwidth def complaining on first
@@ -5614,16 +5623,16 @@
       \iftoggle{blx@skipbib}
         {}
         {\blx@setlabwidth{\labelnumberwidth}{%
-           \csuse{abx@ffd@*@labelnumberwidth}{%
+           \csuse{@lnw@labelnumberwidth}{%
               \ifdef\abx@field@prefixnumber
-                {\csuse{abx@ffd@*@prefixnumber}{\abx@field@prefixnumber}}
+                {\csuse{@lnw@prefixnumber}{\abx@field@prefixnumber}}
                 {}%
-              \abx@field@localnumber}}}}
+              \csuse{@lnw@labelnumber}{\abx@field@localnumber}}}}}
     {\csgappto\blx@bbl@data{\let\abx@field@labelnumber\abx@field@shorthand}%
       \iftoggle{blx@skipbib}
         {}
         {\blx@setlabwidth{\labelnumberwidth}{%
-           \csuse{abx@ffd@*@labelnumberwidth}{\abx@field@shorthand}}}}}}
+            \csuse{@lnw@labelnumberwidth}{\abx@field@shorthand}}}}}}
 
 \def\blx@bbl@prefixnumber{%
   \ifdef\abx@field@prefixnumber
