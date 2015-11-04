@@ -1142,7 +1142,7 @@
 
 %% Punctuation and capitalization
 
-% 1001       apostrophe (\printnames only)
+% 1001       prefix sep for names (e.g. d'Argent ... \printnames only)
 % 1002       abbreviation period (dot)
 % 1003/1250  comma
 % 1004/1500  semicolon
@@ -1153,7 +1153,7 @@
 % 1009       suppress punctuation
 % 1010       new paragaph
 
-\mathchardef\blx@sf@apo=1001
+\mathchardef\blx@sf@prefixchar=1001% e.g. apostrophe or equivalent for prefix handling
 \mathchardef\blx@sf@dot=1002
 \mathchardef\blx@sf@comma=1003
 \mathchardef\blx@sf@semicolon=1004
@@ -1219,12 +1219,52 @@
   \sfcode`\?=3002
 }
 
+% Defining characters that count as prefices in names like d'Argent
+% Code from moewe
+\let\blx@prefchars\@empty
+
+\def\blx@defprefchars@loop#1{%
+  \ifx#1\relax
+  \else
+    \listadd{\blx@prefchars}{#1}%
+    \expandafter\blx@defprefchars@loop
+  \fi}
+
+\def\blx@defprefchars#1{%
+  \expandafter\blx@defprefchars@loop\detokenize{#1}\relax}
+
+\newrobustcmd*{\DeclarePrefChars}{%
+  \@ifstar
+    {\blx@defprefchars}
+    {\let\blx@prefchars\@empty
+     \blx@defprefchars}}
+\DeclarePrefChars{'}
+
+\protected\def\blx@imc@ifprefchar{%
+  \ifhmode
+    \begingroup
+    \ifnum\spacefactor=\blx@sf@prefixchar
+      \endgroup
+      \expandafter\expandafter
+      \expandafter\@firstoftwo
+    \else
+      \endgroup
+      \expandafter\expandafter
+      \expandafter\@secondoftwo
+    \fi
+  \else
+    \expandafter\@secondoftwo
+  \fi}
+
+\blx@regimcs{\ifprefchar}
+
 \def\blx@namecodes{%
   \ifnum\sfcode`\A=\@m
   \else
     \blx@setazcodes
   \fi
-  \sfcode`\'=\blx@sf@apo
+  \def\do##1{\sfcode`##1=\blx@sf@prefixchar}%
+  \dolistloop\blx@prefchars
 }
 
 \begingroup
@@ -1367,7 +1407,7 @@
 
 \newrobustcmd*{\DeclarePunctuationPairs}[2]{%
   \ifcsdef{blx@sf@\detokenize{#1}}
-    {\ifnum\csname blx@sf@\detokenize{#1}\endcsname>\blx@sf@apo
+    {\ifnum\csname blx@sf@\detokenize{#1}\endcsname>\blx@sf@prefixchar
        \ifnum\csname blx@sf@\detokenize{#1}\endcsname<\blx@sf@nopunct
          \expandafter\blx@defpunctpairs
          \expandafter{\the\csname blx@sf@\detokenize{#1}\endcsname}{#2}%
@@ -1400,7 +1440,7 @@
 \def\blx@defpair#1{%
   \ifx&#1%
   \else
-    \ifnum\the\sfcode`#1>\blx@sf@apo
+    \ifnum\the\sfcode`#1>\blx@sf@prefixchar
       \ifnum\the\sfcode`#1<\blx@sf@nopunct
         \eappto\blx@tempb{%
           \cslet{blx@pp@\blx@tempa @\the\sfcode`#1}\noexpand\@empty}%
