@@ -73,7 +73,15 @@
       {\def\blx@sortlocale{english}}}
     {}%
   \@ifpackageloaded{polyglossia}
-    {\ifboolexpr{
+    {% This is required for languages which are never explicitly selected
+     % This check because \bbl@loaded is not defined in polyglossia <= v1.42.0
+     \ifundef\bbl@loaded
+       {\let\bbl@loaded\@empty
+        \PackageWarningNoLine{biblatex}{Upgrade package 'polyglossia' to >v1.42.0 recommended}}
+       {}%
+     \def\do#1{\blx@langsetup{#1}}%
+     \expandafter\docsvlist\expandafter{\bbl@loaded}%
+     \ifboolexpr{
       not test {\iftoggle{blx@autolangbib}}
       and
       not test {\iftoggle{blx@autolangcite}}}
