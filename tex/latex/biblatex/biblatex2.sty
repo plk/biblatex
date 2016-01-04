@@ -9137,6 +9137,14 @@
 \xdef\blx@xml@nolabelwidthcount#1{%
   ~~~~<bcf:nolabelwidthcount value="#1"/>\blx@nl}
 
+\xdef\blx@xml@sortingnamekey#1{%
+  ~~<bcf:sortingnamekey>\blx@nl%
+  #1%
+  ~~</bcf:sortingnamekey>\blx@nl}
+
+\xdef\blx@xml@sortingnamekeypart#1#2{%
+  ~~~~<bcf:namepart#1>#2</bcf:namepart>\blx@nl}
+
 \xdef\blx@xml@sorting#1#2{%
   ~~<bcf:sorting#1>\blx@nl%
   #2%
@@ -9407,6 +9415,13 @@
       }%
     }}
     {}%
+  % sortingnamekey
+  \eappto\blx@tempa{%
+    \blx@xml@comment{SORTING NAME KEY}%
+    \blx@xml@sortingnamekey{%
+      \csuse{blx@biber@sortingnamekey}%
+    }
+  }
   % sorting
   \def\do##1{%
     \eappto\blx@bcf@presort{\csuse{blx@bcf@presort@##1}}%
@@ -9895,6 +9910,28 @@
 % Predefine filters for label fields
 \def\do#1{\DeclareBiblistFilter{#1}{\filter[type=field,filter=#1]}}
 \abx@dolabelfields
+
+% {<spec>}
+\newrobustcmd*{\DeclareSortingNamekey}[1]{%
+  \begingroup
+  \let\namepart\blx@sortnk@namepart
+  \let\blx@tempa\@empty
+  #1%
+  \global\cslet{blx@biber@sortingnamekey}\blx@tempa
+  \endgroup}
+
+\newcommand*{\blx@sortnk@namepart}[2][]{%
+  \let\blx@tempb\@empty
+  \ifblank{#1}
+    {}
+    {\setkeys{blx@sortnk@namepart}{#1}}%
+  \eappto\blx@tempa{%
+    \blx@xml@sortingnamekeypart{\blx@tempb}{#2}}}
+
+\define@key{blx@sortnk@namepart}{use}[true]{% use* option for namepart true|false
+  \ifstrequal{#1}{true}
+    {\appto\blx@tempb{ use="1"}}
+    {\appto\blx@tempb{ use="0"}}}
 
 % {<name>}{<spec>}
 \newrobustcmd*{\DeclareSortingScheme}[3][]{%

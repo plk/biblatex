@@ -7360,6 +7360,34 @@ This sorts the bibliography purely lexically by the order of the keys in the cit
 %
 This sorts «two» before «one», even though lexically, «one» would sort before «two». This is possible because the semantic order can be disambiguated by the further sorting on year. With the standard \opt{none} sorting scheme, the lexical order and semantic order are identical because there is nothing further to disambiguate them. This means that you can use \cmd{citeorder} just like any other sorting specification element, choosing how to further sort entries cited at the same time (in the same citation command).
 
+\cmditem{DeclareSortingNamekey}{specification}\BiberOnlyMark
+
+Defines how the sorting keys for names in a name list are constructed. When constructing the sorting key for a name list, a sorting key for each name in the list is constructed and the key for each name is formed into an ordered key list with a special internal separator. The point of this option is to accommodate languages or situations where sorting of names needs to be customised (for example, Icelandic names are sometimes sorted by given names rather than by family names). By default the name key is formed according the following \prm{specification}:
+
+\begin{lstlisting}[style=latex]{}
+\DeclareSortingNamekey{
+  \namepart[use=true]{<<prefix>>}
+  \namepart{<<family>>}
+  \namepart{<<given>>}
+  \namepart{<<suffix>>}
+  \namepart[use=false]{<<prefix>>}
+}
+\end{lstlisting}
+%
+This means that the key is constructed by concatenating, in order, the name prefix (only if the \opt{useprefix} option is true), the family name(s), the given names(s), the name suffix and then the name prefix (only if the \opt{useprefix} option is false),
+
+\cmditem{namepart}{name}
+
+Specifies the \prm{name} of a namepart to use in constructing the name sorting key.
+
+\begin{optionlist*}
+
+\boolitem[true]{use}
+
+Indicates that the namepart \prm{name} is only to be used in this concatenation position if the corresponding \opt{use<name>} option is set to the specified boolean value.
+
+\end{optionlist*}
+
 \end{ltxsyntax}
 
 Here are some examples of sorting schemes. In the first example, we define a simple name\slash title\slash year scheme. The name element may be either the \bibfield{author}, the \bibfield{editor}, or the \bibfield{translator}. Given this specification, the sorting routine will use the first element which is available and continue with the \bibfield{title}. Note that the options \opt{use$<$name$>$} options are considered automatically in the sorting process:
@@ -11249,7 +11277,8 @@ This revision history is a list of changes relevant to users of this package. Ch
 \begin{changelog}
 
 \begin{release}{3.3}{2016-}
-\item Removed messy experimental endnote and zoterordf support for \biber.
+\item Added \cmd{DeclareSortingNamekey}\see{\label{aut:ctm:srt}}
+\item Removed messy experimental endnote and zoterordf support for \biber
 \item Added \cmd{nonameyeardelim}\see{use:fmt:fmt}
 \item Added \cmd{extpostnotedelim}\see{use:fmt:fmt}
 \end{release}
