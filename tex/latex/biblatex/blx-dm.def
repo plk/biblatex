@@ -10,6 +10,12 @@
   ~~<bcf:datamodel>\blx@nl
   #1%
   ~~</bcf:datamodel>\blx@nl}
+\xdef\blx@xml@datamodel@constants#1{%
+  ~~~~<bcf:constants>\blx@nl
+  #1%
+  ~~~~</bcf:constants>\blx@nl}
+\xdef\blx@xml@datamodel@constant#1#2#3{%
+  ~~~~~~<bcf:constant type="#1" name="#2">#3</bcf:constant>\blx@nl}
 \xdef\blx@xml@datamodel@entrytypes#1{%
   ~~~~<bcf:entrytypes>\blx@nl
   #1%
@@ -60,6 +66,7 @@
   ~~~~~~~~<bcf:field>#1</bcf:field>\blx@nl}
 \xdef\blx@xml@datamodel@constraintfieldsub#1{%
   ~~~~~~~~~~<bcf:field>#1</bcf:field>\blx@nl}
+
 
 % Data model specification macros
 \newrobustcmd*{\ResetDatamodelEntrytypes}{%
@@ -203,6 +210,18 @@
      \booltrue{dmlabelfield}}
     {}}
 
+\newrobustcmd*{\DeclareDatamodelConstant}[3][]{%
+  \begingroup
+  \let\blx@tempa\@empty
+  \ifblank{#1}
+    {\def\blx@tempa{string}}
+    {\setkeys{blx@datamodel@constant}{#1}}%
+  \xappto\blx@bcf@datamodel@constants{\blx@xml@datamodel@constant{\blx@tempa}{#2}{#3}}%
+  \endgroup}
+
+\define@key{blx@datamodel@constant}{type}{%
+  \def\blx@tempa{#1}}
+
 \newrobustcmd*{\DeclareDatamodelEntryfields}[2][]{%
   \begingroup
   \let\blx@tempa\@empty
@@ -300,6 +319,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Data model specification
 
+\DeclareDatamodelConstant[type=list]{gender}{sf,sm,sn,pf,pm,pn,pp}
+\DeclareDatamodelConstant[type=list]{nameparts}{family,given,prefix,suffix}
 
 \DeclareDatamodelEntrytypes{
   article,
