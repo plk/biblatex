@@ -460,7 +460,7 @@
 \newtoggle{blx@loadfiles}
 \newtoggle{blx@singletitle}
 \newtoggle{blx@terseinits}
-\newtoggle{blx@firstinits}
+\newtoggle{blx@giveninits}
 \newtoggle{blx@useauthor}
 \newtoggle{blx@useeditor}
 \newtoggle{blx@usetranslator}
@@ -3336,7 +3336,8 @@
   \def\ifuseeditor{\iftoggle{blx@useeditor}}%
   \def\ifusetranslator{\iftoggle{blx@usetranslator}}%
   \def\ifterseinits{\iftoggle{blx@terseinits}}%
-  \def\iffirstinits{\iftoggle{blx@firstinits}}%
+  \def\iffirstinits{\iftoggle{blx@giveninits}}% legacy alias for \ifgiveninits
+  \def\ifgiveninits{\iftoggle{blx@giveninits}}%
   \def\ifsingletitle{\iftoggle{abx@bool@singletitle}}%
   \def\ifandothers#1{\iftoggle{abx@bool@more#1}}%
   \protected\def\pno{\bibstring{page}}%
@@ -8834,7 +8835,8 @@
     \def\ifuseeditor{\blx@TE{\iftoggle{blx@useeditor}}}%
     \def\ifusetranslator{\blx@TE{\iftoggle{blx@usetranslator}}}%
     \def\ifterseinits{\blx@TE{\iftoggle{blx@terseinits}}}%
-    \def\iffirstinits{\blx@TE{\iftoggle{blx@firstinits}}}%
+    \def\iffirstinits{\blx@TE{\iftoggle{blx@giveninits}}}% legacy alias for \ifgiveninits
+    \def\ifgiveninits{\blx@TE{\iftoggle{blx@giveninits}}}%
     \def\ifsingletitle{\blx@TE{\iftoggle{abx@bool@singletitle}}}%
     \def\ifandothers#1{\blx@TE{\iftoggle{abx@bool@more#1}}}}}
 
@@ -9981,9 +9983,15 @@
      \renewrobustcmd*{\bibinitperiod}{\adddot}
      \renewrobustcmd*{\bibinitdelim}{\addnbspace}
      \renewrobustcmd*{\bibinithyphendelim}{\adddot\mbox{-}}}}
-  
+
+% Legacy for giveninits
 \DeclareBibliographyOption{firstinits}[true]{%
-  \settoggle{blx@firstinits}{#1}}
+  \blx@warning@noline{%
+    'firstinits' option is deprecated, use 'giveninits' instead}%
+  \settoggle{blx@giveninits}{#1}}
+
+\DeclareBibliographyOption{giveninits}[true]{%
+  \settoggle{blx@giveninits}{#1}}
 
 \DeclareBibliographyOption{abbreviate}[true]{%
   \ifstrequal{#1}{true}
@@ -10734,22 +10742,22 @@
   \c@minnames\blx@mincitenames\relax
   \c@maxitems\blx@maxitems\relax
   \c@minitems\blx@minitems\relax
-  \iftoggle{blx@firstinits}
+  \iftoggle{blx@giveninits}
     {\ifnumequal\blx@uniquename\blx@opt@uniquename@full
        {\blx@warn@conflopt{%
-          'firstinits' conflicts with 'uniquename=full'.\MessageBreak
+          'giveninits' conflicts with 'uniquename=full'.\MessageBreak
           Setting 'uniquename=init'}%
 	\setkeys{blx@opt@pre}{uniquename=init}}
        {}%
      \ifnumequal\blx@uniquename\blx@opt@uniquename@allfull
        {\blx@warn@conflopt{%
-          'firstinits' conflicts with 'uniquename=allfull'.\MessageBreak
+          'giveninits' conflicts with 'uniquename=allfull'.\MessageBreak
           Setting 'uniquename=allinit}%
 	\setkeys{blx@opt@pre}{uniquename=allinit}}
        {}%
      \ifnumequal\blx@uniquename\blx@opt@uniquename@minfull
        {\blx@warn@conflopt{%
-          'firstinits' conflicts with 'uniquename=minfull'.\MessageBreak
+          'giveninits' conflicts with 'uniquename=minfull'.\MessageBreak
           Setting 'uniquename=mininit}%
 	\setkeys{blx@opt@pre}{uniquename=mininit}}
        {}}
