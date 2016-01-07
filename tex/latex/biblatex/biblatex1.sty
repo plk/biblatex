@@ -1375,6 +1375,45 @@
   \sfcode`\?=3002
 }
 
+% Defining characters that count as prefices in names like d'Argent
+% Code from moewe
+\let\blx@prefchars\@empty
+
+\def\blx@defprefchars@loop#1{%
+  \ifx#1\relax
+  \else
+    \listadd{\blx@prefchars}{#1}%
+    \expandafter\blx@defprefchars@loop
+  \fi}
+
+\def\blx@defprefchars#1{%
+  \expandafter\blx@defprefchars@loop\detokenize{#1}\relax}
+
+\newrobustcmd*{\DeclarePrefChars}{%
+  \@ifstar
+    {\blx@defprefchars}
+    {\let\blx@prefchars\@empty
+     \blx@defprefchars}}
+\DeclarePrefChars{'}
+
+\protected\def\blx@imc@ifprefchar{%
+  \ifhmode
+    \begingroup
+    \ifnum\spacefactor=\blx@sf@prefixchar
+      \endgroup
+      \expandafter\expandafter
+      \expandafter\@firstoftwo
+    \else
+      \endgroup
+      \expandafter\expandafter
+      \expandafter\@secondoftwo
+    \fi
+  \else
+    \expandafter\@secondoftwo
+  \fi}
+
+\blx@regimcs{\ifprefchar}
+
 \def\blx@namecodes{%
   \ifnum\sfcode`\A=\@m
   \else
