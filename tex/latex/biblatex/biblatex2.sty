@@ -506,6 +506,9 @@
   \dolistcsloop{abx@rnames}%
 }
 
+% Used to track sorting name key specifications
+\global\let\blx@biber@sortingnamekeyspecs\@empty
+
 % Option scope trackers for passing to .bcf
 \global\let\blx@globalopts\@empty
 \global\let\blx@typeopts\@empty
@@ -9139,13 +9142,21 @@
 \xdef\blx@xml@nolabelwidthcount#1{%
   ~~~~<bcf:nolabelwidthcount value="#1"/>\blx@nl}
 
-\xdef\blx@xml@sortingnamekey#1{%
-  ~~<bcf:sortingnamekey>\blx@nl%
-  #1%
+\xdef\blx@xml@sortingnamekey#1#2{%
+  ~~<bcf:sortingnamekey keyscheme="#1">\blx@nl%
+  #2%
   ~~</bcf:sortingnamekey>\blx@nl}
 
-\xdef\blx@xml@sortingnamekeypart#1#2{%
-  ~~~~<bcf:namepart#1>#2</bcf:namepart>\blx@nl}
+\xdef\blx@xml@sortingnamekeykeypart#1#2{%
+  ~~~~<bcf:keypart#1>\blx@nl
+  #2%
+  ~~~~</bcf:keypart>\blx@nl}
+
+\xdef\blx@xml@sortingnamekeynamepart#1#2#3{%
+  ~~~~~~<bcf:part type="namepart"#1#2>#3</bcf:part>\blx@nl}
+
+\xdef\blx@xml@sortingnamekeyliteral#1#2{%
+  ~~~~~~<bcf:part type="literal"#1>#2</bcf:part>\blx@nl}
 
 \xdef\blx@xml@sorting#1#2{%
   ~~<bcf:sorting#1>\blx@nl%
@@ -9418,12 +9429,12 @@
     }}
     {}%
   % sortingnamekey
-  \eappto\blx@tempa{%
-    \blx@xml@comment{SORTING NAME KEY}%
-    \blx@xml@sortingnamekey{%
-      \csuse{blx@biber@sortingnamekey}%
-    }
-  }
+  \eappto\blx@tempa{\blx@xml@comment{SORTING NAME KEY}}%
+  \def\do##1{%
+    \eappto\blx@tempa{%
+      \blx@xml@sortingnamekey{##1}{%
+        \csuse{blx@biber@sortingnamekey@##1}}}}%
+  \dolistloop\blx@biber@sortingnamekeyspecs
   % sorting
   \def\do##1{%
     \eappto\blx@bcf@presort{\csuse{blx@bcf@presort@##1}}%
@@ -9916,29 +9927,56 @@
 \def\do#1{\DeclareBiblistFilter{#1}{\filter[type=field,filter=#1]}}
 \abx@dolabelfields
 
-% {<spec>}
-\newrobustcmd*{\DeclareSortingNamekey}[1]{%
+% [<specname>]{<spec>}
+\newrobustcmd*{\DeclareSortingNamekey}[2][]{%
   \begingroup
+  \ifblank{#1}
+    {\def\blx@biber@snkname{global}}% default
+    {\def\blx@biber@snkname{#1}}%
   \let\namepart\blx@sortnk@namepart
+  \let\keypart\blx@sortnk@keypart
+  \let\literal\blx@sortnk@literal
   \let\blx@tempa\@empty
-  #1%
-  \global\cslet{blx@biber@sortingnamekey}\blx@tempa
+  \blx@tempcnta\z@
+  #2%
+  \global\cslet{blx@biber@sortingnamekey@\blx@biber@snkname}\blx@tempa
+  \xifinlist{\blx@biber@snkname}{\blx@biber@sortingnamekeyspecs}
+    {}
+    {\listxadd\blx@biber@sortingnamekeyspecs{\blx@biber@snkname}}%
   \endgroup}
 \@onlypreamble\DeclareSortingNamekey
 \listadd\blx@globalopts{sortingnamekey}% for passing to the .bcf
 
-\newcommand*{\blx@sortnk@namepart}[2][]{%
+\newcommand*{\blx@sortnk@keypart}[1]{%
+  \advance\blx@tempcnta\@ne
+  \blx@tempcntb\z@
+  \edef\blx@tempd{ order="\the\blx@tempcnta"}%
   \let\blx@tempb\@empty
+  #1%
+  \eappto\blx@tempa{%
+    \blx@xml@sortingnamekeykeypart{\blx@tempd}{\blx@tempb}}}
+
+\newcommand*{\blx@sortnk@literal}[1]{%
+  \advance\blx@tempcntb\@ne
+  \edef\blx@tempe{ order="\the\blx@tempcntb"}%
+  \let\blx@tempc\@empty
+  \eappto\blx@tempb{%
+    \blx@xml@sortingnamekeyliteral{\blx@tempe}{#1}}}
+
+\newcommand*{\blx@sortnk@namepart}[2][]{%
+  \advance\blx@tempcntb\@ne
+  \edef\blx@tempe{ order="\the\blx@tempcntb"}%
+  \let\blx@tempc\@empty
   \ifblank{#1}
     {}
     {\setkeys{blx@sortnk@namepart}{#1}}%
-  \eappto\blx@tempa{%
-    \blx@xml@sortingnamekeypart{\blx@tempb}{#2}}}
+  \eappto\blx@tempb{%
+    \blx@xml@sortingnamekeynamepart{\blx@tempe}{\blx@tempc}{#2}}}
 
 \define@key{blx@sortnk@namepart}{use}[true]{% use* option for namepart true|false
   \ifstrequal{#1}{true}
-    {\appto\blx@tempb{ use="1"}}
-    {\appto\blx@tempb{ use="0"}}}
+    {\appto\blx@tempc{ use="1"}}
+    {\appto\blx@tempc{ use="0"}}}
 
 % {<name>}{<spec>}
 \newrobustcmd*{\DeclareSortingScheme}[3][]{%

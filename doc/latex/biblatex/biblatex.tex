@@ -5165,12 +5165,12 @@ The \prm{postnote} argument is handled as a field and the formatting of this fie
 \subsubsection{Name Parts and Name Spacing}
 \label{use:cav:nam}
 
-The \biblatex package gives users and style authors very fine"=grained control of name spacing and the line"=breaking behavior of names, especially when they are using \biber as the backend. The commands discussed in the following are documented in \secref{use:fmt:fmt,aut:fmt:fmt}. This section is meant to give an overview of how they are put together. A note on terminology: a name \emph{part} is a basic part of the name, for example the first or the last name. Each part of a name may be a single name or it may be composed of multiple names. For example, the name part \enquote*{first name} may be composed of a first and a middle name. The latter are referred to as name \emph{elements} in this section. Let's consider a simple name first: \enquote{John Edward Doe}. This name is composed of the following parts:
+The \biblatex package gives users and style authors very fine"=grained control of name spacing and the line"=breaking behavior of names, especially when they are using \biber as the backend. The commands discussed in the following are documented in \secref{use:fmt:fmt,aut:fmt:fmt}. This section is meant to give an overview of how they are put together. A note on terminology: a name \emph{part} is a basic part of the name, for example the given or the family name. Each part of a name may be a single name or it may be composed of multiple names. For example, the name part \enquote*{given name} may be composed of a given and a middle name. The latter are referred to as name \emph{elements} in this section. Let's consider a simple name first: \enquote{John Edward Doe}. This name is composed of the following parts:
 
 \begin{nameparts}
-First	& John Edward \\
+Given	& John Edward \\
 Prefix	& --- \\
-Last	& Doe \\
+Family	& Doe \\
 Suffix	& --- \\
 \end{nameparts}
 %
@@ -5179,10 +5179,10 @@ The spacing, punctuation and line"=breaking behavior of names is controlled by s
 \begin{namedelims}
 a & \cmd{bibnamedelima} & Inserted by the backend after the first element of every name part if that element is less than three characters long and before the last element of every name part. \\
 b & \cmd{bibnamedelimb} & Inserted by the backend between all elements of a name part where \cmd{bibnamedelima} does not apply. \\
-c & \cmd{bibnamedelimc} & Inserted by a formatting directive between the name prefix and the last name if \kvopt{useprefix}{true}. If \kvopt{useprefix}{false}, \cmd{bibnamedelimd} is used instead. \\
+c & \cmd{bibnamedelimc} & Inserted by a formatting directive between the name prefix and the family name if \kvopt{useprefix}{true}. If \kvopt{useprefix}{false}, \cmd{bibnamedelimd} is used instead. \\
 d & \cmd{bibnamedelimd} & Inserted by a formatting directive between name parts where \cmd{bibnamedelimc} does not apply. \\
 i & \cmd{bibnamedelimi} & Replaces \cmd{bibnamedelima/b} after initials \\
-p & \cmd{revsdnamepunct} & Inserted by a formatting directive after the last name when the name parts are reversed.
+p & \cmd{revsdnamepunct} & Inserted by a formatting directive after the family name when the name parts are reversed.
 \end{namedelims}
 %
 This is how the delimiters are employed:
@@ -5201,9 +5201,9 @@ Initials in the \file{bib} file get a special delimiter:
 Let's consider a more complex name: \enquote{Charles-Jean Étienne Gustave Nicolas de La Vallée Poussin}. This name is composed of the following parts:
 
 \begin{nameparts}
-First	& Charles-Jean Étienne Gustave Nicolas \\
+Given	& Charles-Jean Étienne Gustave Nicolas \\
 Prefix	& de \\
-Last	& La Vallée Poussin \\
+Family	& La Vallée Poussin \\
 Suffix	& --- \\
 \end{nameparts}
 %
@@ -7373,21 +7373,39 @@ This sorts the bibliography purely lexically by the order of the keys in the cit
 %
 This sorts «two» before «one», even though lexically, «one» would sort before «two». This is possible because the semantic order can be disambiguated by the further sorting on year. With the standard \opt{none} sorting scheme, the lexical order and semantic order are identical because there is nothing further to disambiguate them. This means that you can use \cmd{citeorder} just like any other sorting specification element, choosing how to further sort entries cited at the same time (in the same citation command).
 
-\cmditem{DeclareSortingNamekey}{specification}\BiberOnlyMark
+\cmditem{DeclareSortingNamekey}[schemename]{specification}\BiberOnlyMark
 
-Defines how the sorting keys for names in a name list are constructed. When constructing the sorting key for a name list, a sorting key for each name in the list is constructed and the key for each name is formed into an ordered key list with a special internal separator. The point of this option is to accommodate languages or situations where sorting of names needs to be customised (for example, Icelandic names are sometimes sorted by given names rather than by family names). By default the name key is formed according the following \prm{specification}:
+Defines how the sorting keys for names in a name list are constructed. The sorting key construction scheme so defined is called \prm{schemename} which defaults to «global» if this optional parameter is absent. When constructing the sorting key for a name list, a sorting key for each name in the list is constructed and the key for each name is formed into an ordered key list with a special internal separator. The point of this option is to accommodate languages or situations where sorting of names needs to be customised (for example, Icelandic names are sometimes sorted by given names rather than by family names). By default the name key is formed according the following \prm{specification}:
 
 \begin{lstlisting}[style=latex]{}
 \DeclareSortingNamekey{
-  \namepart[use=true]{<<prefix>>}
-  \namepart{<<family>>}
-  \namepart{<<given>>}
-  \namepart{<<suffix>>}
-  \namepart[use=false]{<<prefix>>}
+  \keypart{
+    \namepart[use=true]{<<prefix>>}
+  }
+  \keypart{
+    \namepart{<<family>>}
+  }
+  \keypart{
+    \namepart{<<given>>}
+  }
+  \keypart{
+    \namepart{<<suffix>>}
+  }
+  \keypart{
+    \namepart[use=false]{<<prefix>>}
+  }
 }
 \end{lstlisting}
 %
 This means that the key is constructed by concatenating, in order, the name prefix (only if the \opt{useprefix} option is true), the family name(s), the given names(s), the name suffix and then the name prefix (only if the \opt{useprefix} option is false),
+
+\cmditem{keypart}{part}
+
+\prm{part} is an ordered list of of \cmd{namepart} and \cmd{literal} specifications which are concatenated together when to construct a part of the name sorting key.
+
+\cmditem{literal}{string}
+
+A literal string to insert into the name sorting key.
 
 \cmditem{namepart}{name}
 
