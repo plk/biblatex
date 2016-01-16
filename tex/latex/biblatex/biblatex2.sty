@@ -6486,7 +6486,7 @@
   \setkeys{blx@bib2}{#1}% ... now we have correct \blx@tempa, set rest of options
   \blx@rest@actives
   \csxappto{blx@xml@slistsbib}{%
-    \blx@xml@slist{\blx@refcontext@sorting}{entry}{\blx@tempe}{\blx@refcontext@sorting}{\blx@tempd}{}}%
+    \blx@xml@slist{\blx@refcontext@sorting}{entry}{\blx@tempe}{\blx@refcontext@sorting}{\blx@refcontext@sortingnamekey}{\blx@tempd}{}}%
   \ifdefvoid\blx@tempa
     {\blx@warn@bibempty\endgroup}
     {\blx@bibliography\blx@tempa}}
@@ -6969,12 +6969,14 @@
        {\blx@err@invopt{sorting=\blx@refcontext@sorting}{}}
        {}}}
 
-% Reset to global sorting when we leave a ref context (since they can't be nested)
+% Reset to global sorting etc. when we leave a ref context (since they can't be nested)
 \protected\def\endrefcontext{%
   \togglefalse{blx@refcontext}%
-  \xdef\blx@refcontext@sorting{\blx@sorting}}
+  \xdef\blx@refcontext@sorting{\blx@sorting}%
+  \gdef\blx@refcontext@sortingnamekey{global}}
 
 \define@key{blx@refcontext}{sorting}{\gdef\blx@refcontext@sorting{#1}}
+\define@key{blx@refcontext}{sortingnamekey}{\gdef\blx@refcontext@sortingnamekey{#1}}
 
 % Reference sections
 \newrobustcmd*{\newrefsection}{%
@@ -9183,10 +9185,10 @@
 \xdef\blx@xml@endsection{%
   ~~</bcf:section>}
 
-\xdef\blx@xml@slist#1#2#3#4#5#6{%
-  ~~<bcf:sortlist section="#3" name="#1" type="#2" sortscheme="#4">\blx@nl
+\xdef\blx@xml@slist#1#2#3#4#5#6#7{%
+  ~~<bcf:sortlist section="#3" name="#1" type="#2" sortscheme="#4" sortnamekeyscheme="#5">\blx@nl
+  #7%
   #6%
-  #5%
   ~~</bcf:sortlist>\blx@nl}
 \xdef\blx@xml@slistfilterorbegin{%
   ~~~~<bcf:filteror>\blx@nl}
@@ -10306,6 +10308,7 @@
   \def\blx@refcontext@sorting{#1}}
 
 \AtEndPreamble{%
+  \def\blx@refcontext@sortingnamekey{global}%
   \ifcsdef{blx@biber@sorting@\blx@sorting}
     {}
     {\blx@err@invopt{sorting=\blx@sorting}{}%
