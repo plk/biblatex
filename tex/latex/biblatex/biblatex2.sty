@@ -5965,6 +5965,7 @@
 % {<sortlistname>}{<sortlistsortscheme>}
 \def\blx@bbl@slist#1#2{%
   \begingroup
+  \def\blx@slist@name{#1}%
   \def\blx@slist@scheme{#2}%
   % This macro (\key) will only be called in sortlists of type "list"
   \def\key##1{\listcsxadd{blx@slistsbib@\the\c@refsection @#1@#2}{\detokenize{##1}}}}
@@ -6459,28 +6460,25 @@
       \csuse{blx@biber@sorting@\blx@refcontext@sorting}}}% default to context
   \edef\blx@tempe{\the\c@refsection}% default refsection is current
   \blx@safe@actives
-   % Add the sortscheme to the list of sortschemes
-   % so we can compare on next run
-   \xifinlist{\blx@refcontext@sorting}{\blx@sortschemes}
-     {}
-     {\listxadd\blx@sortschemes{\blx@refcontext@sorting}%
-      \blx@auxwrite\@mainaux{}{\string\abx@aux@sortscheme{\blx@refcontext@sorting}}}%
-   \edef\blx@tempd{%
-     \blx@xml@sorting{%
-       \ifcsdef{blx@sortdef@locale@\blx@refcontext@sorting}
-         { locale="\csuse{blx@sortdef@locale@\blx@refcontext@sorting}"}
-         {}}{%
+  % Add the sortscheme to the list of sortschemes
+  % so we can compare on next run
+  \xifinlist{\blx@refcontext@sorting}{\blx@sortschemes}
+    {}
+    {\listxadd\blx@sortschemes{\blx@refcontext@sorting}%
+     \blx@auxwrite\@mainaux{}{\string\abx@aux@sortscheme{\blx@refcontext@sorting}}}%
+  \edef\blx@tempd{%
+    \blx@xml@sorting{%
+      \ifcsdef{blx@sortdef@locale@\blx@refcontext@sorting}
+        { locale="\csuse{blx@sortdef@locale@\blx@refcontext@sorting}"}
+        {}}{%
        \csuse{blx@biber@sorting@\blx@refcontext@sorting}}}%
   \setkeys{blx@bib1}{#1}% Set section only, if present ...
   \blx@rest@actives
   \ifcsvoid{blx@slistsbib@\blx@tempe @entry@\blx@refcontext@sorting}
     {}
     {\letcs\blx@tempa{blx@slistsbib@\blx@tempe @entry@\blx@refcontext@sorting}}%
-    {\ifcsvoid{blx@sbib@\blx@tempe}
-      {}
-      {\letcs\blx@tempa{blx@sbib@\blx@tempe}}}%
   \blx@safe@actives
-  %  Must reset omitnumbers as it's a global macro and if we don't, any
+  % Must reset omitnumbers as it's a global macro and if we don't, any
   % \printbibliography following one with this set will inherit any
   % previous "true" value
   \togglefalse{blx@omitnumbers}%
@@ -6859,9 +6857,9 @@
       \csuse{blx@biber@sorting@\blx@tempc}}}%
   \setkeys{blx@biblist1}{#1}% Set section only, if present ...
   \blx@rest@actives
-  \ifcsvoid{blx@slistsbib@\blx@tempe @#2@\blx@tempc}
+  \ifcsvoid{blx@slistsbib@\blx@tempe @#2/\blx@refcontext@sortingnamekey @\blx@tempc}
     {}
-    {\letcs\blx@tempa{blx@slistsbib@\blx@tempe @#2@\blx@tempc}}%
+    {\letcs\blx@tempa{blx@slistsbib@\blx@tempe @#2/\blx@refcontext@sortingnamekey @\blx@tempc}}%
   \blx@safe@actives
   \setkeys{blx@biblist2}{#1}% ... now we have correct \blx@tempa, set rest of options
   \ifundef\blx@bibcheck
@@ -10310,13 +10308,13 @@
   \def\blx@refcontext@sorting{#1}}
 
 \AtEndPreamble{%
-  \def\blx@refcontext@sortingnamekey{global}%
   \ifcsdef{blx@biber@sorting@\blx@sorting}
     {}
     {\blx@err@invopt{sorting=\blx@sorting}{}%
      \def\blx@sorting{nty}%
      \def\blx@refcontext@sorting{nty}}%
-     \listxadd\blx@sortschemes{\blx@sorting}}
+     \listxadd\blx@sortschemes{\blx@sorting}%
+     \def\blx@refcontext@sortingnamekey{global}}
 
 \DeclareBibliographyOption{sortcase}[true]{%
   \settoggle{blx@sortcase}{#1}}
