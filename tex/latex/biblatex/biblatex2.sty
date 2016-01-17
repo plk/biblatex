@@ -517,6 +517,8 @@
 % Initialise some lists which track changing citations/sortschemes
 % etc. between runs
 \global\let\blx@cites\@empty
+\global\let\blx@sortnamekeyschemes\@empty
+\global\let\blx@lastsortnamekeyschemes\@empty
 \global\let\blx@sortschemes\@empty
 \global\let\blx@lastsortschemes\@empty
 \global\let\blx@biblists\@empty
@@ -5817,6 +5819,11 @@
 \protected\def\abx@aux@sortscheme#1{%
   \listgadd{\blx@lastsortschemes}{#1}}
 
+% {<sortnamekeyschemename>}
+% Get the saved information on which sorting name key schemes were mentioned last run
+\protected\def\abx@aux@sortnamekeyscheme#1{%
+  \listgadd{\blx@lastsortnamekeyschemes}{#1}}
+
 % {<sortschemename>}
 % Get the saved information on which shorthand sorting schemes were mentioned last run
 \protected\def\abx@aux@biblist#1{%
@@ -5862,6 +5869,14 @@
       {}
       {\blx@logreq@active{}}}
     {}%
+  % Test if we removed any mention of a sorting name key scheme since last run.
+  % If we did, we need to re-run biber
+  \def\do#1{\ifinlist{#1}{\blx@sortnamekeyschemes}{}{\blx@logreq@active{}}\relax}%
+  \dolistloop\blx@lastsortnamekeyschemes
+  % Test if we added any mention of a sorting name key scheme since last run
+  % If we did, we need to re-run biber
+  \def\do#1{\ifinlist{#1}{\blx@lastsortnamekeyschemes}{}{\blx@logreq@active{}}\relax}%
+  \dolistloop\blx@sortnamekeyschemes
   % Test if we removed any mention of a sorting scheme since last run.
   % If we did, we need to re-run biber
   \def\do#1{\ifinlist{#1}{\blx@sortschemes}{}{\blx@logreq@active{}}\relax}%
@@ -9948,6 +9963,11 @@
   \xifinlist{\blx@biber@snkname}{\blx@biber@sortingnamekeyspecs}
     {}
     {\listxadd\blx@biber@sortingnamekeyspecs{\blx@biber@snkname}}%
+  % Add the sortnamekeyscheme to the list of sortnamekeyschemes
+  % so we can compare on next run
+  \xifinlist{\blx@biber@snkname}{\blx@sortnamekeyschemes}
+    {}
+    {\listxadd\blx@sortnamekeyschemes{\blx@biber@snkname}}%
   \endgroup}
 \@onlypreamble\DeclareSortingNamekeyScheme
 \listadd\blx@globalopts{sortingnamekey}% for passing to the .bcf
@@ -11358,6 +11378,9 @@
 
 \AtBeginDocument{%
   \blx@auxwrite\@mainaux{}{\string\abx@aux@sortscheme{\blx@sorting}}%
+  \def\do#1{%
+    \blx@auxwrite\@mainaux{}{\string\abx@aux@sortnamekeyscheme{#1}}}
+  \dolistloop\blx@sortnamekeyschemes
   \blx@checkencoding
   \if@filesw
     \blx@ctrlwrite@biber
