@@ -7417,7 +7417,7 @@ This means that the key is constructed by concatenating, in order, the name pref
 
 \cmditem{keypart}{part}
 
-\prm{part} is an ordered list of of \cmd{namepart} and \cmd{literal} specifications which are concatenated together when to construct a part of the name sorting key.
+\prm{part} is an ordered list of of \cmd{namepart} and \cmd{literal} specifications which are concatenated together when constructing a part of the name sorting key.
 
 \cmditem{literal}{string}
 
@@ -7437,7 +7437,43 @@ Indicates that the namepart \prm{name} is only to be used in this concatenation 
 
 \end{ltxsyntax}
 
-Here are some examples of sorting schemes. In the first example, we define a simple name\slash title\slash year scheme. The name element may be either the \bibfield{author}, the \bibfield{editor}, or the \bibfield{translator}. Given this specification, the sorting routine will use the first element which is available and continue with the \bibfield{title}. Note that the options \opt{use$<$name$>$} options are considered automatically in the sorting process:
+As an example, suppose you wanted to be able to sort names by given name rather than family name, you could define a sorting name key scheme like this:
+
+\begin{lstlisting}[style=latex]{}
+\DeclareSortingNamekeyScheme[givenfirst]{
+  \keypart{
+    \namepart{<<given>>}
+  }
+  \keypart{
+    \namepart[use=true]{<<prefix>>}
+  }
+  \keypart{
+    \namepart{<<family>>}
+  }
+  \keypart{
+    \namepart[use=false]{<<prefix>>}
+  }
+}
+\end{lstlisting}
+%
+You can then use the name \opt{givenfirst} at the appropriate scope in order to make \biber use this scheme when constructing sorting name keys. For example, you could enable this for one bibliography list like this:
+
+\begin{lstlisting}[style=latex]{}
+\begin{refcontext}[sortnamekeyscheme=givenfirst]
+\printbibliography
+\end{refcontext}
+\end{lstlisting}
+%
+or perhaps you only want to do this for a particular entry:
+
+\begin{lstlisting}[style=bibtex]{}
+@BOOK{key,
+  OPTIONS = {sortnamekeyscheme=givenfirst},
+  AUTHOR = {Arnar Vigfusson}
+}
+\end{lstlisting}
+%
+Now we give some examples of sorting schemes. In the first example, we define a simple name\slash title\slash year scheme. The name element may be either the \bibfield{author}, the \bibfield{editor}, or the \bibfield{translator}. Given this specification, the sorting routine will use the first element which is available and continue with the \bibfield{title}. Note that the options \opt{use$<$name$>$} options are considered automatically in the sorting process:
 
 \begin{lstlisting}[style=latex]{}
 \DeclareSortingScheme{sample}{
