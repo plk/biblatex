@@ -39,6 +39,7 @@
 
 \newcommand*{\biber}{Biber\xspace}
 \newcommand*{\biblatex}{Biblatex\xspace}
+\newcommand*{\biblatexml}{BiblatexML\xspace}
 \newcommand*{\biblatexhome}{http://sourceforge.net/projects/biblatex/}
 \newcommand*{\biblatexctan}{%
   http://www.ctan.org/tex-archive/macros/latex/contrib/biblatex/}
@@ -3584,7 +3585,7 @@ Wraps a bibliography context environment. The options define the context attribu
 
 Specify a sorting scheme defined previously with \cmd{DeclareSortingScheme}. This scheme is used to determine which data to retrieve and/or print for an entry in the commands inside the context. 
 
-\valitem{sortingnamekey}{name}
+\valitem{sortingnamekeyscheme}{name}
 
 Specify a sorting name key scheme defined previously with \cmd{DeclareSortingNamekeyScheme}. This scheme is used to construct sorting keys for names inside the context.
 
@@ -7380,7 +7381,17 @@ This sorts «two» before «one», even though lexically, «one» would sort bef
 
 \cmditem{DeclareSortingNamekeyScheme}[schemename]{specification}\BiberOnlyMark
 
-Defines how the sorting keys for names in a name list are constructed. The sorting key construction scheme so defined is called \prm{schemename} which defaults to «global» if this optional parameter is absent. When constructing the sorting key for a name list, a sorting key for each name in the list is constructed and the key for each name is formed into an ordered key list with a special internal separator. The point of this option is to accommodate languages or situations where sorting of names needs to be customised (for example, Icelandic names are sometimes sorted by given names rather than by family names). By default the name key is formed according the following \prm{specification}:
+Defines how the sorting keys for names are constructed. This can change the sorting order of names arbitrarily because you can choose how to put together the name parts when constructing the string to compare when sorting. The sorting key construction scheme so defined is called \prm{schemename} which defaults to «global» if this optional parameter is absent. When constructing the sorting key for a name, a sorting key for each name part is constructed and the key for each name is formed into an ordered key list with a special internal separator. The point of this option is to accommodate languages or situations where sorting of names needs to be customised (for example, Icelandic names are sometimes sorted by given names rather than by family names). This macro may be used multiple times to define schemes with different names which can then be referred to later. Sorting name key schemes can have the following scopes, in order of increasing precedence:
+
+\begin{itemize}
+\item The default scheme defined without the optional name argument
+\item Given as the \opt{sortingnamekeyscheme} option to a reference context (see \secref{use:bib:context})
+\item Given as a per-entry option \opt{sortnamekeyscheme} in a bibliography data source entry
+\item Given as a per-namelist option \opt{sortnamekeyscheme} in datasources which support this\footnote{Current only the \biblatexml data source format support this.}
+\item Given as a per-name option \opt{sortnamekeyscheme} in datasources which support this\footnote{Current only the \biblatexml data source format support this.}
+\end{itemize}
+
+By default there is only a global scheme which has the following \prm{specification}:
 
 \begin{lstlisting}[style=latex]{}
 \DeclareSortingNamekeyScheme{
@@ -7402,7 +7413,7 @@ Defines how the sorting keys for names in a name list are constructed. The sorti
 }
 \end{lstlisting}
 %
-This means that the key is constructed by concatenating, in order, the name prefix (only if the \opt{useprefix} option is true), the family name(s), the given names(s), the name suffix and then the name prefix (only if the \opt{useprefix} option is false),
+This means that the key is constructed by concatenating, in order, the name prefix (only if the \opt{useprefix} option is true), the family name(s), the given names(s), the name suffix and then the name prefix (only if the \opt{useprefix} option is false).
 
 \cmditem{keypart}{part}
 
@@ -11316,7 +11327,7 @@ This revision history is a list of changes relevant to users of this package. Ch
 \begin{release}{3.3}{2016-}
 \item Added \cmd{DeclareDatamodelConstant}\see{aut:ctm:dm}\BiberOnlyMark
 \item Renamed \opt{firstinits} and \opt{sortfirstinits}
-\item Added \cmd{DeclareSortingNamekeyScheme}\see{\label{aut:ctm:srt}}
+\item Added \cmd{DeclareSortingNamekeyScheme}\see{aut:ctm:srt}
 \item Removed messy experimental endnote and zoterordf support for \biber
 \item Added \cmd{nonameyeardelim}\see{use:fmt:fmt}
 \item Added \cmd{extpostnotedelim}\see{use:fmt:fmt}
