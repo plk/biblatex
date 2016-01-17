@@ -678,9 +678,18 @@ In datasources such as a \file{bib} file, all bibliographic data is specified in
 
 \begin{description}
 
-\item[Name lists] are parsed and split up into the individual items at the \texttt{and} delimiter. Each item in the list is then dissected into four name components: the first name, the name prefix (von, van, of, da, de, della, \dots), the last name, and the name suffix (junior, senior, \dots). Name lists may be truncated in the \file{bib} file with the keyword <\texttt{and others}>. Typical examples of name lists are \bibfield{author} and \bibfield{editor}.
+\item[Name lists] are parsed and split up into the individual items at the \texttt{and} delimiter. Each item in the list is then dissected into four name components: the given name, the name prefix (von, van, of, da, de, della, \dots), the family name, and the name suffix (junior, senior, \dots). Name lists may be truncated in the \file{bib} file with the keyword <\texttt{and others}>. Typical examples of name lists are \bibfield{author} and \bibfield{editor}.
 
-\BiberOnlyMark With \biber, name list fields automatically have an \cmd{ifuse*} test created as per the name lists in the default data model (see \secref{aut:aux:tst}). They are also automatically have a \opt{ifuse*} option created which controls labelling and sorting behaviour with the name (see \secref{use:opt:bib:hyb}).
+\BiberOnlyMark With \biber, name list fields automatically have an \cmd{ifuse*} test created as per the name lists in the default data model (see \secref{aut:aux:tst}). They are also automatically have a \opt{ifuse*} option created which controls labelling and sorting behaviour with the name (see \secref{use:opt:bib:hyb}). \biber supports a customisable list of name parts but current this is defined to be the same set of parts as supported by \bibtex:
+
+\begin{itemize}
+\item Family name (also known as <last> part)
+\item Given name (also known as <first> part)
+\item Name prefix (also known as <von> part)
+\item Name suffix (also known as <Jr> part)
+\end{itemize}
+
+The supported list of name parts is defined as a constant list in the default data model using the \cmd{DeclareDatamodelConstant} command (see \ref{aut:ctm:dm}). However, it is not enough to simply add to this list in order to add support for another name part as name parts typically have to be hard coded into bibliography drivers and the backend processing. This constant is used as much as possible and is intended as a basis for future generalisation and extension.
 
 \item[Literal lists] are parsed and split up into the individual items at the \texttt{and} delimiter but not dissected further. Literal lists may be truncated in the \file{bib} file with the keyword <\texttt{and others}>. There are two subtypes:
 
@@ -6728,7 +6737,7 @@ Alternatively, the name of the data model file can be different from any of the 
 
 \cmditem{DeclareDatamodelConstant}[options]{name}{constantdef}\BiberOnlyMark
 
-Declares the \prm{name} as a datamodel constant with definition \prm{constantdef}. Such constants are typically used internally by the \biber backend but may be of use to style authors etc.
+Declares the \prm{name} as a datamodel constant with definition \prm{constantdef}. Such constants are typically used internally by the \biber backend and constants in the default data model should rarely be redefined. They may however be of use to style authors.
 
 \begin{optionlist*}
 
