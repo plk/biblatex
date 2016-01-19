@@ -509,11 +509,6 @@
 % Used to track sorting name key specifications
 \global\let\blx@biber@sortingnamekeyspecs\@empty
 
-% Option scope trackers for passing to .bcf
-\global\let\blx@globalopts\@empty
-\global\let\blx@typeopts\@empty
-\global\let\blx@entryopts\@empty
-
 % Initialise some lists which track changing citations/sortschemes
 % etc. between runs
 \global\let\blx@cites\@empty
@@ -537,17 +532,9 @@
   \do\blx@onlypreamble}
 
 %% Initialization
-
 \def\blx@blxinit{%
   \let\blx@blxinit\relax
   \blx@initunit}
-
-\newcommand*{\labelalphaothers}{+}
-\newcommand*{\sortalphaothers}{\labelalphaothers}
-\listadd\blx@globalopts{alphaothers}% for passing to the .bcf
-\listadd\blx@typeopts{alphaothers}% for passing to the .bcf
-\listadd\blx@globalopts{sortalphaothers}% for passing to the .bcf
-\listadd\blx@typeopts{sortalphaothers}% for passing to the .bcf
 
 \def\blx@secinit{%
   \csgdef{blx@sections@\the\c@refsection}{true}% just to say we have a section for tests later
@@ -774,7 +761,6 @@
 \edef\blx@ver@bcf{%
   \detokenize{<bcf:controlfile version="}\blx@bcfversion
   \detokenize{" xmlns:bcf="https://sourceforge.net/projects/biblatex">}}
-\listadd\blx@globalopts{controlversion}% for passing to the .bcf
 
 % {<true>}{<false>}
 \newrobustcmd*{\lbx@ifutfinput}{\ifboolexpr{%
@@ -1745,56 +1731,6 @@
   \csedef{blx@bbx@#1}{%
     \expandafter\noexpand\csname blx@bbx@#2\endcsname}}
 \@onlypreamble\DeclareBibliographyAlias
-
-% {<key>}[<value>]{<code>}
-\newrobustcmd*{\DeclareBibliographyOption}[1]{%
-  \ifinlist{#1}\blx@globalopts
-    {}
-    {\listadd\blx@globalopts{#1}}%
-  \@ifnextchar[%]
-    {\blx@defbibopt{#1}}
-    {\blx@defbibopt{#1}[]}}
-
-\long\def\blx@defbibopt#1[#2]#3{%
-  \ifcsundef{KV@blx@opt@ldt@#1}
-    {\ifcsundef{KV@blx@opt@pre@#1}
-       {\ifblank{#2}
-          {\define@key{blx@opt@pre}{#1}{#3}}
-          {\define@key{blx@opt@pre}{#1}[#2]{#3}}}
-       {\blx@err@optdef{#1}}}
-    {\blx@err@optdef{#1}}}
-
-% {<key>}[<value>]{<code>}
-\newrobustcmd*{\DeclareTypeOption}[1]{%
-  \ifinlist{#1}\blx@typeopts
-    {}
-    {\listadd\blx@typeopts{#1}}%
-  \@ifnextchar[%]
-    {\blx@deftypeopt{#1}}
-    {\blx@deftypeopt{#1}[]}}
-
-\long\def\blx@deftypeopt#1[#2]#3{%
-  \ifcsundef{KV@blx@opt@typ@#1}
-    {\ifblank{#2}
-       {\define@key{blx@opt@typ}{#1}{#3}}
-       {\define@key{blx@opt@typ}{#1}[#2]{#3}}}
-    {\blx@err@optdef{#1}}}
-
-% {<key>}[<value>]{<code>}
-\newrobustcmd*{\DeclareEntryOption}[1]{%
-  \ifinlist{#1}\blx@entryopts
-    {}
-    {\listadd\blx@entryopts{#1}}%
-  \@ifnextchar[%]
-    {\blx@defentryopt{#1}}
-    {\blx@defentryopt{#1}[]}}
-
- \long\def\blx@defentryopt#1[#2]#3{%
-  \ifcsundef{KV@blx@opt@ent@#1}
-    {\ifblank{#2}
-       {\define@key{blx@opt@ent}{#1}{#3}}
-       {\define@key{blx@opt@ent}{#1}[#2]{#3}}}
-    {\blx@err@optdef{#1}}}
 
 %% Auxiliary commands
 \newrobustcmd*{\citereset}{%
@@ -5083,6 +5019,78 @@
 % Override with user-defined data model if there is one
 \blx@inputonce{biblatex-dm.cfg}{biblatex custom data model}{}{}{}{}
 
+% Helper for collecting options and datatypes
+% {<datatype>}{<scope>}{<name>}
+\def\blx@collectopts#1#2#3{%
+  \ifinlistcs{#1}{#2@datatypes}
+    {}
+    {\listcsgadd{#2@datatypes}{#1}}%
+  \ifinlistcs{#3}{#2@#1}
+    {}
+    {\listcsgadd{#2@#1}{#3}}}
+
+\blx@collectopts{string}{blx@globalopts}{controlversion}% for passing to the .bcf
+
+\newcommand*{\labelalphaothers}{+}
+\newcommand*{\sortalphaothers}{\labelalphaothers}
+\blx@collectopts{string}{blx@globalopts}{alphaothers}% for passing to the .bcf
+\blx@collectopts{string}{blx@typeopts}{alphaothers}% for passing to the .bcf
+\blx@collectopts{string}{blx@globalopts}{sortalphaothers}% for passing to the .bcf
+\blx@collectopts{string}{blx@typeopts}{sortalphaothers}% for passing to the .bcf
+
+% [<datatype>]{<key>}[<value>]{<code>}
+\newrobustcmd*{\DeclareBibliographyOption}[2][]{%
+  \ifblank{#1}
+    {\def\blx@tempa{boolean}}
+    {\def\blx@tempa{#1}}%
+  \expandafter\blx@collectopts\expandafter{\blx@tempa}{blx@globalopts}{#2}%
+  \@ifnextchar[%]
+    {\blx@defbibopt{#2}}
+    {\blx@defbibopt{#2}[]}}
+
+\long\def\blx@defbibopt#1[#2]#3{%
+  \ifcsundef{KV@blx@opt@ldt@#1}
+    {\ifcsundef{KV@blx@opt@pre@#1}
+       {\ifblank{#2}
+          {\define@key{blx@opt@pre}{#1}{#3}}
+          {\define@key{blx@opt@pre}{#1}[#2]{#3}}}
+       {\blx@err@optdef{#1}}}
+    {\blx@err@optdef{#1}}}
+
+% [<datatype>]{<key>}[<value>]{<code>}
+\newrobustcmd*{\DeclareTypeOption}[2][]{%
+  \ifblank{#1}
+    {\def\blx@tempa{boolean}}
+    {\def\blx@tempa{#1}}%
+    \expandafter\blx@collectopts\expandafter{\blx@tempa}{blx@typeopts}{#2}%
+  \@ifnextchar[%]
+    {\blx@deftypeopt{#2}}
+    {\blx@deftypeopt{#2}[]}}
+
+\long\def\blx@deftypeopt#1[#2]#3{%
+  \ifcsundef{KV@blx@opt@typ@#1}
+    {\ifblank{#2}
+       {\define@key{blx@opt@typ}{#1}{#3}}
+       {\define@key{blx@opt@typ}{#1}[#2]{#3}}}
+    {\blx@err@optdef{#1}}}
+
+% [<datatype>]{<key>}[<value>]{<code>}
+\newrobustcmd*{\DeclareEntryOption}[2][]{%
+  \ifblank{#1}
+    {\def\blx@tempa{boolean}}
+    {\def\blx@tempa{#1}}%
+    \expandafter\blx@collectopts\expandafter{\blx@tempa}{blx@entryopts}{#2}%
+  \@ifnextchar[%]
+    {\blx@defentryopt{#2}}
+    {\blx@defentryopt{#2}[]}}
+
+ \long\def\blx@defentryopt#1[#2]#3{%
+  \ifcsundef{KV@blx@opt@ent@#1}
+    {\ifblank{#2}
+       {\define@key{blx@opt@ent}{#1}{#3}}
+       {\define@key{blx@opt@ent}{#1}[#2]{#3}}}
+    {\blx@err@optdef{#1}}}
+
 % These are internal fields which are not part of the data model but
 % which need to be dealt with along with data model fields in places
 \def\abx@dointernalfields{%
@@ -5111,6 +5119,18 @@
 \def\abx@dobooleans{%
   \do{singletitle}}
 
+% Initialise option datatypes lists
+\global\let\blx@bcf@options@scope@global\@empty
+\global\let\blx@bcf@options@scope@type\@empty
+\global\let\blx@bcf@options@scope@entry\@empty
+\global\let\blx@globalopts@datatypes\@empty
+\global\let\blx@typeopts@datatypes\@empty
+\global\let\blx@entryopts@datatypes\@empty
+\def\do#1{%
+  \global\cslet{blx@globalopts@#1}\@empty
+  \global\cslet{blx@typeopts@#1}\@empty
+  \global\cslet{blx@entryopts@#1}\@empty}
+\docsvlist\blx@datamodel@constant@optiondatatypes
 
 % Name toggles like \ifauthor etc. need to be dynamically created for all
 % name datatypes in the data model and we have to do this here after the
@@ -5135,9 +5155,9 @@
 \appto\blx@blxinit{\appto\blx@TE@hook{\blx@nametogglesite}}
 
 % Define \ifuse<name> options scope for biber
-\def\do#1{\listadd\blx@globalopts{use#1}%
-           \listadd\blx@typeopts{use#1}%
-           \listadd\blx@entryopts{use#1}}
+\def\do#1{\blx@collectopts{boolean}{blx@globalopts}{use#1}%
+           \blx@collectopts{boolean}{blx@typeopts}{use#1}%
+           \blx@collectopts{boolean}{blx@entryopts}{use#1}}
 \dolistcsloop{blx@biber@datamodel@names}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -9244,17 +9264,9 @@
   ~~<bcf:optionscope type="#1">\blx@nl
   #2%
   ~~</bcf:optionscope>\blx@nl}
-\xdef\blx@xml@option@scope#1{%
-  ~~~~<bcf:option>#1</bcf:option>\blx@nl}
+\xdef\blx@xml@option@scope#1#2{%
+  ~~~~<bcf:option datatype="#1">#2</bcf:option>\blx@nl}
 \endgroup
-
-\def\blx@bcf@options@scope{%
-  \blx@xml@options@scope{GLOBAL}{%
-    \forlistloop\blx@xml@option@scope\blx@globalopts}%
-  \blx@xml@options@scope{PER_TYPE}{%
-    \forlistloop\blx@xml@option@scope\blx@typeopts}%
-  \blx@xml@options@scope{PER_ENTRY}{%
-    \forlistloop\blx@xml@option@scope\blx@entryopts}}
 
 \def\blx@bcf@options@global{%
   \blx@xml@comment{GLOBAL}%
@@ -9369,36 +9381,57 @@
      \dolistloop\blx@opts@type}
     {}%
   % options scope
+  \def\do##1{%
+    \begingroup
+    \def\do####1{\xappto\blx@bcf@options@scope@global{\blx@xml@option@scope{##1}{####1}}}%
+    \dolistcsloop{blx@globalopts@##1}%
+    \endgroup}%
+  \dolistloop\blx@globalopts@datatypes
+  \def\do##1{%
+    \begingroup
+    \def\do####1{\xappto\blx@bcf@options@scope@type{\blx@xml@option@scope{##1}{####1}}}%
+    \dolistcsloop{blx@typeopts@##1}%
+    \endgroup}%
+  \dolistloop\blx@typeopts@datatypes
+  \def\do##1{%
+    \begingroup
+    \def\do####1{\xappto\blx@bcf@options@scope@entry{\blx@xml@option@scope{##1}{####1}}}%
+    \dolistcsloop{blx@entryopts@##1}%
+    \endgroup}%
+  \dolistloop\blx@entryopts@datatypes
+
   \eappto\blx@tempa{%
     \blx@xml@comment{BIBLATEX OPTION SCOPE}%
-    \blx@bcf@options@scope}
+    \blx@xml@options@scope{GLOBAL}{\blx@bcf@options@scope@global}%
+    \blx@xml@options@scope{PER_TYPE}{\blx@bcf@options@scope@type}%
+    \blx@xml@options@scope{PER_ENTRY}{\blx@bcf@options@scope@entry}}
   % sourcemap
   \ifbool{sourcemap}
-    {\eappto\blx@tempa{%
+  {\eappto\blx@tempa{%
       \blx@xml@comment{SOURCEMAP}%
       \blx@xml@sourcemap{%
         \ifcsdef{blx@biber@sourcemap@user}
-          {\csuse{blx@biber@sourcemap@user}}
-          {}%
+        {\csuse{blx@biber@sourcemap@user}}
+        {}%
         \ifcsdef{blx@biber@sourcemap@style}
-          {\csuse{blx@biber@sourcemap@style}}
-          {}%
+        {\csuse{blx@biber@sourcemap@style}}
+        {}%
         \ifcsdef{blx@biber@sourcemap@defaults@bibtex}
-          {\csuse{blx@biber@sourcemap@defaults@bibtex}}
-          {}%
+        {\csuse{blx@biber@sourcemap@defaults@bibtex}}
+        {}%
         \ifcsdef{blx@biber@sourcemap@defaults@biblatexml}
-          {\csuse{blx@biber@sourcemap@defaults@biblatexml}}
-          {}%
+        {\csuse{blx@biber@sourcemap@defaults@biblatexml}}
+        {}%
         \ifcsdef{blx@biber@sourcemap@defaults@endnotexml}
-          {\csuse{blx@biber@sourcemap@defaults@endnotexml}}
-          {}%
+        {\csuse{blx@biber@sourcemap@defaults@endnotexml}}
+        {}%
         \ifcsdef{blx@biber@sourcemap@defaults@ris}
-          {\csuse{blx@biber@sourcemap@defaults@ris}}
-          {}%
+        {\csuse{blx@biber@sourcemap@defaults@ris}}
+        {}%
         \ifcsdef{blx@biber@sourcemap@defaults@zoterordfxml}
-          {\csuse{blx@biber@sourcemap@defaults@zoterordfxml}}
-          {}}}}
-    {}%
+        {\csuse{blx@biber@sourcemap@defaults@zoterordfxml}}
+        {}}}}
+  {}%
   % labelalpha template
   \eappto\blx@tempa{%
     \blx@xml@comment{LABELALPHA TEMPLATE}}%
@@ -9736,8 +9769,8 @@
     {\blx@biber@latem{#2}{global}}
     {\forcsvlist{\blx@biber@latem{#2}}{#1}}}
 \@onlypreamble\DeclareLabelalphaTemplate
-\listadd\blx@globalopts{labelalphatemplate}% for passing to the .bcf
-\listadd\blx@typeopts{labelalphatemplate}% for passing to the .bcf
+\blx@collectopts{xml}{blx@globalopts}{labelalphatemplate}% for passing to the .bcf
+\blx@collectopts{xml}{blx@typeopts}{labelalphatemplate}% for passing to the .bcf
 
 \def\blx@biber@latem#1#2{%
   \begingroup
@@ -9897,7 +9930,7 @@
 \def\blx@inherit@ii#1#2{%
   \eappto\blx@tempa{\blx@xml@inherit@type{#1}{#2}{}}}
 
-\listadd\blx@globalopts{inheritance}% for passing to the .bcf
+\blx@collectopts{xml}{blx@globalopts}{inheritance}% for passing to the .bcf
 
 % [<options>]{<source>}{<target>}
 \newcommand*{\blx@inherit@field}[3][]{%
@@ -9975,8 +10008,8 @@
     {\listxadd\blx@sortnamekeyschemes{\blx@biber@snkname}}%
   \endgroup}
 \@onlypreamble\DeclareSortingNamekeyScheme
-\listadd\blx@globalopts{sortingnamekey}% for passing to the .bcf
-\listadd\blx@entryopts{sortnamekeyscheme}% for passing to the .bcf
+\blx@collectopts{xml}{blx@globalopts}{sortingnamekey}% for passing to the .bcf
+\blx@collectopts{string}{blx@entryopts}{sortnamekeyscheme}% for passing to the .bcf
 
 \newcommand*{\blx@sortnk@keypart}[1]{%
   \advance\blx@tempcnta\@ne
@@ -10028,7 +10061,7 @@
   \global\cslet{blx@biber@sorting@#2}\blx@tempa
   \endgroup}
 \@onlypreamble\DeclareSortingScheme
-\listadd\blx@globalopts{sortscheme}% for passing to the .bcf
+\blx@collectopts{xml}{blx@globalopts}{sortscheme}% for passing to the .bcf
 
 \define@key{blx@sortdef@sorting}{locale}{% locale name
   \def\blx@templ{#1}}
@@ -10113,9 +10146,9 @@
        {\forcsvlist\blx@undefpresort{#1}}}%
   \endgroup}
 \@onlypreamble\DeclarePresort
-\listadd\blx@globalopts{presort}% for passing to the .bcf
-\listadd\blx@typeopts{presort}% for passing to the .bcf
-\listadd\blx@entryopts{presort}% for passing to the .bcf
+\blx@collectopts{string}{blx@globalopts}{presort}% for passing to the .bcf
+\blx@collectopts{string}{blx@typeopts}{presort}% for passing to the .bcf
+\blx@collectopts{string}{blx@entryopts}{presort}% for passing to the .bcf
 
 \def\blx@defpresort#1#2{%
   \csxdef{blx@bcf@presort@#2}{\blx@xml@presort{#2}{#1}}}
@@ -10124,7 +10157,7 @@
 
 \newrobustcmd*{\DeclareSortExclusion}[2]{%
   \forcsvlist{\blx@sortexlude{#2}}{#1}}
-\listadd\blx@typeopts{sortexclusion}% for passing to the .bcf
+\blx@collectopts{xml}{blx@typeopts}{sortexclusion}% for passing to the .bcf
 
 \def\blx@sortexlude#1#2{%
   \begingroup
@@ -10154,8 +10187,8 @@
   #2%
   \endgroup}
 \@onlypreamble\DeclareLabelname
-\listadd\blx@globalopts{labelnamespec}% for passing to the .bcf
-\listadd\blx@typeopts{labelnamespec}% for passing to the .bcf
+\blx@collectopts{xml}{blx@globalopts}{labelnamespec}% for passing to the .bcf
+\blx@collectopts{xml}{blx@typeopts}{labelnamespec}% for passing to the .bcf
 
 \newrobustcmd*{\DeclareLabeltitle}[2][]{%
   \begingroup
@@ -10170,8 +10203,8 @@
   #2%
   \endgroup}
 \@onlypreamble\DeclareLabeltitle
-\listadd\blx@globalopts{labeltitlespec}% for passing to the .bcf
-\listadd\blx@typeopts{labeltitlespec}% for passing to the .bcf
+\blx@collectopts{xml}{blx@globalopts}{labeltitlespec}% for passing to the .bcf
+\blx@collectopts{xml}{blx@typeopts}{labeltitlespec}% for passing to the .bcf
 
 \newrobustcmd*{\DeclareLabelyear}[2][]{%
   \blx@warning@noline{%
@@ -10191,8 +10224,8 @@
   #2%
   \endgroup}
 \@onlypreamble\DeclareLabeldate
-\listadd\blx@globalopts{labeldatespec}% for passing to the .bcf
-\listadd\blx@typeopts{labeldatespec}% for passing to the .bcf
+\blx@collectopts{xml}{blx@globalopts}{labeldatespec}% for passing to the .bcf
+\blx@collectopts{xml}{blx@typeopts}{labeldatespec}% for passing to the .bcf
 
 \newcommand*{\blx@ordered@field}[2][]{%
   \let\blx@tempc\@empty
@@ -10287,19 +10320,19 @@
 
 % load-time and preamble
 
-\DeclareBibliographyOption{backend}{
+\DeclareBibliographyOption[string]{backend}{
   \blx@error
     {'backend' is load-time only option}
     {The 'backend' option is load-time only and cannot
       be\MessageBreak set after package loading}}
 
-\DeclareBibliographyOption{debug}[true]{%
+\DeclareBibliographyOption[boolean]{debug}[true]{%
   \settoggle{blx@debug}{#1}}
 
-\DeclareBibliographyOption{loadfiles}[true]{%
+\DeclareBibliographyOption[boolean]{loadfiles}[true]{%
   \settoggle{blx@loadfiles}{#1}}
 
-\DeclareBibliographyOption{mincrossrefs}{%
+\DeclareBibliographyOption[integer]{mincrossrefs}{%
   \ifnum#1<\z@
     \def\blx@mincrossrefs{1}%
     \def\blx@minxrefs{1}%
@@ -10309,12 +10342,12 @@
   \fi}
 \def\blx@minxrefs{2}
 
-\DeclareBibliographyOption{texencoding}{%
+\DeclareBibliographyOption[string]{texencoding}{%
   \ifstrequal{#1}{auto}
     {\undef\blx@texencoding}
     {\def\blx@texencoding{#1}}}
 
-\DeclareBibliographyOption{bibencoding}{%
+\DeclareBibliographyOption[string]{bibencoding}{%
   \ifcsdef{blx@bibenc@#1}
     {\letcs\blx@bibencoding{blx@bibenc@#1}}
     {\def\blx@bibencoding{#1}}}
@@ -10328,11 +10361,11 @@
 \abx@mapinpenc{lutf8}{utf8}
 \abx@mapinpenc{x-ascii}{ascii}
 
-\DeclareBibliographyOption{safeinputenc}[true]{%
+\DeclareBibliographyOption[boolean]{safeinputenc}[true]{%
   \settoggle{blx@safeinputenc}{#1}}
 \newtoggle{blx@safeinputenc}
 
-\DeclareBibliographyOption{sorting}{%
+\DeclareBibliographyOption[string]{sorting}{%
   \def\blx@sorting{#1}%
   \def\blx@refcontext@sorting{#1}}
 
@@ -10346,77 +10379,77 @@
      \def\blx@refcontext@sortingnamekey{global}%
      \xdef\blx@refcontext@context{\blx@refcontext@sorting/\blx@refcontext@sortingnamekey}}
 
-\DeclareBibliographyOption{sortcase}[true]{%
+\DeclareBibliographyOption[boolean]{sortcase}[true]{%
   \settoggle{blx@sortcase}{#1}}
 
-\DeclareBibliographyOption{sortupper}[true]{%
+\DeclareBibliographyOption[boolean]{sortupper}[true]{%
   \settoggle{blx@sortupper}{#1}}
 
-\DeclareBibliographyOption{sortlos}{%
+\DeclareBibliographyOption[string]{sortlos}{%
   \blx@warning@noline{%
     sortlos option is deprecated, use 'sorting' option to \string\printbiblist}}
 
-\DeclareBibliographyOption{maxnames}{%
+\DeclareBibliographyOption[integer]{maxnames}{%
   \numdef\blx@maxcitenames{#1}%
   \numdef\blx@maxbibnames{#1}}
-\DeclareBibliographyOption{minnames}{%
+\DeclareBibliographyOption[integer]{minnames}{%
   \numdef\blx@mincitenames{#1}%
   \numdef\blx@minbibnames{#1}}
-\DeclareTypeOption{maxnames}{%
+\DeclareTypeOption[integer]{maxnames}{%
   \numdef\blx@maxcitenames@type{#1}%
   \numdef\blx@maxbibnames@type{#1}%
   \c@maxnames#1\relax}
-\DeclareTypeOption{minnames}{%
+\DeclareTypeOption[integer]{minnames}{%
   \numdef\blx@mincitenames@type{#1}%
   \numdef\blx@minbibnames@type{#1}%
   \c@minnames#1\relax}
-\DeclareEntryOption{maxnames}{%
+\DeclareEntryOption[integer]{maxnames}{%
   \c@maxnames#1\relax}
-\DeclareEntryOption{minnames}{%
+\DeclareEntryOption[integer]{minnames}{%
   \c@minnames#1\relax}
 
-\DeclareBibliographyOption{maxbibnames}{%
+\DeclareBibliographyOption[integer]{maxbibnames}{%
   \numdef\blx@maxbibnames{#1}}
-\DeclareBibliographyOption{minbibnames}{%
+\DeclareBibliographyOption[integer]{minbibnames}{%
   \numdef\blx@minbibnames{#1}}
-\DeclareTypeOption{maxbibnames}{%
+\DeclareTypeOption[integer]{maxbibnames}{%
   \numdef\blx@maxbibnames@type{#1}%
   \iftoggle{blx@bibliography}
     {\c@maxnames#1\relax}
     {}}
-\DeclareTypeOption{minbibnames}{%
+\DeclareTypeOption[integer]{minbibnames}{%
   \numdef\blx@minbibnames@type{#1}%
   \iftoggle{blx@bibliography}
     {\c@minnames#1\relax}
     {}}
-\DeclareEntryOption{maxbibnames}{%
+\DeclareEntryOption[integer]{maxbibnames}{%
   \iftoggle{blx@bibliography}
     {\c@maxnames#1\relax}
     {}}
-\DeclareEntryOption{minbibnames}{%
+\DeclareEntryOption[integer]{minbibnames}{%
   \iftoggle{blx@bibliography}
     {\c@minnames#1\relax}
     {}}
 
-\DeclareBibliographyOption{maxcitenames}{%
+\DeclareBibliographyOption[integer]{maxcitenames}{%
   \numdef\blx@maxcitenames{#1}}
-\DeclareBibliographyOption{mincitenames}{%
+\DeclareBibliographyOption[integer]{mincitenames}{%
   \numdef\blx@mincitenames{#1}}
-\DeclareTypeOption{maxcitenames}{%
+\DeclareTypeOption[integer]{maxcitenames}{%
   \numdef\blx@maxcitenames@type{#1}%
   \iftoggle{blx@bibliography}
     {}
     {\c@maxnames#1\relax}}
-\DeclareTypeOption{mincitenames}{%
+\DeclareTypeOption[integer]{mincitenames}{%
   \numdef\blx@mincitenames@type{#1}%
   \iftoggle{blx@bibliography}
     {}
     {\c@minnames#1\relax}}
-\DeclareEntryOption{maxcitenames}{%
+\DeclareEntryOption[integer]{maxcitenames}{%
   \iftoggle{blx@bibliography}
     {}
     {\c@maxnames#1\relax}}
-\DeclareEntryOption{mincitenames}{%
+\DeclareEntryOption[integer]{mincitenames}{%
   \iftoggle{blx@bibliography}
     {}
     {\c@minnames#1\relax}}
@@ -10430,19 +10463,19 @@
 \appto\blx@checkoptions@entry{%
   \blx@maxmin@cnt{maxnames}{minnames}\c@maxnames\c@minnames}
 
-\DeclareBibliographyOption{maxitems}{%
+\DeclareBibliographyOption[integer]{maxitems}{%
   \numdef\blx@maxitems{#1}}
-\DeclareBibliographyOption{minitems}{%
+\DeclareBibliographyOption[integer]{minitems}{%
   \numdef\blx@minitems{#1}}
-\DeclareTypeOption{maxitems}{%
+\DeclareTypeOption[integer]{maxitems}{%
   \numdef\blx@maxitems@type{#1}%
   \c@maxitems#1\relax}
-\DeclareTypeOption{minitems}{%
+\DeclareTypeOption[integer]{minitems}{%
   \numdef\blx@minitems@type{#1}%
   \c@minitems#1\relax}
-\DeclareEntryOption{maxitems}{%
+\DeclareEntryOption[integer]{maxitems}{%
   \c@maxitems#1\relax}
-\DeclareEntryOption{minitems}{%
+\DeclareEntryOption[integer]{minitems}{%
   \c@minitems#1\relax}
 
 \appto\blx@checkoptions@global{%
@@ -10452,17 +10485,17 @@
 \appto\blx@checkoptions@entry{%
   \blx@maxmin@cnt{maxitems}{minitems}\c@maxitems\blx@minitems}
 
-\DeclareBibliographyOption{maxalphanames}{%
+\DeclareBibliographyOption[integer]{maxalphanames}{%
   \numdef\blx@maxalphanames{#1}}
-\DeclareBibliographyOption{minalphanames}{%
+\DeclareBibliographyOption[integer]{minalphanames}{%
   \numdef\blx@minalphanames{#1}}
-\DeclareTypeOption{maxalphanames}{%
+\DeclareTypeOption[integer]{maxalphanames}{%
   \numdef\blx@maxalphanames{#1}}
-\DeclareTypeOption{minalphanames}{%
+\DeclareTypeOption[integer]{minalphanames}{%
   \numdef\blx@minalphanames{#1}}
-\DeclareEntryOption{maxalphanames}{%
+\DeclareEntryOption[integer]{maxalphanames}{%
   \numdef\blx@maxalphanames{#1}}
-\DeclareEntryOption{minalphanames}{%
+\DeclareEntryOption[integer]{minalphanames}{%
   \numdef\blx@minalphanames{#1}}
 
 \appto\blx@checkoptions@global{%
@@ -10498,7 +10531,7 @@
      #3=#4}
     {}}
 
-\DeclareBibliographyOption{terseinits}[true]{%
+\DeclareBibliographyOption[boolean]{terseinits}[true]{%
   \ifstrequal{#1}{true}
     {\toggletrue{blx@terseinits}
      \renewrobustcmd*{\bibinitperiod}{}
@@ -10510,37 +10543,37 @@
      \renewrobustcmd*{\bibinithyphendelim}{\adddot\mbox{-}}}}
 
 % Legacy for giveninits
-\DeclareBibliographyOption{firstinits}[true]{%
+\DeclareBibliographyOption[boolean]{firstinits}[true]{%
   \blx@warning@noline{%
     'firstinits' option is deprecated, use 'giveninits' instead}%
   \settoggle{blx@giveninits}{#1}}
 
 % Legacy for sortgiveninits
-\DeclareBibliographyOption{sortfirstinits}[true]{%
+\DeclareBibliographyOption[boolean]{sortfirstinits}[true]{%
   \blx@warning@noline{%
     'sortfirstinits' option is deprecated, use 'sortgiveninits' instead}%
   \settoggle{blx@sortgiveninits}{#1}}
 
-\DeclareBibliographyOption{giveninits}[true]{%
+\DeclareBibliographyOption[boolean]{giveninits}[true]{%
   \settoggle{blx@giveninits}{#1}}
 
-\DeclareBibliographyOption{sortgiveninits}[true]{%
+\DeclareBibliographyOption[boolean]{sortgiveninits}[true]{%
   \settoggle{blx@sortgiveninits}{#1}}
 
-\DeclareBibliographyOption{abbreviate}[true]{%
+\DeclareBibliographyOption[boolean]{abbreviate}[true]{%
   \ifstrequal{#1}{true}
     {\def\abx@str{abx@sstr}}
     {\def\abx@str{abx@lstr}}}
 
-\DeclareBibliographyOption{dateabbrev}[true]{%
+\DeclareBibliographyOption[boolean]{dateabbrev}[true]{%
   \ifstrequal{#1}{true}
     {\let\abx@bibmonth\blx@imc@bibsstring}
     {\let\abx@bibmonth\blx@imc@biblstring}}
 
-\DeclareBibliographyOption{sortlocale}{%
+\DeclareBibliographyOption[string]{sortlocale}{%
   \edef\blx@sortlocale{\detokenize{#1}}}
 
-\DeclareBibliographyOption{language}{%
+\DeclareBibliographyOption[string]{language}{%
   \togglefalse{blx@autolangbib}%
   \togglefalse{blx@autolangcite}%
   \ifboolexpr{
@@ -10569,15 +10602,15 @@
       {Language '#1' not supported}
       {Failed to find a matching '#1.lbx' file}}}}
 
-\DeclareBibliographyOption{clearlang}[true]{%
+\DeclareBibliographyOption[boolean]{clearlang}[true]{%
   \settoggle{blx@clearlang}{#1}}
 
-\DeclareBibliographyOption{babel}{%
+\DeclareBibliographyOption[string]{babel}{%
   \blx@warning@noline{%
     'babel' option is deprecated, use 'autolang' instead}%
   \blx@autolang@i{#1}}
 
-\DeclareBibliographyOption{autolang}{%
+\DeclareBibliographyOption[string]{autolang}{%
   \blx@autolang@i{#1}}
 
 \def\blx@autolang@i#1{%
@@ -10608,11 +10641,11 @@
   \def\blx@hook@initlang{\@quotereset\@ne}%
   \def\blx@hook@endlang{\blx@postpunct}}
 
-\DeclareBibliographyOption{indexing}[true]{%
+\DeclareBibliographyOption[boolean]{indexing}[true]{%
   \blx@opt@index{#1}}
-\DeclareTypeOption{indexing}[true]{%
+\DeclareTypeOption[boolean]{indexing}[true]{%
   \blx@opt@index{#1}}
-\DeclareEntryOption{indexing}[true]{%
+\DeclareEntryOption[boolean]{indexing}[true]{%
   \blx@opt@index{#1}}
 \def\blx@opt@index#1{%
   \ifcsdef{blx@opt@index@#1}
@@ -10631,14 +10664,14 @@
   \togglefalse{blx@citeindex}%
   \toggletrue{blx@bibindex}}
 
-\DeclareBibliographyOption{sortcites}[true]{%
+\DeclareBibliographyOption[boolean]{sortcites}[true]{%
   \ifstrequal{#1}{true}
     {\let\blx@thecitesort\blx@citesort
      \let\blx@thenotecheck\blx@notecheck}
     {\let\blx@thecitesort\blx@citenosort
      \let\blx@thenotecheck\relax}}
 
-\DeclareBibliographyOption{hyperref}[true]{%
+\DeclareBibliographyOption[boolean]{hyperref}[true]{%
   \ifcsdef{blx@opt@hyperref@#1}
     {\letcs\blx@hyperref{blx@opt@hyperref@#1}}
     {\blx@err@invopt{hyperref=#1}{}}}
@@ -10646,7 +10679,7 @@
 \def\blx@opt@hyperref@true{1}
 \def\blx@opt@hyperref@auto{2}
 
-\DeclareBibliographyOption{backref}[true]{%
+\DeclareBibliographyOption[boolean]{backref}[true]{%
   \ifstrequal{#1}{true}
     {\let\blx@backref\blx@addbackref
      \let\abx@aux@backref\blx@aux@backref
@@ -10655,7 +10688,7 @@
      \let\abx@aux@backref\@gobblefive
      \boolfalse{backtracker}}}
 
-\DeclareBibliographyOption{backrefsetstyle}{%
+\DeclareBibliographyOption[string]{backrefsetstyle}{%
   \ifcsdef{blx@opt@backrefsetstyle@#1}
     {\letcs\blx@backrefsetstyle{blx@opt@backrefsetstyle@#1}}
     {\blx@err@invopt{backrefsetstyle=#1}{}}}
@@ -10680,7 +10713,7 @@
       references. 'pageanchor=true' is required}%
   \fi}
 
-\DeclareBibliographyOption{block}{%
+\DeclareBibliographyOption[string]{block}{%
   \ifcsdef{blx@opt@block@#1}
     {\csuse{blx@opt@block@#1}}
     {\blx@err@invopt{block=#1}{}}}
@@ -10705,7 +10738,7 @@
   \def\newblockpunct{%
     \unspace\penalty-9\relax\space}}
 
-\DeclareBibliographyOption{pagetracker}[true]{%
+\DeclareBibliographyOption[boolean]{pagetracker}[true]{%
   \ifcsdef{blx@opt@pagetracker@#1}
     {\csuse{blx@opt@pagetracker@#1}}
     {\blx@err@invopt{pagetracker=#1}{}}}
@@ -10738,7 +10771,7 @@
     \blx@opt@pagetracker@page
   \fi}
 
-\DeclareBibliographyOption{citecounter}[true]{%
+\DeclareBibliographyOption[boolean]{citecounter}[true]{%
   \ifcsdef{blx@opt@citecounter@#1}
     {\csuse{blx@opt@citecounter@#1}}
     {\blx@err@invopt{citecounter=#1}{}}}
@@ -10760,7 +10793,7 @@
   \let\abx@aux@count\@gobbletwo
   \let\abx@aux@fncount\@gobbletwo}
 
-\DeclareBibliographyOption{citetracker}[true]{%
+\DeclareBibliographyOption[boolean]{citetracker}[true]{%
   \ifcsdef{blx@opt@citetracker@#1}
     {\csuse{blx@opt@citetracker@#1}}
     {\blx@err@invopt{citetracker=#1}{}}}
@@ -10791,7 +10824,7 @@
     \blx@ifcitesingle{\blx@citetracker@context}{}}%
   \booltrue{citetracker}}
 
-\DeclareBibliographyOption{ibidtracker}[true]{%
+\DeclareBibliographyOption[boolean]{ibidtracker}[true]{%
   \ifcsdef{blx@opt@ibidtracker@#1}
     {\csuse{blx@opt@ibidtracker@#1}}
     {\blx@err@invopt{ibidtracker=#1}{}}}
@@ -10820,7 +10853,7 @@
   \let\blx@ibidreset\blx@ibidreset@context
   \booltrue{citetracker}}
 
-\DeclareBibliographyOption{idemtracker}[true]{%
+\DeclareBibliographyOption[boolean]{idemtracker}[true]{%
   \ifcsdef{blx@opt@idemtracker@#1}
     {\csuse{blx@opt@idemtracker@#1}}
     {\blx@err@invopt{idemtracker=#1}{}}}
@@ -10849,7 +10882,7 @@
   \let\blx@idemreset\blx@idemreset@context
   \booltrue{citetracker}}
 
-\DeclareBibliographyOption{opcittracker}[true]{%
+\DeclareBibliographyOption[boolean]{opcittracker}[true]{%
   \ifcsdef{blx@opt@opcittracker@#1}
     {\csuse{blx@opt@opcittracker@#1}}
     {\blx@err@invopt{opcittracker=#1}{}}}
@@ -10878,7 +10911,7 @@
   \let\blx@opcitreset\blx@opcitreset@context
   \booltrue{citetracker}}
 
-\DeclareBibliographyOption{loccittracker}[true]{%
+\DeclareBibliographyOption[boolean]{loccittracker}[true]{%
   \ifcsdef{blx@opt@loccittracker@#1}
     {\csuse{blx@opt@loccittracker@#1}}
     {\blx@err@invopt{loccittracker=#1}{}}}
@@ -10907,7 +10940,7 @@
   \let\blx@loccitreset\blx@loccitreset@context
   \booltrue{citetracker}}
 
-\DeclareBibliographyOption{parentracker}[true]{%
+\DeclareBibliographyOption[boolean]{parentracker}[true]{%
   \ifstrequal{#1}{true}
     {\let\bibopenparen\blx@bibopenparen
      \let\bibcloseparen\blx@bibcloseparen
@@ -10918,18 +10951,18 @@
      \protected\def\bibopenbracket{\bibleftbracket}%
      \protected\def\bibclosebracket{\bibrightbracket}}}
 
-\DeclareBibliographyOption{maxparens}{%
+\DeclareBibliographyOption[integer]{maxparens}{%
   \ifnumless{#1}{1}
     {\blx@err@invopt{maxparens=#1}{}}
     {\setcounter{maxparens}{#1}}}
 
-\DeclareBibliographyOption{date}{%
+\DeclareBibliographyOption[string]{date}{%
   \ifcsdef{mkbibrange#1}
     {\protected\def\blx@imc@printdate{\csuse{mkbibrange#1}{}}%
      \protected\def\blx@imc@printdateextra{\csuse{mkbibrange#1extra}{}}}
     {\blx@err@invopt{date=#1}{}}}
 
-\DeclareBibliographyOption{datelabel}{%
+\DeclareBibliographyOption[string]{datelabel}{%
   \ifcsdef{mkbibrange#1}
     {\protected\def\blx@imc@printdatelabel{%
        \blx@imc@iffieldundef{year}
@@ -10941,31 +10974,31 @@
          {\csuse{mkbibrange#1extra}{}}}}
     {\blx@err@invopt{datelabel=#1}{}}}
 
-\DeclareBibliographyOption{urldate}{%
+\DeclareBibliographyOption[string]{urldate}{%
   \ifcsdef{mkbibrange#1}
     {\protected\def\blx@imc@printurldate{\csuse{mkbibrange#1}{url}}}
     {\blx@err@invopt{urldate=#1}{}}}
 
-\DeclareBibliographyOption{eventdate}{%
+\DeclareBibliographyOption[string]{eventdate}{%
   \ifcsdef{mkbibrange#1}
     {\protected\def\blx@imc@printeventdate{\csuse{mkbibrange#1}{event}}}
     {\blx@err@invopt{eventdate=#1}{}}}
 
-\DeclareBibliographyOption{origdate}{%
+\DeclareBibliographyOption[string]{origdate}{%
   \ifcsdef{mkbibrange#1}
     {\protected\def\blx@imc@printorigdate{\csuse{mkbibrange#1}{orig}}}
     {\blx@err@invopt{origdate=#1}{}}}
 
-\DeclareBibliographyOption{alldates}{%
+\DeclareBibliographyOption[string]{alldates}{%
   \ExecuteBibliographyOptions{%
     date=#1,datelabel=#1,urldate=#1,eventdate=#1,origdate=#1}}
 
-\DeclareBibliographyOption{datezeros}[true]{%
+\DeclareBibliographyOption[boolean]{datezeros}[true]{%
   \ifstrequal{#1}{true}
     {\let\blx@imc@mkdatezeros\@firstofone}
     {\let\blx@imc@mkdatezeros\blx@imc@stripzeros}}
 
-\DeclareBibliographyOption{autocite}{%
+\DeclareBibliographyOption[string]{autocite}{%
   \ifcsundef{blx@acite@#1}
     {\blx@error
        {Autocite command '#1' undefined}
@@ -10974,7 +11007,7 @@
     {\letcs\autocite{blx@acite@#1}%
      \letcs\autocites{blx@macite@#1}}}
 
-\DeclareBibliographyOption{notetype}{%
+\DeclareBibliographyOption[string]{notetype}{%
   \ifcsdef{blx@opt@notetype@#1}
     {\blx@notetype\csuse{blx@opt@notetype@#1}}
     {\blx@err@invopt{notetype=#1}{}}}
@@ -10982,62 +11015,62 @@
 \let\blx@opt@notetype@footonly\@ne
 \let\blx@opt@notetype@endonly\tw@
 
-\DeclareBibliographyOption{autopunct}[true]{%
+\DeclareBibliographyOption[boolean]{autopunct}[true]{%
   \ifstrequal{#1}{true}
     {\DeclareAutoPunctuation{.,;:!?}}
     {\DeclareAutoPunctuation{}}}
 
-\DeclareBibliographyOption{punctfont}[true]{%
+\DeclareBibliographyOption[boolean]{punctfont}[true]{%
   \ifstrequal{#1}{true}
     {\let\blx@ifpuncthook\@firstoftwo}
     {\let\blx@ifpuncthook\@secondoftwo}}
 
-\DeclareBibliographyOption{labelnumber}[true]{%
+\DeclareBibliographyOption[boolean]{labelnumber}[true]{%
   \settoggle{blx@labelnumber}{#1}%
   \iftoggle{blx@labelnumber}
     {}
     {\setkeys{blx@opt@pre}{defernumbers=false}}}
-\DeclareTypeOption{labelnumber}[true]{%
+\DeclareTypeOption[boolean]{labelnumber}[true]{%
   \settoggle{blx@labelnumber}{#1}}
 
-\DeclareBibliographyOption{labelalpha}[true]{%
+\DeclareBibliographyOption[boolean]{labelalpha}[true]{%
   \settoggle{blx@labelalpha}{#1}}
-\DeclareTypeOption{labelalpha}[true]{%
+\DeclareTypeOption[boolean]{labelalpha}[true]{%
   \settoggle{blx@labelalpha}{#1}}
 
-\DeclareBibliographyOption{labeltitle}[true]{%
+\DeclareBibliographyOption[boolean]{labeltitle}[true]{%
   \settoggle{blx@labeltitle}{#1}}
-\DeclareTypeOption{labeltitle}[true]{%
+\DeclareTypeOption[boolean]{labeltitle}[true]{%
   \settoggle{blx@labeltitle}{#1}}
 
-\DeclareBibliographyOption{labeltitleyear}[true]{%
+\DeclareBibliographyOption[boolean]{labeltitleyear}[true]{%
   \settoggle{blx@labeltitleyear}{#1}}
-\DeclareTypeOption{labeltitleyear}[true]{%
+\DeclareTypeOption[boolean]{labeltitleyear}[true]{%
   \settoggle{blx@labeltitleyear}{#1}}
 
-\DeclareBibliographyOption{labeldate}[true]{%
+\DeclareBibliographyOption[boolean]{labeldate}[true]{%
   \settoggle{blx@labeldate}{#1}}
-\DeclareTypeOption{labeldate}[true]{%
+\DeclareTypeOption[boolean]{labeldate}[true]{%
   \settoggle{blx@labeldate}{#1}}
 
-\DeclareBibliographyOption{labelyear}[true]{%
+\DeclareBibliographyOption[boolean]{labelyear}[true]{%
   \blx@warning@noline{%
     'labelyear' option is deprecated, use 'labeldate' instead}%
   \settoggle{blx@labeldate}{#1}}
-\DeclareTypeOption{labelyear}[true]{%
+\DeclareTypeOption[boolean]{labelyear}[true]{%
   \blx@warning@noline{%
     'labelyear' option is deprecated, use 'labeldate' instead}%
   \settoggle{blx@labeldate}{#1}}
 
-\DeclareBibliographyOption{uniquelist}[true]{%
+\DeclareBibliographyOption[boolean]{uniquelist}[true]{%
   \ifcsdef{blx@opt@uniquelist@#1}
     {\letcs\blx@uniquelist{blx@opt@uniquelist@#1}}
     {\blx@err@invopt{uniquelist=#1}{}}}
-\DeclareTypeOption{uniquelist}[true]{%
+\DeclareTypeOption[boolean]{uniquelist}[true]{%
   \ifcsdef{blx@opt@uniquelist@#1}
     {\letcs\blx@uniquelist{blx@opt@uniquelist@#1}}
     {\blx@err@invopt{uniquelist=#1}{}}}
-\DeclareEntryOption{uniquelist}[true]{%
+\DeclareEntryOption[boolean]{uniquelist}[true]{%
   \ifcsdef{blx@opt@uniquelist@#1}
     {\letcs\blx@uniquelist{blx@opt@uniquelist@#1}}
     {\blx@err@invopt{uniquelist=#1}{}}}
@@ -11045,15 +11078,15 @@
 \def\blx@opt@uniquelist@true{1}
 \def\blx@opt@uniquelist@minyear{2}
 
-\DeclareBibliographyOption{uniquename}[true]{%
+\DeclareBibliographyOption[boolean]{uniquename}[true]{%
   \ifcsdef{blx@opt@uniquename@#1}
     {\letcs\blx@uniquename{blx@opt@uniquename@#1}}
     {\blx@err@invopt{uniquename=#1}{}}}
-\DeclareTypeOption{uniquename}[true]{%
+\DeclareTypeOption[boolean]{uniquename}[true]{%
   \ifcsdef{blx@opt@uniquename@#1}
     {\letcs\blx@uniquename{blx@opt@uniquename@#1}}
     {\blx@err@invopt{uniquename=#1}{}}}
-\DeclareEntryOption{uniquename}[true]{%
+\DeclareEntryOption[boolean]{uniquename}[true]{%
   \ifcsdef{blx@opt@uniquename@#1}
     {\letcs\blx@uniquename{blx@opt@uniquename@#1}}
     {\blx@err@invopt{uniquename=#1}{}}}
@@ -11066,12 +11099,12 @@
 \def\blx@opt@uniquename@mininit{5}
 \def\blx@opt@uniquename@minfull{6}
 
-\DeclareBibliographyOption{singletitle}[true]{%
+\DeclareBibliographyOption[boolean]{singletitle}[true]{%
   \settoggle{blx@singletitle}{#1}}
-\DeclareTypeOption{singletitle}[true]{%
+\DeclareTypeOption[boolean]{singletitle}[true]{%
   \settoggle{blx@singletitle}{#1}}
 
-\DeclareBibliographyOption{defernumbers}[true]{%
+\DeclareBibliographyOption[boolean]{defernumbers}[true]{%
   \settoggle{blx@defernumbers}{#1}%
   \iftoggle{blx@defernumbers}
     {\setkeys{blx@opt@pre}{labelnumber}%
@@ -11080,7 +11113,7 @@
     {\let\blx@thelabelnumber\relax
      \let\abx@aux@number\@gobblefive}}
 
-\DeclareBibliographyOption{refsection}{%
+\DeclareBibliographyOption[string]{refsection}{%
   \ifcsdef{blx@opt@refsection@#1}
     {\letcs\blx@refsecreset@level{blx@opt@refsection@#1}}
     {\blx@err@invopt{refsection=#1}{}}}
@@ -11102,7 +11135,7 @@
     \blx@refpatch@sect{subsection}{\newrefsection}{2}%
   \fi}
 
-\DeclareBibliographyOption{refsegment}{%
+\DeclareBibliographyOption[string]{refsegment}{%
   \ifcsdef{blx@opt@refsegment@#1}
     {\letcs\blx@refsegreset@level{blx@opt@refsegment@#1}}
     {\blx@err@invopt{refsegment=#1}{}}}
@@ -11134,7 +11167,7 @@
     \blx@refpatch@sect{subsection}{\newrefsegment}{2}%
   \fi}
 
-\DeclareBibliographyOption{citereset}{%
+\DeclareBibliographyOption[string]{citereset}{%
   \ifcsdef{blx@opt@citereset@#1}
     {\letcs\blx@citereset@level{blx@opt@citereset@#1}}
     {\blx@err@invopt{citereset=#1}{}}}
@@ -11156,58 +11189,58 @@
     \blx@refpatch@sect{subsection}{\citereset\blx@inf@creset}{2}%
   \fi}
 
-\DeclareBibliographyOption{bibwarn}[true]{%
+\DeclareBibliographyOption[boolean]{bibwarn}[true]{%
   \ifstrequal{#1}{true}
     {\let\blx@bbl@thewarn\blx@bbl@warn}
     {\let\blx@bbl@thewarn\@gobble}}
 
 % Name field options
 \def\do#1{%
-  \DeclareBibliographyOption{use#1}[true]{%
+  \DeclareBibliographyOption[boolean]{use#1}[true]{%
     \settoggle{blx@use#1}{##1}}
-  \DeclareTypeOption{use#1}[true]{%
+  \DeclareTypeOption[boolean]{use#1}[true]{%
     \settoggle{blx@use#1}{##1}}
-  \DeclareEntryOption{use#1}[true]{%
+  \DeclareEntryOption[boolean]{use#1}[true]{%
     \settoggle{blx@use#1}{##1}}}
 \dolistcsloop{blx@biber@datamodel@names}
 
 % Entry options
-\DeclareBibliographyOption{useprefix}[true]{%
+\DeclareBibliographyOption[boolean]{useprefix}[true]{%
   \settoggle{blx@useprefix}{#1}}
-\DeclareTypeOption{useprefix}[true]{%
+\DeclareTypeOption[boolean]{useprefix}[true]{%
   \settoggle{blx@useprefix}{#1}}
-\DeclareEntryOption{useprefix}[true]{%
+\DeclareEntryOption[boolean]{useprefix}[true]{%
   \settoggle{blx@useprefix}{#1}}
 
-\DeclareTypeOption{skipbib}[true]{%
+\DeclareTypeOption[boolean]{skipbib}[true]{%
   \settoggle{blx@skipbib}{#1}}
-\DeclareEntryOption{skipbib}[true]{%
+\DeclareEntryOption[boolean]{skipbib}[true]{%
   \settoggle{blx@skipbib}{#1}}
 
-\DeclareTypeOption{skiplos}{%
+\DeclareTypeOption[boolean]{skiplos}{%
   \blx@warning@noline{%
     skiplos option is deprecated, use 'skipbiblist' instead}%
   \settoggle{blx@skipbiblist}{#1}}
-\DeclareEntryOption{skiplos}{%
+\DeclareEntryOption[boolean]{skiplos}{%
   \blx@warning@noline{%
     skiplos option is deprecated, use 'skipbiblist' instead}%
   \settoggle{blx@skipbiblist}{#1}}
 
-\DeclareTypeOption{skipbiblist}[true]{%
+\DeclareTypeOption[boolean]{skipbiblist}[true]{%
   \settoggle{blx@skipbiblist}{#1}}
-\DeclareEntryOption{skipbiblist}[true]{%
+\DeclareEntryOption[boolean]{skipbiblist}[true]{%
   \settoggle{blx@skipbiblist}{#1}}
 
-\DeclareTypeOption{skiplab}[true]{%
+\DeclareTypeOption[boolean]{skiplab}[true]{%
   \settoggle{blx@skiplab}{#1}}
-\DeclareEntryOption{skiplab}[true]{%
+\DeclareEntryOption[boolean]{skiplab}[true]{%
   \settoggle{blx@skiplab}{#1}}
 
-\DeclareTypeOption{dataonly}[true]{%
+\DeclareTypeOption[boolean]{dataonly}[true]{%
   \settoggle{blx@skipbib}{#1}%
   \settoggle{blx@skipbiblist}{#1}%
   \settoggle{blx@skiplab}{#1}}
-\DeclareEntryOption{dataonly}[true]{%
+\DeclareEntryOption[boolean]{dataonly}[true]{%
   \settoggle{blx@skipbib}{#1}%
   \settoggle{blx@skipbiblist}{#1}%
   \settoggle{blx@skiplab}{#1}}
@@ -11407,7 +11440,7 @@
   \renewcommand*{\DeclareDatamodelFields}[2][]{\blx@warn@dm{DeclareDatamodelFields}}
   \renewcommand*{\DeclareDatamodelEntryfields}[2][]{\blx@warn@dm{DeclareDatamodelEntryfields}}
   \renewcommand*{\DeclareDatamodelConstraints}[2][]{\blx@warn@dm{DeclareDatamodelConstraints}}
-  \renewcommand*{\DeclareDatamodelConstant}[2][]{\blx@warn@dm{DeclareDatamodelConstant}}
+  \renewcommand*{\DeclareDatamodelConstant}[3][]{\blx@warn@dm{DeclareDatamodelConstant}}
   \AtBeginDocument{%
     \let\do\undef
     \blx@dopreamblecmds
