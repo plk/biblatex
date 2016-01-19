@@ -957,6 +957,9 @@
 \def\blx@warn@conflopt#1{%
   \blx@warning{Conflicting options.\MessageBreak#1}}
 
+\def\blx@warn@badoptdt#1{%
+  \blx@warning{Invalid option datatype '#1'.\MessageBreak Defaulting to 'boolean'}}
+
 \def\blx@warn@depropt#1{%
   \blx@warning{Deprecated option.\MessageBreak Ignoring '#1'}}
 
@@ -5042,7 +5045,10 @@
 \newrobustcmd*{\DeclareBibliographyOption}[2][]{%
   \ifblank{#1}
     {\def\blx@tempa{boolean}}
-    {\def\blx@tempa{#1}}%
+    {\ifcsundef{blx@globalopts@#1}
+       {\blx@warn@badoptdt{#1}%
+        \def\blx@tempa{boolean}}
+       {\def\blx@tempa{#1}}}%
   \expandafter\blx@collectopts\expandafter{\blx@tempa}{blx@globalopts}{#2}%
   \@ifnextchar[%]
     {\blx@defbibopt{#2}}
@@ -5061,7 +5067,10 @@
 \newrobustcmd*{\DeclareTypeOption}[2][]{%
   \ifblank{#1}
     {\def\blx@tempa{boolean}}
-    {\def\blx@tempa{#1}}%
+    {\ifcsundef{blx@typeopts@#1}
+       {\blx@warn@badoptdt{#1}%
+        \def\blx@tempa{boolean}}
+       {\def\blx@tempa{#1}}}%
     \expandafter\blx@collectopts\expandafter{\blx@tempa}{blx@typeopts}{#2}%
   \@ifnextchar[%]
     {\blx@deftypeopt{#2}}
@@ -5078,7 +5087,10 @@
 \newrobustcmd*{\DeclareEntryOption}[2][]{%
   \ifblank{#1}
     {\def\blx@tempa{boolean}}
-    {\def\blx@tempa{#1}}%
+    {\ifcsundef{blx@entryopts@#1}
+       {\blx@warn@badoptdt{#1}%
+        \def\blx@tempa{boolean}}
+       {\def\blx@tempa{#1}}}%
     \expandafter\blx@collectopts\expandafter{\blx@tempa}{blx@entryopts}{#2}%
   \@ifnextchar[%]
     {\blx@defentryopt{#2}}
@@ -5130,7 +5142,7 @@
   \global\cslet{blx@globalopts@#1}\@empty
   \global\cslet{blx@typeopts@#1}\@empty
   \global\cslet{blx@entryopts@#1}\@empty}
-\docsvlist\blx@datamodel@constant@optiondatatypes
+\expandafter\expandafter\expandafter\docsvlist\expandafter\expandafter\expandafter{\csname blx@datamodel@constant@optiondatatypes\endcsname}
 
 % Name toggles like \ifauthor etc. need to be dynamically created for all
 % name datatypes in the data model and we have to do this here after the
