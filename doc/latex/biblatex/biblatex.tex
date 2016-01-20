@@ -7037,11 +7037,19 @@ Only use this \cmd{field} specification if it is a name list field with \texttt{
 
 \intitem{names}
 
-By default, for name list fields, the number of names considered when building the label obeys the \cnt{maxalphanames}\slash \cnt{minalphanames} truncation. This option can be used to override this with an explicit upper limit of how many names to consider. This is useful if you have some very long name lists which might result in a very long label.
+By default, for name list fields, the names used ranges from the first name to the \cnt{maxalphanames}\slash \cnt{minalphanames} truncation. This option can be used to override this with an explicit range of names to consider. The plus <+> sign is a special end of range marker denoting the truncation point of max/minalphanames. The range seperator can be any number of characters with the Unicode Dash property. For example:
 
-\choitem[none]{lang}{<language specifier>}
+\begin{lstlisting}[language=xml]
+name=3 -> Use first 3 names in the name list
+name={2-3} -> Use second and thirds names only
+name={-3} -> Same as 1-3
+name={2-} -> Use all names starting with the second name (ignoring max/minalphanames truncation)
+name={2-+} -> Use all names starting with the second name (respecting max/minalphanames truncation)
+\end{lstlisting}
 
-Specifies the \sty{babel}/\sty{polyglossia} language variant of a field if the datasource you are using supports this. The default, if no \prm{lang} option is set, this means to use the field variant in the datasource which has no explicit language defined.
+\boolitem[false]{noalphaothers}
+
+By default, \cmd{labelalphaothers} is appended to label parts derived from name lists if there are more names in the list than are shown in the label part. This option can be used to disable the default behaviour.
 
 \end{optionlist*}
 
@@ -11376,6 +11384,7 @@ This revision history is a list of changes relevant to users of this package. Ch
 \begin{changelog}
 
 \begin{release}{3.3}{2016-}
+\item Added \opt{noalphaothers} and enhanced name range selection in \cmd{DeclareLabelalphaTemplate}\see{aut:ctm:lab}
 \item Added \cmd{DeclareDatamodelConstant}\see{aut:ctm:dm}\BiberOnlyMark
 \item Renamed \opt{firstinits} and \opt{sortfirstinits}
 \item Added \cmd{DeclareSortingNamekeyScheme}\see{aut:ctm:srt}
