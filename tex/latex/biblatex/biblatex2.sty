@@ -5026,13 +5026,19 @@
 \global\let\blx@bcf@options@scope@global\@empty
 \global\let\blx@bcf@options@scope@type\@empty
 \global\let\blx@bcf@options@scope@entry\@empty
+\global\let\blx@bcf@options@scope@namelist\@empty
+\global\let\blx@bcf@options@scope@name\@empty
 \global\let\blx@globalopts@datatypes\@empty
 \global\let\blx@typeopts@datatypes\@empty
 \global\let\blx@entryopts@datatypes\@empty
+\global\let\blx@namelistopts@datatypes\@empty
+\global\let\blx@nameopts@datatypes\@empty
 \def\do#1{%
   \global\cslet{blx@globalopts@#1}\@empty
   \global\cslet{blx@typeopts@#1}\@empty
-  \global\cslet{blx@entryopts@#1}\@empty}
+  \global\cslet{blx@entryopts@#1}\@empty
+  \global\cslet{blx@namelistopts@#1}\@empty
+  \global\cslet{blx@nameopts@#1}\@empty}
 \expandafter\expandafter\expandafter\docsvlist\expandafter\expandafter\expandafter{\csname blx@datamodel@constant@optiondatatypes\endcsname}
 
 % Helper for collecting options and datatypes
@@ -5045,6 +5051,15 @@
     {}
     {\listcsgadd{#2@#1}{#3}}}
 
+% useprefix namelist/name scope
+\blx@collectopts{boolean}{blx@namelistopts}{useprefix}% for passing to bcf
+\blx@collectopts{boolean}{blx@nameopts}{useprefix}% for passing to the .bcf
+
+% sortnamekeyscheme namelist/name scope
+\blx@collectopts{string}{blx@namelistopts}{sortnamekeyscheme}% for passing to bcf
+\blx@collectopts{string}{blx@nameopts}{sortnamekeyscheme}% for passing to the .bcf
+
+% Misc globalopts
 \blx@collectopts{xml}{blx@globalopts}{datamodel}% for passing to the .bcf
 \blx@collectopts{string}{blx@globalopts}{controlversion}% for passing to the .bcf
 
@@ -5055,6 +5070,9 @@
 \blx@collectopts{string}{blx@globalopts}{sortalphaothers}% for passing to the .bcf
 \blx@collectopts{string}{blx@typeopts}{sortalphaothers}% for passing to the .bcf
 
+% The Declare*Option macros are for options which need to be visible
+% to biblatex. For options which only biber needs to see, they can be
+% passed to the .bcf directly using \blx@collectopts
 % [<datatype>]{<key>}[<value>]{<code>}
 \newrobustcmd*{\DeclareBibliographyOption}[2][]{%
   \ifblank{#1}
@@ -9394,30 +9412,49 @@
      \dolistloop\blx@opts@type}
     {}%
   % options scope
+  % GLOBAL
   \def\do##1{%
     \begingroup
     \def\do####1{\xappto\blx@bcf@options@scope@global{\blx@xml@option@scope{##1}{####1}}}%
     \dolistcsloop{blx@globalopts@##1}%
     \endgroup}%
   \dolistloop\blx@globalopts@datatypes
+  % ENTRYTYPE
   \def\do##1{%
     \begingroup
     \def\do####1{\xappto\blx@bcf@options@scope@type{\blx@xml@option@scope{##1}{####1}}}%
     \dolistcsloop{blx@typeopts@##1}%
     \endgroup}%
   \dolistloop\blx@typeopts@datatypes
+  % ENTRY
   \def\do##1{%
     \begingroup
     \def\do####1{\xappto\blx@bcf@options@scope@entry{\blx@xml@option@scope{##1}{####1}}}%
     \dolistcsloop{blx@entryopts@##1}%
     \endgroup}%
   \dolistloop\blx@entryopts@datatypes
+  % NAMELIST
+  \def\do##1{%
+    \begingroup
+    \def\do####1{\xappto\blx@bcf@options@scope@namelist{\blx@xml@option@scope{##1}{####1}}}%
+    \dolistcsloop{blx@namelistopts@##1}%
+    \endgroup}%
+  \dolistloop\blx@entryopts@datatypes
+  % NAME
+  \def\do##1{%
+    \begingroup
+    \def\do####1{\xappto\blx@bcf@options@scope@name{\blx@xml@option@scope{##1}{####1}}}%
+    \dolistcsloop{blx@nameopts@##1}%
+    \endgroup}%
+  \dolistloop\blx@entryopts@datatypes
 
   \eappto\blx@tempa{%
     \blx@xml@comment{BIBLATEX OPTION SCOPE}%
     \blx@xml@options@scope{GLOBAL}{\blx@bcf@options@scope@global}%
-    \blx@xml@options@scope{PER_TYPE}{\blx@bcf@options@scope@type}%
-    \blx@xml@options@scope{PER_ENTRY}{\blx@bcf@options@scope@entry}}
+    \blx@xml@options@scope{ENTRYTYPE}{\blx@bcf@options@scope@type}%
+    \blx@xml@options@scope{ENTRY}{\blx@bcf@options@scope@entry}%
+    \blx@xml@options@scope{NAMELIST}{\blx@bcf@options@scope@namelist}%
+    \blx@xml@options@scope{NAME}{\blx@bcf@options@scope@name}}
   % sourcemap
   \ifbool{sourcemap}
   {\eappto\blx@tempa{%
