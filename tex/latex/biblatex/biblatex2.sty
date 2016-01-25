@@ -5618,9 +5618,12 @@
   \csgdef{blx@keyalias@\the\c@refsection @#1}{\detokenize{#2}}%
   \listcsgadd{blx@keyaliases@\the\c@refsection}{#1}}
 
-% blx@slists@<section>@<scheme> - a list of entries in a scheme in a section
+% blx@slists@<section>@<scheme> - a list of entries in a scheme in a
+%                                 section (for tracking bibliography lists,
+%                                 obeys skipbiblist)
 % blx@slistsbib@<section>@<scheme> - a list of entries in a scheme in a
-%                                      section apart from skipbib entries
+%                                    section (for tracking bibliographies,
+%                                    obeys skipbib)
 
 % {<entrykey>}{<entrytype>}{<options>}
 \protected\def\blx@bbl@entry#1#2#3{%
@@ -5643,7 +5646,7 @@
     {}
     {\blx@addpageref{\abx@field@entrykey}}%
   \nottoggle{blx@setonly}
-    {\listcsxadd{blx@slists@\the\c@refsection @\blx@slist@name}{\abx@field@entrykey}}
+    {}
     {\global\toggletrue{blx@addset}%
      \toggletrue{blx@skipbib}%
      \toggletrue{blx@skipbiblist}%
@@ -5656,7 +5659,8 @@
        {}}
     {}%
   \nottoggle{blx@skipbiblist}
-    {\blx@bbl@labelfields}
+    {\blx@bbl@labelfields
+     \listcsxadd{blx@slists@\the\c@refsection @\blx@slist@name}{\abx@field@entrykey}}
     {}%
   \nottoggle{blx@skiplab}
     {\iftoggle{blx@labelnumber}
@@ -5687,13 +5691,13 @@
 % available in the current context sortlist.
 \def\blx@addset{%
   \begingroup
-  \letcs\blx@tempa{blx@slists@\the\c@refsection @\blx@refcontext@context}%
-  \global\cslet{blx@slists@\the\c@refsection @\blx@refcontext@context}\@empty
+  \letcs\blx@tempa{blx@slistsbib@\the\c@refsection @\blx@refcontext@context}%
+  \global\cslet{blx@slistsbib@\the\c@refsection @\blx@refcontext@context}\@empty
   \forlistloop\blx@addset@i\blx@tempa
   \endgroup}
 
 \def\blx@addset@i#1{%
-  \listcsgadd{blx@slists@\the\c@refsection @\blx@refcontext@context}{#1}%
+  \listcsgadd{blx@slistsbib@\the\c@refsection @\blx@refcontext@context}{#1}%
   \ifcsdef{blx@setp@\the\c@refsection @#1}
     {\expandafter\expandafter\expandafter\forcsvlist
      \expandafter\expandafter\expandafter\blx@addset@ii
@@ -5702,7 +5706,7 @@
     {}}
 
 \def\blx@addset@ii#1{%
-  \listcsgadd{blx@slists@\the\c@refsection @\blx@refcontext@context}{#1}}
+  \listcsgadd{blx@slistsbib@\the\c@refsection @\blx@refcontext@context}{#1}}
 
 \def\blx@bbl@labelfields{%
   \def\do##1{%
@@ -6044,7 +6048,7 @@
   \begingroup
   \def\blx@slist@name{#1}%
   % This macro (\key) will only be called in sortlists of type "list"
-  \def\key##1{\listcsxadd{blx@slistsbib@\the\c@refsection @#1}{\detokenize{##1}}}}
+  \def\key##1{\listcsxadd{blx@slists@\the\c@refsection @#1}{\detokenize{##1}}}}
 
 \def\blx@bbl@endslist{%
   \csnumgdef{blx@labelnumber@\the\c@refsection @\blx@slist@name}{0}%
@@ -6560,7 +6564,7 @@
   \togglefalse{blx@omitnumbers}%
   \setkeys{blx@bib2}{#1}% ... now we have correct \blx@tempa, set rest of options
   \blx@rest@actives
-  \csxappto{blx@biber@slistsbib}{%
+  \csxappto{blx@biber@slists}{%
     \blx@xml@slist{\blx@refcontext@context}{entry}{\blx@tempe}{\blx@refcontext@sorting}{\blx@refcontext@sortingnamekey}{\blx@tempd}{}}%
   \ifdefvoid\blx@tempa
     {\blx@warn@bibempty\endgroup}
@@ -6933,9 +6937,9 @@
       \csuse{blx@biber@sorting@\blx@tempc}}}%
   \setkeys{blx@biblist1}{#1}% Set section only, if present ...
   \blx@rest@actives
-  \ifcsvoid{blx@slistsbib@\blx@tempe @#2/\blx@refcontext@sortingnamekey}
+  \ifcsvoid{blx@slists@\blx@tempe @#2/\blx@refcontext@sortingnamekey}
     {}
-    {\letcs\blx@tempa{blx@slistsbib@\blx@tempe @#2/\blx@refcontext@sortingnamekey}}%
+    {\letcs\blx@tempa{blx@slists@\blx@tempe @#2/\blx@refcontext@sortingnamekey}}%
   \blx@safe@actives
   \setkeys{blx@biblist2}{#1}% ... now we have correct \blx@tempa, set rest of options
   \ifundef\blx@bibcheck
@@ -6944,7 +6948,7 @@
       {}}
     {}%
   \blx@rest@actives
-  \csxappto{blx@biber@slistsbib}{%
+  \csxappto{blx@biber@slists}{%
     \blx@xml@slist{#2/\blx@refcontext@sortingnamekey}{list}{\blx@tempe}{\blx@tempc}{\blx@refcontext@sortingnamekey}{\blx@tempd}{\csuse{blx@biber@biblistfilters@#2}}}%
   \ifdefvoid\blx@tempa
     {\blx@warn@biblistempty{#2}\endgroup}
@@ -7533,8 +7537,8 @@
     {\blx@bibreq{*}%
      \global\csletcs
        {blx@segm@\the\c@refsection @\the\c@refsegment}
-       {blx@slists@\the\c@refsection @\blx@refcontext@context}%
-      \ifcsvoid{blx@slists@\the\c@refsection @\blx@refcontext@context}
+       {blx@slistsbib@\the\c@refsection @\blx@refcontext@context}%
+      \ifcsvoid{blx@slistsbib@\the\c@refsection @\blx@refcontext@context}
        {\blx@logreq@active{}}
        {}}
     {}}
@@ -7608,7 +7612,7 @@
       \multicitedelim
     \fi
   \fi
-  \letcs\blx@tempb{blx@slists@\the\c@refsection @\blx@refcontext@context}%
+  \letcs\blx@tempb{blx@slistsbib@\the\c@refsection @\blx@refcontext@context}%
   \blx@thecitesort
   \edef\blx@tempa{\endgroup
     \c@citecount\z@
@@ -9591,7 +9595,7 @@
   \AfterEndDocument{%
     \blx@auxwrite\blx@bcfout{}{%
       \blx@xml@endsection\blx@nl
-      \csuse{blx@biber@slistsbib}%
+      \csuse{blx@biber@slists}%
       \blx@xml@endfile}%
     \immediate\closeout\blx@bcfout}}
 
