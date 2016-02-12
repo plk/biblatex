@@ -665,50 +665,87 @@
 % NAME LIST FORMATS
 % ------------------------------------------------------------------
 
-% Arguments passed to formatting directives for name lists:
-%
-% #1 = family name(s)
-% #2 = family name(s) (initials)
-% #3 = given name(s)
-% #4 = given name(s) (initials)
-% #5 = detachable name prefix
-% #6 = detachable name prefix (initials)
-% #7 = detachable name suffix
-% #8 = detachable name suffix (initials)
-
 % Formatting directives for name lists
 % ------------------------------------------------------------------
 
+% Define namepart keys from datamodel constant
+% \blx@namepart@<namepart> - namepart
+% \blx@namepart@<namepart>i - namepart initial
+\def\do#1{%
+  \define@key{blx@opt@namepart}{#1}{\csdef{blx@namepart@#1}{##1}}%
+  \define@key{blx@opt@namepart}{#1_i}{\csdef{blx@namepart@#1i}{##1}}}
+\expandafter\docsvlist\expandafter{\blx@datamodel@constant@nameparts}
+
 \DeclareNameAlias{first-last}{given-family}% legacy alias
 \DeclareNameFormat{given-family}{%
+  \setkeys{blx@opt@namepart}{#1}%
   \ifgiveninits
-    {\usebibmacro{name:given-family}{#1}{#4}{#5}{#7}}
-    {\usebibmacro{name:given-family}{#1}{#3}{#5}{#7}}%
+    {\usebibmacro{name:given-family}
+      {\blx@namepart@family}
+      {\blx@namepart@giveni}
+      {\blx@namepart@prefix}
+      {\blx@namepart@suffix}}
+    {\usebibmacro{name:given-family}
+      {\blx@namepart@family}
+      {\blx@namepart@given}
+      {\blx@namepart@prefix}
+      {\blx@namepart@suffix}}%
   \usebibmacro{name:andothers}}
 
 \DeclareNameAlias{last-first}{family-given}% legacy alias
 \DeclareNameFormat{family-given}{%
+  \setkeys{blx@opt@namepart}{#1}%
   \ifgiveninits
-    {\usebibmacro{name:family-given}{#1}{#4}{#5}{#7}}
-    {\usebibmacro{name:family-given}{#1}{#3}{#5}{#7}}%
+    {\usebibmacro{name:family-given}
+      {\blx@namepart@family}
+      {\blx@namepart@giveni}
+      {\blx@namepart@prefix}
+      {\blx@namepart@suffix}}
+    {\usebibmacro{name:family-given}
+      {\blx@namepart@family}
+      {\blx@namepart@given}
+      {\blx@namepart@prefix}
+      {\blx@namepart@suffix}}%
   \usebibmacro{name:andothers}}
 
 \DeclareNameAlias{last-first/first-last}{family-given/given-family}% legacy alias
 \DeclareNameFormat{family-given/given-family}{%
+  \setkeys{blx@opt@namepart}{#1}%
   \ifnumequal{\value{listcount}}{1}
     {\ifgiveninits
-       {\usebibmacro{name:family-given}{#1}{#4}{#5}{#7}}
-       {\usebibmacro{name:family-given}{#1}{#3}{#5}{#7}}%
-     \ifblank{#3#5}
+       {\usebibmacro{name:family-given}
+         {\blx@namepart@family}
+         {\blx@namepart@giveni}
+         {\blx@namepart@prefix}
+         {\blx@namepart@suffix}}
+       {\usebibmacro{name:family-given}
+         {\blx@namepart@family}
+         {\blx@namepart@given}
+         {\blx@namepart@prefix}
+         {\blx@namepart@suffix}}%
+     \ifblank{\blx@namepart@given\blx@namepart@prefix}
        {}
        {\usebibmacro{name:revsdelim}}}
     {\ifgiveninits
-       {\usebibmacro{name:given-family}{#1}{#4}{#5}{#7}}
-       {\usebibmacro{name:given-family}{#1}{#3}{#5}{#7}}}%
+       {\usebibmacro{name:given-family}
+         {\blx@namepart@family}
+         {\blx@namepart@giveni}
+         {\blx@namepart@prefix}
+         {\blx@namepart@suffix}}
+       {\usebibmacro{name:given-family}
+         {\blx@namepart@family}
+         {\blx@namepart@given}
+         {\blx@namepart@prefix}
+         {\blx@namepart@suffix}}}%
   \usebibmacro{name:andothers}}
 
 \DeclareNameFormat{initsonly}{%
-  \usebibmacro{name:given-family}{#2}{#4}{#6}{#8}%
+  \setkeys{blx@opt@namepart}{#1}%
+  \usebibmacro{name:given-family}
+    {\blx@namepart@familyi}
+    {\blx@namepart@giveni}
+    {\blx@namepart@prefixi}
+    {\blx@namepart@suffixi}%
   \usebibmacro{name:andothers}}
 
 % Fallback used by \printnames
@@ -722,14 +759,31 @@
 % Used in some citations
 
 \DeclareNameFormat{labelname}{%
+  \setkeys{blx@opt@namepart}{#1}%
   \ifcase\value{uniquename}%
-    \usebibmacro{name:family}{#1}{#3}{#5}{#7}%
+    \usebibmacro{name:family}
+      {\blx@namepart@family}
+      {\blx@namepart@given}
+      {\blx@namepart@prefix}
+      {\blx@namepart@suffix}%
   \or
     \ifuseprefix
-      {\usebibmacro{name:given-family}{#1}{#4}{#5}{#8}}
-      {\usebibmacro{name:given-family}{#1}{#4}{#6}{#8}}%
+      {\usebibmacro{name:given-family}
+        {\blx@namepart@family}
+        {\blx@namepart@giveni}
+        {\blx@namepart@prefix}
+        {\blx@namepart@suffixi}}
+      {\usebibmacro{name:given-family}
+        {\blx@namepart@family}
+        {\blx@namepart@giveni}
+        {\blx@namepart@prefixi}
+        {\blx@namepart@suffixi}}%
   \or
-    \usebibmacro{name:given-family}{#1}{#3}{#5}{#7}%
+    \usebibmacro{name:given-family}
+      {\blx@namepart@family}
+      {\blx@namepart@given}
+      {\blx@namepart@prefix}
+      {\blx@namepart@suffix}%
   \fi
   \usebibmacro{name:andothers}}
 
@@ -910,24 +964,19 @@
 % INDEX FORMATS FOR NAME LISTS
 % ------------------------------------------------------------------
 
-% Argments passed to indexing directives for name lists:
-%
-% #1 = family name(s)
-% #2 = family name(s) (initials)
-% #3 = given name(s)
-% #4 = given name(s) (initials)
-% #5 = detachable name prefix
-% #6 = detachable name prefix (initials)
-% #7 = detachable name suffix
-% #8 = detachable name suffix (initials)
-
 % Indexing directives for name lists
 % ------------------------------------------------------------------
 
 % The fallback used by \indexnames
 
 \DeclareIndexNameFormat{default}{%
-  \usebibmacro{index:name}{\index}{#1}{#3}{#5}{#7}}
+  \setkeys{blx@opt@namepart}{#1}%
+  \usebibmacro{index:name}
+    {\index}
+    {\blx@namepart@family}
+    {\blx@namepart@given}
+    {\blx@namepart@prefix}
+    {\blx@namepart@suffix}}
 
 % Used in citations
 
