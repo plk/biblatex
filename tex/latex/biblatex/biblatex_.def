@@ -723,12 +723,9 @@
          {\blx@namepart@given}
          {\blx@namepart@prefix}
          {\blx@namepart@suffix}}%
-       \ifboolexpr{
-         test {\ifdefvoid{\blx@namepart@given}}
-         and
-         test {\ifdefvoid{\blx@namepart@prefix}}}
-         {}
-         {\usebibmacro{name:revsdelim}}}
+     \ifempty{\blx@namepart@given\blx@namepart@prefix}
+       {}
+       {\usebibmacro{name:revsdelim}}}
     {\ifgiveninits
        {\usebibmacro{name:given-family}
          {\blx@namepart@family}
@@ -826,7 +823,7 @@
   \ifuseprefix
     {\usebibmacro{name:delim}{#3#1}%
      \usebibmacro{name:hook}{#3#1}%
-     \ifblank{#3}
+     \ifempty{#3}
        {}
        {\ifcapital
           {\mkbibnameprefix{\MakeCapital{#3}}\isdot}
@@ -843,14 +840,14 @@
 \newbibmacro*{name:given-family}[4]{%
   \usebibmacro{name:delim}{#2#3#1}%
   \usebibmacro{name:hook}{#2#3#1}%
-  \ifblank{#2}{}{\mkbibnamegiven{#2}\isdot\bibnamedelimd}%
-  \ifblank{#3}{}{%
+  \ifempty{#2}{}{\mkbibnamegiven{#2}\isdot\bibnamedelimd}%
+  \ifempty{#3}{}{%
     \mkbibnameprefix{#3}\isdot
     \ifprefchar
       {}
       {\ifuseprefix{\bibnamedelimc}{\bibnamedelimd}}}%
   \mkbibnamefamily{#1}\isdot
-  \ifblank{#4}{}{\bibnamedelimd\mkbibnameaffix{#4}\isdot}}
+  \ifempty{#4}{}{\bibnamedelimd\mkbibnameaffix{#4}\isdot}}
 \newbibmacro*{name:first-last}[4]{% legacy alias
   \blx@warning@noline{%
     'name:first-last' is deprecated, please use 'name:given-family'}%
@@ -860,21 +857,21 @@
   \ifuseprefix
     {\usebibmacro{name:delim}{#3#1}%
      \usebibmacro{name:hook}{#3#1}%
-     \ifblank{#3}{}{%
+     \ifempty{#3}{}{%
        \ifcapital
          {\mkbibnameprefix{\MakeCapital{#3}}\isdot}
          {\mkbibnameprefix{#3}\isdot}%
        \ifprefchar{}{\bibnamedelimc}}%
      \mkbibnamefamily{#1}\isdot
-     \ifblank{#4}{}{\bibnamedelimd\mkbibnameaffix{#4}\isdot}%
-     \ifblank{#2}{}{\revsdnamepunct\bibnamedelimd\mkbibnamegiven{#2}\isdot}}
+     \ifempty{#4}{}{\bibnamedelimd\mkbibnameaffix{#4}\isdot}%
+     \ifempty{#2}{}{\revsdnamepunct\bibnamedelimd\mkbibnamegiven{#2}\isdot}}
     {\usebibmacro{name:delim}{#1}%
      \usebibmacro{name:hook}{#1}%
      \mkbibnamefamily{#1}\isdot
-     \ifblank{#4}{}{\bibnamedelimd\mkbibnameaffix{#4}\isdot}%
-     \ifblank{#2#3}{}{\revsdnamepunct}%
-     \ifblank{#2}{}{\bibnamedelimd\mkbibnamegiven{#2}\isdot}%
-     \ifblank{#3}{}{\bibnamedelimd\mkbibnameprefix{#3}\isdot}}}
+     \ifempty{#4}{}{\bibnamedelimd\mkbibnameaffix{#4}\isdot}%
+     \ifempty{#2#3}{}{\revsdnamepunct}%
+     \ifempty{#2}{}{\bibnamedelimd\mkbibnamegiven{#2}\isdot}%
+     \ifempty{#3}{}{\bibnamedelimd\mkbibnameprefix{#3}\isdot}}}
 \newbibmacro*{name:last-first}[4]{% legacy alias
   \blx@warning@noline{%
     'name:last-first' is deprecated, please use 'name:family-given'}%
@@ -996,15 +993,13 @@
 
 % When generating an index entry, we need to test which parts of a
 % name are actually available to prevent spurious punctuation and
-% spaces. Since those parts which are not available yield an empty
-% argument, we can use the \ifblank test from etoolbox.sty to analyze
-% the name.
+% spaces.
 %
 % Note that the standard LaTeX \index command simply writes its
 % argument to the .idx file without preventing expansion. This means
-% that all \ifblank tests are expanded on the way and will not end
+% that all \ifblank etc. tests are expanded on the way and will not end
 % up in the index. The index package, however, prevents expansion.
-% This would lead to \ifblank ending up in the .idx file. To avoid
+% This would lead to \ifblank etc. ending up in the .idx file. To avoid
 % that, we preprocess the index entry inside an \edef. We use
 % \unexpanded to protect the \index command and the actual data from
 % expansion. This definition will work with both index.sty and the
