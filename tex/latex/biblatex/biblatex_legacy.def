@@ -1,5 +1,5 @@
 % -*- mode: LaTeX -*-
-\ProvidesFile{biblatex.def}
+\ProvidesFile{biblatex_legacy.def}
 
 % ------------------------------------------------------------------
 % FORMATTING COMMANDS
@@ -665,87 +665,50 @@
 % NAME LIST FORMATS
 % ------------------------------------------------------------------
 
+% Arguments passed to formatting directives for name lists:
+%
+% #1 = family name(s)
+% #2 = family name(s) (initials)
+% #3 = given name(s)
+% #4 = given name(s) (initials)
+% #5 = detachable name prefix
+% #6 = detachable name prefix (initials)
+% #7 = detachable name suffix
+% #8 = detachable name suffix (initials)
+
 % Formatting directives for name lists
 % ------------------------------------------------------------------
 
-% Define namepart keys from datamodel constant
-% \blx@namepart@<namepart> - namepart
-% \blx@namepart@<namepart>i - namepart initial
-\def\do#1{%
-  \define@key{blx@opt@namepart}{#1}{\csdef{blx@namepart@#1}{##1}}%
-  \define@key{blx@opt@namepart}{#1_i}{\csdef{blx@namepart@#1i}{##1}}}
-\expandafter\docsvlist\expandafter{\blx@datamodel@constant@nameparts}
-
 \DeclareNameAlias{first-last}{given-family}% legacy alias
 \DeclareNameFormat{given-family}{%
-  \setkeys{blx@opt@namepart}{#1}%
   \ifgiveninits
-    {\usebibmacro{name:given-family}
-      {\blx@namepart@family}
-      {\blx@namepart@giveni}
-      {\blx@namepart@prefix}
-      {\blx@namepart@suffix}}
-    {\usebibmacro{name:given-family}
-      {\blx@namepart@family}
-      {\blx@namepart@given}
-      {\blx@namepart@prefix}
-      {\blx@namepart@suffix}}%
+    {\usebibmacro{name:given-family}{#1}{#4}{#5}{#7}}
+    {\usebibmacro{name:given-family}{#1}{#3}{#5}{#7}}%
   \usebibmacro{name:andothers}}
 
 \DeclareNameAlias{last-first}{family-given}% legacy alias
 \DeclareNameFormat{family-given}{%
-  \setkeys{blx@opt@namepart}{#1}%
   \ifgiveninits
-    {\usebibmacro{name:family-given}
-      {\blx@namepart@family}
-      {\blx@namepart@giveni}
-      {\blx@namepart@prefix}
-      {\blx@namepart@suffix}}
-    {\usebibmacro{name:family-given}
-      {\blx@namepart@family}
-      {\blx@namepart@given}
-      {\blx@namepart@prefix}
-      {\blx@namepart@suffix}}%
+    {\usebibmacro{name:family-given}{#1}{#4}{#5}{#7}}
+    {\usebibmacro{name:family-given}{#1}{#3}{#5}{#7}}%
   \usebibmacro{name:andothers}}
 
 \DeclareNameAlias{last-first/first-last}{family-given/given-family}% legacy alias
 \DeclareNameFormat{family-given/given-family}{%
-  \setkeys{blx@opt@namepart}{#1}%
   \ifnumequal{\value{listcount}}{1}
     {\ifgiveninits
-       {\usebibmacro{name:family-given}
-         {\blx@namepart@family}
-         {\blx@namepart@giveni}
-         {\blx@namepart@prefix}
-         {\blx@namepart@suffix}}
-       {\usebibmacro{name:family-given}
-         {\blx@namepart@family}
-         {\blx@namepart@given}
-         {\blx@namepart@prefix}
-         {\blx@namepart@suffix}}%
-     \ifblank{\blx@namepart@given\blx@namepart@prefix}
+       {\usebibmacro{name:family-given}{#1}{#4}{#5}{#7}}
+       {\usebibmacro{name:family-given}{#1}{#3}{#5}{#7}}%
+     \ifblank{#3#5}
        {}
        {\usebibmacro{name:revsdelim}}}
     {\ifgiveninits
-       {\usebibmacro{name:given-family}
-         {\blx@namepart@family}
-         {\blx@namepart@giveni}
-         {\blx@namepart@prefix}
-         {\blx@namepart@suffix}}
-       {\usebibmacro{name:given-family}
-         {\blx@namepart@family}
-         {\blx@namepart@given}
-         {\blx@namepart@prefix}
-         {\blx@namepart@suffix}}}%
+       {\usebibmacro{name:given-family}{#1}{#4}{#5}{#7}}
+       {\usebibmacro{name:given-family}{#1}{#3}{#5}{#7}}}%
   \usebibmacro{name:andothers}}
 
 \DeclareNameFormat{initsonly}{%
-  \setkeys{blx@opt@namepart}{#1}%
-  \usebibmacro{name:given-family}
-    {\blx@namepart@familyi}
-    {\blx@namepart@giveni}
-    {\blx@namepart@prefixi}
-    {\blx@namepart@suffixi}%
+  \usebibmacro{name:given-family}{#2}{#4}{#6}{#8}%
   \usebibmacro{name:andothers}}
 
 % Fallback used by \printnames
@@ -759,31 +722,14 @@
 % Used in some citations
 
 \DeclareNameFormat{labelname}{%
-  \setkeys{blx@opt@namepart}{#1}%
   \ifcase\value{uniquename}%
-    \usebibmacro{name:family}
-      {\blx@namepart@family}
-      {\blx@namepart@given}
-      {\blx@namepart@prefix}
-      {\blx@namepart@suffix}%
+    \usebibmacro{name:family}{#1}{#3}{#5}{#7}%
   \or
     \ifuseprefix
-      {\usebibmacro{name:given-family}
-        {\blx@namepart@family}
-        {\blx@namepart@giveni}
-        {\blx@namepart@prefix}
-        {\blx@namepart@suffixi}}
-      {\usebibmacro{name:given-family}
-        {\blx@namepart@family}
-        {\blx@namepart@giveni}
-        {\blx@namepart@prefixi}
-        {\blx@namepart@suffixi}}%
+      {\usebibmacro{name:given-family}{#1}{#4}{#5}{#8}}
+      {\usebibmacro{name:given-family}{#1}{#4}{#6}{#8}}%
   \or
-    \usebibmacro{name:given-family}
-      {\blx@namepart@family}
-      {\blx@namepart@given}
-      {\blx@namepart@prefix}
-      {\blx@namepart@suffix}%
+    \usebibmacro{name:given-family}{#1}{#3}{#5}{#7}%
   \fi
   \usebibmacro{name:andothers}}
 
@@ -964,19 +910,24 @@
 % INDEX FORMATS FOR NAME LISTS
 % ------------------------------------------------------------------
 
+% Argments passed to indexing directives for name lists:
+%
+% #1 = family name(s)
+% #2 = family name(s) (initials)
+% #3 = given name(s)
+% #4 = given name(s) (initials)
+% #5 = detachable name prefix
+% #6 = detachable name prefix (initials)
+% #7 = detachable name suffix
+% #8 = detachable name suffix (initials)
+
 % Indexing directives for name lists
 % ------------------------------------------------------------------
 
 % The fallback used by \indexnames
 
 \DeclareIndexNameFormat{default}{%
-  \setkeys{blx@opt@namepart}{#1}%
-  \usebibmacro{index:name}
-    {\index}
-    {\blx@namepart@family}
-    {\blx@namepart@given}
-    {\blx@namepart@prefix}
-    {\blx@namepart@suffix}}
+  \usebibmacro{index:name}{\index}{#1}{#3}{#5}{#7}}
 
 % Used in citations
 
@@ -1058,492 +1009,6 @@
 \newbibmacro*{index:name:subentry}[7]{%
   \usebibmacro{index:entry}{#1}{%
     \mkbibindexname{#2}{#3}{#4}{#5}\mkbibindexsubentry{#6}{#7}}}
-
-% ------------------------------------------------------------------
-% Driver sourcemaps
-% ------------------------------------------------------------------
-
-\DeclareDriverSourcemap[datatype=bibtex]{
-  \map{
-    \step[fieldset=day, null]
-  }
-  \map{
-    \step[typesource=conference, typetarget=inproceedings]
-    \step[typesource=electronic, typetarget=online]
-    \step[typesource=www,        typetarget=online]
-  }
-  \map{
-    \step[typesource=mastersthesis, typetarget=thesis, final]
-    \step[fieldset=type,            fieldvalue=mathesis]
-  }
-  \map{
-    \step[typesource=phdthesis, typetarget=thesis, final]
-    \step[fieldset=type,        fieldvalue=phdthesis]
-  }
-  \map{
-    \step[typesource=techreport, typetarget=report, final]
-    \step[fieldset=type,         fieldvalue=techreport]
-  }
-  \map{
-    \step[fieldsource=hyphenation,   fieldtarget=langid]
-    \step[fieldsource=address,       fieldtarget=location]
-    \step[fieldsource=school,        fieldtarget=institution]
-    \step[fieldsource=annote,        fieldtarget=annotation]
-    \step[fieldsource=archiveprefix, fieldtarget=eprinttype]
-    \step[fieldsource=journal,       fieldtarget=journaltitle]
-    \step[fieldsource=primaryclass,  fieldtarget=eprintclass]
-    \step[fieldsource=key,           fieldtarget=sortkey]
-    \step[fieldsource=pdf,           fieldtarget=file]
-  }
-}
-
-\DeclareDriverSourcemap[datatype=ris]{
-  \map{
-    \step[typesource=ART,    typetarget=artwork]
-    \step[typesource=BILL,   typetarget=jurisdiction]
-    \step[typesource=BOOK,   typetarget=book]
-    \step[typesource=CHAP,   typetarget=inbook]
-    \step[typesource=COMP,   typetarget=software]
-    \step[typesource=CONF,   typetarget=proceedings]
-    \step[typesource=GEN,    typetarget=misc]
-    \step[typesource=JFULL,  typetarget=article]
-    \step[typesource=JOUR,   typetarget=article]
-    \step[typesource=MGZN,   typetarget=misc]
-    \step[typesource=MPCT,   typetarget=movie]
-    \step[typesource=NEWS,   typetarget=misc]
-    \step[typesource=PAMP,   typetarget=misc]
-    \step[typesource=PAT,    typetarget=patent]
-    \step[typesource=PCOMM,  typetarget=misc]
-    \step[typesource=RPRT,   typetarget=report]
-    \step[typesource=SER,    typetarget=misc]
-    \step[typesource=SLIDE,  typetarget=misc]
-    \step[typesource=SOUND,  typetarget=audio]
-    \step[typesource=STAT,   typetarget=legal]
-    \step[typesource=THES,   typetarget=thesis]
-    \step[typesource=UNBILL, typetarget=jurisdiction]
-    \step[typesource=UNPB,   typetarget=unpublished]
-  }
-  \map{
-    \step[fieldsource=Y1,       fieldtarget=date]
-    \step[fieldsource=PY,       fieldtarget=date]
-    \step[fieldsource=Y2,       fieldtarget=eventdate]
-    \step[fieldsource=A1,       fieldtarget=author]
-    \step[fieldsource=AU,       fieldtarget=author]
-    \step[fieldsource=A2,       fieldtarget=editor]
-    \step[fieldsource=A3,       fieldtarget=editor]
-    \step[fieldsource=ED,       fieldtarget=editor]
-    \step[fieldsource=SPEP,     fieldtarget=pages]
-    \step[fieldsource=N1,       fieldtarget=note]
-    \step[fieldsource=N2,       fieldtarget=abstract]
-    \step[fieldsource=AB,       fieldtarget=abstract]
-    \step[fieldsource=JO,       fieldtarget=journaltitle]
-    \step[fieldsource=JF,       fieldtarget=journaltitle]
-    \step[fieldsource=JA,       fieldtarget=shortjournal]
-    \step[fieldsource=VL,       fieldtarget=volume]
-    \step[fieldsource=IS,       fieldtarget=issue]
-    \step[fieldsource=CP,       fieldtarget=issue]
-    \step[fieldsource=CY,       fieldtarget=location]
-    \step[fieldsource=SN,       fieldtarget=isbn]
-    \step[fieldsource=PB,       fieldtarget=publisher]
-    \step[fieldsource=KW,       fieldtarget=keywords]
-    \step[fieldsource=TI,       fieldtarget=title]
-    \step[fieldsource=U1,       fieldtarget=usera]
-    \step[fieldsource=U2,       fieldtarget=userb]
-    \step[fieldsource=U3,       fieldtarget=userc]
-    \step[fieldsource=U4,       fieldtarget=userd]
-    \step[fieldsource=U5,       fieldtarget=usere]
-    \step[fieldsource=UR,       fieldtarget=url]
-    \step[fieldsource=L1,       fieldtarget=file]
-  }
-}
-
-% ------------------------------------------------------------------
-% META-FIELDS
-% ------------------------------------------------------------------
-
-\DeclareLabelname{%
-  \field{shortauthor}
-  \field{author}
-  \field{shorteditor}
-  \field{editor}
-  \field{translator}
-}
-
-\DeclareLabeldate{%
-  \field{date}
-  \field{eventdate}
-  \field{origdate}
-  \field{urldate}
-  \literal{nodate}
-}
-
-\DeclareLabeltitle{%
-  \field{shorttitle}
-  \field{title}
-}
-
-% ------------------------------------------------------------------
-% LABELALPHA TEMPLATE
-% ------------------------------------------------------------------
-
-\DeclareLabelalphaTemplate{
-  \labelelement{
-    \field[final]{shorthand}
-    \field{label}
-    \field[strwidth=3,strside=left,ifnames=1,pcompound=true]{labelname}
-    \field[strwidth=1,strside=left,pcompound=true]{labelname}
-  }
-  \labelelement{
-    \field[strwidth=2,strside=right]{year}    
-  }
-}
-
-% ------------------------------------------------------------------
-% SORTING
-% ------------------------------------------------------------------
-
-\DeclareSortingNamekeyScheme{
-  \keypart{
-    \namepart[use=true]{prefix}
-  }
-  \keypart{
-    \namepart{family}
-  }
-  \keypart{
-    \namepart{given}
-  }
-  \keypart{
-    \namepart{suffix}
-  }
-  \keypart{
-    \namepart[use=false]{prefix}
-  }
-}
-
-\DeclarePresort{mm}
-
-\DeclareSortingScheme{shorthand}{
-  \sort[final]{
-    \field{sortshorthand}
-  }
-  \sort{
-    \field{shorthand}
-  }
-}
-
-\DeclareSortingScheme{none}{
-  \sort{\citeorder}
-}
-
-\DeclareSortingScheme{debug}{
-  \sort{
-    \field{entrykey}
-  }
-}
-
-\DeclareSortingScheme{nty}{
-  \sort{
-    \field{presort}
-  }
-  \sort[final]{
-    \field{sortkey}
-  }
-  \sort{
-    \field{sortname}
-    \field{author}
-    \field{editor}
-    \field{translator}
-    \field{sorttitle}
-    \field{title}
-  }
-  \sort{
-    \field{sorttitle}
-    \field{title}
-  }
-  \sort{
-    \field{sortyear}
-    \field{year}
-  }
-  \sort{
-    \field[padside=left,padwidth=4,padchar=0]{volume}
-    \literal{0000}
-  }
-}
-
-\DeclareSortingScheme{nyt}{
-  \sort{
-    \field{presort}
-  }
-  \sort[final]{
-    \field{sortkey}
-  }
-  \sort{
-    \field{sortname}
-    \field{author}
-    \field{editor}
-    \field{translator}
-    \field{sorttitle}
-    \field{title}
-  }
-  \sort{
-    \field{sortyear}
-    \field{year}
-  }
-  \sort{
-    \field{sorttitle}
-    \field{title}
-  }
-  \sort{
-    \field[padside=left,padwidth=4,padchar=0]{volume}
-    \literal{0000}
-  }
-}
-
-\DeclareSortingScheme{nyvt}{
-  \sort{
-    \field{presort}
-  }
-  \sort[final]{
-    \field{sortkey}
-  }
-  \sort{
-    \field{sortname}
-    \field{author}
-    \field{editor}
-    \field{translator}
-    \field{sorttitle}
-    \field{title}
-  }
-  \sort{
-    \field{sortyear}
-    \field{year}
-  }
-  \sort{
-    \field[padside=left,padwidth=4,padchar=0]{volume}
-    \literal{0000}
-  }
-  \sort{
-    \field{sorttitle}
-    \field{title}
-  }
-}
-
-\DeclareSortingScheme{anyt}{
-  \sort{
-    \field{presort}
-  }
-  \sort{
-    \field{labelalpha}
-  }
-  \sort[final]{
-    \field{sortkey}
-  }
-  \sort{
-    \field{sortname}
-    \field{author}
-    \field{editor}
-    \field{translator}
-    \field{sorttitle}
-    \field{title}
-  }
-  \sort{
-    \field{sortyear}
-    \field{year}
-  }
-  \sort{
-    \field{sorttitle}
-    \field{title}
-  }
-  \sort{
-    \field[padside=left,padwidth=4,padchar=0]{volume}
-    \literal{0000}
-  }
-}
-
-\DeclareSortingScheme{anyvt}{
-  \sort{
-    \field{presort}
-  }
-  \sort{
-    \field{labelalpha}
-  }
-  \sort[final]{
-    \field{sortkey}
-  }
-  \sort{
-    \field{sortname}
-    \field{author}
-    \field{editor}
-    \field{translator}
-    \field{sorttitle}
-    \field{title}
-  }
-  \sort{
-    \field{sortyear}
-    \field{year}
-  }
-  \sort{
-    \field[padside=left,padwidth=4,padchar=0]{volume}
-    \literal{0000}
-  }
-  \sort{
-    \field{sorttitle}
-    \field{title}
-  }
-}
-
-\DeclareSortingScheme{ynt}{
-  \sort{
-    \field{presort}
-  }
-  \sort[final]{
-    \field{sortkey}
-  }
-  \sort{
-    \field{sortyear}
-    \field{year}
-    \literal{9999}
-  }
-  \sort{
-    \field{sortname}
-    \field{author}
-    \field{editor}
-    \field{translator}
-    \field{sorttitle}
-    \field{title}
-  }
-  \sort{
-    \field{sorttitle}
-    \field{title}
-  }
-}
-
-\DeclareSortingScheme{ydnt}{
-  \sort{
-    \field{presort}
-  }
-  \sort[final]{
-    \field{sortkey}
-  }
-  \sort[direction=descending]{
-    \field[strside=left,strwidth=4]{sortyear}
-    \field[strside=left,strwidth=4]{year}
-    \literal{9999}
-  }
-  \sort{
-    \field{sortname}
-    \field{author}
-    \field{editor}
-    \field{translator}
-    \field{sorttitle}
-    \field{title}
-  }
-  \sort{
-    \field{sorttitle}
-    \field{title}
-  }
-}
-
-% ------------------------------------------------------------------
-% DATA INHERITANCE (CROSSREF)
-% ------------------------------------------------------------------
-
-\DefaultInheritance{all=true,override=false}
-
-\DeclareDataInheritance{mvbook,book}{inbook,bookinbook,suppbook}{%
-  \inherit{author}{author}
-  \inherit{author}{bookauthor}
-}
-
-\DeclareDataInheritance{mvbook}{book,inbook,bookinbook,suppbook}{%
-  \inherit{title}{maintitle}
-  \inherit{subtitle}{mainsubtitle}
-  \inherit{titleaddon}{maintitleaddon}
-  \noinherit{shorttitle}
-  \noinherit{sorttitle}
-  \noinherit{indextitle}
-  \noinherit{indexsorttitle}
-}
-
-\DeclareDataInheritance{mvcollection,mvreference}
-{collection,reference,incollection,inreference,suppcollection}{%
-  \inherit{title}{maintitle}
-  \inherit{subtitle}{mainsubtitle}
-  \inherit{titleaddon}{maintitleaddon}
-  \noinherit{shorttitle}
-  \noinherit{sorttitle}
-  \noinherit{indextitle}
-  \noinherit{indexsorttitle}
-}
-
-\DeclareDataInheritance{mvproceedings}{proceedings,inproceedings}{%
-  \inherit{title}{maintitle}
-  \inherit{subtitle}{mainsubtitle}
-  \inherit{titleaddon}{maintitleaddon}
-  \noinherit{shorttitle}
-  \noinherit{sorttitle}
-  \noinherit{indextitle}
-  \noinherit{indexsorttitle}
-}
-
-\DeclareDataInheritance{book}{inbook,bookinbook,suppbook}{%
-  \inherit{title}{booktitle}
-  \inherit{subtitle}{booksubtitle}
-  \inherit{titleaddon}{booktitleaddon}
-  \noinherit{shorttitle}
-  \noinherit{sorttitle}
-  \noinherit{indextitle}
-  \noinherit{indexsorttitle}
-}
-
-\DeclareDataInheritance{collection,reference}
-{incollection,inreference,suppcollection}{%
-  \inherit{title}{booktitle}
-  \inherit{subtitle}{booksubtitle}
-  \inherit{titleaddon}{booktitleaddon}
-  \noinherit{shorttitle}
-  \noinherit{sorttitle}
-  \noinherit{indextitle}
-  \noinherit{indexsorttitle}
-}
-
-\DeclareDataInheritance{proceedings}{inproceedings}{%
-  \inherit{title}{booktitle}
-  \inherit{subtitle}{booksubtitle}
-  \inherit{titleaddon}{booktitleaddon}
-  \noinherit{shorttitle}
-  \noinherit{sorttitle}
-  \noinherit{indextitle}
-  \noinherit{indexsorttitle}
-}
-
-\DeclareDataInheritance{periodical}{article,suppperiodical}{%
-  \inherit{title}{journaltitle}
-  \inherit{subtitle}{journalsubtitle}
-  \noinherit{shorttitle}
-  \noinherit{sorttitle}
-  \noinherit{indextitle}
-  \noinherit{indexsorttitle}
-}
-
-\DeclareDataInheritance{*}{*}{%
-  \noinherit{ids}
-  \noinherit{crossref}
-  \noinherit{xref}
-  \noinherit{entryset}
-  \noinherit{entrysubtype}
-  \noinherit{execute}
-  \noinherit{label}
-  \noinherit{options}
-  \noinherit{presort}
-  \noinherit{related}
-  \noinherit{relatedoptions}
-  \noinherit{relatedstring}
-  \noinherit{relatedtype}
-  \noinherit{shorthand}
-  \noinherit{shorthandintro}
-  \noinherit{sortkey}
-}
 
 % ------------------------------------------------------------------
 % MACROS FOR LBX FILES

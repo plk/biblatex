@@ -23,7 +23,7 @@
 [\abx@date\space v\abx@version\space programmable bibliographies (PK/JW/AB)]
 
 % Set up a switch for choosing the version
-\newif\ifblx@load@version@one
+\newif\ifblx@load@version@legacy
 
 % A switch so we can issue a message about the backend
 \newif\ifblx@load@backend@seen
@@ -31,31 +31,31 @@
 % Fake keyval options to detect the backend
 % All basically the same, so passing the backend is done simply
 \DeclareOption{backend=bibtex}{%
-  \PassOptionsToPackage{\CurrentOption}{biblatex1}%
-  \blx@load@version@onetrue
+  \PassOptionsToPackage{\CurrentOption}{biblatex_legacy}%
+  \blx@load@version@legacytrue
   \blx@load@backend@seentrue
 }
 \DeclareOption{backend=bibtex8}{%
-  \PassOptionsToPackage{\CurrentOption}{biblatex1}%
-  \blx@load@version@onetrue
+  \PassOptionsToPackage{\CurrentOption}{biblatex_legacy}%
+  \blx@load@version@legacytrue
   \blx@load@backend@seentrue
 }
 \DeclareOption{backend=bibtexu}{%
-  \PassOptionsToPackage{\CurrentOption}{biblatex1}%
-  \blx@load@version@onetrue
+  \PassOptionsToPackage{\CurrentOption}{biblatex_legacy}%
+  \blx@load@version@legacytrue
   \blx@load@backend@seentrue
 }
 \DeclareOption{backend=biber}{%
-  \blx@load@version@onefalse
+  \blx@load@version@legacyfalse
   \blx@load@backend@seentrue
 }
 \DeclareOption*{%
-  \PassOptionsToPackage{\CurrentOption}{biblatex1}%
-  \PassOptionsToPackage{\CurrentOption}{biblatex2}%
+  \PassOptionsToPackage{\CurrentOption}{biblatex_legacy}%
+  \PassOptionsToPackage{\CurrentOption}{biblatex_}%
 }
 
 % Default to the Biber backend
-\blx@load@version@onefalse
+\blx@load@version@legacyfalse
 \ProcessOptions\relax
 
 \ifblx@load@backend@seen
@@ -70,34 +70,16 @@
 
 % Now do the loading: avoid any awkward stuff with the conditional by
 % expanding first
-\ifblx@load@version@one
+\ifblx@load@version@legacy
   \expandafter\@firstoftwo
 \else
   \expandafter\@secondoftwo
 \fi
-  {%
-    % A few things not defined by v1 so has to be handled if using v1
-    \protected\long\def\DeclareSortExclusion[#1]#2{}%
-    \protected\long\def\DeclarePresort#1{}%
-    \protected\long\def\DefaultInheritance#1{}%
-    \protected\long\def\DeclareSortingScheme#1#2{}%
-    \protected\long\def\DeclareDataInheritance#1#2#3{}%
-    \protected\long\def\ResetDataInheritance{}%
-    \protected\long\def\DeclareSourcemap#1{}%
-    \protected\long\def\DeclareStyleSourcemap#1{}%
-    \protected\long\def\DeclareDriverSourcemap[#1]#2{}%
-    \protected\long\def\DeclareLabelalphaTemplate#1{}%
-    \protected\long\def\DeclareLabeltitle#1{}%
-    \protected\long\def\DeclareLabelname#1{}%
-    \protected\long\def\DeclareLabeldate#1{}%
-    \protected\long\def\DeclareSortingNamekeyScheme#1{}%
-    \protected\long\def\abx@dointernalfields{}%
-    \RequirePackage{biblatex1}%
-  }
-  {\RequirePackage{biblatex2}}
+  {\RequirePackage{biblatex_legacy}}
+  {\RequirePackage{biblatex_}}
 
 %% Copyright (C) 2006-2011 Philipp Lehman
-%%               2012-2014 Philip Kime, Audrey Boruvka, Joseph Wright
+%%               2012-2016 Philip Kime, Audrey Boruvka, Joseph Wright
 %% 
 %% It may be distributed and/or modified under the conditions of
 %% the LaTeX Project Public License (LPPL), either version 1.3c of
