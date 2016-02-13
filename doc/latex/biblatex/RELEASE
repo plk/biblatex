@@ -11,31 +11,73 @@ RELEASE NOTES FOR VERSION 3.3
   name lists in order to generalise name handling beyond the narrow
   confines of the legacy bibtex name parts of "last, first, prefix,
   suffix". These changes only apply when using biber as the backend and 
-  mainly affect style authors.
-  * In general "first" is now "given" and "last" is now "family"
-  * The option "firstinits" has been renamed to "giveninits" and the option "sortfirstinits"
+  mainly affect style authors. 
+  * In general in macro names, "first" is now "given" and "last" is now "family":
+
+    The option "firstinits" has been renamed to "giveninits" and the option "sortfirstinits"
     to "sortgiveninits". The old names are available as legacy aliases.
     Style authors using the internal toggles associated with these options will
     need to change "first" to "given" in their names.
-  * Name formats and the \mkbibname* macros have been internally renamed by
+
+    Name formats and the \mkbibname* macros have been internally renamed by
     replacing "first" with "given" and "last" with "family". There are aliases in place for the
     older names. Please use the new names in any custom styles when possible.
+
   * The most significant change concerns the definition of name formats.
-    \DeclareNameFormat and \DeclareIndexNameFormat no longer accept a
-     8 arguments which are hard coded to the nameparts which bibtex
-     understands. These macros now take one argument which is a
-     comma-seperated list which must be parsed with:
+    Style authors will need to update any styles which use
+    \DeclareNameFormat or \DeclareIndexNameFormat which no longer accept
+    8 arguments which are hard coded to the nameparts which bibtex
+    understands. These macros now take one argument which is a
+    comma-separated list which must be parsed with:
 
        \setkeys{blx@opt@namepart}{#1}%
 
-     All nameformats should include this line, usually as the first line in
-     the format. Valid nameparts are now defined by the datamodel and the
-     default is compatible with standard bibtex with "last" renamed to
-     "family" and "first" renamed to "given". The default datamodel
-     declaration is:
+    All name formats should include this line, usually as the first line in
+    the format. Valid nameparts are now defined by the datamodel and the
+    default is compatible with standard bibtex with "last" renamed to
+    "family" and "first" renamed to "given". The default datamodel
+    declaration is:
 
-       \DeclareDatamodelConstant[type=list]{nameparts}{prefix,family,suffix,given}
+      \DeclareDatamodelConstant[type=list]{nameparts}{prefix,family,suffix,given}
 
+    After the \setkeys above, each namepart will be available in two macros with
+    the following name structure:
+
+      \blx@namepart@<namepart>
+      \blx@namepart@<namepart>i
+
+    The macro ending in "i" is the macro contain the namepart initials.
+    For example:
+
+      \blx@namepart@family
+      \blx@namepart@familyi
+
+    For example, the name format:
+
+      \DeclareNameAlias{first-last}{given-family}% legacy alias
+      \DeclareNameFormat{given-family}{%
+        \ifgiveninits
+          {\usebibmacro{name:given-family}{#1}{#4}{#5}{#7}}
+          {\usebibmacro{name:given-family}{#1}{#3}{#5}{#7}}%
+        \usebibmacro{name:andothers}}
+
+    is now:
+
+      \DeclareNameAlias{first-last}{given-family}% legacy alias
+      \DeclareNameFormat{given-family}{%
+        \setkeys{blx@opt@namepart}{#1}%
+        \ifgiveninits
+          {\usebibmacro{name:given-family}
+          {\blx@namepart@family}
+          {\blx@namepart@giveni}
+          {\blx@namepart@prefix}
+          {\blx@namepart@suffix}}
+        {\usebibmacro{name:given-family}
+          {\blx@namepart@family}
+          {\blx@namepart@given}
+          {\blx@namepart@prefix}
+          {\blx@namepart@suffix}}%
+      \usebibmacro{name:andothers}}
 
 RELEASE NOTES FOR VERSION 3.2
 

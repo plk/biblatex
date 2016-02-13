@@ -5593,21 +5593,42 @@ List formats are slightly more complex. After splitting up the list into individ
     {}}
 \end{lstlisting}
 %
-Formatting directives for names are similar to those for literal lists, but the individual items in the list are names which are automatically dissected into their components. The list formatting directive is executed once for each name in the list and the components of the name are passed to the formatting directive as separate arguments. For example, |#1| is the last name and |#3| is the first name. Here is a simplified example:
+Formatting directives for names are similar to those for literal lists, but depend on the datamodel constant <nameparts> which has the default definition:
+
+\begin{lstlisting}[style=latex]{}
+\DeclareDatamodelConstant[type=list]{nameparts}
+                                    {prefix,family,suffix,given}
+\end{lstlisting}
+%
+All name formats should use the macro:
+
+\begin{lstlisting}[style=latex]{}
+\setkeys{blx@opt@namepart}{#1}%
+\end{lstlisting}
+%
+which populates two macros for each name part defined in the datamodel:
+
+\begin{lstlisting}[style=latex]{}
+\blx@namepart@<namepart>
+\blx@namepart@<namepart>i
+\end{lstlisting}
+%
+The name formatting directive is executed once for each name in the name list. Here is an example:
 
 \begin{lstlisting}[style=latex]{}
 \DeclareNameFormat{author}{%
+  \setkeys{blx@opt@namepart}{#1}%
   \ifthenelse{\value{listcount}=1}
-    {#1%
-     \ifblank{#3}{}{\addcomma\space #3}}
-    {\ifblank{#3}{}{#3\space}%
-     #1}%
+    {\blx@namepart@family%
+     \ifblank{\blx@namepart@given}{}{\addcomma\space\blx@namepart@given}}
+    {\ifblank{\blx@namepart@given}{}{\blx@namepart@given\space}%
+     \blx@namepart@family}%
   \ifthenelse{\value{listcount}<\value{liststop}}
     {\addcomma\space}
     {}}
 \end{lstlisting}
 %
-The above directive reverses the name of the first author («Last, First») and prints the remaining names in their regular sequence («First Last»). Note that the only component which is guaranteed to be available is the last name, hence we have to check which parts of the name are actually present. If a certain component of a name is not available, the corresponding argument will be blank. As with directives for literal lists, the separator to be inserted between the individual items in the list is also handled by the formatting directive, hence we have to check whether we are in the middle of the list or at the end when inserting it. This is what the second \cmd{ifthenelse} test does.
+The above directive reverses the name of the first author («Last, First») and prints the remaining names in their regular sequence («First Last»). Note that the only component which is guaranteed to be available is the last name, hence we have to check which parts of the name are actually present. If a certain name part is not available, the corresponding macro will be empty. As with directives for literal lists, the separator to be inserted between the individual items in the name list is also handled by the formatting directive, hence we have to check whether we are in the middle of the list or at the end when inserting it. This is what the second \cmd{ifthenelse} test does.
 
 \subsubsection{Special Fields}
 \label{aut:bbx:fld}
@@ -6165,21 +6186,35 @@ Defines the literal list format \prm{format}. This formatting directive is arbit
 \cmditem{DeclareNameFormat}[entrytype, \dots]{format}{code}
 \cmditem*{DeclareNameFormat}*{format}{code}
 
-Defines the name list format \prm{format}. This formatting directive is arbitrary \prm{code} to be executed for every name in a list processed by \cmd{printnames}. If an \prm{entrytype} is specified, the format is specific to that type. The \prm{entrytype} argument may be a comma"=separated list of values. The individual parts of a name will be passed to the \prm{code} as separate arguments. These arguments are as follows:
+Defines the name list format \prm{format}. This formatting directive is arbitrary \prm{code} to be executed for every name in a list processed by \cmd{printnames}. If an \prm{entrytype} is specified, the format is specific to that type. The \prm{entrytype} argument may be a comma"=separated list of values. The individual parts of a name will be passed to the \prm{code} as a comma"=separated list which should be processed by \cmd{setkeys} (see example above). The default data mode defines four name part which correspond to the standard \bibtex name parts arguments:
 
 \begin{argumentlist}{00}
-\item[\#1] The last names. If a name consists of a single part only (for example, <Aristotle>), this part will be treated as the last name.
-\item[\#2] The last names, given as initials.
-\item[\#3] The first names. This argument also includes all middle names.
-\item[\#4] The first names, given as initials.
-\item[\#5] The name prefixes, for example von, van, of, da, de, del, della, etc. Note that name prefixes are referred to as the <von part> of the name in the \bibtex file format documentation.
-\item[\#6] The name prefixes, given as initials.
-\item[\#7] The name affixes, for example <junior>, <senior>, <der Jüngere>, <der Ältere>, etc.
-Note that name affixes are referred to as the <junior part> of the name in the \bibtex file format documentation.
-\item[\#8] The name affixes, given as initials.
+\item[family] The family name(s), know as <last> in \bibtex.  If a name consists of a single part only (for example, <Aristotle>), this part will be treated as the family name.
+\item[given] The given name(s). Note that given names are referred to as the <first> names in the \bibtex file format documentation.
+\item[prefix] Any name prefices, for example von, van, of, da, de, del, della, etc. Note that name prefices are referred to as the <von> part of the name in the \bibtex file format documentation.
+\item[suffix] Any name suffices, for example Jr, Sr. Note that name suffices are referred to as the <Jr> part of the name in the \bibtex file format documentation.
 \end{argumentlist}
 %
-If a certain part of a name is not available, the corresponding argument will be empty, hence you may use \cmd{ifblank} tests to check for the individual parts of a name. The name of the name list currently being processed is available to the \prm{code} as \cmd{currentname}. Note that the formatting directive also handles the punctuation to be inserted between separate names and between the individual parts of a name. You need to check whether you are in the middle of or at the end of the list, \ie whether \cnt{listcount} is smaller than or equal to \cnt{liststop}. See also \secref{use:cav:nam}. The starred variant of this command is similar to the regular version, except that all type-specific formats are cleared.
+Each format should use the macro:
+
+\begin{lstlisting}[style=latex]{}
+\setkeys{blx@opt@namepart}{#1}%
+\end{lstlisting}
+%
+which populates two macros for each name part in the datamodel for the name. So, for example, in the default data model, name formats will have defined the following macros:
+
+\begin{lstlisting}[style=latex]{}
+\blx@namepart@prefix
+\blx@namepart@prefixi
+\blx@namepart@family
+\blx@namepart@familyi
+\blx@namepart@suffix
+\blx@namepart@suffixi
+\blx@namepart@given
+\blx@namepart@giveni
+\end{lstlisting}
+%
+If a certain part of a name is not available, the corresponding macro will be empty, hence you may use \cmd{ifdefvoid} tests to check for the individual parts of a name. The name of the name list currently being processed is available to the \prm{code} as \cmd{currentname}. Note that the formatting directive also handles the punctuation to be inserted between separate names and between the individual parts of a name. You need to check whether you are in the middle of or at the end of the list, \ie whether \cnt{listcount} is smaller than or equal to \cnt{liststop}. See also \secref{use:cav:nam}. The starred variant of this command is similar to the regular version, except that all type-specific formats are cleared.
 
 \cmditem{DeclareIndexFieldFormat}[entrytype, \dots]{format}{code}
 \cmditem*{DeclareIndexFieldFormat}*{format}{code}
@@ -6761,7 +6796,7 @@ Alternatively, the name of the data model file can be different from any of the 
 
 \cmditem{DeclareDatamodelConstant}[options]{name}{constantdef}\BiberOnlyMark
 
-Declares the \prm{name} as a datamodel constant with definition \prm{constantdef}. Such constants are typically used internally by the \biber backend and constants in the default data model should rarely be redefined. They may however be of use to style authors.
+Declares the \prm{name} as a datamodel constant with definition \prm{constantdef}. Such constants are typically used internally by the \biber backend.
 
 \begin{optionlist*}
 
