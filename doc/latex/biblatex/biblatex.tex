@@ -4598,24 +4598,22 @@ This automatically creates the relevant code in \biblatex for handling the new n
 Notice that we have defined <patronymic> name part types in the datasource which is now allowable due to the enhanced datamodel constant definition. Then, define a name format to use this new name part:
 
 \begin{lstlisting}[style=latex]{}
-\makeatletter
 \DeclareNameFormat{author}{%
-  \setkeys{blx@opt@namepart}{#1}%
+  \nameparts{#1}%
    \usebibmacro{name:delim}{#1}%
    \usebibmacro{name:hook}{#1}%
-   \mkbibnamefamily{\blx@namepart@family}%
-   \ifempty{\blx@namepart@given}
+   \mkbibnamefamily{\namepartfamily}%
+   \ifempty{\namepartgiven}
      {}
      {\revsdnamepunct
       \bibnamedelimd
-      \mkbibnamegiven{\blx@namepart@given}%
+      \mkbibnamegiven{\namepartgiven}%
       \space
-      \mkbibnamepatronymic{\blx@namepart@patronymic}\isdot}
+      \mkbibnamepatronymic{\namepartpatronymic}\isdot}
    \usebibmacro{name:andothers}}
-\makeatother
 \end{lstlisting}
 %
-Notice that the macro \cmd{mkbibnamepatronymic} (as with all \cmd{makebibname*} macros) was automatically created by the datamodel <nameparts> constant definition. We would probably like to make the \biber sorting system aware of this new name part and so we could define, for example (see \secref{aut:ctm:srt}):
+Notice that the macro \cmd{mkbibnamepatronymic} (as with all \cmd{makebibname*} macros) and the macro \cmd{namepartpatronymic} (as with all \cmd{namepart*} macros) were automatically created by the datamodel <nameparts> constant definition. We would probably like to make the \biber sorting system aware of this new name part and so we could define, for example (see \secref{aut:ctm:srt}):
 
 \begin{lstlisting}[style=latex]{}
 \DeclareSortingNamekeyScheme{
@@ -5707,26 +5705,26 @@ Formatting directives for names are similar to those for literal lists, but depe
 All name formats should use the macro:
 
 \begin{lstlisting}[style=latex]{}
-\setkeys{blx@opt@namepart}{#1}%
+\nameparts{#1}%
 \end{lstlisting}
 %
 which populates two macros for each name part defined in the datamodel:
 
 \begin{lstlisting}[style=latex]{}
-\blx@namepart@<namepart>
-\blx@namepart@<namepart>i
+\namepart<namepart>
+\namepart<namepart>i
 \end{lstlisting}
 %
 The name formatting directive is executed once for each name in the name list. Here is an example:
 
 \begin{lstlisting}[style=latex]{}
 \DeclareNameFormat{author}{%
-  \setkeys{blx@opt@namepart}{#1}%
+  \nameparts{#1}%
   \ifthenelse{\value{listcount}=1}
-    {\blx@namepart@family%
-     \ifblank{\blx@namepart@given}{}{\addcomma\space\blx@namepart@given}}
-    {\ifblank{\blx@namepart@given}{}{\blx@namepart@given\space}%
-     \blx@namepart@family}%
+    {\namepartfamily%
+     \ifblank{\namepartgiven}{}{\addcomma\space\namepartgiven}}
+    {\ifblank{\namepartgiven}{}{\namepartgiven\space}%
+     \namepartfamily}%
   \ifthenelse{\value{listcount}<\value{liststop}}
     {\addcomma\space}
     {}}
@@ -6290,7 +6288,7 @@ Defines the literal list format \prm{format}. This formatting directive is arbit
 \cmditem{DeclareNameFormat}[entrytype, \dots]{format}{code}
 \cmditem*{DeclareNameFormat}*{format}{code}
 
-Defines the name list format \prm{format}. This formatting directive is arbitrary \prm{code} to be executed for every name in a list processed by \cmd{printnames}. If an \prm{entrytype} is specified, the format is specific to that type. The \prm{entrytype} argument may be a comma"=separated list of values. The individual parts of a name will be passed to the \prm{code} as a comma"=separated list which should be processed by \cmd{setkeys} (see example above). The default data mode defines four name part which correspond to the standard \bibtex name parts arguments:
+Defines the name list format \prm{format}. This formatting directive is arbitrary \prm{code} to be executed for every name in a list processed by \cmd{printnames}. If an \prm{entrytype} is specified, the format is specific to that type. The \prm{entrytype} argument may be a comma"=separated list of values. The individual parts of a name will be passed to the \prm{code} as a comma"=separated list which should be processed by \cmd{nameparts} (see example above). The default data mode defines four name part which correspond to the standard \bibtex name parts arguments:
 
 \begin{argumentlist}{00}
 \item[family] The family name(s), know as <last> in \bibtex.  If a name consists of a single part only (for example, <Aristotle>), this part will be treated as the family name.
@@ -6302,20 +6300,20 @@ Defines the name list format \prm{format}. This formatting directive is arbitrar
 Each format should use the macro:
 
 \begin{lstlisting}[style=latex]{}
-\setkeys{blx@opt@namepart}{#1}%
+\nameparts{#1}%
 \end{lstlisting}
 %
 which populates two macros for each name part in the datamodel for the name. So, for example, in the default data model, name formats will have defined the following macros:
 
 \begin{lstlisting}[style=latex]{}
-\blx@namepart@prefix
-\blx@namepart@prefixi
-\blx@namepart@family
-\blx@namepart@familyi
-\blx@namepart@suffix
-\blx@namepart@suffixi
-\blx@namepart@given
-\blx@namepart@giveni
+\namepartprefix
+\namepartprefixi
+\namepartfamily
+\namepartfamilyi
+\namepartsuffix
+\namepartsuffixi
+\namepartgiven
+\namepartgiveni
 \end{lstlisting}
 %
 If a certain part of a name is not available, the corresponding macro will be empty, hence you may use \cmd{ifempty} (see \secref{aut:aux:tst}) tests to check for the individual parts of a name. The name of the name list currently being processed is available to the \prm{code} as \cmd{currentname}. Note that the formatting directive also handles the punctuation to be inserted between separate names and between the individual parts of a name. You need to check whether you are in the middle of or at the end of the list, \ie whether \cnt{listcount} is smaller than or equal to \cnt{liststop}. See also \secref{use:cav:nam}. The starred variant of this command is similar to the regular version, except that all type-specific formats are cleared.
