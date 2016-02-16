@@ -89,7 +89,8 @@ then
   cp -r doc obuild/tds/
   cp -r tex obuild/tds/
   cp obuild/tds/bibtex/bib/biblatex/biblatex-examples.bib obuild/tds/doc/latex/biblatex/examples/
-
+  cp obuild/tds/bibtex/bltxml/biblatex/biblatex-examples.bltxml obuild/tds/doc/latex/biblatex/examples/
+  
   # normal
   [[ -e obuild/flat ]] || mkdir obuild/flat
   \rm -rf obuild/flat/*
@@ -100,8 +101,10 @@ then
   mkdir -p obuild/flat/latex/{cbx,bbx,lbx}
   cp doc/latex/biblatex/README obuild/flat/
   cp doc/latex/biblatex/RELEASE obuild/flat/
-  cp bibtex/bib/biblatex/biblatex-examples.bib obuild/flat/bibtex/bib/biblatex/
+  cp bibtex/bib/biblatex/biblatex-examples.bib obuild/flat/bibtex/bib/biblatex/  
   cp bibtex/bib/biblatex/biblatex-examples.bib obuild/flat/doc/examples/
+  cp bibtex/bltxml/biblatex/biblatex-examples.bltxml obuild/flat/bibtex/bib/biblatex/  
+  cp bibtex/bltxml/biblatex/biblatex-examples.bltxml obuild/flat/doc/examples/
   cp bibtex/bst/biblatex/biblatex.bst obuild/flat/bibtex/bst/
   cp bibtex/csf/biblatex/*.csf obuild/flat/bibtex/csf/
   cp doc/latex/biblatex/biblatex.pdf obuild/flat/doc/
@@ -162,15 +165,16 @@ then
   \rm -f obuild/test/example_errs_bibtex.txt
   \rm -rf obuild/test/examples/*
   cp -r doc/latex/biblatex/examples/*.tex obuild/test/examples/
+  cp -r doc/latex/biblatex/examples/*.dbx obuild/test/examples/
   cd obuild/test/examples
 
   for f in *.tex
   do
-    sed 's/backend=biber/backend=bibtex/g' $f > ${f%.tex}-bibtex.tex
     bibtexflag=false
     biberflag=false
     if [[ "$f" < 9* ]] # 9+*.tex examples require biber
     then
+      sed 's/backend=biber/backend=bibtex/g' $f > ${f%.tex}-bibtex.tex
       echo -n "File (bibtex): $f ... "
       exec 4>&1 7>&2 # save stdout/stderr
       exec 1>/dev/null 2>&1 # redirect them from here
@@ -212,16 +216,24 @@ PDFLaTeX errors/warnings
         echo "OK"
       fi
     fi
+    if [[ "$f" < 9* ]] # 9+*.tex examples require biber and we want UTF-8 support
+    then
+        declare TEXENGINE=pdflatex
+        declare BIBEROPTS='--output_safechars --onlylog'
+    else
+        declare TEXENGINE=lualatex
+        declare BIBEROPTS='--onlylog'
+    fi
     echo -n "File (biber): $f ... "
     exec 4>&1 7>&2 # save stdout/stderr
     exec 1>/dev/null 2>&1 # redirect them from here
-    pdflatex -interaction=batchmode ${f%.tex}
+    $TEXENGINE -interaction=batchmode ${f%.tex}
     # using output safechars as we are using fontenc and ascii in the test files
     # so that we can use the same test files with bibtex which only likes ascii
     # biber complains when outputting ascii from it's internal UTF-8
-    biber --output_safechars --onlylog ${f%.tex}
-    pdflatex -interaction=batchmode ${f%.tex}
-    pdflatex -interaction=batchmode ${f%.tex}
+    biber $BIBEROPTS --onlylog ${f%.tex}
+    $TEXENGINE -interaction=batchmode ${f%.tex}
+    $TEXENGINE -interaction=batchmode ${f%.tex}
     exec 1>&4 4>&- # restore stdout
     exec 7>&2 7>&- # restore stderr
 

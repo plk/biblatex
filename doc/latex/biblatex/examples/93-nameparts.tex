@@ -1,0 +1,66 @@
+%
+% This file demonstrates modification of the datamodel to allow new
+% nameparts. Biber only.
+%
+\documentclass[a4paper]{article}
+\usepackage{fontspec}
+\setmainfont{Cambria}
+\setsansfont{Arial}
+\setmonofont{Courier New}
+\usepackage[russian]{babel}
+\usepackage{csquotes}
+\usepackage[style=authoryear,datamodel=93-nameparts,backend=biber]{biblatex}
+\usepackage{hyperref}
+\addbibresource[datatype=biblatexml]{biblatex-examples.bltxml}
+
+% A format using the new name part
+\DeclareNameFormat{author}{%
+  \nameparts{#1}%
+   \usebibmacro{name:delim}{#1}%
+   \usebibmacro{name:hook}{#1}%
+   \mkbibnamefamily{\namepartfamily}%
+   \ifempty{\namepartgiven}
+     {}
+     {\revsdnamepunct
+      \bibnamedelimd
+      \mkbibnamegiven{\namepartgiven}%
+      \space
+      \mkbibnamepatronymic{\namepartpatronymic}\isdot}
+   \usebibmacro{name:andothers}}
+
+% We want to sort names using these name parts in this order
+\DeclareSortingNamekeyScheme{
+  \keypart{
+    \namepart{patronymic}
+  }
+  \keypart{
+    \namepart{family}
+  }
+  \keypart{
+    \namepart{given}
+  }
+}
+
+\begin{document}
+% Historically, name handling in latex bibliographies has been determined by
+% the name parsing rules of bibtex. In a modern context, this name handling
+% is rather archaic, restricted to Western names with the four parts
+% "family", "given", "prefix", "suffix" (often referred to in bibtex
+% documentation as "last", "first", "von" and "Jr" parts). When using biber,
+% it is possible to define arbitrary name parts since the allowable name
+% parts are defined in the data model (see accompanying file 93-nameparts.dbx).
+
+% Here we demonstrate the possibility of adding a new "patronymic" name part to the
+% datamodel and then using it in formatting, sorting etc. It requires
+% the biblatexml datasource format (see accompanying file biblatex-examples.bltxml)
+
+% Notice that we can use the <patronymic> name part type in the datasource
+% which is now allowable due to the enhanced datamodel constant definition.
+% We have also defined a new name format and method of sorting names which
+% are aware of the new name part.
+%
+\noindent\textcite{tolstoy}\\
+\textcite{bulgakov}
+
+\printbibliography
+\end{document}
