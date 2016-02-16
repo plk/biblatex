@@ -86,7 +86,12 @@ then
   \rm -rf obuild/tds/*
   \rm -f obuild/biblatex-$VERSION.tds.tgz
   cp -r bibtex obuild/tds/
-  cp -r doc obuild/tds/
+  mkdir -p obuild/tds/doc/latex/biblatex
+  cp doc/latex/biblatex/README obuild/tds/doc/latex/biblatex/
+  cp doc/latex/biblatex/RELEASE obuild/tds/doc/latex/biblatex/
+  cp doc/latex/biblatex/biblatex.pdf obuild/tds/doc/latex/biblatex/
+  cp doc/latex/biblatex/biblatex.tex obuild/tds/doc/latex/biblatex/
+  cp -r doc/latex/biblatex/examples obuild/tds/doc/latex/biblatex/
   cp -r tex obuild/tds/
   cp obuild/tds/bibtex/bib/biblatex/biblatex-examples.bib obuild/tds/doc/latex/biblatex/examples/
   cp obuild/tds/bibtex/bltxml/biblatex/biblatex-examples.bltxml obuild/tds/doc/latex/biblatex/examples/
