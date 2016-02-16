@@ -84,7 +84,6 @@ then
   # tds
   [[ -e obuild/tds ]] || mkdir obuild/tds
   \rm -rf obuild/tds/*
-  \rm -f obuild/biblatex-$VERSION.tds.tgz
   cp -r bibtex obuild/tds/
   mkdir -p obuild/tds/doc/latex/biblatex
   cp doc/latex/biblatex/README obuild/tds/doc/latex/biblatex/
@@ -99,7 +98,6 @@ then
   # normal
   [[ -e obuild/flat ]] || mkdir obuild/flat
   \rm -rf obuild/flat/*
-  \rm -f obuild/biblatex-$VERSION.tgz
   mkdir -p obuild/flat/bibtex/{bib,bst,csf}
   mkdir -p obuild/flat/bibtex/bib/biblatex
   mkdir -p obuild/flat/doc/examples
@@ -141,6 +139,8 @@ fi
 
 if [[ "$1" = "build" ]]
 then
+  \rm -f obuild/biblatex-$VERSION.tds.tgz
+  \rm -f obuild/biblatex-$VERSION.tgz
 
   cd doc/latex/biblatex
   lualatex -interaction=batchmode biblatex.tex
