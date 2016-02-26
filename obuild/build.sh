@@ -179,7 +179,7 @@ then
     biberflag=false
     if [[ "$f" < 9* ]] # 9+*.tex examples require biber
     then
-      sed 's/backend=biber/backend=bibtex/g' $f > ${f%.tex}-bibtex.tex
+      sed -e 's/backend=biber/backend=bibtex/g' -e 's/\\usepackage\[utf8\]{inputenc}//g' $f > ${f%.tex}-bibtex.tex
       echo -n "File (bibtex): $f ... "
       exec 4>&1 7>&2 # save stdout/stderr
       exec 1>/dev/null 2>&1 # redirect them from here

@@ -5650,6 +5650,9 @@
 % blx@slist@entry@<section>@<scheme> - a list of normal entries in a scheme in a
 %                                      section (for tracking bibliographies,
 %                                      obeys skipbib)
+% blx@slist@centry@<section>@<scheme> - a list of normal entries in a scheme in a
+%                                       section (for tracking citations,
+%                                       obeys skipbib)
 
 % {<entrykey>}{<entrytype>}{<options>}
 \protected\def\blx@bbl@entry#1#2#3{%
@@ -5679,11 +5682,12 @@
      \toggletrue{blx@skiplab}}%
   \nottoggle{blx@skipbib}
     {\expandafter\ifstrequal\expandafter{\blx@slist@type}{entry}
-       {\listcsxadd{blx@slist@entry@\the\c@refsection @\blx@slist@name}{\abx@field@entrykey}
-         \listcsxadd{blx@type@\the\c@refsection @\abx@field@entrytype}{\abx@field@entrykey}%
-         \ifdef\abx@field@entrysubtype
-           {\listcsxadd{blx@subt@\the\c@refsection @\abx@field@entrysubtype}{\abx@field@entrykey}}
-           {}}
+       {\listcsxadd{blx@slist@entry@\the\c@refsection @\blx@slist@name}{\abx@field@entrykey}%
+        \listcsxadd{blx@slist@centry@\the\c@refsection @\blx@slist@name}{\abx@field@entrykey}%
+        \listcsxadd{blx@type@\the\c@refsection @\abx@field@entrytype}{\abx@field@entrykey}%
+        \ifdef\abx@field@entrysubtype
+          {\listcsxadd{blx@subt@\the\c@refsection @\abx@field@entrysubtype}{\abx@field@entrykey}}
+          {}}
        {}}%
     {}%
   \nottoggle{blx@skipbiblist}
@@ -5714,20 +5718,22 @@
   \blx@bbl@hooks
   \endgroup}
 
-% This, at the end of the .bbl, puts any set parents into the
-% current context sort list of citations as this is needed for the subentry citing
+% This, at the end of the .bbl, puts any set parent children into the
+% current context sort list of citations (a separate list *@centry@* to the
+% bibliography *@entry@* which doesn't want the children adding if they weren't
+% cited) as this is needed for the subentry citing
 % when sortcites is enabled as for sortcites, the current context sorting list
 % is used and the parent set of a subentry is not necessarily
 % available in the current context sortlist.
 \def\blx@addset{%
   \begingroup
-  \letcs\blx@tempa{blx@slist@entry@\the\c@refsection @\blx@refcontext@context}%
-  \global\cslet{blx@slist@entry@\the\c@refsection @\blx@refcontext@context}\@empty
+  \letcs\blx@tempa{blx@slist@centry@\the\c@refsection @\blx@refcontext@context}%
+  \global\cslet{blx@slist@centry@\the\c@refsection @\blx@refcontext@context}\@empty
   \forlistloop\blx@addset@i\blx@tempa
   \endgroup}
 
 \def\blx@addset@i#1{%
-  \listcsgadd{blx@slist@entry@\the\c@refsection @\blx@refcontext@context}{#1}%
+  \listcsgadd{blx@slist@centry@\the\c@refsection @\blx@refcontext@context}{#1}%
   \ifcsdef{blx@setp@\the\c@refsection @#1}
     {\expandafter\expandafter\expandafter\forcsvlist
      \expandafter\expandafter\expandafter\blx@addset@ii
@@ -5736,7 +5742,7 @@
     {}}
 
 \def\blx@addset@ii#1{%
-  \listcsgadd{blx@slist@entry@\the\c@refsection @\blx@refcontext@context}{#1}}
+  \listcsgadd{blx@slist@centry@\the\c@refsection @\blx@refcontext@context}{#1}}
 
 \def\blx@bbl@labelfields{%
   \def\do##1{%
@@ -7646,7 +7652,7 @@
       \multicitedelim
     \fi
   \fi
-  \letcs\blx@tempb{blx@slist@entry@\the\c@refsection @\blx@refcontext@context}%
+  \letcs\blx@tempb{blx@slist@centry@\the\c@refsection @\blx@refcontext@context}%
   \blx@thecitesort
   \edef\blx@tempa{\endgroup
     \c@citecount\z@
