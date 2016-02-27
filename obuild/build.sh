@@ -192,6 +192,12 @@ then
       done
       pdflatex -interaction=batchmode ${f%.tex}-bibtex
       # Need a second bibtex run to pick up set members
+      if [[ $f = *-indexing-* ]]
+      then
+        makeindex -o ${f%.tex}.ind ${f%.tex}.idx
+        makeindex -o ${f%.tex}.nnd ${f%.tex}.ndx
+        makeindex -o ${f%.tex}.tnd ${f%.tex}.tdx
+      fi
       bibtex ${f%.tex}-bibtex
       pdflatex -interaction=batchmode ${f%.tex}-bibtex
       exec 1>&4 4>&- # restore stdout
@@ -238,6 +244,12 @@ PDFLaTeX errors/warnings
     # biber complains when outputting ascii from it's internal UTF-8
     biber $BIBEROPTS --onlylog ${f%.tex}
     $TEXENGINE -interaction=batchmode ${f%.tex}
+    if [[ $f = *-indexing-* ]]
+    then
+      makeindex -o ${f%.tex}.ind ${f%.tex}.idx
+      makeindex -o ${f%.tex}.nnd ${f%.tex}.ndx
+      makeindex -o ${f%.tex}.tnd ${f%.tex}.tdx
+    fi
     $TEXENGINE -interaction=batchmode ${f%.tex}
     exec 1>&4 4>&- # restore stdout
     exec 7>&2 7>&- # restore stderr
