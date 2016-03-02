@@ -7099,6 +7099,25 @@
 \define@key{blx@refcontext}{sorting}{\gdef\blx@refcontext@sorting{#1}}
 \define@key{blx@refcontext}{sortingnamekeyscheme}{\gdef\blx@refcontext@sortingnamekey{#1}}
 
+% [refcontext keys]{<entrykey1>,<entrykey2>,...}
+\def\assignrefcontextkeys[#1]#2{%
+  \edef\blx@refcontext@sorting{\blx@sorting}%
+  \def\blx@refcontext@sortingnamekey{global}%
+  \setkeys{blx@refcontext}{#1}%
+  \def\do##1{%
+    \csxdef{blx@assignedrefcontextkeys@\the\c@refsection @##1}{\blx@refcontext@sorting/\blx@refcontext@sortingnamekey}}
+  \docsvlist{#2}}
+
+% [refcontext keys]{<category1>,<category2>,...}
+\def\assignrefcontextcats[#1]#2{%
+  \edef\blx@refcontext@sorting{\blx@sorting}%
+  \def\blx@refcontext@sortingnamekey{global}%
+  \setkeys{blx@refcontext}{#1}%
+  \def\do##1{%
+    \listxadd\blx@assignedrefcontextcatlist{##1}%
+    \csxdef{blx@assignedrefcontextcats@\the\c@refsection @##1}{\blx@refcontext@sorting/\blx@refcontext@sortingnamekey}}
+  \docsvlist{#2}}
+
 % Reference sections
 \newrobustcmd*{\newrefsection}{%
   \ifnum\c@refsection>\z@
@@ -9085,6 +9104,10 @@
   \bibsentence#1\addperiod}
 
 \AtEndPreamble{%
+  \AtEveryCitekey{%
+    \ifcsdef{blx@assignedrefcontextkeys@\the\c@refsection @\thefield{entrykey}}
+      {\letcs\blx@refcontext{blx@assignedrefcontextkeys@\the\c@refsection @\thefield{entrykey}}}
+      {}}%
   \def\blx@theendnote{\blx@err@endnote\footnote}%
   \def\blx@theendnotetext{\blx@err@endnote\footnotetext}%
   \ifdef\endnote
