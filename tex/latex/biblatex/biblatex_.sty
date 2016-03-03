@@ -7099,24 +7099,37 @@
 \define@key{blx@refcontext}{sorting}{\gdef\blx@refcontext@sorting{#1}}
 \define@key{blx@refcontext}{sortingnamekeyscheme}{\gdef\blx@refcontext@sortingnamekey{#1}}
 
-% [refcontext keys]{<entrykey1>,<entrykey2>,...}
-\def\assignrefcontextkeys[#1]#2{%
-  \edef\blx@refcontext@sorting{\blx@sorting}%
-  \def\blx@refcontext@sortingnamekey{global}%
-  \setkeys{blx@refcontext}{#1}%
+% [refcontext keys]{<keyword1>,<keyword2>,...}
+\def\assignrefcontextkeyws[#1]#2{%
+  \edef\blx@tempa{\blx@sorting}%
+  \def\blx@tempb{global}%
+  \setkeys{blx@assignrefcontext}{#1}%
   \def\do##1{%
-    \csxdef{blx@assignedrefcontextkeys@\the\c@refsection @##1}{\blx@refcontext@sorting/\blx@refcontext@sortingnamekey}}
+    \listxadd\blx@assignedrefcontextkeywlist{##1}%
+    \csxdef{blx@assignedrefcontextkeyws@\the\c@refsection @##1}{\blx@tempa/\blx@tempb}}
   \docsvlist{#2}}
 
 % [refcontext keys]{<category1>,<category2>,...}
 \def\assignrefcontextcats[#1]#2{%
-  \edef\blx@refcontext@sorting{\blx@sorting}%
-  \def\blx@refcontext@sortingnamekey{global}%
-  \setkeys{blx@refcontext}{#1}%
+  \edef\blx@tempa{\blx@sorting}%
+  \def\blx@tempb{global}%
+  \setkeys{blx@assignrefcontext}{#1}%
   \def\do##1{%
     \listxadd\blx@assignedrefcontextcatlist{##1}%
-    \csxdef{blx@assignedrefcontextcats@\the\c@refsection @##1}{\blx@refcontext@sorting/\blx@refcontext@sortingnamekey}}
+    \csxdef{blx@assignedrefcontextcats@\the\c@refsection @##1}{\blx@tempa/\blx@tempb}}
   \docsvlist{#2}}
+
+% [refcontext keys]{<entrykey1>,<entrykey2>,...}
+\def\assignrefcontextentries[#1]#2{%
+  \edef\blx@tempa{\blx@sorting}%
+  \def\blx@tempb{global}%
+  \setkeys{blx@assignrefcontext}{#1}%
+  \def\do##1{%
+    \csxdef{blx@assignedrefcontextkeys@\the\c@refsection @##1}{\blx@tempa/\blx@tempb}}%
+  \docsvlist{#2}}
+
+\define@key{blx@assignrefcontext}{sorting}{\def\blx@tempa{#1}}
+\define@key{blx@assignrefcontext}{sortingnamekeyscheme}{\def\blx@tempb{#1}}
 
 % Reference sections
 \newrobustcmd*{\newrefsection}{%
@@ -7710,8 +7723,32 @@
      \expandafter\abx@missing\expandafter{\blx@realkey}%
      \advance\blx@tempcntb\@ne}}
 
+% set refcontext for one citation key from auto-assign \assignrefcontext*
+% macros, if any
+% <entrykey>
+\def\blx@getrefcontext#1{%
+  \let\blx@refcontext@context@saved\blx@refcontext@context
+  \ifdef\blx@assignedrefcontextkeywlist
+    {\def\do##1{%
+       \blx@imc@ifentrykeyword{#1}{##1}
+         {\letcs\blx@refcontext@context{blx@assignedrefcontextkeyws@\the\c@refsection @##1}}
+         {}}%
+     \dolistloop\blx@assignedrefcontextkeywlist}
+    {}%
+  \ifdef\blx@assignedrefcontextcatlist
+    {\def\do##1{%
+       \blx@imc@ifentrycategory{#1}{##1}
+         {\letcs\blx@refcontext@context{blx@assignedrefcontextcats@\the\c@refsection @##1}}
+         {}}%
+     \dolistloop\blx@assignedrefcontextcatlist}
+    {}%
+  \ifcsdef{blx@assignedrefcontextkeys@\the\c@refsection @#1}
+    {\letcs\blx@refcontext@context{blx@assignedrefcontextkeys@\the\c@refsection @#1}}
+    {}}
+
 % {<entrykey>}
 \protected\def\blx@citeprint#1{%
+  \blx@getrefcontext{#1}%
   \advance\c@citecount\@ne
   \addtocounter{instcount}\@ne
   \ifnum\c@citecount=\@ne
@@ -7748,7 +7785,8 @@
     \blx@postcode
   \fi
   \blx@endlangcite
-  \endgroup}
+  \endgroup
+  \let\blx@refcontext@context\blx@refcontext@context@saved}
 
 % cite counter
 
@@ -9104,10 +9142,6 @@
   \bibsentence#1\addperiod}
 
 \AtEndPreamble{%
-  \AtEveryCitekey{%
-    \ifcsdef{blx@assignedrefcontextkeys@\the\c@refsection @\thefield{entrykey}}
-      {\letcs\blx@refcontext{blx@assignedrefcontextkeys@\the\c@refsection @\thefield{entrykey}}}
-      {}}%
   \def\blx@theendnote{\blx@err@endnote\footnote}%
   \def\blx@theendnotetext{\blx@err@endnote\footnotetext}%
   \ifdef\endnote
