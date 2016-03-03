@@ -1018,13 +1018,13 @@
 \newrobustcmd*{\RequireBiber}[1][2]{%
   \ifnumgreater{#1}\blx@reqbiber
     {\numgdef\blx@reqbiber{#1}}
-    {}}
+    {}%
+    \blx@checkbackend{style}}
 \@onlypreamble\RequireBiber
 \let\blx@reqbiber\z@
 
 \def\blx@checkbackend#1{%
-  \ifnumequal\blx@backend\blx@backend@biber
-    {}
+  \ifblx@load@version@legacy
     {\ifcase\blx@reqbiber
      \or
        \blx@info@noline{%
@@ -1039,7 +1039,8 @@
          {The selected style or one of the .bib files
           requires backend=biber.\MessageBreak It will
           not work at all with any other backend}%
-     \fi}}
+     \fi}
+   {}}
 
 % \blx@list@active                      active aux files (basename)
 %                                       [internal list]
@@ -1070,78 +1071,32 @@
 
 \def\blx@check@logreq{%
   \begingroup
-  \ifnum\blx@backend=\blx@backend@biber
-    \ltxrequest{biblatex}{{\iftoggle{blx@runltx}{1}{0}}}{%
-      \provides[type=dynamic]{
-        \file{\jobname.bcf}
-      }
-      \requires[type=dynamic]{
-        \file{\jobname.bbl}
-      }
-      \ifdef\blx@list@req@edit
-        {\requires[type=editable]{
-           \forlistloop\file\blx@list@req@edit
-         }}
-        {}
-      \ifdef\blx@list@req@stat
-        {\requires[type=static]{
-           \forlistloop\file\blx@list@req@stat
-         }}
-        {}
-    }%
-    \logrequest[package=biblatex,priority=5,active={{\iftoggle{blx@runbtx}{1}{0}}}]{%
-      \generic{biber}
-      \cmdline{
-        \binary{biber}
-        \infile{\jobname}
-      }
-      \input{
-        \file{\jobname.bcf}
-      }
-      \output{
-        \file{\jobname.bbl}
-      }
-      \provides[type=dynamic]{
-        \file{\jobname.bbl}
-      }
-      \requires[type=dynamic]{
-        \file{\jobname.bcf}
-      }
-      \ifcsdef{blx@list@bibfiles@\jobname}
-        {\requires[type=editable]{
-           \def\do{\file}
-           \dolistcsloop{blx@list@bibfiles@\jobname}
-         }}
-        {}
-    }%
-  \else
-    \ltxrequest{biblatex}{{\iftoggle{blx@runltx}{1}{0}}}{%
-      \provides[type=dynamic]{
-        \def\do##1{\file{##1.aux}}
-        \dolistloop\blx@list@inactive
-        \file{\blx@ctrlfile@bibtex\blxauxsuffix.bib}
-      }
-      \requires[type=dynamic]{
-        \def\do##1{\file{##1.bbl}}
-        \dolistloop\blx@list@inactive
-      }
-      \ifdef\blx@list@req@edit
-        {\requires[type=editable]{
-           \forlistloop\file\blx@list@req@edit
-         }}
-        {}
-      \ifdef\blx@list@req@stat
-        {\requires[type=static]{
-           \forlistloop\file\blx@list@req@stat
-         }}
-        {}
-    }%
-    \def\do##1{%
-      \ifinlist{##1}{\blx@list@active}
-        {\blx@logreq@bibtex{1}{##1}}
-        {\blx@logreq@bibtex{0}{##1}}}%
-    \dolistloop\blx@list@inactive
-  \fi
+  \ltxrequest{biblatex}{{\iftoggle{blx@runltx}{1}{0}}}{%
+    \provides[type=dynamic]{
+      \def\do##1{\file{##1.aux}}
+      \dolistloop\blx@list@inactive
+      \file{\blx@ctrlfile@bibtex\blxauxsuffix.bib}
+    }
+    \requires[type=dynamic]{
+      \def\do##1{\file{##1.bbl}}
+      \dolistloop\blx@list@inactive
+    }
+    \ifdef\blx@list@req@edit
+      {\requires[type=editable]{
+         \forlistloop\file\blx@list@req@edit
+       }}
+      {}
+    \ifdef\blx@list@req@stat
+      {\requires[type=static]{
+         \forlistloop\file\blx@list@req@stat
+       }}
+      {}
+  }%
+  \def\do##1{%
+    \ifinlist{##1}{\blx@list@active}
+      {\blx@logreq@bibtex{1}{##1}}
+      {\blx@logreq@bibtex{0}{##1}}}%
+  \dolistloop\blx@list@inactive
   \endgroup}
 
 \def\blx@logreq@bibtex#1#2{%
@@ -1196,12 +1151,9 @@
 }
 
 \def\blx@logreq@active#1{%
-  \ifnum\blx@backend=\blx@backend@biber
-  \else
-    \xifinlist{\blx@auxfile@bibtex}{\blx@list@active}
-      {}
-      {\listxadd\blx@list@active{\blx@auxfile@bibtex}}%
-  \fi
+  \xifinlist{\blx@auxfile@bibtex}{\blx@list@active}
+    {}
+    {\listxadd\blx@list@active{\blx@auxfile@bibtex}}%
   \ifblank{#1}
     {}
     {\@latex@warning{#1}}%
@@ -1209,12 +1161,9 @@
   \blx@rerun@bibtex}
 
 \def\blx@logreq@inactive{%
-  \ifnum\blx@backend=\blx@backend@biber
-  \else
-    \xifinlist{\blx@auxfile@bibtex}{\blx@list@inactive}
-      {}
-      {\listxadd\blx@list@inactive{\blx@auxfile@bibtex}}%
-  \fi}
+  \xifinlist{\blx@auxfile@bibtex}{\blx@list@inactive}
+    {}
+    {\listxadd\blx@list@inactive{\blx@auxfile@bibtex}}}
 
 \def\blx@rerun@latex{%
   \G@refundefinedtrue
@@ -1278,15 +1227,9 @@
 
 \def\blx@warn@auxlist{%
   \begingroup
-  \ifnum\blx@backend=\blx@backend@biber
-    \edef\blx@tempa{%
-      Please (re)run Biber on the file:\MessageBreak
-      \jobname}%
-  \else
-    \edef\blx@tempa{Please (re)run BibTeX on the file(s):}%
-    \def\do##1{\appto\blx@tempa{\MessageBreak##1}}%
-    \dolistloop\blx@list@active
-  \fi
+  \edef\blx@tempa{Please (re)run BibTeX on the file(s):}%
+  \def\do##1{\appto\blx@tempa{\MessageBreak##1}}%
+  \dolistloop\blx@list@active
   \blx@warning@noline{%
     \blx@tempa\MessageBreak
     and rerun LaTeX afterwards}%
@@ -3912,9 +3855,7 @@
          \c@liststop#2\relax
        \fi
      \fi}%
-  \ifnumequal\blx@backend\blx@backend@biber
-    {}
-    {\let~\bibnamedelima}% BibTeX only
+  \let~\bibnamedelima
   \blx@namecodes}
 
 \def\blx@namesetup@i#1{%
@@ -5525,12 +5466,7 @@
   \def\item{\MessageBreak-\space}%
   \def\break{\MessageBreak\space\space}%
   \edef\blx@tempa{%
-    \ifnum\blx@backend=\blx@backend@biber
-      Biber
-    \else
-      BibTeX
-    \fi
-    reported the following issues%
+    BibTeX reported the following issues%
     \ifdef\abx@field@entrykey
       {\MessageBreak with '\abx@field@entrykey'}
       {}%
@@ -5936,9 +5872,7 @@
        {}%
      \blx@bbl@prefixnumber}
     {}%
-  \ifnumless\blx@backend\blx@backend@biber
-    {\blx@bbl@labelname}
-    {}%
+  \blx@bbl@labelname
   \blx@bbl@titles
   \blx@bbl@hooks
   \endgroup}
@@ -6249,10 +6183,8 @@
     {}%
   \blx@info@noline{Trying to load bibliographic data..}%
   \blx@blxinit
-  \ifnumequal\blx@backend\blx@backend@biber
-    {\blx@bblfile@biber}
-    {\blx@bblfile@bibtex
-     \blx@bblsecs@bibtex}%
+  \blx@bblfile@bibtex
+  \blx@bblsecs@bibtex
   \endgroup
   \iftoggle{blx@reencode}
     {\ifdef\@enablequotes
@@ -7183,11 +7115,7 @@
       {\let\blx@bibfiles\@empty
        \blx@xsanitizeafter{\forcsvlist\blx@refsection@addfile}{#1}%
        \forlistloop{\listadd\blx@bibfiles}\blx@bibfiles@global}%
-    \ifnum\blx@backend=\blx@backend@biber
-      \blx@refsection@biber
-    \else
-      \blx@refsection@bibtex
-    \fi
+    \blx@refsection@bibtex
   \fi
   \blx@info{Setting label 'refsection:\the\c@refsection'}%
   \label{refsection:\the\c@refsection}%
@@ -7232,11 +7160,7 @@
 
 \def\blx@endrefsection{%
   \blx@endrefsegment
-  \ifnum\blx@backend=\blx@backend@biber
-    \blx@endrefsection@biber
-  \else
-    \blx@endrefsection@bibtex
-  \fi
+  \blx@endrefsection@bibtex
   \global\c@refsection\z@}
 
 \def\blx@endrefsection@biber{%
@@ -7578,13 +7502,11 @@
 
 \def\blx@citation#1#2{%
   \ifbool{citerequest}
-    {\ifnumless\blx@backend\blx@backend@biber % BibTeX only
-       {\ifcsdef{blx@setp@\the\c@refsection @#1}
-          {\blx@citation@set{#1}{#2}}
-          {\ifcsdef{blx@setc@\the\c@refsection @#1}
-             {\blx@citation@inset{#1}{#2}}
-             {\blx@citation@entry{#1}{#2}}}}
-       {\blx@citation@entry{#1}{#2}}%
+    {\ifcsdef{blx@setp@\the\c@refsection @#1}
+       {\blx@citation@set{#1}{#2}}
+       {\ifcsdef{blx@setc@\the\c@refsection @#1}
+         {\blx@citation@inset{#1}{#2}}
+         {\blx@citation@entry{#1}{#2}}}%
      \ifcsdef{blx@refc@\the\c@refsection @#1}% BibTeX only
        {\blx@citation@xref{#1}}
        {}}
@@ -7655,14 +7577,7 @@
     {}}
 
 \protected\def\blx@bibreq#1{%
-  \ifnum\blx@backend=\blx@backend@biber
-    \begingroup
-    \blx@xmlsanitizeafter{\def\blx@tempa}{#1}%
-    \blx@auxwrite\blx@auxout{}{\blx@xml@citekey{\blx@tempa}}%
-    \endgroup
-  \else
-    \blx@auxwrite\blx@auxout@bibtex{}{\string\citation{#1}}%
-  \fi}
+  \blx@auxwrite\blx@auxout@bibtex{}{\string\citation{#1}}}
 
 % {<set>}{<key1,key2,key3>}
 
@@ -7685,25 +7600,13 @@
            \csuse{blx@set@\the\c@refsection @\blx@tempa}\MessageBreak
            new: \blx@tempa\space = \blx@tempb\MessageBreak
            I'm ignoring the new definition}}}
-    {\global\cslet{blx@set@\the\c@refsection @\blx@tempa}\blx@tempb
-     \edef\blx@tempa{%
-       \AfterPreamble{\blx@setreq{\blx@tempa}{\blx@tempb}}}%
-     \blx@tempa}%
+    {\global\cslet{blx@set@\the\c@refsection @\blx@tempa}\blx@tempb}%
   \endgroup
   \@esphack}
 
 \def\blx@defentryset@add#1{%
   \edef\blx@tempb{\blx@tempb\blx@tempc#1}%
   \def\blx@tempc{,}}
-
-\protected\def\blx@setreq#1#2{%
-  \ifnum\blx@backend=\blx@backend@biber
-    \begingroup
-    \blx@xmlsanitizeafter{\def\blx@tempa}{#1}%
-    \blx@xmlsanitizeafter{\def\blx@tempb}{#2}%
-    \blx@auxwrite\blx@auxout{}{\blx@xml@citeset{\blx@tempa}{\blx@tempb}}%
-    \endgroup
-  \fi}
 
 % {<entrykey>,...}
 
@@ -9578,7 +9481,6 @@
 \chardef\blx@backend@bibtex=0
 \chardef\blx@backend@bibtexe=1
 \chardef\blx@backend@bibtexu=2
-\chardef\blx@backend@biber=3
 \cslet{blx@backend@bibtex8}\blx@backend@bibtexe
 
 \DeclareBibliographyOption{loadfiles}[true]{%
@@ -9630,17 +9532,10 @@
 \def\blx@bibtex@sorting@debug{99}
 
 \AtEndPreamble{%
-  \ifnum\blx@backend=\blx@backend@biber
-    \ifcsdef{blx@biber@sorting@\blx@sorting}
-      {}
-      {\blx@err@invopt{sorting=\blx@sorting}{}%
-       \def\blx@sorting{nty}}%
-  \else
-    \ifcsdef{blx@bibtex@sorting@\blx@sorting}
-      {}
-      {\blx@err@invopt{sorting=\blx@sorting}{}%
-       \def\blx@sorting{nty}}%
-  \fi}
+  \ifcsdef{blx@bibtex@sorting@\blx@sorting}
+    {}
+    {\blx@err@invopt{sorting=\blx@sorting}{}%
+     \def\blx@sorting{nty}}}
 
 \DeclareBibliographyOption{sortcase}[true]{%
   \settoggle{blx@sortcase}{#1}}
@@ -10648,14 +10543,9 @@
 	        Data encoding '\blx@bibencoding' specified.\MessageBreak
 		No need to reencode data}%
  	      \togglefalse{blx@reencode}}
-	     {\ifnumequal\blx@backend\blx@backend@biber
-	        {\blx@info@noline{%
-	           Data encoding '\blx@bibencoding' specified.\MessageBreak
-		   Backend will reencode on the fly}%
-		 \togglefalse{blx@reencode}}
-		{\blx@info@noline{%
-	           Data encoding '\blx@bibencoding' specified.\MessageBreak
-	           Reencoding not supported by backend.\MessageBreak
+	     {\blx@info@noline{%
+	         Data encoding '\blx@bibencoding' specified.\MessageBreak
+	         Reencoding not supported by backend.\MessageBreak
 		   Falling back to reencoding with inputenc}%
 		 \@ifpackageloaded{inputenc}
 	           {\toggletrue{blx@reencode}}
@@ -10666,7 +10556,7 @@
 			 this setup. Load the 'inputenc/inputenx'\MessageBreak
 			 package or use backend=biber. 'luainputenc'\MessageBreak
 			 is not supported  (use backend=biber instead)}%
-		       \togglefalse{blx@reencode}}}}}}}}
+		       \togglefalse{blx@reencode}}}}}}}
     {\def\blx@bibencoding{ascii}%
      \blx@info@noline{%
 	Data encoding not specified.\MessageBreak
@@ -10687,40 +10577,20 @@
 	  {\blx@warning@noline{%
 	     Data encoding is '\blx@bibencoding'.\MessageBreak
 	     Use backend=bibtex8 or backend=biber}}}}%
-  \ifboolexpr{%
-    togl {blx@safeinputenc}
-    and test {\ifnumequal\blx@backend\blx@backend@biber}
-    and ( test {\@ifpackageloaded{inputenc}}
-	  or
-	  test {\@ifpackageloaded{inputenx}} )
-  }
-    {\def\blx@texencoding{ascii}%
-     \blx@info@noline{%
-	Input encoding '\blx@texencoding' forced by\MessageBreak
-	'safeinputenc' option}}
-    {}%
 }
 
 % Deferred last minute setup
 
 \AtBeginDocument{%
-  \blx@checkbackend{style}%
   \blx@checkencoding
   \if@filesw
-    \ifnum\blx@backend=\blx@backend@biber
-      \blx@ifsigned{\jobname}{bcf}
-        {\blx@ctrlwrite@biber}
-	      {}%
-      \blx@bblinput
-    \else
-      \blx@auxinit@bibtex\blx@bibfiles
-      \blx@ifsigned{\blx@ctrlfile@bibtex\blxauxsuffix}{bib}
-        {\blx@ctrlwrite@bibtex}
-        {}%
-      \ifnumless\blx@reqbiber\thr@@
-        {\blx@bblinput}
-        {}%
-    \fi
+    \blx@auxinit@bibtex\blx@bibfiles
+    \blx@ifsigned{\blx@ctrlfile@bibtex\blxauxsuffix}{bib}
+      {\blx@ctrlwrite@bibtex}
+      {}%
+    \ifnumless\blx@reqbiber\thr@@
+      {\blx@bblinput}
+      {}%
     \blx@maxsection\z@
   \fi
   \let\blx@reqbiber\z@
