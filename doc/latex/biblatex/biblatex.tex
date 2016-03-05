@@ -3171,10 +3171,6 @@ Filter the entries with filter \prm{name}, as defined with \cmd{defbibfilter}. S
 
 Filter the entries with check \prm{name}, as defined with \cmd{defbibcheck}. See \secref{use:bib:flt} for details.
 
-\valitem{prefixnumbers}{string}
-
-This option applies to numerical citation\slash bibliography styles only and requires that the \opt{defernumbers} option from \secref{use:opt:pre:gen} be enabled globally. Setting this option will implicitly enable \opt{resetnumbers} for the current bibliography. The option assigns the \prm{string} as a prefix to all entries in the respective bibliography. For example, if the \prm{string} is \texttt{A}, the numerical labels printed will be \texttt{[A1]}, \texttt{[A2]}, \texttt{[A3]}, etc. This is useful for subdivided numerical bibliographies where each subbibliography uses a different prefix. The \prm{string} is available to styles in the \bibfield{prefixnumber} field of all affected entries. See \secref{aut:bbx:fld:lab} for details.
-
 \valitem{resetnumbers}{true,false,number}
 
 This option applies to numerical citation\slash bibliography styles only and requires that the \opt{defernumbers} option from \secref{use:opt:pre:gen} be enabled globally. If enabled, it will reset the numerical labels assigned to the entries in the respective bibliography, \ie the numbering will restart at~1. You can also pass a number to this option, for example: \texttt{resetnumbers=10} to reset numbering to the specified number to aid numbering continuity across documents. Use this option with care as \biblatex can not guarantee unique labels globally if they are reset manually.
@@ -3218,7 +3214,7 @@ If any entry includes a \bibfield{shorthand} field, \sty{biblatex} automatically
 
 \cmditem{printshorthands}[key=value, \dots]
 
-This command prints the list of shorthands. It takes one optional argument, which is a list of options given in \keyval notation. Valid options are all options supported by \cmd{printbibliography} (\secref{use:bib:bib}) except \opt{prefixnumbers}, \opt{resetnumbers}, and \opt{omitnumbers}. If there are any \env{refsection} environments in the document, the list of shorthands will be local to these environments; see \secref{use:bib:sec} for details. By default, this command uses the heading \texttt{shorthands}. See \secref{use:bib:hdg} for details.
+This command prints the list of shorthands. It takes one optional argument, which is a list of options given in \keyval notation. Valid options are all options supported by \cmd{printbibliography} (\secref{use:bib:bib}) except \opt{prefixnumbers}, \opt{resetnumbers} and \opt{omitnumbers}. If there are any \env{refsection} environments in the document, the list of shorthands will be local to these environments; see \secref{use:bib:sec} for details. By default, this command uses the heading \texttt{shorthands}. See \secref{use:bib:hdg} for details.
 
 The \opt{sorting} option differs from \cmd{printbibliography} in that if omitted, the default is to sort by shorthand.
 
@@ -3237,7 +3233,7 @@ A bibliography list differs from a normal bibliography in that the same bibliogr
 
 \cmditem{printbiblist}[key=value, \dots]{<biblistname>}
 
-This command prints a bibliography list. It takes an optional argument, which is a list of options given in \keyval notation. Valid options are all options supported by \cmd{printbibliography} (\secref{use:bib:bib}) except \opt{prefixnumbers}, \opt{resetnumbers}, and \opt{omitnumbers}. If there are any \env{refsection} environments in the document, the bibliography list will be local to these environments; see \secref{use:bib:sec} for details. By default, this command uses the heading \texttt{biblist}. See \secref{use:bib:hdg} for details.
+This command prints a bibliography list. It takes an optional argument, which is a list of options given in \keyval notation. Valid options are all options supported by \cmd{printbibliography} (\secref{use:bib:bib}) except \opt{resetnumbers} and \opt{omitnumbers}. If there are any \env{refsection} environments in the document, the bibliography list will be local to these environments; see \secref{use:bib:sec} for details. By default, this command uses the heading \texttt{biblist}. See \secref{use:bib:hdg} for details.
 
 The \prm{biblistname} is a mandatory argument which names the bibliography list. This name is used to identify:
 \begin{itemize}
@@ -3539,11 +3535,12 @@ See the author guide, in particular \secref{aut:aux:tst,aut:aux:ife}, for furthe
 \subsubsection{Bibliography Contexts}\BiberOnlyMark
 \label{use:bib:context}
 
-References in a bibliography are cited and printed in a <context>. The context determines the data which is actually used to cite or provide bibliographic data for an entry. A context consists currently of the following information (the <context> concept is designed for future extensibility):
+References in a bibliography are cited and printed in a <context>. The context determines the data which is actually used to cite or provide bibliographic data for an entry. A context consists of the following information (the <context> concept is designed for future extensibility):
 
 \begin{itemize}
  \item A sorting scheme
  \item A scheme for constructing the sorting keys for names
+ \item A string prefix for numeric citation schemes
 \end{itemize}
 %
 The point of bibliography contexts is twofold. Firstly, they are used to set options which influence a printed bibliography and secondly to influence the data printed by citation commands.
@@ -3591,7 +3588,7 @@ To demonstrate the second type of use of bibliography contexts, we have to under
 \printbibliography
 \end{ltxexample}
 %
-Here, the second use of the citations, along with the \cmd{printbibliography} command will use data from the context of the custom <yntd> sorting scheme which may well be different from the data associated with the default <nyt> scheme. That is, the citation labels (in an authoryear style which uses \opt{extrayear}) may be different \emph{for the exact same entries} between different bibliography contexts and so the citations themselves may look different.
+Here, the second use of the citations, along with the \cmd{printbibliography} command will use data from the context of the custom <yntd> sorting scheme which may well be different from the data associated with the default <nyt> scheme. That is, the citation labels (in an authoryear style which uses \opt{extrayear}) may be different \emph{for the exact same entries} between different bibliography contexts and so the citations themselves may look different. In cases where the user has entries which occur in different bibliography lists in different forms or with potentially different labels (in a numeric scheme with different \field{prefixnumber} values for example), it is necessary to tell \biblatex from which reference context you wish to draw the citation information. As shown above this can be done by explicitly putting citations inside reference contexts. This can be onerous in a large document and so there is specific functionality for assigning citations to reference contexts automatically, see the \cmd{assignrefcontext*} macros below.
 
 \begin{ltxsyntax}
 
@@ -3608,6 +3605,10 @@ Specify a sorting scheme defined previously with \cmd{DeclareSortingScheme}. Thi
 \valitem{sortingnamekeyscheme}{name}
 
 Specify a sorting name key scheme defined previously with \cmd{DeclareSortingNamekeyScheme}. This scheme is used to construct sorting keys for names inside the context.
+
+\valitem{prefixnumbers}{string}
+
+This option applies to numerical citation\slash bibliography styles only and requires that the \opt{defernumbers} option from \secref{use:opt:pre:gen} be enabled globally. Setting this option will implicitly enable \opt{resetnumbers} for the any \cmd{printbibliography} in the scope of the context. The option assigns the \prm{string} as a prefix to all entries in the reference context. For example, if the \prm{string} is \texttt{A}, the numerical labels printed will be \texttt{[A1]}, \texttt{[A2]}, \texttt{[A3]}, etc. This is useful for subdivided numerical bibliographies where each subbibliography uses a different prefix. The \prm{string} is available to styles in the \bibfield{prefixnumber} field of all affected entries. See \secref{aut:bbx:fld:lab} for details.
 
 \end{optionlist*}
 %
@@ -5777,7 +5778,7 @@ The number of the bibliography entry, as required by numeric citation schemes. I
 
 \fielditem{prefixnumber}{literal}
 
-If the \opt{prefixnumbers} option of \cmd{printbibliography} has been set in order to prefix all entries in a subbibliography with a fixed string, this string is available in the \bibfield{prefixnumber} field of all affected entries. If no prefix has been set, the \bibfield{prefixnumber} field of the respective entry is undefined. See the \opt{prefixnumbers} option of \cmd{printbibliography} in \secref{use:bib:bib} for details. If the \bibfield{shorthand} field is defined, \biblatex does not assign the prefix to the \bibfield{prefixnumber} field of the respective entry. In this case, the \bibfield{prefixnumber} field is undefined.
+If the \opt{prefixnumbers} option of \cmd{newrefcontext} has been set in order to prefix all entries in a subbibliography with a fixed string, this string is available in the \bibfield{prefixnumber} field of all affected entries. If no prefix has been set, the \bibfield{prefixnumber} field of the respective entry is undefined. See the \opt{prefixnumbers} option of \cmd{newrefcontext} in \secref{use:bib:context} for details. If the \bibfield{shorthand} field is defined, \biblatex does not assign the prefix to the \bibfield{prefixnumber} field of the respective entry. In this case, the \bibfield{prefixnumber} field is undefined.
 
 \fielditem{labeltitle}{literal}
 
