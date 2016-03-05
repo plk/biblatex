@@ -6775,6 +6775,7 @@
      \blx@getdata{#1}%
      \blx@bibcheck
      \iftoggle{blx@skipentry}{}{%
+       \blx@setdefaultrefcontext{#1}%
        \global\let\blx@noitem\@empty
        \blx@setoptions@type\abx@field@entrytype
        \blx@setoptions@entry
@@ -6797,6 +6798,17 @@
     {}}
 
 \let\blx@bibcheck\relax
+
+% This sets and saves to the .aux the default refcontext for an entry.
+% The default refcontext for an entry is the refcontext of the last
+% bibliography in which it is actually printed. This allows citations to
+% default to selecting data from the correct bibliography list in standard
+% cases where entries are not listed in multiple bibliographies
+\def\blx@setdefaultrefcontext#1{%
+  \csxdef{blx@assignedrefcontextbib@\the\c@refsection @#1}{\blx@refcontext@context}%
+  \blx@auxwrite\@mainaux{}{\string\abx@aux@defaultrefcontext{#1}{\blx@refcontext@context}}}
+\def\abx@aux@defaultrefcontext#1#2{%
+  \csxdef{blx@assignedrefcontextbib@\the\c@refsection @#1}{#2}}
 
 \def\blx@initsep{%
   \blx@imc@iffieldundef{sortinithash}
@@ -7715,6 +7727,9 @@
   \iftoggle{blx@refcontext}% Let explicit \newrefcontext override
     {}
     {\let\blx@refcontext@context@saved\blx@refcontext@context
+     \ifcsdef{blx@assignedrefcontextbib@\the\c@refsection @#1}
+       {\letcs\blx@refcontext@context{blx@assignedrefcontextbib@\the\c@refsection @#1}}
+       {}%
      \ifdef\blx@assignedrefcontextkeywlist
        {\def\do##1{%
           \blx@imc@ifentrykeyword{#1}{##1}
