@@ -3536,7 +3536,7 @@ See the author guide, in particular \secref{aut:aux:tst,aut:aux:ife}, for furthe
 
 \end{ltxsyntax}
 
-\subsubsection{Bibliography Contexts}\BiberOnlyMark
+\subsubsection{Reference Contexts}\BiberOnlyMark
 \label{use:bib:context}
 
 References in a bibliography are cited and printed in a <context>. The context determines the data which is actually used to cite or provide bibliographic data for an entry. A context consists of the following information (the <context> concept is designed for future extensibility):
@@ -3592,7 +3592,35 @@ To demonstrate the second type of use of bibliography contexts, we have to under
 \printbibliography
 \end{ltxexample}
 %
-Here, the second use of the citations, along with the \cmd{printbibliography} command will use data from the context of the custom <yntd> sorting scheme which may well be different from the data associated with the default <nyt> scheme. That is, the citation labels (in an authoryear style which uses \opt{extrayear}) may be different \emph{for the exact same entries} between different bibliography contexts and so the citations themselves may look different. In cases where the user has entries which occur in different bibliography lists in different forms or with potentially different labels (in a numeric scheme with different \bibfield{prefixnumber} values for example), it is necessary to tell \biblatex from which reference context you wish to draw the citation information. As shown above this can be done by explicitly putting citations inside reference contexts. This can be onerous in a large document and so there is specific functionality for assigning citations to reference contexts automatically, see the \cmd{assignrefcontext*} macros below.
+Here, the second use of the citations, along with the \cmd{printbibliography} command will use data from the context of the custom <yntd> sorting scheme which may well be different from the data associated with the default <nyt> scheme. That is, the citation labels (in an authoryear style which uses \opt{extrayear}) may be different \emph{for the exact same entries} between different bibliography contexts and so the citations themselves may look different.
+
+By default, data for a citation is drawn from the reference context of the last bibliography in which it was printed. For example, in the fragment:
+
+\begin{ltxexample}[style=latex]{}
+\begin{document}
+
+\cite{book, article, misc}
+
+\printbibliography[type=book]
+
+\newrefcontext[prefixnumbers=A]
+\printbibliography[type=article]
+
+\newrefcontext[sorting=ydnt, resetnumbers]
+\printbibliography[type=misc]
+
+\end{document}
+\end{ltxexample}
+%
+Assuming the entrykeys are indicative of their entrytypes, this is the default situation for the citations which corresponds to what users normally expect:
+
+\begin{itemize}
+\item The citation of entry \bibfield{book} would draw its data from the global reference context, because the last bibliography in which it was printed was the one in the global reference context.
+\item The citation of entry \bibfield{article} would draw its data from reference context with \opt{prefixnumbers=A} and would therefore have a <A> prefix when cited.
+\item The citation of entry \bibfield{misc} would draw its data from the reference context with \opt{sorting=ydnt}
+\end{itemize}
+%
+In cases where the user has entries which occur in multiple bibliographies in different forms or with potentially different labels (in a numeric scheme with different \bibfield{prefixnumber} values for example), it may be necessary to tell \biblatex from which reference context you wish to draw the citation information. As shown above this can be done by explicitly putting citations inside reference contexts. This can be onerous in a large document and so there is specific functionality for assigning citations to reference contexts programatically, see the \cmd{assignrefcontext*} macros below. 
 
 \begin{ltxsyntax}
 
@@ -3623,7 +3651,7 @@ The \opt{refcontext} environment cannot be nested and \biblatex will generate an
 This command is similar to the \env{refcontext} environment except that it is a stand"=alone command rather than an environment. It automatically ends the previous context section (if any) and immediately starts a new one. Note that the context section started by the last \cmd{newrefcontext} command in the document will extend to the very end of the document. Use \cmd{endrefcontext} if you want to terminate it earlier.
 \end{ltxsyntax}
 %
-At the beginning of the document, there is always a global context containing global settings for each of the context attributes. 
+At the beginning of the document, there is always a global context containing global settings for each of the reference context options. 
 
 \begin{ltxsyntax}
 
@@ -3632,7 +3660,7 @@ At the beginning of the document, there is always a global context containing gl
 \cmditem{assignrefcontextentries}[key=value, \dots]{entrykey1, entrykey2, ...}
 
 \end{ltxsyntax}
-These commands automate putting citations into refcontexts. Instead of wrapping citation commands in \env{refcontext} environments, which might be error-prone and tedious, you can register a comma"=separated list of \prm{keywords}, \prm{categories} or \prm{entrykeys} which, respectively, make the entries with any of the specified keywords, entries in any of the specified categories (see \secref{use:use:div}) or entries with any of the specified citation keys be cited in a particular refcontext specified by the \prm{refcontext key/values} which are parsed exactly as the per \env{refcontext} options. Such refcontext auto-assignments are specific to the current refsection. This is useful if you have multiple bibliographies, differently sorted whilst using \opt{defernumbers} as then \biblatex needs to know which bibliography (which is always in a particular refcontext) it should construct the citation from since the citations could well have different numbers in different bibliographies. You may specify the same citation key in any of these commands but be aware that assignment is done in the order \prm{keywords}, \prm{categories}, \prm{entrykeys} with the later specifications overriding the earlier. An example:
+These commands automate putting citations into refcontexts when the default behaviour is not sufficient. The default behaviour is that the data for a citation is drawn from the refcontext of the last bibliography in which it was printed. To override this behaviour, instead of manually wrapping citation commands in \env{refcontext} environments, which might be error-prone and tedious, you can register a comma"=separated list of \prm{keywords}, \prm{categories} or \prm{entrykeys} which, respectively, make the entries with any of the specified keywords, entries in any of the specified categories (see \secref{use:use:div}) or entries with any of the specified citation keys be cited in a particular refcontext specified by the \prm{refcontext key/values} which are parsed as the per the corresponding \env{refcontext} options. Such refcontext auto-assignments are specific to the current refsection. You may specify the same citation key in any of these commands but be aware that assignment is done in the order \prm{keywords}, \prm{categories}, \prm{entrykeys} with the later specifications overriding the earlier. An example:
 
 \begin{ltxexample}[style=latex]{}
 \assignrefcontextentries[sorting=nty]{key1,key2}
@@ -3647,7 +3675,7 @@ This forces all citations of entries \bibfield{key1} and \bibfield{key2} to be d
 \end{refcontext}
 \end{ltxexample}
 %
-which is not so convenient as such manual specification of refcontexts for citations requires manual insertion of refcontext changing commands wherever the citations occur. You can always locally override these global refcontext assignments to entrykeys in citations by using explicit \env{refcontext} environments or \cmd{newrefcontext}.
+which is not so convenient since such specification of refcontexts for citations requires manual insertion of refcontext changing commands wherever the citations occur. You can always locally override these global refcontext assignments to entrykeys in citations by using explicit \env{refcontext} environments or \cmd{newrefcontext}.
 
 \subsubsection{Dynamic Entry Sets}
 \label{use:bib:set}
