@@ -5934,11 +5934,11 @@
 % complete. Otherwise we get in an endless rerun loop because the
 % checksum due to number changes is always different.
 \AtEndDocument{%
-  \def\abx@aux@number#1#2#3#4{%
-    \ifblank{#4}
+  \def\abx@aux@number#1#2#3#4#5{%
+    \ifblank{#5}
       {}
       {\nottoggle{blx@localnumber}
-         {\blx@addchecksum{#1}{#4}}
+         {\blx@addchecksum{#1}{#5}}
          {}}}}
 
 \AtEndDocument{%
@@ -6063,9 +6063,9 @@
 
 \def\blx@addprefixnumber{%
   \nottoggle{blx@skiplab}
-    {\ifdef\blx@prefixnumbers
+    {\ifdef\blx@refcontext@prefixnumbers
        {\ifundef\abx@field@shorthand
-          {\edef\abx@field@prefixnumber{\expandonce\blx@prefixnumbers}%
+          {\edef\abx@field@prefixnumber{\expandonce\blx@refcontext@prefixnumbers}%
            \ifundef\abx@field@prefixnumber
              {\blx@bbl@addentryfield{\abx@field@entrykey}{\the\c@refsection}%
                 {prefixnumber}{\blx@refcontext@context}{\expandonce\abx@field@prefixnumber}}
@@ -6527,14 +6527,8 @@
     {}}
 
 \define@key{blx@bib2}{prefixnumbers}{%
-  \def\blx@prefixnumbers{#1}%
-  \iftoggle{blx@defernumbers}
-    {\csnumdef{blx@labelnumber@\the\c@refsection @\blx@refcontext@context}{0}}
-    {\iftoggle{blx@labelnumber}
-       {\blx@warning{%
-          Option 'prefixnumbers' requires global\MessageBreak
-          'defernumbers=true'}}
-       {}}}
+  \blx@warning@noline{%
+    prefixnumbers option to \string\printbibliography\space is no longer supported, use 'prefixnumbers' option to \string\newrefcontext}}
 
 % [<options>]
 \newrobustcmd*{\printbibheading}{%
@@ -6605,7 +6599,7 @@
   \setkeys{blx@bib2}{#1}% ... now we have correct \blx@tempa, set rest of options
   \blx@rest@actives
   \csxappto{blx@biber@slists}{%
-    \blx@xml@slist{\blx@refcontext@context}{entry}{\blx@tempe}{\blx@refcontext@sorting}{\blx@refcontext@sortingnamekey}{\blx@tempd}{}}%
+    \blx@xml@slist{\blx@refcontext@context}{entry}{\blx@tempe}{\blx@refcontext@sorting}{\blx@refcontext@sortingnamekey}{\blx@refcontext@prefixnumbers}{\blx@tempd}{}}%
   \ifdefvoid\blx@tempa
     {\blx@warn@bibempty\endgroup}
     {\blx@bibliography\blx@tempa}}
@@ -6953,7 +6947,7 @@
       {\blx@refcontext@sorting}}%
   % locally define this since we want to fetch data from the slist named
   % after the list we are printing rather than the data in refcontext list
-  \edef\blx@refcontext@context{\blx@tempc/\blx@refcontext@sortingnamekey}%
+  \edef\blx@refcontext@context{\blx@tempc/\blx@refcontext@sortingnamekey/\blx@refcontext@prefixnumbers}%
   \edef\blx@tempd{%
     \blx@xml@sorting
       {\ifcsdef{blx@sortdef@locale@#2}
@@ -6990,7 +6984,7 @@
     {}%
   \blx@rest@actives
   \csxappto{blx@biber@slists}{%
-    \blx@xml@slist{\blx@refcontext@context}{list}{\blx@tempe}{\blx@tempc}{\blx@refcontext@sortingnamekey}{\blx@tempd}{\csuse{blx@biber@biblistfilters@#2}}}%
+    \blx@xml@slist{\blx@refcontext@context}{list}{\blx@tempe}{\blx@tempc}{\blx@refcontext@sortingnamekey}{\blx@refcontext@prefixnumbers}{\blx@tempd}{\csuse{blx@biber@biblistfilters@#2}}}%
   \ifdefvoid\blx@tempa
     {\blx@warn@biblistempty{#2}\endgroup}
     {\blx@biblist\blx@tempa}}
@@ -7085,7 +7079,7 @@
      \endrefcontext}
     {\toggletrue{blx@refcontext}%
      \setkeys{blx@refcontext}{#1}%
-     \xdef\blx@refcontext@context{\blx@refcontext@sorting/\blx@refcontext@sortingnamekey}%
+     \xdef\blx@refcontext@context{\blx@refcontext@sorting/\blx@refcontext@sortingnamekey/\blx@refcontext@prefixnumbers}%
      \ifcsundef{blx@biber@sorting@\blx@refcontext@sorting}
        {\blx@err@invopt{sorting=\blx@refcontext@sorting}{}}
        {}}}
@@ -7093,44 +7087,58 @@
 % Reset to global sorting etc. when we leave a ref context (since they can't be nested)
 \protected\def\endrefcontext{%
   \togglefalse{blx@refcontext}%
+  \global\let\blx@refcontext@prefixnumbers\@empty
   \xdef\blx@refcontext@sorting{\blx@sorting}%
   \gdef\blx@refcontext@sortingnamekey{global}%
-  \xdef\blx@refcontext@context{\blx@refcontext@sorting/\blx@refcontext@sortingnamekey}}
+  \xdef\blx@refcontext@context{\blx@refcontext@sorting/\blx@refcontext@sortingnamekey/}}
 
 \define@key{blx@refcontext}{sorting}{\gdef\blx@refcontext@sorting{#1}}
 \define@key{blx@refcontext}{sortingnamekeyscheme}{\gdef\blx@refcontext@sortingnamekey{#1}}
+\define@key{blx@refcontext}{prefixnumbers}{%
+  \gdef\blx@refcontext@prefixnumbers{#1}%
+  \iftoggle{blx@defernumbers}
+    {\csnumdef{blx@labelnumber@\the\c@refsection @\blx@refcontext@context}{0}}
+    {\iftoggle{blx@labelnumber}
+       {\blx@warning{%
+          Option 'prefixnumbers' requires global\MessageBreak
+          'defernumbers=true'}}
+       {}}}
 
 % [refcontext keys]{<keyword1>,<keyword2>,...}
 \def\assignrefcontextkeyws[#1]#2{%
   \edef\blx@tempa{\blx@sorting}%
   \def\blx@tempb{global}%
+  \let\blx@tempc\@empty%
   \setkeys{blx@assignrefcontext}{#1}%
   \def\do##1{%
     \listxadd\blx@assignedrefcontextkeywlist{##1}%
-    \csxdef{blx@assignedrefcontextkeyws@\the\c@refsection @##1}{\blx@tempa/\blx@tempb}}
+    \csxdef{blx@assignedrefcontextkeyws@\the\c@refsection @##1}{\blx@tempa/\blx@tempb/\blx@tempc}}
   \docsvlist{#2}}
 
 % [refcontext keys]{<category1>,<category2>,...}
 \def\assignrefcontextcats[#1]#2{%
   \edef\blx@tempa{\blx@sorting}%
   \def\blx@tempb{global}%
+  \let\blx@tempc\@empty%
   \setkeys{blx@assignrefcontext}{#1}%
   \def\do##1{%
     \listxadd\blx@assignedrefcontextcatlist{##1}%
-    \csxdef{blx@assignedrefcontextcats@\the\c@refsection @##1}{\blx@tempa/\blx@tempb}}
+    \csxdef{blx@assignedrefcontextcats@\the\c@refsection @##1}{\blx@tempa/\blx@tempb/\blx@tempc}}
   \docsvlist{#2}}
 
 % [refcontext keys]{<entrykey1>,<entrykey2>,...}
 \def\assignrefcontextentries[#1]#2{%
   \edef\blx@tempa{\blx@sorting}%
   \def\blx@tempb{global}%
+  \let\blx@tempc\@empty%
   \setkeys{blx@assignrefcontext}{#1}%
   \def\do##1{%
-    \csxdef{blx@assignedrefcontextkeys@\the\c@refsection @##1}{\blx@tempa/\blx@tempb}}%
+    \csxdef{blx@assignedrefcontextkeys@\the\c@refsection @##1}{\blx@tempa/\blx@tempb/\blx@tempc}}%
   \docsvlist{#2}}
 
 \define@key{blx@assignrefcontext}{sorting}{\def\blx@tempa{#1}}
 \define@key{blx@assignrefcontext}{sortingnamekeyscheme}{\def\blx@tempb{#1}}
+\define@key{blx@assignrefcontext}{prefixnumbers}{\def\blx@tempc{#1}}
 
 % Reference sections
 \newrobustcmd*{\newrefsection}{%
@@ -9366,10 +9374,11 @@
 \xdef\blx@xml@endsection{%
   ~~</bcf:section>}
 
-\xdef\blx@xml@slist#1#2#3#4#5#6#7{%
-  ~~<bcf:sortlist section="#3" name="#1" type="#2" sortscheme="#4" sortnamekeyscheme="#5">\blx@nl
+\xdef\blx@xml@slist#1#2#3#4#5#6#7#8{%
+  ~~<bcf:sortlist section="#3" name="#1" type="#2" sortscheme="#4"
+  sortnamekeyscheme="#5" prefixnumbers="#6">\blx@nl
+  #8%
   #7%
-  #6%
   ~~</bcf:sortlist>\blx@nl}
 \xdef\blx@xml@slistfilterorbegin{%
   ~~~~<bcf:filteror>\blx@nl}
@@ -10537,7 +10546,8 @@
      \def\blx@refcontext@sorting{nty}}%
      \listxadd\blx@sortschemes{\blx@sorting}%
      \def\blx@refcontext@sortingnamekey{global}%
-     \xdef\blx@refcontext@context{\blx@refcontext@sorting/\blx@refcontext@sortingnamekey}}
+     \let\blx@refcontext@prefixnumbers\@empty
+     \xdef\blx@refcontext@context{\blx@refcontext@sorting/\blx@refcontext@sortingnamekey/\blx@refcontext@prefixnumbers}}
 
 \DeclareBibliographyOption[boolean]{sortcase}[true]{%
   \settoggle{blx@sortcase}{#1}}
