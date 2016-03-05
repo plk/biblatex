@@ -173,60 +173,78 @@ then
   cp -r doc/latex/biblatex/examples/*.dbx obuild/test/examples/
   cd obuild/test/examples
 
+  # Make the bibtex/biber backend test files
   for f in *.tex
   do
-    bibtexflag=false
-    biberflag=false
     if [[ "$f" < 9* ]] # 9+*.tex examples require biber
     then
-      sed -e 's/backend=biber/backend=bibtex/g' -e 's/\\usepackage\[utf8\]{inputenc}//g' $f > ${f%.tex}-bibtex.tex
-      echo -n "File (bibtex): $f ... "
-      exec 4>&1 7>&2 # save stdout/stderr
-      exec 1>/dev/null 2>&1 # redirect them from here
-      pdflatex -interaction=batchmode ${f%.tex}-bibtex
-      bibtex ${f%.tex}-bibtex
-      # Any refsections? If so, need extra bibtex runs
-      for sec in ${f%.tex}-bibtex*-blx.aux
-      do
-        bibtex $sec
-      done
-      pdflatex -interaction=batchmode ${f%.tex}-bibtex
-      # Need a second bibtex run to pick up set members
-      if [[ $f = *-indexing-* ]]
+      if [[ ! "$f" =~ -bibtex\.tex ]] # some files are already bibtex specific
       then
-        makeindex -o ${f%.tex}.ind ${f%.tex}.idx
-        makeindex -o ${f%.tex}.nnd ${f%.tex}.ndx
-        makeindex -o ${f%.tex}.tnd ${f%.tex}.tdx
+        mv $f ${f%.tex}-biber.tex
+        if [[ ! -e ${f%.tex}-bibtex.tex ]] # don't overwrite already existing bibtex specific tests
+        then
+          sed -e 's/backend=biber/backend=bibtex/g' -e 's/\\usepackage\[utf8\]{inputenc}//g' ${f%.tex}-biber.tex > ${f%.tex}-bibtex.tex
+        fi
       fi
-      bibtex ${f%.tex}-bibtex
-      pdflatex -interaction=batchmode ${f%.tex}-bibtex
-      exec 1>&4 4>&- # restore stdout
-      exec 7>&2 7>&- # restore stderr
-      # Now look for latex/bibtex errors and report ...
-      echo "==============================
+    else
+      mv $f ${f%.tex}-biber.tex
+    fi
+  done
+
+  for f in *-bibtex.tex
+  do
+    bibtexflag=false
+    echo -n "File (bibtex): $f ... "
+    exec 4>&1 7>&2 # save stdout/stderr
+    exec 1>/dev/null 2>&1 # redirect them from here
+    pdflatex -interaction=batchmode ${f%.tex}
+    bibtex ${f%.tex}
+    # Any refsections? If so, need extra bibtex runs
+    for sec in ${f%.tex}*-blx.aux
+    do
+      bibtex $sec
+    done
+    pdflatex -interaction=batchmode ${f%.tex}
+    # Need a second bibtex run to pick up set members
+    if [[ $f = *-indexing-* ]]
+    then
+      makeindex -o ${f%.tex}.ind ${f%.tex}.idx
+      makeindex -o ${f%.tex}.nnd ${f%.tex}.ndx
+      makeindex -o ${f%.tex}.tnd ${f%.tex}.tdx
+    fi
+    bibtex ${f%.tex}
+    pdflatex -interaction=batchmode ${f%.tex}
+    exec 1>&4 4>&- # restore stdout
+    exec 7>&2 7>&- # restore stderr
+    # Now look for latex/bibtex errors and report ...
+    echo "==============================
 Test file: $f
 
 PDFLaTeX errors/warnings
 ------------------------"  >> ../example_errs_bibtex.txt
-      grep -E -i "(error|warning):" ${f%.tex}-bibtex.log >> ../example_errs_bibtex.txt
-      if [[ $? -eq 0 ]]; then bibtexflag=true; fi
-      grep -E -A 3 '^!' ${f%.tex}-bibtex.log >> ../example_errs_bibtex.txt
-      if [[ $? -eq 0 ]]; then bibtexflag=true; fi
-      echo >> ../example_errs_bibtex.txt
-      echo "BibTeX errors/warnings" >> ../example_errs_bibtex.txt
-      echo "---------------------" >> ../example_errs_bibtex.txt
-      # Glob as we need to check all .blgs in case of refsections
-      grep -E -i -e "(error|warning)[^\$]" ${f%.tex}-bibtex*.blg >> ../example_errs_bibtex.txt
-      if [[ $? -eq 0 ]]; then bibtexflag=true; fi
-      echo "==============================" >> ../example_errs_bibtex.txt
-      echo >> ../example_errs_bibtex.txt
-      if $bibtexflag 
-      then
-        echo "ERRORS"
-      else
-        echo "OK"
-      fi
+    grep -E -i "(error|warning):" ${f%.tex}.log >> ../example_errs_bibtex.txt
+    if [[ $? -eq 0 ]]; then bibtexflag=true; fi
+    grep -E -A 3 '^!' ${f%.tex}.log >> ../example_errs_bibtex.txt
+    if [[ $? -eq 0 ]]; then bibtexflag=true; fi
+    echo >> ../example_errs_bibtex.txt
+    echo "BibTeX errors/warnings" >> ../example_errs_bibtex.txt
+    echo "---------------------" >> ../example_errs_bibtex.txt
+    # Glob as we need to check all .blgs in case of refsections
+    grep -E -i -e "(error|warning)[^\$]" ${f%.tex}*.blg >> ../example_errs_bibtex.txt
+    if [[ $? -eq 0 ]]; then bibtexflag=true; fi
+    echo "==============================" >> ../example_errs_bibtex.txt
+    echo >> ../example_errs_bibtex.txt
+    if $bibtexflag 
+    then
+      echo "ERRORS"
+    else
+      echo "OK"
     fi
+  done
+
+  for f in *-biber.tex
+  do
+    biberflag=false      
     if [[ "$f" < 9* ]] # 9+*.tex examples require biber and we want UTF-8 support
     then
         declare TEXENGINE=pdflatex
