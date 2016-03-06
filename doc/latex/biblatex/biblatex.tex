@@ -6468,11 +6468,22 @@ A container for an ordered set of map \cmd{step}s, optionally restricted to part
 
 As the same option on the parent \cmd{maps} element. This option allows an override on a per-map group basis. If this option is not specified, the default is the parent \cmd{maps} element option value. The short form \opt{overwrite} is equivalent to \kvopt{overwrite}{true}.
 
-\valitem{foreach}{field}
+\valitem{foreach}{loopval}
 
 Loop over all \cmd{step}s in this \cmd{map}, setting the special variable |$MAPLOOP| %$
-to each of the comma-separated values contained in the entry field \prm{field}. This allows the user to repeat a group of \cmd{step}s for each value of another CSV field. Using regexp maps, it is possible to create a CSV field for use with this functionality. The special variable |$MAPUNIQ| %$
-may also be used the \cmd{step}s to generate a random unique string. This can be useful when creating keys for new entries.
+to each of the comma-separated values contained in \prm{loopval}. \prm{loopval} can either be the name of a datasource field which is fetched and parsed as a comma"=separated values list or can be an explicit comma"=separated values list. This allows the user to repeat a group of \cmd{step}s for each value \prm{loopval}. Using regexp maps, it is possible to create a CSV field for use with this functionality. The special variable |$MAPUNIQ| %$
+may also be used the \cmd{step}s to generate a random unique string. This can be useful when creating keys for new entries. An example:
+
+\begin{ltxexample}[style=latex]{}
+\DeclareSourcemap{
+  \maps[datatype=bibtex]{
+    \map[overwrite, foreach={author,editor, translator}]{
+      \step[fieldsource=\regexp{$MAPLOOP}, match={Smith}, replace={Jones}]
+    }
+  }
+}
+\end{ltxexample}
+% This loops over several name fields, making some textual replacememts.
 
 \end{optionlist*}
 
