@@ -106,7 +106,7 @@
 
 \newrobustcmd*{\DeclareDatamodelFields}[2][]{%
   \begingroup
-  \let\blx@dm@type\@empty
+  \let\blx@dm@fieldtype\@empty
   \let\blx@dm@datatype\@empty
   \let\blx@dm@format\@empty
   \boolfalse{dmskipout}%
@@ -114,6 +114,18 @@
   \let\blx@tempa\@empty
   \setkeys{blx@datamodel@field}{#1}%
   \def\do##1{%
+    % Generic lists of field/datatypes for testing bib fields
+    \ifinlistcs{##1}{blx@biber@datamodelfields@fieldtypes@\blx@dm@fieldtype}
+      {}
+      {\listcsgadd{blx@biber@datamodelfields@fieldtypes@\blx@dm@fieldtype}{##1}}%
+    \ifinlistcs{##1}{blx@biber@datamodelfields@datatypes@\blx@dm@datatype}
+      {}
+      {\listcsgadd{blx@biber@datamodelfields@datatypes@\blx@dm@datatype}{##1}}%
+    \ifinlistcs{##1}{blx@biber@datamodelfields@types@\blx@dm@fieldtype @\blx@dm@datatype}
+      {}
+      {\listcsgadd{blx@biber@datamodelfields@types@\blx@dm@fieldtype @\blx@dm@datatype}{##1}}%
+
+    % Processed convenience lists of various datamodel fields
     \ifboolexpr{% add to list of label fields
       not bool {dmskipout}
       and
@@ -132,7 +144,7 @@
         {}%
     \ifboolexpr{% add to list of lists if it is a list which appears in .bbl
       not bool {dmskipout}
-      test {\ifcsstring{blx@dm@type}{list}}
+      test {\ifcsstring{blx@dm@fieldtype}{list}}
       and
       ( test {\ifcsstring{blx@dm@datatype}{literal}}
         or
@@ -151,27 +163,27 @@
       or
       test {\ifcsstring{blx@dm@datatype}{name}}
       or
-      ( test {\ifcsstring{blx@dm@type}{list}}
+      ( test {\ifcsstring{blx@dm@fieldtype}{list}}
         and
         test {\ifcsstring{blx@dm@datatype}{literal}}
       )
       or
-      ( test {\ifcsstring{blx@dm@type}{list}}
+      ( test {\ifcsstring{blx@dm@fieldtype}{list}}
         and
         test {\ifcsstring{blx@dm@datatype}{key}}
       )
       or
-      ( test {\ifcsstring{blx@dm@type}{list}}
+      ( test {\ifcsstring{blx@dm@fieldtype}{list}}
         and
         test {\ifcsstring{blx@dm@datatype}{uri}}
       )
       or
-      ( test {\ifcsstring{blx@dm@type}{list}}
+      ( test {\ifcsstring{blx@dm@fieldtype}{list}}
         and
         test {\ifcsstring{blx@dm@datatype}{verbatim}}
       )
       or
-      ( test {\ifcsstring{blx@dm@type}{field}}
+      ( test {\ifcsstring{blx@dm@fieldtype}{field}}
         and
         test {\ifcsstring{blx@dm@datatype}{code}}
       )
@@ -186,7 +198,7 @@
 
 \define@key{blx@datamodel@field}{type}{% characters
   \eappto\blx@tempa{ fieldtype="#1"}%
-  \def\blx@dm@type{#1}}
+  \def\blx@dm@fieldtype{#1}}
 \define@key{blx@datamodel@field}{datatype}{% characters
   \eappto\blx@tempa{ datatype="#1"}%
   \def\blx@dm@datatype{#1}}

@@ -6352,6 +6352,62 @@ The special fields are \bibfield{related}, \bibfield{relatedtype}, \bibfield{rel
 
 The related entry feature is enabled by default by the package option \opt{related} from \secref{use:opt:pre:gen}. The related information entry data from the related entries is included via a \cmd{usebibmacro\{related\}} call. Standard styles call this macro towards the end of each driver. Style authors should ensure the existence of (or take note of existing) localization strings which are useful as values for the \bibfield{relatedtype} field, such as \texttt{translationof} or perhaps \texttt{translatedas}. A plural variant can be identified with the localization key \prm{relatedtype}\texttt{s}. This key's corresponding string is printed whenever more than one entry is specified in \bibfield{related}. Bibliography macros and formatting directives for printing entries related by \prm{relatedtype} should be defined using the name \texttt{related:\prm{relatedtype}}. The file \path{biblatex$_$.def} contains macros and formats for some common relation types which can be used as templates. In particular, the \cmd{entrydata*} command is essential in such macros in order to make the data of the related entries available. Examples of entries using this feature can be found in the \biblatex distribution examples file \path{biblatex-examples.bib}. There are some specific formatting macros for this feature which control delimiters and separators in related entry information, see \secref{aut:fmt:fmt}.
 
+\subsubsection{Datasource Sets}\BiberOnlyMark
+\label{aut:ctm:dsets}
+
+It is useful to be able to define named sets of datasource field names for use in loops etc. In addition, \biber can use such sets in order to apply options and perform operations on particular sets of datasource fields. The following macros allow the user to define arbitrary sets of datasource fields, exposed to \biblatex as \sty{etoolbox} lists and to \biber in the \file{.bcf}.
+
+
+\begin{ltxsyntax}
+
+\cmditem{DeclareDatafieldSet}{name}{specification}
+
+Declare a set of datasource fields with name \prm{name}. 
+
+\begin{optionlist*}
+
+\valitem{name}{set name}
+
+The name of the set.
+
+\end{optionlist*}
+
+The \prm{specification} is one or more \cmd{member} items:
+
+\cmditem{member}
+
+\begin{optionlist*}
+
+\valitem{fieldtype}{fieldtype}
+\valitem{datatype}{datatype}
+\valitem{field}{fieldname}
+
+\end{optionlist*}
+
+A \cmd{member} specification appends fields to the set. Fields can be specified by datamodel \prm{fieldtype} and/or \prm{datatype} (see \secref{aut:ctm:dm}). Alternatively, fields can be explicitly added by name using the \prm{field} option. Once defined, the set is available as an \sty{etoolbox} list called \cmd{datafieldset<setname>} and is also passed via the \file{.bcf} to \biber.
+
+For example, here are the default sets defined by \biblatex for name fields and title fields:
+
+\end{ltxsyntax}
+
+\begin{ltxexample}[style=latex]{}
+\DeclareDatafieldSet{setnames}{
+  \member[datatype=name, fieldtype=list]
+}
+
+\DeclareDatafieldSet{settitles}{
+  \member[field=title]
+  \member[field=booktitle]
+  \member[field=eventtitle]
+  \member[field=issuetitle]
+  \member[field=journaltitle]
+  \member[field=maintitle]
+  \member[field=origtitle]
+}
+\end{ltxexample}
+%
+This defines the macros \cmd{datafieldsetsetnames} and \cmd{datafieldsetsettitles} as \sty{etoolbox} lists containing the names of the member datasource fields specified.
+
 \subsubsection{Dynamic Modification of Data}
 \label{aut:ctm:map}
 
@@ -11775,6 +11831,7 @@ This revision history is a list of changes relevant to users of this package. Ch
 
 \begin{release}{3.4}{2016-03}
 \item Moved \opt{prefixnumbers} option to \cmd{newrefcontext} and renamed to \opt{labelprefix}\BiberOnlyMark
+\item Added \cmd{DeclareDatafieldSet}\see{aut:ctm:dsets}
 \end{release}
 
 \begin{release}{3.3}{2016-03-01}

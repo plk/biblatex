@@ -9253,6 +9253,14 @@
   ~~~~~~<bcf:value order="#1"#2%
   >#3</bcf:value>\blx@nl}
 
+\xdef\blx@xml@datafieldset#1#2{%
+  ~~<bcf:datafieldset name="#1">\blx@nl
+  #2%
+  ~~</bcf:datafieldset>\blx@nl}
+
+\xdef\blx@xml@datafieldsets@member#1{%
+  ~~~~<bcf:member#1/>\blx@nl}
+
 \xdef\blx@xml@sourcemap#1{%
   ~~<bcf:sourcemap>\blx@nl
   #1%
@@ -9570,32 +9578,40 @@
     \blx@xml@options@scope{ENTRY}{\blx@bcf@options@scope@entry}%
     \blx@xml@options@scope{NAMELIST}{\blx@bcf@options@scope@namelist}%
     \blx@xml@options@scope{NAME}{\blx@bcf@options@scope@name}}
+  % datafieldsets
+  \def\do##1{%
+    \xappto\blx@bcf@datafieldsets{\blx@xml@datafieldset{##1}{\csuse{blx@biber@datafieldsetmembers@##1}}}}
+  \dolistloop\blx@biber@datafieldsets
+
+  \eappto\blx@tempa{%
+    \blx@xml@comment{DATAFIELDSETS}%
+    \blx@bcf@datafieldsets}%
   % sourcemap
   \ifbool{sourcemap}
   {\eappto\blx@tempa{%
-      \blx@xml@comment{SOURCEMAP}%
-      \blx@xml@sourcemap{%
-        \ifcsdef{blx@biber@sourcemap@user}
-        {\csuse{blx@biber@sourcemap@user}}
-        {}%
-        \ifcsdef{blx@biber@sourcemap@style}
-        {\csuse{blx@biber@sourcemap@style}}
-        {}%
-        \ifcsdef{blx@biber@sourcemap@defaults@bibtex}
-        {\csuse{blx@biber@sourcemap@defaults@bibtex}}
-        {}%
-        \ifcsdef{blx@biber@sourcemap@defaults@biblatexml}
-        {\csuse{blx@biber@sourcemap@defaults@biblatexml}}
-        {}%
-        \ifcsdef{blx@biber@sourcemap@defaults@endnotexml}
-        {\csuse{blx@biber@sourcemap@defaults@endnotexml}}
-        {}%
-        \ifcsdef{blx@biber@sourcemap@defaults@ris}
-        {\csuse{blx@biber@sourcemap@defaults@ris}}
-        {}%
-        \ifcsdef{blx@biber@sourcemap@defaults@zoterordfxml}
-        {\csuse{blx@biber@sourcemap@defaults@zoterordfxml}}
-        {}}}}
+     \blx@xml@comment{SOURCEMAP}%
+     \blx@xml@sourcemap{%
+       \ifcsdef{blx@biber@sourcemap@user}
+       {\csuse{blx@biber@sourcemap@user}}
+       {}%
+       \ifcsdef{blx@biber@sourcemap@style}
+       {\csuse{blx@biber@sourcemap@style}}
+       {}%
+       \ifcsdef{blx@biber@sourcemap@defaults@bibtex}
+       {\csuse{blx@biber@sourcemap@defaults@bibtex}}
+       {}%
+       \ifcsdef{blx@biber@sourcemap@defaults@biblatexml}
+       {\csuse{blx@biber@sourcemap@defaults@biblatexml}}
+       {}%
+       \ifcsdef{blx@biber@sourcemap@defaults@endnotexml}
+       {\csuse{blx@biber@sourcemap@defaults@endnotexml}}
+       {}%
+       \ifcsdef{blx@biber@sourcemap@defaults@ris}
+       {\csuse{blx@biber@sourcemap@defaults@ris}}
+       {}%
+       \ifcsdef{blx@biber@sourcemap@defaults@zoterordfxml}
+       {\csuse{blx@biber@sourcemap@defaults@zoterordfxml}}
+       {}}}}
   {}%
   % labelalpha template
   \eappto\blx@tempa{%
@@ -9765,6 +9781,60 @@
 \newcommand*{\blx@noinit}[1]{%
   \eappto\blx@tempa{%
     \blx@xml@noinit{#1}}}
+
+% datafieldsets
+\newrobustcmd*{\DeclareDatafieldSet}[2]{%
+  \begingroup
+  \let\member\blx@datafieldset@member
+  \let\blx@tempa\@empty
+  \def\blx@setname{#1}
+  \cslet{blx@datafieldset@#1}\@empty
+  #2%
+  \csxdef{blx@biber@datafieldsetmembers@#1}{\blx@tempa}%
+  \listgadd\blx@biber@datafieldsets{#1}%
+  \global\csletcs{datafieldset#1}{blx@datafieldset@#1}% expose user-facing macro
+  \endgroup}
+\@onlypreamble\DeclareDatafieldSet
+
+\newcommand*{\blx@datafieldset@member}[1][2]{%
+  \let\blx@dm@fieldtype\@empty
+  \let\blx@dm@datatype\@empty
+  \let\blx@member@field\@empty
+  \let\blx@tempb\@empty
+  \setkeys{blx@datafieldsets@member}{#1}%
+  \eappto\blx@tempa{%
+    \blx@xml@datafieldsets@member{\blx@tempb}}%
+  \ifdefempty\blx@member@field
+    {}
+    {\listcsxadd{blx@datafieldset@\blx@setname}{\blx@member@field}}%
+  % Set some internal macros in case biblatex needs to use the set
+  \ifboolexpr{%
+    not test {\ifdefempty{\blx@dm@fieldtype}}
+    and
+    not test {\ifdefempty{\blx@dm@datatype}}}
+      {\def\do##1{%
+         \listcsxadd{blx@datafieldset@\blx@setname}{##1}}
+       \dolistcsloop{blx@biber@datamodelfields@types@\blx@dm@fieldtype @\blx@dm@datatype}}
+      {\ifdefempty{\blx@dm@fieldtype}
+         {}
+         {\def\do##1{%
+           \listcsxadd{blx@datafieldset@\blx@setname}{##1}}
+          \dolistcsloop{blx@biber@datamodelfields@fieldtypes@\blx@dm@fieldtype}}%
+       \ifdefempty{\blx@dm@datatype}
+         {}
+         {\def\do##1{%
+           \listcsxadd{blx@datafieldset@\blx@setname}{##1}}
+          \dolistcsloop{blx@biber@datamodelfields@datatypes@\blx@dm@datatype}}}}
+
+\define@key{blx@datafieldsets@member}{datatype}{% characters
+  \appto\blx@tempb{ datatype="#1"}%
+  \def\blx@dm@datatype{#1}}
+\define@key{blx@datafieldsets@member}{fieldtype}{% characters
+  \appto\blx@tempb{ fieldtype="#1"}%
+  \def\blx@dm@fieldtype{#1}}
+\define@key{blx@datafieldsets@member}{field}{% characters
+  \appto\blx@tempb{ field="#1"}%
+  \def\blx@member@field{#1}}
 
 % sourcemap
 \newrobustcmd*{\DeclareSourcemap}[1]{%
