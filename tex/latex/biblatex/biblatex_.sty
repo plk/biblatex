@@ -5185,7 +5185,7 @@
   \do{labeldate}%
   \do{localnumber}%
   \do{namehash}%
-  \do{prefixnumber}%
+  \do{labelprefix}%
   \do{sortinit}%
   \do{sortinithash}}
 
@@ -5762,9 +5762,9 @@
     {\ifcsundef{abx@ffd@\blx@imc@thefield{entrytype}@labelnumberwidth}
        {\letcs{\@lnw@labelnumberwidth}{abx@ffd@*@labelnumberwidth}}
        {\letcs{\@lnw@labelnumberwidth}{abx@ffd@\blx@imc@thefield{entrytype}@labelnumberwidth}}%
-     \ifcsundef{abx@ffd@\blx@imc@thefield{entrytype}@prefixnumber}
-       {\letcs{\@lnw@prefixnumber}{abx@ffd@*@prefixnumber}}
-       {\letcs{\@lnw@prefixnumber}{abx@ffd@\blx@imc@thefield{entrytype}@prefixnumber}}%
+     \ifcsundef{abx@ffd@\blx@imc@thefield{entrytype}@labelprefix}
+       {\letcs{\@lnw@labelprefix}{abx@ffd@*@labelprefix}}
+       {\letcs{\@lnw@labelprefix}{abx@ffd@\blx@imc@thefield{entrytype}@labelprefix}}%
      \ifcsundef{abx@ffd@\blx@imc@thefield{entrytype}@labelnumber}
        {\letcs{\@lnw@labelnumber}{abx@ffd@*@labelnumber}}
        {\letcs{\@lnw@labelnumber}{abx@ffd@\blx@imc@thefield{entrytype}@labelnumber}}%
@@ -5791,8 +5791,8 @@
           {}
           {\blx@setlabwidth{\labelnumberwidth}{%
              \csuse{@lnw@labelnumberwidth}{%
-                \ifdef\abx@field@prefixnumber
-                  {\csuse{@lnw@prefixnumber}{\abx@field@prefixnumber}}
+                \ifdef\abx@field@labelprefix
+                  {\csuse{@lnw@labelprefix}{\abx@field@labelprefix}}
                   {}%
                 \csuse{@lnw@labelnumber}{\abx@field@localnumber}}}}}
       {\csgappto\blx@bbl@data{\let\abx@field@labelnumber\abx@field@shorthand}%
@@ -5813,8 +5813,8 @@
         {}
         {\blx@setlabwidth{\labelalphawidth}{%
            \csuse{abx@ffd@*@labelalphawidth}{%
-             \ifdef\abx@field@prefixnumber
-               {\csuse{abx@ffd@*@prefixnumber}{\abx@field@prefixnumber}}
+             \ifdef\abx@field@labelprefix
+               {\csuse{abx@ffd@*@labelprefix}{\abx@field@labelprefix}}
                {}%
              \csuse{abx@ffd@*@labelalpha}{\abx@field@labelalpha}%
              \ifundef\abx@field@extraalpha
@@ -6232,7 +6232,7 @@
 \define@key{blx@bib1}{postnote}{}
 \define@key{blx@bib1}{resetnumbers}[]{}
 \define@key{blx@bib1}{omitnumbers}[]{}
-\define@key{blx@bib1}{prefixnumbers}{}
+\define@key{blx@bib1}{prefixnumbers}{}% legacy name for labelprefix
 
 \define@key{blx@bib2}{section}{}
 \define@key{blx@bib2}{sorting}{}
@@ -6499,7 +6499,7 @@
 
 \define@key{blx@bib2}{prefixnumbers}{%
   \blx@warning@noline{%
-    prefixnumbers option to \string\printbibliography\space is no longer supported, use 'prefixnumbers' option to \string\newrefcontext}}
+    prefixnumbers option to \string\printbibliography\space is no longer supported, use 'labelprefix' option to \string\newrefcontext}}
 
 % [<options>]
 \newrobustcmd*{\printbibheading}{%
@@ -6528,9 +6528,9 @@
     {\blx@printbibliography[]}}
 
 \def\blx@printbibliography[#1]{%
-  \ifdefempty\blx@refcontext@prefixnumbers
+  \ifdefempty\blx@refcontext@labelprefix
     {}
-    {\csnumdef{blx@labelnumber@\the\c@refsection @\blx@refcontext@sorting/\blx@refcontext@sortingnamekey/\blx@refcontext@prefixnumbers}{0}}%
+    {\csnumdef{blx@labelnumber@\the\c@refsection @\blx@refcontext@sorting/\blx@refcontext@sortingnamekey/\blx@refcontext@labelprefix}{0}}%
   \toggletrue{blx@tempa}%
   \toggletrue{blx@tempb}%
   \def\blx@theheading{bibliography}%
@@ -6573,7 +6573,7 @@
   \setkeys{blx@bib2}{#1}% ... now we have correct \blx@tempa, set rest of options
   \blx@rest@actives
   \csxappto{blx@biber@slists}{%
-    \blx@xml@slist{\blx@refcontext@context}{entry}{\blx@tempe}{\blx@refcontext@sorting}{\blx@refcontext@sortingnamekey}{\blx@refcontext@prefixnumbers}{\blx@tempd}{}}%
+    \blx@xml@slist{\blx@refcontext@context}{entry}{\blx@tempe}{\blx@refcontext@sorting}{\blx@refcontext@sortingnamekey}{\blx@refcontext@labelprefix}{\blx@tempd}{}}%
   \ifdefvoid\blx@tempa
     {\blx@warn@bibempty\endgroup}
     {\blx@bibliography\blx@tempa}}
@@ -6805,13 +6805,13 @@
 % default to selecting data from the correct bibliography list in standard
 % cases where entries are not listed in multiple bibliographies
 \def\blx@setdefaultrefcontext#1{%
-  \ifcsdef{blx@assignedrefcontextbib@\the\c@refsection @#1}
+  \ifcsdef{blx@assignedrefcontextbib@#1}
     {}
-    {\csxdef{blx@assignedrefcontextbib@\the\c@refsection @#1}{\blx@refcontext@context}%
+    {\csxdef{blx@assignedrefcontextbib@#1}{\blx@refcontext@context}%
      \blx@auxwrite\@mainaux{}{\string\abx@aux@defaultrefcontext{#1}{\blx@refcontext@context}}%
      \blx@rerun@latex}}
 \def\abx@aux@defaultrefcontext#1#2{%
-  \csxdef{blx@assignedrefcontextbib@\the\c@refsection @#1}{#2}}
+  \csxdef{blx@assignedrefcontextbib@#1}{#2}}
 
 \def\blx@initsep{%
   \blx@imc@iffieldundef{sortinithash}
@@ -6935,7 +6935,7 @@
       {\blx@refcontext@sorting}}%
   % locally define this since we want to fetch data from the slist named
   % after the list we are printing rather than the data in refcontext list
-  \edef\blx@refcontext@context{\blx@tempc/\blx@refcontext@sortingnamekey/\blx@refcontext@prefixnumbers}%
+  \edef\blx@refcontext@context{\blx@tempc/\blx@refcontext@sortingnamekey/\blx@refcontext@labelprefix}%
   \edef\blx@tempd{%
     \blx@xml@sorting
       {\ifcsdef{blx@sortdef@locale@#2}
@@ -6972,7 +6972,7 @@
     {}%
   \blx@rest@actives
   \csxappto{blx@biber@slists}{%
-    \blx@xml@slist{\blx@refcontext@context}{list}{\blx@tempe}{\blx@tempc}{\blx@refcontext@sortingnamekey}{\blx@refcontext@prefixnumbers}{\blx@tempd}{\csuse{blx@biber@biblistfilters@#2}}}%
+    \blx@xml@slist{\blx@refcontext@context}{list}{\blx@tempe}{\blx@tempc}{\blx@refcontext@sortingnamekey}{\blx@refcontext@labelprefix}{\blx@tempd}{\csuse{blx@biber@biblistfilters@#2}}}%
   \ifdefvoid\blx@tempa
     {\blx@warn@biblistempty{#2}\endgroup}
     {\blx@biblist\blx@tempa}}
@@ -7067,7 +7067,7 @@
      \endrefcontext}
     {\toggletrue{blx@refcontext}%
      \setkeys{blx@refcontext}{#1}%
-     \xdef\blx@refcontext@context{\blx@refcontext@sorting/\blx@refcontext@sortingnamekey/\blx@refcontext@prefixnumbers}%
+     \xdef\blx@refcontext@context{\blx@refcontext@sorting/\blx@refcontext@sortingnamekey/\blx@refcontext@labelprefix}%
      \ifcsundef{blx@biber@sorting@\blx@refcontext@sorting}
        {\blx@err@invopt{sorting=\blx@refcontext@sorting}{}}
        {}%
@@ -7078,22 +7078,27 @@
 % Reset to global sorting etc. when we leave a ref context (since they can't be nested)
 \protected\def\endrefcontext{%
   \togglefalse{blx@refcontext}%
-  \global\let\blx@refcontext@prefixnumbers\@empty
+  \global\let\blx@refcontext@labelprefix\@empty
   \xdef\blx@refcontext@sorting{\blx@sorting}%
   \gdef\blx@refcontext@sortingnamekey{global}%
   \xdef\blx@refcontext@context{\blx@refcontext@sorting/\blx@refcontext@sortingnamekey/}}
 
 \define@key{blx@refcontext}{sorting}{\gdef\blx@refcontext@sorting{#1}}
 \define@key{blx@refcontext}{sortingnamekeyscheme}{\gdef\blx@refcontext@sortingnamekey{#1}}
-\define@key{blx@refcontext}{prefixnumbers}{%
-  \gdef\blx@refcontext@prefixnumbers{#1}%
+\define@key{blx@refcontext}{labelprefix}{%
+  \gdef\blx@refcontext@labelprefix{#1}%
   \iftoggle{blx@defernumbers}
     {}%
     {\iftoggle{blx@labelnumber}
        {\blx@warning{%
-          Option 'prefixnumbers' requires global\MessageBreak
+          Option 'labelprefix' requires global\MessageBreak
           'defernumbers=true'}}
        {}}}
+\define@key{blx@refcontext}{prefixnumbers}{% legacy
+  \blx@warning@noline{%
+    prefixnumbers option to \string\newrefcontext\space has been renamed,
+    use 'labelprefix' option instead}%
+  \setkeys{blx@refcontext}{labelprefix=#1}}
 
 % [refcontext keys]{<keyword1>,<keyword2>,...}
 \def\assignrefcontextkeyws[#1]#2{%
@@ -7129,7 +7134,7 @@
 
 \define@key{blx@assignrefcontext}{sorting}{\def\blx@tempa{#1}}
 \define@key{blx@assignrefcontext}{sortingnamekeyscheme}{\def\blx@tempb{#1}}
-\define@key{blx@assignrefcontext}{prefixnumbers}{\def\blx@tempc{#1}}
+\define@key{blx@assignrefcontext}{labelprefix}{\def\blx@tempc{#1}}
 
 % Reference sections
 \newrobustcmd*{\newrefsection}{%
@@ -7730,8 +7735,8 @@
   \iftoggle{blx@refcontext}% Let explicit \newrefcontext override
     {}
     {\let\blx@refcontext@context@saved\blx@refcontext@context
-     \ifcsdef{blx@assignedrefcontextbib@\the\c@refsection @#1}
-       {\letcs\blx@refcontext@context{blx@assignedrefcontextbib@\the\c@refsection @#1}}
+     \ifcsdef{blx@assignedrefcontextbib@#1}
+       {\letcs\blx@refcontext@context{blx@assignedrefcontextbib@#1}}
        {}%
      \ifdef\blx@assignedrefcontextkeywlist
        {\def\do##1{%
@@ -9370,7 +9375,7 @@
 
 \xdef\blx@xml@slist#1#2#3#4#5#6#7#8{%
   ~~<bcf:sortlist section="#3" name="#1" type="#2" sortscheme="#4"
-  sortnamekeyscheme="#5" prefixnumbers="#6">\blx@nl
+  sortnamekeyscheme="#5" labelprefix="#6">\blx@nl
   #8%
   #7%
   ~~</bcf:sortlist>\blx@nl}
@@ -10540,8 +10545,8 @@
      \def\blx@refcontext@sorting{nty}}%
      \listxadd\blx@sortschemes{\blx@sorting}%
      \def\blx@refcontext@sortingnamekey{global}%
-     \let\blx@refcontext@prefixnumbers\@empty
-     \xdef\blx@refcontext@context{\blx@refcontext@sorting/\blx@refcontext@sortingnamekey/\blx@refcontext@prefixnumbers}}
+     \let\blx@refcontext@labelprefix\@empty
+     \xdef\blx@refcontext@context{\blx@refcontext@sorting/\blx@refcontext@sortingnamekey/\blx@refcontext@labelprefix}}
 
 \DeclareBibliographyOption[boolean]{sortcase}[true]{%
   \settoggle{blx@sortcase}{#1}}

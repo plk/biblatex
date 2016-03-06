@@ -163,7 +163,7 @@ then
 fi
 
 
-if [[ "$1" = "test" ]]
+if [[ "$1" = "testbiber" || "$1" = "testbibtex" ]]
 then
   [[ -e obuild/test/examples ]] || mkdir -p obuild/test/examples
   \rm -f obuild/test/example_errs_biber.txt
@@ -191,110 +191,116 @@ then
     fi
   done
 
-  for f in *-bibtex.tex
-  do
-    bibtexflag=false
-    echo -n "File (bibtex): $f ... "
-    exec 4>&1 7>&2 # save stdout/stderr
-    exec 1>/dev/null 2>&1 # redirect them from here
-    pdflatex -interaction=batchmode ${f%.tex}
-    bibtex ${f%.tex}
-    # Any refsections? If so, need extra bibtex runs
-    for sec in ${f%.tex}*-blx.aux
+  if [[ "$1" = "testbibtex" ]]
+  then
+    for f in *-bibtex.tex
     do
-      bibtex $sec
-    done
-    pdflatex -interaction=batchmode ${f%.tex}
-    # Need a second bibtex run to pick up set members
-    if [[ $f = *-indexing-* ]]
-    then
-      makeindex -o ${f%.tex}.ind ${f%.tex}.idx
-      makeindex -o ${f%.tex}.nnd ${f%.tex}.ndx
-      makeindex -o ${f%.tex}.tnd ${f%.tex}.tdx
-    fi
-    bibtex ${f%.tex}
-    pdflatex -interaction=batchmode ${f%.tex}
-    exec 1>&4 4>&- # restore stdout
-    exec 7>&2 7>&- # restore stderr
-    # Now look for latex/bibtex errors and report ...
-    echo "==============================
+      bibtexflag=false
+      echo -n "File (bibtex): $f ... "
+      exec 4>&1 7>&2 # save stdout/stderr
+      exec 1>/dev/null 2>&1 # redirect them from here
+      pdflatex -interaction=batchmode ${f%.tex}
+      bibtex ${f%.tex}
+      # Any refsections? If so, need extra bibtex runs
+      for sec in ${f%.tex}*-blx.aux
+      do
+        bibtex $sec
+      done
+      pdflatex -interaction=batchmode ${f%.tex}
+      # Need a second bibtex run to pick up set members
+      if [[ $f = *-indexing-* ]]
+      then
+        makeindex -o ${f%.tex}.ind ${f%.tex}.idx
+        makeindex -o ${f%.tex}.nnd ${f%.tex}.ndx
+        makeindex -o ${f%.tex}.tnd ${f%.tex}.tdx
+      fi
+      bibtex ${f%.tex}
+      pdflatex -interaction=batchmode ${f%.tex}
+      exec 1>&4 4>&- # restore stdout
+      exec 7>&2 7>&- # restore stderr
+      # Now look for latex/bibtex errors and report ...
+      echo "==============================
 Test file: $f
 
 PDFLaTeX errors/warnings
 ------------------------"  >> ../example_errs_bibtex.txt
-    grep -E -i "(error|warning):" ${f%.tex}.log >> ../example_errs_bibtex.txt
-    if [[ $? -eq 0 ]]; then bibtexflag=true; fi
-    grep -E -A 3 '^!' ${f%.tex}.log >> ../example_errs_bibtex.txt
-    if [[ $? -eq 0 ]]; then bibtexflag=true; fi
-    echo >> ../example_errs_bibtex.txt
-    echo "BibTeX errors/warnings" >> ../example_errs_bibtex.txt
-    echo "---------------------" >> ../example_errs_bibtex.txt
-    # Glob as we need to check all .blgs in case of refsections
-    grep -E -i -e "(error|warning)[^\$]" ${f%.tex}*.blg >> ../example_errs_bibtex.txt
-    if [[ $? -eq 0 ]]; then bibtexflag=true; fi
-    echo "==============================" >> ../example_errs_bibtex.txt
-    echo >> ../example_errs_bibtex.txt
-    if $bibtexflag 
-    then
-      echo "ERRORS"
-    else
-      echo "OK"
-    fi
-  done
+      grep -E -i "(error|warning):" ${f%.tex}.log >> ../example_errs_bibtex.txt
+      if [[ $? -eq 0 ]]; then bibtexflag=true; fi
+      grep -E -A 3 '^!' ${f%.tex}.log >> ../example_errs_bibtex.txt
+      if [[ $? -eq 0 ]]; then bibtexflag=true; fi
+      echo >> ../example_errs_bibtex.txt
+      echo "BibTeX errors/warnings" >> ../example_errs_bibtex.txt
+      echo "---------------------" >> ../example_errs_bibtex.txt
+      # Glob as we need to check all .blgs in case of refsections
+      grep -E -i -e "(error|warning)[^\$]" ${f%.tex}*.blg >> ../example_errs_bibtex.txt
+      if [[ $? -eq 0 ]]; then bibtexflag=true; fi
+      echo "==============================" >> ../example_errs_bibtex.txt
+      echo >> ../example_errs_bibtex.txt
+      if $bibtexflag 
+      then
+        echo "ERRORS"
+      else
+        echo "OK"
+      fi
+    done
+  fi
 
-  for f in *-biber.tex
-  do
-    biberflag=false      
-    if [[ "$f" < 9* ]] # 9+*.tex examples require biber and we want UTF-8 support
-    then
-        declare TEXENGINE=pdflatex
-        declare BIBEROPTS='--output_safechars --onlylog'
-    else
-        declare TEXENGINE=lualatex
-        declare BIBEROPTS='--onlylog'
-    fi
-    echo -n "File (biber): $f ... "
-    exec 4>&1 7>&2 # save stdout/stderr
-    exec 1>/dev/null 2>&1 # redirect them from here
-    $TEXENGINE -interaction=batchmode ${f%.tex}
-    # using output safechars as we are using fontenc and ascii in the test files
-    # so that we can use the same test files with bibtex which only likes ascii
-    # biber complains when outputting ascii from it's internal UTF-8
-    biber $BIBEROPTS --onlylog ${f%.tex}
-    $TEXENGINE -interaction=batchmode ${f%.tex}
-    if [[ $f = *-indexing-* ]]
-    then
-      makeindex -o ${f%.tex}.ind ${f%.tex}.idx
-      makeindex -o ${f%.tex}.nnd ${f%.tex}.ndx
-      makeindex -o ${f%.tex}.tnd ${f%.tex}.tdx
-    fi
-    $TEXENGINE -interaction=batchmode ${f%.tex}
-    exec 1>&4 4>&- # restore stdout
-    exec 7>&2 7>&- # restore stderr
-
-    # Now look for latex/biber errors and report ...
-    echo "==============================
+  if [[ "$1" = "testbiber" ]]
+  then
+    for f in *-biber.tex
+    do
+      biberflag=false      
+      if [[ "$f" < 9* ]] # 9+*.tex examples require biber and we want UTF-8 support
+      then
+          declare TEXENGINE=pdflatex
+          declare BIBEROPTS='--output_safechars --onlylog'
+      else
+          declare TEXENGINE=lualatex
+          declare BIBEROPTS='--onlylog'
+      fi
+      echo -n "File (biber): $f ... "
+      exec 4>&1 7>&2 # save stdout/stderr
+      exec 1>/dev/null 2>&1 # redirect them from here
+      $TEXENGINE -interaction=batchmode ${f%.tex}
+      # using output safechars as we are using fontenc and ascii in the test files
+      # so that we can use the same test files with bibtex which only likes ascii
+      # biber complains when outputting ascii from it's internal UTF-8
+      biber $BIBEROPTS --onlylog ${f%.tex}
+      $TEXENGINE -interaction=batchmode ${f%.tex}
+      if [[ $f = *-indexing-* ]]
+      then
+        makeindex -o ${f%.tex}.ind ${f%.tex}.idx
+        makeindex -o ${f%.tex}.nnd ${f%.tex}.ndx
+        makeindex -o ${f%.tex}.tnd ${f%.tex}.tdx
+      fi
+      $TEXENGINE -interaction=batchmode ${f%.tex}
+      exec 1>&4 4>&- # restore stdout
+      exec 7>&2 7>&- # restore stderr
+  
+      # Now look for latex/biber errors and report ...
+      echo "==============================
 Test file: $f
 
 PDFLaTeX errors/warnings
 ------------------------"  >> ../example_errs_biber.txt
-    grep -E -i "(error|warning):" ${f%.tex}.log >> ../example_errs_biber.txt
-    if [[ $? -eq 0 ]]; then biberflag=true; fi
-    grep -E -A 3 '^!' ${f%.tex}.log >> ../example_errs_biber.txt
-    if [[ $? -eq 0 ]]; then biberflag=true; fi
-    echo >> ../example_errs_biber.txt
-    echo "Biber errors/warnings" >> ../example_errs_biber.txt
-    echo "---------------------" >> ../example_errs_biber.txt
-    grep -E -i "(error|warn)" ${f%.tex}.blg >> ../example_errs_biber.txt
-    if [[ $? -eq 0 ]]; then biberflag=true; fi
-    echo "==============================" >> ../example_errs_biber.txt
-    echo >> ../example_errs_biber.txt
-    if $biberflag 
-    then
-      echo "ERRORS"
-    else
-      echo "OK"
-    fi
-  done
+      grep -E -i "(error|warning):" ${f%.tex}.log >> ../example_errs_biber.txt
+      if [[ $? -eq 0 ]]; then biberflag=true; fi
+      grep -E -A 3 '^!' ${f%.tex}.log >> ../example_errs_biber.txt
+      if [[ $? -eq 0 ]]; then biberflag=true; fi
+      echo >> ../example_errs_biber.txt
+      echo "Biber errors/warnings" >> ../example_errs_biber.txt
+      echo "---------------------" >> ../example_errs_biber.txt
+      grep -E -i "(error|warn)" ${f%.tex}.blg >> ../example_errs_biber.txt
+      if [[ $? -eq 0 ]]; then biberflag=true; fi
+      echo "==============================" >> ../example_errs_biber.txt
+      echo >> ../example_errs_biber.txt
+      if $biberflag 
+      then
+        echo "ERRORS"
+      else
+        echo "OK"
+      fi
+    done
+  fi
   cd ../../..
 fi
