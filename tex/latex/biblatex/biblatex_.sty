@@ -21,6 +21,7 @@
 \RequirePackage{logreq}
 \RequirePackage{ifthen}
 \RequirePackage{url}
+\RequirePackage{xstring}
 %\RequirePackage{trace}
 
 \@ifpackagelater{etoolbox}{2010/11/29}
@@ -3492,7 +3493,7 @@
   \let\blx@saved@do\do
   \def\do##1{\blx@resetformat@i{#1}{#2}{##1}}%
   \blx@safe@actives
-  \dolistcsloop{blx@biber@datamodel@entrytypes}%
+  \abx@doentrytypes
   \blx@rest@actives
   \let\do\blx@saved@do}
 
@@ -4784,13 +4785,8 @@
     \blx@warning@entry{Month out of range}#1%
   \fi}
 
-\protected\def\blx@imc@printdate{}
-\protected\def\blx@imc@printdateextra{}
 \protected\def\blx@imc@printdatelabel{}
 \protected\def\blx@imc@printdateextralabel{}
-\protected\def\blx@imc@printurldate{}
-\protected\def\blx@imc@printeventdate{}
-\protected\def\blx@imc@printorigdate{}
 
 \let\blx@imc@mkdatezeros\@firstofone
 \protected\def\blx@imc@stripzeros#1{%
@@ -4809,9 +4805,7 @@
    \@tempcnta#1\relax}
   {\egroup#1}}
 
-\blx@regimcs{%
-  \printdate \printdateextra \printdatelabel \printdateextralabel
-  \printurldate \printeventdate \printorigdate \stripzeros \mkdatezeros}
+\blx@regimcs{\printdatelabel \printdateextralabel \printorigdate \stripzeros \mkdatezeros}
 
 % {<language>}{<strings>}
 \def\blx@maplang#1#2{%
@@ -4982,22 +4976,20 @@
 
 %% Biber equivalents to bibtex data interface
 
-\def\abx@dotypes{\dolistcsloop{blx@biber@datamodel@entrytypes}}
+\def\abx@doentrytypes{\dolistcsloop{blx@biber@datamodel@entrytypes}}
 
 % fields which can be used as labels - we auto-create some macros for these
-\def\abx@dolabelfields{%
-  \dolistcsloop{blx@biber@datamodel@labelfields}}
+\def\abx@dolabelfields{\dolistcsloop{blx@biber@datamodel@labelfields}}
 
-\def\abx@donames{%
-  \dolistcsloop{blx@biber@datamodel@names}%
-}
+\def\abx@donames{\dolistcsloop{blx@biber@datamodel@names}}
+
+\def\abx@dofields{\dolistcsloop{blx@biber@datamodel@fields}}
 
 \def\abx@dolists{%
   \dolistcsloop{blx@biber@datamodel@lists}%
-  \do{pageref}%
-}
+  \do{pageref}}
 
-\def\abx@dofields{\dolistcsloop{blx@biber@datamodel@fields}}
+\def\abx@dodates{\dolistcsloop{blx@biber@datamodel@dates}}
 
 % Used to pass regexps to .bcf
 \def\regexp#1{\expandafter\zap@space\detokenize{#1} \@empty}
@@ -5103,7 +5095,7 @@
 % to biblatex. For options which only biber needs to see, they can be
 % passed to the .bcf directly using \blx@collectopts
 % [<datatype>]{<key>}[<value>]{<code>}
-\newrobustcmd*{\DeclareBibliographyOption}[2][]{%
+\newrobustcmd*{\DeclareBibliographyOption}[2][]{
   \ifblank{#1}
     {\def\blx@tempa{boolean}}
     {\ifcsundef{blx@globalopts@#1}
@@ -5192,6 +5184,18 @@
 \def\abx@dobooleans{%
   \do{singletitle}}
 
+% Date datatype fields
+\def\do#1{%
+  \protected\csdef{blx@imc@print#1}{}%
+  \protected\csdef{blx@imc@print#1extra}{}}
+\abx@dodates
+
+% \blx@regimcs doesn't work in do-lists nicely so use internal macro it calls
+\def\do#1{%
+  \xappto\blx@blxinit{\csletcs{print#1}{blx@imc@print#1}}%
+  \xappto\blx@blxinit{\csletcs{print#1extra}{blx@imc@print#1extra}}}
+\abx@dodates
+
 % Name toggles like \ifauthor etc. need to be dynamically created for all
 % name datatypes in the data model and we have to do this here after the
 % datamodel is available. Need to be careful about expansions here as these
@@ -5199,18 +5203,18 @@
 
 % Define name toggles
 \def\do#1{\newtoggle{blx@use#1}\toggletrue{blx@use#1}}
-\dolistcsloop{blx@biber@datamodel@names}
+\abx@donames
 
 % Define name toggle checking macros
 \let\blx@nametoggles\@empty
 \def\do#1{\gappto\blx@nametoggles{\expandafter\def\csname ifuse#1\endcsname{\iftoggle{blx@use#1}}}}
-\dolistcsloop{blx@biber@datamodel@names}
+\abx@donames
 \eappto\blx@blxinit{\expandafter\expandonce\noexpand\blx@nametoggles}
 
 % Define ifthen interface name toggle checking macros
 \let\blx@nametogglesit\@empty
 \def\do#1{\gappto\blx@nametogglesit{\expandafter\def\csname ifuse#1\endcsname{\blx@TE{\iftoggle{blx@use#1}}}}}
-\dolistcsloop{blx@biber@datamodel@names}
+\abx@donames
 \expandafter\def\expandafter\blx@nametogglesite\expandafter{\expandonce\blx@nametogglesit}
 \appto\blx@blxinit{\appto\blx@TE@hook{\blx@nametogglesite}}
 
@@ -5218,7 +5222,7 @@
 \def\do#1{\blx@collectopts{boolean}{blx@globalopts}{use#1}%
            \blx@collectopts{boolean}{blx@typeopts}{use#1}%
            \blx@collectopts{boolean}{blx@entryopts}{use#1}}
-\dolistcsloop{blx@biber@datamodel@names}
+\abx@donames
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -9502,7 +9506,7 @@
   % Expand the global use* name toggles
   \let\blx@xml@nametoggles\@empty
   \def\do##1{\eappto\blx@xml@nametoggles{\blx@xml@toggle{use##1}}}%
-  \dolistcsloop{blx@biber@datamodel@names}
+  \abx@donames
   \edef\blx@tempa{%
     \blx@xml@file
     \blx@xml@comment{BIBER OPTIONS}%
@@ -9525,7 +9529,7 @@
        % Expand the type use* name toggles
        \let\blx@xml@nametoggles\@empty
        \def\do####1{\eappto\blx@xml@nametoggles{\blx@xml@toggle{use####1}}}%
-       \dolistcsloop{blx@biber@datamodel@names}
+       \abx@donames
        \begingroup
        \let\protect\relax
        \blx@checkoptions@type
@@ -9678,7 +9682,7 @@
   \def\do##1{%
     \eappto\blx@bcf@presort{\csuse{blx@bcf@presort@##1}}%
     \eappto\blx@bcf@exclude{\csuse{blx@bcf@exclude@##1}}}%
-  \dolistcsloop{blx@biber@datamodel@entrytypes}%
+  \abx@doentrytypes
   \eappto\blx@tempa{%
     \blx@xml@comment{SORTING}%
     \blx@xml@sorting{}{%
@@ -11195,12 +11199,6 @@
     {\blx@err@invopt{maxparens=#1}{}}
     {\setcounter{maxparens}{#1}}}
 
-\DeclareBibliographyOption[string]{date}{%
-  \ifcsdef{mkbibrange#1}
-    {\protected\def\blx@imc@printdate{\csuse{mkbibrange#1}{}}%
-     \protected\def\blx@imc@printdateextra{\csuse{mkbibrange#1extra}{}}}
-    {\blx@err@invopt{date=#1}{}}}
-
 \DeclareBibliographyOption[string]{datelabel}{%
   \ifcsdef{mkbibrange#1}
     {\protected\def\blx@imc@printdatelabel{%
@@ -11213,20 +11211,19 @@
          {\csuse{mkbibrange#1extra}{}}}}
     {\blx@err@invopt{datelabel=#1}{}}}
 
-\DeclareBibliographyOption[string]{urldate}{%
-  \ifcsdef{mkbibrange#1}
-    {\protected\def\blx@imc@printurldate{\csuse{mkbibrange#1}{url}}}
-    {\blx@err@invopt{urldate=#1}{}}}
+\def\do#1{%
+  \DeclareBibliographyOption[string]{#1}{%
+    \StrCut{#1}{date}\blx@datetype\blx@tempf
+    \ifcsdef{mkbibrange##1}
+      {\protected\csedef{blx@imc@print#1}{\csuse{mkbibrange##1}{\blx@datetype}}%
+       \protected\csedef{blx@imc@print#1extra}{\csuse{mkbibrange##1extra}{\blx@datetype}}}
+      {\blx@err@invopt{#1=##1}{}}}}
+\abx@dodates
 
-\DeclareBibliographyOption[string]{eventdate}{%
-  \ifcsdef{mkbibrange#1}
-    {\protected\def\blx@imc@printeventdate{\csuse{mkbibrange#1}{event}}}
-    {\blx@err@invopt{eventdate=#1}{}}}
-
-\DeclareBibliographyOption[string]{origdate}{%
-  \ifcsdef{mkbibrange#1}
-    {\protected\def\blx@imc@printorigdate{\csuse{mkbibrange#1}{orig}}}
-    {\blx@err@invopt{origdate=#1}{}}}
+% Default for new date fields is "comp" but this is overridden below by
+% biblatex defaults
+\def\do#1{\setkeys{blx@opt@pre}{#1=comp}}
+\abx@dodates
 
 \DeclareBibliographyOption[string]{alldates}{%
   \ExecuteBibliographyOptions{%
@@ -11441,7 +11438,7 @@
     \settoggle{blx@use#1}{##1}}
   \DeclareEntryOption[boolean]{use#1}[true]{%
     \settoggle{blx@use#1}{##1}}}
-\dolistcsloop{blx@biber@datamodel@names}
+\abx@donames
 
 % Entry options
 \DeclareBibliographyOption[boolean]{useprefix}[true]{%

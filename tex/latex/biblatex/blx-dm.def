@@ -65,7 +65,6 @@
 \xdef\blx@xml@datamodel@constraintfieldsub#1{%
   ~~~~~~~~~~<bcf:field>#1</bcf:field>\blx@nl}
 
-
 % Data model specification macros
 \newrobustcmd*{\ResetDatamodelEntrytypes}{%
   \global\cslet{blx@bcf@datamodel@entrytypes}\@empty
@@ -76,6 +75,7 @@
   \global\cslet{blx@bcf@datamodel@fields}\@empty
   \global\cslet{blx@biber@datamodel@fields}\@empty
   \global\cslet{blx@biber@datamodel@names}\@empty
+  \global\cslet{blx@biber@datamodel@dates}\@empty
   \global\cslet{blx@biber@datamodel@lists}\@empty}
 
 \newrobustcmd*{\ResetDatamodelEntryfields}{%
@@ -126,6 +126,16 @@
       {\listcsgadd{blx@biber@datamodelfields@types@\blx@dm@fieldtype @\blx@dm@datatype}{##1}}%
 
     % Processed convenience lists of various datamodel fields
+
+    % add to list of dates. These are skipout in the default datamodel but
+    % we want to auto-create some internals/options for all date fields in
+    % biblatex
+    \ifboolexpr{%
+      test {\ifcsstring{blx@dm@datatype}{date}}
+      and
+      not test {\ifinlistcs{##1}{blx@biber@datamodel@dates}}}
+        {\listcsgadd{blx@biber@datamodel@dates}{##1}}
+        {}%
     \ifboolexpr{% add to list of label fields
       not bool {dmskipout}
       and
