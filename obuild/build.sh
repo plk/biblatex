@@ -6,7 +6,7 @@ echo "Usage:
 build.sh help
 build.sh install <version> <tds_root>
 build.sh build <version>
-build.sh test
+build.sh testbibtex|testbiber|test
 build.sh upload <version> [ \"DEV\" ]
 
 With the \"DEV\" argument, uploads to the SourceForge development
@@ -163,7 +163,7 @@ then
 fi
 
 
-if [[ "$1" = "testbiber" || "$1" = "testbibtex" ]]
+if [[ "$1" = "testbiber" || "$1" = "testbibtex" || "$1" = "test" ]]
 then
   [[ -e obuild/test/examples ]] || mkdir -p obuild/test/examples
   \rm -f obuild/test/example_errs_biber.txt
@@ -191,7 +191,7 @@ then
     fi
   done
 
-  if [[ "$1" = "testbibtex" ]]
+  if [[ "$1" = "testbibtex" || "$1" = "test" ]]
   then
     for f in *-bibtex.tex
     do
@@ -245,7 +245,7 @@ PDFLaTeX errors/warnings
     done
   fi
 
-  if [[ "$1" = "testbiber" ]]
+  if [[ "$1" = "testbiber" || "$1" = "test" ]]
   then
     for f in *-biber.tex
     do
