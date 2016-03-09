@@ -88,7 +88,7 @@ then
   mkdir -p obuild/tds/doc/latex/biblatex
   cp doc/latex/biblatex/README obuild/tds/doc/latex/biblatex/
   cp doc/latex/biblatex/RELEASE obuild/tds/doc/latex/biblatex/
-  cp doc/latex/biblatex/biblatex.pdf obuild/tds/doc/latex/biblatex/
+  cp doc/latex/biblatex/biblatex.pdf obuild/tds/doc/latex/biblatex/ 2>/dev/null
   cp doc/latex/biblatex/biblatex.tex obuild/tds/doc/latex/biblatex/
   cp -r doc/latex/biblatex/examples obuild/tds/doc/latex/biblatex/
   cp -r tex obuild/tds/
@@ -110,7 +110,7 @@ then
   cp bibtex/bltxml/biblatex/biblatex-examples.bltxml obuild/flat/doc/examples/
   cp bibtex/bst/biblatex/biblatex.bst obuild/flat/bibtex/bst/
   cp bibtex/csf/biblatex/*.csf obuild/flat/bibtex/csf/
-  cp doc/latex/biblatex/biblatex.pdf obuild/flat/doc/
+  cp doc/latex/biblatex/biblatex.pdf obuild/flat/doc/ 2>/dev/null
   cp doc/latex/biblatex/biblatex.tex obuild/flat/doc/
   cp -r doc/latex/biblatex/examples obuild/flat/doc/
   cp tex/latex/biblatex/*.def obuild/flat/latex/
@@ -143,11 +143,17 @@ then
   \rm -f obuild/biblatex-$VERSION.tgz
 
   cd doc/latex/biblatex
+
+  cp biblatex.tex biblatexbak.tex
+  perl -pi.bak -e 's|DATEMARKER|\\today|;' biblatex.tex
+
   lualatex -interaction=batchmode biblatex.tex
   lualatex -interaction=batchmode biblatex.tex
   lualatex -interaction=batchmode biblatex.tex
 
   \rm *.{aux,bbl,bcf,blg,log,run.xml,toc,out,lot} 2>/dev/null
+
+  mv biblatexbak.tex.bak biblatex.tex
 
   cp biblatex.pdf ../../../obuild/tds/doc/
   cp biblatex.pdf ../../../obuild/flat/doc/
