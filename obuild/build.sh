@@ -153,7 +153,7 @@ then
 
   \rm *.{aux,bbl,bcf,blg,log,run.xml,toc,out,lot} 2>/dev/null
 
-  mv biblatexbak.tex.bak biblatex.tex
+  mv biblatex.tex.bak biblatex.tex
 
   cp biblatex.pdf ../../../obuild/tds/doc/
   cp biblatex.pdf ../../../obuild/flat/doc/
