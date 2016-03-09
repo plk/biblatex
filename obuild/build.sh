@@ -144,7 +144,6 @@ then
 
   cd doc/latex/biblatex
 
-  cp biblatex.tex biblatexbak.tex
   perl -pi.bak -e 's|DATEMARKER|\\today|;' biblatex.tex
 
   lualatex -interaction=batchmode biblatex.tex
