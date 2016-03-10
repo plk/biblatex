@@ -3428,6 +3428,11 @@
   australian,newzealand}
 
 %% Main formatting commands
+% The work by creating a \let alias:
+% \abx@<class>@<entrytype>@<formatname> -> \blx@defformat@d
+% for later use in \print*
+% Then, \blx@defformat@d is defined by calling
+% \def\blx@defformat@d#1{format body}
 
 % [<entrytype>]{<name>}{<definiton>}
 \newrobustcmd*{\DeclareNameFormat}{%
@@ -3523,7 +3528,9 @@
   \csedef{abx@#1@#2@#3}{%
     \expandonce{\csname abx@#1@#4@#5\endcsname}}}
 
-% {<macro>}{<id>}{<name>}{<field>}
+
+
+% {<macro>}{<class>}{<name>}{<field>}
 \def\blx@getformat#1#2#3#4{%
   \blx@safe@actives
   \afterassignment\blx@rest@actives
@@ -3748,16 +3755,21 @@
      \fi
      \blx@nameparser}}
 
-\long\def\blx@nameparser@i#1{%
+% {name opts}{nameparts}
+\long\def\blx@nameparser@i#1#2{%
   \ifblank{#1}
     {}
     {\setkeys{blx@opt@name}{#1}}%
- % reset all the nameparts to empty between names
+  % reset all the nameparts to empty between names
   \def\do##1{%
     \cslet{namepart##1}\@empty
     \cslet{namepart##1i}\@empty}%
   \expandafter\docsvlist\expandafter{\blx@datamodel@constant@nameparts}%
-  \blx@theformat}
+  \setkeys{blx@opt@namepart}{#2}% Extract nameparts information
+  % Still pass the nameparts forward for backwards compat
+  % When \nameparts is finally removed, remove the "{2}" and remove the
+  % arg to \blx@defformat@d in def of \blx@defnameformat
+  \blx@theformat{#2}}
 
 \long\def\blx@namebreak#1&{}
 
