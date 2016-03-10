@@ -202,9 +202,43 @@
       {}
       {\listcsgadd{blx@biber@datamodel@fields}{##1}}%
     \xappto\blx@bcf@datamodel@fields{%
-      \blx@xml@datamodel@field{\blx@tempa}{##1}}}%
-  \docsvlist{#2}
-  \endgroup}
+      \blx@xml@datamodel@field{\blx@tempa}{##1}}%
+
+    % Dateparts are special - auto-create for all date fields
+    \ifcsstring{blx@dm@datatype}{date}
+      {\begingroup
+       \let\blx@tempa\@empty% reset setkeys buffer due to manual calls below
+       % add to list of dates. These are skipout in the default datamodel but
+       % we want to auto-create some internals/options for all date fields in
+       % biblatex
+       \ifinlistcs{##1}{blx@biber@datamodel@dates}
+         {}
+         {\listcsgadd{blx@biber@datamodel@dates}{##1}}%
+       \ifinlistcs{##1}{blx@biber@datamodel@fields}
+         {}
+         {\listcsgadd{blx@biber@datamodel@fields}{##1}}%
+       \StrCut{##1}{date}\blx@datetype\blx@tempnull
+       % *endyear
+       \xifinlistcs{\blx@datetype endyear}{blx@biber@datamodel@fields}
+         {}
+         {\listcsxadd{blx@biber@datamodel@fields}{\blx@datetype endyear}}%
+       \setkeys{blx@datamodel@field}{type=field,datatype=datepart,nullok}%
+       \xappto\blx@bcf@datamodel@fields{%
+         \blx@xml@datamodel@field{\blx@tempa}{\blx@datetype endyear}}%
+       % *year, *month, *day, *endmonth, *endday
+       \def\do####1{%
+         \let\blx@tempa\@empty% reset setkeys buffer due to loop calls
+         \xifinlistcs{\blx@datetype ####1}{blx@biber@datamodel@fields}
+           {}
+           {\listcsxadd{blx@biber@datamodel@fields}{\blx@datetype ####1}}%
+         \setkeys{blx@datamodel@field}{type=field,datatype=datepart}%
+         \xappto\blx@bcf@datamodel@fields{%
+           \blx@xml@datamodel@field{\blx@tempa}{\blx@datetype ####1}}}%
+       \docsvlist{year,month,day,endmonth,endday}%
+       \endgroup}
+      {}}%
+   \docsvlist{#2}
+   \endgroup}
 
 \define@key{blx@datamodel@field}{type}{% characters
   \eappto\blx@tempa{ fieldtype="#1"}%
@@ -396,28 +430,6 @@
 
 \DeclareDatamodelEntrytypes[skipout]{xdata}
 
-\DeclareDatamodelFields[type=field, datatype=datepart]{
-  month,
-  year,
-  day,
-  endday,
-  endmonth,
-  eventday,
-  eventendday,
-  eventendmonth,
-  eventmonth,
-  eventyear,
-  origday,
-  origendday,
-  origendmonth,
-  origmonth,
-  origyear,
-  urlday,
-  urlendday,
-  urlendmonth,
-  urlmonth,
-  urlyear}
-
 \DeclareDatamodelFields[type=field, datatype=literal]{
   abstract,
   addendum,
@@ -485,12 +497,6 @@
   shortjournal,
   shortseries,
   shorttitle}
-
-\DeclareDatamodelFields[type=field, datatype=datepart, nullok]{
-  urlendyear,
-  endyear,
-  eventendyear,
-  origendyear}
 
 \DeclareDatamodelFields[type=field, datatype=literal, skipout]{
   sorttitle,

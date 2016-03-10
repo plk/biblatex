@@ -70,8 +70,10 @@ then
       if [[ "$3" = "DEV" ]]
       then
         scp obuild/biblatex-$VERSION.*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/development/
+        scp doc/latex/biblatex/CHANGES philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/development/
       else
         scp obuild/biblatex-$VERSION.*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/biblatex-$VERSIONM/
+        scp doc/latex/biblatex/CHANGES philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/biblatex-$VERSIONM/
       fi
     exit 0
   fi
@@ -87,7 +89,7 @@ then
   cp -r bibtex obuild/tds/
   mkdir -p obuild/tds/doc/latex/biblatex
   cp doc/latex/biblatex/README obuild/tds/doc/latex/biblatex/
-  cp doc/latex/biblatex/RELEASE obuild/tds/doc/latex/biblatex/
+  cp doc/latex/biblatex/CHANGES obuild/tds/doc/latex/biblatex/
   cp doc/latex/biblatex/biblatex.pdf obuild/tds/doc/latex/biblatex/ 2>/dev/null
   cp doc/latex/biblatex/biblatex.tex obuild/tds/doc/latex/biblatex/
   cp -r doc/latex/biblatex/examples obuild/tds/doc/latex/biblatex/
@@ -103,7 +105,7 @@ then
   mkdir -p obuild/flat/doc/examples
   mkdir -p obuild/flat/latex/{cbx,bbx,lbx}
   cp doc/latex/biblatex/README obuild/flat/
-  cp doc/latex/biblatex/RELEASE obuild/flat/
+  cp doc/latex/biblatex/CHANGES obuild/flat/
   cp bibtex/bib/biblatex/biblatex-examples.bib obuild/flat/bibtex/bib/biblatex/  
   cp bibtex/bib/biblatex/biblatex-examples.bib obuild/flat/doc/examples/
   cp bibtex/bltxml/biblatex/biblatex-examples.bltxml obuild/flat/bibtex/bib/biblatex/  
@@ -161,7 +163,7 @@ then
   echo "Created main documentation ..."
 
   tar zcf obuild/biblatex-$VERSION.tds.tgz -C obuild/tds bibtex doc tex
-  tar zcf obuild/biblatex-$VERSION.tgz -C obuild/flat README RELEASE bibtex doc latex
+  tar zcf obuild/biblatex-$VERSION.tgz -C obuild/flat README CHANGES bibtex doc latex
 
   echo "Created packages (flat and TDS) ..."
 
