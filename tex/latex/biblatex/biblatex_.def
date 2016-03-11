@@ -22,9 +22,38 @@
   \define@key{blx@opt@namepart}{#1_i}{\csdef{namepart#1i}{##1}}}
 \expandafter\docsvlist\expandafter{\blx@datamodel@constant@nameparts}
 
-\newcommand*{\mkbibnamefirst}[1]{#1}% legacy alias
-\newcommand*{\mkbibnamelast}[1]{#1}% legacy alias
-\newcommand*{\mkbibnameaffix}[1]{#1}% legacy alias
+% legacy aliases
+% If legacy command is already redefined, save it, issue warning and
+% run the old command
+% If legacy command is not redefined, issue warning and
+% run the new one
+\AtBeginDocument{%
+  \ifdef\mkbibnamefirst
+    {\let\@savedlbn\mkbibnamefirst}
+    {\let\@savedlbn\mkbibnamegiven}%
+  \def\mkbibnamefirst{%
+    \blx@warning@noline{%
+      \string\mkbibnamefirst\space is deprecated, please use \string\mkbibnamegiven}%  
+    \global\let\mkbibnamegiven\@savedlbn
+    \mkbibnamegiven}
+  \ifdef\mkbibnamelast
+    {\let\@savedlbn\mkbibnamelast}
+    {\let\@savedlbn\mkbibnamefamily}%
+  \def\mkbibnamelast{%
+    \blx@warning@noline{%
+      \string\mkbibnamelast\space is deprecated, please use \string\mkbibnamefamily}%  
+    \global\let\mkbibnamefamily\@savedlbn
+    \mkbibnamefamily}
+  \ifdef\mkbibnameaffix
+    {\let\@savedlbn\mkbibnameaffix}
+    {\let\@savedlbn\mkbibnamesuffix}%
+  \def\mkbibnameaffix{%
+    \let\@savedlbn\mkbibnameaffix
+    \blx@warning@noline{%
+      \string\mkbibnameaffix\space is deprecated, please use \string\mkbibnamesuffix}%  
+    \global\let\mkbibnamesuffix\@savedlbn
+    \mkbibnamesuffix}}
+
 \newcommand*{\bibellipsis}{[\textellipsis\unkern]\midsentence}
 
 % Delimiters used in citations, bibliography and bibliography lists
@@ -42,8 +71,6 @@
   \addspace\bibstring{and}\space}
 \newcommand*{\andmoredelim}{\addspace}
 
-% Used in citations
-
 \newcommand*{\multicitedelim}{\addsemicolon\space}
 \newcommand*{\compcitedelim}{\addcomma\space}
 \newcommand*{\supercitedelim}{\addcomma}
@@ -51,7 +78,7 @@
 \newcommand*{\postnotedelim}{\addcomma\space}
 \newcommand*{\extpostnotedelim}{\addspace}
 \newcommand*{\nametitledelim}{\addcomma\space}
-\newcommand*{\nameyeardelim}{\addspace}
+\newcommand*{\nameyeardelim}{\addspace aa}
 \newcommand*{\nonameyeardelim}{\addspace}
 \newcommand*{\volcitedelim}{\addcomma\space}
 \newcommand*{\textcitedelim}{%
