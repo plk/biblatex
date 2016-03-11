@@ -5,7 +5,7 @@ echo "Usage:
 
 build.sh help
 build.sh install <version> <tds_root>
-build.sh build|buildall <version>
+build.sh build|builddocs|buildall <version>
 build.sh testbibtex|testbiber|test
 build.sh upload <version> [ \"DEV\" ]
 
@@ -56,8 +56,6 @@ then
   usage
   exit 1
 fi
-
-
 
 declare VERSION=$2
 declare VERSIONM=`echo -n "$VERSION" | perl -nE 'say s/^(\d+\.\d+)[a-z]/$1/r'`
@@ -139,33 +137,30 @@ then
 fi
 
 
+if [[ "$1" = "builddocs" || "$1" = "buildall" ]]
+then
+  cd doc/latex/biblatex
+
+  perl -pi.bak -e 's|DATEMARKER|\\today|;' biblatex.tex
+
+  lualatex -interaction=batchmode biblatex.tex
+  lualatex -interaction=batchmode biblatex.tex
+  lualatex -interaction=batchmode biblatex.tex
+
+  \rm *.{aux,bbl,bcf,blg,log,run.xml,toc,out,lot} 2>/dev/null
+
+  mv biblatex.tex.bak biblatex.tex
+
+  cp biblatex.pdf ../../../obuild/tds/doc/
+  cp biblatex.pdf ../../../obuild/flat/doc/
+  cd ../../..
+
+  echo "Created main documentation ..."
+fi
+
 if [[ "$1" = "build" || "$1" = "buildall" ]]
 then
-  if [[ "$1" = "build" ]]
-  then    
-    echo "NOT BUILDING DOCS"
-  fi    
-
-  if [[ "$1" = "buildall" ]]
-  then
-    cd doc/latex/biblatex
-
-    perl -pi.bak -e 's|DATEMARKER|\\today|;' biblatex.tex
-
-    lualatex -interaction=batchmode biblatex.tex
-    lualatex -interaction=batchmode biblatex.tex
-    lualatex -interaction=batchmode biblatex.tex
-
-    \rm *.{aux,bbl,bcf,blg,log,run.xml,toc,out,lot} 2>/dev/null
-
-    mv biblatex.tex.bak biblatex.tex
-
-    cp biblatex.pdf ../../../obuild/tds/doc/
-    cp biblatex.pdf ../../../obuild/flat/doc/
-    cd ../../..
-
-    echo "Created main documentation ..."
-  fi
+  echo "NOT BUILDING DOCS"
 
   \rm -f obuild/biblatex-$VERSION.tds.tgz
   \rm -f obuild/biblatex-$VERSION.tgz
