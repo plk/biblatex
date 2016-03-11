@@ -23,36 +23,42 @@
 \expandafter\docsvlist\expandafter{\blx@datamodel@constant@nameparts}
 
 % legacy aliases
-% If legacy command is already redefined, save it, issue warning and
-% run the old command
-% If legacy command is not redefined, issue warning and
-% run the new one
+% set empty defaults so we can check if they have been redefined
+\let\mkbibnamefirst\@empty
+\let\mkbibnamelast\@empty
+\let\mkbibnameaffix\@empty
+
 \AtBeginDocument{%
-  \ifdef\mkbibnamefirst
-    {\let\@savedlbn\mkbibnamefirst}
-    {\let\@savedlbn\mkbibnamegiven}%
-  \def\mkbibnamefirst{%
-    \blx@warning@noline{%
-      \string\mkbibnamefirst\space is deprecated, please use \string\mkbibnamegiven}%  
-    \global\let\mkbibnamegiven\@savedlbn
-    \mkbibnamegiven}
-  \ifdef\mkbibnamelast
-    {\let\@savedlbn\mkbibnamelast}
-    {\let\@savedlbn\mkbibnamefamily}%
+
+  \ifdefempty\mkbibnamelast
+    {}% not redefined by user
+    {\blx@warning@noline{%
+       Attempt to redefine deprecated \string\mkbibnamelast\space, please
+       use \string\mkbibnamefamily\space instead}}%
+  % Now redefine it in case it's used
   \def\mkbibnamelast{%
     \blx@warning@noline{%
-      \string\mkbibnamelast\space is deprecated, please use \string\mkbibnamefamily}%  
-    \global\let\mkbibnamefamily\@savedlbn
-    \mkbibnamefamily}
-  \ifdef\mkbibnameaffix
-    {\let\@savedlbn\mkbibnameaffix}
-    {\let\@savedlbn\mkbibnamesuffix}%
-  \def\mkbibnameaffix{%
-    \let\@savedlbn\mkbibnameaffix
+      \string\mkbibnamelast\space is deprecated, please use \string\mkbibnamefamily}}
+
+  \ifdefempty\mkbibnamefirst
+    {}% not redefined by user
+    {\blx@warning@noline{%
+       Attempt to redefine deprecated \string\mkbibnamefirst\space, please
+       use \string\mkbibnamegiven\space instead}}%
+  % Now redefine it in case it's used
+  \def\mkbibnamefirst{%
     \blx@warning@noline{%
-      \string\mkbibnameaffix\space is deprecated, please use \string\mkbibnamesuffix}%  
-    \global\let\mkbibnamesuffix\@savedlbn
-    \mkbibnamesuffix}}
+      \string\mkbibnamefirst\space is deprecated, please use \string\mkbibnamegiven}}
+
+  \ifdefempty\mkbibnameaffix
+    {}% not redefined by user
+    {\blx@warning@noline{%
+       Attempt to redefine deprecated \string\mkbibnameaffix\space, please
+       use \string\mkbibnamesuffix\space instead}}%
+  % Now redefine it in case it's used
+  \def\mkbibnameaffix{%
+    \blx@warning@noline{%
+      \string\mkbibnameaffix\space is deprecated, please use \string\mkbibnamesuffix}}}
 
 \newcommand*{\bibellipsis}{[\textellipsis\unkern]\midsentence}
 
@@ -88,6 +94,14 @@
      \addspace\bibstring{and}}
     {\iftextcitepunct{\addsemicolon}{\addcomma}}%
   \space}
+
+\def\do#1{%
+  \csdef{cite#1delim}{\csname #1delim\endcsname}%
+  \csdef{bib#1delim}{\csname #1delim\endcsname}%
+  \csdef{textcite#1delim}{\csname cite#1delim\endcsname}%
+  \csdef{footcite#1delim}{\csname cite#1delim\endcsname}%
+  \csdef{parencite#1delim}{\csname cite#1delim\endcsname}}
+\docsvlist{nameyear,nametitle,extpostnote,postnote,prenote,nonameyear}
 
 % This is a provisional definition for \iffinalcitedelim{<true>}{<false>}, a
 % test that should expand <true> if the next non-compact citation delimiter
