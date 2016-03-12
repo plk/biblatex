@@ -78,7 +78,6 @@
 \newcommand*{\bibellipsis}{[\textellipsis\unkern]\midsentence}
 
 % Delimiters used in citations, bibliography and bibliography lists
-
 \newcommand*{\multinamedelim}{\addcomma\space}
 \newcommand*{\finalnamedelim}{%
   \ifnumgreater{\value{liststop}}{2}{\finalandcomma}{}%
@@ -109,14 +108,6 @@
      \addspace\bibstring{and}}
     {\iftextcitepunct{\addsemicolon}{\addcomma}}%
   \space}
-
-\def\do#1{%
-  \csdef{cite#1delim}{\csname #1delim\endcsname}%
-  \csdef{bib#1delim}{\csname #1delim\endcsname}%
-  \csdef{textcite#1delim}{\csname cite#1delim\endcsname}%
-  \csdef{footcite#1delim}{\csname cite#1delim\endcsname}%
-  \csdef{parencite#1delim}{\csname cite#1delim\endcsname}}
-\docsvlist{nameyear,nametitle,extpostnote,postnote,prenote,nonameyear}
 
 % This is a provisional definition for \iffinalcitedelim{<true>}{<false>}, a
 % test that should expand <true> if the next non-compact citation delimiter
@@ -764,7 +755,7 @@
       {\namepartsuffix}}%
   \usebibmacro{name:andothers}}
 
-\DeclareNameAlias{last-first/first-last}{family-given/given-family}% legacy aliAs
+\DeclareNameAlias{last-first/first-last}{family-given/given-family}% legacy alias
 \DeclareNameFormat{family-given/given-family}{%
   \ifnumequal{\value{listcount}}{1}
     {\ifgiveninits
@@ -778,7 +769,7 @@
          {\namepartgiven}
          {\namepartprefix}
          {\namepartsuffix}}%
-     \ifempty{\namepartgiven\namepartprefix}
+     \expandafter\expandafter\expandafter\ifempty\expandafter\expandafter\expandafter{\expandafter\expandafter\namepartgiven\namepartprefix}
        {}
        {\usebibmacro{name:revsdelim}}}
     {\ifgiveninits
@@ -922,7 +913,7 @@
      \usebibmacro{name:hook}{#1}%
      \mkbibnamefamily{#1}\isdot
      \ifempty{#4}{}{\bibnamedelimd\mkbibnameaffix{#4}\isdot}%
-     \ifempty{#2#3}{}{\revsdnamepunct}%
+     \expandafter\expandafter\expandafter\ifempty\expandafter\expandafter\expandafter{\expandafter\expandafter#2#3}{}{\revsdnamepunct}%
      \ifempty{#2}{}{\bibnamedelimd\mkbibnamegiven{#2}\isdot}%
      \ifempty{#3}{}{\bibnamedelimd\mkbibnameprefix{#3}\isdot}}}
 \newbibmacro*{name:last-first}[4]{% legacy alias
@@ -1072,26 +1063,41 @@
   \usebibmacro{index:entry}{#1}{\mkbibindexname{#2}{#3}{#4}{#5}}}
 
 % {<family name>}{<given name>}{<given initials>}{<family name prefix>}
-
 \newcommand*{\mkbibindexname}[4]{%
   \ifuseprefix
-    {\ifblank{#3}{}{#3 }%
+    {\ifempty{#3}{}{#3 }%
      \@firstofone #1% remove spurious braces
-     \ifblank{#4}{}{ #4}%
-     \ifblank{#2}{}{, #2}%
+     \ifempty{#4}{}{ #4}%
+     \ifempty{#2}{}{, #2}%
      \actualoperator
-     \ifblank{#3}{}{\MakeCapital{#3} }%
+     \ifempty{#3}{}{\MakeCapital{#3} }%
      #1%
-     \ifblank{#4}{}{ #4}%
-     \ifblank{#2}{}{, #2}}
+     \ifempty{#4}{}{ #4}%
+     \ifempty{#2}{}{, #2}}
     {\@firstofone #1% remove spurious braces
-     \ifblank{#4}{}{ #4}%
-     \ifblank{#2#3}{}{,}%
-     \ifblank{#2}{}{ #2}%
-     \ifblank{#3}{}{ #3}}}
+     \ifempty{#4}{}{ #4}%
+     \expandafter\expandafter\expandafter\ifempty\expandafter\expandafter\expandafter{\expandafter\expandafter#2#3}{}{,}%
+     \ifempty{#2}{}{ #2}%
+     \ifempty{#3}{}{ #3}}}
+
+% \newcommand*{\mkbibindexname}[4]{%
+%   \ifuseprefix
+%     {\ifblank{#3}{}{#3 }%
+%      \@firstofone #1% remove spurious braces
+%      \ifblank{#4}{}{ #4}%
+%      \ifblank{#2}{}{, #2}%
+%      \actualoperator
+%      \ifblank{#3}{}{\MakeCapital{#3} }%
+%      #1%
+%      \ifblank{#4}{}{ #4}%
+%      \ifblank{#2}{}{, #2}}
+%     {\@firstofone #1% remove spurious braces
+%      \ifblank{#4}{}{ #4}%
+%      \ifblank{#2#3}{}{,}%
+%      \ifblank{#2}{}{ #2}%
+%      \ifblank{#3}{}{ #3}}}
 
 % {<control sequence>}{<control sequence>}
-
 \newcommand*{\mkbibindexsubentry}[2]{%
   \ifblank{#1}{}{\subentryoperator#1\actualoperator#2}}
 

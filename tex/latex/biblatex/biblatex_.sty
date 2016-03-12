@@ -34,10 +34,13 @@
    \endinput}
 
 % Tests for emptiness, regardless whether the arg is macro or literal
-% Expand everything and test as string
+% #1 should either be a single \macro or a string
+% Needs to be expandable so that it can be used in index name tests which
+% are edef'ed (see comments on index expansion in biblatex_.def)
 \def\ifempty#1{%
-  \edef\z{#1}%
-  \expandafter\ifblank\expandafter{\z}}
+  \ifdefmacro{#1}
+    {\ifdefvoid{#1}}
+    {\ifblank{#1}}}
 
 %% Category codes
 
@@ -3013,8 +3016,26 @@
 \newcommand*{\RNfont}{\uppercase}
 \newcommand*{\Rnfont}{}
 
-% {<init>}{<entrytype>}
+% delimiter trees
+\def\do#1{%
+  \cslet{textcite#1delim}\@empty
+  \cslet{parencite#1delim}\@empty
+  \cslet{footcite#1delim}\@empty
+  \cslet{cite#1delim}\@empty
+  \cslet{bib#1delim}\@empty
+  \csdef{blx@printdelimparent@bib#1delim}{#1delim}%
+  \csdef{blx@printdelimparent@cite#1delim}{#1delim}%
+  \csdef{blx@printdelimparent@textcite#1delim}{cite#1delim}%
+  \csdef{blx@printdelimparent@footcite#1delim}{cite#1delim}%
+  \csdef{blx@printdelimparent@parencite#1delim}{cite#1delim}}
+\docsvlist{nameyear,nametitle,extpostnote,postnote,prenote,nonameyear}
 
+\newcommand*{\printdelim}[1]{%
+  \ifcsempty{#1}
+    {\expandafter\printdelim\expandafter{\csuse{blx@printdelimparent@#1}}}
+    {\csuse{#1}}}
+
+% {<init>}{<entrytype>}
 \protected\def\blx@imc@usedriver#1#2{%
   \begingroup
   \let\finentry\blx@finentry@usedrv
