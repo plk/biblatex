@@ -264,7 +264,6 @@ PDFLaTeX errors/warnings
   then
     for f in *-biber.tex
     do
-      echo $f
       if [[ "$2" != "" && "$2" != "$f" ]]
       then
         continue
