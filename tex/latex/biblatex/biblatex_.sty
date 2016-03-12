@@ -983,6 +983,12 @@
 \def\blx@inf@refsec{%
   \blx@info{Reference section=\the\c@refsection}}%
 
+\def\blx@warn@delimdeclare#1#2{%
+  \blx@warning{Delimiter '#1' in context '#2' already defined, overwriting}}
+
+\def\blx@warn@delimuse#1#2{%
+  \blx@warning{Delimiter '#1' in context '#2' undefined}}
+
 \def\blx@inf@refseg{%
   \ifnum\c@refsection=\z@
     \blx@info{Reference segment=\the\c@refsegment}%
@@ -1363,7 +1369,6 @@
   \let\blx@postpunct@agroup\@empty}
 
 % {<characters>}
-
 \newrobustcmd*{\DeclareCapitalPunctuation}[1]{%
   \cslet{blx@cap@\the\blx@sf@par}\@empty
   \csundef{blx@cap@\the\blx@sf@comma}%
@@ -1391,7 +1396,6 @@
   \fi}
 
 % {<characters>}
-
 \newrobustcmd*{\DeclareQuotePunctuation}[1]{%
   \csdef{blx@qp@comma}{\blx@postpunct}%
   \csdef{blx@qp@semicolon}{\blx@postpunct}%
@@ -1423,7 +1427,6 @@
   \fi}
 
 % {<mark>}{<characters>}
-
 \newrobustcmd*{\DeclarePunctuationPairs}[2]{%
   \ifcsdef{blx@sf@\detokenize{#1}}
     {\ifnum\csname blx@sf@\detokenize{#1}\endcsname>\blx@sf@prefixchar
@@ -1500,7 +1503,6 @@
 \blx@resetpunct
 
 % {<character>}{<true>}{<false>}
-
 \protected\def\blx@imc@ifpunctmark#1{%
   \ifhmode
     \begingroup
@@ -1519,7 +1521,6 @@
   \fi}
 
 % {<true>}{<false>}
-
 \protected\def\blx@imc@ifterm{%
   \ifhmode
     \expandafter\blx@imc@ifcapital
@@ -1528,12 +1529,10 @@
   \fi}
 
 % {<true>}{<false>}
-
 \protected\def\blx@imc@ifcapital{%
   \ifcsdef{blx@cap@\blx@spacefactor}}
 
 % {<true>}{<false>}
-
 \protected\def\blx@imc@ifpunct{%
   \ifnum\blx@spacefactor>\blx@sf@threshold@low
     \ifnum\blx@spacefactor<\blx@sf@threshold@high
@@ -1548,7 +1547,6 @@
   \fi}
 
 % {<character>}
-
 \newrobustcmd*{\autocap}[1]{#1}
 
 \protected\def\blx@imc@autocap{%
@@ -2789,7 +2787,6 @@
 }
 
 % <*>[<postpro>]{<string>}
-
 \newrobustcmd*{\mkcomprange}{%
   \begingroup
   \@ifstar
@@ -3016,24 +3013,38 @@
 \newcommand*{\RNfont}{\uppercase}
 \newcommand*{\Rnfont}{}
 
-% delimiter trees
-\def\do#1{%
-  \cslet{textcite#1delim}\@empty
-  \cslet{parencite#1delim}\@empty
-  \cslet{footcite#1delim}\@empty
-  \cslet{cite#1delim}\@empty
-  \cslet{bib#1delim}\@empty
-  \csdef{blx@printdelimparent@bib#1delim}{#1delim}%
-  \csdef{blx@printdelimparent@cite#1delim}{#1delim}%
-  \csdef{blx@printdelimparent@textcite#1delim}{cite#1delim}%
-  \csdef{blx@printdelimparent@footcite#1delim}{cite#1delim}%
-  \csdef{blx@printdelimparent@parencite#1delim}{cite#1delim}}
-\docsvlist{nameyear,nametitle,extpostnote,postnote,prenote,nonameyear}
+% Delimiter interface
 
-\newcommand*{\printdelim}[1]{%
-  \ifcsempty{#1}
-    {\expandafter\printdelim\expandafter{\csuse{blx@printdelimparent@#1}}}
-    {\csuse{#1}}}
+% {<contextname, ...>}{<name, ...>}{<code>}
+\newrobustcmd*{\DeclareDelimFormat}[3][]{%
+  \ifblank{#1}
+    {\blx@declaredelim@i{*}{#2}{#3}}
+    {\def\do##1{\blx@declaredelim@i{##1}{#2}{#3}}
+     \docsvlist{#1}}}%
+
+\def\blx@declaredelim@i#1#2#3{%
+  \begingroup
+  \def\do##1{%
+    \ifcsdef{blx@printdelim@#1@##1}
+      {\blx@warn@delimdeclare{##1}{#1}}
+      {}%
+    \csgdef{blx@printdelim@#1@##1}{#3}}%
+  \docsvlist{#2}
+  \endgroup}
+
+\def\blx@delimcontext{bib}
+\newcommand*{\printdelim}[2][]{%
+  \ifblank{#1}
+    {\ifcsdef{blx@printdelim@\blx@delimcontext @#2}
+      {\csuse{blx@printdelim@\blx@delimcontext @#2}}
+      {\ifcsdef{blx@printdelim@*@#2}
+        {\csuse{blx@printdelim@*@#2}}
+        {\blx@warn@delimuse{#2}{*}}}}
+    {\ifcsdef{blx@printdelim@#1@#2}
+      {\csuse{blx@printdelim@#1@#2}}
+      {\blx@warn@delimuse{#2}{#1}}}}
+
+\newcommand*{\delimcontext}[1]{\gdef\blx@delimcontext{#1}}
 
 % {<init>}{<entrytype>}
 \protected\def\blx@imc@usedriver#1#2{%
