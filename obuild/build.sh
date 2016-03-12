@@ -160,15 +160,12 @@ fi
 
 if [[ "$1" == "build" || "$1" == "buildall" ]]
 then
-  echo "NOT BUILDING DOCS"
-
   \rm -f obuild/biblatex-$VERSION.tds.tgz
   \rm -f obuild/biblatex-$VERSION.tgz
   tar zcf obuild/biblatex-$VERSION.tds.tgz -C obuild/tds bibtex doc tex
   tar zcf obuild/biblatex-$VERSION.tgz -C obuild/flat README CHANGES bibtex doc latex
 
   echo "Created packages (flat and TDS) ..."
-
 fi
 
 if [[ "$1" == "testbiber" || "$1" == "testbibtex" || "$1" == "test" ]]
