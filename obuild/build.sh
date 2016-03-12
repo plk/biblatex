@@ -33,25 +33,25 @@ then
   exit 1
 fi
 
-if [[ "$1" = "help" ]]
+if [[ "$1" == "help" ]]
 then
   usage
   exit 1
 fi
 
-if [[ "$1" = "install" && ( -z "$2" || -z "$3" ) ]]
+if [[ "$1" == "install" && ( -z "$2" || -z "$3" ) ]]
 then
   usage
   exit 1
 fi
 
-if [[ "$1" = "build" && -z "$2" ]]
+if [[ "$1" == "build" && -z "$2" ]]
 then
   usage
   exit 1
 fi
 
-if [[ "$1" = "upload" && -z "$2" ]]
+if [[ "$1" == "upload" && -z "$2" ]]
 then
   usage
   exit 1
@@ -61,11 +61,11 @@ declare VERSION=$2
 declare VERSIONM=`echo -n "$VERSION" | perl -nE 'say s/^(\d+\.\d+)[a-z]/$1/r'`
 declare DATE=`date '+%Y/%m/%d'`
 
-if [[ "$1" = "upload" ]]
+if [[ "$1" == "upload" ]]
 then
     if [[ -e obuild/biblatex-$VERSION.tds.tgz ]]
     then
-      if [[ "$3" = "DEV" ]]
+      if [[ "$3" == "DEV" ]]
       then
         scp obuild/biblatex-$VERSION.*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/development/
         scp doc/latex/biblatex/CHANGES philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/development/
@@ -78,7 +78,7 @@ then
 fi
 
 
-if [[ "$1" = "build" || "$1" = "buildall" || "$1" = "install" ]]
+if [[ "$1" == "build" || "$1" == "buildall" || "$1" == "install" ]]
 then
   find . -name \*~ -print | xargs rm >/dev/null 2>&1
   # tds
@@ -129,7 +129,7 @@ then
   echo "Created build trees ..."
 fi
 
-if [[ "$1" = "install" ]]
+if [[ "$1" == "install" ]]
 then
   cp -r obuild/tds/* $3
 
@@ -137,7 +137,7 @@ then
 fi
 
 
-if [[ "$1" = "builddocs" || "$1" = "buildall" ]]
+if [[ "$1" == "builddocs" || "$1" == "buildall" ]]
 then
   cd doc/latex/biblatex
 
@@ -158,7 +158,7 @@ then
   echo "Created main documentation ..."
 fi
 
-if [[ "$1" = "build" || "$1" = "buildall" ]]
+if [[ "$1" == "build" || "$1" == "buildall" ]]
 then
   echo "NOT BUILDING DOCS"
 
@@ -172,7 +172,7 @@ then
 fi
 
 
-if [[ "$1" = "testbiber" || "$1" = "testbibtex" || "$1" = "test" ]]
+if [[ "$1" == "testbiber" || "$1" == "testbibtex" || "$1" == "test" ]]
 then
   [[ -e obuild/test/examples ]] || mkdir -p obuild/test/examples
   \rm -f obuild/test/example_errs_biber.txt
@@ -200,7 +200,7 @@ then
     fi
   done
 
-  if [[ "$1" = "testbibtex" || "$1" = "test" ]]
+  if [[ "$1" == "testbibtex" || "$1" == "test" ]]
   then
     for f in *-bibtex.tex
     do
@@ -217,11 +217,17 @@ then
       done
       pdflatex -interaction=batchmode ${f%.tex}
       # Need a second bibtex run to pick up set members
-      if [[ $f = *-indexing-* ]]
+      if [[ $f == 20-indexing-* || $f == 21-indexing-* ]]
       then
         makeindex -o ${f%.tex}.ind ${f%.tex}.idx
         makeindex -o ${f%.tex}.nnd ${f%.tex}.ndx
         makeindex -o ${f%.tex}.tnd ${f%.tex}.tdx
+      fi
+      # This example uses sub-indexes
+      if [[ $f == 22-indexing-* ]]
+      then
+          makeindex -o name-title.ind name-title.idx
+          makeindex -o year-title.ind year-title.idx
       fi
       bibtex ${f%.tex}
       pdflatex -interaction=batchmode ${f%.tex}
@@ -254,10 +260,16 @@ PDFLaTeX errors/warnings
     done
   fi
 
-  if [[ "$1" = "testbiber" || "$1" = "test" ]]
+  if [[ "$1" == "testbiber" || "$1" == "test" ]]
   then
     for f in *-biber.tex
     do
+      echo $f
+      if [[ "$2" != "" && "$2" != "$f" ]]
+      then
+        continue
+      fi
+
       biberflag=false      
       if [[ "$f" < 9* ]] # 9+*.tex examples require biber and we want UTF-8 support
       then
@@ -276,11 +288,17 @@ PDFLaTeX errors/warnings
       # biber complains when outputting ascii from it's internal UTF-8
       biber $BIBEROPTS --onlylog ${f%.tex}
       $TEXENGINE -interaction=batchmode ${f%.tex}
-      if [[ $f = *-indexing-* ]]
+      if [[ $f == 20-indexing-* || $f == 21-indexing-* ]]
       then
         makeindex -o ${f%.tex}.ind ${f%.tex}.idx
         makeindex -o ${f%.tex}.nnd ${f%.tex}.ndx
         makeindex -o ${f%.tex}.tnd ${f%.tex}.tdx
+      fi
+      # This example uses sub-indexes
+      if [[ $f == 22-indexing-* ]]
+      then
+          makeindex -o name-title.ind name-title.idx
+          makeindex -o year-title.ind year-title.idx
       fi
       $TEXENGINE -interaction=batchmode ${f%.tex}
       exec 1>&4 4>&- # restore stdout
