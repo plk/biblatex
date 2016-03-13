@@ -3018,18 +3018,19 @@
 % {<contextname, ...>}{<name, ...>}{<code>}
 \newrobustcmd*{\DeclareDelimFormat}[3][]{%
   \ifblank{#1}
-    {\blx@declaredelim@i{*}{#2}{#3}}
-    {\def\do##1{\blx@declaredelim@i{##1}{#2}{#3}}
+    {\blx@declaredelim@i{}{}{#2}{#3}}
+    {\def\do##1{\blx@declaredelim@i{blx@printdelim@##1@}{##1}{#2}{#3}}
      \docsvlist{#1}}}%
+\@onlypreamble\DeclareDelimFormat
 
-\def\blx@declaredelim@i#1#2#3{%
+\def\blx@declaredelim@i#1#2#3#4{%
   \begingroup
   \def\do##1{%
-    \ifcsdef{blx@printdelim@#1@##1}
-      {\blx@warn@delimdeclare{##1}{#1}}
+    \ifcsdef{#1##1}
+      {\blx@warn@delimdeclare{##1}{#2}}
       {}%
-    \csgdef{blx@printdelim@#1@##1}{#3}}%
-  \docsvlist{#2}
+    \csgdef{#1##1}{#4}}%
+  \docsvlist{#3}
   \endgroup}
 
 \def\blx@delimcontext{bib}
@@ -3037,14 +3038,19 @@
   \ifblank{#1}
     {\ifcsdef{blx@printdelim@\blx@delimcontext @#2}
       {\csuse{blx@printdelim@\blx@delimcontext @#2}}
-      {\ifcsdef{blx@printdelim@*@#2}
-        {\csuse{blx@printdelim@*@#2}}
+      {\ifcsdef{#2}% fall back on legacy macros
+        {\csuse{#2}}
         {\blx@warn@delimuse{#2}{*}}}}
     {\ifcsdef{blx@printdelim@#1@#2}
       {\csuse{blx@printdelim@#1@#2}}
       {\blx@warn@delimuse{#2}{#1}}}}
 
-\newcommand*{\delimcontext}[1]{\gdef\blx@delimcontext{#1}}
+\newcommand*{\blx@imc@delimcontext}[1]{%
+  \xdef\blx@delimcontext@saved{\blx@delimcontext}%
+  \xdef\blx@delimcontext{#1}}
+\newcommand*{\blx@imc@restoredelimcontext}{%
+  \xdef\blx@delimcontext{\blx@delimcontext@saved}}
+\blx@regimcs{\delimcontext \restoredelimcontext}
 
 % {<init>}{<entrytype>}
 \protected\def\blx@imc@usedriver#1#2{%
@@ -6569,6 +6575,7 @@
 
 % [<options>]
 \newrobustcmd*{\printbibliography}{%
+  \blx@imc@delimcontext{bib}%
   \begingroup
   \edef\on@line{\on@line}%
   \@ifnextchar[%]
@@ -6624,7 +6631,8 @@
     \blx@xml@slist{\blx@refcontext@context}{entry}{\blx@tempe}{\blx@refcontext@sorting}{\blx@refcontext@sortingnamekey}{\blx@refcontext@labelprefix}{\blx@tempd}{}}%
   \ifdefvoid\blx@tempa
     {\blx@warn@bibempty\endgroup}
-    {\blx@bibliography\blx@tempa}}
+    {\blx@bibliography\blx@tempa}%
+  \blx@imc@restoredelimcontext}
 
 % [<options>]
 \newrobustcmd*{\bibbysection}{%
@@ -6963,6 +6971,7 @@
 % Custom bibliography list
 % [<otions>]{biblistname}
 \newrobustcmd*{\printbiblist}[2][]{%
+  \blx@imc@delimcontext{biblist}%
   \begingroup
   \edef\on@line{\on@line}%
   \toggletrue{blx@tempa}%
@@ -7023,7 +7032,8 @@
     \blx@xml@slist{\blx@refcontext@context}{list}{\blx@tempe}{\blx@tempc}{\blx@refcontext@sortingnamekey}{\blx@refcontext@labelprefix}{\blx@tempd}{\csuse{blx@biber@biblistfilters@#2}}}%
   \ifdefvoid\blx@tempa
     {\blx@warn@biblistempty{#2}\endgroup}
-    {\blx@biblist\blx@tempa}}
+    {\blx@biblist\blx@tempa}%
+  \blx@imc@restoredelimcontext}
 
 \def\blx@printbibchecks{%
   \togglefalse{blx@tempa}%
@@ -8504,10 +8514,10 @@
     \ifblank{##2}
       {\let\blx@thenotecheck\relax}
       {\def\abx@field@postnote{##2}}%
-    \def\blx@precode{#2}%
+    \def\blx@precode{\delimcontext{#1}#2}%
     \def\blx@loopcode{#3}%
     \def\blx@dlimcode{#4}%
-    \def\blx@postcode{#5##4}%
+    \def\blx@postcode{\restoredelimcontext #5##4}%
     \blx@citeloop{##3}%
     \endgroup}}
 
