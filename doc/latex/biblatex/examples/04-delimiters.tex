@@ -1,0 +1,47 @@
+\documentclass[a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[american]{babel}
+\usepackage{csquotes}
+\usepackage[style=authortitle,backend=biber]{biblatex}
+\addbibresource{biblatex-examples.bib}
+\setlength{\parindent}{0pt}
+\newcommand{\cmd}[1]{\texttt{\textbackslash #1}}
+
+\DeclareDelimFormat[bib]{space}{X}
+\DeclareDelimFormat[test]{space}{Y}
+
+\begin{document}
+\section*{Context-Sensitive Delimiters}
+
+Normal cite uses global delim definition with comma:\\\\
+\cite{averroes/hannes}\\\\
+Textual cite uses "textcite" context without comma:\\\\
+\textcite{averroes/hannes}\\\\
+Reset of global delimiter with traditional method:\\\\
+\renewcommand*{\nametitledelim}{\addcomma\space}
+\cite{averroes/hannes}\\\\
+Textual cite in "textcite" context is not reset:\\\\
+\textcite{averroes/hannes}\\\\
+\begingroup
+\def\addcomma{,}
+\let\space\textvisiblespace
+Invoke default delimiter in context-sensitive interface:\\
+\printdelim{nametitledelim}\\\\
+Invoke global delimiter via normal macro:\\
+\nametitledelim\\\\
+Invoke delimiter in context-sensitive interface with explicit context:\\\\
+\printdelim[textcite]{nametitledelim}
+\endgroup
+
+\printbibliography
+
+Reset the \cmd{space} command for this bibliography to use the
+context-sensitive interface. First we use the default "bib" context:
+\AtNextBibliography{\renewcommand*{\space}{\printdelim{space}}}
+\printbibliography
+
+Now use a custom context "test" and \cmd{space} expands to something different:
+\AtNextBibliography{\renewcommand*{\space}{\printdelim{space}}\delimcontext{test}}
+\printbibliography
+\end{document}

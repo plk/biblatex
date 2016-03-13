@@ -4423,6 +4423,65 @@ Vol. E: Computer Modern Typefaces. 1986.
 
 \end{ltxsyntax}
 
+
+\subsubsection{Context-sensitive Delimiters}
+\label{use:fmt:csd}
+The delimiters described in \secref{use:fmt:fmt} are globally defined. That is, nomatter where you use them, they print the same thing. This is not necessarily desirable for delimiters which you might want to print different things in different contexts. Here <context> means things like <inside a text citation> or <inside a bibliography item>. For this reason, \biblatex\ provides a more sophisticated delimiter specification and use interface alongside the standard one based on normal macros defined with \cmd{newcommand}.
+
+\begin{ltxsyntax}
+
+\cmditem{DeclareDelimFormat}[contexts]{names}{code}
+
+Declares the delimiter macros in the comma"=separated list \prm{names} with the replacement test \prm{code}. If the optional comma"=separated list of \prm{contexts} is given, declare the \prm{names} only for those contexts. \prm{names} defined without any \prm{contexts} behave just like the global delimiter definitions which \cmd{newcommand} gives---just a plain macro with a replacement which can be used as \cmd{name}. However, you can also call delimiter macros defined in this way by using \cmd{printdelim}, which is context-aware.
+
+\cmditem{printdelim}[context]{name}
+
+Prints a delimiter with name \prm{name}, locally establishing a optional \prm{context} first. Without the optional \prm{context}, \cmd{printdelim} uses the currently active delimiter context.
+
+Delimiter contexts are simply a string, the value of the internal macro \cmd{blx@delimcontext} which can be set manually by the command \cmd{delimcontext}:
+
+\cmditem{delimcontext}{context}
+
+Set the delimiter context to \prm{context}. This assignment is global. Saves any current delimiter context before setting it to \prm{context} so that it can be restored by \cmd{restoredelimcontext}.
+
+\cmditem{restoredelimcontext}
+
+Restores the saved context saved by \cmd{delimcontext}.
+
+\end{ltxsyntax}
+%
+\biblatex\ has several default contexts which are established automatically in various places:
+
+\begin{description}
+\item[bib] Inside a bibliography begun with \cmd{printbibliography}
+\item[biblist] Inside a bibliography list begun with \cmd{printbiblist}\BiberOnlyMark
+\item[shorthands] Inside a shorthand list begun with \cmd{printshorthands}\BibTeXOnlyMark
+\item[<citecommand>] Inside a citation command \cmd{citecommand} defined with \cmd{DeclareCiteCommand}
+\end{description}
+
+For example, the defaults for \cmd{nametitledelim} are:
+
+\begin{ltxexample}[style=latex]{}
+\DeclareDelimFormat{nametitledelim}{\addcomma\space}
+\DeclareDelimFormat[textcite]{nametitledelim}{\addspace}
+\end{ltxexample}
+%
+This means that \cmd{nametitledelim} is defined globally as <\cmd{addcomma}\cmd{space}> as per the standard delimiter interface. However, in addition, the delimiter can be printed using \cmd{printdelim} which would print the same as \cmd{nametitledelim} apart from inside a \cmd{textcite}, in which it would print \cmd{addspace} which is more suitable for running text. If desired, a context can be forced with the optional argument to \cmd{printdelim}, so
+
+\begin{ltxexample}[style=latex]{}
+\printdelim[textcite]{nametitledelim}
+\end{ltxexample}
+%
+Would print \cmd{addspace} regardless of the surrounding context of the \cmd{printdelim}. Contexts are just arbitrary strings and so you can establish/restore them at any time, using \cmd{delimcontext}/\cmd{restoredelimcontext}. If \cmd{printdelim} finds no special value for the delimiter \prm{name} in the current context, it simply prints \cmd{name}. This means that style authors can use \cmd{printdelim} and users expecting to be able to use \cmd{renewcommand} to redefine delimiters can do so with one caveat---such a definition won't change any context-specific delimiters which are defined:
+
+\begin{ltxexample}[style=latex]{}
+\DeclareDelimFormat{delima}{X}
+\DeclareDelimFormat[textcite]{delima}{Y}
+\renewcommand*{delima}{Z}
+\end{ltxexample}
+%
+Here, \cmd{delima} always prints <Z>. \verb+\printdelim{delima}+ in any context other than <textcite> also prints \cmd{delima} and hence <Z> but in a <textcite> context prints <Y>.
+
 \subsubsection{Language-specific Commands}
 \label{use:fmt:lng}
 
@@ -11841,6 +11900,7 @@ This revision history is a list of changes relevant to users of this package. Ch
 \begin{changelog}
 
 \begin{release}{3.4}{2016-03}
+\item New context-sensitive delimiter interface\see{use:fmt:csd}
 \item Moved \opt{prefixnumbers} option to \cmd{newrefcontext} and renamed to \opt{labelprefix}\BiberOnlyMark
 \item Added \cmd{DeclareDatafieldSet}\see{aut:ctm:dsets}
 \end{release}
