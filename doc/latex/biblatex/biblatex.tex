@@ -5726,7 +5726,11 @@ List formats are slightly more complex. After splitting up the list into individ
     {}}
 \end{ltxexample}
 %
-Formatting directives for names are similar to those for literal lists, but depend on the datamodel constant <nameparts> which has the default definition:
+Formatting directives for names are similar to those for literal lists. They differ between the \biber\ and \bibtex\ backends.
+
+\paragraph{Name Formats with \biber}\BiberOnlyMark
+
+Names depend on the datamodel constant <nameparts> which has the default definition:
 
 \begin{ltxexample}
 \DeclareDatamodelConstant[type=list]{nameparts}
@@ -5755,6 +5759,24 @@ The name formatting directive is executed once for each name in the name list. H
 \end{ltxexample}
 %
 The above directive reverses the name of the first author («Last, First») and prints the remaining names in their regular sequence («First Last»). Note that the only component which is guaranteed to be available is the last name, hence we have to check which parts of the name are actually present. If a certain name part is not available, the corresponding macro will be empty. As with directives for literal lists, the separator to be inserted between the individual items in the name list is also handled by the formatting directive, hence we have to check whether we are in the middle of the list or at the end when inserting it. This is what the second \cmd{ifthenelse} test does.
+
+\paragraph{Name Formats with \bibtex}\BibTeXOnlyMark 
+
+Formatting directives for names are similar to those for literal lists, but the individual items in the list are names which are automatically dissected into their components. The list formatting directive is executed once for each name in the list and the components of the name are passed to the formatting directive as separate arguments. For example, |#1| is the last name and |#3| is the first name. Here is a simplified example:
+
+\begin{lstlisting}[style=latex]{}
+\DeclareNameFormat{author}{%
+  \ifthenelse{\value{listcount}=1}
+    {#1%
+     \ifblank{#3}{}{\addcomma\space #3}}
+    {\ifblank{#3}{}{#3\space}%
+     #1}%
+  \ifthenelse{\value{listcount}<\value{liststop}}
+    {\addcomma\space}
+    {}}
+\end{lstlisting}
+%
+The above directive reverses the name of the first author («Last, First») and prints the remaining names in their regular sequence («First Last»). Note that the only component which is guaranteed to be available is the last name, hence we have to check which parts of the name are actually present. If a certain component of a name is not available, the corresponding argument will be blank. As with directives for literal lists, the separator to be inserted between the individual items in the list is also handled by the formatting directive, hence we have to check whether we are in the middle of the list or at the end when inserting it. This is what the second \cmd{ifthenelse} test does.
 
 \subsubsection{Special Fields}
 \label{aut:bbx:fld}
@@ -6314,6 +6336,10 @@ Defines the literal list format \prm{format}. This formatting directive is arbit
 \cmditem{DeclareNameFormat}[entrytype, \dots]{format}{code}
 \cmditem*{DeclareNameFormat}*{format}{code}
 
+The syntax of \cmd{DeclareNameFormat} differs between the \biber\ and \bibtex\ backends.
+
+\paragraph{\biber}\BiberOnlyMark
+
 Defines the name list format \prm{format}. This formatting directive is arbitrary \prm{code} to be executed for every name in a list processed by \cmd{printnames}. If an \prm{entrytype} is specified, the format is specific to that type. The \prm{entrytype} argument may be a comma"=separated list of values. The individual parts of a name will be available in automatically created macros (see below). The default data mode defines four name part which correspond to the standard \bibtex name parts arguments:
 
 \begin{argumentlist}{00}
@@ -6337,6 +6363,24 @@ The value of the datamodel <nameparts> constant (see \secref{aut:bbx:drv}) creat
 \end{ltxexample}
 %
 If a certain part of a name is not available, the corresponding macro will be empty, hence you may use \cmd{ifempty} (see \secref{aut:aux:tst}) tests to check for the individual parts of a name. The name of the name list currently being processed is available to the \prm{code} as \cmd{currentname}. Note that the formatting directive also handles the punctuation to be inserted between separate names and between the individual parts of a name. You need to check whether you are in the middle of or at the end of the list, \ie whether \cnt{listcount} is smaller than or equal to \cnt{liststop}. See also \secref{use:cav:nam}. The starred variant of this command is similar to the regular version, except that all type-specific formats are cleared.
+
+\paragraph{\bibtex}\BibTeXOnlyMark
+
+Defines the name list format \prm{format}. This formatting directive is arbitrary \prm{code} to be executed for every name in a list processed by \cmd{printnames}. If an \prm{entrytype} is specified, the format is specific to that type. The \prm{entrytype} argument may be a comma"=separated list of values. The individual parts of a name will be passed to the \prm{code} as separate arguments. These arguments are as follows:
+
+\begin{argumentlist}{00}
+\item[\#1] The last names. If a name consists of a single part only (for example, <Aristotle>), this part will be treated as the last name.
+\item[\#2] The last names, given as initials.
+\item[\#3] The first names. This argument also includes all middle names.
+\item[\#4] The first names, given as initials.
+\item[\#5] The name prefixes, for example von, van, of, da, de, del, della, etc. Note that name prefixes are referred to as the <von part> of the name in the \bibtex file format documentation.
+\item[\#6] The name prefixes, given as initials.
+\item[\#7] The name affixes, for example <junior>, <senior>, <der Jüngere>, <der Ältere>, etc.
+Note that name affixes are referred to as the <junior part> of the name in the \bibtex file format documentation.
+\item[\#8] The name affixes, given as initials.
+\end{argumentlist}
+%
+If a certain part of a name is not available, the corresponding argument will be empty, hence you may use \cmd{ifblank} tests to check for the individual parts of a name. The name of the name list currently being processed is available to the \prm{code} as \cmd{currentname}. Note that the formatting directive also handles the punctuation to be inserted between separate names and between the individual parts of a name. You need to check whether you are in the middle of or at the end of the list, \ie whether \cnt{listcount} is smaller than or equal to \cnt{liststop}. See also \secref{use:cav:nam}. The starred variant of this command is similar to the regular version, except that all type-specific formats are cleared.
 
 \cmditem{DeclareIndexFieldFormat}[entrytype, \dots]{format}{code}
 \cmditem*{DeclareIndexFieldFormat}*{format}{code}
@@ -10298,7 +10342,7 @@ This command strips leading zeros from a number or preserves them, depending on 
 
 This command strips leading zeros from a number. It is intended for date formatting and ordinals.
 
-\optitem{shorthandwidth}\BibTeXOnlyMark 
+\optitem{shorthandwidth}\BibTeXOnlyMark
 
 A special field formatting directive which is used internally by \biblatex. When the bibliographic data is read from the \file{bbl} file, \biblatex measures the values of all \bibfield{shorthand} fields and sets the length register \cmd{shorthandwidth} to the width of the widest shorthand (see \secref{aut:fmt:ilc}). In order to determine the correct width, the package considers two factors: the definition of \cmd{bibfont} and this formatting directive. All styles should adjust this directive such that it corresponds to the format used in the list of shorthands.
 
