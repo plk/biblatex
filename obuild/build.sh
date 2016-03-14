@@ -201,7 +201,7 @@ then
 
   if [[ "$1" == "testbibtex" || "$1" == "test" ]]
   then
-    for f in *-biber.tex
+    for f in *-bibtex.tex
     do
       if [[ "$2" != "" && "$2" != "$f" ]]
       then
