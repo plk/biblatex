@@ -3015,13 +3015,26 @@
 
 % Delimiter interface
 
-% {<contextname, ...>}{<name, ...>}{<code>}
-\newrobustcmd*{\DeclareDelimFormat}[3][]{%
+% [<contextname, ...>]{<name, ...>}{<code>}
+\newrobustcmd*{\DeclareDelimFormat}{%
+  \@ifstar
+    {\blx@declaredelimclear}
+    {\blx@declaredelim}}
+
+\newrobustcmd*{\blx@declaredelimclear}[3][]{%
+  \def\do##1{\global\cslet{blx@printdelim@##1@#2}=\undefined}%
+  \dolistcsloop{blx@declaredelimcontexts@#2}%
+  \ifblank{#1}
+    {\blx@declaredelim{#2}{#3}}
+    {\blx@declaredelim[#1]{#2}{#3}}}
+
+\newrobustcmd*{\blx@declaredelim}[3][]{%
   \ifblank{#1}
     {\blx@declaredelim@i{}{}{#2}{#3}}
-    {\def\do##1{\blx@declaredelim@i{blx@printdelim@##1@}{##1}{#2}{#3}}
+    {\def\do##1{%
+      \listcsgadd{blx@declaredelimcontexts@#2}{##1}%
+      \blx@declaredelim@i{blx@printdelim@##1@}{##1}{#2}{#3}}
      \docsvlist{#1}}}%
-\@onlypreamble\DeclareDelimFormat
 
 \def\blx@declaredelim@i#1#2#3#4{%
   \begingroup
@@ -3033,7 +3046,7 @@
   \docsvlist{#3}
   \endgroup}
 
-\def\blx@delimcontext{bib}
+\def\blx@delimcontext{none}
 \newcommand*{\printdelim}[2][]{%
   \ifblank{#1}
     {\ifcsdef{blx@printdelim@\blx@delimcontext @#2}
@@ -3045,12 +3058,11 @@
       {\csuse{blx@printdelim@#1@#2}}
       {\blx@warn@delimuse{#2}{#1}}}}
 
-\newcommand*{\blx@imc@delimcontext}[1]{%
+\newcommand*{\delimcontext}[1]{%
   \xdef\blx@delimcontext@saved{\blx@delimcontext}%
   \xdef\blx@delimcontext{#1}}
-\newcommand*{\blx@imc@restoredelimcontext}{%
+\newcommand*{\restoredelimcontext}{%
   \xdef\blx@delimcontext{\blx@delimcontext@saved}}
-\blx@regimcs{\delimcontext \restoredelimcontext}
 
 % {<init>}{<entrytype>}
 \protected\def\blx@imc@usedriver#1#2{%
@@ -6575,7 +6587,7 @@
 
 % [<options>]
 \newrobustcmd*{\printbibliography}{%
-  \blx@imc@delimcontext{bib}%
+  \delimcontext{bib}%
   \begingroup
   \edef\on@line{\on@line}%
   \@ifnextchar[%]
@@ -6632,7 +6644,7 @@
   \ifdefvoid\blx@tempa
     {\blx@warn@bibempty\endgroup}
     {\blx@bibliography\blx@tempa}%
-  \blx@imc@restoredelimcontext}
+  \restoredelimcontext}
 
 % [<options>]
 \newrobustcmd*{\bibbysection}{%
@@ -6971,7 +6983,7 @@
 % Custom bibliography list
 % [<otions>]{biblistname}
 \newrobustcmd*{\printbiblist}[2][]{%
-  \blx@imc@delimcontext{biblist}%
+  \delimcontext{biblist}%
   \begingroup
   \edef\on@line{\on@line}%
   \toggletrue{blx@tempa}%
@@ -7033,7 +7045,7 @@
   \ifdefvoid\blx@tempa
     {\blx@warn@biblistempty{#2}\endgroup}
     {\blx@biblist\blx@tempa}%
-  \blx@imc@restoredelimcontext}
+  \restoredelimcontext}
 
 \def\blx@printbibchecks{%
   \togglefalse{blx@tempa}%

@@ -6,7 +6,7 @@ echo "Usage:
 build.sh help
 build.sh install <version> <tds_root>
 build.sh builddist|builddocs|build <version>
-build.sh testbibtex|testbiber|test|testoutput
+build.sh testbibtex [file]|testbiber [file]|test [file]|testoutput 
 build.sh upload <version> [ \"DEV\" ]
 
 With the \"DEV\" argument, uploads to the SourceForge development
@@ -201,8 +201,12 @@ then
 
   if [[ "$1" == "testbibtex" || "$1" == "test" ]]
   then
-    for f in *-bibtex.tex
+    for f in *-biber.tex
     do
+      if [[ "$2" != "" && "$2" != "$f" ]]
+      then
+        continue
+      fi
       bibtexflag=false
       echo -n "File (bibtex): $f ... "
       exec 4>&1 7>&2 # save stdout/stderr
