@@ -310,7 +310,7 @@ PDFLaTeX errors/warnings
       echo "==============================
 Test file: $f
 
-PDFLaTeX errors/warnings
+$TEXENGINE errors/warnings
 ------------------------"  >> ../example_errs_biber.txt
       grep -E -i "(error|warning):" ${f%.tex}.log >> ../example_errs_biber.txt
       if [[ $? -eq 0 ]]; then biberflag=true; fi

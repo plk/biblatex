@@ -448,6 +448,8 @@
 \newlength{\bibparsep}
 \newlength{\bibhang}
 
+\newbool{refcontextdefaults}
+\booltrue{refcontextdefaults}%
 \newbool{sourcemap}
 \newbool{citetracker}
 \newbool{pagetracker}
@@ -514,6 +516,9 @@
 \def\abx@dornames{%
   \dolistcsloop{abx@rnames}%
 }
+
+% Used to track default refcontexts for citations
+\global\let\blx@defaultrefcontexts\@empty
 
 % Used to track sorting name key specifications
 \global\let\blx@biber@sortingnamekeyspecs\@empty
@@ -6873,11 +6878,21 @@
 \def\blx@setdefaultrefcontext#1{%
   \ifcsdef{blx@assignedrefcontextbib@#1}
     {}
-    {\csxdef{blx@assignedrefcontextbib@#1}{\blx@refcontext@context}%
-     \blx@auxwrite\@mainaux{}{\string\abx@aux@defaultrefcontext{#1}{\blx@refcontext@context}}%
-     \blx@rerun@latex}}
+    {\blx@rerun@latex}%
+  \ifinlist{#1}\blx@defaultrefcontexts
+    {}
+    {\listgadd\blx@defaultrefcontexts{#1}}%
+  \csxdef{blx@assignedrefcontextbib@#1}{\blx@refcontext@context}}
 \def\abx@aux@defaultrefcontext#1#2{%
+  \global\boolfalse{refcontextdefaults}%
   \csxdef{blx@assignedrefcontextbib@#1}{#2}}
+
+\AtEndDocument{%
+  \ifbool{refcontextdefaults}
+    {\def\do#1{%
+       \blx@auxwrite\@mainaux{}{\string\abx@aux@defaultrefcontext{#1}{\csuse{blx@assignedrefcontextbib@#1}}}}%
+     \dolistloop\blx@defaultrefcontexts}
+    {}}
 
 \def\blx@initsep{%
   \blx@imc@iffieldundef{sortinithash}
