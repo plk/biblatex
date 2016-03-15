@@ -7185,36 +7185,51 @@
   \setkeys{blx@refcontext}{labelprefix=#1}}
 
 % [refcontext keys]{<keyword1>,<keyword2>,...}
-\def\assignrefcontextkeyws[#1]#2{%
+\newcommand*{\assignrefcontextkeyws}{%
+  \@ifstar
+    {\blx@assignrefcontextkeyws[*]}
+    {\blx@assignrefcontextkeyws[]}}
+
+\def\blx@assignrefcontextkeyws[#1][#2]#3{%
   \edef\blx@tempa{\blx@sorting}%
   \def\blx@tempb{global}%
   \let\blx@tempc\@empty%
-  \setkeys{blx@assignrefcontext}{#1}%
+  \setkeys{blx@assignrefcontext}{#2}%
   \def\do##1{%
     \listxadd\blx@assignedrefcontextkeywlist{##1}%
-    \csxdef{blx@assignedrefcontextkeyws@\the\c@refsection @##1}{\blx@tempa/\blx@tempb/\blx@tempc}}
-  \docsvlist{#2}}
+    \csxdef{blx@assignedrefcontextkeyws#1@\the\c@refsection @##1}{\blx@tempa/\blx@tempb/\blx@tempc}}
+  \docsvlist{#3}}
 
 % [refcontext keys]{<category1>,<category2>,...}
-\def\assignrefcontextcats[#1]#2{%
+\newcommand*{\assignrefcontextcats}{%
+  \@ifstar
+    {\blx@assignrefcontextcats[*]}
+    {\blx@assignrefcontextcats[]}}
+
+\def\blx@assignrefcontextcats[#1][#2]#3{%
   \edef\blx@tempa{\blx@sorting}%
   \def\blx@tempb{global}%
   \let\blx@tempc\@empty%
-  \setkeys{blx@assignrefcontext}{#1}%
+  \setkeys{blx@assignrefcontext}{#2}%
   \def\do##1{%
     \listxadd\blx@assignedrefcontextcatlist{##1}%
-    \csxdef{blx@assignedrefcontextcats@\the\c@refsection @##1}{\blx@tempa/\blx@tempb/\blx@tempc}}
-  \docsvlist{#2}}
+    \csxdef{blx@assignedrefcontextcats#1@\the\c@refsection @##1}{\blx@tempa/\blx@tempb/\blx@tempc}}
+  \docsvlist{#3}}
 
 % [refcontext keys]{<entrykey1>,<entrykey2>,...}
-\def\assignrefcontextentries[#1]#2{%
+\newcommand*{\assignrefcontextentries}{%
+  \@ifstar
+    {\blx@assignrefcontextentries[*]}
+    {\blx@assignrefcontextentries[]}}
+
+\def\blx@assignrefcontextentries[#1][#2]#3{%
   \edef\blx@tempa{\blx@sorting}%
   \def\blx@tempb{global}%
   \let\blx@tempc\@empty%
-  \setkeys{blx@assignrefcontext}{#1}%
+  \setkeys{blx@assignrefcontext}{#2}%
   \def\do##1{%
-    \csxdef{blx@assignedrefcontextkeys@\the\c@refsection @##1}{\blx@tempa/\blx@tempb/\blx@tempc}}%
-  \docsvlist{#2}}
+    \csxdef{blx@assignedrefcontextkeys#1@\the\c@refsection @##1}{\blx@tempa/\blx@tempb/\blx@tempc}}%
+  \docsvlist{#3}}
 
 \define@key{blx@assignrefcontext}{sorting}{\def\blx@tempa{#1}}
 \define@key{blx@assignrefcontext}{sortingnamekeyscheme}{\def\blx@tempb{#1}}
@@ -7817,29 +7832,57 @@
 % macros, if any
 % <entrykey>
 \def\blx@getrefcontext#1{%
-  \iftoggle{blx@refcontext}% Let explicit \newrefcontext override
-    {}
-    {\let\blx@refcontext@context@saved\blx@refcontext@context
-     \ifcsdef{blx@assignedrefcontextbib@#1}
-       {\letcs\blx@refcontext@context{blx@assignedrefcontextbib@#1}}
-       {}%
-     \ifdef\blx@assignedrefcontextkeywlist
-       {\def\do##1{%
-          \blx@imc@ifentrykeyword{#1}{##1}
+  % Save refcontext for restoration at end of \citeprint
+  \let\blx@refcontext@context@saved\blx@refcontext@context
+  % Get the default refcontext
+  \ifcsdef{blx@assignedrefcontextbib@#1}
+    {\letcs\blx@refcontext@context{blx@assignedrefcontextbib@#1}}
+    {}%
+  % assignment via keyword list
+  \ifdef\blx@assignedrefcontextkeywlist
+    {\def\do##1{%
+       \blx@imc@ifentrykeyword{#1}{##1}
+         {% weak version
+          \ifboolexpr{test {\ifcsdef{blx@assignedrefcontextkeyws*@\the\c@refsection @##1}}
+                      and
+                      not togl {blx@refcontext}}% inside explicit non-global refcontext
+            {\letcs\blx@refcontext@context{blx@assignedrefcontextkeyws*@\the\c@refsection @##1}}
+            {}%
+          % strong version
+          \ifcsdef{blx@assignedrefcontextkeyws@\the\c@refsection @##1}
             {\letcs\blx@refcontext@context{blx@assignedrefcontextkeyws@\the\c@refsection @##1}}
-            {}}%
-        \dolistloop\blx@assignedrefcontextkeywlist}
-       {}%
-     \ifdef\blx@assignedrefcontextcatlist
-       {\def\do##1{%
-          \blx@imc@ifentrycategory{#1}{##1}
+            {}}
+         {}}%
+     \dolistloop\blx@assignedrefcontextkeywlist}
+    {}%
+  % assignment via category
+  \ifdef\blx@assignedrefcontextcatlist
+    {\def\do##1{%
+       \blx@imc@ifentrycategory{#1}{##1}
+         {% weak version
+          \ifboolexpr{test {\ifcsdef{blx@assignedrefcontextcats*@\the\c@refsection @##1}}
+                      and
+                      not togl {blx@refcontext}}% inside explicit non-global refcontext
+            {\letcs\blx@refcontext@context{blx@assignedrefcontextcats*@\the\c@refsection @##1}}
+            {}%
+          % strong version
+          \ifcsdef{blx@assignedrefcontextcats@\the\c@refsection @##1}
             {\letcs\blx@refcontext@context{blx@assignedrefcontextcats@\the\c@refsection @##1}}
-            {}}%
-        \dolistloop\blx@assignedrefcontextcatlist}
-       {}%
-     \ifcsdef{blx@assignedrefcontextkeys@\the\c@refsection @#1}
-       {\letcs\blx@refcontext@context{blx@assignedrefcontextkeys@\the\c@refsection @#1}}
-       {}}}
+            {}}
+         {}}%
+     \dolistloop\blx@assignedrefcontextcatlist}
+    {}%
+  % assignment via entrykeys
+  % weak version
+  \ifboolexpr{test {\ifcsdef{blx@assignedrefcontextkeys*@\the\c@refsection @#1}}
+              and
+              not togl {blx@refcontext}}% inside explicit non-global refcontext
+    {\letcs\blx@refcontext@context{blx@assignedrefcontextkeys*@\the\c@refsection @#1}}
+    {}%
+  % strong version
+  \ifcsdef{blx@assignedrefcontextkeys@\the\c@refsection @#1}
+    {\letcs\blx@refcontext@context{blx@assignedrefcontextkeys@\the\c@refsection @#1}}
+    {}}
 
 % {<entrykey>}
 \protected\def\blx@citeprint#1{%
