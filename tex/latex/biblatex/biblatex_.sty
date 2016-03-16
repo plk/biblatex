@@ -526,8 +526,8 @@
 % Initialise some lists which track changing citations/sortschemes
 % etc. between runs
 \global\let\blx@cites\@empty
-\global\let\blx@sortnamekeyschemes\@empty
-\global\let\blx@lastsortnamekeyschemes\@empty
+\global\let\blx@refcontexts\@empty
+\global\let\blx@lastrefcontexts\@empty
 \global\let\blx@sortschemes\@empty
 \global\let\blx@lastsortschemes\@empty
 \global\let\blx@biblists\@empty
@@ -5982,10 +5982,10 @@
 \protected\def\abx@aux@sortscheme#1{%
   \listgadd{\blx@lastsortschemes}{#1}}
 
-% {<sortnamekeyschemename>}
-% Get the saved information on which sorting name key schemes were mentioned last run
-\protected\def\abx@aux@sortnamekeyscheme#1{%
-  \listgadd{\blx@lastsortnamekeyschemes}{#1}}
+% {<refcontext>}
+% Get the saved information on which refcontexts were mentioned last run
+\protected\def\abx@aux@refcontext#1{%
+  \listgadd{\blx@lastrefcontexts}{#1}}
 
 % {<sortschemename>}
 % Get the saved information on which shorthand sorting schemes were mentioned last run
@@ -6032,22 +6032,14 @@
       {}
       {\blx@logreq@active{}}}
     {}%
-  % Test if we removed any mention of a sorting name key scheme since last run.
+  % Test if we removed any mention of a reference context since last run
   % If we did, we need to re-run biber
-  \def\do#1{\ifinlist{#1}{\blx@sortnamekeyschemes}{}{\blx@logreq@active{}}\relax}%
-  \dolistloop\blx@lastsortnamekeyschemes
-  % Test if we added any mention of a sorting name key scheme since last run
+  \def\do#1{\ifinlist{#1}{\blx@refcontexts}{}{\blx@logreq@active{}}\relax}%
+  \dolistloop\blx@lastrefcontexts
+  % Test if we added any mention of a reference context since last run
   % If we did, we need to re-run biber
-  \def\do#1{\ifinlist{#1}{\blx@lastsortnamekeyschemes}{}{\blx@logreq@active{}}\relax}%
-  \dolistloop\blx@sortnamekeyschemes
-  % Test if we removed any mention of a sorting scheme since last run.
-  % If we did, we need to re-run biber
-  \def\do#1{\ifinlist{#1}{\blx@sortschemes}{}{\blx@logreq@active{}}\relax}%
-  \dolistloop\blx@lastsortschemes
-  % Test if we added any mention of a sorting scheme since last run
-  % If we did, we need to re-run biber
-  \def\do#1{\ifinlist{#1}{\blx@lastsortschemes}{}{\blx@logreq@active{}}\relax}%
-  \dolistloop\blx@sortschemes
+  \def\do#1{\ifinlist{#1}{\blx@lastrefcontexts}{}{\blx@logreq@active{}}\relax}%
+  \dolistloop\blx@refcontexts
   % Test if we removed any mention of a biblist since last run.
   % If we did, we need to re-run biber
   \def\do#1{\ifinlist{#1}{\blx@biblists}{}{\blx@logreq@active{}}\relax}%
@@ -6618,12 +6610,6 @@
       \csuse{blx@biber@sorting@\blx@refcontext@sorting}}}% default to context
   \edef\blx@tempe{\the\c@refsection}% default refsection is current
   \blx@safe@actives
-  % Add the sortscheme to the list of sortschemes
-  % so we can compare on next run
-  \xifinlist{\blx@refcontext@sorting}{\blx@sortschemes}
-    {}
-    {\listxadd\blx@sortschemes{\blx@refcontext@sorting}%
-     \blx@auxwrite\@mainaux{}{\string\abx@aux@sortscheme{\blx@refcontext@sorting}}}%
   \edef\blx@tempd{%
     \blx@xml@sorting{%
       \ifcsdef{blx@sortdef@locale@\blx@refcontext@sorting}
@@ -7032,7 +7018,7 @@
   % so we can compare on next run
   \xifinlist{\blx@tempc}{\blx@biblists}
     {}
-    {\listxadd\blx@biblists{\blx@tempc}%
+    {\listxadd\blx@biblists\blx@tempc
      \blx@auxwrite\@mainaux{}{\string\abx@aux@biblist{\blx@tempc}}}%
   \edef\blx@tempd{%
     \blx@xml@sorting{%
@@ -7151,7 +7137,18 @@
      \endrefcontext}
     {\toggletrue{blx@refcontext}%
      \setkeys{blx@refcontext}{#1}%
+  % Add the sortscheme to the list of sortschemes so we can track
+  % special cases like sorting=none which need cite order change detection
+  \xifinlist\blx@refcontext@sorting\blx@sortschemes
+    {}
+    {\listxadd\blx@sortschemes\blx@refcontext@sorting
+     \blx@auxwrite\@mainaux{}{\string\abx@aux@sortscheme{\blx@refcontext@sorting}}}%
      \xdef\blx@refcontext@context{\blx@refcontext@sorting/\blx@refcontext@sortingnamekey/\blx@refcontext@labelprefix}%
+     % Add the refcontext to the list of refcontexts so we can compare on next run
+     \xifinlist\blx@refcontext@context\blx@refcontexts
+       {}
+       {\listxadd\blx@refcontexts\blx@refcontext@context
+        \blx@auxwrite\@mainaux{}{\string\abx@aux@refcontext{\blx@refcontext@context}}}%}%
      \ifcsundef{blx@biber@sorting@\blx@refcontext@sorting}
        {\blx@err@invopt{sorting=\blx@refcontext@sorting}{}}
        {}%
@@ -10373,12 +10370,7 @@
   \global\cslet{blx@biber@sortingnamekey@\blx@biber@snkname}\blx@tempa
   \xifinlist{\blx@biber@snkname}{\blx@biber@sortingnamekeyspecs}
     {}
-    {\listxadd\blx@biber@sortingnamekeyspecs{\blx@biber@snkname}}%
-  % Add the sortnamekeyscheme to the list of sortnamekeyschemes
-  % so we can compare on next run
-  \xifinlist{\blx@biber@snkname}{\blx@sortnamekeyschemes}
-    {}
-    {\listxadd\blx@sortnamekeyschemes{\blx@biber@snkname}}%
+    {\listxadd\blx@biber@sortingnamekeyspecs\blx@biber@snkname}%
   \endgroup}
 \@onlypreamble\DeclareSortingNamekeyScheme
 \blx@collectopts{xml}{blx@globalopts}{sortingnamekey}% for passing to the .bcf
@@ -10743,10 +10735,11 @@
     {\blx@err@invopt{sorting=\blx@sorting}{}%
      \def\blx@sorting{nty}%
      \def\blx@refcontext@sorting{nty}}%
-     \listxadd\blx@sortschemes{\blx@sorting}%
+     \listxadd\blx@sortschemes\blx@sorting
      \def\blx@refcontext@sortingnamekey{global}%
      \let\blx@refcontext@labelprefix\@empty
-     \xdef\blx@refcontext@context{\blx@refcontext@sorting/\blx@refcontext@sortingnamekey/\blx@refcontext@labelprefix}}
+     \xdef\blx@refcontext@context{\blx@refcontext@sorting/\blx@refcontext@sortingnamekey/\blx@refcontext@labelprefix}%
+     \listxadd\blx@refcontexts\blx@refcontext@context}
 
 \DeclareBibliographyOption[boolean]{sortcase}[true]{%
   \settoggle{blx@sortcase}{#1}}
@@ -11776,14 +11769,10 @@
     {}%
 }
 
-
 % Deferred last minute setup
-
 \AtBeginDocument{%
   \blx@auxwrite\@mainaux{}{\string\abx@aux@sortscheme{\blx@sorting}}%
-  \def\do#1{%
-    \blx@auxwrite\@mainaux{}{\string\abx@aux@sortnamekeyscheme{#1}}}
-  \dolistloop\blx@sortnamekeyschemes
+  \blx@auxwrite\@mainaux{}{\string\abx@aux@refcontext{\blx@refcontext@context}}
   \blx@checkencoding
   \if@filesw
     \blx@ctrlwrite@biber
