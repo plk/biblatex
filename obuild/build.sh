@@ -174,16 +174,28 @@ fi
 if [[ "$1" == "testbiber" || "$1" == "testbibtex" || "$1" == "test" ]]
 then
   [[ -e obuild/test/examples ]] || mkdir -p obuild/test/examples
+  if [[ "$2" == "" ]]
+  then
+    \rm -rf obuild/test/examples/*
+    cp -r doc/latex/biblatex/examples/*.tex obuild/test/examples/
+    cp -r doc/latex/biblatex/examples/*.dbx obuild/test/examples/
+  else
+    \rm -rf obuild/test/examples/$2
+    cp -r doc/latex/biblatex/examples/$2 obuild/test/examples/
+    cp -r doc/latex/biblatex/examples/${2%.tex}.dbx obuild/test/examples/ 2>/dev/null
+  fi
+  
   \rm -f obuild/test/example_errs_biber.txt
   \rm -f obuild/test/example_errs_bibtex.txt
-  \rm -rf obuild/test/examples/*
-  cp -r doc/latex/biblatex/examples/*.tex obuild/test/examples/
-  cp -r doc/latex/biblatex/examples/*.dbx obuild/test/examples/
   cd obuild/test/examples
 
   # Make the bibtex/biber backend test files
   for f in *.tex
   do
+    if [[ "$2" != "" && "$2" != "$f" ]]
+    then
+      continue
+    fi
     if [[ "$f" < 9* ]] # 9+*.tex examples require biber
     then
       if [[ ! "$f" =~ -bibtex\.tex ]] # some files are already bibtex specific
