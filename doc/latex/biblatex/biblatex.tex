@@ -3668,22 +3668,28 @@ At the beginning of the document, there is always a global context containing gl
 \cmditem{assignrefcontextentries*}[key=value, \dots]{entrykey1, entrykey2, ...}
 
 \end{ltxsyntax}
-These commands automate putting citations into refcontexts when the default behaviour is not sufficient. The default behaviour is that the data for a citation is drawn from the refcontext of the last bibliography in which it was printed. To override this behaviour, instead of manually wrapping citation commands in \env{refcontext} environments, which might be error-prone and tedious, you can register a comma"=separated list of \prm{keywords}, \prm{categories} or \prm{entrykeys} which, respectively, make the entries with any of the specified keywords, entries in any of the specified categories (see \secref{use:use:div}) or entries with any of the specified citation keys be cited in a particular refcontext specified by the \prm{refcontext key/values} which are parsed as the per the corresponding \env{refcontext} options. Such refcontext auto-assignments are specific to the current refsection. You may specify the same citation key in any of these commands but be aware that assignment is done in the order \prm{keywords}, \prm{categories}, \prm{entrykeys} with the later specifications overriding the earlier. An example:
+These commands automate putting citations into refcontexts when the default behaviour is not sufficient. The default behaviour is that the data for a citation is drawn from the refcontext of the last bibliography in which it was printed. For citations that are used in some way but not printed in a bibliography or bibliography list, they default to drawing their data from the global refcontext established at the beginning of the document. To override this behaviour, instead of manually wrapping citation commands in \env{refcontext} environments, which might be error-prone and tedious, you can register a comma"=separated list of \prm{keywords}, \prm{categories} or \prm{entrykeys} which, respectively, make the entries with any of the specified keywords, entries in any of the specified categories (see \secref{use:use:div}) or entries with any of the specified citation keys draw their data from a particular refcontext specified by the \prm{refcontext key/values} which are parsed as the per the corresponding \env{refcontext} options. Such refcontext auto-assignments are specific to the current refsection. You may specify the same citation key in any of these commands but be aware that assignment is done in the order \prm{keywords}, \prm{categories}, \prm{entrykeys} with the later specifications overriding the earlier. An example:
 
 \begin{ltxexample}[style=latex]{}
-\assignrefcontextentries[sorting=nty]{key1,key2}
-\cite{key1}, \cite{key2}
-\end{ltxexample}
-%
-This forces all citations of entries \bibfield{key1} and \bibfield{key2} to be drawn from the refcontext specified by \opt{sorting=nty}. It is identical in function to:
-
-\begin{ltxexample}[style=latex]{}
-\begin{refcontext}[sorting=nty]
-\cite{key1}, \cite{key2}
+\assignrefcontextentries[labelprefix=A]{key2}
+\cite{key1}
+\begin{refcontext}[labelprefix=B]
+\cite{key2}
 \end{refcontext}
 \end{ltxexample}
 %
-which is not so convenient since such specification of refcontexts for citations requires manual insertion of refcontext changing commands wherever the citations occur. You can always locally override these global refcontext assignments to entrykeys in citations by using explicit \env{refcontext} environments or \cmd{newrefcontext}. The unstarred commands force the specified citation refcontext for an entry even if it is cited within an explicit \env{refcontext} environment (\secref{use:bib:context}). The unstarred variants are weaker and do not do this---any explicit \env{refcontext} will take precedence and the citation will draw its data from the refcontext specified by the \env{refcontext} environment.
+Here, the data for the citation of \bibfield{key2} will be drawn from refcontext \opt{labelprefix=A} and not \opt{labelprefix=A} (resulting in a label with prefix <A> and not <B>).
+The unstarred commands do not override a local refcontext and so with:
+
+\begin{ltxexample}[style=latex]{}
+\assignrefcontextentries*[labelprefix=A]{key2}
+\cite{key1}
+\begin{refcontext}[labelprefix=B]
+\cite{key2}
+\end{refcontext}
+\end{ltxexample}
+%
+the data for the citation of \bibfield{key2} will be drawn from refcontext \opt{labelprefix=B}. Note that these commands are rarely necessary unless you have multiple bibliographies in which the same citations occur and \biblatex\ cannot by default tell which bibliography list a citation should refer to. See the example file \file{94-labelprefix.tex} for more details.
 
 \subsubsection{Dynamic Entry Sets}
 \label{use:bib:set}
