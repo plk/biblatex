@@ -457,6 +457,7 @@
 \newbool{citerequest}
 \booltrue{citerequest}
 
+\newtoggle{blx@bbldone}
 \newtoggle{blx@tempa}
 \newtoggle{blx@tempb}
 \newtoggle{blx@runltx}
@@ -518,7 +519,8 @@
 }
 
 % Used to track default refcontexts for citations
-\global\let\blx@defaultrefcontexts\@empty
+\cslet{blx@defaultrefcontexts@0}\@empty
+\listadd\blx@allrefsections{0}
 
 % Used to track sorting name key specifications
 \global\let\blx@biber@sortingnamekeyspecs\@empty
@@ -5969,8 +5971,7 @@
   \let\lverb\blx@bbl@verbldef
   \let\endlverb\blx@bbl@verblend}
 
-\def\blx@bblend{%
-}
+\def\blx@bblend{}
 
 % {<entrykey>}
 % Get the saved information on which citations were mentioned last run
@@ -6153,7 +6154,8 @@
   \blx@bblstart
   \blx@ifsigned{\jobname}{bbl}
     {\InputIfFileExists{\jobname.bbl}
-       {\blx@info@noline{... file '\jobname.bbl' found}}
+       {\blx@info@noline{... file '\jobname.bbl' found}%
+        \global\toggletrue{blx@bbldone}}
        {\blx@info@noline{... file '\jobname.bbl' not found}%
         \typeout{No file \jobname.bbl.}}}
     {}%
@@ -6862,22 +6864,31 @@
 % default to selecting data from the correct bibliography list in standard
 % cases where entries are not listed in multiple bibliographies
 \def\blx@setdefaultrefcontext#1{%
-  \ifcsdef{blx@assignedrefcontextbib@#1}
+  \ifcsdef{blx@assignedrefcontextbib@\the\c@refsection @#1}
     {}
     {\blx@rerun@latex}%
-  \ifinlist{#1}\blx@defaultrefcontexts
+  \ifinlistcs{#1}{blx@defaultrefcontexts@\the\c@refsection}
     {}
-    {\listgadd\blx@defaultrefcontexts{#1}}%
-  \csxdef{blx@assignedrefcontextbib@#1}{\blx@refcontext@context}}
-\def\abx@aux@defaultrefcontext#1#2{%
+    {\listcsgadd{blx@defaultrefcontexts@\the\c@refsection}{#1}}%
+  \csxdef{blx@assignedrefcontextbib@\the\c@refsection @#1}{\blx@refcontext@context}}
+% <refsection><key><refcontext>
+\def\abx@aux@defaultrefcontext#1#2#3{%
   \global\boolfalse{refcontextdefaults}%
-  \csxdef{blx@assignedrefcontextbib@#1}{#2}}
+  \listcsgadd{blx@defaultrefcontexts@#1}{#2}%
+  \csxdef{blx@assignedrefcontextbib@#1@#2}{#3}}
 
 \AtEndDocument{%
-  \ifbool{refcontextdefaults}
+  % only add default refcontext declarations to .aux on first run after biber
+  \ifboolexpr{ bool {refcontextdefaults}
+               and
+               togl {blx@bbldone} }
     {\def\do#1{%
-       \blx@auxwrite\@mainaux{}{\string\abx@aux@defaultrefcontext{#1}{\csuse{blx@assignedrefcontextbib@#1}}}}%
-     \dolistloop\blx@defaultrefcontexts}
+       \begingroup
+       \def\do##1{%
+         \blx@auxwrite\@mainaux{}{\string\abx@aux@defaultrefcontext{#1}{##1}{\csuse{blx@assignedrefcontextbib@#1@##1}}}}%
+       \dolistcsloop{blx@defaultrefcontexts@#1}%
+       \endgroup}
+     \dolistloop\blx@allrefsections}
     {}}
 
 \def\blx@initsep{%
@@ -7264,6 +7275,12 @@
   \endgroup
   \global\advance\blx@maxsection\@ne
   \global\c@refsection\blx@maxsection
+  \xifinlist{\the\c@refsection}\blx@allrefsections
+    {}
+    {\listxadd\blx@allrefsections{\the\c@refsection}}%
+  \ifcsdef{blx@defaultrefcontexts@\the\c@refsection}
+    {}
+    {\global\cslet{blx@defaultrefcontexts@\the\c@refsection}\@empty}%
   \expandafter\newcount\csname blx@maxsegment@\the\c@refsection\endcsname
   \expandafter\newcount\csname blx@sectionciteorder@\the\c@refsection\endcsname
   \blx@inf@refsec
@@ -7671,7 +7688,7 @@
 
 \def\blx@citation@entry#1#2{%
   \blx@bibreq{#1}%
-  \ifinlist{#1}{\blx@cites}
+  \ifinlist{#1}\blx@cites
     {}
     {\listgadd{\blx@cites}{#1}%
      \blx@auxwrite\@mainaux{}{\string\abx@aux@cite{#1}}}%
@@ -7837,8 +7854,8 @@
   % made (a bit strangely but some styles do this) inside a biblist
   % which never appear in any printed bib/biblist and do have no default
   % refcontext defined
-  \ifcsdef{blx@assignedrefcontextbib@#1}
-    {\letcs\blx@refcontext@context{blx@assignedrefcontextbib@#1}}
+  \ifcsdef{blx@assignedrefcontextbib@\the\c@refsection @#1}
+    {\letcs\blx@refcontext@context{blx@assignedrefcontextbib@\the\c@refsection @#1}}
     {\edef\blx@refcontext@context{\blx@sorting/global/}}%
   % assignment via keyword list
   \ifdef\blx@assignedrefcontextkeywlist
