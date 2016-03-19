@@ -16,22 +16,14 @@
 
 %% Dependencies
 
-% We need to override some things before etextools loads
-\@ifpackageloaded{etextools}
-  {\PackageError{biblatex}
-    {etextools shouldn't already be loaded}
-    {Please don't load etextools, or any package which loads it, before biblatex\MessageBreak}
-   \endinput}
-  {}%
-
 % Have to do this before etextools loads to persuade it that \pdfstrcmp
 % exists which it does, under a different name for non PDFTeX
 % This allows us to use the very useful \xifempty in all engines (normally
 % etextools disabled this for non PDFTeX because it doesn't find \pdfstrcmp)
 \RequirePackage{iftex}
+\RequirePackage{pdftexcmds}
 \ifPDFTeX
 \else
-  \RequirePackage{pdftexcmds}
   \let\pdfstrcmp\pdf@strcmp
 \fi
 
@@ -39,15 +31,12 @@
 %% are ettoolbox version in biblatex. However, we want the \xifempty of
 %% etextools, amongst other things.
 \RequirePackage{etoolbox}
-\let\origforlistloop\forlistloop
-\RequirePackage{etextools}
-\let\forlistloop\origforlistloop
-
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{logreq}
 \RequirePackage{ifthen}
 \RequirePackage{url}
+\RequirePackage{xstring}
 %\RequirePackage{trace}
 
 \@ifpackagelater{etoolbox}{2010/11/29}
@@ -79,9 +68,6 @@
 \catcode`\|=3
 \catcode`\^=7
 \def\blx@nl{^^J}
-
-% Date string filter for default dates using etextools
-\DeclareStringFilter\blx@stripdate{date} 
 
 %% Compatibility
 
@@ -525,6 +511,16 @@
 \newtoggle{blx@bibindex}
 \newtoggle{blx@localnumber}
 \newtoggle{blx@refcontext}
+
+% Nice command from etextools which causes too many problems if you load
+% the whole package
+
+\newcommand*{\blx@xifempty}[1]{\blx@xifstrcmp{#1}{}}
+% {string1}{string2}{true}{false}
+\newcommand*{\blx@xifstrcmp}[2]{\csname @%
+  \ifnum\pdf@strcmp{#1}{#2}=0 first\else second\fi
+  oftwo\endcsname}
+\let\ifcontentempty\blx@xifempty
 
 % Special fields which need resolution using the information provided by biber
 \listadd\abx@rfields{labeltitle}
@@ -11380,13 +11376,15 @@
          {\csuse{mkbibrange#1extra}{}}}}
     {\blx@err@invopt{datelabel=#1}{}}}
 
+
 \def\do#1{%
   \DeclareBibliographyOption[string]{#1}{%
+    \StrCut{#1}{date}\blx@datetype\blx@tempnull
     \ifcsdef{mkbibrange##1}
-      {\protected\csedef{blx@imc@print#1}{\noexpand\csuse{mkbibrange##1}{\expandnext{\blx@stripdate-}{#1}}}}
+      {\protected\csedef{blx@imc@print#1}{\noexpand\csuse{mkbibrange##1}{\blx@datetype}}}
       {\blx@err@invopt{#1=##1}{}}%
     \ifcsdef{mkbibrange##1extra}
-      {\protected\csedef{blx@imc@print#1extra}{\noexpand\csuse{mkbibrange##1extra}{\expandnext{\blx@stripdate-}{#1}}}}
+      {\protected\csedef{blx@imc@print#1extra}{\noexpand\csuse{mkbibrange##1extra}{\blx@datetype}}}
       {}}}
 \abx@dodates
 

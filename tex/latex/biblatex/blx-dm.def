@@ -204,7 +204,8 @@
     \xappto\blx@bcf@datamodel@fields{%
       \blx@xml@datamodel@field{\blx@tempa}{##1}}%
 
-    % Dateparts are special - auto-create for all date fields
+
+ % Dateparts are special - auto-create for all date fields
     \ifcsstring{blx@dm@datatype}{date}
       {\begingroup
        \let\blx@tempa\@empty% reset setkeys buffer due to manual calls below
@@ -217,22 +218,23 @@
        \ifinlistcs{##1}{blx@biber@datamodel@fields}
          {}
          {\listcsgadd{blx@biber@datamodel@fields}{##1}}%
+       \StrCut{##1}{date}\blx@datetype\blx@tempnull
        % *endyear
-       \xifinlistcs{\expandnext{\blx@stripdate-}{##1}endyear}{blx@biber@datamodel@fields}
+       \xifinlistcs{\blx@datetype endyear}{blx@biber@datamodel@fields}
          {}
-         {\listcsxadd{blx@biber@datamodel@fields}{\expandnext{\blx@stripdate-}{##1}endyear}}%
+         {\listcsxadd{blx@biber@datamodel@fields}{\blx@datetype endyear}}%
        \setkeys{blx@datamodel@field}{type=field,datatype=datepart,nullok}%
        \xappto\blx@bcf@datamodel@fields{%
-         \blx@xml@datamodel@field{\blx@tempa}{\expandnext{\blx@stripdate-}{##1}endyear}}%
+         \blx@xml@datamodel@field{\blx@tempa}{\blx@datetype endyear}}%
        % *year, *month, *day, *endmonth, *endday
        \def\do####1{%
          \let\blx@tempa\@empty% reset setkeys buffer due to loop calls
-         \xifinlistcs{\expandnext{\blx@stripdate-}{##1}####1}{blx@biber@datamodel@fields}
+         \xifinlistcs{\blx@datetype ####1}{blx@biber@datamodel@fields}
            {}
-           {\listcsxadd{blx@biber@datamodel@fields}{\expandnext{\blx@stripdate-}{##1}####1}}%
+           {\listcsxadd{blx@biber@datamodel@fields}{\blx@datetype ####1}}%
          \setkeys{blx@datamodel@field}{type=field,datatype=datepart}%
          \xappto\blx@bcf@datamodel@fields{%
-           \blx@xml@datamodel@field{\blx@tempa}{\expandnext{\blx@stripdate-}{##1}####1}}}%
+           \blx@xml@datamodel@field{\blx@tempa}{\blx@datetype ####1}}}%
        \docsvlist{year,month,day,endmonth,endday}%
        \endgroup}
       {}}%
