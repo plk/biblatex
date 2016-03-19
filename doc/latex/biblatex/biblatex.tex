@@ -227,7 +227,10 @@ The \biblatex package requires \etex. \tex distributions have been shipping \ete
 The \biblatex package can use legacy \bibtex as a data backend. While a legacy \bibtex binary is sufficient to run \biblatex, using \bin{bibtex8} is recommended. If your \tex distribution does not ship with \bin{bibtex8}, you can get it from \acr{CTAN}.\fnurl{http://www.ctan.org/tex-archive/biblio/bibtex/8-bit/}
 
 \item[etoolbox]
-This \latex package, which is loaded automatically, provides generic programming facilities required by \biblatex. It is available from \acr{CTAN}.\fnurl{http://www.ctan.org/tex-archive/macros/latex/contrib/etoolbox/}
+This \latex package, which is loaded automatically, provides generic programming facilities required by \biblatex. It is available from \acr{CTAN}.\fnurl{http://ctan.org/pkg/etoolbox}
+
+\item[etextools]
+This \latex package, which is loaded automatically, provides enhanced generic programming facilities required by \biblatex. It is available from \acr{CTAN}.\fnurl{http://ctan.org/pkg/etextools}. \biblatex will issue an a error if this package is loaded before \biblatex loaded as certain internals need to be changed before it is loaded.
 
 \item[kvoptions]
 This \latex package, which is also loaded automatically, is used for internal option handling. It is available with the \sty{oberdiek} package bundle from \acr{CTAN}.\fnurl{http://www.ctan.org/pkg/kvoptions}
@@ -284,16 +287,6 @@ When using any of the \sty{scrartcl}, \sty{scrbook}, or \sty{scrreprt} classes, 
 The packages listed in this section are not compatible with \biblatex. Since it reimplements the bibliographic facilities of \latex from the ground up, \biblatex naturally conflicts with all packages modifying the same facilities. This is not specific to \biblatex. Some of the packages listed below are also incompatible with each other for the same reason.
 
 \begin{marglist}
-
-% FIXME: complete list
-%
-% amsrefs
-% apacite
-% drftcite
-% footbib
-% multibbl
-% overcite
-% bibtopicprefix
 
 \item[babelbib]
 The \sty{babelbib} package provides support for multilingual bibliographies. This is a standard feature of \biblatex. Use the \bibfield{langid} field and the package option \opt{autolang} for similar functionality. Note that \biblatex automatically adjusts to the main document language if \sty{babel} or \sty{polyglossia} is loaded. You only need the above mentioned features if you want to switch languages on a per"=entry basis within the bibliography. See \secref{bib:fld:spc, use:opt:pre:gen} for details. Also see \secref{use:lng}.
@@ -361,6 +354,9 @@ compatibility matrix for the recent versions.
 \sffamily\bfseries\spotcolor Biber version
   & \sffamily\bfseries\spotcolor \biblatex\ version\\
 \midrule
+2.5 & 3.4\\
+2.4 & 3.3\\
+2.3 & 3.2\\
 2.2 & 3.1\\
 2.1 & 3.0\\
 2.0 & 3.0\\
@@ -6384,7 +6380,7 @@ The value of the datamodel <nameparts> constant (see \secref{aut:bbx:drv}) creat
 \namepartgiveni
 \end{ltxexample}
 %
-If a certain part of a name is not available, the corresponding macro will be empty, hence you may use \cmd{ifempty} (see \secref{aut:aux:tst}) tests to check for the individual parts of a name. The name of the name list currently being processed is available to the \prm{code} as \cmd{currentname}. Note that the formatting directive also handles the punctuation to be inserted between separate names and between the individual parts of a name. You need to check whether you are in the middle of or at the end of the list, \ie whether \cnt{listcount} is smaller than or equal to \cnt{liststop}. See also \secref{use:cav:nam}. The starred variant of this command is similar to the regular version, except that all type-specific formats are cleared.
+If a certain part of a name is not available, the corresponding macro will be empty, hence you may use standard tests like \cmd{ifdefempty} (etoolbox) or \cmd{xifempty} (etextools) to check for the individual parts of a name. The name of the name list currently being processed is available to the \prm{code} as \cmd{currentname}. Note that the formatting directive also handles the punctuation to be inserted between separate names and between the individual parts of a name. You need to check whether you are in the middle of or at the end of the list, \ie whether \cnt{listcount} is smaller than or equal to \cnt{liststop}. See also \secref{use:cav:nam}. The starred variant of this command is similar to the regular version, except that all type-specific formats are cleared.
 
 \paragraph{\bibtex}\BibTeXOnlyMark
 
@@ -8339,10 +8335,6 @@ Clears the \prm{name list} within a local scope. A list cleared this way is trea
 The commands in this section are various kinds of stand"=alone tests for use in bibliography and citation styles.
 
 \begin{ltxsyntax}
-
-\cmditem{ifempty}{arg}{true}{false}
-
-Intended for name format tests to test if nameparts contain anything. Depending on the backend used, nameparts can be passed in to name formats as strings (\bibtex) or macros (\biber). \prm{arg} must be a single macro or a string.
 
 \cmditem{ifsortnamekeyscheme}{string}{true}{false}
 

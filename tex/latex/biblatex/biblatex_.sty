@@ -15,13 +15,39 @@
 [\abx@date\space v\abx@version\space programmable bibliographies (biber) (PK/JW/AB)]
 
 %% Dependencies
+
+% We need to override some things before etextools loads
+\@ifpackageloaded{etextools}
+  {\PackageError{biblatex}
+    {etextools shouldn't already be loaded}
+    {Please don't load etextools, or any package which loads it, before biblatex\MessageBreak}
+   \endinput}
+  {}%
+
+% Have to do this before etextools loads to persuade it that \pdfstrcmp
+% exists which it does, under a different name for non PDFTeX
+% This allows us to use the very useful \xifempty in all engines (normally
+% etextools disabled this for non PDFTeX because it doesn't find \pdfstrcmp)
+\RequirePackage{iftex}
+\ifPDFTeX
+\else
+  \RequirePackage{pdftexcmds}
+  \let\pdfstrcmp\pdf@strcmp
+\fi
+
+%% etextools defines \forlistloop with different signature and all calls
+%% are ettoolbox version in biblatex. However, we want the \xifempty of
+%% etextools, amongst other things.
 \RequirePackage{etoolbox}
+\let\origforlistloop\forlistloop
+\RequirePackage{etextools}
+\let\forlistloop\origforlistloop
+
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{logreq}
 \RequirePackage{ifthen}
 \RequirePackage{url}
-\RequirePackage{xstring}
 %\RequirePackage{trace}
 
 \@ifpackagelater{etoolbox}{2010/11/29}
@@ -32,13 +58,6 @@
       I found: '\csuse{ver@etoolbox.sty}'.\MessageBreak
       This is a fatal error. I'm aborting now.}%
    \endinput}
-
-% Tests for emptiness, regardless whether the arg is macro or literal
-% #1 should either be a single \macro or a string
-% Needs to be expandable so that it can be used in index name tests which
-% are edef'ed (see comments on index expansion in biblatex_.def)
-\def\ifempty#1{%
-  \expandafter\ifblank\expandafter{#1}}
 
 %% Category codes
 
@@ -60,6 +79,9 @@
 \catcode`\|=3
 \catcode`\^=7
 \def\blx@nl{^^J}
+
+% Date string filter for default dates using etextools
+\DeclareStringFilter\blx@stripdate{date} 
 
 %% Compatibility
 
@@ -11360,12 +11382,11 @@
 
 \def\do#1{%
   \DeclareBibliographyOption[string]{#1}{%
-    \StrCut{#1}{date}\blx@datetype\blx@tempnull
     \ifcsdef{mkbibrange##1}
-      {\protected\csedef{blx@imc@print#1}{\noexpand\csuse{mkbibrange##1}{\blx@datetype}}}
+      {\protected\csedef{blx@imc@print#1}{\noexpand\csuse{mkbibrange##1}{\expandnext{\blx@stripdate-}{#1}}}}
       {\blx@err@invopt{#1=##1}{}}%
     \ifcsdef{mkbibrange##1extra}
-      {\protected\csedef{blx@imc@print#1extra}{\noexpand\csuse{mkbibrange##1extra}{\blx@datetype}}}
+      {\protected\csedef{blx@imc@print#1extra}{\noexpand\csuse{mkbibrange##1extra}{\expandnext{\blx@stripdate-}{#1}}}}
       {}}}
 \abx@dodates
 
