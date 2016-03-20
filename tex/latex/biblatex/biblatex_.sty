@@ -4936,7 +4936,12 @@
           \blx@clearlang
           \begingroup
           \ifdef\abx@field@langid
-            {\ifcsundef{l@\abx@field@langid}
+            % override local langid if we forced it with
+            % language=<language> option
+            {\ifdef\blx@forcelanguagename
+               {\let\abx@field@langid\blx@forcelanguagename}
+               {}%
+             \ifcsundef{l@\abx@field@langid}
                {\blx@warn@nohyph{\abx@field@langid}}
                {\blx@hook@initlang
                 \def\blx@endlang{%
@@ -4972,7 +4977,12 @@
           \blx@clearlang
           \begingroup
           \ifdef\abx@field@langid
-            {\ifcsundef{l@\abx@field@langid}
+            % override local langid if we forced it with
+            % language=<language> option
+            {\ifdef\blx@forcelanguagename
+               {\let\abx@field@langid\blx@forcelanguagename}
+               {}%
+             \ifcsundef{l@\abx@field@langid}
                {\blx@warn@nohyph{\abx@field@langid}}
                {\blx@hook@initlang
                 \def\blx@endlang{%
@@ -10998,10 +11008,13 @@
    \ifstrequal{#1}{autocite}
     {\toggletrue{blx@autolangcite}}
     {}}
+  % If language is explicit, we do want to auto-switch but only to the
+  % selected language
   {\IfFileExists{#1.lbx}
-    {\togglefalse{blx@autolangbib}%
-     \togglefalse{blx@autolangcite}%
-     \edef\blx@languagename{#1}}
+    {\toggletrue{blx@autolangbib}%
+     \toggletrue{blx@autolangcite}%
+     \edef\blx@languagename{#1}%
+     \edef\blx@forcelanguagename{#1}}
     {\blx@error
       {Language '#1' not supported}
       {Failed to find a matching '#1.lbx' file}}}}
