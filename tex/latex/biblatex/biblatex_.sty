@@ -15,17 +15,8 @@
 [\abx@date\space v\abx@version\space programmable bibliographies (biber) (PK/JW/AB)]
 
 %% Dependencies
-
-% Have to do this before etextools loads to persuade it that \pdfstrcmp
-% exists which it does, under a different name for non PDFTeX
-% This allows us to use the very useful \xifempty in all engines (normally
-% etextools disabled this for non PDFTeX because it doesn't find \pdfstrcmp)
 \RequirePackage{iftex}
 \RequirePackage{pdftexcmds}
-
-%% etextools defines \forlistloop with different signature and all calls
-%% are ettoolbox version in biblatex. However, we want the \xifempty of
-%% etextools, amongst other things.
 \RequirePackage{etoolbox}
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
@@ -6885,15 +6876,16 @@
 
 \let\blx@bibcheck\relax
 
-% This sets and saves to the .aux the default refcontext for an entry.
-% The default refcontext for an entry is the refcontext of the last
-% bibliography in which it is actually printed. This allows citations to
-% default to selecting data from the correct bibliography list in standard
-% cases where entries are not listed in multiple bibliographies
+% This sets and saves to the .aux the default refcontext for an entry. The
+% default refcontext for an entry is the refcontext of the last
+% bibliography in the refsection in which it is actually printed . This
+% allows citations to default to selecting data from the correct
+% bibliography list in standard cases where entries are not listed in
+% multiple bibliographies
 \def\blx@setdefaultrefcontext#1{%
-  \ifcsdef{blx@assignedrefcontextbib@\the\c@refsection @#1}
-    {}
+  \ifbool{refcontextdefaults}
     {\blx@rerun@latex}%
+    {}%
   \ifinlistcs{#1}{blx@defaultrefcontexts@\the\c@refsection}
     {}
     {\listcsgadd{blx@defaultrefcontexts@\the\c@refsection}{#1}}%
@@ -6903,8 +6895,15 @@
   \global\boolfalse{refcontextdefaults}%
   \listcsgadd{blx@defaultrefcontexts@#1}{#2}%
   \csxdef{blx@assignedrefcontextbib@#1@#2}{#3}}
+\def\abx@aux@refcontextdefaultsdone{%
+  \global\boolfalse{refcontextdefaults}}
 
 \AtEndDocument{%
+  % write the .aux to say we have finished with refcontext defaults, no
+  % need to write then again
+  \ifbool{refcontextdefaults}
+    {}
+    {\blx@auxwrite\@mainaux{}{\string\abx@aux@refcontextdefaultsdone}}%
   % only add default refcontext declarations to .aux on first run after biber
   \ifboolexpr{ bool {refcontextdefaults}
                and
