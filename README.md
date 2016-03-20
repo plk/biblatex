@@ -1,21 +1,33 @@
 #Overview
 
 This package provides advanced bibliographic facilities for use with LaTeX.
+
 The package is a complete reimplementation of the bibliographic facilities
 provided by LaTeX. A custom backend Biber is used by default which
 processes BibTeX format data files and them performs all sorting, label
-generation (and a great deal more). Biblatex does not use the backend to
+generation (and a great deal more). 
+
+Biblatex does not use the backend to
 format the bibliography information as with traditional BibTeX: instead of
 being implemented in BibTeX style files, the formatting of the bibliography
-is entirely controlled by TeX macros. This package supports subdivided
+is entirely controlled by TeX macros. 
+
+This package supports subdivided
 bibliographies, multiple bibliographies within one document with different
-sorting , separate lists of bibliographic information such as abbreviations
-of various fields. Bibliographies may be subdivided into parts and\slash or
-segmented by topics. Just like the bibliography styles, all citation
-commands may be freely defined. With Biber as the backend, features such
+sorting, separate lists of bibliographic information such as abbreviations
+of various fields. 
+Bibliographies may be subdivided into parts and / or
+segmented by topics. 
+
+Just like the bibliography styles, all citation
+commands may be freely defined. 
+
+With Biber as the backend, features such
 as customisable sorting, multiple bibliographies with different sorting,
 customisable labels, dynamic data modification and custom data models are
-available. The package is completely localised and can interface with
+available. 
+
+The package is completely localised and can interface with
 the Babel and Polyglossia packages. 
 
 #Copyright and Licence
