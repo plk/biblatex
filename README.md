@@ -44,7 +44,7 @@ releases:
 
 [https://github.com/plk/biblatex](https://github.com/plk/biblatex)
 
-From here, it is packaged for general consumption to Stackexchange:
+From here, it is packaged for general consumption to SourceForge:
 
 [https://sourceforge.net/projects/biblatex](https://sourceforge.net/projects/biblatex)
 
