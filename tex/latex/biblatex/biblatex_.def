@@ -773,7 +773,10 @@
          {\namepartgiven}
          {\namepartprefix}
          {\namepartsuffix}}%
-     \ifcontentempty{\namepartgiven\namepartprefix}
+     \ifboolexpe{%
+       test {\ifdefvoid\namepartgiven}
+       and
+       test {\ifdefvoid\namepartprefix}}
        {}
        {\usebibmacro{name:revsdelim}}}
     {\ifgiveninits
@@ -871,7 +874,7 @@
   \ifuseprefix
     {\usebibmacro{name:delim}{#3#1}%
      \usebibmacro{name:hook}{#3#1}%
-     \ifcontentempty{#3}
+     \ifdefvoid{#3}
        {}
        {\ifcapital
           {\mkbibnameprefix{\MakeCapital{#3}}\isdot}
@@ -888,14 +891,14 @@
 \newbibmacro*{name:given-family}[4]{%
   \usebibmacro{name:delim}{#2#3#1}%
   \usebibmacro{name:hook}{#2#3#1}%
-  \ifcontentempty{#2}{}{\mkbibnamegiven{#2}\isdot\bibnamedelimd}%
-  \ifcontentempty{#3}{}{%
+  \ifdefvoid{#2}{}{\mkbibnamegiven{#2}\isdot\bibnamedelimd}%
+  \ifdefvoid{#3}{}{%
     \mkbibnameprefix{#3}\isdot
     \ifprefchar
       {}
       {\ifuseprefix{\bibnamedelimc}{\bibnamedelimd}}}%
   \mkbibnamefamily{#1}\isdot
-  \ifcontentempty{#4}{}{\bibnamedelimd\mkbibnamesuffix{#4}\isdot}}
+  \ifdefvoid{#4}{}{\bibnamedelimd\mkbibnamesuffix{#4}\isdot}}
 \newbibmacro*{name:first-last}[4]{% legacy alias
   \blx@warning@noline{%
     'name:first-last' is deprecated, please use 'name:given-family'}%
@@ -905,21 +908,26 @@
   \ifuseprefix
     {\usebibmacro{name:delim}{#3#1}%
      \usebibmacro{name:hook}{#3#1}%
-     \ifcontentempty{#3}{}{%
+     \ifdefvoid{#3}{}{%
        \ifcapital
          {\mkbibnameprefix{\MakeCapital{#3}}\isdot}
          {\mkbibnameprefix{#3}\isdot}%
        \ifprefchar{}{\bibnamedelimc}}%
      \mkbibnamefamily{#1}\isdot
-     \ifcontentempty{#4}{}{\bibnamedelimd\mkbibnamesuffix{#4}\isdot}%
-     \ifcontentempty{#2}{}{\revsdnamepunct\bibnamedelimd\mkbibnamegiven{#2}\isdot}}
+     \ifdefvoid{#4}{}{\bibnamedelimd\mkbibnamesuffix{#4}\isdot}%
+     \ifdefvoid{#2}{}{\revsdnamepunct\bibnamedelimd\mkbibnamegiven{#2}\isdot}}
     {\usebibmacro{name:delim}{#1}%
      \usebibmacro{name:hook}{#1}%
      \mkbibnamefamily{#1}\isdot
-     \ifcontentempty{#4}{}{\bibnamedelimd\mkbibnamesuffix{#4}\isdot}%
-     \ifcontentempty{#2#3}{}{\revsdnamepunct}%
-     \ifcontentempty{#2}{}{\bibnamedelimd\mkbibnamegiven{#2}\isdot}%
-     \ifcontentempty{#3}{}{\bibnamedelimd\mkbibnameprefix{#3}\isdot}}}
+     \ifdefvoid{#4}{}{\bibnamedelimd\mkbibnamesuffix{#4}\isdot}%
+     \ifboolexpe{%
+       test {\ifdefvoid{#2}}
+       and
+       test {\ifdefvoid{#3}}}
+       {}
+       {\revsdnamepunct}%
+     \ifdefvoid{#2}{}{\bibnamedelimd\mkbibnamegiven{#2}\isdot}%
+     \ifdefvoid{#3}{}{\bibnamedelimd\mkbibnameprefix{#3}\isdot}}}
 \newbibmacro*{name:last-first}[4]{% legacy alias
   \blx@warning@noline{%
     'name:last-first' is deprecated, please use 'name:family-given'}%
@@ -1069,20 +1077,25 @@
 % {<family name>}{<given name>}{<given initials>}{<family name prefix>}
 \newcommand*{\mkbibindexname}[4]{%
   \ifuseprefix
-    {\ifcontentempty{#3}{}{#3 }%
+    {\ifdefvoid{#3}{}{#3 }%
      \@firstofone #1% remove spurious braces
-     \ifcontentempty{#4}{}{ #4}%
-     \ifcontentempty{#2}{}{, #2}%
+     \ifdefvoid{#4}{}{ #4}%
+     \ifdefvoid{#2}{}{, #2}%
      \actualoperator
-     \ifcontentempty{#3}{}{\MakeCapital{#3} }%
+     \ifdefvoid{#3}{}{\MakeCapital{#3} }%
      #1%
-     \ifcontentempty{#4}{}{ #4}%
-     \ifcontentempty{#2}{}{, #2}}
+     \ifdefvoid{#4}{}{ #4}%
+     \ifdefvoid{#2}{}{, #2}}
     {\@firstofone #1% remove spurious braces
-     \ifcontentempty{#4}{}{ #4}%
-     \ifcontentempty{#2#3}{}{,}%
-     \ifcontentempty{#2}{}{ #2}%
-     \ifcontentempty{#3}{}{ #3}}}
+     \ifdefvoid{#4}{}{ #4}%
+     \ifboolexpe{%
+       test {\ifdefvoid{#2}}
+       and
+       test {\ifdefvoid{#3}}}
+       {}
+       {,}%
+     \ifdefvoid{#2}{}{ #2}%
+     \ifdefvoid{#3}{}{ #3}}}
 
 % {<control sequence>}{<control sequence>}
 \newcommand*{\mkbibindexsubentry}[2]{%
