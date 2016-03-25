@@ -4925,7 +4925,11 @@
        {\def\blx@beglang{%
           \blx@clearlang
           \begingroup
-          \ifdef\abx@field@langid
+         % Need to override all entries, regardless of if there is a langid
+         % if language=<language> option is given
+         \ifboolexpr { test {\ifdef\abx@field@langid }
+                       or
+                       test {\ifdef\blx@forcelanguagename} }
             % override local langid if we forced it with
             % language=<language> option
             {\ifdef\blx@forcelanguagename
@@ -6660,6 +6664,7 @@
 
 % [<options>]
 \newrobustcmd*{\bibbysection}{%
+  \delimcontext{bib}%
   \begingroup
   \ifnum\blx@maxsection=\z@
     \blx@warning{No reference sections found}%
@@ -6680,7 +6685,8 @@
   \setkeys{blx@bbs}{#1}%
   \blx@rest@actives
   \togglefalse{blx@tempa}%
-  \blx@refsections}
+  \blx@refsections
+  \restoredelimcontext}
 
 \def\blx@refsections{%
   \ifcsvoid{blx@slist@entry@\the\c@refsection @\blx@refcontext@context}
@@ -6698,6 +6704,7 @@
 
 % [<options>]
 \newrobustcmd*{\bibbysegment}{%
+  \delimcontext{bib}%
   \begingroup
   \edef\on@line{\on@line}%
   \ifnum\csname blx@maxsegment@\the\c@refsection\endcsname=\z@
@@ -6718,7 +6725,8 @@
   \setkeys{blx@bbg}{#1}%
   \blx@rest@actives
   \togglefalse{blx@tempa}%
-  \blx@refsegments}
+  \blx@refsegments
+  \restoredelimcontext}
 
 \def\blx@refsegments{%
   \ifcsvoid{blx@segm@\the\c@refsection @\the\c@refsegment}
@@ -6741,6 +6749,7 @@
 
 % [<options>]
 \newrobustcmd*{\bibbycategory}{%
+  \delimcontext{bib}%
   \begingroup
   \edef\on@line{\on@line}%
   \ifx\blx@categories\@empty
@@ -6762,7 +6771,8 @@
   \blx@rest@actives
   \togglefalse{blx@tempa}%
   \forlistloop\blx@bibcategory\blx@categories
-  \blx@endbibcategory}
+  \blx@endbibcategory
+  \restoredelimcontext}
 
 \def\blx@bibcategory#1{%
   \ifcsvoid{blx@catg@#1}
