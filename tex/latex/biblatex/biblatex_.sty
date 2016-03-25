@@ -3324,12 +3324,20 @@
 \newrobustcmd*{\MakeSentenceCase}{%
   \@ifstar\blx@mksc@i\blx@mksc@ii}
 
+% if we have option language=<lang>, then this overrides
+% langid field, otherwise, we try than, otherwise try main doc lang
 \def\blx@mksc@i{%
-  \ifdef\abx@field@langid
-    {\xifinlist\abx@field@langid\blx@cmksc@lang
+  \ifdef\blx@forcelanguagename
+    {\xifinlist\blx@forcelanguagename\blx@cmksc@lang
        {\blx@mksc@ii}
        {\@firstofone}}
-    {\blx@mksc@ii}}
+    {\ifdef\abx@field@langid
+      {\xifinlist\abx@field@langid\blx@cmksc@lang
+         {\blx@mksc@ii}
+         {\@firstofone}}
+      {\xifinlist\bbl@main@language\blx@cmksc@lang
+         {\blx@mksc@ii}
+         {\@firstofone}}}}
 
 \long\def\blx@mksc@ii#1{%
   \begingroup
