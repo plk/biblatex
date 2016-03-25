@@ -3485,12 +3485,20 @@
 \newrobustcmd*{\MakeSentenceCase}{%
   \@ifstar\blx@mksc@i\blx@mksc@ii}
 
+% if we have option language=<lang>, then this overrides
+% langid field, otherwise, we try than, otherwise try main doc lang
 \def\blx@mksc@i{%
-  \ifdef\abx@field@langid
-    {\xifinlist\abx@field@langid\blx@cmksc@lang
+  \ifdef\blx@forcelanguagename
+    {\xifinlist\blx@forcelanguagename\blx@cmksc@lang
        {\blx@mksc@ii}
        {\@firstofone}}
-    {\blx@mksc@ii}}
+    {\ifdef\abx@field@langid
+      {\xifinlist\abx@field@langid\blx@cmksc@lang
+         {\blx@mksc@ii}
+         {\@firstofone}}
+      {\xifinlist\bbl@main@language\blx@cmksc@lang
+         {\blx@mksc@ii}
+         {\@firstofone}}}}
 
 \long\def\blx@mksc@ii#1{%
   \begingroup
@@ -5106,14 +5114,27 @@
 \begingroup
 \@makeother\#
 \gdef\blx@mkautolangbabel{%
+  \ifundef\bbl@main@language
+    {\blx@error
+      {No default babel language defined}
+      {You must define a default language for babel}}
+    {}%
   \pretocmd\select@language{\blx@langsetup{#1}}
     {\ifdef\blx@thelangenv
        {\def\blx@beglang{%
           \blx@clearlang
           \begingroup
-          \blx@imc@iffieldundef{langid}
-            {}
-            {\ifcsundef{l@\abx@field@langid}
+         % Need to override all entries, regardless of if there is a langid
+         % if language=<language> option is given
+         \ifboolexpr { test {\ifdef\abx@field@langid }
+                       or
+                       test {\ifdef\blx@forcelanguagename} }
+            % override local langid if we forced it with
+            % language=<language> option
+            {\ifdef\blx@forcelanguagename
+               {\let\abx@field@langid\blx@forcelanguagename}
+               {}%
+             \ifcsundef{l@\abx@field@langid}
                {\blx@warn@nohyph{\abx@field@langid}}
                {\blx@hook@initlang
                 \def\blx@endlang{%
@@ -5127,7 +5148,8 @@
                   {\let\blx@endlangcite\blx@endlang}
                   {}%
                 \csname\blx@thelangenv\expandafter\endcsname
-                \expandafter{\abx@field@langid}}}}}
+                \expandafter{\abx@field@langid}}}
+            {}}}
        {}%
      \def\blx@langstrings{}%
      \def\blx@imc@mainlang{\select@language{\bbl@main@language}}%
@@ -5136,20 +5158,36 @@
      \blx@mknoautolang}}
 
 \gdef\blx@mkautolangpoly{%
+  \ifundef\bbl@main@language
+    {\blx@error
+      {No default polyglossia language defined}
+      {You must define a default language for polyglossia}}
+    {}%
   \catcode`\_=11% polyglossia uses "_" as a letter
   \pretocmd\select@language{\blx@langsetup{#1}}
     {\ifdef\blx@thelangenv
        {\def\blx@beglang{%
           \blx@clearlang
           \begingroup
-          \blx@imc@iffieldundef{langid}
-            {}
-            {\ifcsundef{l@\abx@field@langid}
+         % Need to override all entries, regardless of if there is a langid
+         % if language=<language> option is given
+         \ifboolexpr { test {\ifdef\abx@field@langid }
+                       or
+                       test {\ifdef\blx@forcelanguagename} }
+            % override local langid if we forced it with
+            % language=<language> option
+            {\ifdef\blx@forcelanguagename
+               {\let\abx@field@langid\blx@forcelanguagename}
+               {}%
+             \ifcsundef{l@\abx@field@langid}
                {\blx@warn@nohyph{\abx@field@langid}}
                {\blx@hook@initlang
                 \def\blx@endlang{%
                   \blx@hook@endlang
-                  \csname end\blx@thelangenv\endcsname
+                  % Polyglossia language envs are \<lang>[]
+                  \ifcsstring{blx@thelangenv}{langname}
+                    {\csname end\abx@field@langid\endcsname}
+                    {\csname end\blx@thelangenv\endcsname}%
                   \endgroup}%
                 \iftoggle{blx@autolangbib}
                   {\let\blx@endlangbib\blx@endlang}
@@ -5161,23 +5199,28 @@
                   {\ifdef\abx@field@langidopts
                      {\csname\abx@field@langid\expandafter\endcsname\expandafter[\abx@field@langidopts]}
                      {\csname\abx@field@langid\endcsname}}
-                  {\csname\blx@thelangenv\expandafter\endcsname
-                   \expandafter{\abx@field@langid}}%                
+                  {\csname\blx@thelangenv\expandafter\endcsname\expandafter{\abx@field@langid}}%
                 % These lines are equal to \blx@maplang
                 \blx@resetpunct
                 \csuse{abx@extras@\abx@field@langid}%
-                \csuse{abx@strings@\abx@field@langid}}}}}
+                \csuse{abx@strings@\abx@field@langid}}}
+            {}}}
        {}%
      % polyglossia needs this - it doesn't get the
-     % strings by automatically set for some reason
+     % strings automatically set for some reason
      \def\blx@langstrings{%
        \csuse{abx@extras@\languagename}%
-       \csuse{abx@strings@\languagename}}
-     \def\blx@imc@mainlang{\select@language{\bbl@main@language}}%
+       \csuse{abx@strings@\languagename}}%
+     \def\blx@imc@mainlang{%
+       \select@language{\bbl@main@language}%
+       % These lines are equal to \blx@maplang
+       \blx@resetpunct
+       \csuse{abx@extras@\bbl@main@language}%
+       \csuse{abx@strings@\bbl@main@language}}%
      \blx@langsetup\bbl@main@language}
     {\blx@err@patch{'polyglossia' package}%
      \blx@mknoautolang}%
-   \catcode`\_=8}
+  \catcode`\_=8}
 \endgroup
 
 \def\blx@mknoautolang{%
@@ -9822,10 +9865,13 @@
    \ifstrequal{#1}{autocite}
     {\toggletrue{blx@autolangcite}}
     {}}
+  % If language is explicit, we do want to auto-switch but only to the
+  % selected language
   {\IfFileExists{#1.lbx}
-    {\togglefalse{blx@autolangbib}%
-     \togglefalse{blx@autolangcite}%
-     \edef\blx@languagename{#1}}
+    {\toggletrue{blx@autolangbib}%
+     \toggletrue{blx@autolangcite}%
+     \edef\blx@languagename{#1}%
+     \edef\blx@forcelanguagename{#1}}
     {\blx@error
       {Language '#1' not supported}
       {Failed to find a matching '#1.lbx' file}}}}
