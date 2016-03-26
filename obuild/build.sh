@@ -139,7 +139,7 @@ then
   echo "Installed TDS build tree ..."
 fi
 
-# Update git tag to HEAD of dev branch
+# Update git tag to HEAD of branch
 if [[ "$1" == "builddist" || "$1" == "build" ]]
 then
     git tag -d v$VERSION
