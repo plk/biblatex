@@ -7916,7 +7916,49 @@ Specifies fields to be excluded from sorting on a per-type basis. The \prm{entry
 
 Specifies a string to be used to automatically populate the \bibfield{presort} field of entries without a \bibfield{presort} field. The \bibfield{presort} may be defined globally or on a per-type basis. If the optional \prm{entrytype} argument is given, the \prm{string} applies to the respective entry type. If not, it serves as the global default value. Specifying an \prm{entrytype} in conjunction with a blank \prm{string} will clear the type-specific setting. The \prm{entrytype} argument may be a comma"=separated list of values. This command may only be used in the preamble.
 
+\cmditem{DeclareSortTranslit}[entrytype]{specification}\BiberOnlyMark
+
+Languages which can be written in different scripts or alphabets often only have CLDR sorting tailoring for one script and it is expected that you transliterate into the supported script for sorting purposes. A common example is Sanskrit which is often written in academic contexts in IAST 
+romanised script but which needs to be sorted in the <sa> locale which expects the Devanāgarī script. This means that it is necessary to transliterate into the sorting script internally. \cmd{DeclareSortTranslit} declares which parts of an entry you would like to transliterate for sorting purposes. Without the \prm{entrytype} parameter, the \prm{specification} applies to all entrytypes. The \prm{specification} is one or more \cmd{translit} commands:
+
+\cmditem{translit}{field or fieldset}{from}{to}
+
+Specifies that the data field \bibfield{field} or all fields in a fieldset \prm{fieldset} declared with \cmd{DeclareDatafieldSet} (see \secref{aut:ctm:dsets}) should be transliterated from script \prm{from} to script \prm{to} for sorting purposes. The field/set argument can also be <*> to apply transliteration to all fields. The valid \prm{from} and \prm{to} values are given in table \ref{tab:translit}. Note that \biblatex does not aim to support general transliteration, only those which are useful for sorting purposes. Please open a GitHub ticket for \biblatex\ if you think you need additional transliterations.
+
+An example of transliterating titles so that they sort correctly in Sanskrit:
+
+\begin{ltxexample}
+\DeclareDatafieldSet{settitles}{
+  \member[field=title]
+  \member[field=booktitle]
+  \member[field=eventtitle]
+  \member[field=issuetitle]
+  \member[field=journaltitle]
+  \member[field=maintitle]
+  \member[field=origtitle]
+}
+
+\DeclareSortTranslit{
+  \translit[settitles]{iast}{devanagari}
+}
+\end{ltxexample}
+
 \end{ltxsyntax}
+
+\begin{table}
+\tablesetup\centering
+\begin{tabular}{lll}
+\toprule
+\sffamily\bfseries\spotcolor From
+  & \sffamily\bfseries\spotcolor To
+  & Description\\
+\midrule
+iast & devanagari & Sanskrit IAST\footnote{International Alphabet of Sanskrit Transliteration} to Devanāgarī\\
+\bottomrule
+\end{tabular}
+\caption{Valid transliteration pairs}
+\label{tab:translit}
+\end{table}
 
 \subsubsection[Bibliography List Filters]{Bibliography List Filters\BiberOnlyMark}
 \label{aut:ctm:bibfilt}

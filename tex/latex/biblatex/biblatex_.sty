@@ -530,6 +530,9 @@
 % Used to track sorting name key specifications
 \global\let\blx@biber@sortingnamekeyspecs\@empty
 
+% Used to track transliterations
+\global\let\blx@biber@translits\@empty
+
 % Initialise some lists which track changing citations/sortschemes
 % etc. between runs
 \global\let\blx@cites\@empty
@@ -9449,6 +9452,13 @@
 \xdef\blx@xml@datafieldsets@member#1{%
   ~~~~<bcf:member#1/>\blx@nl}
 
+\xdef\blx@xml@transliteration#1#2{%
+  ~~<bcf:translit entrytype="#1">\blx@nl
+  #2%
+  ~~</bcf:translit>\blx@nl}
+\xdef\blx@xml@translit#1#2#3{%
+  ~~~~<bcf:translit target="#1" from="#2" to="#3"/>\blx@nl}
+
 \xdef\blx@xml@sourcemap#1{%
   ~~<bcf:sourcemap>\blx@nl
   #1%
@@ -9857,6 +9867,13 @@
       }%
     }}
     {}%
+  % transliteration
+  \ifdefempty\blx@biber@translits
+    {}
+    {\eappto\blx@tempa{\blx@xml@comment{TRANSLITERATION}}%
+     \def\do##1{%
+       \eappto\blx@tempa{\blx@xml@transliteration{##1}{\csuse{blx@biber@translit@##1}}}}%
+     \dolistloop\blx@biber@translits}%
   % sortingnamekey
   \eappto\blx@tempa{\blx@xml@comment{SORTING NAME KEY}}%
   \def\do##1{%
@@ -9922,7 +9939,7 @@
   \let\nolabel\blx@nolabel
   \let\blx@tempa\@empty
   #1%
-  \global\cslet{blx@biber@nolabel}\blx@tempa
+  \global\let\blx@biber@nolabel\blx@tempa
   \endgroup}
 \@onlypreamble\DeclareNolabel
 
@@ -9936,7 +9953,7 @@
   \let\nolabel\blx@nolabelwidthcount
   \let\blx@tempa\@empty
   #1%
-  \global\cslet{blx@biber@nolabelwidthcount}\blx@tempa
+  \global\let\blx@biber@nolabelwidthcount\blx@tempa
   \endgroup}
 \@onlypreamble\DeclareNolabelwidthcount
 
@@ -9950,7 +9967,7 @@
   \let\nosort\blx@nosort
   \let\blx@tempa\@empty
   #1%
-  \global\cslet{blx@biber@nosort}\blx@tempa
+  \global\let\blx@biber@nosort\blx@tempa
   \endgroup}
 \@onlypreamble\DeclareNosort
 
@@ -9964,7 +9981,7 @@
   \let\noinit\blx@noinit
   \let\blx@tempa\@empty
   #1%
-  \global\cslet{blx@biber@noinit}\blx@tempa
+  \global\let\blx@biber@noinit\blx@tempa
   \endgroup}
 \@onlypreamble\DeclareNoinit
 
@@ -10420,6 +10437,26 @@
 \def\do#1{\DeclareBiblistFilter{#1}{\filter[type=field,filter=#1]}}
 \abx@dolabelfields
 
+% [<entrytype>]
+\newrobustcmd*{\DeclareSortTranslit}[2][]{%
+  \begingroup
+  \ifblank{#1}
+    {\def\blx@tempa{*}}
+    {\def\blx@tempa{#1}}%
+    \let\translit\blx@translit
+    \let\blx@tempb\@empty
+    #2%
+  \global\cslet{blx@biber@translit@\blx@tempa}\blx@tempb
+  \xifinlist\blx@tempa\blx@biber@translits
+    {}
+    {\listxadd\blx@biber@translits\blx@tempa}%
+  \endgroup}
+\@onlypreamble\DeclareSortTranslit
+
+\newcommand*{\blx@translit}[3][*]{%
+  \eappto\blx@tempb{%
+    \blx@xml@translit{#1}{#2}{#3}}}
+
 % [<specname>]{<spec>}
 \newrobustcmd*{\DeclareSortingNamekeyScheme}[2][]{%
   \begingroup
@@ -10433,7 +10470,7 @@
   \blx@tempcnta\z@
   #2%
   \global\cslet{blx@biber@sortingnamekey@\blx@biber@snkname}\blx@tempa
-  \xifinlist{\blx@biber@snkname}{\blx@biber@sortingnamekeyspecs}
+  \xifinlist\blx@biber@snkname\blx@biber@sortingnamekeyspecs
     {}
     {\listxadd\blx@biber@sortingnamekeyspecs\blx@biber@snkname}%
   \endgroup}
