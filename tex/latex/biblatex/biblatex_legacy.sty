@@ -3655,8 +3655,10 @@
   english,USenglish,UKenglish,
   australian,newzealand}
 
-\newrobustcmd*{\ifcaselang}[1]{%
-  \xifinlist{#1}\blx@cmksc@lang}
+\newrobustcmd*{\ifcaselang}[1][]{%
+  \ifblank{#1}
+    {\xifinlist\blx@languagename\blx@cmksc@lang}
+    {\xifinlist{#1}\blx@cmksc@lang}}
 
 %% Main formatting commands
 
@@ -5078,8 +5080,10 @@
   \printdate \printdateextra \printdatelabel \printdateextralabel
   \printurldate \printeventdate \printorigdate \stripzeros \mkdatezeros}
 
-% {<language>}{<strings>}
+% User macro for retrieving currrent language
+\def\currentlang{\blx@languagename}
 
+% {<language>}{<strings>}
 \def\blx@maplang#1#2{%
   \csxappto{extras#1}{%
     \noexpand\blx@resetpunct
@@ -5134,6 +5138,7 @@
             {\ifdef\blx@forcelanguagename
                {\let\abx@field@langid\blx@forcelanguagename}
                {}%
+             \let\blx@languagename\abx@field@langid% track global language
              \ifcsundef{l@\abx@field@langid}
                {\blx@warn@nohyph{\abx@field@langid}}
                {\blx@hook@initlang
@@ -5179,6 +5184,7 @@
             {\ifdef\blx@forcelanguagename
                {\let\abx@field@langid\blx@forcelanguagename}
                {}%
+             \let\blx@languagename\abx@field@langid% track global language
              \ifcsundef{l@\abx@field@langid}
                {\blx@warn@nohyph{\abx@field@langid}}
                {\blx@hook@initlang

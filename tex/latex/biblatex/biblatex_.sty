@@ -3497,8 +3497,10 @@
   english,USenglish,UKenglish,
   australian,newzealand}
 
-\newrobustcmd*{\ifcaselang}[1]{%
-  \xifinlist{#1}\blx@cmksc@lang}
+\newrobustcmd*{\ifcaselang}[1][]{%
+  \ifblank{#1}
+    {\xifinlist\blx@languagename\blx@cmksc@lang}
+    {\xifinlist{#1}\blx@cmksc@lang}}
 
 %% Main formatting commands
 % The work by creating a \let alias:
@@ -4892,6 +4894,9 @@
 
 \blx@regimcs{\printdatelabel \printdateextralabel \printorigdate \stripzeros \mkdatezeros}
 
+% User macro for retrieving currrent language
+\def\currentlang{\blx@languagename}
+
 % {<language>}{<strings>}
 \def\blx@maplang#1#2{%
   \csxappto{extras#1}{%
@@ -4947,6 +4952,7 @@
             {\ifdef\blx@forcelanguagename
                {\let\abx@field@langid\blx@forcelanguagename}
                {}%
+             \let\blx@languagename\abx@field@langid% track global language
              \ifcsundef{l@\abx@field@langid}
                {\blx@warn@nohyph{\abx@field@langid}}
                {\blx@hook@initlang
@@ -4992,6 +4998,7 @@
             {\ifdef\blx@forcelanguagename
                {\let\abx@field@langid\blx@forcelanguagename}
                {}%
+             \let\blx@languagename\abx@field@langid% track global language
              \ifcsundef{l@\abx@field@langid}
                {\blx@warn@nohyph{\abx@field@langid}}
                {\blx@hook@initlang
