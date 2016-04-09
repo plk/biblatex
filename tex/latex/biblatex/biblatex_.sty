@@ -1904,22 +1904,44 @@
     {}}
 
 % {<field>}
+% If there is a related field in the entry, save a special copy in case
+% the related entry needs it for tests. See the corresponding tests in
+% \blx@save{field,list,name}
 \protected\def\blx@imc@clearfield#1{%
+  \ifdef\abx@field@related
+    {\csletcs{abx@field@relsaved#1}{abx@field@#1}}
+    {}%
   \csundef{abx@field@#1}}
 
 % {<plainlist>}
+% If there is a related field in the entry, save a special copy in case
+% the related entry needs it for tests. See the corresponding tests in
+% \blx@save{field,list,name}
 \protected\def\blx@imc@clearlist#1{%
   \ifcsundef{abx@list@#1}
     {}
-    {\togglefalse{abx@bool@more#1}%
+    {\ifdef\abx@field@related
+       {\csletcs{abx@list@relsaved#1}{abx@list@#1}%
+        \csletcs{etb@tgl@abx@bool@morerelsaved#1}{etb@tgl@abx@bool@more#1}%
+        \csletcs{c@relsaved#1}{c@#1}}
+       {}%
+     \togglefalse{abx@bool@more#1}%
      \csundef{abx@list@#1}%
      \csname c@#1\endcsname\z@}}
 
 % {<namelist>}
+% If there is a related field in the entry, save a special copy in case
+% the related entry needs it for tests. See the corresponding tests in
+% \blx@save{field,list,name}
 \protected\def\blx@imc@clearname#1{%
   \ifcsundef{abx@name@#1}
     {}
-    {\togglefalse{abx@bool@more#1}%
+    {\ifdef\abx@field@related
+      {\csletcs{abx@name@relsaved#1}{abx@name@#1}%
+       \csletcs{etb@tgl@abx@bool@morerelsaved#1}{etb@tgl@abx@bool@more#1}%
+       \csletcs{c@relsaved#1}{c@#1}}
+      {}%
+     \togglefalse{abx@bool@more#1}%
      \csundef{abx@name@#1}%
      \csname c@#1\endcsname\z@}}
 
@@ -5412,15 +5434,30 @@
 \protected\def\blx@savename#1{%
   \csletcs{etb@tgl@abx@bool@moresaved#1}{etb@tgl@abx@bool@more#1}%
   \csletcs{abx@name@saved#1}{abx@name@#1}%
-  \csname c@saved#1\endcsname\csname c@#1\endcsname}
+  \csname c@saved#1\endcsname\csname c@#1\endcsname
+  % override with name saved from \clearfield for related processing
+  \ifcsdef{abx@name@relsaved#1}
+    {\csletcs{etb@tgl@abx@bool@moresaved#1}{etb@tgl@abx@bool@morerelsaved#1}%
+     \csletcs{abx@name@saved#1}{abx@name@relsaved#1}%
+     \csname c@saved#1\endcsname\csname c@relsaved#1\endcsname}
+    {}}
 
 \protected\def\blx@savelist#1{%
   \csletcs{etb@tgl@abx@bool@moresaved#1}{etb@tgl@abx@bool@more#1}%
   \csletcs{abx@list@saved#1}{abx@list@#1}%
-  \csname c@saved#1\endcsname\csname c@#1\endcsname}
+  \csname c@saved#1\endcsname\csname c@#1\endcsname
+  % override with list saved from \clearfield for related processing
+  \ifcsdef{abx@list@relsaved#1}
+    {\csletcs{etb@tgl@abx@bool@moresaved#1}{etb@tgl@abx@bool@morerelsaved#1}%
+     \csletcs{abx@list@saved#1}{abx@list@relsaved#1}%
+     \csname c@saved#1\endcsname\csname c@relsaved#1\endcsname}
+    {}}
 
 \protected\def\blx@savefield#1{%
-  \csletcs{abx@field@saved#1}{abx@field@#1}}
+  \csletcs{abx@field@saved#1}{abx@field@#1}%
+  % override with field saved from \clearfield for related processing
+  \ifcsdef{abx@field@relsaved#1}
+    {\csletcs{abx@field@saved@#1}{abx@field@relsaved#1}}}
 
 \protected\def\blx@savebool#1{%
   \csletcs{abx@bool@saved#1}{abx@bool@#1}}
