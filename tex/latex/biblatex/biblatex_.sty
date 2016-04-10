@@ -1903,13 +1903,21 @@
        {\csname abx@name@#1\endcsname}}
     {}}
 
+
+% We have to save cleared fields/lists/names in case a related entry
+% needs them for tests
+\let\abx@dorelfields\@empty
+\let\abx@dorellists\@empty
+\let\abx@dorelnames\@empty
+
 % {<field>}
 % If there is a related field in the entry, save a special copy in case
 % the related entry needs it for tests. See the corresponding tests in
 % \blx@save{field,list,name}
 \protected\def\blx@imc@clearfield#1{%
   \ifdef\abx@field@related
-    {\csletcs{abx@field@relsaved#1}{abx@field@#1}}
+    {\csletcs{abx@field@relsaved#1}{abx@field@#1}%
+     \listadd\abx@dorelfields{#1}}
     {}%
   \csundef{abx@field@#1}}
 
@@ -1923,7 +1931,8 @@
     {\ifdef\abx@field@related
        {\csletcs{abx@list@relsaved#1}{abx@list@#1}%
         \csletcs{etb@tgl@abx@bool@morerelsaved#1}{etb@tgl@abx@bool@more#1}%
-        \csletcs{c@relsaved#1}{c@#1}}
+        \csletcs{c@relsaved#1}{c@#1}%
+        \listadd\abx@dorellists{#1}}
        {}%
      \togglefalse{abx@bool@more#1}%
      \csundef{abx@list@#1}%
@@ -1939,7 +1948,8 @@
     {\ifdef\abx@field@related
       {\csletcs{abx@name@relsaved#1}{abx@name@#1}%
        \csletcs{etb@tgl@abx@bool@morerelsaved#1}{etb@tgl@abx@bool@more#1}%
-       \csletcs{c@relsaved#1}{c@#1}}
+       \csletcs{c@relsaved#1}{c@#1}%
+       \listadd\abx@dorelnames{#1}}
       {}%
      \togglefalse{abx@bool@more#1}%
      \csundef{abx@name@#1}%
@@ -5420,10 +5430,16 @@
   \let\blx@saved@do\do
   \let\do\blx@savename
   \abx@donames
+  \let\do\blx@saverelname
+  \dolistloop\abx@dorelnames
   \let\do\blx@savelist
   \abx@dolists
+  \let\do\blx@saverellist
+  \dolistloop\abx@dorellists
   \let\do\blx@savefield
   \abx@dofields
+  \let\do\blx@saverelfield
+  \dolistloop\abx@dorelfields
   \do{options}\do{labelyear}\do{labelmonth}\do{labelday}\do{datelabelsource}%
   \abx@dointernalfields
   \let\do\blx@savebool
@@ -5434,30 +5450,31 @@
 \protected\def\blx@savename#1{%
   \csletcs{etb@tgl@abx@bool@moresaved#1}{etb@tgl@abx@bool@more#1}%
   \csletcs{abx@name@saved#1}{abx@name@#1}%
-  \csname c@saved#1\endcsname\csname c@#1\endcsname
-  % override with name saved from \clearfield for related processing
-  \ifcsdef{abx@name@relsaved#1}
-    {\csletcs{etb@tgl@abx@bool@moresaved#1}{etb@tgl@abx@bool@morerelsaved#1}%
-     \csletcs{abx@name@saved#1}{abx@name@relsaved#1}%
-     \csname c@saved#1\endcsname\csname c@relsaved#1\endcsname}
-    {}}
+  \csname c@saved#1\endcsname\csname c@#1\endcsname}
+
+% override with name saved from \clearfield for related processing
+\protected\def\blx@saverelname#1{%
+  \csletcs{etb@tgl@abx@bool@moresaved#1}{etb@tgl@abx@bool@morerelsaved#1}%
+  \csletcs{abx@name@saved#1}{abx@name@relsaved#1}%
+  \csname c@saved#1\endcsname\csname c@relsaved#1\endcsname}
 
 \protected\def\blx@savelist#1{%
   \csletcs{etb@tgl@abx@bool@moresaved#1}{etb@tgl@abx@bool@more#1}%
   \csletcs{abx@list@saved#1}{abx@list@#1}%
-  \csname c@saved#1\endcsname\csname c@#1\endcsname
-  % override with list saved from \clearfield for related processing
-  \ifcsdef{abx@list@relsaved#1}
-    {\csletcs{etb@tgl@abx@bool@moresaved#1}{etb@tgl@abx@bool@morerelsaved#1}%
-     \csletcs{abx@list@saved#1}{abx@list@relsaved#1}%
-     \csname c@saved#1\endcsname\csname c@relsaved#1\endcsname}
-    {}}
+  \csname c@saved#1\endcsname\csname c@#1\endcsname}
+
+% override with list saved from \clearfield for related processing
+\protected\def\blx@saverellist#1{%
+  \csletcs{etb@tgl@abx@bool@moresaved#1}{etb@tgl@abx@bool@morerelsaved#1}%
+  \csletcs{abx@list@saved#1}{abx@list@relsaved#1}%
+  \csname c@saved#1\endcsname\csname c@relsaved#1\endcsname}
 
 \protected\def\blx@savefield#1{%
-  \csletcs{abx@field@saved#1}{abx@field@#1}%
-  % override with field saved from \clearfield for related processing
-  \ifcsdef{abx@field@relsaved#1}
-    {\csletcs{abx@field@saved@#1}{abx@field@relsaved#1}}}
+  \csletcs{abx@field@saved#1}{abx@field@#1}}
+
+% override with field saved from \clearfield for related processing
+\protected\def\blx@saverelfield#1{%
+  \csletcs{abx@field@saved@#1}{abx@field@relsaved#1}}
 
 \protected\def\blx@savebool#1{%
   \csletcs{abx@bool@saved#1}{abx@bool@#1}}
@@ -5718,20 +5735,20 @@
     \ifcsdef{abx@field@##1source}
       {\expandafter\def\csname abx@field@##1\endcsname{\csuse{abx@field@\csuse{abx@field@##1source}}}}%
       {}}%
-  \dolistloop{\abx@rfields}%    
+  \dolistloop\abx@rfields%
   % Just in case we ever have non-name lists to instantiate
   % \def\do##1{%
   %   \ifcsdef{abx@field@##1source}
   %     {\csletcs{c@##1}{c@\csuse{abx@field@##1source}}%
   %      \csletcs{abx@list@##1}{abx@list@\csuse{abx@field@##1source}}}
   %     {}}%
-  % \dolistloop{\abx@rlists}%    
+  % \dolistloop\abx@rlists%
   \def\do##1{%
     \ifcsdef{abx@field@##1source}
       {\csletcs{c@##1}{c@\csuse{abx@field@##1source}}%
        \csletcs{abx@name@##1}{abx@name@\csuse{abx@field@##1source}}}
       {}}%
-  \dolistloop{\abx@rnames}%    
+  \dolistloop\abx@rnames%
   \blx@setcitecounter}
 
 \def\blx@getdata@cite#1{%
