@@ -499,6 +499,7 @@
 \newtoggle{blx@mcite}
 \newtoggle{blx@loadfiles}
 \newtoggle{blx@singletitle}
+\newtoggle{blx@uniqueprimaryauthor}
 \newtoggle{blx@uniquetitle}
 \newtoggle{blx@terseinits}
 \newtoggle{blx@giveninits}
@@ -1360,6 +1361,32 @@
   \blx@tempcnta"C0
   \blx@tempcntb"DF
   \blx@tempa
+\fi
+\ifx\Umathcode\undefined
+\else
+  \openin\blx@bcfin=UnicodeData.txt %
+  \ifeof\blx@bcfin
+  \else
+    \let\blx@setazcodes\@empty
+    \def\Lu{Lu}
+    \def\storedpar{\par}
+    \def\blx@tempa#1;#2;#3;#4\relax{%
+      \def\temp{#3}%
+      \ifx\temp\Lu
+        \xdef\blx@setazcodes{%
+          \blx@setazcodes
+          \sfcode"#1=\@m
+        }
+      \fi
+    }
+    \loop\unless\ifeof\blx@bcfin
+      \read\blx@bcfin to \blx@tempb  
+      \unless\ifx\blx@tempb\storedpar
+        \expandafter\blx@tempa\blx@tempb\relax
+      \fi
+    \repeat
+  \fi
+  \closein\blx@bcfin
 \fi
 \endgroup
 
@@ -3288,6 +3315,7 @@
   \def\ifgiveninits{\iftoggle{blx@giveninits}}% 
   \def\ifsingletitle{\iftoggle{abx@bool@singletitle}}%
   \def\ifuniquetitle{\iftoggle{abx@bool@uniquetitle}}%
+  \def\ifuniqueprimaryauthor{\iftoggle{abx@bool@uniqueprimaryauthor}}%
   \def\ifandothers#1{\iftoggle{abx@bool@more#1}}%
   \protected\def\pno{\bibstring{page}}%
   \protected\def\ppno{\bibstring{pages}}%
@@ -5363,7 +5391,8 @@
 
 \def\abx@dobooleans{%
   \do{singletitle}%
-  \do{uniquetitle}}
+  \do{uniquetitle}%
+  \do{uniqueprimaryauthor}}
 
 % Date datatype fields
 \def\do#1{%
@@ -9158,6 +9187,7 @@
     \def\ifgiveninits{\blx@TE{\iftoggle{blx@giveninits}}}%
     \def\ifsingletitle{\blx@TE{\iftoggle{abx@bool@singletitle}}}%
     \def\ifuniquetitle{\blx@TE{\iftoggle{abx@bool@uniquetitle}}}%
+    \def\ifuniqueprimaryauthor{\blx@TE{\iftoggle{abx@bool@uniqueprimaryauthor}}}%
     \def\ifandothers#1{\blx@TE{\iftoggle{abx@bool@more#1}}}}}
 
 % {<listmacro>}{<filtercsname>} => matches in <listmacro>
@@ -9743,6 +9773,7 @@
     \blx@xml@svalue{sortscheme}{\blx@sorting}%
     \blx@xml@svalue{uniquelist}{\blx@uniquelist}%
     \blx@xml@svalue{uniquename}{\blx@uniquename}%
+    \blx@xml@toggle{uniqueprimaryauthor}%
     \blx@xml@toggle{uniquetitle}%
     \blx@xml@toggle{useprefix}%
     \blx@xml@nametoggles
@@ -9782,6 +9813,7 @@
     \blx@xml@toggle{skipbiblist}%
     \blx@xml@svalue{uniquelist}{\blx@uniquelist}%
     \blx@xml@svalue{uniquename}{\blx@uniquename}%
+    \blx@xml@toggle{uniqueprimaryauthor}%
     \blx@xml@toggle{uniquetitle}%
     \blx@xml@toggle{useprefix}%
     \blx@xml@nametoggles
@@ -11672,6 +11704,9 @@
   \settoggle{blx@uniquetitle}{#1}}
 \DeclareTypeOption[boolean]{uniquetitle}[true]{%
   \settoggle{blx@uniquetitle}{#1}}
+
+\DeclareBibliographyOption[boolean]{uniqueprimaryauthor}[true]{%
+  \settoggle{blx@uniqueprimaryauthor}{#1}}
 
 \DeclareBibliographyOption[boolean]{defernumbers}[true]{%
   \settoggle{blx@defernumbers}{#1}%
