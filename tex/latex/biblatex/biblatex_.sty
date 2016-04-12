@@ -1344,6 +1344,32 @@
   \blx@tempcntb"DF
   \blx@tempa
 \fi
+\ifx\Umathcode\undefined
+\else
+  \openin\blx@bcfin=UnicodeData.txt %
+  \ifeof\blx@bcfin
+  \else
+    \let\blx@setazcodes\@empty
+    \def\Lu{Lu}
+    \def\storedpar{\par}
+    \def\blx@tempa#1;#2;#3;#4\relax{%
+      \def\temp{#3}%
+      \ifx\temp\Lu
+        \xdef\blx@setazcodes{%
+          \blx@setazcodes
+          \sfcode"#1=\@m
+        }
+      \fi
+    }
+    \loop\unless\ifeof\blx@bcfin
+      \read\blx@bcfin to \blx@tempb  
+      \unless\ifx\blx@tempb\storedpar
+        \expandafter\blx@tempa\blx@tempb\relax
+      \fi
+    \repeat
+  \fi
+  \closein\blx@bcfin
+\fi
 \endgroup
 
 \def\blx@spacefactor{%
