@@ -70,4 +70,31 @@
   It will be recreated as\blx@nl
   required.\blx@nl\blx@nl}
 
+\renewrobustcmd*{\RequireBiber}[1][2]{%
+  \ifnumgreater{#1}\blx@reqbiber
+    {\numgdef\blx@reqbiber{#1}}
+    {}%
+    \blx@checkbackend{style}}
+\@onlypreamble\RequireBiber
+\let\blx@reqbiber\z@
+
+\def\blx@checkbackend#1{%
+  \ifblx@load@version@legacy
+    {\ifcase\blx@reqbiber
+     \or
+       \blx@info@noline{%
+         backend=biber recommended by #1}%
+     \or
+       \blx@warning@noline{%
+         backend=biber required by #1.\MessageBreak
+         Some features may not work properly}%
+     \else
+       \blx@error
+         {backend=biber required by #1}
+         {The selected style or one of the .bib files
+          requires backend=biber.\MessageBreak It will
+          not work at all with any other backend}%
+     \fi}
+   {}}
+
 \endinput
