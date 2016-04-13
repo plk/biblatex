@@ -1,6 +1,10 @@
 \ProvidesFile{blx-bibtex.def}
 [\abx@cptid]
 
+% Initialisation of backend-related switches, variables, etc.
+\newtoggle{blx@runbtx}
+\def\blx@backend{0}
+
 % Rename write stream so use is clear
 \let\blx@auxout\blx@bcfout
 
@@ -90,5 +94,115 @@
           not work at all with BibTeX.}%
      \fi}
    {}}
+
+\def\blx@check@logreq{%
+  \begingroup
+  \ltxrequest{biblatex}{{\iftoggle{blx@runltx}{1}{0}}}{%
+    \provides[type=dynamic]{
+      \def\do##1{\file{##1.aux}}
+      \dolistloop\blx@list@inactive
+      \file{\blx@ctrlfile@bibtex\blxauxsuffix.bib}
+    }
+    \requires[type=dynamic]{
+      \def\do##1{\file{##1.bbl}}
+      \dolistloop\blx@list@inactive
+    }
+    \ifdef\blx@list@req@edit
+      {\requires[type=editable]{
+         \forlistloop\file\blx@list@req@edit
+       }}
+      {}
+    \ifdef\blx@list@req@stat
+      {\requires[type=static]{
+         \forlistloop\file\blx@list@req@stat
+       }}
+      {}
+  }%
+  \def\do##1{%
+    \ifinlist{##1}{\blx@list@active}
+      {\blx@logreq@bibtex{1}{##1}}
+      {\blx@logreq@bibtex{0}{##1}}}%
+  \dolistloop\blx@list@inactive
+  \endgroup}
+
+\def\blx@logreq@bibtex#1#2{%
+  \logrequest[package=biblatex,priority=5,active=#1]{%
+    \generic{bibtex}
+    \cmdline{%
+      \ifcase\blx@backend
+        \binary{bibtex}
+        \option{-min-crossrefs \blx@mincrossrefs}
+      \or
+        \binary{bibtex8}
+        \option{--wolfgang}
+        \option{--min\string_crossrefs \blx@mincrossrefs}
+        \ifdef\blx@csfencoding
+          {\option{--csfile \blx@csfencoding.csf}}
+          {}%
+      \or
+        \binary{bibtexu}
+        \option{--wolfgang}
+        \option{--min\string_crossrefs \blx@mincrossrefs}
+      \fi
+      \infile{#2}
+     }
+     \input{
+       \file{#2.aux}
+     }
+     \output{
+       \file{#2.bbl}
+     }
+      \provides[type=dynamic]{
+        \file{#2.bbl}
+      }
+      \requires[type=dynamic]{
+        \file{#2.aux}
+        \file{\blx@ctrlfile@bibtex\blxauxsuffix.bib}
+      }
+      \requires[type=editable]{
+        \ifcsdef{blx@list@bibfiles@#2}
+          {\def\do{\file}
+           \dolistcsloop{blx@list@bibfiles@#2}}
+          {}
+      }
+      \requires[type=static]{
+        \file{biblatex.bst}
+        \ifnum\blx@backend=\blx@backend@bibtexe
+          \ifdef\blx@csfencoding
+            {\file{\blx@csfencoding.csf}}
+            {}%
+        \fi
+      }
+  }%
+}
+
+\def\blx@logreq@active#1{%
+  \xifinlist{\blx@auxfile@bibtex}{\blx@list@active}
+    {}
+    {\listxadd\blx@list@active{\blx@auxfile@bibtex}}%
+  \ifblank{#1}
+    {}
+    {\@latex@warning{#1}}%
+  \blx@rerun@latex
+  \blx@rerun@bibtex}
+
+\def\blx@logreq@inactive{%
+  \xifinlist{\blx@auxfile@bibtex}{\blx@list@inactive}
+    {}
+    {\listxadd\blx@list@inactive{\blx@auxfile@bibtex}}}
+
+\def\blx@rerun@bibtex{%
+  \global\toggletrue{blx@runbtx}%
+  \global\let\blx@rerun@bibtex\relax}
+
+\def\blx@warn@auxlist{%
+  \begingroup
+  \edef\blx@tempa{Please (re)run BibTeX on the file(s):}%
+  \def\do##1{\appto\blx@tempa{\MessageBreak##1}}%
+  \dolistloop\blx@list@active
+  \blx@warning@noline{%
+    \blx@tempa\MessageBreak
+    and rerun LaTeX afterwards}%
+  \endgroup}
 
 \endinput
