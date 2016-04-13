@@ -6141,22 +6141,22 @@
 % {<entrykey>}
 % Get the saved information on which citations were mentioned last run
 \protected\def\abx@aux@cite#1{%
-  \listxadd{\blx@lastcites}{\detokenize{#1}}}
+  \listxadd\blx@lastcites{\detokenize{#1}}}
 
 % {<sortschemename>}
 % Get the saved information on which sorting schemes were mentioned last run
 \protected\def\abx@aux@sortscheme#1{%
-  \listgadd{\blx@lastsortschemes}{#1}}
+  \listgadd\blx@lastsortschemes{#1}}
 
 % {<refcontext>}
 % Get the saved information on which refcontexts were mentioned last run
 \protected\def\abx@aux@refcontext#1{%
-  \listgadd{\blx@lastrefcontexts}{#1}}
+  \listgadd\blx@lastrefcontexts{#1}}
 
 % {<sortschemename>}
 % Get the saved information on which shorthand sorting schemes were mentioned last run
 \protected\def\abx@aux@biblist#1{%
-  \listgadd{\blx@lastbiblists}{#1}}
+  \listgadd\blx@lastbiblists{#1}}
 
 % Here we mustn't change the checksum if we used localnumbers from the
 % .aux file as this means that deferred numbering is
@@ -6520,9 +6520,7 @@
 
 \def\blx@key@segment#1{%
   \ifcsundef{blx@segm@\the\c@refsection @#1}
-    {\blx@error
-       {Segment '#1' not found in section '\the\c@refsection'}
-       {The reference segment '#1' could not be found in section '\the\c@refsection'}}
+    {\blx@warning{Segment '#1' not found in section '\the\c@refsection'}}
     {\c@refsegment#1\relax
      \blx@printbibchecks
      \blx@filter\blx@tempa{blx@segm@\the\c@refsection @#1}}}
@@ -7537,7 +7535,6 @@
   \blx@addchecksum{#1}{#2}}
 
 % Reference segments
-
 \newrobustcmd*{\newrefsegment}{%
   \ifnum\c@refsegment>\z@
     \blx@endrefsegment
@@ -7865,6 +7862,7 @@
   \ifinlistcs{#1}{blx@segm@\the\c@refsection @\the\c@refsegment}
     {}
     {\listcsgadd{blx@segm@\the\c@refsection @\the\c@refsegment}{#1}}%
+  \blx@auxwrite\@mainaux{}{\string\abx@aux@segm{\the\c@refsection}{\the\c@refsegment}{\detokenize{#1}}}%
   \blx@ifdata{#1}
     {}
     {\ifcsdef{blx@miss@\the\c@refsection}
@@ -7872,6 +7870,9 @@
           {}
           {\blx@logreq@active{#2{#1}}}}
        {\blx@logreq@active{#2{#1}}}}}
+
+\protected\def\abx@aux@segm#1#2#3{%
+  \listcsxadd{blx@segm@#1@#2}{\detokenize{#3}}}
 
 \def\blx@citation@set#1#2{%
   \blx@citation@entry{#1}{#2}%
