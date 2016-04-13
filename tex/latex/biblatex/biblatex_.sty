@@ -547,10 +547,10 @@
 \listadd\blx@allrefsections{0}
 
 % Used to track sorting name key specifications
-\global\let\blx@biber@sortingnamekeyspecs\@empty
+\global\let\blx@sortingnamekeyspecs\@empty
 
 % Used to track transliterations
-\global\let\blx@biber@translits\@empty
+\global\let\blx@translits\@empty
 
 % Initialise some lists which track changing citations/sortschemes
 % etc. between runs
@@ -5181,20 +5181,20 @@
 
 %% Biber equivalents to bibtex data interface
 
-\def\abx@doentrytypes{\dolistcsloop{blx@biber@datamodel@entrytypes}}
+\def\abx@doentrytypes{\dolistcsloop{blx@datamodel@entrytypes}}
 
 % fields which can be used as labels - we auto-create some macros for these
-\def\abx@dolabelfields{\dolistcsloop{blx@biber@datamodel@labelfields}}
+\def\abx@dolabelfields{\dolistcsloop{blx@datamodel@labelfields}}
 
-\def\abx@donames{\dolistcsloop{blx@biber@datamodel@names}}
+\def\abx@donames{\dolistcsloop{blx@datamodel@names}}
 
-\def\abx@dofields{\dolistcsloop{blx@biber@datamodel@fields}}
+\def\abx@dofields{\dolistcsloop{blx@datamodel@fields}}
 
 \def\abx@dolists{%
-  \dolistcsloop{blx@biber@datamodel@lists}%
+  \dolistcsloop{blx@datamodel@lists}%
   \do{pageref}}
 
-\def\abx@dodates{\dolistcsloop{blx@biber@datamodel@dates}}
+\def\abx@dodates{\dolistcsloop{blx@datamodel@dates}}
 
 % Used to pass regexps to .bcf
 \def\regexp#1{\expandafter\zap@space\detokenize{#1} \@empty}
@@ -6310,10 +6310,10 @@
   \begingroup
   \blx@info@noline{Trying to load bibliographic data..}%
   \blx@blxinit
-  \blx@bblfile@biber
+  \blx@bblfile
   \endgroup}
 
-\def\blx@bblfile@biber{%
+\def\blx@bblfile{%
   \blx@secinit
   \begingroup
   \blx@bblstart
@@ -6774,7 +6774,7 @@
       \ifcsdef{blx@sortdef@locale@\blx@refcontext@sorting}
         { locale="\csuse{blx@sortdef@locale@\blx@refcontext@sorting}"}
         {}}{%
-      \csuse{blx@biber@sorting@\blx@refcontext@sorting}}}% default to context
+      \csuse{blx@sorting@\blx@refcontext@sorting}}}% default to context
   \edef\blx@tempe{\the\c@refsection}% default refsection is current
   \blx@safe@actives
   \edef\blx@tempd{%
@@ -6782,7 +6782,7 @@
       \ifcsdef{blx@sortdef@locale@\blx@refcontext@sorting}
         { locale="\csuse{blx@sortdef@locale@\blx@refcontext@sorting}"}
         {}}{%
-       \csuse{blx@biber@sorting@\blx@refcontext@sorting}}}%
+       \csuse{blx@sorting@\blx@refcontext@sorting}}}%
   \setkeys{blx@bib1}{#1}% Set section only, if present ...
   \blx@rest@actives
   \ifcsvoid{blx@slist@entry@\blx@tempe @\blx@refcontext@context}
@@ -6795,7 +6795,7 @@
   \togglefalse{blx@omitnumbers}%
   \setkeys{blx@bib2}{#1}% ... now we have correct \blx@tempa, set rest of options
   \blx@rest@actives
-  \csxappto{blx@biber@slists}{%
+  \csxappto{blx@slists}{%
     \blx@xml@slist{\blx@refcontext@context}{entry}{\blx@tempe}{\blx@refcontext@sorting}{\blx@refcontext@sortingnamekey}{\blx@refcontext@labelprefix}{\blx@tempd}{}}%
   \ifdefvoid\blx@tempa
     {\blx@warn@bibempty\endgroup}
@@ -7180,7 +7180,7 @@
   % default sorting scheme and scheme name for list is same name as list
   % name, then current context if not found
   \edef\blx@tempc{%
-    \ifcsdef{blx@biber@sorting@#2}
+    \ifcsdef{blx@sorting@#2}
       {#2}
       {\blx@refcontext@sorting}}%
   % locally define this since we want to fetch data from the slist named
@@ -7191,7 +7191,7 @@
       {\ifcsdef{blx@sortdef@locale@#2}
         { locale="\csuse{blx@sortdef@locale@#2}"}
         {}}
-      {\csuse{blx@biber@sorting@\blx@tempc}}}%
+      {\csuse{blx@sorting@\blx@tempc}}}%
   \let\blx@printbibchecks\relax
   \edef\blx@tempe{\the\c@refsection}% default refsection is current
   \blx@safe@actives
@@ -7207,7 +7207,7 @@
       \ifcsdef{blx@sortdef@locale@\blx@tempc}
         { locale="\csuse{blx@sortdef@locale@\blx@tempc}"}
         {}}{%
-      \csuse{blx@biber@sorting@\blx@tempc}}}%
+      \csuse{blx@sorting@\blx@tempc}}}%
   \setkeys{blx@biblist1}{#1}% Set section only, if present ...
   \blx@rest@actives
   \ifcsvoid{blx@slist@list@\blx@tempe @\blx@refcontext@context}
@@ -7221,8 +7221,8 @@
       {}}
     {}%
   \blx@rest@actives
-  \csxappto{blx@biber@slists}{%
-    \blx@xml@slist{\blx@refcontext@context}{list}{\blx@tempe}{\blx@tempc}{\blx@refcontext@sortingnamekey}{\blx@refcontext@labelprefix}{\blx@tempd}{\csuse{blx@biber@biblistfilters@#2}}}%
+  \csxappto{blx@slists}{%
+    \blx@xml@slist{\blx@refcontext@context}{list}{\blx@tempe}{\blx@tempc}{\blx@refcontext@sortingnamekey}{\blx@refcontext@labelprefix}{\blx@tempd}{\csuse{blx@biblistfilters@#2}}}%
   \ifdefvoid\blx@tempa
     {\blx@warn@biblistempty{#2}\endgroup}
     {\blx@biblist\blx@tempa}}
@@ -7330,10 +7330,10 @@
        {}
        {\listxadd\blx@refcontexts\blx@refcontext@context
         \blx@auxwrite\@mainaux{}{\string\abx@aux@refcontext{\blx@refcontext@context}}}%}%
-     \ifcsundef{blx@biber@sorting@\blx@refcontext@sorting}
+     \ifcsundef{blx@sorting@\blx@refcontext@sorting}
        {\blx@err@invopt{sorting=\blx@refcontext@sorting}{}}
        {}%
-     \ifcsundef{blx@biber@sortingnamekey@\blx@refcontext@sortingnamekey}
+     \ifcsundef{blx@sortingnamekey@\blx@refcontext@sortingnamekey}
        {\blx@err@invopt{sortingnamekeyscheme=\blx@refcontext@sortingnamekey}{}}
        {}}}
 
@@ -7464,7 +7464,7 @@
        % globals should be first as it might contain macros needed for others
        \forlistloop{\listadd\blx@bibfiles}\blx@bibfiles@global}%
        \blx@xsanitizeafter{\forcsvlist\blx@refsection@addfile}{#1}%
-    \blx@refsection@biber
+    \blx@refsection@backend
   \fi
   \blx@info{Setting label 'refsection:\the\c@refsection'}%
   \label{refsection:\the\c@refsection}%
@@ -7480,7 +7480,7 @@
     {\listeadd\blx@bibfiles{#1}}
     {\listeadd\blx@bibfiles{\blx@stripbib{#1}\detokenize{.bib}}}}
 
-\def\blx@refsection@biber{%
+\def\blx@refsection@backend{%
   \blx@regbibfiles\jobname\blx@bibfiles
   \begingroup
   \let\blx@tempa\@empty
@@ -7499,10 +7499,10 @@
 
 \def\blx@endrefsection{%
   \blx@endrefsegment
-  \blx@endrefsection@biber
+  \blx@endrefsection@backend
   \global\c@refsection\z@}
 
-\def\blx@endrefsection@biber{%
+\def\blx@endrefsection@backend{%
   % make sure we always output aliases to the .bcf otherwise after their
   % first resolution by biber, they will be invisible to subsequent biber
   % runs since biblatex will resolve the \keyalias{} macro to the main
@@ -9820,7 +9820,7 @@
   }%
 }
 
-\def\blx@ctrlwrite@biber{%
+\def\blx@ctrlwrite{%
   \begingroup
   \blx@safe@actives
   \let\protect\string
@@ -9910,8 +9910,8 @@
     \blx@xml@options@scope{NAME}{\blx@bcf@options@scope@name}}
   % datafieldsets
   \def\do##1{%
-    \xappto\blx@bcf@datafieldsets{\blx@xml@datafieldset{##1}{\csuse{blx@biber@datafieldsetmembers@##1}}}}
-  \dolistloop\blx@biber@datafieldsets
+    \xappto\blx@bcf@datafieldsets{\blx@xml@datafieldset{##1}{\csuse{blx@datafieldsetmembers@##1}}}}
+  \dolistloop\blx@datafieldsets
 
   \eappto\blx@tempa{%
     \blx@xml@comment{DATAFIELDSETS}%
@@ -9921,26 +9921,26 @@
   {\eappto\blx@tempa{%
      \blx@xml@comment{SOURCEMAP}%
      \blx@xml@sourcemap{%
-       \ifcsdef{blx@biber@sourcemap@user}
-       {\csuse{blx@biber@sourcemap@user}}
+       \ifcsdef{blx@sourcemap@user}
+       {\csuse{blx@sourcemap@user}}
        {}%
-       \ifcsdef{blx@biber@sourcemap@style}
-       {\csuse{blx@biber@sourcemap@style}}
+       \ifcsdef{blx@sourcemap@style}
+       {\csuse{blx@sourcemap@style}}
        {}%
-       \ifcsdef{blx@biber@sourcemap@defaults@bibtex}
-       {\csuse{blx@biber@sourcemap@defaults@bibtex}}
+       \ifcsdef{blx@sourcemap@defaults@bibtex}
+       {\csuse{blx@sourcemap@defaults@bibtex}}
        {}%
-       \ifcsdef{blx@biber@sourcemap@defaults@biblatexml}
-       {\csuse{blx@biber@sourcemap@defaults@biblatexml}}
+       \ifcsdef{blx@sourcemap@defaults@biblatexml}
+       {\csuse{blx@sourcemap@defaults@biblatexml}}
        {}%
-       \ifcsdef{blx@biber@sourcemap@defaults@endnotexml}
-       {\csuse{blx@biber@sourcemap@defaults@endnotexml}}
+       \ifcsdef{blx@sourcemap@defaults@endnotexml}
+       {\csuse{blx@sourcemap@defaults@endnotexml}}
        {}%
-       \ifcsdef{blx@biber@sourcemap@defaults@ris}
-       {\csuse{blx@biber@sourcemap@defaults@ris}}
+       \ifcsdef{blx@sourcemap@defaults@ris}
+       {\csuse{blx@sourcemap@defaults@ris}}
        {}%
-       \ifcsdef{blx@biber@sourcemap@defaults@zoterordfxml}
-       {\csuse{blx@biber@sourcemap@defaults@zoterordfxml}}
+       \ifcsdef{blx@sourcemap@defaults@zoterordfxml}
+       {\csuse{blx@sourcemap@defaults@zoterordfxml}}
        {}}}}
   {}%
   % labelalpha template
@@ -9949,68 +9949,68 @@
   \def\do##1{%
     \eappto\blx@tempa{%
       \blx@xml@labelalphatemplate{##1}{%
-      \csuse{blx@biber@labelalphatemplate@##1}}%
+      \csuse{blx@labelalphatemplate@##1}}%
       }%
     }%
-  \dolistloop\blx@biber@latem@type
+  \dolistloop\blx@latem@type
   % data inheritance
   \eappto\blx@tempa{%
     \blx@xml@comment{INHERITANCE}%
     \blx@xml@inheritance{%
-      \csuse{blx@biber@inherit@default}%
-      \csuse{blx@biber@inherit@data}%
+      \csuse{blx@inherit@default}%
+      \csuse{blx@inherit@data}%
     }%
   }%
   % noinit
-  \ifcsdef{blx@biber@noinit}
+  \ifcsdef{blx@noinit}
     {\eappto\blx@tempa{%
       \blx@xml@comment{NOINIT}%
       \blx@xml@noinits{%
-        \csuse{blx@biber@noinit}%
+        \csuse{blx@noinit}%
       }%
     }}
     {}%
   % nolabel
-  \ifcsdef{blx@biber@nolabel}
+  \ifcsdef{blx@nolabel}
     {\eappto\blx@tempa{%
       \blx@xml@comment{NOLABEL}%
       \blx@xml@nolabels{%
-        \csuse{blx@biber@nolabel}%
+        \csuse{blx@nolabel}%
       }%
     }}
     {}%
   % nolabel
-  \ifcsdef{blx@biber@nolabelwidthcount}
+  \ifcsdef{blx@nolabelwidthcount}
     {\eappto\blx@tempa{%
       \blx@xml@comment{NOLABELWIDTHCOUNT}%
       \blx@xml@nolabelwidthcounts{%
-        \csuse{blx@biber@nolabelwidthcount}%
+        \csuse{blx@nolabelwidthcount}%
       }%
     }}
     {}%
   % nosort
-  \ifcsdef{blx@biber@nosort}
+  \ifcsdef{blx@nosort}
     {\eappto\blx@tempa{%
       \blx@xml@comment{NOSORT}%
       \blx@xml@nosorts{%
-        \csuse{blx@biber@nosort}%
+        \csuse{blx@nosort}%
       }%
     }}
     {}%
   % transliteration
-  \ifdefempty\blx@biber@translits
+  \ifdefempty\blx@translits
     {}
     {\eappto\blx@tempa{\blx@xml@comment{TRANSLITERATION}}%
      \def\do##1{%
-       \eappto\blx@tempa{\blx@xml@transliteration{##1}{\csuse{blx@biber@translit@##1}}}}%
-     \dolistloop\blx@biber@translits}%
+       \eappto\blx@tempa{\blx@xml@transliteration{##1}{\csuse{blx@translit@##1}}}}%
+     \dolistloop\blx@translits}%
   % sortingnamekey
   \eappto\blx@tempa{\blx@xml@comment{SORTING NAME KEY}}%
   \def\do##1{%
     \eappto\blx@tempa{%
       \blx@xml@sortingnamekey{##1}{%
-        \csuse{blx@biber@sortingnamekey@##1}}}}%
-  \dolistloop\blx@biber@sortingnamekeyspecs
+        \csuse{blx@sortingnamekey@##1}}}}%
+  \dolistloop\blx@sortingnamekeyspecs
   % sorting
   \def\do##1{%
     \eappto\blx@bcf@presort{\csuse{blx@bcf@presort@##1}}%
@@ -10021,7 +10021,7 @@
     \blx@xml@sorting{}{%
       \blx@bcf@presort
       \blx@bcf@exclude
-      \csuse{blx@biber@sorting@\blx@sorting}%
+      \csuse{blx@sorting@\blx@sorting}%
     }%
   }%
   % datamodel
@@ -10057,7 +10057,7 @@
   \AfterEndDocument{%
     \blx@auxwrite\blx@bcfout{}{%
       \blx@xml@endsection\blx@nl
-      \csuse{blx@biber@slists}%
+      \csuse{blx@slists}%
       \blx@xml@endfile}%
     \immediate\closeout\blx@bcfout}}
 
@@ -10066,56 +10066,56 @@
 % nolabel
 \newrobustcmd*{\DeclareNolabel}[1]{%
   \begingroup
-  \let\nolabel\blx@nolabel
+  \let\nolabel\blx@nolabel@setup
   \let\blx@tempa\@empty
   #1%
-  \global\let\blx@biber@nolabel\blx@tempa
+  \global\let\blx@nolabel\blx@tempa
   \endgroup}
 \@onlypreamble\DeclareNolabel
 
-\newcommand*{\blx@nolabel}[1]{%
+\newcommand*{\blx@nolabel@setup}[1]{%
   \eappto\blx@tempa{%
     \blx@xml@nolabel{#1}}}
 
 % nolabelwidthcount
 \newrobustcmd*{\DeclareNolabelwidthcount}[1]{%
   \begingroup
-  \let\nolabel\blx@nolabelwidthcount
+  \let\nolabel\blx@nolabelwidthcount@setup
   \let\blx@tempa\@empty
   #1%
-  \global\let\blx@biber@nolabelwidthcount\blx@tempa
+  \global\let\blx@nolabelwidthcount\blx@tempa
   \endgroup}
 \@onlypreamble\DeclareNolabelwidthcount
 
-\newcommand*{\blx@nolabelwidthcount}[1]{%
+\newcommand*{\blx@nolabelwidthcount@setup}[1]{%
   \eappto\blx@tempa{%
     \blx@xml@nolabelwidthcount{#1}}}
 
 % nosort
 \newrobustcmd*{\DeclareNosort}[1]{%
   \begingroup
-  \let\nosort\blx@nosort
+  \let\nosort\blx@nosort@setup
   \let\blx@tempa\@empty
   #1%
-  \global\let\blx@biber@nosort\blx@tempa
+  \global\let\blx@nosort\blx@tempa
   \endgroup}
 \@onlypreamble\DeclareNosort
 
-\newcommand*{\blx@nosort}[2]{%
+\newcommand*{\blx@nosort@setup}[2]{%
   \eappto\blx@tempa{%
     \blx@xml@nosort{#1}{#2}}}
 
 % noinit
 \newrobustcmd*{\DeclareNoinit}[1]{%
   \begingroup
-  \let\noinit\blx@noinit
+  \let\noinit\blx@noinit@setup
   \let\blx@tempa\@empty
   #1%
-  \global\let\blx@biber@noinit\blx@tempa
+  \global\let\blx@noinit\blx@tempa
   \endgroup}
 \@onlypreamble\DeclareNoinit
 
-\newcommand*{\blx@noinit}[1]{%
+\newcommand*{\blx@noinit@setup}[1]{%
   \eappto\blx@tempa{%
     \blx@xml@noinit{#1}}}
 
@@ -10127,8 +10127,8 @@
   \def\blx@setname{#1}
   \cslet{blx@datafieldset@#1}\@empty
   #2%
-  \csxdef{blx@biber@datafieldsetmembers@#1}{\blx@tempa}%
-  \listgadd\blx@biber@datafieldsets{#1}%
+  \csxdef{blx@datafieldsetmembers@#1}{\blx@tempa}%
+  \listgadd\blx@datafieldsets{#1}%
   \global\csletcs{datafieldset#1}{blx@datafieldset@#1}% expose user-facing macro
   \endgroup}
 \@onlypreamble\DeclareDatafieldSet
@@ -10151,17 +10151,17 @@
     not test {\ifdefempty{\blx@dm@datatype}}}
       {\def\do##1{%
          \listcsxadd{blx@datafieldset@\blx@setname}{##1}}
-       \dolistcsloop{blx@biber@datamodelfields@types@\blx@dm@fieldtype @\blx@dm@datatype}}
+       \dolistcsloop{blx@datamodelfields@types@\blx@dm@fieldtype @\blx@dm@datatype}}
       {\ifdefempty{\blx@dm@fieldtype}
          {}
          {\def\do##1{%
            \listcsxadd{blx@datafieldset@\blx@setname}{##1}}
-          \dolistcsloop{blx@biber@datamodelfields@fieldtypes@\blx@dm@fieldtype}}%
+          \dolistcsloop{blx@datamodelfields@fieldtypes@\blx@dm@fieldtype}}%
        \ifdefempty{\blx@dm@datatype}
          {}
          {\def\do##1{%
            \listcsxadd{blx@datafieldset@\blx@setname}{##1}}
-          \dolistcsloop{blx@biber@datamodelfields@datatypes@\blx@dm@datatype}}}}
+          \dolistcsloop{blx@datamodelfields@datatypes@\blx@dm@datatype}}}}
 
 \define@key{blx@datafieldsets@member}{datatype}{% characters
   \appto\blx@tempb{ datatype="#1"}%
@@ -10180,7 +10180,7 @@
   \let\maps\blx@usersourcemap@maps
   \let\blx@tempa\@empty
   #1%
-  \csxdef{blx@biber@sourcemap@user}{\blx@tempa}%
+  \csxdef{blx@sourcemap@user}{\blx@tempa}%
   \endgroup}
 \@onlypreamble\DeclareSourcemap
 
@@ -10190,7 +10190,7 @@
   \let\maps\blx@stylesourcemap@maps
   \let\blx@tempa\@empty
   #1%
-  \csxdef{blx@biber@sourcemap@style}{\blx@tempa}%
+  \csxdef{blx@sourcemap@style}{\blx@tempa}%
   \endgroup}
 
 \@onlypreamble\DeclareStyleSourcemap
@@ -10209,7 +10209,7 @@
     {\setkeys{blx@sourcemap@maps}{#1, level=driver}}%
   \eappto\blx@tempa{%
     \blx@xml@sourcemap@maps{\blx@tempb}{\blx@tempc}}%
-  \csxdef{blx@biber@sourcemap@defaults@\blx@tempd}{\blx@tempa}%
+  \csxdef{blx@sourcemap@defaults@\blx@tempd}{\blx@tempa}%
   \endgroup}
 \@onlypreamble\DeclareDriverSourcemap
 
@@ -10346,13 +10346,13 @@
 
 \newrobustcmd*{\DeclareLabelalphaTemplate}[2][]{%
    \ifblank{#1}
-    {\blx@biber@latem{#2}{global}}
-    {\forcsvlist{\blx@biber@latem{#2}}{#1}}}
+    {\blx@latem{#2}{global}}
+    {\forcsvlist{\blx@latem{#2}}{#1}}}
 \@onlypreamble\DeclareLabelalphaTemplate
 \blx@collectopts{xml}{blx@globalopts}{labelalphatemplate}% for passing to the .bcf
 \blx@collectopts{xml}{blx@typeopts}{labelalphatemplate}% for passing to the .bcf
 
-\def\blx@biber@latem#1#2{%
+\def\blx@latem#1#2{%
   \begingroup
   \let\labelelement\blx@latem@element
   \let\field\blx@latem@field
@@ -10360,13 +10360,13 @@
   \blx@tempcnta\z@
   \let\blx@tempa\@empty
   #1%
-  \ifdef\blx@biber@latem@type
-    {\ifinlist{#2}{\blx@biber@latem@type}
-      {\global\cslet{blx@biber@labelalphatemplate@#2}\blx@tempa}
-      {\listgadd\blx@biber@latem@type{#2}%
-       \global\cslet{blx@biber@labelalphatemplate@#2}\blx@tempa}}%
-    {\listgadd\blx@biber@latem@type{#2}%
-     \global\cslet{blx@biber@labelalphatemplate@#2}\blx@tempa}%
+  \ifdef\blx@latem@type
+    {\ifinlist{#2}{\blx@latem@type}
+      {\global\cslet{blx@labelalphatemplate@#2}\blx@tempa}
+      {\listgadd\blx@latem@type{#2}%
+       \global\cslet{blx@labelalphatemplate@#2}\blx@tempa}}%
+    {\listgadd\blx@latem@type{#2}%
+     \global\cslet{blx@labelalphatemplate@#2}\blx@tempa}%
   \endgroup}
 
 \newcommand*{\blx@latem@element}[1]{%
@@ -10462,7 +10462,7 @@
   \let\blx@tempb\@empty
   \let\except\blx@inherit@except
   #1%
-  \xdef\blx@biber@inherit@default{%
+  \xdef\blx@inherit@default{%
     \blx@xml@inherit@defaults{\blx@tempa}{\blx@tempb}}%
   \endgroup}
 \@onlypreamble\DefaultInheritance
@@ -10499,7 +10499,7 @@
   \let\inherit\blx@inherit@field
   \let\noinherit\blx@inherit@block
   #3%
-  \xappto\blx@biber@inherit@data{%
+  \xappto\blx@inherit@data{%
     \blx@xml@inherit@data{%
       \blx@tempa
       \blx@tempb}}%
@@ -10532,7 +10532,7 @@
     {\edef\blx@tempc{ override\string_target="false"}}}
 
 \newrobustcmd*{\ResetDataInheritance}{%
-  \global\csundef{blx@biber@inherit@data}}
+  \global\csundef{blx@inherit@data}}
 \@onlypreamble\ResetDataInheritance
 
 % {<name>}{<spec>}
@@ -10542,7 +10542,7 @@
   \let\filter\blx@biblistfilter
   \let\blx@tempa\@empty
   #2%
-  \global\cslet{blx@biber@biblistfilters@#1}\blx@tempa
+  \global\cslet{blx@biblistfilters@#1}\blx@tempa
   \endgroup}
 \@onlypreamble\DeclareBiblistFilter
 
@@ -10573,19 +10573,19 @@
   \ifblank{#1}
     {\def\blx@tempa{*}}
     {\def\blx@tempa{#1}}%
-    \let\translit\blx@translit
+    \let\translit\blx@translit@setup
     \let\blx@tempb\@empty
     #2%
-  \global\cslet{blx@biber@translit@\blx@tempa}\blx@tempb
-  \xifinlist\blx@tempa\blx@biber@translits
+  \global\cslet{blx@translit@\blx@tempa}\blx@tempb
+  \xifinlist\blx@tempa\blx@translits
     {}
-    {\listxadd\blx@biber@translits\blx@tempa}%
+    {\listxadd\blx@translits\blx@tempa}%
   \endgroup}
 \@onlypreamble\DeclareSortTranslit
 \blx@collectopts{xml}{blx@globalopts}{translit}% for passing to the .bcf
 \blx@collectopts{xml}{blx@typeopts}{translit}% for passing to the .bcf
 
-\newcommand*{\blx@translit}[3][*]{%
+\newcommand*{\blx@translit@setup}[3][*]{%
   \eappto\blx@tempb{%
     \blx@xml@translit{#1}{#2}{#3}}}
 
@@ -10593,18 +10593,18 @@
 \newrobustcmd*{\DeclareSortingNamekeyScheme}[2][]{%
   \begingroup
   \ifblank{#1}
-    {\def\blx@biber@snkname{global}}% default
-    {\def\blx@biber@snkname{#1}}%
+    {\def\blx@snkname{global}}% default
+    {\def\blx@snkname{#1}}%
   \let\namepart\blx@sortnk@namepart
   \let\keypart\blx@sortnk@keypart
   \let\literal\blx@sortnk@literal
   \let\blx@tempa\@empty
   \blx@tempcnta\z@
   #2%
-  \global\cslet{blx@biber@sortingnamekey@\blx@biber@snkname}\blx@tempa
-  \xifinlist\blx@biber@snkname\blx@biber@sortingnamekeyspecs
+  \global\cslet{blx@sortingnamekey@\blx@snkname}\blx@tempa
+  \xifinlist\blx@snkname\blx@sortingnamekeyspecs
     {}
-    {\listxadd\blx@biber@sortingnamekeyspecs\blx@biber@snkname}%
+    {\listxadd\blx@sortingnamekeyspecs\blx@snkname}%
   \endgroup}
 \@onlypreamble\DeclareSortingNamekeyScheme
 \blx@collectopts{xml}{blx@globalopts}{sortingnamekey}% for passing to the .bcf
@@ -10662,7 +10662,7 @@
   \blx@tempcnta\z@
   \let\blx@tempa\@empty
   #3%
-  \global\cslet{blx@biber@sorting@#2}\blx@tempa
+  \global\cslet{blx@sorting@#2}\blx@tempa
   \endgroup}
 \@onlypreamble\DeclareSortingScheme
 \blx@collectopts{xml}{blx@globalopts}{sortscheme}% for passing to the .bcf
@@ -10964,7 +10964,7 @@
   \def\blx@refcontext@sorting{#1}}
 
 \AtEndPreamble{%
-  \ifcsdef{blx@biber@sorting@\blx@sorting}
+  \ifcsdef{blx@sorting@\blx@sorting}
     {}
     {\blx@err@invopt{sorting=\blx@sorting}{}%
      \def\blx@sorting{nty}%
@@ -12021,7 +12021,7 @@
   \blx@auxwrite\@mainaux{}{\string\abx@aux@refcontext{\blx@refcontext@context}}
   \blx@checkencoding
   \if@filesw
-    \blx@ctrlwrite@biber
+    \blx@ctrlwrite
     \blx@bblinput
     \blx@maxsection\z@
   \fi
