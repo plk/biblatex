@@ -481,6 +481,7 @@
 \newtoggle{blx@insert}
 \newtoggle{blx@lastins}
 \newtoggle{blx@keepunit}
+\newtoggle{blx@bibtex}
 \newtoggle{blx@debug}
 \newtoggle{blx@sortcase}
 \newtoggle{blx@sortupper}
@@ -10914,11 +10915,15 @@
 
 % load-time and preamble
 
-\DeclareBibliographyOption[string]{backend}{
-  \blx@error
-    {'backend' is load-time only option}
-    {The 'backend' option is load-time only and cannot
-      be\MessageBreak set after package loading}}
+\DeclareBibliographyOption[string]{backend}{%
+  \ifstrequal{#1}{biber}
+    {}
+    {\ifboolexpr{
+       test {\ifstrequal{#1}{bibtex}}
+       or
+       test {\ifstrequal{#1}{bibtex}}}
+       {\settoggle{blx@bibtex}{true}}
+       {\blx@err@invopt{backend=#1}{}}}}
 
 \DeclareBibliographyOption[boolean]{debug}[true]{%
   \settoggle{blx@debug}{#1}}
@@ -11900,6 +11905,12 @@
 % Process load-time options
 
 \ProcessOptions*
+
+% Switch to BibTeX support if requests
+
+\iftoggle{blx@bibtex}
+  {\blx@inputonce{blx-bibtex.def}{BibTeX backend compatibility}{}{}{}{}}
+  {}
 
 % Load citation and bibliography styles, configuration file
 
