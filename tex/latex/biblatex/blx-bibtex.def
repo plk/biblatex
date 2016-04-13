@@ -6,11 +6,11 @@
 \def\blx@backend{0}
 
 % Rename write stream so use is clear
-\let\blx@auxout\blx@bcfout
+\let\blx@write\blx@bcfout
 
 % Data file initialisation
-\edef\blx@auxfile@bibtex{\jobname}
-\let\blx@auxout@bibtex\@mainaux
+\edef\blx@auxfile{\jobname}
+\let\blx@aux\@mainaux
 \newcommand*{\blxauxsuffix}{-blx}
 
 \begingroup
@@ -18,7 +18,7 @@
   #1\ifx#2\@empty\else
     \expandafter\blx@tempa
   \fi#2}
-\edef\blx@ctrlfile@bibtex{%
+\edef\blx@ctrlfile{%
   \noexpand\blx@tempa
   \expandafter\blx@tempa\jobname"\@empty
   \space\noexpand\@empty}
@@ -26,19 +26,19 @@
   #1\ifx#2\@empty\else
     \string_\expandafter\blx@tempa
   \fi#2}
-\xdef\blx@ctrlfile@bibtex{\blx@ctrlfile@bibtex}
+\xdef\blx@ctrlfile{\blx@ctrlfile}
 \endgroup
 
-\def\blx@auxinit@bibtex#1{%
-  \blx@auxwrite\blx@auxout@bibtex
+\def\blx@auxinit#1{%
+  \blx@auxwrite\blx@aux
     {\def\do##1{,\blx@stripbib{##1}}}
-    {\ifx\blx@auxout@bibtex\@mainaux
+    {\ifx\blx@aux\@mainaux
      \else
        \blx@msg@aux
      \fi
      \string\bibstyle{biblatex}\blx@nl
      \string\bibdata{%
-       \blx@ctrlfile@bibtex\blxauxsuffix
+       \blx@ctrlfile\blxauxsuffix
        \ifx#1\@empty
        \else
          \dolistloop#1%
@@ -99,7 +99,7 @@
     \provides[type=dynamic]{
       \def\do##1{\file{##1.aux}}
       \dolistloop\blx@list@inactive
-      \file{\blx@ctrlfile@bibtex\blxauxsuffix.bib}
+      \file{\blx@ctrlfile\blxauxsuffix.bib}
     }
     \requires[type=dynamic]{
       \def\do##1{\file{##1.bbl}}
@@ -155,7 +155,7 @@
       }
       \requires[type=dynamic]{
         \file{#2.aux}
-        \file{\blx@ctrlfile@bibtex\blxauxsuffix.bib}
+        \file{\blx@ctrlfile\blxauxsuffix.bib}
       }
       \requires[type=editable]{
         \ifcsdef{blx@list@bibfiles@#2}
@@ -175,9 +175,9 @@
 }
 
 \def\blx@logreq@active#1{%
-  \xifinlist{\blx@auxfile@bibtex}{\blx@list@active}
+  \xifinlist{\blx@auxfile}{\blx@list@active}
     {}
-    {\listxadd\blx@list@active{\blx@auxfile@bibtex}}%
+    {\listxadd\blx@list@active{\blx@auxfile}}%
   \ifblank{#1}
     {}
     {\@latex@warning{#1}}%
@@ -185,9 +185,9 @@
   \blx@rerun@bibtex}
 
 \def\blx@logreq@inactive{%
-  \xifinlist{\blx@auxfile@bibtex}{\blx@list@inactive}
+  \xifinlist{\blx@auxfile}{\blx@list@inactive}
     {}
-    {\listxadd\blx@list@inactive{\blx@auxfile@bibtex}}}
+    {\listxadd\blx@list@inactive{\blx@auxfile}}}
 
 \def\blx@rerun@bibtex{%
   \global\toggletrue{blx@runbtx}%
@@ -204,6 +204,6 @@
   \endgroup}
 
 \protected\def\blx@bibreq#1{%
-  \blx@auxwrite\blx@auxout@bibtex{}{\string\citation{#1}}}
+  \blx@auxwrite\blx@aux{}{\string\citation{#1}}}
 
 \endinput
