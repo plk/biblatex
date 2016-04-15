@@ -170,7 +170,7 @@ INTEGERS { ctrl.debug ctrl.bibtex8 ctrl.maxline ctrl.sorting ctrl.cssort ctrl.so
            tempctra tempctrb tempctrc resvctra resvctrb resvctrc
            last.extra.num }
 
-STRINGS  { ctrl.alphaothers templist tempstrga tempstrgb resvstrga
+STRINGS  { ctrl.alphaothers templist tempstrga tempstrgb resvstrga resvstrgb resvstrgc
            last.name last.hash last.year last.extra }
 
 FUNCTION {initialize} {
@@ -343,6 +343,34 @@ FUNCTION {normalize} {
 
 FUNCTION {enquote} {
   "'" swap$ * "'" *
+}
+
+FUNCTION {str:length} {
+  #1 'resvctra :=
+  { duplicate$ duplicate$ #1 resvctra substring$ = not }
+    { resvctra #1 + 'resvctra := }
+  while$
+  pop$
+  resvctra
+}
+
+FUNCTION {str:replace} {
+  'resvstrga :=
+  'resvstrgb :=
+  'resvstrgc :=
+  resvstrgb str:length 'resvctra :=
+  ""
+  { resvstrgc empty$ not }
+    { resvstrgc #1 resvctra substring$ resvstrgb =
+        { resvstrga *
+          resvstrgc #1 resvctra + global.max$ substring$ 'resvstrgc :=
+        }
+        { resvstrgc #1 #1 substring$ *
+          resvstrgc #2 global.max$ substring$ 'resvstrgc :=
+        }
+      if$
+    }
+  while$
 }
 
 FUNCTION {bol.to.int} {
