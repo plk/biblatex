@@ -481,6 +481,7 @@
 \newtoggle{blx@insert}
 \newtoggle{blx@lastins}
 \newtoggle{blx@keepunit}
+\newtoggle{blx@bibtex}
 \newtoggle{blx@debug}
 \newtoggle{blx@sortcase}
 \newtoggle{blx@sortupper}
@@ -10901,11 +10902,12 @@
 \define@key{blx@opt@ldt}{backend}{%
   \ifstrequal{#1}{biber}
     {}
-    {\ifcsdef{blx@backend@#1}
-      {\letcs\blx@backend{blx@backend@#1}}
+    {\ifboolexpr{
+       test {\ifstrequal{#1}{bibtex}}
+       or
+       test {\ifstrequal{#1}{bibtex}}}
+       {\settoggle{blx@bibtex}{true}}
        {\blx@err@invopt{backend=#1}{}}}}
-\chardef\blx@backend@bibtex=0
-\expandafter\chardef\csname blx@backend@bibtex8\endcsname=1
 
 \define@key{blx@opt@ldt}{style}{%
   \def\blx@cbxfile{#1}%
@@ -11913,7 +11915,7 @@
 
 % Switch to BibTeX support if requests
 
-\ifdef\blx@backend
+\iftoggle{blx@bibtex}
   {\blx@inputonce{blx-bibtex.def}{BibTeX backend compatibility}{}{}{}{}}
   {}
 
