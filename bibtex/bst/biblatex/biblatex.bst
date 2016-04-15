@@ -633,6 +633,12 @@ FUNCTION {format.range}
   while$
 }
 
+FUNCTION {format:name:full} {
+  "\~" "[[[TILDE ACCENT]]]" str:replace
+  "~" "\bibnamedelima " str:replace
+  "[[[TILDE ACCENT]]]" "\~" str:replace
+}
+
 FUNCTION {format:name:initials} {
   ".~" "\bibinitperiod\bibinitdelim " str:replace
   "." "\bibinitperiod" str:replace
@@ -1166,7 +1172,8 @@ FUNCTION {output:write:name:last} {
   duplicate$ 'tempstrga :=
   duplicate$ empty$
     'pop$
-    { "family" combine:key:value output:indent:subfield:keyval
+    { format:name:full
+      "family" combine:key:value output:indent:subfield:keyval
       templist tempctra "{l.}" format.name$
       duplicate$ tempstrga "." * =
         { duplicate$ text.length$ #1 - text.prefix$ }
@@ -1183,7 +1190,8 @@ FUNCTION {output:write:name:first} {
   duplicate$ 'tempstrga :=
   duplicate$ empty$
     'pop$
-    { "given" combine:key:value output:indent:subfield:keyval
+    { format:name:full
+      "given" combine:key:value output:indent:subfield:keyval
       templist tempctra "{f.}" format.name$
       duplicate$ tempstrga "." * =
         { duplicate$ text.length$ #1 - text.prefix$ }
@@ -1204,7 +1212,8 @@ FUNCTION {output:write:name:prefix} {
   if$
   duplicate$ empty$
     'pop$
-    { "prefix" combine:key:value output:indent:subfield:keyval
+    { format:name:full
+      "prefix" combine:key:value output:indent:subfield:keyval
       templist tempctra "{v.}" format.name$
       tempctrc
         { duplicate$ text.length$ #1 - text.prefix$ "'" * }
@@ -1225,7 +1234,8 @@ FUNCTION {output:write:name:suffix} {
   duplicate$ 'tempstrga :=
   duplicate$ empty$
     'pop$
-    { "suffix" combine:key:value output:indent:subfield:keyval
+    { format:name:full
+      "suffix" combine:key:value output:indent:subfield:keyval
       templist tempctra "{j.}" format.name$
       duplicate$ tempstrga "." * =
         { duplicate$ text.length$ #1 - text.prefix$ }
