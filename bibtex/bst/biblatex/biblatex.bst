@@ -1,11 +1,9 @@
 % Copyright (c) 2006-2011 Philipp Lehman.
+%               2012-2016 Philip Kime, Audrey Boruvka, Joseph Wright
 %
 % Permission is granted to copy, distribute and/or modify this
 % software under the terms of the LaTeX Project Public License
-% (LPPL), version 1.3.
-%
-% The LPPL maintenance status of this software is
-% 'author-maintained'.
+% (LPPL), version 1.3c.
 %
 % This software is provided 'as is', without warranty of any kind,
 % either expressed or implied, including, but not limited to, the
