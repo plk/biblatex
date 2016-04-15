@@ -633,7 +633,7 @@ FUNCTION {format.range}
   while$
 }
 
-FUNCTION {format:name:full} {
+FUNCTION {format:name:part} {
   "\~" "[[[TILDE ACCENT]]]" str:replace
   "~" "\bibnamedelima " str:replace
   "[[[TILDE ACCENT]]]" "\~" str:replace
@@ -1172,7 +1172,7 @@ FUNCTION {output:write:name:last} {
   duplicate$ 'tempstrga :=
   duplicate$ empty$
     'pop$
-    { format:name:full
+    { format:name:part
       "family" combine:key:value output:indent:subfield:keyval
       templist tempctra "{l.}" format.name$
       duplicate$ tempstrga "." * =
@@ -1190,7 +1190,7 @@ FUNCTION {output:write:name:first} {
   duplicate$ 'tempstrga :=
   duplicate$ empty$
     'pop$
-    { format:name:full
+    { format:name:part
       "given" combine:key:value output:indent:subfield:keyval
       templist tempctra "{f.}" format.name$
       duplicate$ tempstrga "." * =
@@ -1212,7 +1212,7 @@ FUNCTION {output:write:name:prefix} {
   if$
   duplicate$ empty$
     'pop$
-    { format:name:full
+    { format:name:part
       "prefix" combine:key:value output:indent:subfield:keyval
       templist tempctra "{v.}" format.name$
       tempctrc
@@ -1234,7 +1234,7 @@ FUNCTION {output:write:name:suffix} {
   duplicate$ 'tempstrga :=
   duplicate$ empty$
     'pop$
-    { format:name:full
+    { format:name:part
       "suffix" combine:key:value output:indent:subfield:keyval
       templist tempctra "{j.}" format.name$
       duplicate$ tempstrga "." * =
