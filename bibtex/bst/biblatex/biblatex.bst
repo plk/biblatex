@@ -2576,20 +2576,6 @@ FUNCTION {mainsort} {
   'sort.key$ :=
 }
 
-FUNCTION {lossort} {
-  ctrl.sortlos
-    { shorthand empty$
-      ctrl:skiplos or
-        { "" }
-        { shorthand }
-      if$
-      truncate
-      'sort.key$ :=
-    }
-    'skip$
-  if$
-}
-
 ITERATE {mainsort}
 
 SORT
@@ -2597,7 +2583,7 @@ SORT
 % This version corresponds to the .bbl version, *not* the biblatex version!
 FUNCTION {output:main:begin} {
   "% $ biblatex auxiliary file $"                               write$ newline$
-  "% $ biblatex version " "$Revision: 2.7 $"
+  "% $ biblatex bbl format version " "$Revision: 2.7 $"
   #12 entry.max$ substring$ #-3 entry.max$ substring$ * " $" *  write$ newline$
   "% Do not modify the above lines!"                            write$ newline$
   "%"                                                           write$ newline$
@@ -2632,39 +2618,11 @@ FUNCTION {output:main:end} {
   "\endinput" write$ newline$
 }
 
-FUNCTION {output:los:begin} {
-  newline$
-  "\lossort" write$ newline$
-}
-
-FUNCTION {output:los:iterate} {
-  shorthand empty$
-  ctrl:skiplos or
-    'skip$
-    { "  \key{" push:cite * "}" * write$ newline$ }
-  if$
-}
-
-FUNCTION {output:los:end} {
-  "\endlossort" write$ newline$
-}
-
-
 EXECUTE {output:main:begin}
 
 EXECUTE {output:main:preamble}
 
 ITERATE {call.type$}
-
-ITERATE {lossort}
-
-SORT
-
-EXECUTE {output:los:begin}
-
-ITERATE {output:los:iterate}
-
-EXECUTE {output:los:end}
 
 EXECUTE {output:main:end}
 
