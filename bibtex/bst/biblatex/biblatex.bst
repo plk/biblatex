@@ -633,6 +633,11 @@ FUNCTION {format.range}
   while$
 }
 
+FUNCTION {format:name:initials} {
+  ".~" "\bibinitperiod\bibinitdelim " str:replace
+  "." "\bibinitperiod" str:replace
+}
+
 FUNCTION {is.number} {
   #1
   { #0 > }
@@ -1167,6 +1172,7 @@ FUNCTION {output:write:name:last} {
         { duplicate$ text.length$ #1 - text.prefix$ }
         'skip$
       if$
+      format:name:initials
       "family_i" combine:key:value output:indent:subfield:keyval
     }
   if$
@@ -1183,6 +1189,7 @@ FUNCTION {output:write:name:first} {
         { duplicate$ text.length$ #1 - text.prefix$ }
         'skip$
       if$
+      format:name:initials
       "given_i" combine:key:value output:indent:subfield:keyval
     }
   if$
@@ -1207,6 +1214,7 @@ FUNCTION {output:write:name:prefix} {
           if$
         }
       if$
+      format:name:initials
       "prefix_i" combine:key:value output:indent:subfield:keyval
     }
   if$
@@ -1223,6 +1231,7 @@ FUNCTION {output:write:name:suffix} {
         { duplicate$ text.length$ #1 - text.prefix$ }
         'skip$
       if$
+      format:name:initials
       "suffix_i" combine:key:value output:indent:subfield:keyval
     }
   if$
