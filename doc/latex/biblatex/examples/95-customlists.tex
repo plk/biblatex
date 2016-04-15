@@ -1,0 +1,93 @@
+\documentclass[a4paper]{article}
+\usepackage{fontspec}
+% Using a custom data model to declare the "coauthor" field
+\usepackage[style=authoryear,datamodel=95-customlists,backend=biber]{biblatex}
+\addbibresource{95-customlists.bib}
+
+% 1. First, check if the author list contain me, here, "Arthur Smith" (and
+%    isn't *just* me as then we can ignore this entry as there are no coauthors)
+% 2. Copy the author field to a temporary field "coauthortext". We don't need
+%    datamodel declarations for this as this will be deleted after use and
+%    will never get anywhere near code that queries the data model.
+% 3. Remove me (Arthur Smith) from this temporary copy of the author list
+% 4. Turn the resulting field into a comma-separated list
+% 5. Loop over this comma-separated list, creating new entries of type
+%    "coauthor" each with a "coauthor" name list field containing the data
+%    from the loop variable
+% 6. Remove the temporary author field copy "coauthortext"
+%
+% The special $MAPLOOP variable holds each value of the csv field named by
+% the "foreach" option on the \map macro.
+% The special $MAPUNIQ variable is a random string generated automatically
+% at the beginning of each \map section. This is useful when you need a unique
+% string as we do here because citation keys should be unique.
+% $MAPLOOPVAL can be used to refer to the last created $MAPUNIQ
+\DeclareSourcemap{
+  \maps[datatype=bibtex]{
+    \map[overwrite]{
+       \step[fieldsource=author,
+             match=\regexp{Arthur\s+Smith}, final]
+       \step[fieldsource=author,
+             notmatch=\regexp{^Arthur\s+Smith$}, final]
+       \step[fieldsource=author, fieldset=coauthortext, origfieldval]
+       \step[fieldsource=coauthortext,
+             match=\regexp{Arthur\s+Smith\s+and\s+},
+             replace={}]
+       \step[fieldsource=coauthortext,
+             match=\regexp{\s+and\s+Arthur\s+Smith},
+             replace={}]
+       \step[fieldsource=coauthortext,
+             match=\regexp{\s+and\s+},
+             replace={,}]
+    }
+    \map[overwrite, foreach=coauthortext]{
+      \step[fieldsource=coauthortext, match=\regexp{.}, final]
+      \step[entrynew=\regexp{$MAPUNIQ}, entrynewtype=coauthor]
+      \step[entrytarget=\regexp{$MAPUNIQVAL}, fieldset=coauthor, fieldvalue=\regexp{$MAPLOOP}]
+      \step[entrytarget=\regexp{$MAPUNIQVAL}, fieldset=options, fieldvalue=skipbib]
+    }
+    \map[overwrite]{
+       \step[fieldsource=coauthortext, null]
+    }
+  }
+}
+
+% Sort the biblist by coauthor name
+\DeclareSortingScheme{coauthor}{
+  \sort{
+        \field{coauthor}
+  }
+}
+
+% Driver to print the biblist items
+\DeclareBibliographyDriver{coauthor}{%
+  \printnames{coauthor}}
+
+% bibcheck to strip duplicates
+\defbibcheck{coauthor}{%
+  \ifcsdef{\strname{coauthor}}
+    {\skipentry}
+    {\savenamecs{coauthor}{\strname{coauthor}}}}
+
+% Simple bibenvironment to print the biblist
+\defbibenvironment{coauthor}
+{\list{}
+  {\setlength{\leftmargin}{\bibhang}%
+   \setlength{\itemindent}{-\leftmargin}%
+   \setlength{\itemsep}{\bibitemsep}%
+   \setlength{\parsep}{\bibparsep}}}
+{\endlist}
+{\item}
+
+\begin{document}
+\nocite{*}
+\printbibliography
+% This will automatically use the "coauthor" sorting scheme/biblist/driver etc.
+\printbiblist[title=CoAuthors]{coauthor}
+\end{document}
+
+
+
+
+
+

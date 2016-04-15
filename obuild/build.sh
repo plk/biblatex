@@ -188,6 +188,7 @@ then
   \rm -rf obuild/test/examples/*
   cp -r doc/latex/biblatex/examples/*.tex obuild/test/examples/
   cp -r doc/latex/biblatex/examples/*.dbx obuild/test/examples/
+  cp -r doc/latex/biblatex/examples/*.bib obuild/test/examples/
   \rm -f obuild/test/example_errs_biber.txt
   \rm -f obuild/test/example_errs_bibtex.txt
   cd obuild/test/examples
