@@ -3,7 +3,6 @@
 
 % Initialisation of backend-related switches, variables, etc.
 \newtoggle{blx@runbtx}
-\def\blx@backend{0}
 
 \def\blx@maxline{79}
 \def\blx@sortlos{0}
@@ -128,21 +127,15 @@
   \logrequest[package=biblatex,priority=5,active=#1]{%
     \generic{bibtex}
     \cmdline{%
-      \ifcase\blx@backend
-        \binary{bibtex}
-        \option{-min-crossrefs \blx@mincrossrefs}
-      \or
-        \binary{bibtex8}
-        \option{--wolfgang}
-        \option{--min\string_crossrefs \blx@mincrossrefs}
-        \ifdef\blx@csfencoding
-          {\option{--csfile \blx@csfencoding.csf}}
-          {}%
-      \or
-        \binary{bibtexu}
-        \option{--wolfgang}
-        \option{--min\string_crossrefs \blx@mincrossrefs}
-      \fi
+      \iftoggle{blx@bibtex8}
+        {\binary{bibtex8}
+         \option{--wolfgang}
+         \option{--min\string_crossrefs \blx@mincrossrefs}
+         \ifdef\blx@csfencoding
+           {\option{--csfile \blx@csfencoding.csf}}
+           {}}
+        {\binary{bibtex}
+         \option{-min-crossrefs \blx@mincrossrefs}}%
       \infile{#2}
      }
      \input{
