@@ -273,6 +273,13 @@ FUNCTION {wrap:braces} {
   if$
 }
 
+FUNCTION {combine:key:value} {
+  "=" *
+  swap$
+  wrap:braces *
+  "," *
+}
+
 FUNCTION {delimiter.1} {
   ctrl.bibtex8
     { "0" }
@@ -1039,6 +1046,13 @@ FUNCTION {output:indent:subfield} {
   if$
 }
 
+FUNCTION {output:indent:subfield:keyval} {
+  duplicate$ empty$
+    'skip$
+    { "       " swap$ * write$ newline$ }
+  if$
+}
+
 FUNCTION {output:write:field} {
   duplicate$ empty$
     { pop$ pop$ }
@@ -1145,35 +1159,33 @@ FUNCTION {output:write:verb} {
 FUNCTION {output:write:name:last} {
   templist tempctra "{ll}" format.name$
   duplicate$ 'tempstrga :=
-  wrap:braces
-  templist tempctra
-  ctrl.terseinits
-    { "{l{}}" format.name$ }
-    { "{l.}"  format.name$
+  duplicate$ empty$
+    'pop$
+    { "family" combine:key:value output:indent:subfield:keyval
+      templist tempctra "{l.}" format.name$
       duplicate$ tempstrga "." * =
         { duplicate$ text.length$ #1 - text.prefix$ }
         'skip$
       if$
+      "family_i" combine:key:value output:indent:subfield:keyval
     }
   if$
-  wrap:braces *
 }
 
 FUNCTION {output:write:name:first} {
   templist tempctra "{ff}" format.name$
   duplicate$ 'tempstrga :=
-  wrap:braces
-  templist tempctra
-  ctrl.terseinits
-    { "{f{}}" format.name$ }
-    { "{f.}"  format.name$
+  duplicate$ empty$
+    'pop$
+    { "given" combine:key:value output:indent:subfield:keyval
+      templist tempctra "{f.}" format.name$
       duplicate$ tempstrga "." * =
         { duplicate$ text.length$ #1 - text.prefix$ }
         'skip$
       if$
+      "given_i" combine:key:value output:indent:subfield:keyval
     }
   if$
-  wrap:braces *
 }
 
 FUNCTION {output:write:name:prefix} {
@@ -1183,11 +1195,10 @@ FUNCTION {output:write:name:prefix} {
     { #1 'tempctrc := }
     { #0 'tempctrc := }
   if$
-  wrap:braces
-  templist tempctra
-  ctrl.terseinits
-    { "{v{}}" format.name$ }
-    { "{v.}"  format.name$
+  duplicate$ empty$
+    'pop$
+    { "prefix" combine:key:value output:indent:subfield:keyval
+      templist tempctra "{v.}" format.name$
       tempctrc
         { duplicate$ text.length$ #1 - text.prefix$ "'" * }
         { duplicate$ tempstrga "." * =
@@ -1196,26 +1207,25 @@ FUNCTION {output:write:name:prefix} {
           if$
         }
       if$
+      "prefix_i" combine:key:value output:indent:subfield:keyval
     }
   if$
-  wrap:braces *
 }
 
 FUNCTION {output:write:name:suffix} {
   templist tempctra "{jj}" format.name$
   duplicate$ 'tempstrga :=
-  wrap:braces
-  templist tempctra
-  ctrl.terseinits
-    { "{j{}}" format.name$ }
-    { "{j.}"  format.name$
+  duplicate$ empty$
+    'pop$
+    { "suffix" combine:key:value output:indent:subfield:keyval
+      templist tempctra "{j.}" format.name$
       duplicate$ tempstrga "." * =
         { duplicate$ text.length$ #1 - text.prefix$ }
         'skip$
       if$
+      "suffix_i" combine:key:value output:indent:subfield:keyval
     }
   if$
-  wrap:braces *
 }
 
 FUNCTION {output:write:name} {
@@ -1236,11 +1246,12 @@ FUNCTION {output:write:name} {
       "" wrap:braces *
       "{%" * output:indent:field
       { tempctrb #0 > }
-        { "{{}%" output:indent:subfield
-          " " output:write:name:last   * "%"  * output:indent:subfield
-	  " " output:write:name:first  * "%"  * output:indent:subfield
-          " " output:write:name:prefix * "%"  * output:indent:subfield
-          " " output:write:name:suffix * "}%" * output:indent:subfield
+        { "{{}{%" output:indent:subfield
+          output:write:name:last
+	      output:write:name:first
+          output:write:name:prefix
+          output:write:name:suffix
+          "}}%" output:indent:subfield
           tempctra #1 + 'tempctra :=
           tempctrb #1 - 'tempctrb :=
         }
