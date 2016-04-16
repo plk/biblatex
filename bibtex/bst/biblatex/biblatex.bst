@@ -1267,10 +1267,10 @@ FUNCTION {output:write:name} {
       "{%" * output:indent:field
       { tempctrb #0 > }
         { "{{}{%" output:indent:subfield
-          output:write:name:last
-	      output:write:name:first
           output:write:name:prefix
+          output:write:name:last
           output:write:name:suffix
+	      output:write:name:first
           "}}%" output:indent:subfield
           tempctra #1 + 'tempctra :=
           tempctrb #1 - 'tempctrb :=
