@@ -5438,7 +5438,11 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% Since these are bare counters which define \the<string>, save any current values
+% (memoir, titling, koma etc. have a \theauthor macro, for example) and restore at
+% end of package
 \def\do#1{%
+  \csletcs{blx@compat@the#1}{the#1}%
   \newcounter{#1}%
   \newcounter{saved#1}%
   \appto\abx@dobooleans{\do{more#1}}}
@@ -5447,6 +5451,13 @@
 \abx@dornames
 \abx@dolists
 %\abx@dorlists
+
+\AtEndOfPackage{%
+  \def\do#1{\csletcs{the#1}{blx@compat@the#1}}%
+  \abx@donames
+  \abx@dornames
+  \abx@dolists}
+
 \def\do#1{\newtoggle{abx@bool@#1}}
 \abx@dobooleans
 
