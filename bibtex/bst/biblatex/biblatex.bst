@@ -170,7 +170,8 @@ INTEGERS { ctrl.debug ctrl.bibtex8 ctrl.maxline ctrl.sorting ctrl.cssort ctrl.so
            tempctra tempctrb tempctrc resvctra resvctrb resvctrc
            last.extra.num }
 
-STRINGS  { ctrl.alphaothers templist tempstrga tempstrgb resvstrga resvstrgb resvstrgc
+STRINGS  { ctrl.alphaothers ctrl.sortstr
+           templist tempstrga tempstrgb resvstrga resvstrgb resvstrgc
            last.name last.hash last.year last.extra }
 
 FUNCTION {initialize} {
@@ -178,20 +179,21 @@ FUNCTION {initialize} {
   #12 entry.max$ substring$
   #-3 entry.max$ substring$
   "Biblatex version: " swap$ * top$
-   #0  'ctrl.debug :=
-   #0  'ctrl.labelalpha :=
-   #0  'ctrl.labeldate :=
-   #0  'ctrl.singletitle :=
-   #0  'ctrl.sorting :=
-   #0  'ctrl.sortlos :=
-   #1  'ctrl.useauthor :=
-   #1  'ctrl.useeditor :=
-   #0  'ctrl.usetranslator :=
-   #0  'ctrl.useprefix :=
-   #1  'ctrl.minnames :=
-  #99  'ctrl.maxnames :=
-  #79  'ctrl.maxline :=
-  "+"  'ctrl.alphaothers :=
+   #0   'ctrl.debug :=
+   #0   'ctrl.labelalpha :=
+   #0   'ctrl.labeldate :=
+   #0   'ctrl.singletitle :=
+   #0   'ctrl.sorting :=
+   #0   'ctrl.sortlos :=
+   #1   'ctrl.useauthor :=
+   #1   'ctrl.useeditor :=
+   #0   'ctrl.usetranslator :=
+   #0   'ctrl.useprefix :=
+   #1   'ctrl.minnames :=
+  #99   'ctrl.maxnames :=
+  #79   'ctrl.maxline :=
+  "+"   'ctrl.alphaothers :=
+  "nty" 'ctrl.sortstr :=
 }
 
 % -------------------------------------------------------------------
@@ -1045,21 +1047,21 @@ FUNCTION {sortkey:main} {
 FUNCTION {output:indent:field} {
   duplicate$ empty$
     'skip$
-    { "  " swap$ * write$ newline$ }
+    { "    " swap$ * write$ newline$ }
   if$
 }
 
 FUNCTION {output:indent:subfield} {
   duplicate$ empty$
     'skip$
-    { "    " swap$ * write$ newline$ }
+    { "      " swap$ * write$ newline$ }
   if$
 }
 
 FUNCTION {output:indent:subfield:keyval} {
   duplicate$ empty$
     'skip$
-    { "       " swap$ * write$ newline$ }
+    { "         " swap$ * write$ newline$ }
   if$
 }
 
@@ -1718,7 +1720,7 @@ FUNCTION {output:entry} {
     { output:debug }
     'skip$
   if$
-  "\entry"
+  "  \entry"
   push:cite wrap:braces *
   tempstrga wrap:braces *
   entryoptions wrap:braces *
@@ -1736,7 +1738,7 @@ FUNCTION {output:entry} {
   output:dates.2
   output:user
   output:warning
-  "\endentry" write$ newline$
+  "  \endentry" write$ newline$
 }
 
 FUNCTION {control}        { skip$ }
@@ -1863,7 +1865,8 @@ FUNCTION {input:control} {
           input:control:options 'ctrl.maxnames :=
           input:control:options 'ctrl.minnames :=
           input:control:options 'ctrl.maxline :=
-          'ctrl.alphaothers :=
+          input:control:parse   'ctrl.alphaothers :=
+          'ctrl.sortstr :=
         }
       if$
       ctrl.maxline #49 <
@@ -2656,6 +2659,8 @@ FUNCTION {output:main:begin} {
   "      \aftergroup\endinput}"                                 write$ newline$
   "  {}"                                                        write$ newline$
   "\endgroup"                                                   write$ newline$
+  newline$
+  "\sortlist[entry]{" ctrl.sortstr * "/global/}" *              write$
 }
 
 FUNCTION {output:main:preamble} {
@@ -2670,8 +2675,8 @@ FUNCTION {output:main:preamble} {
 }
 
 FUNCTION {output:main:end} {
-  newline$
-  "\endinput" write$ newline$
+  "\endsortlist" write$ newline$
+  "\endinput"    write$ newline$
 }
 
 EXECUTE {output:main:begin}
