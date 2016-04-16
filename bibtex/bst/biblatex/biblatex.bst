@@ -165,7 +165,7 @@ ENTRY {
 
 INTEGERS { ctrl.debug ctrl.bibtex8 ctrl.maxline ctrl.sorting ctrl.cssort ctrl.sortlos 
            ctrl.maxnames ctrl.minnames ctrl.useauthor ctrl.useeditor ctrl.usetranslator
-           ctrl.useprefix ctrl.terseinits ctrl.labelalpha ctrl.singletitle
+           ctrl.useprefix ctrl.labelalpha ctrl.singletitle
            ctrl.labeldate citecount 
            tempctra tempctrb tempctrc resvctra resvctrb resvctrc
            last.extra.num }
@@ -178,7 +178,6 @@ FUNCTION {initialize} {
   #12 entry.max$ substring$
   #-3 entry.max$ substring$
   "Biblatex version: " swap$ * top$
-   #0  'ctrl.terseinits :=
    #0  'ctrl.debug :=
    #0  'ctrl.labelalpha :=
    #0  'ctrl.labeldate :=
@@ -1852,7 +1851,6 @@ FUNCTION {input:control} {
         { input:control:options 'ctrl.debug :=
           input:control:options 'ctrl.bibtex8 :=
           input:control:options 'ctrl.cssort :=
-          input:control:options 'ctrl.terseinits :=
           input:control:options 'ctrl.useprefix :=
           input:control:options 'ctrl.useauthor :=
           input:control:options 'ctrl.useeditor :=
