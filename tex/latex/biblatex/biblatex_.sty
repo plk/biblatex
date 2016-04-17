@@ -5645,6 +5645,45 @@
   \catcode\endlinechar=12\relax
   \blx@bbl@verbadd@i}
 
+% {<scope>}{<field>}{<itemcount>}{<part>}{<value>}
+\protected\def\blx@bbl@annotationdef#1#2#3#4#5{%
+  \ifboolexpr { test {\ifstrequal{#1}{field}} }
+     {\csxappto\blx@bbl@data{%
+         \def\do####1{\listcsadd{abx@annotation@#1@#2}{####1}}%
+         \docsvlist{#5}}}
+     {}%
+  \ifboolexpr { test {\ifstrequal{#1}{item}} }
+     {\csxappto\blx@bbl@data{%
+         \def\do####1{\listcsadd{abx@annotation@#1@#2@#3}{####1}}%
+         \docsvlist{#5}}}
+     {}%
+  \ifboolexpr { test {\ifstrequal{#1}{part}} }
+     {\csxappto\blx@bbl@data{%
+         \def\do####1{\listcsadd{abx@annotation@#1@#2@#3@#4}{####1}}%
+         \docsvlist{#5}}}
+     {}}
+
+% {<annotation>}
+\newcommand*{\iffieldannotation}[1]{%
+  \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
+  \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
+  \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
+  \ifinlistcs{#1}{abx@annotation@field@\blx@tempa}}
+
+% {<annotation>}
+\newcommand*{\ifitemannotation}[1]{%
+  \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
+  \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
+  \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
+  \ifinlistcs{#1}{abx@annotation@item@\blx@tempa @\the\value{listcount}}}
+
+% {<part>}{<annotation>}
+\newcommand*{\ifpartannotation}[2]{%
+  \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
+  \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
+  \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
+  \ifinlistcs{#2}{abx@annotation@part@\blx@tempa @\the\value{listcount}@#1}}
+
 \begingroup
 \catcode`\<=12
 \catcode`\>=12
@@ -6128,7 +6167,8 @@
   \let\verb\blx@bbl@verbdef
   \let\endverb\blx@bbl@verbend
   \let\lverb\blx@bbl@verbldef
-  \let\endlverb\blx@bbl@verblend}
+  \let\endlverb\blx@bbl@verblend
+  \let\annotation\blx@bbl@annotationdef}
 
 \def\blx@bblend{}
 
