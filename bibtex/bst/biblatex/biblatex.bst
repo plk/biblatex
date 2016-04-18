@@ -1395,6 +1395,7 @@ FUNCTION {output:specials} {
     'skip$
   if$
   "sortinit"        sortinit        output:write:field
+  "sortinithash"    sortinit        output:write:field
   singletitle
     { "singletitle" #1 output:write:bool }
     'skip$
