@@ -200,6 +200,55 @@
 \protected\def\blx@bibreq#1{%
   \blx@auxwrite\blx@aux{}{\string\citation{#1}}}
 
+% {<string>}
+% This mustn't be robust as it's likely to be used mainly tests and so
+% needs to be expandable
+\renewcommand*\rangelen[1]{%
+  \ifblank{#1}
+    {0}%
+    {%
+      \expandafter\blx@rangelen@range\romannumeral-`\q%
+      #1\bibrangedash\bibrangedash&%
+    }%
+  }
+
+\def\blx@rangelen@range#1\bibrangedash#2\bibrangedash#3&{%
+  \ifblank{#3}
+    {\blx@rangelen@hyphen#1--&}
+    {\blx@rangelen@check{#1}{#2}}%
+}
+\def\blx@rangelen@hyphen#1-#2-#3&{%
+  \ifblank{#3}
+    {1}% No range at all: assume one page
+    {\blx@rangelen@check{#1}{#2}}%
+}
+\def\blx@rangelen@check#1#2{%
+  \expandafter\blx@rangelen@check@aux
+    \number\numexpr
+      \blx@rangelen@check@int{#2}
+      -
+      \blx@rangelen@check@int{#1}
+      + 1
+    \relax
+    &\stop
+}
+\def\blx@rangelen@check@aux#1&#2\stop{%
+  \ifblank{#2}
+    {#1}
+    {-1}%
+}
+\def\blx@rangelen@check@int#1{%
+  \ifblank{#1}
+    {0&}
+    {%
+      \if\number\numexpr0#1-0#1\relax0
+        #1
+      \else
+        0&
+      \fi
+    }%
+}
+
 % xref support
 
 % {<entrykey>}
