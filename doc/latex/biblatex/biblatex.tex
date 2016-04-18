@@ -3035,6 +3035,121 @@ The chronological sorting schemes presented in \apxref{apx:srt:chr} also make us
 
 Using special fields such as \bibfield{sortkey}, \bibfield{sortname}, or \bibfield{sorttitle} is usually not required. The \biblatex package is quite capable of working out the desired sorting order by using the data found in the regular fields of an entry. You will only need them if you want to manually modify the sorting order of the bibliography or if any data required for sorting is missing. Please refer to the field descriptions in \secref{bib:fld:spc} for details on possible uses of the special fields. Also note that using \biber instead of legacy \bibtex is strongly recommended.
 
+\subsection{Data Annotations}\BiberOnlyMark
+\label{use:annote}
+Ideally, there should be no formatting information in a bibliography data file, however, sometimes such questionable practice seems to the only way in which the desired results can be achieved. Data annotations are a way of addressing this by allowing users to attach semantic information (rather than typographical markup) to information in a bibliography data source so that the information can be used at markup time by a style. For example, if you wanted to highlight certain names in a work depending on whether they were a student author (indicated by a superscript asterisk in the references) or a corresponding author (indicated by bold face), then you might be tempted to try:
+
+\begin{lstlisting}[style=bibtex]{}
+@MISC{Article1,
+  AUTHOR = {Last1\textsuperscript{*}, First1 and \textbf{Last2}, \textbf{First2} and Last3, First3}
+}
+\end{lstlisting}
+%
+There are several problems with this. Firstly, it will break \bibtex's fragile name parsing routines and probably won't compile at all. Secondly, it is not only mixing up data with markup, it does so in a hard-coded way: this data can't easily be shared and used with other styles. While it is possible to achieve this formatting using \biblatex internals in a style or document, this is a complex and unreliable method which many users will not wish to use.
+
+In order to address these issues, \biblatex has a general data annotation facility which allows you to attach a comma"=separated list of annotations to data fields, items within data field lists (like names) and even parts of specific items such as parts of names (given name, family name etc.). There are macros provided to check for annotations which can be used in formatting directives.
+
+There are three «scopes» for data annotations, in order of increasing specificity:
+
+\begin{itemize}
+\item \opt{field}---applied to top-level fields in a data source entry
+\item \opt{item}---applied to items within a list field in a data source entry
+\item \opt{part}---applied to parts within items within a list field in a data source entry
+\end{itemize}
+%
+Attaching annotations to data is easy in \biblatexml data sources as they are specified by simple XML attrbutes. Continuing with the example above, we would have:
+
+\begin{lstlisting}[language=xml]
+<bltx:entries xmlns:bltx="http://biblatex-biber.sourceforge.net/biblatexml">
+  <bltx:entry id="test" entrytype="misc">
+    <bltx:names type="author">
+      <bltx:name>
+        <bltx:namepart type="given" initial="F">First1</bltx:namepart>
+        <bltx:namepart type="family" initial="L" annotation="student">Last1</bltx:namepart>
+      </bltx:name>
+      <bltx:name annotation="corresponding">
+        <bltx:namepart type="given" initial="F">First2</bltx:namepart>
+        <bltx:namepart type="family" initial="L">Last2</bltx:namepart>
+      </bltx:name>
+      <bltx:name>
+        <bltx:namepart type="given" initial="F">First3</bltx:namepart>
+        <bltx:namepart type="family" initial="L">Last3</bltx:namepart>
+      </bltx:name>
+    </bltx:names>
+  </bltx:entry>
+</bltx:entries>
+\end{lstlisting}
+%
+Here the annotations are attached in an obvious way to the data items. With \bibtex data sources, the format for annotations is not quite as intuitive:
+
+\begin{lstlisting}[style=bibtex]{}
+@MISC{ann1,
+  AUTHOR    = {Last1, First1 and Last2, First2 and Last3, First3},
+  AUTHOR+an = {1:family=student;2=corresponding},
+}
+\end{lstlisting}
+%
+Here the field name suffix \texttt{+an} is a user-definable\footnote{See \biber's \opt{--annotation-marker} option.} suffix which marks a data field as an annotation of the unsuffixed field. The format of annotation fields in \bibtex data sources is is as follows:
+
+\begin{lstlisting}
+<annotationspecs> ::= <annotationspec> [ ";" <annotationspec> ]
+<annotationspec>  ::= [ <itemcount> [ ":" <part> ] ] "=" <annotations>
+<annotations>     ::= <annotation> [ "," <annotation> ]
+<annotation>      ::= (string)
+\end{lstlisting}
+%
+That is, one or more specifications separated by semi-colons. Each specification is an equals sign followed by a comma"=separated list of annotation keywords. To annotation a specific item in a list, put the number of the list item before the equals sign (lists start at 1). If you need to annotate a specific part of the list item, give its name after the list item number, preceded by a colon. Name part names are defined in the data model, see \secref{aut:bbx:drv}. Some examples:
+
+\begin{lstlisting}[style=bibtex]{}
+AUTHOR      = {Last1, First1 and Last2, First2 and Last3, First3},
+AUTHOR+an   = {3:given=annotation1, annotation2},
+TITLE       = {A title},
+TITLE+an    = {=a title annotation, another title annotation},
+LANGUAGE    = {english and french},
+LANGUAGE+an = {1=annotation3; 2=annotation4}
+}
+\end{lstlisting}
+%
+To access the annotation information whe formatting bibliography data, three macros are provided, corresponding to the three annotation scopes:
+
+\begin{ltxsyntax}
+
+\cmditem{iffieldannotation}{annotation}{true}{false}
+
+Executes \prm{true} if the current data field has an annotation \prm{annotation} and false otherwise.
+
+\cmditem{ifitemannotation}{annotation}{true}{false}
+
+Executes \prm{true} if the current item in the current data field has an annotation \prm{annotation} and false otherwise.
+
+\cmditem{ifpartannotation}{part}{annotation}{true}{false}
+
+Executes \prm{true} if the part named \prm{part} in current item in the current data field has an annotation \prm{annotation} and false otherwise.
+
+\end{ltxsyntax}
+%
+These macros are available in the same places as \cmd{currentfield}, \cmd{currentlist} and \cmd{currentname} (see \secref{aut:bib:fmt}), that is, inside formatting directives. They automatically determine the name of the current data field being processed and also the current \opt{listcount} value which determines the current item in list fields. Parts such as name parts need to be named explicilty. As an example of how to use the annotation information to solve the problem originally presented in this section, this could be used in the name formatting directives to put an asterisk after all family names annotated as «student»:
+
+\begin{lstlisting}[style=latex]{}
+  \ifpartannotation{family}{student}
+    {\textsuperscript{*}}
+    {}%
+\end{lstlisting}
+%
+To put the given and family names of name list items annotated as «corresponding» in boldface:
+
+\begin{lstlisting}[style=latex]{}
+\renewcommand*{\mkbibnamegiven}[1]{%
+  \ifitemannotation{corresponding}
+    {\textbf{#1}}
+    {#1}}
+
+\renewcommand*{\mkbibnamefamily}[1]{%
+  \ifitemannotation{corresponding}
+    {\textbf{#1}}
+    {#1}}
+\end{lstlisting}
+
 \subsection{Bibliography Commands}
 \label{use:bib}
 
@@ -12066,8 +12181,9 @@ This revision history is a list of changes relevant to users of this package. Ch
 \begin{changelog}
 
 \begin{release}{3.4}{2016-03}
+\item Added data annotation feature\see{use:annote}\BiberOnlyMark
 \item Added package option \opt{minxrefs}\see{use:opt:pre:gen}\BiberOnlyMark
-\item Added \cmd{\ifuniqueprimaryauthor} and associated global option\see{aut:aux:tst}
+\item Added \cmd{ifuniqueprimaryauthor} and associated global option\see{aut:aux:tst}
 \item Added \cmd{DeprecateField}, \cmd{DeprecateList} and \cmd{DeprecateName}\see{aut:bib:dat}
 \item Added \cmd{ifcaselang}\see{aut:aux:tst}
 \item Added \cmd{DeclareSortTranslit}\see{aut:ctm:srt}\BiberOnlyMark
