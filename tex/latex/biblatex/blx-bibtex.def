@@ -200,6 +200,72 @@
 \protected\def\blx@bibreq#1{%
   \blx@auxwrite\blx@aux{}{\string\citation{#1}}}
 
+% xref support
+
+% {<entrykey>}
+\protected\def\blx@bbl@xref#1{%
+  \ifcsdef{blx@refp@\the\c@refsection @\detokenize{#1}}
+    {}
+    {\listcsxadd{blx@refs@\the\c@refsection}{\detokenize{#1}}}%
+  \listcsxadd{blx@refp@\the\c@refsection @\detokenize{#1}}{\abx@field@entrykey}%
+  \csxdef{blx@refc@\the\c@refsection @\abx@field@entrykey}{\detokenize{#1}}}
+
+\def\blx@addxref#1{%
+  \blx@ifdata{#1}
+    {\begingroup
+     \def\do##1{%
+       \csgappto{blx@data@\the\c@refsection @##1}{%
+         \def\abx@field@xref{#1}}}%
+     \dolistcsloop{blx@refp@\the\c@refsection @#1}%
+     \endgroup}
+    {}%
+  \global\csundef{blx@refp@\the\c@refsection @#1}}
+
+\def\blx@bblend{%
+  \ifcsdef{blx@refs@\the\c@refsection}%
+    {\begingroup
+     \let\do\blx@addxref
+     \dolistcsloop{blx@refs@\the\c@refsection}%
+     \endgroup
+     \global\csundef{blx@refs@\the\c@refsection}}
+    {}%
+  \iftoggle{blx@addset}
+    {\blx@addset
+     \global\togglefalse{blx@addset}}
+    {}}
+
+\def\blx@citation#1#2{%
+  \ifbool{citerequest}
+    {\ifcsdef{blx@setp@\the\c@refsection @#1}
+       {\blx@citation@set{#1}{#2}}
+       {\ifcsdef{blx@setc@\the\c@refsection @#1}
+         {\blx@citation@inset{#1}{#2}}
+         {\blx@citation@entry{#1}{#2}}}%
+     \ifcsdef{blx@refc@\the\c@refsection @#1}%
+       {\blx@citation@xref{#1}}
+       {}}
+    {}}
+
+\def\blx@citation@xref#1{%
+  \begingroup
+  \edef\blx@tempa{blx@refp@\the\c@refsection @%
+          \csname blx@refc@\the\c@refsection @#1\endcsname}%
+  \ifcsdef\blx@tempa
+    {\ifinlistcs{#1}\blx@tempa
+       {}
+       {\listcsxadd\blx@tempa{#1}}%
+     \blx@tempcnta\z@
+     \def\do##1{\advance\blx@tempcnta\@ne}%
+     \dolistcsloop\blx@tempa}
+    {\listcsxadd\blx@tempa{#1}%
+     \blx@tempcnta\@ne}%
+  \expandafter\endgroup\ifnum\blx@tempcnta<\blx@minxrefs\relax
+  \else
+    \expandafter\expandafter\expandafter\blx@citation@entry
+    \expandafter\expandafter\expandafter{%
+      \csname blx@refc@\the\c@refsection @#1\endcsname}\blx@msg@cundef
+  \fi}
+
 % Control file
 
 \edef\blx@ctrl{%
