@@ -1017,7 +1017,10 @@ FUNCTION {sortkey:main} {
                 { sortkey.alpha * }
                 { shorthand purify * }
               if$
-              delimiter.1 *
+              duplicate$ empty$
+                'skip$
+                { delimiter.1 * }
+              if$
               ctrl.sorting #10 - sortkey:main:string
             }
             { ctrl.sorting #30 <
