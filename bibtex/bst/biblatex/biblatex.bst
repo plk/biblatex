@@ -163,7 +163,7 @@ ENTRY {
     sortinit label.name label.year sortkey.nosort sortkey.name sortkey.year
     sortkey.title sortkey.alpha sort.year sort.alph warningmsg }
 
-INTEGERS { ctrl.debug ctrl.bibtex8 ctrl.maxline ctrl.sorting ctrl.cssort ctrl.sortlos 
+INTEGERS { ctrl.debug ctrl.bibtex8 ctrl.maxline ctrl.sorting ctrl.cssort
            ctrl.maxnames ctrl.minnames ctrl.useauthor ctrl.useeditor ctrl.usetranslator
            ctrl.useprefix ctrl.labelalpha ctrl.singletitle
            ctrl.labeldate citecount 
@@ -184,7 +184,6 @@ FUNCTION {initialize} {
    #0   'ctrl.labeldate :=
    #0   'ctrl.singletitle :=
    #0   'ctrl.sorting :=
-   #0   'ctrl.sortlos :=
    #1   'ctrl.useauthor :=
    #1   'ctrl.useeditor :=
    #0   'ctrl.usetranslator :=
@@ -1865,7 +1864,6 @@ FUNCTION {input:control} {
           input:control:options 'ctrl.labeldate :=
           input:control:options 'ctrl.singletitle :=
           input:control:options 'ctrl.sorting :=
-          input:control:options 'ctrl.sortlos :=
           input:control:options 'ctrl.maxnames :=
           input:control:options 'ctrl.minnames :=
           input:control:options 'ctrl.maxline :=
