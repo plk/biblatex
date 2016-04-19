@@ -247,6 +247,46 @@
 % Alter message text
 \patchcmd{\blx@bbl@warn}{Biber}{BibTeX}{}{}
 
+%% Data input
+
+\def\blx@bblfile@bibtex{%
+  \blx@secinit
+  \begingroup
+  \blx@bblstart
+  \ifnum\c@refsection>\z@
+    \edef\blx@auxfile{\jobname\the\c@refsection\blxauxsuffix}%
+  \else
+    \edef\blx@auxfile{\jobname}%
+  \fi
+  \blx@ifsigned{\blx@auxfile}{bbl}
+    {\InputIfFileExists{\blx@auxfile.bbl}
+       {\blx@info@noline{... file '\blx@auxfile.bbl' found}}
+       {\blx@info@noline{... file '\blx@auxfile.bbl' not found}%
+        \typeout{No file \blx@auxfile.bbl.}}}
+    {}%
+  \blx@bblend
+  \endgroup
+  \csnumgdef{blx@labelnumber@\the\c@refsection}{0}}
+
+\def\blx@refsection@ii{%
+  \xdef\blx@auxfile{\jobname\the\c@refsection\blxauxsuffix}%
+  \blx@regbibfiles\blx@auxfile\blx@bibfiles
+  \blx@logreq@inactive
+  \blx@ifsigned{\blx@auxfile}{aux}
+    {\immediate\openout\blx@write\blx@auxfile.aux\relax
+     \global\let\blx@auxfile\blx@write
+     \blx@auxinit\blx@bibfiles}
+    {}}
+
+\def\blx@endrefsection{%
+  \blx@endrefsegment
+  \ifx\blx@auxout\blx@write
+    \immediate\closeout\blx@write
+    \global\let\blx@auxout\@mainaux
+    \xdef\blx@auxfile{\jobname}%
+  \fi
+  \global\c@refsection\z@}
+
 % xref support
 
 % {<entrykey>}
