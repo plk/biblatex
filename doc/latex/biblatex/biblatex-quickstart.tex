@@ -1,7 +1,16 @@
 \documentclass{ltxdockit}[2011/03/25]
+\usepackage{btxdockit}
+
+\newcommand*{\biber}{\sty{biber}\xspace}
+\newcommand*{\biblatex}{\sty{biblatex}\xspace}
+\newcommand*{\biblatexml}{\sty{biblatexml}\xspace}
+\newcommand*{\ris}{\sty{RIS}\xspace}
+\newcommand*{\biblatexhome}{http://sourceforge.net/projects/biblatex/}
+\newcommand*{\biblatexctan}{%
+  http://www.ctan.org/tex-archive/macros/latex/contrib/biblatex/}
 \usepackage{xr-hyper}
 \externaldocument{biblatex}
-\usepackage{btxdockit}
+
 \usepackage{fontspec}
 \setmonofont{Courier New}
 \setmainfont[Ligatures=TeX]{Linux Libertine O}
@@ -49,13 +58,7 @@
 \MakeAutoQuote*{<}{>}
 \MakeShortVerb{\|}
 
-\newcommand*{\biber}{\sty{biber}\xspace}
-\newcommand*{\biblatex}{\sty{biblatex}\xspace}
-\newcommand*{\biblatexml}{\sty{biblatexml}\xspace}
-\newcommand*{\ris}{\sty{RIS}\xspace}
-\newcommand*{\biblatexhome}{http://sourceforge.net/projects/biblatex/}
-\newcommand*{\biblatexctan}{%
-  http://www.ctan.org/tex-archive/macros/latex/contrib/biblatex/}
+\newcommand*{\msecref}[1]{B:\secref{#1}}
 
 \titlepage{%
   title={\biblatex Quickstart Guide},
@@ -103,13 +106,6 @@
   \DeclareRobustCommand{\fnurl}{\hyper@normalise\fnurl@}
 \makeatother
 
-\hyphenation{%
-  star-red
-  bib-lio-gra-phy
-  white-space
-}
-
-
 \begin{document}
 
 \printtitlepage
@@ -123,7 +119,7 @@
 
 \biblatex tracks the citations you make in your document and the options you set to control how the citations are managed. It passes these to a backend processor \biber\footnote{At time of writing, \biblatex supports two backend processors, \biber and legacy \bibtex. New users, who are the focus audience for this guide, should use \biber.} which performs some tasks and then writes out a sorted representation of the bibliography data. \biblatex then uses this information on subsequent runs of \latex to format and print a bibliography. You can see the general workflow in figure \ref{fig1}.
 
-See the appendix \secref{apx:hist} for some history about how \biblatex started, and how it differs from \bibtex.
+See the appendix \secref{apx:hist} for some history about how \biblatex started, and how it differs from \bibtex. References to the main \biblatex documentation file are formatted as follows below: \msecref{int}.
 
 \section{Getting Started}
 
@@ -231,19 +227,36 @@ in \cite{work1} and also in \cite{work2}.
 \end{document}
 \end{ltxexample}
 %
-See the main \biblatex manual \ref{int:pre} for details about required, recommended or incompatible packages.
-
+See the main \biblatex manual \ref{int:pre} for details about required, recommended or incompatible packages. \biblatex comes with many example files which are placed in the \path{doc/latex/biblatex/examples} subdirectory of the \file{texmf} tree. These are annotated and very useful for learning how to do various things.
 
 \section{Changing Things \ldots}
 
-The \biblatex package options are detailed in the \biblatex manual (\secref{use}).
+The \biblatex package options are detailed in the \biblatex manual (\msecref{use}).
 
-\subsection{}
+\subsection{Choosing a style}
 
+The first option you will want to specify is the \opt{style} option. This decides the formatting of your bibliography and citations. There are several standard styles which \biblatex offers (\msecref{use:xbx}). You may have separate styles for the bibliograpy and citations by using the \opt{bibstyle} and \opt{citestyle} options respectively. \opt{style} sets both \opt{bibstyle} and \opt{citestyle}:
 
+\begin{ltxexample}[style=latex]{}
+\usepackage[citestyle=authoryear, bibstyle=authortitle]{biblatex}
+\end{ltxexample}
 
+\subsection{Migrating from natbib}
+\biblatex has a compatibility setting which you can use to emulate standard \sty{natbib} commands (\msecref{use:cit:nat}) and it is enabled like this:
 
+\begin{ltxexample}[style=latex]{}
+\usepackage[natbib=true]{biblatex}
+\end{ltxexample}
 
+\subsection{Sorting the bibliography}
+
+One of the main purposes of a bibliography system is to sort the bibliography correctly. This might be by author names in a humanties paper or by a label or number for a physical sciences paper, for example. Sorting with \biblatex is completely customisable and very sophisticated, supporting full Unicode\footnote{Using an implementation of the Unicode Collation Algorithm (UCA) with Common Locale Data Repository (CLDR) tailoring.} Sorting is done by defining a sorting «scheme», which is given a name. The scheme name is then used as the value of the sorting options. To set the default, global sorting scheme, use the \opt{sorting} package option:
+
+\begin{ltxexample}[style=latex]{}
+\usepackage[sorting=ynt]{biblatex}
+\end{ltxexample}
+%
+There are several pre-defined sorting schemes (\msecref{use:opt:pre:gen}). You may also define your own sorting schemes (\msecref{aut:ctm:srt}) or override the global sorting scheme and use different sorting schemes for different bibliography lists (\msecref{use:bib:context}).
 
 % \begin{lstlisting}[style=bibtex]{}
 % \end{lstlisting}
@@ -255,7 +268,11 @@ The \biblatex package options are detailed in the \biblatex manual (\secref{use}
 
 \section{History}
 \label{apx:hist}
-\biblatex was developed to allow bibliography styles to be created using \TeX macros rather than the somewhat obscure and tricky stack language used in \bibtex \file{.bst} style files. It is very important to distinguish between \bibtex the \emph{program} and \bibtex the \emph{file format}. «\bibtex» is the name of a program you run to generate a bibliography file (\file{.bbl}) for you document. \bibtex the program does five main things:
+\biblatex was developed to allow bibliography styles to be created using
+\TeX macros rather than the somewhat obscure and tricky stack language used
+in \bibtex \file{.bst} style files. It is very important to distinguish
+between \bibtex the \emph{program} and \bibtex the \emph{file format}.
+«\bibtex» is the name of a program which generates a bibliography file (\file{.bbl}) for you document. \bibtex the program does five main things:
 
 \begin{enumerate}
 \item Reads the \file{.aux} to find out what citations were used
@@ -277,7 +294,7 @@ In a sense, \biblatex abused \bibtex for its data reading and sorting functions 
 %
 \biber now fulfills these goals along with a large additional feature set. \biblatex with \biber still supports (and always will) the \bibtex file format (\file{.bib}) as this is the most widely used format in the \latex world. However, it is not limited to this and supports other data formats with a modular internal design to allow relatively easy addition of other data formats.
 
-\biber takes over all of the tasks previously done by \bibtex for \biblatex. One change is that \biber does not read the \file{.aux} file but reads a much more complex and structured file which \biblatex uses to pass information to \biber. This is the XML format \file{.bcf}, the Biblatex Control File. See Figure \ref{fig1} for an overview.
+\biber takes over all of the tasks previously done by \bibtex for \biblatex. One change is that \biber does not read the \file{.aux} file but reads a more complex and structured file which \biblatex uses to pass information to \biber. This is the XML format \file{.bcf}, the Biblatex Control File. See Figure \ref{fig1} for an overview.
 
 \begin{figure}
   \centering
