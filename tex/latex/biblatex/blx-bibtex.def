@@ -248,7 +248,9 @@
 
 %% Data input
 
-\def\blx@bblfile@bibtex{%
+\patchcmd{\blx@bblinput}{\blx@bblfile}{\blx@bblfile\blx@bblsecs}{}{}
+
+\def\blx@bblfile{%
   \blx@secinit
   \begingroup
   \blx@bblstart
@@ -266,6 +268,14 @@
   \blx@bblend
   \endgroup
   \csnumgdef{blx@labelnumber@\the\c@refsection}{0}}
+
+\def\blx@bblsecs{%
+  \advance\c@refsection\@ne
+  \ifnum\c@refsection>\blx@maxsection
+  \else
+    \blx@bblfile
+    \expandafter\blx@bblsecs
+  \fi}
 
 \def\blx@refsection@ii{%
   \xdef\blx@auxfile{\jobname\the\c@refsection\blxauxsuffix}%
