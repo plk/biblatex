@@ -1170,6 +1170,10 @@ FUNCTION {output:write:verb} {
   if$
 }
 
+FUNCTION {output:write:name:hash} {
+  templist tempctra "{v{}}{l{}}{f{}}{j{}}" format.name$ purify$
+}
+
 FUNCTION {output:write:name:last} {
   templist tempctra "{ll}" format.name$
   duplicate$ 'tempstrga :=
@@ -1268,7 +1272,7 @@ FUNCTION {output:write:name} {
       "" wrap:braces *
       "{%" * output:indent:field
       { tempctrb #0 > }
-        { "{{}{%" output:indent:subfield
+        { "{{hash=" output:write:name:hash * "}{%" * output:indent:subfield
           output:write:name:prefix
           output:write:name:last
           output:write:name:suffix
