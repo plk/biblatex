@@ -101,7 +101,7 @@ then
   # normal
   [[ -e obuild/flat ]] || mkdir obuild/flat
   \rm -rf obuild/flat/*
-  mkdir -p obuild/flat/bibtex/{bib,bst,csf}
+  mkdir -p obuild/flat/bibtex/{bib,bst}
   mkdir -p obuild/flat/bibtex/bib/biblatex
   mkdir -p obuild/flat/doc/examples
   mkdir -p obuild/flat/latex/{cbx,bbx,lbx}
@@ -112,7 +112,6 @@ then
   cp bibtex/bltxml/biblatex/biblatex-examples.bltxml obuild/flat/bibtex/bib/biblatex/  
   cp bibtex/bltxml/biblatex/biblatex-examples.bltxml obuild/flat/doc/examples/
   cp bibtex/bst/biblatex/biblatex.bst obuild/flat/bibtex/bst/
-  cp bibtex/csf/biblatex/*.csf obuild/flat/bibtex/csf/
   cp doc/latex/biblatex/biblatex.pdf obuild/flat/doc/ 2>/dev/null
   cp doc/latex/biblatex/biblatex.tex obuild/flat/doc/
   cp -r doc/latex/biblatex/examples obuild/flat/doc/
