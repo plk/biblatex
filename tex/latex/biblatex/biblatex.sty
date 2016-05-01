@@ -469,6 +469,7 @@
 \newbool{backtracker}
 \newbool{citerequest}
 \booltrue{citerequest}
+\newbool{sortcites}
 
 \newtoggle{blx@bbldone}
 \newtoggle{blx@tempa}
@@ -8030,11 +8031,15 @@
   % If there was one due to appearance in a bib/biblist, use it
   % otherwise fall back on global refcontext. This can happen for cites
   % made (a bit strangely but some styles do this) inside a biblist
-  % which never appear in any printed bib/biblist and do have no default
+  % which never appear in any printed bib/biblist and therefore have no default
   % refcontext defined
-  \ifcsdef{blx@assignedrefcontextbib@\the\c@refsection @#1}
-    {\letcs\blx@refcontext@context{blx@assignedrefcontextbib@\the\c@refsection @#1}}
-    {\edef\blx@refcontext@context{\blx@sorting/global/}}%
+  % However, only do this is sortcites is not defined for in this case, we want to use
+  % the current refcontext in which the cites occur
+  \ifbool{sortcites}
+    {}
+    {\ifcsdef{blx@assignedrefcontextbib@\the\c@refsection @#1}
+      {\letcs\blx@refcontext@context{blx@assignedrefcontextbib@\the\c@refsection @#1}}
+      {\edef\blx@refcontext@context{\blx@sorting/global/}}}%
   % assignment via keyword list
   \ifdef\blx@assignedrefcontextkeywlist
     {\def\do##1{%
@@ -11288,7 +11293,8 @@
 \DeclareBibliographyOption[boolean]{sortcites}[true]{%
   \ifstrequal{#1}{true}
     {\let\blx@thecitesort\blx@citesort
-     \let\blx@thenotecheck\blx@notecheck}
+     \let\blx@thenotecheck\blx@notecheck
+     \booltrue{sortcites}}
     {\let\blx@thecitesort\blx@citenosort
      \let\blx@thenotecheck\relax}}
 
