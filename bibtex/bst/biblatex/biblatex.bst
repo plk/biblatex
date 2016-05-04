@@ -456,6 +456,30 @@ FUNCTION {push:fullname} {
   if$
 }
 
+FUNCTION {push:labelname:editor} {
+  useeditor
+    { shorteditor empty$
+        { author empty$
+            { push:labelname:translator }
+            { "editor" }
+          if$
+        }
+        { "shorteditor" }
+      if$  
+    }
+    { push:labelname:translator }
+  if$
+}
+
+FUNCTION {push:labelname:translator} {
+  translate empty$ not
+  usetranslator
+  and
+    { "translator" }
+    { "" }
+  if$
+}
+
 FUNCTION {push:shortname:translator} {
   translator empty$ not
   usetranslator
@@ -560,6 +584,21 @@ FUNCTION {push:name:fullhash} {
       if$
     }
     { #0 shortname:hash }
+  if$
+}
+
+FUNCTION {push:labelname} {
+  useauthor
+    { shortauthor empty$
+        { author empty$
+            { push:labelname:editor }
+            { "author" }
+          if$
+        }
+        { "shortauthor" }
+      if$  
+    }
+    { push:labelname:editor }
   if$
 }
 
@@ -1372,6 +1411,7 @@ FUNCTION {output:specials} {
     { shorthand }
   if$
   "label"           swap$           output:write:field
+  "labelnamesource" push:labelname  output:write:field
   ctrl.labelalpha
     { "labelalpha"  labelalpha      output:write:field
       "extraalpha"  extraalpha      output:write:field
