@@ -1410,8 +1410,17 @@ FUNCTION {output:specials} {
     { label }
     { shorthand }
   if$
-  "label"           swap$           output:write:field
-  "labelnamesource" push:labelname  output:write:field
+  "label"            swap$          output:write:field
+  "labelnamesource"  push:labelname output:write:field
+  shorttitle empty$
+    { title empty$
+       { "" }
+       { "title" }
+      if$
+    }
+    { "shorttitle" }
+  if$
+  "labeltitlesource" swap$          output:write:field
   ctrl.labelalpha
     { "labelalpha"  labelalpha      output:write:field
       "extraalpha"  extraalpha      output:write:field
