@@ -456,6 +456,15 @@ FUNCTION {push:fullname} {
   if$
 }
 
+FUNCTION {push:labelname:translator} {
+  translator empty$ not
+  usetranslator
+  and
+    { "translator" }
+    { "" }
+  if$
+}
+
 FUNCTION {push:labelname:editor} {
   useeditor
     { shorteditor empty$
@@ -468,15 +477,6 @@ FUNCTION {push:labelname:editor} {
       if$  
     }
     { push:labelname:translator }
-  if$
-}
-
-FUNCTION {push:labelname:translator} {
-  translate empty$ not
-  usetranslator
-  and
-    { "translator" }
-    { "" }
   if$
 }
 
