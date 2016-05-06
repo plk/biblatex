@@ -253,7 +253,9 @@ Test file: $f
 
 PDFLaTeX errors/warnings
 ------------------------"  >> ../example_errs_bibtex.txt
-      grep -E -i "(error|warning):" ${f%.tex}.log >> ../example_errs_bibtex.txt
+      # Use GNU grep to all PCRE as we want to ignore the legacy bibtex
+      # warning in 3.4+
+      /opt/local/bin/grep -P '(?:[Ee]rror|[Ww]arning):(?! Using fall-back)' ${f%.tex}.log >> ../example_errs_bibtex.txt
       if [[ $? -eq 0 ]]; then bibtexflag=true; fi
       grep -E -A 3 '^!' ${f%.tex}.log >> ../example_errs_bibtex.txt
       if [[ $? -eq 0 ]]; then bibtexflag=true; fi
