@@ -468,7 +468,7 @@ FUNCTION {push:labelname:translator} {
 FUNCTION {push:labelname:editor} {
   useeditor
     { shorteditor empty$
-        { author empty$
+        { editor empty$
             { push:labelname:translator }
             { "editor" }
           if$
