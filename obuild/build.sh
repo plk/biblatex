@@ -156,9 +156,9 @@ then
 
   perl -pi.bak -e 's|DATEMARKER|\\today|;' biblatex.tex
 
-  lualatex -interaction=batchmode biblatex.tex
-  lualatex -interaction=batchmode biblatex.tex
-  lualatex -interaction=batchmode biblatex.tex
+  lualatex --interaction=batchmode biblatex.tex
+  lualatex --interaction=batchmode biblatex.tex
+  lualatex --interaction=batchmode biblatex.tex
 
   \rm *.{aux,bbl,bcf,blg,log,run.xml,toc,out,lot} 2>/dev/null
 
@@ -222,14 +222,14 @@ then
       echo -n "File (bibtex): $f ... "
       exec 4>&1 7>&2 # save stdout/stderr
       exec 1>/dev/null 2>&1 # redirect them from here
-      pdflatex -interaction=batchmode ${f%.tex}
+      pdflatex --interaction=batchmode ${f%.tex}
       bibtex ${f%.tex}
       # Any refsections? If so, need extra bibtex runs
       for sec in ${f%.tex}*-blx.aux
       do
         bibtex $sec
       done
-      pdflatex -interaction=batchmode ${f%.tex}
+      pdflatex --interaction=batchmode ${f%.tex}
       # Need a second bibtex run to pick up set members
       if [[ $f == 20-indexing-* || $f == 21-indexing-* ]]
       then
@@ -244,7 +244,7 @@ then
           makeindex -o year-title.ind year-title.idx
       fi
       bibtex ${f%.tex}
-      pdflatex -interaction=batchmode ${f%.tex}
+      pdflatex --interaction=batchmode ${f%.tex}
       exec 1>&4 4>&- # restore stdout
       exec 7>&2 7>&- # restore stderr
       # Now look for latex/bibtex errors and report ...
@@ -298,12 +298,12 @@ PDFLaTeX errors/warnings
       echo -n "File (biber): $f ... "
       exec 4>&1 7>&2 # save stdout/stderr
       exec 1>/dev/null 2>&1 # redirect them from here
-      $TEXENGINE -interaction=batchmode ${f%.tex}
+      $TEXENGINE --interaction=batchmode ${f%.tex}
       # using output safechars as we are using fontenc and ascii in the test files
       # so that we can use the same test files with bibtex which only likes ascii
       # biber complains when outputting ascii from it's internal UTF-8
       biber $BIBEROPTS --onlylog ${f%.tex}
-      $TEXENGINE -interaction=batchmode ${f%.tex}
+      $TEXENGINE --interaction=batchmode ${f%.tex}
       if [[ $f == 20-indexing-* || $f == 21-indexing-* ]]
       then
         makeindex -o ${f%.tex}.ind ${f%.tex}.idx
@@ -316,7 +316,7 @@ PDFLaTeX errors/warnings
           makeindex -o name-title.ind name-title.idx
           makeindex -o year-title.ind year-title.idx
       fi
-      $TEXENGINE -interaction=batchmode ${f%.tex}
+      $TEXENGINE --interaction=batchmode ${f%.tex}
       exec 1>&4 4>&- # restore stdout
       exec 7>&2 7>&- # restore stderr
   
