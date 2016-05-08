@@ -2292,7 +2292,12 @@ FUNCTION {makelabel:ctrl:alpha:format} {
       if$
       makelabel:alpha:year *
     }
-    { pop$ "" }
+    { pop$
+      ctrl.labelalpha not shorthand empty$ or
+        { "" }
+        { shorthand }
+      if$
+    }
   if$
 }
 
