@@ -65,32 +65,32 @@
 \xdef\blx@xml@datamodel@constraintfieldsub#1{%
   ~~~~~~~~~~<bcf:field>#1</bcf:field>\blx@nl}
 
-
 % Data model specification macros
 \newrobustcmd*{\ResetDatamodelEntrytypes}{%
-  \global\cslet{blx@bcf@datamodel@entrytypes}\@empty
-  \global\cslet{blx@biber@datamodel@entrytypes}\@empty}
+  \global\let\blx@bcf@datamodel@entrytypes\@empty
+  \global\let\blx@datamodel@entrytypes\@empty}
 
 \newrobustcmd*{\ResetDatamodelFields}{%
-  \global\cslet{blx@biber@datamodel@labelfields}\@empty
-  \global\cslet{blx@bcf@datamodel@fields}\@empty
-  \global\cslet{blx@biber@datamodel@fields}\@empty
-  \global\cslet{blx@biber@datamodel@names}\@empty
-  \global\cslet{blx@biber@datamodel@lists}\@empty}
+  \global\let\blx@datamodel@labelfields\@empty
+  \global\let\blx@bcf@datamodel@fields\@empty
+  \global\let\blx@datamodel@fields\@empty
+  \global\let\blx@datamodel@names\@empty
+  \global\let\blx@datamodel@dates\@empty
+  \global\let\blx@datamodel@lists\@empty}
 
 \newrobustcmd*{\ResetDatamodelEntryfields}{%
-  \global\cslet{blx@bcf@datamodel@entryfields}\@empty}
+  \global\let\blx@bcf@datamodel@entryfields\@empty}
 
 \newrobustcmd*{\ResetDatamodelConstraints}{%
-  \global\cslet{blx@bcf@datamodel@constraints}\@empty}
+  \global\letblx@bcf@datamodel@constraints\@empty}
 
 \newrobustcmd*{\DeclareDatamodelEntrytypes}[2][]{%
   \begingroup
   \let\blx@tempa\@empty
   \def\do##1{%
-    \ifinlistcs{##1}{blx@biber@datamodel@entrytypes}
+    \ifinlistcs{##1}{blx@datamodel@entrytypes}
       {}
-      {\listcsgadd{blx@biber@datamodel@entrytypes}{##1}}%
+      {\listcsgadd{blx@datamodel@entrytypes}{##1}}%
     \xappto\blx@bcf@datamodel@entrytypes{%
       \blx@xml@datamodel@entrytype{\blx@tempa}{##1}}}%
   \ifblank{#1}
@@ -106,7 +106,7 @@
 
 \newrobustcmd*{\DeclareDatamodelFields}[2][]{%
   \begingroup
-  \let\blx@dm@type\@empty
+  \let\blx@dm@fieldtype\@empty
   \let\blx@dm@datatype\@empty
   \let\blx@dm@format\@empty
   \boolfalse{dmskipout}%
@@ -114,25 +114,47 @@
   \let\blx@tempa\@empty
   \setkeys{blx@datamodel@field}{#1}%
   \def\do##1{%
+    % Generic lists of field/datatypes for testing bib fields
+    \ifinlistcs{##1}{blx@datamodelfields@fieldtypes@\blx@dm@fieldtype}
+      {}
+      {\listcsgadd{blx@datamodelfields@fieldtypes@\blx@dm@fieldtype}{##1}}%
+    \ifinlistcs{##1}{blx@datamodelfields@datatypes@\blx@dm@datatype}
+      {}
+      {\listcsgadd{blx@datamodelfields@datatypes@\blx@dm@datatype}{##1}}%
+    \ifinlistcs{##1}{blx@datamodelfields@types@\blx@dm@fieldtype @\blx@dm@datatype}
+      {}
+      {\listcsgadd{blx@datamodelfields@types@\blx@dm@fieldtype @\blx@dm@datatype}{##1}}%
+
+    % Processed convenience lists of various datamodel fields
+
+    % add to list of dates. These are skipout in the default datamodel but
+    % we want to auto-create some internals/options for all date fields in
+    % biblatex
+    \ifboolexpr{%
+      test {\ifcsstring{blx@dm@datatype}{date}}
+      and
+      not test {\ifinlistcs{##1}{blx@datamodel@dates}}}
+        {\listcsgadd{blx@datamodel@dates}{##1}}
+        {}%
     \ifboolexpr{% add to list of label fields
       not bool {dmskipout}
       and
       bool {dmlabelfield}
       and
-      not test {\ifinlistcs{##1}{blx@biber@datamodel@labelfields}}}
-        {\listcsgadd{blx@biber@datamodel@labelfields}{##1}}
+      not test {\ifinlistcs{##1}{blx@datamodel@labelfields}}}
+        {\listcsgadd{blx@datamodel@labelfields}{##1}}
         {}%
     \ifboolexpr{% add to list of names if it is a name which appears in .bbl
       not bool {dmskipout}
       and
       test {\ifcsstring{blx@dm@datatype}{name}}
       and
-      not test {\ifinlistcs{##1}{blx@biber@datamodel@names}}}
-        {\listcsgadd{blx@biber@datamodel@names}{##1}}
+      not test {\ifinlistcs{##1}{blx@datamodel@names}}}
+        {\listcsgadd{blx@datamodel@names}{##1}}
         {}%
     \ifboolexpr{% add to list of lists if it is a list which appears in .bbl
       not bool {dmskipout}
-      test {\ifcsstring{blx@dm@type}{list}}
+      test {\ifcsstring{blx@dm@fieldtype}{list}}
       and
       ( test {\ifcsstring{blx@dm@datatype}{literal}}
         or
@@ -143,50 +165,85 @@
         test {\ifcsstring{blx@dm@datatype}{verbatim}}
       )
       and
-      not test {\ifinlistcs{##1}{blx@biber@datamodel@lists}}}
-        {\listcsgadd{blx@biber@datamodel@lists}{##1}}
+      not test {\ifinlistcs{##1}{blx@datamodel@lists}}}
+        {\listcsgadd{blx@datamodel@lists}{##1}}
         {}%
     \ifboolexpr{% add to list of fields unless certain type/datatype etc.
       bool {dmskipout}
       or
       test {\ifcsstring{blx@dm@datatype}{name}}
       or
-      ( test {\ifcsstring{blx@dm@type}{list}}
+      ( test {\ifcsstring{blx@dm@fieldtype}{list}}
         and
         test {\ifcsstring{blx@dm@datatype}{literal}}
       )
       or
-      ( test {\ifcsstring{blx@dm@type}{list}}
+      ( test {\ifcsstring{blx@dm@fieldtype}{list}}
         and
         test {\ifcsstring{blx@dm@datatype}{key}}
       )
       or
-      ( test {\ifcsstring{blx@dm@type}{list}}
+      ( test {\ifcsstring{blx@dm@fieldtype}{list}}
         and
         test {\ifcsstring{blx@dm@datatype}{uri}}
       )
       or
-      ( test {\ifcsstring{blx@dm@type}{list}}
+      ( test {\ifcsstring{blx@dm@fieldtype}{list}}
         and
         test {\ifcsstring{blx@dm@datatype}{verbatim}}
       )
       or
-      ( test {\ifcsstring{blx@dm@type}{field}}
+      ( test {\ifcsstring{blx@dm@fieldtype}{field}}
         and
         test {\ifcsstring{blx@dm@datatype}{code}}
       )
       or
-      test {\ifinlistcs{##1}{blx@biber@datamodel@fields}}}
+      test {\ifinlistcs{##1}{blx@datamodel@fields}}}
       {}
-      {\listcsgadd{blx@biber@datamodel@fields}{##1}}%
+      {\listcsgadd{blx@datamodel@fields}{##1}}%
     \xappto\blx@bcf@datamodel@fields{%
-      \blx@xml@datamodel@field{\blx@tempa}{##1}}}%
-  \docsvlist{#2}
-  \endgroup}
+      \blx@xml@datamodel@field{\blx@tempa}{##1}}%
+
+
+ % Dateparts are special - auto-create for all date fields
+    \ifcsstring{blx@dm@datatype}{date}
+      {\begingroup
+       \let\blx@tempa\@empty% reset setkeys buffer due to manual calls below
+       % add to list of dates. These are skipout in the default datamodel but
+       % we want to auto-create some internals/options for all date fields in
+       % biblatex
+       \ifinlistcs{##1}{blx@datamodel@dates}
+         {}
+         {\listcsgadd{blx@datamodel@dates}{##1}}%
+       \ifinlistcs{##1}{blx@datamodel@fields}
+         {}
+         {\listcsgadd{blx@datamodel@fields}{##1}}%
+       \StrCut{##1}{date}\blx@datetype\blx@tempnull
+       % *endyear
+       \xifinlistcs{\blx@datetype endyear}{blx@datamodel@fields}
+         {}
+         {\listcsxadd{blx@datamodel@fields}{\blx@datetype endyear}}%
+       \setkeys{blx@datamodel@field}{type=field,datatype=datepart,nullok}%
+       \xappto\blx@bcf@datamodel@fields{%
+         \blx@xml@datamodel@field{\blx@tempa}{\blx@datetype endyear}}%
+       % *year, *month, *day, *endmonth, *endday
+       \def\do####1{%
+         \let\blx@tempa\@empty% reset setkeys buffer due to loop calls
+         \xifinlistcs{\blx@datetype ####1}{blx@datamodel@fields}
+           {}
+           {\listcsxadd{blx@datamodel@fields}{\blx@datetype ####1}}%
+         \setkeys{blx@datamodel@field}{type=field,datatype=datepart}%
+         \xappto\blx@bcf@datamodel@fields{%
+           \blx@xml@datamodel@field{\blx@tempa}{\blx@datetype ####1}}}%
+       \docsvlist{year,month,day,endmonth,endday}%
+       \endgroup}
+      {}}%
+   \docsvlist{#2}
+   \endgroup}
 
 \define@key{blx@datamodel@field}{type}{% characters
   \eappto\blx@tempa{ fieldtype="#1"}%
-  \def\blx@dm@type{#1}}
+  \def\blx@dm@fieldtype{#1}}
 \define@key{blx@datamodel@field}{datatype}{% characters
   \eappto\blx@tempa{ datatype="#1"}%
   \def\blx@dm@datatype{#1}}
@@ -354,6 +411,7 @@
   music,
   mvcollection,
   mvreference,
+  mvproceedings,
   mvbook,
   online,
   patent,
@@ -373,28 +431,6 @@
   video}
 
 \DeclareDatamodelEntrytypes[skipout]{xdata}
-
-\DeclareDatamodelFields[type=field, datatype=datepart]{
-  month,
-  year,
-  day,
-  endday,
-  endmonth,
-  eventday,
-  eventendday,
-  eventendmonth,
-  eventmonth,
-  eventyear,
-  origday,
-  origendday,
-  origendmonth,
-  origmonth,
-  origyear,
-  urlday,
-  urlendday,
-  urlendmonth,
-  urlmonth,
-  urlyear}
 
 \DeclareDatamodelFields[type=field, datatype=literal]{
   abstract,
@@ -463,12 +499,6 @@
   shortjournal,
   shortseries,
   shorttitle}
-
-\DeclareDatamodelFields[type=field, datatype=datepart, nullok]{
-  urlendyear,
-  endyear,
-  eventendyear,
-  origendyear}
 
 \DeclareDatamodelFields[type=field, datatype=literal, skipout]{
   sorttitle,
@@ -653,6 +683,7 @@
   editora,
   editorb,
   editorc,
+  editortype,
   editoratype,
   editorbtype,
   editorctype,
@@ -707,6 +738,7 @@
   editora,
   editorb,
   editorc,
+  editortype,
   editoratype,
   editorbtype,
   editorctype,
@@ -762,6 +794,7 @@
   editora,
   editorb,
   editorc,
+  editortype,
   editoratype,
   editorbtype,
   editorctype,
@@ -817,6 +850,7 @@
   editora,
   editorb,
   editorc,
+  editortype,
   editoratype,
   editorbtype,
   editorctype,
@@ -855,6 +889,7 @@
 \DeclareDatamodelEntryfields[booklet]{
   author,
   editor,
+  editortype,
   title,
   day,
   endday,
@@ -905,6 +940,7 @@
   editora,
   editorb,
   editorc,
+  editortype,
   editoratype,
   editorbtype,
   editorctype,
@@ -960,6 +996,7 @@
   editora,
   editorb,
   editorc,
+  editortype,
   editoratype,
   editorbtype,
   editorctype,
@@ -1012,6 +1049,7 @@
   editora,
   editorb,
   editorc,
+  editortype,
   editoratype,
   editorbtype,
   editorctype,
@@ -1061,6 +1099,7 @@
   doi,
   edition,
   editor,
+  editortype,
   eprint,
   eprintclass,
   eprinttype,
@@ -1103,6 +1142,7 @@
   author,
   doi,
   editor,
+  editortype,
   eprint,
   eprintclass,
   eprinttype,
@@ -1130,6 +1170,7 @@
   addendum,
   author,
   editor,
+  editortype,
   language,
   month,
   note,
@@ -1191,6 +1232,7 @@
   editora,
   editorb,
   editorc,
+  editortype,
   editoratype,
   editorbtype,
   editorctype,
@@ -1218,6 +1260,7 @@
 
 \DeclareDatamodelEntryfields[mvproceedings]{
   editor,
+  editortype,
   title,
   day,
   endday,
@@ -1262,6 +1305,7 @@
 
 \DeclareDatamodelEntryfields[proceedings]{
   editor,
+  editortype,
   title,
   day,
   endday,
@@ -1314,6 +1358,7 @@
 \DeclareDatamodelEntryfields[inproceedings]{
   author,
   editor,
+  editortype,
   title,
   booktitle,
   day,

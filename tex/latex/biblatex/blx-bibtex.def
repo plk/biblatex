@@ -1,0 +1,428 @@
+\ProvidesFile{blx-bibtex.def}
+[\abx@cptid]
+
+\blx@warning@noline{%
+  Using fall-back BibTeX(8) backend:\MessageBreak
+  functionality may be reduced/unavailable%
+}
+
+% Initialisation of backend-related switches, variables, etc.
+\newtoggle{blx@runbtx}
+
+% No interface provided for this but can be set 'in emergency' by user
+\def\blx@maxline{79}
+
+% Rename write stream so use is clear
+\let\blx@write\blx@bcfout
+
+% Data file initialisation
+\edef\blx@auxfile{\jobname}
+\let\blx@aux\@mainaux
+\newcommand*{\blxauxsuffix}{-blx}
+
+\begingroup
+\def\blx@tempa#1"#2{%
+  #1\ifx#2\@empty\else
+    \expandafter\blx@tempa
+  \fi#2}
+\edef\blx@ctrlfile{%
+  \noexpand\blx@tempa
+  \expandafter\blx@tempa\jobname"\@empty
+  \space\noexpand\@empty}
+\def\blx@tempa#1 #2{%
+  #1\ifx#2\@empty\else
+    \string_\expandafter\blx@tempa
+  \fi#2}
+\xdef\blx@ctrlfile{\blx@ctrlfile}
+\endgroup
+
+\def\blx@auxinit#1{%
+  \blx@auxwrite\blx@aux
+    {\def\do##1{,\blx@stripbib{##1}}}
+    {\ifx\blx@aux\@mainaux
+     \else
+       \blx@msg@aux
+     \fi
+     \string\bibstyle{biblatex}\blx@nl
+     \string\bibdata{%
+       \blx@ctrlfile\blxauxsuffix
+       \ifx#1\@empty
+       \else
+         \dolistloop#1%
+       \fi}\blx@nl
+     \string\citation{biblatex-control}}}
+
+\def\blx@sig@bib{@Comment{$ biblatex control file $}}
+\edef\blx@ver@bib{@Comment{$ biblatex version \blx@bblversion\space $}}
+
+\let\blx@sig@aux\blx@sig@bbl
+\let\blx@ver@aux\blx@ver@bbl
+
+\edef\blx@msg@aux{%
+  \blx@sig@aux\blx@nl
+  \blx@ver@aux\blx@nl
+  \@percentchar\space Do not modify this file!\blx@nl
+  \@percentchar\blx@nl
+  \@percentchar\space This is an auxiliary file
+  used by the 'biblatex' package.\blx@nl
+  \@percentchar\space This file may safely be deleted.
+  It will be recreated as\blx@nl
+  \@percentchar\space required.\blx@nl
+  \@percentchar\blx@nl\string\relax\blx@nl}
+\edef\blx@msg@bib{%
+  \blx@sig@bib\blx@nl
+  \blx@ver@bib\blx@nl
+  Do not modify this file!\blx@nl\blx@nl
+  This is an auxiliary file used
+  by the 'biblatex' package.\blx@nl
+  This file may safely be deleted.
+  It will be recreated as\blx@nl
+  required.\blx@nl\blx@nl}
+
+% User feedback
+
+\renewrobustcmd*{\RequireBiber}[1][2]{%
+  \ifnumgreater{#1}\blx@reqbiber
+    {\numgdef\blx@reqbiber{#1}}
+    {}%
+    \blx@checkbackend{style}}
+\@onlypreamble\RequireBiber
+\let\blx@reqbiber\z@
+
+\def\blx@checkbackend#1{%
+  \ifnum\blx@reqbiber>2 %
+     \blx@error
+       {Biber backend is required by #1}
+       {The selected style or one of the .bib files
+        requires Biber.\MessageBreak It will
+        not work at all with BibTeX.}%
+   \fi}
+
+\def\blx@check@logreq{%
+  \begingroup
+  \ltxrequest{biblatex}{{\iftoggle{blx@runltx}{1}{0}}}{%
+    \provides[type=dynamic]{
+      \def\do##1{\file{##1.aux}}
+      \dolistloop\blx@list@inactive
+      \file{\blx@ctrlfile\blxauxsuffix.bib}
+    }
+    \requires[type=dynamic]{
+      \def\do##1{\file{##1.bbl}}
+      \dolistloop\blx@list@inactive
+    }
+    \ifdef\blx@list@req@edit
+      {\requires[type=editable]{
+         \forlistloop\file\blx@list@req@edit
+       }}
+      {}
+    \ifdef\blx@list@req@stat
+      {\requires[type=static]{
+         \forlistloop\file\blx@list@req@stat
+       }}
+      {}
+  }%
+  \def\do##1{%
+    \ifinlist{##1}{\blx@list@active}
+      {\blx@logreq@bibtex{1}{##1}}
+      {\blx@logreq@bibtex{0}{##1}}}%
+  \dolistloop\blx@list@inactive
+  \endgroup}
+
+\def\blx@logreq@bibtex#1#2{%
+  \logrequest[package=biblatex,priority=5,active=#1]{%
+    \generic{bibtex}
+    \cmdline{%
+      \iftoggle{blx@bibtex8}
+        {\binary{bibtex8}
+         \option{--wolfgang}
+         \option{--min\string_crossrefs \blx@mincrossrefs}}
+        {\binary{bibtex}
+         \option{-min-crossrefs \blx@mincrossrefs}}%
+      \infile{#2}
+     }
+     \input{
+       \file{#2.aux}
+     }
+     \output{
+       \file{#2.bbl}
+     }
+      \provides[type=dynamic]{
+        \file{#2.bbl}
+      }
+      \requires[type=dynamic]{
+        \file{#2.aux}
+        \file{\blx@ctrlfile\blxauxsuffix.bib}
+      }
+      \requires[type=editable]{
+        \ifcsdef{blx@list@bibfiles@#2}
+          {\def\do{\file}
+           \dolistcsloop{blx@list@bibfiles@#2}}
+          {}
+      }
+      \requires[type=static]{
+        \file{biblatex.bst}}
+  }%
+}
+
+\def\blx@logreq@active#1{%
+  \xifinlist{\blx@auxfile}{\blx@list@active}
+    {}
+    {\listxadd\blx@list@active{\blx@auxfile}}%
+  \ifblank{#1}
+    {}
+    {\@latex@warning{#1}}%
+  \blx@rerun@latex
+  \blx@rerun@bibtex}
+
+\def\blx@logreq@inactive{%
+  \xifinlist{\blx@auxfile}{\blx@list@inactive}
+    {}
+    {\listxadd\blx@list@inactive{\blx@auxfile}}}
+
+\def\blx@rerun@bibtex{%
+  \global\toggletrue{blx@runbtx}%
+  \global\let\blx@rerun@bibtex\relax}
+
+% Only the toggle name changes here
+\patchcmd{\blx@check@rerun}{blx@runbiber}{blx@runbtx}{}{}
+
+\def\blx@warn@auxlist{%
+  \begingroup
+  \edef\blx@tempa{Please (re)run BibTeX on the file(s):}%
+  \def\do##1{\appto\blx@tempa{\MessageBreak##1}}%
+  \dolistloop\blx@list@active
+  \blx@warning@noline{%
+    \blx@tempa\MessageBreak
+    and rerun LaTeX afterwards}%
+  \endgroup}
+
+\protected\def\blx@bibreq#1{%
+  \blx@auxwrite\blx@aux{}{\string\citation{#1}}}
+
+% {<string>}
+% This mustn't be robust as it's likely to be used mainly tests and so
+% needs to be expandable
+\renewcommand*\rangelen[1]{%
+  \ifblank{#1}
+    {0}%
+    {%
+      \expandafter\blx@rangelen@range\romannumeral-`\q%
+      #1\bibrangedash\bibrangedash&%
+    }%
+  }
+
+\def\blx@rangelen@range#1\bibrangedash#2\bibrangedash#3&{%
+  \ifblank{#3}
+    {\blx@rangelen@hyphen#1--&}
+    {\blx@rangelen@check{#1}{#2}}%
+}
+\def\blx@rangelen@hyphen#1-#2-#3&{%
+  \ifblank{#3}
+    {1}% No range at all: assume one page
+    {\blx@rangelen@check{#1}{#2}}%
+}
+\def\blx@rangelen@check#1#2{%
+  \expandafter\blx@rangelen@check@aux
+    \number\numexpr
+      \blx@rangelen@check@int{#2}
+      -
+      \blx@rangelen@check@int{#1}
+      + 1
+    \relax
+    &\stop
+}
+\def\blx@rangelen@check@aux#1&#2\stop{%
+  \ifblank{#2}
+    {#1}
+    {-1}%
+}
+\def\blx@rangelen@check@int#1{%
+  \ifblank{#1}
+    {0&}
+    {%
+      \if\number\numexpr0#1-0#1\relax0
+        #1
+      \else
+        0&
+      \fi
+    }%
+}
+
+% Alter message text
+\patchcmd{\blx@bbl@warn}{Biber}{BibTeX}{}{}
+
+%% Data input
+
+\patchcmd{\blx@bblinput}{\blx@bblfile}{\blx@bblfile\blx@bblsecs}{}{}
+
+\def\blx@bblfile{%
+  \blx@secinit
+  \begingroup
+  \blx@bblstart
+  \ifnum\c@refsection>\z@
+    \edef\blx@auxfile{\jobname\the\c@refsection\blxauxsuffix}%
+  \else
+    \edef\blx@auxfile{\jobname}%
+  \fi
+  \blx@ifsigned{\blx@auxfile}{bbl}
+    {\InputIfFileExists{\blx@auxfile.bbl}
+       {\blx@info@noline{... file '\blx@auxfile.bbl' found}%
+        \global\toggletrue{blx@bbldone}}
+       {\blx@info@noline{... file '\blx@auxfile.bbl' not found}%
+        \typeout{No file \blx@auxfile.bbl.}%
+        \global\togglefalse{blx@bbldone}}}
+    {}%
+  \blx@bblend
+  \endgroup
+  \csnumgdef{blx@labelnumber@\the\c@refsection}{0}}
+
+\def\blx@bblsecs{%
+  \advance\c@refsection\@ne
+  \ifnum\c@refsection>\blx@maxsection
+  \else
+    \blx@bblfile
+    \expandafter\blx@bblsecs
+  \fi}
+
+\def\blx@refsection@ii{%
+  \xdef\blx@auxfile{\jobname\the\c@refsection\blxauxsuffix}%
+  \blx@regbibfiles\blx@auxfile\blx@bibfiles
+  \blx@logreq@inactive
+  \blx@ifsigned{\blx@auxfile}{aux}
+    {\immediate\openout\blx@write\blx@auxfile.aux\relax
+     \global\let\blx@aux\blx@write
+     \blx@auxinit\blx@bibfiles}
+    {}}
+
+\def\blx@endrefsection{%
+  \blx@endrefsegment
+  \ifx\blx@aux\blx@write
+    \immediate\closeout\blx@write
+    \global\let\blx@aux\@mainaux
+    \xdef\blx@auxfile{\jobname}%
+  \fi
+  \global\c@refsection\z@}
+
+% xref support
+
+% {<entrykey>}
+\protected\def\blx@bbl@xref#1{%
+  \ifcsdef{blx@refp@\the\c@refsection @\detokenize{#1}}
+    {}
+    {\listcsxadd{blx@refs@\the\c@refsection}{\detokenize{#1}}}%
+  \listcsxadd{blx@refp@\the\c@refsection @\detokenize{#1}}{\abx@field@entrykey}%
+  \csxdef{blx@refc@\the\c@refsection @\abx@field@entrykey}{\detokenize{#1}}}
+
+\def\blx@addxref#1{%
+  \blx@ifdata{#1}
+    {\begingroup
+     \def\do##1{%
+       \csgappto{blx@data@\the\c@refsection @##1}{%
+         \def\abx@field@xref{#1}}}%
+     \dolistcsloop{blx@refp@\the\c@refsection @#1}%
+     \endgroup}
+    {}%
+  \global\csundef{blx@refp@\the\c@refsection @#1}}
+
+\def\blx@bblend{%
+  \ifcsdef{blx@refs@\the\c@refsection}%
+    {\begingroup
+     \let\do\blx@addxref
+     \dolistcsloop{blx@refs@\the\c@refsection}%
+     \endgroup
+     \global\csundef{blx@refs@\the\c@refsection}}
+    {}%
+  \iftoggle{blx@addset}
+    {\blx@addset
+     \global\togglefalse{blx@addset}}
+    {}}
+
+\def\blx@citation#1#2{%
+  \ifbool{citerequest}
+    {\ifcsdef{blx@setp@\the\c@refsection @#1}
+       {\blx@citation@set{#1}{#2}}
+       {\ifcsdef{blx@setc@\the\c@refsection @#1}
+         {\blx@citation@inset{#1}{#2}}
+         {\blx@citation@entry{#1}{#2}}}%
+     \ifcsdef{blx@refc@\the\c@refsection @#1}%
+       {\blx@citation@xref{#1}}
+       {}}
+    {}}
+
+\def\blx@citation@xref#1{%
+  \begingroup
+  \edef\blx@tempa{blx@refp@\the\c@refsection @%
+          \csname blx@refc@\the\c@refsection @#1\endcsname}%
+  \ifcsdef\blx@tempa
+    {\ifinlistcs{#1}\blx@tempa
+       {}
+       {\listcsxadd\blx@tempa{#1}}%
+     \blx@tempcnta\z@
+     \def\do##1{\advance\blx@tempcnta\@ne}%
+     \dolistcsloop\blx@tempa}
+    {\listcsxadd\blx@tempa{#1}%
+     \blx@tempcnta\@ne}%
+  \expandafter\endgroup\ifnum\blx@tempcnta<\blx@minxrefs\relax
+  \else
+    \expandafter\expandafter\expandafter\blx@citation@entry
+    \expandafter\expandafter\expandafter{%
+      \csname blx@refc@\the\c@refsection @#1\endcsname}\blx@msg@cundef
+  \fi}
+
+% Control file
+
+\edef\blx@ctrl{%
+  \blx@msg@bib
+  @Control\string{biblatex-control,\blx@nl
+  \space\space options = \string{%
+    \blx@bblversion:%
+    \noexpand\iftoggle{blx@debug}{1}{0}:%
+    \noexpand\iftoggle{blx@bibtex8}{1}{0}:%
+    \noexpand\iftoggle{blx@sortcase}{1}{0}:%
+    \noexpand\iftoggle{blx@useprefix}{1}{0}:%
+    \noexpand\iftoggle{blx@useauthor}{1}{0}:%
+    \noexpand\iftoggle{blx@useeditor}{1}{0}:%
+    \noexpand\iftoggle{blx@usetranslator}{1}{0}:%
+    \noexpand\iftoggle{blx@labelalpha}{1}{0}:%
+    \noexpand\iftoggle{blx@labeldate}{1}{0}:%
+    \noexpand\iftoggle{blx@singletitle}{1}{0}:%
+    \noexpand\csuse{blx@sorting@\noexpand\blx@sorting}:%
+    \noexpand\blx@maxcitenames:%
+    \noexpand\blx@mincitenames:%
+    \noexpand\blx@maxline:%
+    \noexpand\detokenize\noexpand\expandafter{\noexpand\labelalphaothers}:%
+    \noexpand\detokenize\noexpand\expandafter{\noexpand\blx@sorting}%
+  \string},\blx@nl
+  \string}%
+}
+
+\def\blx@ctrlwrite{%
+  \immediate\openout\blx@write\blx@ctrlfile\blxauxsuffix.bib\relax
+  \blx@auxwrite\blx@write{}{\blx@ctrl}%
+  \immediate\closeout\blx@write}
+
+% Translate sorting schemes to BibTeX form
+
+\def\blx@sorting@none{0}
+\def\blx@sorting@nty{1}
+\def\blx@sorting@nyt{2}
+\def\blx@sorting@nyvt{3}
+\def\blx@sorting@anyt{12}
+\def\blx@sorting@anyvt{13}
+\def\blx@sorting@ynt{21}
+\def\blx@sorting@ydnt{22}
+\def\blx@sorting@debug{99}
+
+% Disable some interfaces
+
+\renewrobustcmd*{\DeclareSortingScheme}[3][]{}
+
+\def\blx@checkencoding{}
+
+\AtBeginDocument{%
+  \blx@checkencoding
+  \if@filesw
+    \blx@auxinit\blx@bibfiles
+  \fi}
+
+\endinput

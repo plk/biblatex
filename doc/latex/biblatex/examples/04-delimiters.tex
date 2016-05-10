@@ -1,0 +1,68 @@
+\documentclass[a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[american]{babel}
+\usepackage{csquotes}
+\usepackage{verbatim}
+\usepackage[style=authortitle,backend=biber]{biblatex}
+\addbibresource{biblatex-examples.bib}
+\setlength{\parindent}{0pt}
+\newcommand{\cmd}[1]{\texttt{\textbackslash #1}}
+
+\DeclareDelimFormat[bib]{space}{X}
+\DeclareDelimFormat[test]{space}{Y}
+\DeclareDelimFormat{testb}{B}
+\DeclareDelimFormat[testbcontext]{testb}{C}
+\DeclareDelimFormat{testc}{D}
+\DeclareDelimFormat[testccontext]{testc}{E}
+\makeatletter
+% Some of these tests generate definition warnins which we don't want in tests
+\def\blx@warn@delimdeclare#1#2{\relax}
+\makeatother
+\begin{document}
+\section*{Context-Sensitive Delimiters}
+
+Normal cite uses global delim definition with comma:\\\\
+\cite{averroes/hannes}\\\\
+Textual cite uses "textcite" context without comma:\\\\
+\textcite{averroes/hannes}\\\\
+Reset of global delimiter with traditional method:\\\\
+\renewcommand*{\nametitledelim}{\addcomma\space}
+\cite{averroes/hannes}\\\\
+Textual cite in "textcite" context is not reset:\\\\
+\textcite{averroes/hannes}\\\\
+\begingroup
+\def\addcomma{,}
+\let\space\textvisiblespace
+Invoke default delimiter in context-sensitive interface:\\
+\printdelim{nametitledelim}\\\\
+Invoke global delimiter via normal macro:\\
+\nametitledelim\\\\
+Invoke delimiter in context-sensitive interface with explicit context:\\\\
+\printdelim[textcite]{nametitledelim}\\\\
+\endgroup
+Default delimiter "testb":\\\\
+\printdelim{testb}\\\\
+Setting "testbcontext" with \cmd{delimcontext}:\\\\
+\delimcontext{testbcontext}\printdelim{testb}\\\\
+Redefine "testb" delim with starred version to remove all contexts:\\\\
+\DeclareDelimFormat*{testb}{B}
+\printdelim{testb}\\\\
+Check nesting\\\\
+\begingroup
+\delimcontext{testccontext}\printdelim{testc}\\\\
+\endgroup
+\printdelim{testc}\\\\
+\printbibliography
+
+Reset the \cmd{space} command for this bibliography to use the
+context-sensitive interface. First we use the default "bib" context:
+\AtNextBibliography{\renewcommand*{\space}{\printdelim{space}}}
+\printbibliography
+
+Now use a custom context "test" and \cmd{space} expands to something
+different. Also, "nametitledelim" is back to default because we override
+the default "bib" context:
+\AtNextBibliography{\renewcommand*{\space}{\printdelim{space}}\delimcontext{test}}
+\printbibliography
+\end{document}

@@ -28,3 +28,65 @@
 ** DONE document default for bibheading is "biblist" which uses \biblistname macro
 ** DONE refs to \DeclareBiblistFilter (ZZ)
 * omitnumbers generally will make numeric-comp.cbx die because it needs labelnumber to exist for some tests. This is not really a bug.
+* general flow for defernumbers
+6107                                x  x
+read                 aux   1  b  2  3  4
+------------------------------------------
+\abx@field@localnumber=\abx@aux@number=def
+\abx@field@labelnumber=\abx@aux@number=def
+\blx@localnumber=true
+
+
+
+
+5871                              x  x  x
+read bbl                    1  b  2  3  4
+--------------------------------------------
+if \abx@field@localnumber=undef or something
+  if \abx@field@localnumber=undef
+    \abx@field@localnumber=0
+    \abx@field@labelnumber=0
+
+
+6116                             x  
+write bib                  1  b  2  3  4
+----------------------------------------
+if blx@localnumber=false
+  \abx@field@localnumber=section labelnumber tracker++
+
+
+6147                           x  x  x
+add aux                  1  b  2  3  4
+----------------------------------------
+\abx@aux@number=num
+
+
+1st pass
+
+biber
+
+2nd pass
+--------
+read aux
+read bbl
+  \abx@field@localnumber=0
+  \abx@field@labelnumber=0
+write bib
+  \abx@field@localnumber=section labelnumber tracker++
+add aux
+  \abx@aux@number=num
+write aux
+
+
+3rd pass
+--------
+read aux
+  \abx@field@localnumber=\abx@aux@number=num
+  \abx@field@labelnumber=\abx@aux@number=num
+  \blx@localnumber=true
+read bbl
+write bib
+add aux
+  \abx@aux@number=num
+write aux
+

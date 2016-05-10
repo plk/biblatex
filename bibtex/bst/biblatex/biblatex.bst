@@ -1,11 +1,9 @@
 % Copyright (c) 2006-2011 Philipp Lehman.
+%               2012-2016 Philip Kime, Audrey Boruvka, Joseph Wright
 %
 % Permission is granted to copy, distribute and/or modify this
 % software under the terms of the LaTeX Project Public License
-% (LPPL), version 1.3.
-%
-% The LPPL maintenance status of this software is
-% 'author-maintained'.
+% (LPPL), version 1.3c.
 %
 % This software is provided 'as is', without warranty of any kind,
 % either expressed or implied, including, but not limited to, the
@@ -165,14 +163,15 @@ ENTRY {
     sortinit label.name label.year sortkey.nosort sortkey.name sortkey.year
     sortkey.title sortkey.alpha sort.year sort.alph warningmsg }
 
-INTEGERS { ctrl.debug ctrl.bibtex8 ctrl.maxline ctrl.sorting ctrl.cssort ctrl.sortlos 
+INTEGERS { ctrl.debug ctrl.bibtex8 ctrl.maxline ctrl.sorting ctrl.cssort
            ctrl.maxnames ctrl.minnames ctrl.useauthor ctrl.useeditor ctrl.usetranslator
-           ctrl.useprefix ctrl.terseinits ctrl.labelalpha ctrl.singletitle
+           ctrl.useprefix ctrl.labelalpha ctrl.singletitle
            ctrl.labeldate citecount 
            tempctra tempctrb tempctrc resvctra resvctrb resvctrc
            last.extra.num }
 
-STRINGS  { ctrl.alphaothers templist tempstrga tempstrgb resvstrga
+STRINGS  { ctrl.alphaothers ctrl.sortstr
+           templist tempstrga tempstrgb resvstrga resvstrgb resvstrgc
            last.name last.hash last.year last.extra }
 
 FUNCTION {initialize} {
@@ -180,21 +179,20 @@ FUNCTION {initialize} {
   #12 entry.max$ substring$
   #-3 entry.max$ substring$
   "Biblatex version: " swap$ * top$
-   #0  'ctrl.terseinits :=
-   #0  'ctrl.debug :=
-   #0  'ctrl.labelalpha :=
-   #0  'ctrl.labeldate :=
-   #0  'ctrl.singletitle :=
-   #0  'ctrl.sorting :=
-   #0  'ctrl.sortlos :=
-   #1  'ctrl.useauthor :=
-   #1  'ctrl.useeditor :=
-   #0  'ctrl.usetranslator :=
-   #0  'ctrl.useprefix :=
-   #1  'ctrl.minnames :=
-  #99  'ctrl.maxnames :=
-  #79  'ctrl.maxline :=
-  "+"  'ctrl.alphaothers :=
+   #0   'ctrl.debug :=
+   #0   'ctrl.labelalpha :=
+   #0   'ctrl.labeldate :=
+   #0   'ctrl.singletitle :=
+   #0   'ctrl.sorting :=
+   #1   'ctrl.useauthor :=
+   #1   'ctrl.useeditor :=
+   #0   'ctrl.usetranslator :=
+   #0   'ctrl.useprefix :=
+   #1   'ctrl.minnames :=
+  #99   'ctrl.maxnames :=
+  #79   'ctrl.maxline :=
+  "+"   'ctrl.alphaothers :=
+  "nty" 'ctrl.sortstr :=
 }
 
 % -------------------------------------------------------------------
@@ -275,6 +273,13 @@ FUNCTION {wrap:braces} {
   if$
 }
 
+FUNCTION {combine:key:value} {
+  "=" *
+  swap$
+  wrap:braces *
+  "," *
+}
+
 FUNCTION {delimiter.1} {
   ctrl.bibtex8
     { "0" }
@@ -345,6 +350,34 @@ FUNCTION {normalize} {
 
 FUNCTION {enquote} {
   "'" swap$ * "'" *
+}
+
+FUNCTION {str:length} {
+  #1 'resvctra :=
+  { duplicate$ duplicate$ #1 resvctra substring$ = not }
+    { resvctra #1 + 'resvctra := }
+  while$
+  pop$
+  resvctra
+}
+
+FUNCTION {str:replace} {
+  'resvstrga :=
+  'resvstrgb :=
+  'resvstrgc :=
+  resvstrgb str:length 'resvctra :=
+  ""
+  { resvstrgc empty$ not }
+    { resvstrgc #1 resvctra substring$ resvstrgb =
+        { resvstrga *
+          resvstrgc #1 resvctra + global.max$ substring$ 'resvstrgc :=
+        }
+        { resvstrgc #1 #1 substring$ *
+          resvstrgc #2 global.max$ substring$ 'resvstrgc :=
+        }
+      if$
+    }
+  while$
 }
 
 FUNCTION {bol.to.int} {
@@ -420,6 +453,30 @@ FUNCTION {push:fullname} {
         }
       if$
     }
+  if$
+}
+
+FUNCTION {push:labelname:translator} {
+  translator empty$ not
+  usetranslator
+  and
+    { "translator" }
+    { "" }
+  if$
+}
+
+FUNCTION {push:labelname:editor} {
+  useeditor
+    { shorteditor empty$
+        { editor empty$
+            { push:labelname:translator }
+            { "editor" }
+          if$
+        }
+        { "shorteditor" }
+      if$  
+    }
+    { push:labelname:translator }
   if$
 }
 
@@ -530,6 +587,21 @@ FUNCTION {push:name:fullhash} {
   if$
 }
 
+FUNCTION {push:labelname} {
+  useauthor
+    { shortauthor empty$
+        { author empty$
+            { push:labelname:editor }
+            { "author" }
+          if$
+        }
+        { "shortauthor" }
+      if$  
+    }
+    { push:labelname:editor }
+  if$
+}
+
 FUNCTION {check:sortname} {
   sortname empty$
     'skip$
@@ -598,6 +670,17 @@ FUNCTION {format.range}
       if$
     }
   while$
+}
+
+FUNCTION {format:name:part} {
+  "\~" "[[[TILDE ACCENT]]]" str:replace
+  "~" "\bibnamedelima " str:replace
+  "[[[TILDE ACCENT]]]" "\~" str:replace
+}
+
+FUNCTION {format:name:initials} {
+  ".~" "\bibinitperiod\bibinitdelim " str:replace
+  "." "\bibinitperiod" str:replace
 }
 
 FUNCTION {is.number} {
@@ -972,7 +1055,10 @@ FUNCTION {sortkey:main} {
                 { sortkey.alpha * }
                 { shorthand purify * }
               if$
-              delimiter.1 *
+              duplicate$ empty$
+                'skip$
+                { delimiter.1 * }
+              if$
               ctrl.sorting #10 - sortkey:main:string
             }
             { ctrl.sorting #30 <
@@ -1002,14 +1088,21 @@ FUNCTION {sortkey:main} {
 FUNCTION {output:indent:field} {
   duplicate$ empty$
     'skip$
-    { "  " swap$ * write$ newline$ }
+    { "    " swap$ * write$ newline$ }
   if$
 }
 
 FUNCTION {output:indent:subfield} {
   duplicate$ empty$
     'skip$
-    { "    " swap$ * write$ newline$ }
+    { "      " swap$ * write$ newline$ }
+  if$
+}
+
+FUNCTION {output:indent:subfield:keyval} {
+  duplicate$ empty$
+    'skip$
+    { "         " swap$ * write$ newline$ }
   if$
 }
 
@@ -1116,38 +1209,44 @@ FUNCTION {output:write:verb} {
   if$
 }
 
+FUNCTION {output:write:name:hash} {
+  templist tempctra "{v{}}{l{}}{f{}}{j{}}" format.name$ purify$
+}
+
 FUNCTION {output:write:name:last} {
   templist tempctra "{ll}" format.name$
   duplicate$ 'tempstrga :=
-  wrap:braces
-  templist tempctra
-  ctrl.terseinits
-    { "{l{}}" format.name$ }
-    { "{l.}"  format.name$
+  duplicate$ empty$
+    'pop$
+    { format:name:part
+      "family" combine:key:value output:indent:subfield:keyval
+      templist tempctra "{l.}" format.name$
       duplicate$ tempstrga "." * =
         { duplicate$ text.length$ #1 - text.prefix$ }
         'skip$
       if$
+      format:name:initials
+      "family_i" combine:key:value output:indent:subfield:keyval
     }
   if$
-  wrap:braces *
 }
 
 FUNCTION {output:write:name:first} {
   templist tempctra "{ff}" format.name$
   duplicate$ 'tempstrga :=
-  wrap:braces
-  templist tempctra
-  ctrl.terseinits
-    { "{f{}}" format.name$ }
-    { "{f.}"  format.name$
+  duplicate$ empty$
+    'pop$
+    { format:name:part
+      "given" combine:key:value output:indent:subfield:keyval
+      templist tempctra "{f.}" format.name$
       duplicate$ tempstrga "." * =
         { duplicate$ text.length$ #1 - text.prefix$ }
         'skip$
       if$
+      format:name:initials
+      "given_i" combine:key:value output:indent:subfield:keyval
     }
   if$
-  wrap:braces *
 }
 
 FUNCTION {output:write:name:prefix} {
@@ -1157,11 +1256,11 @@ FUNCTION {output:write:name:prefix} {
     { #1 'tempctrc := }
     { #0 'tempctrc := }
   if$
-  wrap:braces
-  templist tempctra
-  ctrl.terseinits
-    { "{v{}}" format.name$ }
-    { "{v.}"  format.name$
+  duplicate$ empty$
+    'pop$
+    { format:name:part
+      "prefix" combine:key:value output:indent:subfield:keyval
+      templist tempctra "{v.}" format.name$
       tempctrc
         { duplicate$ text.length$ #1 - text.prefix$ "'" * }
         { duplicate$ tempstrga "." * =
@@ -1170,26 +1269,28 @@ FUNCTION {output:write:name:prefix} {
           if$
         }
       if$
+      format:name:initials
+      "prefix_i" combine:key:value output:indent:subfield:keyval
     }
   if$
-  wrap:braces *
 }
 
 FUNCTION {output:write:name:suffix} {
   templist tempctra "{jj}" format.name$
   duplicate$ 'tempstrga :=
-  wrap:braces
-  templist tempctra
-  ctrl.terseinits
-    { "{j{}}" format.name$ }
-    { "{j.}"  format.name$
+  duplicate$ empty$
+    'pop$
+    { format:name:part
+      "suffix" combine:key:value output:indent:subfield:keyval
+      templist tempctra "{j.}" format.name$
       duplicate$ tempstrga "." * =
         { duplicate$ text.length$ #1 - text.prefix$ }
         'skip$
       if$
+      format:name:initials
+      "suffix_i" combine:key:value output:indent:subfield:keyval
     }
   if$
-  wrap:braces *
 }
 
 FUNCTION {output:write:name} {
@@ -1210,11 +1311,12 @@ FUNCTION {output:write:name} {
       "" wrap:braces *
       "{%" * output:indent:field
       { tempctrb #0 > }
-        { "{{}%" output:indent:subfield
-          " " output:write:name:last   * "%"  * output:indent:subfield
-	  " " output:write:name:first  * "%"  * output:indent:subfield
-          " " output:write:name:prefix * "%"  * output:indent:subfield
-          " " output:write:name:suffix * "}%" * output:indent:subfield
+        { "{{hash=" output:write:name:hash * "}{%" * output:indent:subfield
+          output:write:name:prefix
+          output:write:name:last
+          output:write:name:suffix
+	      output:write:name:first
+          "}}%" output:indent:subfield
           tempctra #1 + 'tempctra :=
           tempctrb #1 - 'tempctrb :=
         }
@@ -1308,7 +1410,17 @@ FUNCTION {output:specials} {
     { label }
     { shorthand }
   if$
-  "label"           swap$           output:write:field
+  "label"            swap$          output:write:field
+  "labelnamesource"  push:labelname output:write:field
+  shorttitle empty$
+    { title empty$
+       { "" }
+       { "title" }
+      if$
+    }
+    { "shorttitle" }
+  if$
+  "labeltitlesource" swap$          output:write:field
   ctrl.labelalpha
     { "labelalpha"  labelalpha      output:write:field
       "extraalpha"  extraalpha      output:write:field
@@ -1338,6 +1450,7 @@ FUNCTION {output:specials} {
     'skip$
   if$
   "sortinit"        sortinit        output:write:field
+  "sortinithash"    sortinit        output:write:field
   singletitle
     { "singletitle" #1 output:write:bool }
     'skip$
@@ -1663,7 +1776,7 @@ FUNCTION {output:entry} {
     { output:debug }
     'skip$
   if$
-  "\entry"
+  "  \entry"
   push:cite wrap:braces *
   tempstrga wrap:braces *
   entryoptions wrap:braces *
@@ -1681,7 +1794,7 @@ FUNCTION {output:entry} {
   output:dates.2
   output:user
   output:warning
-  "\endentry" write$ newline$
+  "  \endentry" write$ newline$
 }
 
 FUNCTION {control}        { skip$ }
@@ -1775,7 +1888,7 @@ FUNCTION {input:control:options} {
 % This version corresponds to the .bbl version, *not* the biblatex version!
 FUNCTION {input:control:version} {
   input:control:parse
-  "$Revision: 2.6 $"
+  "$Revision: 2.7 $"
   #12 entry.max$ substring$
   #-3 entry.max$ substring$
   'tempstrga :=
@@ -1796,7 +1909,6 @@ FUNCTION {input:control} {
         { input:control:options 'ctrl.debug :=
           input:control:options 'ctrl.bibtex8 :=
           input:control:options 'ctrl.cssort :=
-          input:control:options 'ctrl.terseinits :=
           input:control:options 'ctrl.useprefix :=
           input:control:options 'ctrl.useauthor :=
           input:control:options 'ctrl.useeditor :=
@@ -1805,11 +1917,11 @@ FUNCTION {input:control} {
           input:control:options 'ctrl.labeldate :=
           input:control:options 'ctrl.singletitle :=
           input:control:options 'ctrl.sorting :=
-          input:control:options 'ctrl.sortlos :=
           input:control:options 'ctrl.maxnames :=
           input:control:options 'ctrl.minnames :=
           input:control:options 'ctrl.maxline :=
-          'ctrl.alphaothers :=
+          input:control:parse   'ctrl.alphaothers :=
+          'ctrl.sortstr :=
         }
       if$
       ctrl.maxline #49 <
@@ -2180,7 +2292,12 @@ FUNCTION {makelabel:ctrl:alpha:format} {
       if$
       makelabel:alpha:year *
     }
-    { pop$ "" }
+    { pop$
+      ctrl.labelalpha not shorthand empty$ or
+        { "" }
+        { shorthand }
+      if$
+    }
   if$
 }
 
@@ -2578,20 +2695,6 @@ FUNCTION {mainsort} {
   'sort.key$ :=
 }
 
-FUNCTION {lossort} {
-  ctrl.sortlos
-    { shorthand empty$
-      ctrl:skiplos or
-        { "" }
-        { shorthand }
-      if$
-      truncate
-      'sort.key$ :=
-    }
-    'skip$
-  if$
-}
-
 ITERATE {mainsort}
 
 SORT
@@ -2599,7 +2702,7 @@ SORT
 % This version corresponds to the .bbl version, *not* the biblatex version!
 FUNCTION {output:main:begin} {
   "% $ biblatex auxiliary file $"                               write$ newline$
-  "% $ biblatex version " "$Revision: 2.6 $"
+  "% $ biblatex bbl format version " "$Revision: 2.7 $"
   #12 entry.max$ substring$ #-3 entry.max$ substring$ * " $" *  write$ newline$
   "% Do not modify the above lines!"                            write$ newline$
   "%"                                                           write$ newline$
@@ -2616,6 +2719,8 @@ FUNCTION {output:main:begin} {
   "      \aftergroup\endinput}"                                 write$ newline$
   "  {}"                                                        write$ newline$
   "\endgroup"                                                   write$ newline$
+  newline$
+  "\sortlist[entry]{" ctrl.sortstr * "/global/}" *              write$
 }
 
 FUNCTION {output:main:preamble} {
@@ -2630,43 +2735,15 @@ FUNCTION {output:main:preamble} {
 }
 
 FUNCTION {output:main:end} {
-  newline$
-  "\endinput" write$ newline$
+  "\endsortlist" write$ newline$
+  "\endinput"    write$ newline$
 }
-
-FUNCTION {output:los:begin} {
-  newline$
-  "\lossort" write$ newline$
-}
-
-FUNCTION {output:los:iterate} {
-  shorthand empty$
-  ctrl:skiplos or
-    'skip$
-    { "  \key{" push:cite * "}" * write$ newline$ }
-  if$
-}
-
-FUNCTION {output:los:end} {
-  "\endlossort" write$ newline$
-}
-
 
 EXECUTE {output:main:begin}
 
 EXECUTE {output:main:preamble}
 
 ITERATE {call.type$}
-
-ITERATE {lossort}
-
-SORT
-
-EXECUTE {output:los:begin}
-
-ITERATE {output:los:iterate}
-
-EXECUTE {output:los:end}
 
 EXECUTE {output:main:end}
 
