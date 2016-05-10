@@ -89,7 +89,6 @@ then
   \rm -rf obuild/tds/*
   cp -r bibtex obuild/tds/
   mkdir -p obuild/tds/doc/latex/biblatex
-  cp doc/latex/biblatex/README obuild/tds/doc/latex/biblatex/
   cp doc/latex/biblatex/CHANGES obuild/tds/doc/latex/biblatex/
   cp doc/latex/biblatex/biblatex.pdf obuild/tds/doc/latex/biblatex/ 2>/dev/null
   cp doc/latex/biblatex/biblatex.tex obuild/tds/doc/latex/biblatex/
@@ -105,7 +104,6 @@ then
   mkdir -p obuild/flat/bibtex/bib/biblatex
   mkdir -p obuild/flat/doc/examples
   mkdir -p obuild/flat/latex/{cbx,bbx,lbx}
-  cp doc/latex/biblatex/README obuild/flat/
   cp doc/latex/biblatex/CHANGES obuild/flat/
   cp bibtex/bib/biblatex/biblatex-examples.bib obuild/flat/bibtex/bib/biblatex/  
   cp bibtex/bib/biblatex/biblatex-examples.bib obuild/flat/doc/examples/
@@ -176,7 +174,7 @@ then
   \rm -f obuild/biblatex-$VERSION.tds.tgz
   \rm -f obuild/biblatex-$VERSION.tgz
   tar zcf obuild/biblatex-$VERSION.tds.tgz -C obuild/tds bibtex doc tex
-  tar zcf obuild/biblatex-$VERSION.tgz -C obuild/flat README CHANGES bibtex doc latex
+  tar zcf obuild/biblatex-$VERSION.tgz -C obuild/flat CHANGES bibtex doc latex
 
   echo "Created packages (flat and TDS) ..."
 fi
