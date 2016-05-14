@@ -7325,21 +7325,35 @@
     {\printfield{shorttitle}}}
 
 % Reference contexts
+\newcommand*{\DeclareRefcontext}[2]{%
+  \csgdef{blx@refcontext@name@#1}{#2}}
+\@onlypreamble\DeclareRefcontext
+
 \def\newrefcontext{%
   \endrefcontext
   \refcontext}
 
 % Backwards compat for older \refcontext[] format
-\def\refcontext[#1]{%
-  \@ifnextchar\bgroup
-    {\refcontext@i[#1]}
-    {\refcontext@i[#1]{}}}
+\def\refcontext{%
+  \@ifnextchar[%]
+    {\refcontext@i}
+    {\refcontext@i[]}}
 
-\newcommand*{\refcontext@i}[2][]{%
+\def\refcontext@i[#1]{%
+  \@ifnextchar\bgroup
+    {\refcontext@ii[#1]}
+    {\refcontext@ii[#1]{}}}
+
+\newcommand*{\refcontext@ii}[2][]{%
   \iftoggle{blx@refcontext}
     {\blx@err@nestenv{refcontext}%
      \endrefcontext}
     {\toggletrue{blx@refcontext}%
+     % Set refcontext from named refcontext, if given
+     \ifblank{#2}
+       {}
+       {\edef\z{\noexpand\setkeys{blx@refcontext}{\csuse{blx@refcontext@name@#2}}}\z}%
+     % Override with explicit refcontext keyvals, if given
      \setkeys{blx@refcontext}{#1}%
      % Add the sortscheme to the list of sortschemes so we can track
      % special cases like sorting=none which need cite order change detection

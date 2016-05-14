@@ -3520,25 +3520,28 @@ To demonstrate the second type of use of bibliography contexts, we have to under
 %
 Here, the second use of the citations, along with the \cmd{printbibliography} command will use data from the context of the custom <yntd> sorting scheme which may well be different from the data associated with the default <nyt> scheme. That is, the citation labels (in an authoryear style which uses \opt{extrayear}) may be different \emph{for the exact same entries} between different bibliography contexts and so the citations themselves may look different.
 
-By default, data for a citation is drawn from the reference context of the last bibliography in which it was printed. For example, in the fragment:
+Reference contexts can be declared with \cmd{DeclareRefcontext} and referred to by name, see below.
+
+By default, data for a citation is drawn from the reference context of the last bibliography in which it was printed. For example:
 
 \begin{ltxexample}[style=latex]{}
+\DeclareRefcontext{ap}{labelprefix=A}
 \begin{document}
 
 \cite{book, article, misc}
 
 \printbibliography[type=book]
 
-\newrefcontext[labelprefix=A]
+\newrefcontext{ap}
 \printbibliography[type=article]
 
-\newrefcontext[sorting=ydnt, resetnumbers]
+\newrefcontext[sorting=ydnt]
 \printbibliography[type=misc]
 
 \end{document}
 \end{ltxexample}
 %
-Assuming the entrykeys are indicative of their entrytypes, this is the default situation for the citations which corresponds to what users normally expect:
+This example also shows the declaration and use of a named reference context. Assuming the entrykeys are indicative of their entrytypes, this is the default situation for the citations which corresponds to what users normally expect:
 
 \begin{itemize}
 \item The citation of entry \bibfield{book} would draw its data from the global reference context, because the last bibliography in which it was printed was the one in the global reference context.
@@ -3550,9 +3553,9 @@ In cases where the user has entries which occur in multiple bibliographies in di
 
 \begin{ltxsyntax}
 
-\envitem{refcontext}[key=value, \dots]
+\cmditem{DeclareRefcontext}{name}{key=value, \dots}
 
-Wraps a bibliography context environment. The options define the context attributes. All context attributes are optional and default to the global settings if absent. The current options are:
+Declares a named reference context with name \prm{name}. The \prm{key=value} options define the context attributes. All context attributes are optional and default to the global settings if absent. The valid options are:
 
 \begin{optionlist*}
 
@@ -3570,14 +3573,67 @@ This option applies to numerical citation\slash bibliography styles only and req
 
 \end{optionlist*}
 %
+
+\envitem{refcontext}[key=value, \dots]{name}
+
+Wraps a reference context environment. The possible \prm{key=value} optional arguments are as for \cmd{DeclareRefcontext} and override options given for the named reference context \prm{name}. \prm{name} can also be omitted as \verb+{}+ or by omitting even the empty braces\footnote{This slightly odd syntax possibility is a result of backwards compatibility with \biblatex $<$3.5}.
+
 The \opt{refcontext} environment cannot be nested and \biblatex will generate an error if you try to do so.
 
-\cmditem{newrefcontext}[key=value, \dots]
+\cmditem{newrefcontext}[key=value, \dots]{name}
 
-This command is similar to the \env{refcontext} environment except that it is a stand"=alone command rather than an environment. It automatically ends the previous context section (if any) and immediately starts a new one. Note that the context section started by the last \cmd{newrefcontext} command in the document will extend to the very end of the document. Use \cmd{endrefcontext} if you want to terminate it earlier.
+This command is similar to the \env{refcontext} environment except that it is a stand"=alone command rather than an environment. It automatically ends any previous reference context section begun with \cmd{newrefcontext} (if any) and immediately starts a new one. Note that the context section started by the last \cmd{newrefcontext} command in the document will extend to the very end of the document. Use \cmd{endrefcontext} if you want to terminate it earlier.
 \end{ltxsyntax}
 %
-At the beginning of the document, there is always a global context containing global settings for each of the reference context options. 
+At the beginning of the document, there is always a global context containing global settings for each of the reference context options. Here is an example summarising the reference contexts with various settings:
+
+\begin{ltxexample}[style=latex]{}
+\usepackage[sorting=nty]{biblatex}
+
+\DeclareRefcontext{testrc}{sorting=nyt}
+
+% Global reference context:
+%   sorting=nty
+%   sortingnamekeyscheme=global
+%   labelprefix=
+
+\begin{document}
+
+\begin{refcontext}{testrc}
+% reference context:
+%   sorting=nyt
+%   sortingnamekeyscheme=global
+%   labelprefix=
+\end{refcontext}
+
+\begin{refcontext}[labelprefix=A]{testrc}
+% reference context:
+%   sorting=nyt
+%   sortingnamekeyscheme=global
+%   labelprefix=A
+\end{refcontext}
+
+\begin{refcontext}[sorting=ydnt,labelprefix=A]
+% reference context:
+%   sorting=ydnt
+%   sortingnamekeyscheme=global
+%   labelprefix=A
+\end{refcontext}
+
+\newfcontext}[labelprefix=B]
+% reference context:
+%   sorting=nty
+%   sortingnamekeyscheme=global
+%   labelprefix=B
+\endrefcontext
+
+\newfcontext}[sorting=ynt,labelprefix=C]{testrc}
+% reference context:
+%   sorting=ynt
+%   sortingnamekeyscheme=global
+%   labelprefix=C
+\endrefcontext
+\end{ltxexample}
 
 \begin{ltxsyntax}
 
@@ -11879,6 +11935,10 @@ use$<$name$>$	&\+&\+&\+&\+\\
 This revision history is a list of changes relevant to users of this package. Changes of a more technical nature which do not affect the user interface or the behavior of the package are not included in the list. More technical details are to be found in the CHANGES file. The numbers on the right indicate the relevant section of this manual.
 
 \begin{changelog}
+
+\begin{release}{3.5}{2016-}
+\item Added the ability to named reference contexts\see{use:bib:context}
+\end{release}
 
 \begin{release}{3.4}{2016-05-10}
 \item Added \cmd{ifcrossrefsource} and \cmd{ifxrefsource}\see{aut:aux:tst}
