@@ -100,29 +100,29 @@ then
   
   # normal
   [[ -e obuild/flat ]] || mkdir obuild/flat
-  \rm -rf obuild/flat/*
-  mkdir -p obuild/flat/bibtex/{bib,bst}
-  mkdir -p obuild/flat/bibtex/bib/biblatex
-  mkdir -p obuild/flat/doc/examples
-  mkdir -p obuild/flat/latex/{cbx,bbx,lbx}
-  cp doc/latex/biblatex/README obuild/flat/
-  cp doc/latex/biblatex/CHANGES obuild/flat/
-  cp bibtex/bib/biblatex/biblatex-examples.bib obuild/flat/bibtex/bib/biblatex/  
-  cp bibtex/bib/biblatex/biblatex-examples.bib obuild/flat/doc/examples/
-  cp bibtex/bltxml/biblatex/biblatex-examples.bltxml obuild/flat/bibtex/bib/biblatex/  
-  cp bibtex/bltxml/biblatex/biblatex-examples.bltxml obuild/flat/doc/examples/
-  cp bibtex/bst/biblatex/biblatex.bst obuild/flat/bibtex/bst/
-  cp doc/latex/biblatex/biblatex.pdf obuild/flat/doc/ 2>/dev/null
-  cp doc/latex/biblatex/biblatex.tex obuild/flat/doc/
-  cp -r doc/latex/biblatex/examples obuild/flat/doc/
-  cp tex/latex/biblatex/*.def obuild/flat/latex/
-  cp tex/latex/biblatex/*.sty obuild/flat/latex/
-  cp tex/latex/biblatex/*.cfg obuild/flat/latex/
-  cp -r tex/latex/biblatex/cbx obuild/flat/latex/
-  cp -r tex/latex/biblatex/bbx obuild/flat/latex/
-  cp -r tex/latex/biblatex/lbx obuild/flat/latex/
+  \rm -rf obuild/flat/biblatex/*
+  mkdir -p obuild/flat/biblatex/bibtex/{bib,bst}
+  mkdir -p obuild/flat/biblatex/bibtex/bib/biblatex
+  mkdir -p obuild/flat/biblatex/doc/examples
+  mkdir -p obuild/flat/biblatex/latex/{cbx,bbx,lbx}
+  cp doc/latex/biblatex/README obuild/flat/biblatex/
+  cp doc/latex/biblatex/CHANGES obuild/flat/biblatex/
+  cp bibtex/bib/biblatex/biblatex-examples.bib obuild/flat/biblatex/bibtex/bib/biblatex/  
+  cp bibtex/bib/biblatex/biblatex-examples.bib obuild/flat/biblatex/doc/examples/
+  cp bibtex/bltxml/biblatex/biblatex-examples.bltxml obuild/flat/biblatex/bibtex/bib/biblatex/  
+  cp bibtex/bltxml/biblatex/biblatex-examples.bltxml obuild/flat/biblatex/doc/examples/
+  cp bibtex/bst/biblatex/biblatex.bst obuild/flat/biblatex/bibtex/bst/
+  cp doc/latex/biblatex/biblatex.pdf obuild/flat/biblatex/doc/ 2>/dev/null
+  cp doc/latex/biblatex/biblatex.tex obuild/flat/biblatex/doc/
+  cp -r doc/latex/biblatex/examples obuild/flat/biblatex/doc/
+  cp tex/latex/biblatex/*.def obuild/flat/biblatex/latex/
+  cp tex/latex/biblatex/*.sty obuild/flat/biblatex/latex/
+  cp tex/latex/biblatex/*.cfg obuild/flat/biblatex/latex/
+  cp -r tex/latex/biblatex/cbx obuild/flat/biblatex/latex/
+  cp -r tex/latex/biblatex/bbx obuild/flat/biblatex/latex/
+  cp -r tex/latex/biblatex/lbx obuild/flat/biblatex/latex/
 
-  perl -pi -e "s|\\\\abx\\@date\{[^\}]+\}|\\\\abx\\@date\{$DATE\}|;s|\\\\abx\\@version\{[^\}]+\}|\\\\abx\\@version\{$VERSION\}|;" obuild/tds/tex/latex/biblatex/biblatex.sty obuild/flat/latex/biblatex.sty
+  perl -pi -e "s|\\\\abx\\@date\{[^\}]+\}|\\\\abx\\@date\{$DATE\}|;s|\\\\abx\\@version\{[^\}]+\}|\\\\abx\\@version\{$VERSION\}|;" obuild/tds/tex/latex/biblatex/biblatex.sty obuild/flat/biblatex/latex/biblatex.sty
 
   # Can't do in-place on windows (cygwin)
   find obuild/tds -name \*.bak | xargs \rm -rf
@@ -176,7 +176,7 @@ then
   \rm -f obuild/biblatex-$VERSION.tds.tgz
   \rm -f obuild/biblatex-$VERSION.tgz
   tar zcf obuild/biblatex-$VERSION.tds.tgz -C obuild/tds bibtex doc tex
-  tar zcf obuild/biblatex-$VERSION.tgz -C obuild/flat README CHANGES bibtex doc latex
+  tar zcf obuild/biblatex-$VERSION.tgz -C obuild/flat biblatex
 
   echo "Created packages (flat and TDS) ..."
 fi
