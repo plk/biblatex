@@ -88,6 +88,7 @@ then
   [[ -e obuild/tds ]] || mkdir obuild/tds
   \rm -rf obuild/tds/*
   cp -r bibtex obuild/tds/
+  cp -r biber obuild/tds/
   mkdir -p obuild/tds/doc/latex/biblatex
   cp doc/latex/biblatex/README obuild/tds/doc/latex/biblatex/
   cp doc/latex/biblatex/CHANGES obuild/tds/doc/latex/biblatex/
@@ -96,21 +97,22 @@ then
   cp -r doc/latex/biblatex/examples obuild/tds/doc/latex/biblatex/
   cp -r tex obuild/tds/
   cp obuild/tds/bibtex/bib/biblatex/biblatex-examples.bib obuild/tds/doc/latex/biblatex/examples/
-  cp obuild/tds/bibtex/bltxml/biblatex/biblatex-examples.bltxml obuild/tds/doc/latex/biblatex/examples/
+  cp obuild/tds/biber/bltxml/biblatex/biblatex-examples.bltxml obuild/tds/doc/latex/biblatex/examples/
   
   # normal
   [[ -e obuild/flat ]] || mkdir obuild/flat
   \rm -rf obuild/flat/biblatex/*
   mkdir -p obuild/flat/biblatex/bibtex/{bib,bst}
   mkdir -p obuild/flat/biblatex/bibtex/bib/biblatex
+  mkdir -p obuild/flat/biblatex/biber/bltxml
   mkdir -p obuild/flat/biblatex/doc/examples
   mkdir -p obuild/flat/biblatex/latex/{cbx,bbx,lbx}
   cp doc/latex/biblatex/README obuild/flat/biblatex/
   cp doc/latex/biblatex/CHANGES obuild/flat/biblatex/
   cp bibtex/bib/biblatex/biblatex-examples.bib obuild/flat/biblatex/bibtex/bib/biblatex/  
   cp bibtex/bib/biblatex/biblatex-examples.bib obuild/flat/biblatex/doc/examples/
-  cp bibtex/bltxml/biblatex/biblatex-examples.bltxml obuild/flat/biblatex/bibtex/bib/biblatex/  
-  cp bibtex/bltxml/biblatex/biblatex-examples.bltxml obuild/flat/biblatex/doc/examples/
+  cp biber/bltxml/biblatex/biblatex-examples.bltxml obuild/flat/biblatex/biber/bltxml/
+  cp biber/bltxml/biblatex/biblatex-examples.bltxml obuild/flat/biblatex/doc/examples/
   cp bibtex/bst/biblatex/biblatex.bst obuild/flat/biblatex/bibtex/bst/
   cp doc/latex/biblatex/biblatex.pdf obuild/flat/biblatex/doc/ 2>/dev/null
   cp doc/latex/biblatex/biblatex.tex obuild/flat/biblatex/doc/
@@ -175,7 +177,7 @@ if [[ "$1" == "builddist" || "$1" == "build" ]]
 then
   \rm -f obuild/biblatex-$VERSION.tds.tgz
   \rm -f obuild/biblatex-$VERSION.tgz
-  tar zcf obuild/biblatex-$VERSION.tds.tgz -C obuild/tds bibtex doc tex
+  tar zcf obuild/biblatex-$VERSION.tds.tgz -C obuild/tds bibtex biber doc tex
   tar zcf obuild/biblatex-$VERSION.tgz -C obuild/flat biblatex
 
   echo "Created packages (flat and TDS) ..."
