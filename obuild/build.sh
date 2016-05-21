@@ -135,7 +135,7 @@ fi
 
 if [[ "$1" == "install" ]]
 then
-  cp -r obuild/tds/* $3
+  \cp -rf obuild/tds/* $3
 
   echo "Installed TDS build tree ..."
 fi
