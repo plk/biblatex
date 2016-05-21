@@ -257,8 +257,7 @@ PDFLaTeX errors/warnings
 ------------------------"  >> ../example_errs_bibtex.txt
       # Use GNU grep to all PCRE as we want to ignore the legacy bibtex
       # warning in 3.4+
-      /opt/local/bin/grep
-      -P '(?:[Ee]rror|[Ww]arning):(?:(?! Using fall-back)|(?! prefixnumbers option)|(?! Empty biblist))' ${f%.tex}.log >> ../example_errs_bibtex.txt
+      /opt/local/bin/grep -P '(?:[Ee]rror|[Ww]arning):(?:(?! Using fall-back)|(?! prefixnumbers option)|(?! Empty biblist))' ${f%.tex}.log >> ../example_errs_bibtex.txt
       if [[ $? -eq 0 ]]; then bibtexflag=true; fi
       grep -E -A 3 '^!' ${f%.tex}.log >> ../example_errs_bibtex.txt
       if [[ $? -eq 0 ]]; then bibtexflag=true; fi
@@ -328,7 +327,7 @@ Test file: $f
 
 $TEXENGINE errors/warnings
 ------------------------"  >> ../example_errs_biber.txt
-      grep -E -i "(error|warning):" ${f%.tex}.log >> ../example_errs_biber.txt
+      /opt/local/bin/grep -P '(?:[Ee]rror|[Ww]arning):(?:(?! Overwriting file))' ${f%.tex}.log >> ../example_errs_biber.txt
       if [[ $? -eq 0 ]]; then biberflag=true; fi
       grep -E -A 3 '^!' ${f%.tex}.log >> ../example_errs_biber.txt
       if [[ $? -eq 0 ]]; then biberflag=true; fi
