@@ -1,0 +1,367 @@
+%
+% This file presents the 'verbose-trad1' style
+%
+\documentclass[a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[german,american]{babel}
+\usepackage{csquotes}
+\usepackage[style=verbose-trad1,backend=biber]{biblatex}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\addbibresource{biblatex-examples.bib}
+% Some generic settings:
+\newcommand*{\cmd}[1]{\texttt{\textbackslash #1}}
+\newcolumntype{H}{>{\bfseries}l}
+\newcolumntype{C}{>{\ttfamily}c}
+\newcolumntype{V}{>{\ttfamily}l}
+\newenvironment*{inlinetable}
+  {\trivlist\footnotesize\item}
+  {\endtrivlist}
+\newcommand*{\code}[1]{%
+  \detokenize\expandafter{\string#1}}
+\newenvironment*{pseudofootnotes}
+  {\list\labelenumi{%
+     \def\makelabel##1{\hss\llap{##1}}%
+     \def\labelenumi{\theenumi}%
+     \usecounter{enumi}%
+     \setlength{\leftmargin}{0pt}%
+     \setlength{\labelsep}{0.75em}%
+     \setlength{\itemsep}{0pt}%
+     \setlength{\parsep}{0pt}}%
+   \citereset
+   \footnotesize
+   \def\footcite##1{\item\Cite{##1}.}%
+   \def\footnote##1{\item##1}}
+  {\endlist}
+\newenvironment*{pseudofootnotes*}
+  {\pseudofootnotes
+   \def\footnote##1{\item##1\mancite}}
+  {\endpseudofootnotes}
+\begin{document}
+
+\section*{The \texttt{verbose-trad1} style}
+
+This is a traditional citation style which uses scholarly
+abbreviations like \emph{ibidem}, \emph{idem}, \emph{opere citato},
+and \emph{loco citato} in a special way to replace recurrent
+authors, titles, and page ranges across separate citation commands.
+This style is best explained by example.
+
+\subsection*{Outline}
+
+Let's assume a \texttt{bib} file with the following entries:
+
+\begin{inlinetable}
+\begin{tabularx}{\linewidth}{@{}CX@{}}
+\toprule
+\multicolumn{1}{@{}H}{Entry Key} &
+\multicolumn{1}{H}{Entry Data} \\
+\cmidrule(r){1-1}\cmidrule(l){2-2}
+a1 & Author A, Title 1 \\
+a2 & Author A, Title 2 \\
+a3 & Author A, Title 3 \\
+b1 & Author B, Title 1 \\
+\bottomrule
+\end{tabularx}
+\end{inlinetable}
+%
+Here's an example of how this citation scheme works:
+
+\begin{inlinetable}
+\begin{tabularx}{\linewidth}{@{}VlX@{}}
+\toprule
+\multicolumn{1}{@{}H}{Command} &
+\multicolumn{1}{H}{Conditions} &
+\multicolumn{1}{H}{Citation} \\
+\cmidrule(r){1-1}\cmidrule(lr){2-2}\cmidrule(l){3-3}
+\code{\cite{a1}}        & Initial reference     & Verbose citation \\
+\cmidrule(r){1-1}\cmidrule(lr){2-2}\cmidrule(l){3-3}
+\code{\cite{b1}}        & Initial reference     & Verbose citation \\
+\cmidrule(r){1-1}\cmidrule(lr){2-2}\cmidrule(l){3-3}
+\code{\cite[26]{a1}}    & Author changed        & Author, \emph{op.~cit.}, page \\
+                        & + Title is last title by \emph{this} author \\
+                        & + Page is new/different from last page cited \\
+\cmidrule(r){1-1}\cmidrule(lr){2-2}\cmidrule(l){3-3}
+\code{\cite[59]{b1}}    & Author changed        & Author, \emph{op.~cit.}, page \\
+                        & + Title is last title by \emph{this} author \\
+                        & + Page is new/different from last page cited \\
+\cmidrule(r){1-1}\cmidrule(lr){2-2}\cmidrule(l){3-3}
+\code{\cite[26]{a1}}    & Author changed        & Author, \emph{loc.~cit.} \\
+                        & + Title is last title by \emph{this} author \\
+                        & + Page is last page cited from \emph{this} work \\
+\cmidrule(r){1-1}\cmidrule(lr){2-2}\cmidrule(l){3-3}
+\code{\cite[59]{b1}}    & Author changed        & Author, \emph{loc.~cit.} \\
+                        & + Title is last title by \emph{this} author \\
+                        & + Page is last page cited from \emph{this} work \\
+\cmidrule(r){1-1}\cmidrule(lr){2-2}\cmidrule(l){3-3}
+\code{\cite{a2}}        & Initial reference     & Verbose citation \\
+\cmidrule(r){1-1}\cmidrule(lr){2-2}\cmidrule(l){3-3}
+\code{\cite{b1}}        & Author changed        & Author, \emph{op.~cit.} \\
+                        & + Title is last title by \emph{this} author \\
+\cmidrule(r){1-1}\cmidrule(lr){2-2}\cmidrule(l){3-3}
+\code{\cite{a1}}        & Author changed        & Author, Title \\
+                        & + Title different from last title by \emph{this} author \\
+                        & + Title has been cited before \\
+\cmidrule(r){1-1}\cmidrule(lr){2-2}\cmidrule(l){3-3}
+\code{\cite[55]{a2}}    & Same author           & \emph{idem}, Title, page \\
+                        & + Title different from last title by \emph{this} author \\
+                        & + Title has been cited before \\
+\cmidrule(r){1-1}\cmidrule(lr){2-2}\cmidrule(l){3-3}
+\code{\cite[25]{a2}}    & Same author and title & \emph{ibidem}, page \\
+                        & + Page is different from last page cited \\
+\cmidrule(r){1-1}\cmidrule(lr){2-2}\cmidrule(l){3-3}
+\code{\cite[25]{a2}}    & Same author and title and page
+						& \emph{ibidem}, page \\
+\code{\cite[25]{a2}}    & (with option \texttt{ibidpage=true})
+						& \emph{ibidem} \\
+\bottomrule
+\end{tabularx}
+\end{inlinetable}
+
+\clearpage
+
+\subsection*{Additional package options}
+
+\subsubsection*{The \texttt{ibidpage} option}
+
+The scholarly abbreviation \emph{ibidem} is sometimes taken to mean
+both `same author~+ same title' and `same author~+ same title~+ same
+page' in traditional citation schemes. By default, this is not the
+case with this style because it may lead to ambiguous citations. If
+you you prefer the wider interpretation of \emph{ibidem}, set the
+package option \texttt{ibidpage=true} or simply \texttt{ibidpage} in
+the preamble. The default setting is \texttt{ibidpage=false}.
+
+\subsubsection*{The \texttt{strict} option}
+
+A case related to the definition of \emph{ibidem} is the scope of
+the \emph{ibidem} and \emph{idem} replacements. By default, this
+style will only use such abbreviations if the respective citations
+are given in the same footnote or in consecutive footnotes. The
+point of this restriction is also to avoid potentially ambiguous
+citations. Here's an example:
+
+\begin{verbatim}
+...\footcite{aristotle:anima}
+...\footcite{aristotle:anima}
+...\footnote{Averroes touches upon this issue in his \emph{Epistle
+             on the Possibility of Conjunction}.}
+...\footcite{aristotle:anima}
+\end{verbatim}
+%
+This could be rendered as follows:
+
+\begin{pseudofootnotes}
+\footcite{aristotle:anima}
+\footcite{aristotle:anima}
+\footnote{Averroes touches upon this issue in his \emph{Epistle on
+the Possibility of Conjunction}.}
+\footcite{aristotle:anima}
+\end{pseudofootnotes}
+%
+What does the \emph{ibidem} in the last footnote refer to? The last
+formal citation, as given in the first and the second footnote
+(Aristotle), or the informal reference in the third one (Averroes)?
+Too avoid such citations, this style will only use \emph{ibidem} and
+\emph{idem} replacements if the respective citations are given in
+the same footnote or in consecutive footnotes:
+
+\begin{pseudofootnotes*}
+\footcite{aristotle:anima}
+\footcite{aristotle:anima}
+\footnote{Averroes touches upon this issue in his \emph{Epistle on
+the Possibility of Conjunction}.}
+\footcite{aristotle:anima}
+\end{pseudofootnotes*}
+%
+Depending on your writing and citing habits, however, you may prefer
+the less strict \emph{ibidem} and \emph{idem} handling. You can
+force that by setting the package option \texttt{strict=false} in
+the preamble. It is still possible to mark a manually inserted
+discursive citation with \cmd{mancite} when required:
+
+\begin{verbatim}
+...\footcite{aristotle:anima}
+...\footnote{\mancite Averroes touches upon this issue in his
+             \emph{Epistle on the Possibility of Conjunction}.}
+...\footcite{aristotle:anima}
+\end{verbatim}
+%
+This will suppress the \emph{ibidem} in the last footnote.
+
+\subsubsection*{The \texttt{citepages} option}
+
+Use this option to fine-tune the formatting of the \texttt{pages}
+and \texttt{pagetotal} fields in verbose citations. When an entry
+with a \texttt{pages} field is cited for the first time and the
+\texttt{postnote} is a page number or a page range, the citation
+will end with two page specifications:
+
+\begin{quote}
+Author. \enquote{Title.} In: \emph{Book,} pp.\,100--150, p.\,125.
+\end{quote}
+%
+In this example, \enquote{125} is the \texttt{postnote} and
+\enquote{100--150} is the \texttt{pages} field (there are similar
+issues with the \texttt{pagetotal} field). This may be confusing to
+the reader. The \texttt{citepages} option controls how to deal with
+these fields in this case. The option works as follows, given these
+citations as an example:
+
+\begin{verbatim}
+\cite{key}
+\cite[a note]{key}
+\cite[125]{key}
+\end{verbatim}
+%
+\texttt{citepages=permit} allows duplicates, i.e., the style will
+print both the \texttt{pages}\slash \texttt{pagetotal} and the
+\texttt{postnote}. This is the default setting:
+
+\begin{quote}
+Author. \enquote{Title.} In: \emph{Book,} pp.\,100--150.
+
+Author. \enquote{Title.} In: \emph{Book,} pp.\,100--150, a note.
+
+Author. \enquote{Title.} In: \emph{Book,} pp.\,100--150, p.\,125.
+\end{quote}
+%
+\texttt{citepages=suppress} unconditionally suppresses the
+\texttt{pages}\slash \texttt{pagetotal} fields in citations,
+regardless of the \texttt{postnote}:
+
+\begin{quote}
+Author. \enquote{Title.} In: \emph{Book.}
+
+Author. \enquote{Title.} In: \emph{Book,} a note.
+
+Author. \enquote{Title.} In: \emph{Book,} p.\,125.
+\end{quote}
+%
+\texttt{citepages=omit} suppresses the \texttt{pages}\slash
+\texttt{pagetotal} in the third case only. They are still printed if
+there is no \texttt{postnote} or if the \texttt{postnote} is not a
+number or range:
+
+\begin{quote}
+Author. \enquote{Title.} In: \emph{Book,} pp.\,100--150.
+
+Author. \enquote{Title.} In: \emph{Book,} pp.\,100--150, a note.
+
+Author. \enquote{Title.} In: \emph{Book,} p.\,125.
+\end{quote}
+%
+\texttt{citepages=separate} separates the \texttt{pages}\slash
+\texttt{pagetotal} from the \texttt{postnote} in the third case:
+
+\begin{quote}
+Author. \enquote{Title.} In: \emph{Book,} pp.\,100--150.
+
+Author. \enquote{Title.} In: \emph{Book,} pp.\,100--150, a note.
+
+Author. \enquote{Title.} In: \emph{Book,} pp.\,100--150, esp. p.\,125.
+\end{quote}
+%
+The string \enquote{especially} in the third case is the bibliography
+string \texttt{thiscite}, which may be redefined.
+
+\subsubsection*{The \texttt{dashed} option}
+
+By default, this style replaces recurrent authors/editors in the
+bibliography by a dash so that items by the same author or editor
+are visually grouped. This feature is controlled by the package
+option \texttt{dashed}. Setting \texttt{dashed=false} in the
+preamble will disable this feature. The default setting is
+\texttt{dashed=true}.
+
+\subsection*{Hints and caveats}
+
+If you want terms such as \emph{ibidem} to be printed in italics,
+redefine \cmd{mkibid} as follows:
+
+\begin{verbatim}
+\renewcommand*{\mkibid}{\emph}
+\end{verbatim}
+%
+German users should note that the scholarly abbreviations typically
+used in German do not make a clear distinction between
+\emph{op.~cit.} and \emph{loc.~cit.} Both are rendered as
+\emph{a.a.O.}, possibly causing some citations to be misleading. It
+may be preferable to use the \texttt{verbose-trad2} style in German
+documents. If you really want to use \texttt{verbose-trad1}, use the
+Latin keywords. This is accomplished by putting the following in the
+preamble or the configuration file:
+
+\begin{verbatim}
+\DefineBibliographyStrings{german}{%
+  idem   = {idem},
+  idemsm = {idem},
+  idemsf = {eadem},
+  idemsn = {idem},
+  idempm = {eidem},
+  idempf = {eaedem},
+  idempn = {eadem},
+  idempp = {eidem},
+  ibidem = {ibid\adddot},
+  opcit  = {op\adddotspace cit\adddot},
+  loccit = {loc\adddotspace cit\adddot},
+}
+\end{verbatim}
+%
+Now let's go over the previous examples again, using real
+bibliography entries this time.
+
+\clearpage
+
+\subsection*{\cmd{footcite} examples}
+
+This is just filler text.\footcite{aristotle:anima}
+This is just filler text.\footcite{averroes/bland}
+This is just filler text.\footcite[26]{aristotle:anima}
+This is just filler text.\footcite[59--61]{averroes/bland}
+This is just filler text.\footcite[26]{aristotle:anima}
+This is just filler text.\footcite[59--61]{averroes/bland}
+This is just filler text.\footcite{aristotle:physics}
+This is just filler text.\footcite{averroes/bland}
+This is just filler text.\footcite{aristotle:anima}
+This is just filler text.\footcite[55]{aristotle:physics}
+This is just filler text.\footcite[25]{aristotle:physics}
+% ibidpage=true would suppress the following page number:
+This is just filler text.\footcite[25]{aristotle:physics}
+
+\clearpage
+
+% If the 'shorthand' field is defined, the shorthand is introduced
+% on the first citation. All subsequent citations will then use the
+% shorthand.
+
+This is just filler text.\footcite{kant:kpv}
+This is just filler text.\footcite{kant:ku}
+This is just filler text.\footcite[24]{kant:kpv}
+This is just filler text.\footcite[59--63]{kant:ku}
+
+\clearpage
+
+\subsection*{\cmd{autocite} examples}
+
+% The \autocite command works like \footcite. Note that
+% the period is moved and placed before the footnote.
+
+This is just filler text \autocite{aristotle:rhetoric}.
+This is just filler text \autocite{averroes/bland}.
+This is just filler text \autocite{aristotle:rhetoric}.
+This is just filler text \autocite{aristotle:anima}.
+This is just filler text \autocite{aristotle:physics}.
+This is just filler text \autocite{aristotle:physics}.
+
+\clearpage
+
+% Since all bibliographic data is provided on the first citation,
+% this style may be used without a list of references and
+% shorthands. Of course these lists may still be printed if desired.
+
+\printshorthands
+\printbibliography
+
+\end{document}

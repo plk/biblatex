@@ -1,0 +1,103 @@
+%
+% This file demonstrates indexing with the 'imakeidx' package.
+% This file is processed as follows:
+%
+%   latex        file
+%   bibtex/biber file
+%   latex        file
+%   latex        file
+%
+% Note that the file name suffix may be omitted. It's 'latex file' and not
+% 'latex file.tex'. Also note that '-t <file>' is optional.
+%
+\documentclass[a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+%
+% The 'imakeidx' package provides advanced indexing facilities with support for
+% multiple indexes. Unlike the 'index' package, 'imakeidx' does not generate
+% "self-protecting" index entries. So we need to protect control sequences in
+% indexing fields from expansion. For an example see the 'knuth:ct:a' entry in
+% biblatex-examples.bib.
+%
+\usepackage{imakeidx}
+\usepackage[american]{babel}
+\usepackage{csquotes}
+%
+% We set the 'indexing' package option and use the 'authortitle'
+% style in this example.
+%
+\usepackage[indexing=cite,style=authortitle,autolang=hyphen,backend=biber]{biblatex}
+\addbibresource{biblatex-examples.bib}
+%
+% We want two indexes: an index of names with title subentries, an index of
+% titles organized by year. They are defined by way of \makeindex, see the
+% documentation of the 'imakeidx' package for details.
+%
+\makeindex[name=name-title,title={Name and Title Index}]
+\makeindex[name=year-title,title={Year and Title Index}]
+%
+% A 'name:title' indexing bibmacro can be found in biblatex.def. It takes the same
+% arguments as the 'index:name' bibmacro. Note that the title fields are accessed
+% inside the name indexing directive. So we have to test for missing titles.
+%
+\makeatletter
+\@ifpackageloaded{biblatex_legacy}
+  {\DeclareIndexNameFormat{name:title}{%
+     \iffieldundef{title}
+       {\usebibmacro{index:name}{\index[name-title]}{#1}{#3}{#5}{#7}}
+       {\usebibmacro{index:name:title}{\index[name-title]}{#1}{#3}{#5}{#7}}}}
+  {\DeclareIndexNameFormat{name:title}{%
+     \iffieldundef{title}
+       {\usebibmacro{index:name}{\index[name-title]}
+          {\namepartfamily}
+          {\namepartgiven}
+          {\namepartprefix}
+          {\namepartsuffix}}
+       {\usebibmacro{index:name:title}{\index[name-title]}
+          {\namepartfamily}
+          {\namepartgiven}
+          {\namepartprefix}
+          {\namepartsuffix}}}}
+\makeatother
+%
+% Auxiliary indexing macros in biblatex.def can be used to define additional
+% indexing directives with subentries. The following directive creates entries
+% for the year-title index.
+%
+\DeclareIndexFieldFormat{with:year}{%
+  \iffieldundef{year}
+    {\usebibmacro{index:entry}{\index[year-title]}{%
+       \mkbibindexentry{0}{Not dated}%
+       \subentryoperator%
+       \mkbibindexfield{\thefield{indexsorttitle}}{\emph{#1}}}}
+    {\usebibmacro{index:entry}{\index[year-title]}{%
+       \thefield{year}\subentryoperator%
+       \mkbibindexfield{\thefield{indexsorttitle}}{\emph{#1}}}}}
+%
+% We redefine the 'citeindex' bibmacro to use the new indexing directives.
+%
+\renewbibmacro*{citeindex}{%
+  \ifciteindex
+    {\indexnames[name:title]{labelname}%
+     \indexfield[with:year]{indextitle}}
+    {}}
+
+\begin{document}
+
+\section*{Indexing with the \texttt{imakeidx} package}
+
+% We cite a few items. These citations will be added to the indexes.
+\cite{knuth:ct,knuth:ct:a,knuth:ct:c,knuth:ct:d}
+\cite{aristotle:anima,aristotle:poetics,aristotle:physics,aristotle:rhetoric}
+
+\clearpage
+
+% We print the printbibliography...
+\printbibliography
+% ...and the indexes
+\raggedright
+\printindex[name-title] % the name-title index
+\printindex[year-title] % the year-title index
+
+\end{document}

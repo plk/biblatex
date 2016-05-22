@@ -1,0 +1,77 @@
+\documentclass[a4paper]{article}
+\usepackage{fontspec}
+\usepackage{csquotes}
+\usepackage[style=numeric, sorting=none, defernumbers=true, backend=biber]{biblatex}
+\addbibresource{biblatex-examples.bib}
+
+\DeclareBibliographyCategory{cat1}
+\addtocategory{cat1}{yoon}
+\DeclareBibliographyCategory{cat2}
+\addtocategory{cat2}{piccato}
+\assignrefcontextcats[sorting=none,labelprefix=Q]{cat2}
+\assignrefcontextentries[labelprefix=Q]{yoon}
+\assignrefcontextkeyws*[sorting=none,labelprefix=S]{secondary}
+\defbibfilter{cats}{category=cat1 or category=cat2}
+
+\setlength{\parindent}{0pt}
+\newcommand{\cmd}[1]{\texttt{\textbackslash #1}}
+\begin{document}
+This example demonstrates the quite complex options for assigning
+labelprefices to bibliographies and how citations decide which bibliography
+to point to. The default rule is that a citation will point to its entry in
+the last bibliography in which it appears. This can be overridden by
+explicit assignment to particular refcontexts with the
+\cmd{assignrefcontext*} macros.\\
+
+% refcontext=none/global//
+
+This is a publication by Aristotle:
+\cite{aristotle:anima} % comes from refcontext=none/global/R
+
+These are not publications by Aristotle:
+\cite{yoon} % comes from default refcontext=none/global/Q due to \assignrefcontextentries
+\cite{worman} % comes from default refcontext=nty/global// and not from
+              % nty/global/T in next refsection even though that is the
+              % last printed bib/biblist with worman in it. This is because
+              % refcontext defaults are local to refcontexts
+\cite{piccato} % comes from refcontext=none/global/Q due to \assignrefcontextcats
+\cite{nussbaum} % comes from refcontext=none/global/S due to \assignrefcontextkeyws*
+
+This is another publication by Aristotle:
+\cite{aristotle:physics} % comes from refcontext=none/global/R
+
+\begin{refcontext}[labelprefix=R]
+% refcontext=none/global/R
+\printbibliography[keyword=primary, title={Aristotle Publications}]
+% aristotle:anima and aristotle:physics default refcontext is this one
+\end{refcontext}
+
+\begin{refcontext}[labelprefix=S]
+% refcontext=none/global/S
+\printbibliography[ notkeyword=primary, title={Other publications}]
+\end{refcontext}
+
+\begin{refcontext}[labelprefix=Q]
+% refcontext=none/global/Q
+\printbibliography[filter=cats, title={Other publications}]
+\end{refcontext}
+
+\begin{refcontext}[sorting=nty]
+% refcontext=nty/global//
+\printbibliography[resetnumbers, notkeyword=primary, title={More Other publications}]
+% Nussbaum default refcontext is this one
+% piccato default refcontext is this one
+% yoon default refcontext is this one
+% worman default refcontext is this one
+\cite{nussbaum} % comes from refcontext=nty/global// due to weak \assignrefcontextkeyws*
+\end{refcontext}
+
+\section*{New Refsection}
+\newrefsection
+\cite{worman} % comes from default refcontext=nty/global/T
+\begin{refcontext}[sorting=nty, labelprefix=T]
+% refcontext=nty/global//
+\printbibliography[resetnumbers, notkeyword=primary, title={More Other publications}]
+\end{refcontext}
+
+\end{document}
