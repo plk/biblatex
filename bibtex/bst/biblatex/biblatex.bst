@@ -1201,8 +1201,8 @@ FUNCTION {output:write:verb} {
     { 'tempstrga :=
       "\verb" swap$ wrap:braces * output:indent:field
       { tempstrga empty$ not }
-        { "\verb " tempstrga #1 ctrl.maxline #8 - substring$ * output:indent:field
-          tempstrga ctrl.maxline #7 - global.max$ substring$ 'tempstrga :=
+        { "\verb " tempstrga #1 ctrl.maxline #10 - substring$ * output:indent:field
+          tempstrga ctrl.maxline #9 - global.max$ substring$ 'tempstrga :=
         }
       while$
       "\endverb" output:indent:field }
