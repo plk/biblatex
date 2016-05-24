@@ -26,7 +26,7 @@
 % This is not updated by build script as the bbl version
 % does not necessarily change with the package version.
 % This is used when checking the .bbl
-\def\blx@bblversion{2.7}
+\def\blx@bblversion{2.8}
 
 \NeedsTeXFormat{LaTeX2e}[2005/12/01]
 \ProvidesPackage{biblatex}
@@ -3276,6 +3276,9 @@
   \def\ifuniquetitle{\iftoggle{abx@bool@uniquetitle}}%
   \def\ifuniqueprimaryauthor{\iftoggle{abx@bool@uniqueprimaryauthor}}%
   \def\ifandothers#1{\iftoggle{abx@bool@more#1}}%
+  \def\ifdatebce#1{%
+    \StrCut{#1}{date}\blx@datetype\blx@tempnull    
+    \iftoggle{abx@bool@\blx@datetype dateerabce}}%
   \protected\def\pno{\bibstring{page}}%
   \protected\def\ppno{\bibstring{pages}}%
   \let\nopp\relax
@@ -4566,6 +4569,10 @@
   \do{patreqfr}%
   \do{patrequk}%
   \do{patrequs}%
+  \do{commonera}%
+  \do{beforecommonera}%
+  \do{annodomini}%
+  \do{beforechrist}%
 }
 
 \newrobustcmd*{\NewBibliographyString}[1]{%
@@ -9229,7 +9236,10 @@
     \def\ifsingletitle{\blx@TE{\iftoggle{abx@bool@singletitle}}}%
     \def\ifuniquetitle{\blx@TE{\iftoggle{abx@bool@uniquetitle}}}%
     \def\ifuniqueprimaryauthor{\blx@TE{\iftoggle{abx@bool@uniqueprimaryauthor}}}%
-    \def\ifandothers#1{\blx@TE{\iftoggle{abx@bool@more#1}}}}}
+    \def\ifandothers#1{\blx@TE{\iftoggle{abx@bool@more#1}}}
+    \def\ifdatebce#1{%
+      \blx@TE{\StrCut{#1}{date}\blx@datetype\blx@tempnull    
+        \iftoggle{abx@bool@\blx@datetype dateerabce}}}}}
 
 % {<listmacro>}{<filtercsname>} => matches in <listmacro>
 
@@ -11625,7 +11635,7 @@
          {\csuse{mkbibrange#1extra}{}}}}
     {\blx@err@invopt{datelabel=#1}{}}}
 
-
+% Set up datamodel dates
 \def\do#1{%
   \DeclareBibliographyOption[string]{#1}{%
     \StrCut{#1}{date}\blx@datetype\blx@tempnull
@@ -11634,12 +11644,13 @@
       {\blx@err@invopt{#1=##1}{}}%
     \ifcsdef{mkbibrange##1extra}
       {\protected\csedef{blx@imc@print#1extra}{\noexpand\csuse{mkbibrange##1extra}{\blx@datetype}}}
-      {}}}
-\abx@dodates
-
-% Default for new date fields is "comp" but this is overridden below by
-% biblatex defaults
-\def\do#1{\setkeys{blx@opt@pre}{#1=comp}}
+      {}}%
+    % Default for new date fields is "comp" but this is overridden below by
+    % biblatex defaults
+    \setkeys{blx@opt@pre}{#1=comp}%
+    % Define date era toggles
+    \StrCut{#1}{date}\blx@datetype\blx@tempnull
+    \newtoggle{abx@bool@\blx@datetype dateerabce}}
 \abx@dodates
 
 \DeclareBibliographyOption[string]{alldates}{%
