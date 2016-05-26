@@ -3276,15 +3276,6 @@
   \def\ifuniquetitle{\iftoggle{abx@bool@uniquetitle}}%
   \def\ifuniqueprimaryauthor{\iftoggle{abx@bool@uniqueprimaryauthor}}%
   \def\ifandothers#1{\iftoggle{abx@bool@more#1}}%
-  \def\ifdatebce#1{%
-    \StrCut{#1}{date}\blx@datetype\blx@tempnull    
-    \iftoggle{abx@bool@\blx@datetype dateerabce}}%
-  \def\ifdatecirca#1{%
-    \StrCut{#1}{date}\blx@datetype\blx@tempnull    
-    \iftoggle{abx@bool@\blx@datetype datecirca}}%
-  \def\ifdateuncertain#1{%
-    \StrCut{#1}{date}\blx@datetype\blx@tempnull    
-    \iftoggle{abx@bool@\blx@datetype dateuncertain}}%
   \protected\def\pno{\bibstring{page}}%
   \protected\def\ppno{\bibstring{pages}}%
   \let\nopp\relax
@@ -4804,9 +4795,14 @@
 \newrobustcmd*{\mkbibrangecompextra}{%
   \mkbibrangetruncextra{long}}
 
-% {<short|long>}{<basename>}
+\def\blx@metadateinfo#1{%
+  \letcs\ifdateera{if#1dateera}%
+  \letcs\ifdatecirca{if#1datecirca}%
+  \letcs\ifdateuncertain{if#1dateuncertain}}
 
+% {<short|long>}{<basename>}
 \newrobustcmd*{\mkbibrangefull}[2]{%
+  \blx@metadateinfo{#2}%
   \iffieldundef{#2year}
     {}
     {\printtext[#2date]{%
@@ -4819,6 +4815,7 @@
              \csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}}}}}
 
 \newrobustcmd*{\mkbibrangetrunc}[2]{%
+  \blx@metadateinfo{#2}%
   \iffieldundef{#2year}
     {}
     {\printtext[#2date]{%
@@ -4835,6 +4832,7 @@
              \csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}}}}}
 
 \newrobustcmd*{\mkbibrangefullextra}[2]{%
+  \blx@metadateinfo{#2}%
   \iffieldundef{#2year}
     {}
     {\printtext[#2date]{%
@@ -4851,6 +4849,7 @@
                \printfield{extrayear}}}}}}}
 
 \newrobustcmd*{\mkbibrangetruncextra}[2]{%
+  \blx@metadateinfo{#2}%
   \iffieldundef{#2year}
     {}
     {\printtext[#2date]{%
@@ -4871,6 +4870,7 @@
                \printfield{extrayear}}}}}}}
 
 \newrobustcmd*{\mkbibrangeyear}[1]{%
+  \blx@metadateinfo{#1}%
   \blx@imc@clearfield{#1month}%
   \blx@imc@clearfield{#1day}%
   \blx@imc@clearfield{#1endmonth}%
@@ -4881,6 +4881,7 @@
   \mkbibrangefull{short}{#1}}
 
 \newrobustcmd*{\mkbibrangeyearextra}[1]{%
+  \blx@metadateinfo{#1}%
   \blx@imc@clearfield{#1month}%
   \blx@imc@clearfield{#1day}%
   \blx@imc@clearfield{#1endmonth}%
@@ -4892,6 +4893,7 @@
 
 \expandafter\newrobustcmd
 \expandafter*\csname mkbibrangeiso8601\endcsname[1]{%
+  \blx@metadateinfo{#1}%
   \iffieldundef{#1year}
     {}
     {\printtext[#1date]{%
@@ -4902,6 +4904,7 @@
 
 \expandafter\newrobustcmd
 \expandafter*\csname mkbibrangeiso8601extra\endcsname[1]{%
+  \blx@metadateinfo{#1}%
   \iffieldundef{#1year}
     {}
     {\printtext[#1date]{%
@@ -4948,7 +4951,21 @@
 \protected\def\blx@imc@printdatelabel{}
 \protected\def\blx@imc@printdateextralabel{}
 
-\let\blx@imc@mkdatezeros\@firstofone
+\protected\def\blx@imc@forcezeros#1{%
+  \ifboolexpr{%
+    test {\ifstrequal{#1}{1}}
+    or test {\ifstrequal{#1}{2}}
+    or test {\ifstrequal{#1}{3}}
+    or test {\ifstrequal{#1}{4}}
+    or test {\ifstrequal{#1}{5}}
+    or test {\ifstrequal{#1}{6}}
+    or test {\ifstrequal{#1}{7}}
+    or test {\ifstrequal{#1}{8}}
+    or test {\ifstrequal{#1}{9}}}
+    {0#1}
+    {#1}}
+
+\let\blx@imc@mkdatezeros\blx@imc@forcezeros
 \protected\def\blx@imc@stripzeros#1{%
   \begingroup
   \setbox\@tempboxa=\hbox\bgroup
@@ -4965,7 +4982,7 @@
    \@tempcnta#1\relax}
   {\egroup#1}}
 
-\blx@regimcs{\printdatelabel \printdateextralabel \printorigdate \stripzeros \mkdatezeros}
+\blx@regimcs{\printdatelabel \printdateextralabel \printorigdate \stripzeros \forcezeros \mkdatezeros}
 
 % User macro for retrieving currrent language
 \def\currentlang{\blx@languagename}
@@ -5384,6 +5401,31 @@
 \def\do#1{%
   \xappto\blx@blxinit{\csletcs{print#1}{blx@imc@print#1}}%
   \xappto\blx@blxinit{\csletcs{print#1extra}{blx@imc@print#1extra}}}
+\abx@dodates
+
+\def\blx@imc@ifdatemeta@i#1#2{%
+  \appto\blx@blxinit{%
+    \csdef{if#1date#2}{\iftoggle{abx@bool@#1date#2}}%
+    \appto\blx@TE@hook{%
+      \csdef{if#1date#2}{\blx@TE\iftoggle{abx@bool@#1date#2}}}}}
+
+\def\blx@imc@ifdatemeta@ii#1{%
+  \appto\blx@blxinit{%
+    \csdef{if#1dateera}##1{\ifcsstring{abx@field@#1dateera}{##1}}%
+    \appto\blx@TE@hook{%
+      \csdef{if#1dateera}##1{\blx@TE\ifcsstring{abx@field@#1dateera}{##1}}}}}
+
+% Create date meta information boolean tests
+\def\do#1{%
+  \StrCut{#1}{date}\blx@datetype\blx@tempnull
+  \expandafter\blx@imc@ifdatemeta@i\expandafter{\blx@datetype}{circa}%
+  \expandafter\blx@imc@ifdatemeta@i\expandafter{\blx@datetype}{uncertain}}
+\abx@dodates
+
+% Create date meta information field tests
+\def\do#1{%
+  \StrCut{#1}{date}\blx@datetype\blx@tempnull
+  \expandafter\blx@imc@ifdatemeta@ii\expandafter{\blx@datetype}}
 \abx@dodates
 
 % Name toggles like \ifauthor etc. need to be dynamically created for all
@@ -9243,16 +9285,7 @@
     \def\ifsingletitle{\blx@TE{\iftoggle{abx@bool@singletitle}}}%
     \def\ifuniquetitle{\blx@TE{\iftoggle{abx@bool@uniquetitle}}}%
     \def\ifuniqueprimaryauthor{\blx@TE{\iftoggle{abx@bool@uniqueprimaryauthor}}}%
-    \def\ifandothers#1{\blx@TE{\iftoggle{abx@bool@more#1}}}%
-    \def\ifdatebce#1{%
-      \StrCut{#1}{date}\blx@datetype\blx@tempnull    
-        \blx@TE{\iftoggle{abx@bool@\blx@datetype dateerabce}}}%
-    \def\ifdatecirca#1{%
-      \StrCut{#1}{date}\blx@datetype\blx@tempnull    
-        \blx@TE{\iftoggle{abx@bool@\blx@datetype datecirca}}}%
-    \def\ifdateuncertain#1{%
-      \StrCut{#1}{date}\blx@datetype\blx@tempnull    
-        \blx@TE{\iftoggle{abx@bool@\blx@datetype dateuncertain}}}}}
+    \def\ifandothers#1{\blx@TE{\iftoggle{abx@bool@more#1}}}}}
 
 % {<listmacro>}{<filtercsname>} => matches in <listmacro>
 
@@ -11663,7 +11696,6 @@
     \setkeys{blx@opt@pre}{#1=comp}%
     % Define date metadata toggles
     \StrCut{#1}{date}\blx@datetype\blx@tempnull
-    \newtoggle{abx@bool@\blx@datetype dateerabce}
     \newtoggle{abx@bool@\blx@datetype datecirca}
     \newtoggle{abx@bool@\blx@datetype dateuncertain}}
 \abx@dodates
@@ -11675,7 +11707,7 @@
 
 \DeclareBibliographyOption[boolean]{datezeros}[true]{%
   \ifstrequal{#1}{true}
-    {\let\blx@imc@mkdatezeros\@firstofone}
+    {\let\blx@imc@mkdatezeros\blx@imc@forcezeros}
     {\let\blx@imc@mkdatezeros\blx@imc@stripzeros}}
 
 \DeclareBibliographyOption[string]{autocite}{%
@@ -11970,7 +12002,7 @@
   date=comp,datelabel=year,origdate=comp,eventdate=comp,urldate=short,
   autopunct=true,punctfont=false,defernumbers=false,
   refsection=none,refsegment=none,citereset=none,hyperref=auto,
-  parentracker,maxparens=3,bibencoding=auto,bibwarn,datezeros=true}
+  parentracker,maxparens=3,bibencoding=auto,bibwarn}
 
 % Load compatibility code
 

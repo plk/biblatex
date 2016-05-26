@@ -1,0 +1,85 @@
+%
+% This file demonstrates various date formats and tests which apply to them
+% for output
+%
+\documentclass[a4paper]{article}
+\usepackage{fontspec}
+\usepackage[american]{babel}
+\usepackage{csquotes}
+\usepackage{filecontents}
+\begin{filecontents}{\jobname.bib}
+@misc{date1,
+  note      = {years with implicit and explicit eras},
+  date      = {-877},         % Negative ISO8601 date = BCE/BC
+  origdate  = {-877/-866},    % Negative ISO8601 date range
+  eventdate = {840BC/830BC},  % Explicit era (CE/AD/BCE/BC)
+  urldate   = {2004 CE},      % Explicit era (CE/AD/BCE/BC)
+}
+@misc{date2,
+  note      = {dates with implicit and explicit eras},
+  date      = {-08770203},            % Negative ISO8601 date with month and day
+  origdate  = {8780203 BCE},          % Explicit era with month and day
+  eventdate = {840-01BC/830-05BC},    % Explicit era range with month 
+  urldate   = {1976-03 AD/1976-05 CE} % Explicit era range with month 
+}
+@misc{date3,
+  note      = {dates with circa and uncertain markers},
+  date      = {c 1723},        % year with circa marker
+  origdate  = {ca. 1934-02},   % year and month with circa marker
+  eventdate = {circa 1922 CE}, % circa and explicit era
+  urldate   = {1976?}          % year with uncertainty marker
+}
+\end{filecontents}
+\usepackage[style=authoryear,alldates=short,backend=biber]{biblatex}
+\addbibresource{\jobname.bib}
+
+
+\defbibenvironment{simple}
+{\list{}
+   {\setlength{\leftmargin}{0pt}%
+    \setlength{\itemindent}{0pt}%
+    \setlength{\bibitemsep}{2ex}%
+    \setlength{\itemsep}{\bibitemsep}%
+    \setlength{\parsep}{\bibparsep}}}
+{\endlist}
+{\item}
+
+\DeclareFieldFormat{urldate}{#1}
+
+\DeclareBibliographyDriver{misc}{%
+  \printfield[emph]{note}\\
+  \printtext[bold]{date} = \printdate\\
+  \printtext[bold]{origdate} = \printorigdate\\
+  \printtext[bold]{eventdate} = \printeventdate\\
+  \printtext[bold]{urldate} = \printurldate}
+
+\DefineBibliographyExtras{english}{%
+\protected\def\mkbibdateshort#1#2#3{%
+  \ifdatecirca{\bibstring{circa}\space}{}%
+  \iffieldundef{#2}
+    {}
+    {\mkdatezeros{\thefield{#2}}%
+      \iffieldundef{#3}
+        {\iffieldundef{#1}{}{/}}
+        {/}}%
+  \iffieldundef{#3}
+    {}
+    {\mkdatezeros{\thefield{#3}}%
+       \iffieldundef{#1}{}{/}}%
+  \iffieldbibstring{#1}
+    {\bibstring{\thefield{#1}}}
+    {\mkdatezeros{\thefield{#1}}}%
+  \ifdateuncertain{\space?}{}%
+  \ifdateera{bce}{\bibstring{beforecommonera}}{}}%
+}
+
+\begin{document}
+
+\section*{Date formats}
+
+This example parses and formats some of the supported date formats and
+demonstrates the output options. See the source for details.
+\nocite{*}
+
+\printbibliography[env=simple,title={Examples}]
+\end{document}
