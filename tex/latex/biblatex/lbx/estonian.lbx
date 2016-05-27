@@ -25,9 +25,67 @@
   basicdecember%
 }
 
+\DeclareBibliographyExtras{%
+  % dashes: may be either \textendash or \textemdash
+  \protected\def\bibrangedash{%
+    \textendash\penalty\hyphenpenalty}% breakable dash
+  \protected\def\bibdatedash{\bibrangedash}%
+  \let\finalandcomma=\empty
+  \let\finalandsemicolon=\empty
+  \protected\def\mkbibordinal#1{\stripzeros{#1}\adddot}%
+  \protected\def\mkbibmascord{\mkbibordinal}%
+  \protected\def\mkbibfemord{\mkbibordinal}%
+  \protected\def\mkbibneutord{\mkbibordinal}%
+  \protected\def\mkbibdatelong#1#2#3{%
+    \iffieldundef{#3}
+      {}
+      {\mkbibordinal{\thefield{#3}}%
+       \iffieldundef{#2}{}{\nobreakspace}}%
+    \iffieldundef{#2}
+      {}
+      {\iffieldundef{#3}
+        {\lbx@fi@mkbibmonthbasic{\thefield{#2}}%
+         \iffieldundef{#1}{}{\space}}%
+        {\mkbibmonth{\thefield{#2}}%
+         \iffieldundef{#1}{}{\space}}}%
+    \iffieldbibstring{#1}{\bibstring{\thefield{#1}}}{\stripzeros{\thefield{#1}}}}%
+  \protected\def\mkbibdateshort#1#2#3{%
+    \iffieldundef{#3}
+      {}
+      {\mkdatezeros{\thefield{#3}}\adddot
+       \iffieldundef{#2}{}{\thinspace}}%
+    \iffieldundef{#2}
+      {}
+      {\mkdatezeros{\thefield{#2}}%
+       \iffieldundef{#1}
+	 {}
+	 {\iffieldundef{#3}{/}{\adddot\thinspace}}}%
+    \iffieldbibstring{#1}{\bibstring{\thefield{#1}}}{\mkdatezeros{\thefield{#1}}}}%
+  \savecommand\lbx@lfromlang
+  \savecommand\lbx@sfromlang
+  \def\lbx@lfromlang{%
+    \iffieldundef{origlanguage}
+      {}
+      {\biblstring{from\thefield{origlanguage}}\space}}%
+  \def\lbx@sfromlang{%
+    \iffieldundef{origlanguage}
+      {}
+      {\bibsstring{from\thefield{origlanguage}}\space}}%
+  \savebibmacro{in:}%
+  \renewbibmacro{in:}{%
+    \iffieldequalstr{entrytype}{article}
+      {}
+      {\printtext{\bibstring{in}\intitlepunct}}}%
+}
+
+\UndeclareBibliographyExtras{%
+  \restorecommand\lbx@lfromlang
+  \restorecommand\lbx@sfromlang
+  \restorebibmacro{in:}%
+}
 
 \DeclareBibliographyStrings{%
-  bibliography     = {{{bibliograafia}{bibliograafia}},
+  bibliography     = {{bibliograafia}{bibliograafia}},
   references       = {{viited}{viited}},
   shorthands       = {{nimekirja ning l\"{u}hendid}{l\"{u}hendid}},
   editor           = {{toimetaja}{toim\adddot}},
@@ -54,7 +112,7 @@
   annotations      = {{annotatsioonide}{annotatsioonide}},
   introduction     = {{sissejuhatus}{sissejuhatus}},
   foreword         = {{eess\~{o}na}{eess\~{o}na}},
-  afterword        = {{j\"{a}rels\~{o}na}{j\"{a}rels\~{o}na}},
+  afterword        = {{j\"{a}rels\~{o}na}{j\"{a}rels\~{o}na}}, 
   editortr         = {{toimetaja ja t\~{o}lkija}%
                       {toim\adddotspace ja t\~{o}lk\adddot}},
   editorstr        = {{toimetajad ja t\~{o}lkijate}%
@@ -200,14 +258,14 @@
   byfounder        = {{asutasid}{found\adddotspace poolt}},
   bycontinuator    = {{j\"{a}tkas}{cont\adddotspace poolt}},
   bycollaborator   = {{koost\"{o}\"{o}s}{in collab\adddotspace koos}}, 
-  bytranslator     = {{t\~{o}lgitud \lbx@lfromlang\ poolt} {trans\adddot\ \lbx@sfromlang\ poolt}},
-  bycommentator    = {{kommenteeritud}{comm\adddot\ poolt}},
+  bytranslator     = {{t\~{o}lgitud \lbx@lfromlang\ poolt}{trans\adddot\ \lbx@sfromlang\ poolt}},
+  bycommentator    = {{kommentaarin kirjoittanut}{kommentaarin kirjoittanut}},% FIXME: unsure
   byannotator      = {{selgitustega poolt}{annot\adddot\ poolt}},
   withcommentator  = {{koos kommentaariga}{koos comment\adddot\ poolt}},
   withannotator    = {{koos annotations poolt}{koos annots\adddot\ poolt}},
-  withintroduction = {{koos tutvustus poolt}{koos poolt intro\adddot\}},
+  withintroduction = {{koos tutvustus poolt}{koos poolt intro\adddot\ }},
   withforeword     = {{mis eess\~{o}na Autor}{koos forew\adddot\ poolt}},
-  withafterword    = {{koos J\"{a}rels\~{o}na poolt}{koos poolt afterw\adddot\}},
+  withafterword    = {{koos J\"{a}rels\~{o}na poolt}{koos poolt afterw\adddot\ }},
   byeditortr       = {{redigeeritud ja t\~{o}lgitud \lbx@lfromlang\ poolt} 
                       {toim\adddotspace ja \lbx@sfromlang k\"a\"ant\adddot}},
   byeditorco       = {{toimetatud ja kommenteeritud} %
@@ -372,6 +430,18 @@
   october          = {{oktoober}{oktoober}},
   november         = {{november}{november}},
   december         = {{detsember}{detsember}},
+  basicjanuary     = {{jaanuar}{jaanuar}},
+  basicfebruary    = {{veebruar}{veebruar}},
+  basicmarch       = {{m\"{a}rts}{m\"{a}rts}},
+  basicapril       = {{aprill}{aprill}},
+  basicmay         = {{mai}{mai}},
+  basicjune        = {{juuni}{juuni}},
+  basicjuly        = {{juuli}{juuli}},
+  basicaugust      = {{august}{august}},
+  basicseptember   = {{september}{september}},
+  basicoctober     = {{oktoober}{oktoober}},
+  basicnovember    = {{november}{november}},
+  basicdecember    = {{detsember}{detsember}},
   langamerican     = {{Ameerika}{Ameerika}},
   langbrazilian    = {{Brasiilia}{Brasiilia}},
   langcatalan      = {{katalaani}{katalaani}},
@@ -422,7 +492,7 @@
   countryfr        = {{Prantsusmaa}{FR}},
   countryuk        = {{Suurbritannia}{GB}},
   countryus        = {{Ameerika}{US}},
-  Patent           = {{patendi}{pat\adddot}},
+  patent           = {{patendi}{pat\adddot}},
   patentde         = {{Saksa patendi}{Saksa pat\adddot}},
   patenteu         = {{Euroopa patendi}{Euroopa pat\adddot}},
   patentfr         = {{Prantsuse patent}{Prantsuse pat\adddot}},
