@@ -534,16 +534,16 @@
 % Special fields which need resolution using the information provided by biber
 \listadd\abx@rfields{labeltitle}
 \def\abx@dorfields{%
-  \dolistcsloop{abx@rfields}%
+  \dolistloop\abx@rfields%
 }
 % Just in case we ever have non-name lists to instantiate
 %\listadd\abx@rlists{}
 % \def\abx@dorlists{%
-%   \dolistcsloop{abx@rlists}%
+%   \dolistloop\abx@rlists%
 % }
 \listadd\abx@rnames{labelname}
 \def\abx@dornames{%
-  \dolistcsloop{abx@rnames}%
+  \dolistloop\abx@rnames%
 }
 
 % Used to track default refcontexts for citations
@@ -5176,20 +5176,20 @@
 
 %% Biber equivalents to bibtex data interface
 
-\def\abx@doentrytypes{\dolistcsloop{blx@datamodel@entrytypes}}
+\def\abx@doentrytypes{\dolistloop\blx@datamodel@entrytypes}
 
 % fields which can be used as labels - we auto-create some macros for these
-\def\abx@dolabelfields{\dolistcsloop{blx@datamodel@labelfields}}
+\def\abx@dolabelfields{\dolistloop\blx@datamodel@labelfields}
 
-\def\abx@donames{\dolistcsloop{blx@datamodel@names}}
+\def\abx@donames{\dolistloop\blx@datamodel@names}
 
-\def\abx@dofields{\dolistcsloop{blx@datamodel@fields}}
+\def\abx@dofields{\dolistloop\blx@datamodel@fields}
 
 \def\abx@dolists{%
-  \dolistcsloop{blx@datamodel@lists}%
+  \dolistloop\blx@datamodel@lists%
   \do{pageref}}
 
-\def\abx@dodates{\dolistcsloop{blx@datamodel@dates}}
+\def\abx@dodates{\dolistloop\blx@datamodel@dates}
 
 % Used to pass regexps to .bcf
 \def\regexp#1{\expandafter\zap@space\detokenize{#1} \@empty}
@@ -5396,12 +5396,14 @@
   \protected\csdef{blx@imc@print#1}{}%
   \protected\csdef{blx@imc@print#1extra}{}}
 \abx@dodates
+\do{labeldate}
 
 % \blx@regimcs doesn't work in do-lists nicely so use internal macro it calls
 \def\do#1{%
   \xappto\blx@blxinit{\csletcs{print#1}{blx@imc@print#1}}%
   \xappto\blx@blxinit{\csletcs{print#1extra}{blx@imc@print#1extra}}}
 \abx@dodates
+\do{labeldate}
 
 \def\blx@imc@ifdatemeta@i#1#2{%
   \appto\blx@blxinit{%
@@ -5421,12 +5423,14 @@
   \expandafter\blx@imc@ifdatemeta@i\expandafter{\blx@datetype}{circa}%
   \expandafter\blx@imc@ifdatemeta@i\expandafter{\blx@datetype}{uncertain}}
 \abx@dodates
+\do{labeldate}
 
 % Create date meta information field tests
 \def\do#1{%
   \StrCut{#1}{date}\blx@datetype\blx@tempnull
   \expandafter\blx@imc@ifdatemeta@ii\expandafter{\blx@datetype}}
 \abx@dodates
+\do{labeldate}
 
 % Name toggles like \ifauthor etc. need to be dynamically created for all
 % name datatypes in the data model and we have to do this here after the
@@ -11699,6 +11703,8 @@
     \newtoggle{abx@bool@\blx@datetype datecirca}
     \newtoggle{abx@bool@\blx@datetype dateuncertain}}
 \abx@dodates
+\newtoggle{abx@bool@labeldatecirca}
+\newtoggle{abx@bool@labeldateuncertain}
 
 \DeclareBibliographyOption[string]{alldates}{%
   \ExecuteBibliographyOptions{datelabel=#1}%
