@@ -90,3 +90,35 @@ add aux
   \abx@aux@number=num
 write aux
 
+* This is what labeldate resolution would look like in biblatex. However, it can't be done there as biber needs to generate and use labelyear a lot. Changing labeldate in biblatex would break things
+  % Resolve labeldate
+  \ifcsundef{abx@field@labeldatesource}
+    {}
+    {\ifcsundef{abx@field@\thefield{labeldatesource}year}
+      % labeldatesource contains a non-date field
+      {\csedef{abx@field@label\thefield{labeldatesource}}{\csuse{abx@field@\thefield{labeldatesource}}}}%
+      % labeldatesource contains a date field name prefix like "", "event", "url" or "orig"
+      {% labelyear - end can be open
+        \ifcsdef{abx@field@\thefield{labeldatesource}endyear}
+          {\ifcsequal
+            {abx@field@\thefield{labeldatesource}year}
+            {abx@field@\thefield{labeldatesource}endyear}
+            {\edef\abx@field@labelyear{\csuse{abx@field@\thefield{labeldatesource}year}}}
+            {\edef\abx@field@labelyear{\csuse{abx@field@\thefield{labeldatesource}year}\bibdatedash \csuse{abx@field@\thefield{labeldatesource}endyear}}}}
+          {\edef\abx@field@labelyear{\csuse{abx@field@\thefield{labeldatesource}year}}}%
+        % labelmonth
+        \ifcsdef{abx@field@\thefield{labeldatesource}endmonth}
+          {\ifcsequal
+            {abx@field@\thefield{labeldatesource}month}
+            {abx@field@\thefield{labeldatesource}endmonth}
+            {\edef\abx@field@labelmonth{\csuse{abx@field@\thefield{labeldatesource}month}}}
+            {\edef\abx@field@labelmonth{\csuse{abx@field@\thefield{labeldatesource}month}\bibdatedash \csuse{abx@field@\thefield{labeldatesource}endmonth}}}}
+          {\edef\abx@field@labelmonth{\csuse{abx@field@\thefield{labeldatesource}month}}}%
+        % labelday
+        \ifcsdef{abx@field@\thefield{labeldatesource}endday}
+          {\ifcsequal
+            {abx@field@\thefield{labeldatesource}day}
+            {abx@field@\thefield{labeldatesource}endday}
+            {\edef\abx@field@labelday{\csuse{abx@field@\thefield{labeldatesource}day}}}
+            {\edef\abx@field@labelday{\csuse{abx@field@\thefield{labeldatesource}day}\bibdatedash \csuse{abx@field@\thefield{labeldatesource}endday}}}}
+          {\edef\abx@field@labelday{\csuse{abx@field@\thefield{labeldatesource}day}}}}%
