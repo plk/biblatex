@@ -10,7 +10,7 @@
 \begin{filecontents}{\jobname.bib}
 @misc{date1,
   note      = {years with implicit and explicit eras},
-  date      = {-877},         % Negative ISO8601 date = BCE/BC
+  date      = {-477},         % Negative ISO8601 date = BCE/BC
   origdate  = {-877/-866},    % Negative ISO8601 date range
   eventdate = {840BC/830BC},  % Explicit era (CE/AD/BCE/BC)
   urldate   = {2004 CE},      % Explicit era (CE/AD/BCE/BC)
@@ -29,8 +29,24 @@
   eventdate = {circa 1922 CE}, % circa and explicit era
   urldate   = {1976?}          % year with uncertainty marker
 }
+@misc{date4,
+  note      = {dates with open ends},
+  date      = {c 1723/},        % open-ended year range with circa marker
+  origdate  = {ca. 1934-02/},   % open-ended year and month range with circa marker
+  eventdate = {circa 1922 CE/}, % open-ended year range with circa and explicit era
+  urldate   = {1976?/}          % open-ended year range with uncertainty marker
+}
+@misc{date5,
+  % uses the 'nodate' localisation string due to default \DeclareLabeldate setting
+  note      = {date from literal/localisation string},
+}
 \end{filecontents}
-\usepackage[style=authoryear,alldates=short,backend=biber]{biblatex}
+\usepackage[style=authoryear,%
+            alldates=short,%
+            dateera=secular,%
+            dateuncertain=true,%
+            datecirca=true,%
+            backend=biber]{biblatex}
 \addbibresource{\jobname.bib}
 
 
@@ -48,30 +64,45 @@
 
 \DeclareBibliographyDriver{misc}{%
   \printfield[emph]{note}\\
-  \printtext[bold]{date} = \printdate\\
-  \printtext[bold]{origdate} = \printorigdate\\
-  \printtext[bold]{eventdate} = \printeventdate\\
-  \printtext[bold]{urldate} = \printurldate}
+  \iffieldundef{labelyear}{}{\printtext[bold]{labeldate} = \printdatelabel\\}
+  \iffieldundef{year}{}{\printtext[bold]{date} = \printdate\\}
+  \iffieldundef{origyear}{}{\printtext[bold]{origdate} = \printorigdate\\}
+  \iffieldundef{eventyear}{}{\printtext[bold]{eventdate} = \printeventdate\\}
+  \iffieldundef{urlyear}{}{\printtext[bold]{urldate} = \printurldate}}
 
-\DefineBibliographyExtras{english}{%
-\protected\def\mkbibdateshort#1#2#3{%
-  \ifdatecirca{\bibstring{circa}\space}{}%
-  \iffieldundef{#2}
-    {}
-    {\mkdatezeros{\thefield{#2}}%
-      \iffieldundef{#3}
-        {\iffieldundef{#1}{}{/}}
-        {/}}%
-  \iffieldundef{#3}
-    {}
-    {\mkdatezeros{\thefield{#3}}%
-       \iffieldundef{#1}{}{/}}%
-  \iffieldbibstring{#1}
-    {\bibstring{\thefield{#1}}}
-    {\mkdatezeros{\thefield{#1}}}%
-  \ifdateuncertain{\space?}{}%
-  \ifdateera{bce}{\bibstring{beforecommonera}}{}}%
-}
+% This will output eras for all dates
+%
+% \renewcommand*{\dateeraprint}{%
+%   \ifdateera{bce}
+%     {\printdelim{dateeradelim}\bibstring{beforecommonera}}
+%     {\printdelim{dateeradelim}\bibstring{commonera}}}
+
+
+% This will only output era information for dates with year < 500
+% Has to be done inside the appropriate \mkbibdate* macros as before this
+% the date field names are not available.
+%
+% \renewcommand*{\dateeraprint}{}%
+% \DefineBibliographyExtras{english}{%
+% \protected\def\mkbibdateshort#1#2#3{%
+%    \iffieldundef{#2}
+%     {}
+%     {\mkdatezeros{\thefield{#2}}%
+%       \iffieldundef{#3}
+%         {\iffieldundef{#1}{}{/}}
+%         {/}}%
+%   \iffieldundef{#3}
+%     {}
+%     {\mkdatezeros{\thefield{#3}}%
+%        \iffieldundef{#1}{}{/}}%
+%   \iffieldbibstring{#1}
+%     {\bibstring{\thefield{#1}}}
+%     {\mkdatezeros{\thefield{#1}}}%
+%   \ifdateera{bce}
+%     {\ifnumcomp{\thefield{#1}}{<}{500}
+%       {\printdelim{dateeradelim}\bibstring{beforecommonera}}
+%       {}}
+%     {}}}
 
 \begin{document}
 

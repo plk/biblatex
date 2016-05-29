@@ -471,6 +471,7 @@
 \booltrue{citerequest}
 \newbool{sortcites}
 
+\newtoggle{blx@dateera}
 \newtoggle{blx@bbldone}
 \newtoggle{blx@tempa}
 \newtoggle{blx@tempb}
@@ -521,6 +522,11 @@
 \newtoggle{blx@bibindex}
 \newtoggle{blx@localnumber}
 \newtoggle{blx@refcontext}
+
+% date meta-information option defaults
+\let\datecircaprint\relax
+\let\dateuncertainprint\relax
+\let\dateeraprint\relax
 
 % Nice command from etextools which causes too many problems if you load
 % the whole package
@@ -4803,6 +4809,7 @@
 % {<short|long>}{<basename>}
 \newrobustcmd*{\mkbibrangefull}[2]{%
   \blx@metadateinfo{#2}%
+  \datecircaprint
   \iffieldundef{#2year}
     {}
     {\printtext[#2date]{%
@@ -4812,10 +4819,13 @@
          {\iffieldequalstr{#2endyear}{}
             {\mbox{\bibdatedash}}
             {\bibdatedash
-             \csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}}}}}
+             \csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}}}}%
+  \dateeraprint
+  \dateuncertainprint}
 
 \newrobustcmd*{\mkbibrangetrunc}[2]{%
   \blx@metadateinfo{#2}%
+  \datecircaprint
   \iffieldundef{#2year}
     {}
     {\printtext[#2date]{%
@@ -4829,10 +4839,13 @@
          {\iffieldequalstr{#2endyear}{}
             {\mbox{\bibdatedash}}
             {\bibdatedash
-             \csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}}}}}
+             \csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}}}}%
+  \dateeraprint
+  \dateuncertainprint}
 
 \newrobustcmd*{\mkbibrangefullextra}[2]{%
   \blx@metadateinfo{#2}%
+  \datecircaprint
   \iffieldundef{#2year}
     {}
     {\printtext[#2date]{%
@@ -4846,10 +4859,13 @@
             {\printtext{%
                \bibdatedash
                \csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}%
-               \printfield{extrayear}}}}}}}
+               \printfield{extrayear}}}}}}%
+  \dateeraprint
+  \dateuncertainprint}
 
 \newrobustcmd*{\mkbibrangetruncextra}[2]{%
   \blx@metadateinfo{#2}%
+  \datecircaprint
   \iffieldundef{#2year}
     {}
     {\printtext[#2date]{%
@@ -4867,10 +4883,11 @@
             {\printtext{%
                \bibdatedash
                \csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}%
-               \printfield{extrayear}}}}}}}
+               \printfield{extrayear}}}}}}%
+  \dateeraprint
+  \dateuncertainprint}
 
 \newrobustcmd*{\mkbibrangeyear}[1]{%
-  \blx@metadateinfo{#1}%
   \blx@imc@clearfield{#1month}%
   \blx@imc@clearfield{#1day}%
   \blx@imc@clearfield{#1endmonth}%
@@ -4881,7 +4898,6 @@
   \mkbibrangefull{short}{#1}}
 
 \newrobustcmd*{\mkbibrangeyearextra}[1]{%
-  \blx@metadateinfo{#1}%
   \blx@imc@clearfield{#1month}%
   \blx@imc@clearfield{#1day}%
   \blx@imc@clearfield{#1endmonth}%
@@ -4894,30 +4910,37 @@
 \expandafter\newrobustcmd
 \expandafter*\csname mkbibrangeiso8601\endcsname[1]{%
   \blx@metadateinfo{#1}%
+  \datecircaprint
   \iffieldundef{#1year}
     {}
     {\printtext[#1date]{%
        \blx@isodate{#1year}{#1month}{#1day}%
        \iffieldundef{#1endyear}
          {}
-         {\addslash\blx@isodate{#1endyear}{#1endmonth}{#1endday}}}}}
+         {\addslash\blx@isodate{#1endyear}{#1endmonth}{#1endday}}}}%
+  \dateeraprint
+  \dateuncertainprint}
 
 \expandafter\newrobustcmd
 \expandafter*\csname mkbibrangeiso8601extra\endcsname[1]{%
   \blx@metadateinfo{#1}%
+  \datecircaprint
   \iffieldundef{#1year}
     {}
     {\printtext[#1date]{%
        \blx@isodate[extrayear]{#1year}{#1month}{#1day}%
        \iffieldundef{#1endyear}
          {}
-         {\addslash\blx@isodate{#1endyear}{#1endmonth}{#1endday}}}}}
+         {\addslash\blx@isodate{#1endyear}{#1endmonth}{#1endday}}}}%
+  \dateeraprint
+  \dateuncertainprint}
 
 \newrobustcmd*{\blx@isodate}[4][]{%
   \thefield{#2}\ifblank{#1}{}{\printfield{#1}}%
   \iffieldundef{#3}{}{\mbox{-}\thefield{#3}}%
   \iffieldundef{#4}{}{\mbox{-}\thefield{#4}}}
 
+\newrobustcmd*{\bibdateuncertain}{?}
 \newrobustcmd*{\mkbibdatelong}[3]{}
 \newrobustcmd*{\mkbibdateshort}[3]{}
 \newrobustcmd*{\bibrangedash}{\textendash}
@@ -5881,9 +5904,14 @@
   \ifcsundef{abx@field@labeldatesource}
     {}
     {\ifcsundef{abx@field@\thefield{labeldatesource}year}
-      % labeldatesource contains a non-date field
-      {\csedef{abx@field@label\thefield{labeldatesource}}{\csuse{abx@field@\thefield{labeldatesource}}}}%
-      % labeldatesource contains a date field name prefix like "", "event", "url" or "orig"
+      % \DeclareLabeldate resolved to a literal/localisation string or a non-date field
+      % in which case we only set labelyear
+      {\ifcsundef{abx@field@\thefield{labeldatesource}}
+        % \DeclareLabeldate resolved to a literal/localisation string
+        {\edef\abx@field@labelyear{\thefield{labeldatesource}}}
+        % \DeclareLabeldate resolved to a non-date field
+        {\edef\abx@field@labelyear{\csuse{abx@field@\thefield{labeldatesource}}}}}%
+      % \DeclareLabeldate resolved to a date field name prefix like "", "event", "url" or "orig"
       {% labelyear - end can be open
         \ifcsdef{abx@field@\thefield{labeldatesource}endyear}
           {\ifcsequal
@@ -9888,6 +9916,9 @@
   \blx@xml@comment{GLOBAL}%
   \blx@xml@options{biblatex}{global}{%
     \blx@xml@svalue{alphaothers}{\labelalphaothers}%
+    \blx@xml@toggle{dateera}%
+    \blx@xml@toggle{datecirca}%
+    \blx@xml@toggle{dateuncertain}%
     \blx@xml@toggle{labelalpha}%
     \blx@xml@mvalue{labelnamespec}{\blx@bcf@labelnamespec}%
     \blx@xml@toggle{labeltitle}%
@@ -11719,6 +11750,31 @@
          {\csuse{mkbibrange#1extra}{label}}
          {\csuse{mkbibrange#1extra}{}}}}
     {\blx@err@invopt{datelabel=#1}{}}}
+
+
+% Date meta-information
+\DeclareBibliographyOption[string]{dateera}{%
+  \toggletrue{blx@dateera}%
+  \ifstrequal{#1}{secular}
+    {\protected\def\dateeraprint{%
+       \ifdateera{bce}{\printdelim{dateeradelim}\bibstring{beforecommonera}}{}}}
+    {}%
+  \ifstrequal{#1}{christian}
+    {\protected\def\dateeraprint{%
+      \ifdateera{bce}{\printdelim{dateeradelim}\bibstring{beforechrist}}{}}}
+    {}}
+
+\DeclareBibliographyOption[boolean]{datecirca}[true]{%
+  \ifstrequal{#1}{true}
+    {\protected\def\datecircaprint{%
+       \ifdatecirca{\bibstring{circa}\printdelim{datecircadelim}}{}}}
+    {}}
+
+\DeclareBibliographyOption[boolean]{dateuncertain}[true]{%
+  \ifstrequal{#1}{true}
+    {\protected\def\dateuncertainprint{%
+       \ifdateuncertain{\bibdateuncertain}{}}}
+    {}}
 
 % Set up datamodel dates
 \def\do#1{%

@@ -1640,10 +1640,11 @@ To summarise, the supported explicit meta-information markers supported in date 
 \begin{itemize}
 \item Era marker suffix <BC>, <BCE>, <AD> and <CE>. Space prefix for the marker is optional. The <AD/CE> markers are not strictly necessary since all dates are assumed to be in this era unless otherwise determined or explicitly specified.
 \item <circa> marker <c>, <ca> or <circa> prefix. Dot and/or space suffix for the marker is optional.
+\item EDTF\footnote{\url{https://www.loc.gov/standards/datetime/pre-submission.html}} approximation (circa) marker <\textasciitilde> suffix. Space prefix for the marker is optional.
 \item Uncertainty marker suffix <?>. Space prefix for the marker is optional.
 \end{itemize}
 %
-See \tabref{bib:use:tab2} for examples.
+The output of <circa>, uncertainty and era information in standard styles (or custom styles not customising the internal \cmd{mkbibrange*} macros) is controlled by the package options \opt{datecirca}, \opt{dateuncertain} and \opt{dateera} (see \secref{use:opt:pre:gen}). See \tabref{bib:use:tab2} for examples which assumes these options are all used.
 
 \begin{table}
 \tablesetup
@@ -1667,6 +1668,7 @@ See \tabref{bib:use:tab2} for examples.
 343-02-03BC & 343-02-03 BCE & \\
 -03430203/-03400405 & 344-02-03--341-04-05 BCE & \\
 c 1723 & c. 1723 & using \cmd{ifdatecirca} test\\
+1723\textasciitilde & c. 1723 & using \cmd{ifdatecirca} test\\
 ca. 1723 CE & c. 1723 & using \cmd{ifdatecirca} test\\
 circa 1723 CE & c. 1723 & using \cmd{ifdatecirca} test\\
 circa. 1723-02 BC & c. 1723-02 BC & using \cmd{ifdatecirca}, \cmd{ifdateera} tests and \opt{beforechrist} localisation string\\
@@ -2253,6 +2255,18 @@ This option controls whether \texttt{short} and \texttt{terse} dates are printed
 \boolitem[true]{dateabbrev}
 
 This option controls whether \texttt{long} and \texttt{comp} dates are printed with long or abbreviated month names. The option is similar to the generic \opt{abbreviate} option but specific to the date formatting.
+
+\boolitem[false]{datecirca}
+
+This option controls whether to output <circa> information about dates. If set to \opt{true}, dates will be preceded by the expansion of the \cmd{datecircaprint} (\secref{use:fmt:fmt}).
+
+\boolitem[false]{dateuncertain}
+
+This option controls whether to output uncertainty information about dates. If set to \opt{true}, dates will be followed by the expansion of the \cmd{dateuncertainprint} macro (\secref{use:fmt:fmt}).
+
+\optitem{dateera}{\opt{secular}, \opt{christian}}
+
+This option controls which localisation strings are used to format date era information (see \secref{aut:lng:key:era}). By default, this option is not set and no era information is output for dates. If set, the \cmd{dateeraprint} will be used to format the era information, see \secref{use:fmt:fmt}.
 
 \boolitem[false]{defernumbers}
 
@@ -4394,6 +4408,21 @@ Similar to \cmd{multicitedelim}, but used by the \cmd{supercite} command only. T
 \csitem{compcitedelim}
 Similar to \cmd{multicitedelim}, but used by certain citation styles when <compressing> multiple citations. The default definition is a comma plus an interword space.
 
+\csitem{datecircadelim}\CSdelimMark
+When formatting dates with the global option \opt{datecirca} enabled, the delimiter printed after any localised <circa> term. Defaults to interword space.
+
+\csitem{dateeradelim}\CSdelimMark
+When formatting dates with the global option \opt{dateera} set, the delimiter printed before the localisation era term. Defaults to interword space.
+
+\csitem{dateuncertainprint}
+Command which formats the printing of date uncertainty information when the global option \opt{dateuncertain} is enabled. By default, prints the language specific \cmd{bibdateuncertain} string (\secref{use:fmt:lng}).
+
+\csitem{datecircaprint}
+Command which formats the printing of date uncertainty information when the global option \opt{datecirca} is enabled. By default, prints the <circa> localised term (\secref{aut:lng:key:circa}) and the \opt{datecircadelim} delimiter.
+
+\csitem{dateeraprint}
+Command which formats the printing of date era information when the global option \opt{dateera} is set. By default, prints the \opt{dateeradelim} delimiter and the appropriate localised era term (\secref{aut:lng:key:era}). Note that all dates are assumed to be AD/CE and this era is never output. In the event that you always want to include AD/CE eras in dates, customise this command.
+
 \csitem{textcitedelim}
 Similar to \cmd{multicitedelim}, but used by \cmd{textcite} and related commands (\secref{use:cit:cbx}). The default is a comma plus an interword space. The standard styles modify this provisional definition to ensure that the delimiter before the final citation is the localised term <and>, separated by interword spaces. See also \cmd{finalandcomma} and \cmd{finalandsemicolon} in \secref{use:fmt:lng}.
 
@@ -4553,6 +4582,10 @@ Takes the names of three field as arguments which correspond to three date compo
 \csitem{mkbibdateshort}
 
 Similar to \cmd{mkbibdatelong} but using the language specific short date format.
+
+\csitem{bibdateuncertain}
+
+The language specific marker to be used after uncertain dates when the global option \opt{dateuncertain} is enabled. Defaults to a space followed by a question mark.
 
 \csitem{finalandcomma}
 
@@ -5784,19 +5817,18 @@ Holds the prefix coming before <date> of the date field name chosen by \cmd{Decl
 
 \begin{ltxexample}
 \iffieldundef{labeldatesource}
-  {
-    % labeldate package option is not set or
-    % \DeclareLabeldate resolved to a literal string
-  }
+  {}% labeldate package option is not set
   {\iffieldundef{\thefield{labeldatesource}year}
-    {
-      % labeldatesource contains a non-date field since if a date
-      % is defined by a date field, there is at least a year
+    % \DeclareLabeldate resolved to either a literal/localisation
+    % string or a non-date field since
+    % if a date is defined by a date field, there is
+    % at least a year
+    {\iffieldundef{\thefield{labeldatesource}}
+       {}% \DeclareLabeldate resolved to a literal/localisation string
+       {}% \DeclareLabeldate resolved to a non-date field
     }
-    {
-      % labeldatesource contains a date field name
-      % prefix like "", "event", "url" or "orig"
-    }}
+    {} % \DeclareLabeldate resolved a date field name prefix like "" or "orig"
+  }
 \end{ltxexample}
 
 \fielditem{entrytype}{string}
@@ -11965,6 +11997,9 @@ datamodel &\+&\_&\_&\_\\
 dataonly	&\_&\_&\+&\+\\
 date		&\+&\+&\_&\_\\
 dateabbrev	&\+&\+&\_&\_\\
+datecirca &\+&\+&\_&\_\\
+dateera &\+&\+&\_&\_\\
+dateuncertain &\+&\+&\_&\_\\
 datezeros	&\+&\+&\_&\_\\
 defernumbers	&\+&\+&\_&\_\\
 doi		&\+&\+&\_&\_\\ % style
