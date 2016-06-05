@@ -4522,6 +4522,30 @@ Delimiter contexts are simply a string, the value of the internal macro \cmd{blx
 
 Set the delimiter context to \prm{context}. This setting is not global so that delimiter contexts can be nested using the usual \latex group method.
 
+\cmditem{DeclareDelimcontextAlias}{alias}{name}
+
+The context-sensitive delimiter system creates delimiter contexts based on
+the name of citation commands (<parencite>, <textcite> etc.) passed to
+\cmd{DeclareCiteCommand}. In certain cases where there are nested
+definitions of citation commands where \cmd{DeclareCiteCommand} calls
+itself (see the definition of \cmd{textcite} in \style{authoryear-icomp}
+for example). The delimiter context is then usually incorrect and the
+delimiter specifications do not work. For example, the definition of
+\cmd{textcite} in fact defines and uses \cmd{cbx@textcite} and so the
+context is automatically set to \opt{cbx@textcite} when printing the
+citation. Delimiter definitions expecting to see the context \opt{textcite}
+therefore do not work. Therefore this command is provided for style authors
+which aliases the context \prm{alias} to the context \prm{name}. For
+example:
+
+\begin{ltxexample}[style=latex]{}
+\DeclareDelimcontextAlias{cbx@textcite}{textcite}
+\end{ltxexample}
+% 
+This (which is a default setting), makes sure that when inside the
+\cmd{cbx@textcite} citation command, the context is in fact \opt{textcite}
+as expected.
+
 \end{ltxsyntax}
 %
 \biblatex\ has several default contexts which are established automatically in various places:
@@ -12080,6 +12104,7 @@ This revision history is a list of changes relevant to users of this package. Ch
 \begin{changelog}
 
 \begin{release}{3.5}{2016-}
+\item Added \cmd{DeclareDelimcontextAlias}\see{use:fmt:csd}
 \item Renamed \bibfield{datelabelsource} to \bibfield{labeldatesource} field\see{aut:bbx:fld:gen}
 \item Enhanced ISO8601v2004 dates with meta-information, associated tests and localisation strings\see{bib:use:dat}
 \item Added circa localisation strings\see{aut:lng:key:circa}
