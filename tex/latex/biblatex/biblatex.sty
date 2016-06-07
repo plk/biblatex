@@ -9873,6 +9873,14 @@
 \xdef\blx@xml@nolabelwidthcount#1{%
   ~~~~<bcf:nolabelwidthcount value="#1"/>\blx@nl}
 
+\xdef\blx@xml@uniquenametemplate#1{%
+  ~~<bcf:uniquenametemplate>\blx@nl%
+  #1%
+  ~~</bcf:uniquenametemplate>\blx@nl}
+
+\xdef\blx@xml@uniquenametemplatenamepart#1#2#3{%
+  ~~~~<bcf:namepart #1#2>#3</bcf:namepart>\blx@nl}
+
 \xdef\blx@xml@sortingnamekey#1#2{%
   ~~<bcf:sortingnamekey keyscheme="#1">\blx@nl%
   #2%
@@ -10215,6 +10223,9 @@
      \def\do##1{%
        \eappto\blx@tempa{\blx@xml@transliteration{##1}{\csuse{blx@translit@##1}}}}%
      \dolistloop\blx@translits}%
+  % uniquenametemplate
+  \eappto\blx@tempa{\blx@xml@comment{UNIQUENAME TEMPLATE}}%
+  \eappto\blx@tempa{\blx@xml@uniquenametemplate{\blx@uniquenametemplate}}%
   % sortingnamekey
   \eappto\blx@tempa{\blx@xml@comment{SORTING NAME KEY}}%
   \def\do##1{%
@@ -10801,6 +10812,29 @@
 \newcommand*{\blx@translit@setup}[3][*]{%
   \eappto\blx@tempb{%
     \blx@xml@translit{#1}{#2}{#3}}}
+
+% {<spec>}
+\newrobustcmd*{\DeclareUniquenameTemplate}[1]{%
+  \begingroup
+  \let\namepart\blx@untemp@namepart
+  \let\blx@tempa\@empty
+  \blx@tempcnta\z@
+  #1%
+  \global\let\blx@uniquenametemplate\blx@tempa
+  \endgroup}
+\@onlypreamble\DeclareUniquenameTemplate
+\blx@collectopts{xml}{blx@globalopts}{uniquenametemplate}% for passing to the .bcf
+
+% Shares option code for \namepart from \DeclareSortingNamekeyScheme
+\newcommand*{\blx@untemp@namepart}[2][]{%
+  \advance\blx@tempcntb\@ne
+  \edef\blx@tempe{order="\the\blx@tempcntb"}%
+  \let\blx@tempc\@empty
+  \ifblank{#1}
+    {}
+    {\setkeys{blx@sortnk@namepart}{#1}}%
+  \eappto\blx@tempa{%
+    \blx@xml@uniquenametemplatenamepart{\blx@tempe}{\blx@tempc}{#2}}}
 
 % [<specname>]{<spec>}
 \newrobustcmd*{\DeclareSortingNamekeyScheme}[2][]{%
