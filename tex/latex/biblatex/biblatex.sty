@@ -5454,18 +5454,38 @@
 \abx@dodates
 
 % Resolve date meta information tests for labeldate
+% We have to test here, in each \def, whether the labeldatesource
+% is a real date field or not. If it's not, then we don't want to use
+% any of the meta-information and so make the conditionals always return false
+% This can't be neater by testing for the \abx@field@labeldatesource value
+% earlier because its not available until the tests are in scope.
 \appto\blx@blxinit{%
-  \def\iflabeldateera#1{\ifcsstring{abx@field@\abx@field@labeldatesource dateera}{#1}}%
-  \appto\blx@TE@hook{%
-    \def\iflabeldateera#1{\blx@TE\ifcsstring{abx@field@\abx@field@labeldatesource dateera}{#1}}}}
-\appto\blx@blxinit{%
-  \csdef{iflabeldatecirca}{\iftoggle{abx@bool@\abx@field@labeldatesource datecirca}}%
-  \appto\blx@TE@hook{%
-    \csdef{iflabeldatecirca}{\blx@TE\iftoggle{abx@bool@\abx@field@labeldatesource datecirca}}}}
-\appto\blx@blxinit{%
-  \csdef{iflabeldateuncertain}{\iftoggle{abx@bool@\abx@field@labeldatesource dateuncertain}}%
-  \appto\blx@TE@hook{%
-    \csdef{iflabeldateuncertain}{\blx@TE\iftoggle{abx@bool@\abx@field@labeldatesource dateuncertain}}}}
+  \iftoggle{blx@labeldate}
+    {\def\iflabeldateera#1{%
+       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+         {\ifcsstring{abx@field@\abx@field@labeldatesource dateera}{#1}}
+         {\@secondoftwo}}%
+     \appto\blx@TE@hook{\def\iflabeldateera#1{%
+       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+         {\blx@TE\ifcsstring{abx@field@\abx@field@labeldatesource dateera}{#1}}
+         {\blx@TE\@secondoftwo}}}%
+     \def\iflabeldatecirca{%
+       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+         {\iftoggle{abx@bool@\abx@field@labeldatesource datecirca}}
+         {\@secondoftwo}}%
+     \appto\blx@TE@hook{\def\iflabeldatecirca{%
+       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+         {\blx@TE\iftoggle{abx@bool@\abx@field@labeldatesource datecirca}}
+         {\blx@TE\@secondoftwo}}}%
+     \def\iflabeldateuncertain{%
+       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+         {\iftoggle{abx@bool@\abx@field@labeldatesource dateuncertain}}
+         {\@secondoftwo}}%
+     \appto\blx@TE@hook{\def\iflabeldateuncertain{%
+       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+         {\blx@TE\iftoggle{abx@bool@\abx@field@labeldatesource dateuncertain}}
+         {\blx@TE\@secondoftwo}}}}%
+    {}}
 
 % Name toggles like \ifauthor etc. need to be dynamically created for all
 % name datatypes in the data model and we have to do this here after the
