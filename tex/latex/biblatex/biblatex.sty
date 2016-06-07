@@ -4926,7 +4926,6 @@
        \iffieldundef{#1endyear}
          {}
          {\addslash\blx@isodate{#1endyear}{#1endmonth}{#1endday}}}}%
-  \dateeraprint
   \dateuncertainprint}
 
 \expandafter\newrobustcmd
@@ -4940,10 +4939,12 @@
        \iffieldundef{#1endyear}
          {}
          {\addslash\blx@isodate{#1endyear}{#1endmonth}{#1endday}}}}%
-  \dateeraprint
   \dateuncertainprint}
 
 \newrobustcmd*{\blx@isodate}[4][]{%
+  % Note that this is before the date as ISO8601 is "-nnn" and not "nnn BCE"
+  % Using internals of \dateeraprint as that isn't suited to this since it uses localisation
+  \ifdateera{bce}{-}{}%
   \thefield{#2}\ifblank{#1}{}{\printfield{#1}}%
   \iffieldundef{#3}{}{\mbox{-}\thefield{#3}}%
   \iffieldundef{#4}{}{\mbox{-}\thefield{#4}}}
@@ -5425,12 +5426,14 @@
   \xappto\blx@blxinit{\csletcs{print#1extra}{blx@imc@print#1extra}}}
 \abx@dodates
 
+% Set up circa and uncertain date internals
 \def\blx@imc@ifdatemeta@i#1#2{%
   \appto\blx@blxinit{%
     \csdef{if#1date#2}{\iftoggle{abx@bool@#1date#2}}%
     \appto\blx@TE@hook{%
       \csdef{if#1date#2}{\blx@TE\iftoggle{abx@bool@#1date#2}}}}}
 
+% Set up era date internals
 \def\blx@imc@ifdatemeta@ii#1{%
   \appto\blx@blxinit{%
     \csdef{if#1dateera}##1{\ifcsstring{abx@field@#1dateera}{##1}}%
@@ -5443,14 +5446,26 @@
   \expandafter\blx@imc@ifdatemeta@i\expandafter{\blx@datetype}{circa}%
   \expandafter\blx@imc@ifdatemeta@i\expandafter{\blx@datetype}{uncertain}}
 \abx@dodates
-\do{labeldate}
 
 % Create date meta information field tests
 \def\do#1{%
   \StrCut{#1}{date}\blx@datetype\blx@tempnull
   \expandafter\blx@imc@ifdatemeta@ii\expandafter{\blx@datetype}}
 \abx@dodates
-\do{labeldate}
+
+% Resolve date meta information tests for labeldate
+\appto\blx@blxinit{%
+  \def\iflabeldateera#1{\ifcsstring{abx@field@\abx@field@labeldatesource dateera}{#1}}%
+  \appto\blx@TE@hook{%
+    \def\iflabeldateera#1{\blx@TE\ifcsstring{abx@field@\abx@field@labeldatesource dateera}{#1}}}}
+\appto\blx@blxinit{%
+  \csdef{iflabeldatecirca}{\iftoggle{abx@bool@\abx@field@labeldatesource datecirca}}%
+  \appto\blx@TE@hook{%
+    \csdef{iflabeldatecirca}{\blx@TE\iftoggle{abx@bool@\abx@field@labeldatesource datecirca}}}}
+\appto\blx@blxinit{%
+  \csdef{iflabeldateuncertain}{\iftoggle{abx@bool@\abx@field@labeldatesource dateuncertain}}%
+  \appto\blx@TE@hook{%
+    \csdef{iflabeldateuncertain}{\blx@TE\iftoggle{abx@bool@\abx@field@labeldatesource dateuncertain}}}}
 
 % Name toggles like \ifauthor etc. need to be dynamically created for all
 % name datatypes in the data model and we have to do this here after the
