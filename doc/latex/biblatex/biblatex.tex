@@ -343,6 +343,7 @@ compatibility matrix for the recent versions.
 \sffamily\bfseries\spotcolor Biber version
   & \sffamily\bfseries\spotcolor \biblatex\ version\\
 \midrule
+2.6 & 3.5\\
 2.5 & 3.4\\
 2.4 & 3.3\\
 2.3 & 3.2\\
@@ -675,9 +676,9 @@ In datasources such as a \file{bib} file, all bibliographic data is specified in
 
 \begin{description}
 
-\item[Name lists] are parsed and split up into the individual items at the \texttt{and} delimiter. Each item in the list is then dissected into four name components: the given name, the name prefix (von, van, of, da, de, della, \dots), the family name, and the name suffix (junior, senior, \dots). Name lists may be truncated in the \file{bib} file with the keyword <\texttt{and others}>. Typical examples of name lists are \bibfield{author} and \bibfield{editor}.
+\item[Name lists] are parsed and split up into the individual items at the \texttt{and} delimiter. Each item in the list is then dissected into the name part components: by default the given name, the name prefix (von, van, of, da, de, della, \dots), the family name, and the name suffix (junior, senior, \dots). The valid name parts can be customised by changing the datamodel definition described in \secref{aut:bbx:drv}. Name lists may be truncated in the \file{bib} file with the keyword <\texttt{and others}>. Typical examples of name lists are \bibfield{author} and \bibfield{editor}.
 
-Name list fields automatically have an \cmd{ifuse*} test created as per the name lists in the default data model (see \secref{aut:aux:tst}). They are also automatically have a \opt{ifuse*} option created which controls labelling and sorting behaviour with the name (see \secref{use:opt:bib:hyb}). \biber supports a customisable list of name parts but current this is defined to be the same set of parts as supported by traditional \bibtex:
+Name list fields automatically have an \cmd{ifuse*} test created as per the name lists in the default data model (see \secref{aut:aux:tst}). They are also automatically have a \opt{ifuse*} option created which controls labelling and sorting behaviour with the name (see \secref{use:opt:bib:hyb}). \biber supports a customisable set of name parts but currently this is defined to be the same set of parts as supported by traditional \bibtex:
 
 \begin{itemize}
 \item Family name (also known as <last> part)
@@ -686,7 +687,7 @@ Name list fields automatically have an \cmd{ifuse*} test created as per the name
 \item Name suffix (also known as <Jr> part)
 \end{itemize}
 
-The supported list of name parts is defined as a constant list in the default data model using the \cmd{DeclareDatamodelConstant} command (see \ref{aut:ctm:dm}). However, it is not enough to simply add to this list in order to add support for another name part as name parts typically have to be hard coded into bibliography drivers and the backend processing. This constant is used as much as possible and is intended as a basis for future generalisation and extension.
+The supported list of name parts is defined as a constant list in the default data model using the \cmd{DeclareDatamodelConstant} command (see \ref{aut:ctm:dm}). However, it is not enough to simply add to this list in order to add support for another name part as name parts typically have to be hard coded into bibliography drivers and the backend processing. See the example file \file{93-nameparts.tex} for details on how to define and use custom name parts. Also see \cmd{DeclareUniquenameTemplate} in \secref{aut:cav:amb} for information on how to customise name disambiguation using custom name parts.
 
 \item[Literal lists] are parsed and split up into the individual items at the \texttt{and} delimiter but not dissected further. Literal lists may be truncated in the \file{bib} file with the keyword <\texttt{and others}>. There are two subtypes:
 
@@ -2532,8 +2533,8 @@ Whether or not to update the \cnt{uniquename} counter, see \secref{aut:aux:tst} 
 \begin{valuelist}
 \item[true] An alias for \opt{full}.
 \item[false] Disable this feature.
-\item[init] Disambiguate names using initials only.
-\item[full] Disambiguate names using initials or full names, as required.
+\item[init] Disambiguate using initials only.
+\item[full] Disambiguate using initials or full names, as required.
 \item[allinit] Similar to \opt{init} but disambiguates all names in the \bibfield{labelname} list, beyond \opt{maxnames}\slash \opt{minnames}\slash \opt{uniquelist}.
 \item[allfull] Similar to \opt{full} but disambiguates all names in the \bibfield{labelname} list, beyond \opt{maxnames}\slash \opt{minnames}\slash \opt{uniquelist}.
 \item[mininit] A variant of \texttt{init} which only disambiguates names in lists with identical last names.
@@ -8757,7 +8758,7 @@ Expands to \prm{true} when located in a footnote, and to \prm{false} otherwise. 
 This counter indicates how many times the entry currently being processed is cited in the current reference section. Note that this feature needs to be enabled explicitly with the package option \opt{citecounter}. If the option is set to \texttt{context}, citations in the body text and in footnotes are counted separately. In this case, \cnt{citecounter} will hold the value of the context it is used in.
 
 \cntitem{uniquename}
-This counter refers to the \bibfield{labelname} list. It is set on a per-name basis. Its value is \texttt{0} if the last name is unique, \texttt{1} if adding the other parts of the name (first name, prefix, suffix) as initials will make it unique, and \texttt{2} if the full name is required to disambiguate the name. This information is required by author-year and author-title citation schemes which add additional parts of the name when citing different authors with the same last name. For example, if there is one <John Doe> and one <Edward Doe> in the list of references, this counter will be set to \texttt{1}. If there is one <John Doe> and one <Jane Doe>, the value of the counter will be \texttt{2}. If the option is set to \texttt{init}\slash \texttt{allinit}\slash \texttt{mininit}, the counter will be limited to \texttt{1}. This is useful for citations styles which use initials to disambiguate names but never print the full name in citations. If adding the initials is not sufficient to disambiguate the name, \cnt{uniquename} will also be set to \texttt{0} for that name. This feature needs to be enabled explicitly with the package option \opt{uniquename}. Note that the \cnt{uniquename} counter is local to \cmd{printnames} and that it is only set for the \bibfield{labelname} list and to the name list \bibfield{labelname} has been derived from (typically \bibfield{author} or \bibfield{editor}). Its value is zero in any other context, i.e., it must be evaluated in the name formatting directives handling name lists. See \secref{aut:cav:amb} for further details and practical examples.
+This counter refers to the \bibfield{labelname} list. It is set on a per-name basis. Its value is \texttt{0} if the base name (by default the <family> part of the name) is unique, \texttt{1} if adding the other parts of the name (as specified in the uniquename template defined by \cmd{DeclareUniquenameTemplate})as initials will make it unique, and \texttt{2} if the full name is required to disambiguate the name. This information is required by author-year and author-title citation schemes which add additional parts of the name when citing different authors with the same last name. For example, (given the default \cmd{DeclareUniquenameTemplate} definition) if there is one <John Doe> and one <Edward Doe> in the list of references, this counter will be set to \texttt{1}. If there is one <John Doe> and one <Jane Doe>, the value of the counter will be \texttt{2}. If the option is set to \texttt{init}\slash \texttt{allinit}\slash \texttt{mininit}, the counter will be limited to \texttt{1}. This is useful for citations styles which use initials to disambiguate names but never print the full name in citations. If adding the initials is not sufficient to disambiguate the name, \cnt{uniquename} will also be set to \texttt{0} for that name. This feature needs to be enabled explicitly with the package option \opt{uniquename}. Note that the \cnt{uniquename} counter is local to \cmd{printnames} and that it is only set for the \bibfield{labelname} list and to the name list \bibfield{labelname} has been derived from (typically \bibfield{author} or \bibfield{editor}). Its value is zero in any other context, i.e., it must be evaluated in the name formatting directives handling name lists. See \secref{aut:cav:amb} for further details and practical examples.
 
 \cntitem{uniquelist}
 This counter refers to the \bibfield{labelname} list. It is set on a per-field basis. Its value indicates the number of names required to disambiguate the name list if automatic \cnt{maxnames}\slash \cnt{minnames} truncation would lead to ambiguous citations. For example, if there is one work by <Doe\slash Smith\slash Johnson> and another one by <Doe\slash Edwards\slash Williams>, setting \kvopt{maxnames}{1} would lead to <Doe et al.> in both cases. In this case, \cnt{uniquelist} would be set to \texttt{2} on the \bibfield{labelname} lists of both entries because at least the first two names are required to disambiguate them. Note that the \cnt{uniquelist} counter is local to \cmd{printnames} and that it is only set for the \bibfield{labelname} list and to the name list \bibfield{labelname} has been derived from (typically \bibfield{author} or \bibfield{editor}). Its value is zero in any other context. If available, the \cnt{uniquelist} value will be used automatically by \cmd{printnames} when processing the name list, \ie it will automatically override \cnt{maxnames}\slash \cnt{minnames}. This feature needs to be enabled explicitly with the package option \opt{uniquelist}. See \secref{aut:cav:amb} for further details and practical examples.
@@ -10917,7 +10918,7 @@ Smith 2008a
 Smith 2008b
 \end{lstlisting}
 %
-Since the last names are ambiguous and all works have been published in the same year, an extra letter is appended to the year to disambiguate the citations. Many style guides, however, mandate that the extra letter be used to disambiguate works by the same authors only, not works by different authors with the same last name. In order to disambiguate the author's last name, you are expected to add additional parts of the name, either as initials or in full. This requirement is addressed by the \opt{uniquename} option. Here are the same citations with \kvopt{uniquename}{init}:
+Since the family names are ambiguous and all works have been published in the same year, an extra letter is appended to the year to disambiguate the citations. Many style guides, however, mandate that the extra letter be used to disambiguate works by the same authors only, not works by different authors with the same family name. In order to disambiguate the author's family name, you are expected to add additional parts of the name, either as initials or in full. This requirement is addressed by the \opt{uniquename} option. Here are the same citations with \kvopt{uniquename}{init}:
 
 \begin{lstlisting}{}
 J. Doe 2008
@@ -10994,7 +10995,7 @@ Smith and Edwards
 Smith and Johnson
 \end{lstlisting}
 %
-The <Smiths> are not disambiguated because the visible name lists are not ambiguous and the \opt{mininit/minfull} options serve to disambiguate names occurring in identical last name lists only. Another way of looking at this is that they globally disambiguate last name lists. When it comes to ambiguous lists, note that a truncated list is considered to be distinct from an untruncated one even if the visible names are identical. For example, consider the following data:
+The <Smiths> are not disambiguated because the visible name lists are not ambiguous and the \opt{mininit/minfull} options serve to disambiguate names occurring in identical last name lists only. Another way of looking at this is that they globally disambiguate family name lists. When it comes to ambiguous lists, note that a truncated list is considered to be distinct from an untruncated one even if the visible names are identical. For example, consider the following data:
 
 \begin{lstlisting}{}
 John Doe/William Jones

@@ -4942,7 +4942,7 @@
   \dateuncertainprint}
 
 \newrobustcmd*{\blx@isodate}[4][]{%
-  % Note that this is before the date as ISO8601 is "-nnn" and not "nnn BCE"
+  % Note that this is before the date as ISO8601 is "-d" and not "d BCE"
   % Using internals of \dateeraprint as that isn't suited to this since it uses localisation
   \ifdateera{bce}{-}{}%
   \thefield{#2}\ifblank{#1}{}{\printfield{#1}}%
@@ -5946,39 +5946,39 @@
   % Resolve labeldate
   \ifundef\abx@field@labeldatesource
     {}
-    {\ifcsundef{abx@field@\thefield{labeldatesource}year}
+    {\ifcsundef{abx@field@\abx@field@labeldatesource year}
       % \DeclareLabeldate resolved to a literal/localisation string or a non-date field
       % in which case we only set labelyear
-      {\ifcsundef{abx@field@\thefield{labeldatesource}}
+      {\ifcsundef{abx@field@\abx@field@labeldatesource}
         % \DeclareLabeldate resolved to a literal/localisation string
-        {\edef\abx@field@labelyear{\thefield{labeldatesource}}}
+        {\edef\abx@field@labelyear{\abx@field@labeldatesource}}
         % \DeclareLabeldate resolved to a non-date field
-        {\edef\abx@field@labelyear{\csuse{abx@field@\thefield{labeldatesource}}}}}%
+        {\edef\abx@field@labelyear{\csuse{abx@field@\abx@field@labeldatesource}}}}%
       % \DeclareLabeldate resolved to a date field name prefix like "", "event", "url" or "orig"
       {% labelyear - end can be open
-        \ifcsdef{abx@field@\thefield{labeldatesource}endyear}
+        \ifcsdef{abx@field@\abx@field@labeldatesource endyear}
           {\ifcsequal
-            {abx@field@\thefield{labeldatesource}year}
-            {abx@field@\thefield{labeldatesource}endyear}
-            {\edef\abx@field@labelyear{\csuse{abx@field@\thefield{labeldatesource}year}}}
-            {\edef\abx@field@labelyear{\csuse{abx@field@\thefield{labeldatesource}year}\bibdatedash \csuse{abx@field@\thefield{labeldatesource}endyear}}}}
-          {\edef\abx@field@labelyear{\csuse{abx@field@\thefield{labeldatesource}year}}}%
+            {abx@field@\abx@field@labeldatesource year}
+            {abx@field@\abx@field@labeldatesource endyear}
+            {\edef\abx@field@labelyear{\csuse{abx@field@\abx@field@labeldatesource year}}}
+            {\edef\abx@field@labelyear{\csuse{abx@field@\abx@field@labeldatesource year}\bibdatedash \csuse{abx@field@\abx@field@labeldatesource endyear}}}}
+          {\edef\abx@field@labelyear{\csuse{abx@field@\abx@field@labeldatesource year}}}%
         % labelmonth
-        \ifcsdef{abx@field@\thefield{labeldatesource}endmonth}
+        \ifcsdef{abx@field@\abx@field@labeldatesource endmonth}
           {\ifcsequal
-            {abx@field@\thefield{labeldatesource}month}
-            {abx@field@\thefield{labeldatesource}endmonth}
-            {\edef\abx@field@labelmonth{\csuse{abx@field@\thefield{labeldatesource}month}}}
-            {\edef\abx@field@labelmonth{\csuse{abx@field@\thefield{labeldatesource}month}\bibdatedash \csuse{abx@field@\thefield{labeldatesource}endmonth}}}}
-          {\edef\abx@field@labelmonth{\csuse{abx@field@\thefield{labeldatesource}month}}}%
+            {abx@field@\abx@field@labeldatesource month}
+            {abx@field@\abx@field@labeldatesource endmonth}
+            {\edef\abx@field@labelmonth{\csuse{abx@field@\abx@field@labeldatesource month}}}
+            {\edef\abx@field@labelmonth{\csuse{abx@field@\abx@field@labeldatesource month}\bibdatedash \csuse{abx@field@\abx@field@labeldatesource endmonth}}}}
+          {\edef\abx@field@labelmonth{\csuse{abx@field@\abx@field@labeldatesource month}}}%
         % labelday
-        \ifcsdef{abx@field@\thefield{labeldatesource}endday}
+        \ifcsdef{abx@field@\abx@field@labeldatesource endday}
           {\ifcsequal
-            {abx@field@\thefield{labeldatesource}day}
-            {abx@field@\thefield{labeldatesource}endday}
-            {\edef\abx@field@labelday{\csuse{abx@field@\thefield{labeldatesource}day}}}
-            {\edef\abx@field@labelday{\csuse{abx@field@\thefield{labeldatesource}day}\bibdatedash \csuse{abx@field@\thefield{labeldatesource}endday}}}}
-          {\edef\abx@field@labelday{\csuse{abx@field@\thefield{labeldatesource}day}}}}}%
+            {abx@field@\abx@field@labeldatesource day}
+            {abx@field@\abx@field@labeldatesource endday}
+            {\edef\abx@field@labelday{\csuse{abx@field@\abx@field@labeldatesource day}}}
+            {\edef\abx@field@labelday{\csuse{abx@field@\abx@field@labeldatesource day}\bibdatedash \csuse{abx@field@\abx@field@labeldatesource endday}}}}
+          {\edef\abx@field@labelday{\csuse{abx@field@\abx@field@labeldatesource day}}}}}%
   \blx@setcitecounter}
 
 \def\blx@getdata@cite#1{%
@@ -11828,7 +11828,10 @@
 
 \DeclareBibliographyOption[string]{datelabel}{%
   \ifcsdef{mkbibrange#1}
-    {\protected\def\blx@imc@printdatelabel{%
+    {\ifstrequal{#1}{iso8601}
+      {\global\toggletrue{abx@bool@labeldate@isodate}}
+      {}%
+     \protected\def\blx@imc@printdatelabel{%
        \blx@imc@iffieldundef{year}
          {\csuse{mkbibrange#1}{label}}
          {\csuse{mkbibrange#1}{}}}%
@@ -11837,7 +11840,6 @@
          {\csuse{mkbibrange#1extra}{label}}
          {\csuse{mkbibrange#1extra}{}}}}
     {\blx@err@invopt{datelabel=#1}{}}}
-
 
 % Date meta-information
 \DeclareBibliographyOption[string]{dateera}{%
@@ -11872,17 +11874,26 @@
       {\blx@err@invopt{#1=##1}{}}%
     \ifcsdef{mkbibrange##1extra}
       {\protected\csedef{blx@imc@print#1extra}{\noexpand\csuse{mkbibrange##1extra}{\blx@datetype}}}
+      {}%
+    % toggle to say if this is an ISO date - it may need special treatment for meta-information
+    % in styles (like printing era information as "-d" instead of "d BCE")
+    \ifstrequal{##1}{iso8601}
+      {\global\toggletrue{abx@bool@\blx@datetype date@isodate}}
       {}}%
     % Default for new date fields is "comp" but this is overridden below by
     % biblatex defaults
     \setkeys{blx@opt@pre}{#1=comp}%
     % Define date metadata toggles
     \StrCut{#1}{date}\blx@datetype\blx@tempnull
-    \newtoggle{abx@bool@\blx@datetype datecirca}
-    \newtoggle{abx@bool@\blx@datetype dateuncertain}}
+    \newtoggle{abx@bool@\blx@datetype datecirca}%
+    \newtoggle{abx@bool@\blx@datetype dateuncertain}
+    % We need to know if a date is iso because of things like era information which are
+    % formatted differently
+    \newtoggle{abx@bool@\blx@datetype date@isodate}}
 \abx@dodates
 \newtoggle{abx@bool@labeldatecirca}
 \newtoggle{abx@bool@labeldateuncertain}
+\newtoggle{abx@bool@labeldate@isodate}
 
 \DeclareBibliographyOption[string]{alldates}{%
   \ExecuteBibliographyOptions{datelabel=#1}%
