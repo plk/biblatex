@@ -6490,12 +6490,13 @@
   \blx@tempa}
 
 %% Data input
-
 \def\blx@bblinput{%
   \begingroup
+  \catcode`\_=11% name format uses _ and if this is active, we have problems
   \blx@info@noline{Trying to load bibliographic data..}%
   \blx@blxinit
   \blx@bblfile
+  \catcode`\_=8
   \endgroup}
 
 \def\blx@bblfile{%
@@ -10825,16 +10826,25 @@
 \@onlypreamble\DeclareUniquenameTemplate
 \blx@collectopts{xml}{blx@globalopts}{uniquenametemplate}% for passing to the .bcf
 
-% Shares option code for \namepart from \DeclareSortingNamekeyScheme
 \newcommand*{\blx@untemp@namepart}[2][]{%
   \advance\blx@tempcntb\@ne
   \edef\blx@tempe{order="\the\blx@tempcntb"}%
   \let\blx@tempc\@empty
   \ifblank{#1}
     {}
-    {\setkeys{blx@sortnk@namepart}{#1}}%
+    {\setkeys{blx@untemp@namepart}{#1}}%
   \eappto\blx@tempa{%
     \blx@xml@uniquenametemplatenamepart{\blx@tempe}{\blx@tempc}{#2}}}
+
+\define@key{blx@untemp@namepart}{use}[true]{% use* option for namepart true|false
+  \ifstrequal{#1}{true}
+    {\appto\blx@tempc{ use="1"}}
+    {\appto\blx@tempc{ use="0"}}}
+
+\define@key{blx@untemp@namepart}{base}[true]{% base option for namepart true|false
+  \ifstrequal{#1}{true}
+    {\appto\blx@tempc{ base="1"}}
+    {\appto\blx@tempc{ base="0"}}}
 
 % [<specname>]{<spec>}
 \newrobustcmd*{\DeclareSortingNamekeyScheme}[2][]{%
