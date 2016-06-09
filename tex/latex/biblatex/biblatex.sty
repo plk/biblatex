@@ -471,7 +471,6 @@
 \booltrue{citerequest}
 \newbool{sortcites}
 
-\newtoggle{blx@dateera}
 \newtoggle{blx@bbldone}
 \newtoggle{blx@tempa}
 \newtoggle{blx@tempb}
@@ -601,9 +600,9 @@
     \ifcsundef{abx@name@legacy@warning@#1}{\blx@warning@noline{Name '#1' deprecated. #2}}{}%
     \global\csdef{abx@name@legacy@warning@#1}{}}}%
 
-\DeprecateField{prefixnumber}{Please use 'labelprefix' instead} % Biblatex v3.4
+\DeprecateField{prefixnumber}{Please use 'labelprefix' instead}
 
-%% Initialization
+%% Initialisation
 \def\blx@blxinit{%
   \let\blx@blxinit\relax
   \blx@initunit}
@@ -5440,8 +5439,22 @@
        {\define@key{blx@opt@ent}{#1}[#2]{#3}}}
     {\blx@err@optdef{#1}}}
 
-% These are internal fields which are not part of the data model but
+% These are internal fields/booleans which are not part of the data model but
 % which need to be dealt with along with data model fields in places
+\def\do#1{%
+  \StrCut{#1}{date}\blx@datetype\blx@tempnull
+  \listxadd\blx@datemetafields{\blx@datetype dateera}%
+  \listxadd\blx@datemetafields{\blx@datetype enddateera}}
+\abx@dodates
+
+\def\do#1{%
+  \StrCut{#1}{date}\blx@datetype\blx@tempnull
+  \listxadd\blx@datemetabooleans{\blx@datetype datecirca}%
+  \listxadd\blx@datemetabooleans{\blx@datetype enddatecirca}%
+  \listxadd\blx@datemetabooleans{\blx@datetype dateuncertain}%
+  \listxadd\blx@datemetabooleans{\blx@datetype enddateuncertain}}
+\abx@dodates
+
 \def\abx@dointernalfields{%
   \do{childentrykey}%
   \do{clonesourcekey}%
@@ -5463,14 +5476,16 @@
   \do{namehash}%
   \do{labelprefix}%
   \do{sortinit}%
-  \do{sortinithash}}
+  \do{sortinithash}%
+  \forlistloop{\do}\blx@datemetafields}
 
 \def\abx@dobooleans{%
   \do{crossrefsource}%
   \do{xrefsource}%
   \do{singletitle}%
   \do{uniquetitle}%
-  \do{uniqueprimaryauthor}}
+  \do{uniqueprimaryauthor}%
+  \forlistloop{\do}\blx@datemetabooleans}
 
 % Date datatype fields
 \def\do#1{%
@@ -5497,7 +5512,7 @@
       \csdef{if#1date#2}{\blx@TE\iftoggle{abx@bool@#1date#2}}%
       \csdef{if#1enddate#2}{\blx@TE\iftoggle{abx@bool@#1enddate#2}}}}}
 
-% Set up era date internals
+% Set up date era internals
 \def\blx@imc@ifdatemeta@ii#1{%
   \appto\blx@blxinit{%
     \csdef{if#1dateera}##1{\ifcsstring{abx@field@#1dateera}{##1}}%
@@ -10120,9 +10135,6 @@
   \blx@xml@comment{GLOBAL}%
   \blx@xml@options{biblatex}{global}{%
     \blx@xml@svalue{alphaothers}{\labelalphaothers}%
-    \blx@xml@toggle{dateera}%
-    \blx@xml@toggle{datecirca}%
-    \blx@xml@toggle{dateuncertain}%
     \blx@xml@toggle{labelalpha}%
     \blx@xml@mvalue{labelnamespec}{\blx@bcf@labelnamespec}%
     \blx@xml@toggle{labeltitle}%
@@ -12000,7 +12012,6 @@
 
 % Date meta-information
 \DeclareBibliographyOption[string]{dateera}{%
-  \toggletrue{blx@dateera}%
   \ifstrequal{#1}{secular}
     {\protected\def\dateeraprint##1{%
        % don't print data meta-information for empty or strings (nodate)
@@ -12078,6 +12089,7 @@
 \abx@dodates
 
 % date parts
+% Datemetadata toggles are defined in one of the \abx@dobooleans calls
 \def\do#1{%
   \DeclareBibliographyOption[string]{#1}{%
     \ifstrequal{##1}{iso8601}
@@ -12100,12 +12112,6 @@
     % Default for new date fields is "comp" but this is overridden below by
     % biblatex defaults
     \setkeys{blx@opt@pre}{#1=comp}%
-    % Define date metadata toggles
-    \StrCut{#1}{date}\blx@datetype\blx@tempnull
-    \newtoggle{abx@bool@\blx@datetype datecirca}%
-    \newtoggle{abx@bool@\blx@datetype enddatecirca}%
-    \newtoggle{abx@bool@\blx@datetype dateuncertain}%
-    \newtoggle{abx@bool@\blx@datetype enddateuncertain}%
     % We need to know if a date is EDTF because of things like era information which are
     % formatted differently
     \newtoggle{abx@bool@\blx@datetype date@edtfdate}}
