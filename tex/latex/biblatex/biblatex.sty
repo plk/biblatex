@@ -525,8 +525,11 @@
 
 % date meta-information option defaults
 \let\datecircaprint\relax
+\let\enddatecircaprint\relax
 \let\dateuncertainprint\relax
+\let\enddateuncertainprint\relax
 \let\dateeraprint\relax
+\let\enddateeraprint\relax
 
 % Nice command from etextools which causes too many problems if you load
 % the whole package
@@ -4585,6 +4588,10 @@
   \do{annodomini}%
   \do{beforechrist}%
   \do{circa}%
+  \do{spring}%
+  \do{summer}%
+  \do{autumn}%
+  \do{winter}%
 }
 
 \newrobustcmd*{\NewBibliographyString}[1]{%
@@ -4811,54 +4818,65 @@
 
 \def\blx@metadateinfo#1{%
   \letcs\ifdateera{if#1dateera}%
+  \letcs\ifenddateera{if#1enddateera}%
   \letcs\ifdatecirca{if#1datecirca}%
-  \letcs\ifdateuncertain{if#1dateuncertain}}
+  \letcs\ifenddatecirca{if#1enddatecirca}%
+  \letcs\ifdateuncertain{if#1dateuncertain}%
+  \letcs\ifenddateuncertain{if#1enddateuncertain}}
 
 % {<short|long>}{<basename>}
 \newrobustcmd*{\mkbibrangefull}[2]{%
   \blx@metadateinfo{#2}%
-  \datecircaprint
   \iffieldundef{#2year}
     {}
-    {\printtext[#2date]{%
+    {\datecircaprint
+     \printtext[#2date]{%
        \csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
+       \dateuncertainprint
+       \dateeraprint
        \iffieldundef{#2endyear}
          {}
          {\iffieldequalstr{#2endyear}{}
             {\mbox{\bibdatedash}}
             {\bibdatedash
-             \csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}}}}%
-  \dateeraprint
-  \dateuncertainprint}
+             \enddatecircaprint
+             \csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}%
+          \enddateuncertainprint
+          \enddateeraprint}}}}
 
 \newrobustcmd*{\mkbibrangetrunc}[2]{%
   \blx@metadateinfo{#2}%
-  \datecircaprint
-  \iffieldundef{#2year}
+    \iffieldundef{#2year}
     {}
-    {\printtext[#2date]{%
+    {\datecircaprint
+     \printtext[#2date]{%
        \iffieldsequal{#2year}{#2endyear}
          {\iffieldsequal{#2month}{#2endmonth}
             {\csuse{mkbibdate#1}{}{}{#2day}}
             {\csuse{mkbibdate#1}{}{#2month}{#2day}}}
          {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}}%
+       \dateuncertainprint
+       \dateeraprint
        \iffieldundef{#2endyear}
          {}
          {\iffieldequalstr{#2endyear}{}
             {\mbox{\bibdatedash}}
             {\bibdatedash
-             \csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}}}}%
-  \dateeraprint
-  \dateuncertainprint}
+             \enddatecircaprint
+             \csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}%
+          \enddateuncertainprint
+          \enddateeraprint}}}}
 
 \newrobustcmd*{\mkbibrangefullextra}[2]{%
   \blx@metadateinfo{#2}%
-  \datecircaprint
   \iffieldundef{#2year}
     {}
-    {\printtext[#2date]{%
+    {\datecircaprint
+     \printtext[#2date]{%
        \printtext{%
          \csuse{mkbibdate#1}{#2year}{#2month}{#2day}}%
+       \dateuncertainprint
+       \dateeraprint
        \iffieldundef{#2endyear}
          {\printfield{extrayear}}
          {\iffieldequalstr{#2endyear}{}
@@ -4866,23 +4884,26 @@
              \printtext{\mbox{\bibdatedash}}}
             {\printtext{%
                \bibdatedash
+               \enddatecircaprint
                \csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}%
-               \printfield{extrayear}}}}}}%
-  \dateeraprint
-  \dateuncertainprint}
+               \printfield{extrayear}}}%
+          \enddateuncertainprint
+          \enddateeraprint}}}}
 
 \newrobustcmd*{\mkbibrangetruncextra}[2]{%
   \blx@metadateinfo{#2}%
-  \datecircaprint
   \iffieldundef{#2year}
     {}
-    {\printtext[#2date]{%
+    {\datecircaprint
+     \printtext[#2date]{%
        \printtext{%
          \iffieldsequal{#2year}{#2endyear}
            {\iffieldsequal{#2month}{#2endmonth}
               {\csuse{mkbibdate#1}{}{}{#2day}}
               {\csuse{mkbibdate#1}{}{#2month}{#2day}}}
            {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}}}%
+       \dateuncertainprint
+       \dateeraprint
        \iffieldundef{#2endyear}
          {\printfield{extrayear}}
          {\iffieldequalstr{#2endyear}{}
@@ -4890,10 +4911,11 @@
              \printtext{\mbox{\bibdatedash}}}
             {\printtext{%
                \bibdatedash
+               \enddatecircaprint
                \csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}%
-               \printfield{extrayear}}}}}}%
-  \dateeraprint
-  \dateuncertainprint}
+               \printfield{extrayear}}}%
+          \enddateuncertainprint
+          \enddateeraprint}}}}
 
 \newrobustcmd*{\mkbibrangeyear}[1]{%
   \blx@imc@clearfield{#1month}%
@@ -4916,35 +4938,49 @@
   \mkbibrangefullextra{short}{#1}}
 
 \newrobustcmd*{\mkbibrangeedtf}[1]{%
-  \blx@metadateinfo{#1}%
-  \datecircaprint
+  \blx@metadateinfo{#1}%  
   \iffieldundef{#1year}
     {}
-    {\printtext[#1date]{%
+    {\datecircaprint
+     \printtext[#1date]{%
        \blx@edtfdate{#1year}{#1month}{#1day}%
+       \dateuncertainprint
        \iffieldundef{#1endyear}
          {}
-         {\addslash\blx@edtfdate{#1endyear}{#1endmonth}{#1endday}}}}%
-  \dateuncertainprint}
+         {\addslash
+          \enddatecircaprint
+          \blx@edtfenddate{#1endyear}{#1endmonth}{#1endday}}%
+       \dateuncertainprint}}}
 \cslet{mkbibrangeiso8601}\mkbibrangeedtf% Legacy option support
 
 \newrobustcmd*{\mkbibrangeedtfextra}[1]{%
   \blx@metadateinfo{#1}%
-  \datecircaprint
   \iffieldundef{#1year}
     {}
-    {\printtext[#1date]{%
+    {\datecircaprint
+     \printtext[#1date]{%
        \blx@edtfdate[extrayear]{#1year}{#1month}{#1day}%
+       \dateuncertainprint
        \iffieldundef{#1endyear}
          {}
-         {\addslash\blx@edtfdate{#1endyear}{#1endmonth}{#1endday}}}}%
-  \dateuncertainprint}
+         {\addslash
+          \enddatecircaprint
+          \blx@edtfenddate{#1endyear}{#1endmonth}{#1endday}}%
+       \dateuncertainprint}}}
 \cslet{mkbibrangeiso8601extra}\mkbibrangeedtfextra% Legacy option support
 
 \newrobustcmd*{\blx@edtfdate}[4][]{%
-  % Note that this is before the date as ISO8601 is "-d" and not "d BCE"
+  % Note that this is before the date as EDTF is "-d" and not "d BCE"
   % Using internals of \dateeraprint as that isn't suited to this since it uses localisation
   \ifdateera{bce}{-}{}%
+  \thefield{#2}\ifblank{#1}{}{\printfield{#1}}%
+  \iffieldundef{#3}{}{\mbox{-}\thefield{#3}}%
+  \iffieldundef{#4}{}{\mbox{-}\thefield{#4}}}
+
+\newrobustcmd*{\blx@edtfenddate}[4][]{%
+  % Note that this is before the date as EDTF is "-d" and not "d BCE"
+  % Using internals of \dateeraprint as that isn't suited to this since it uses localisation
+  \ifenddateera{bce}{-}{}%
   \thefield{#2}\ifblank{#1}{}{\printfield{#1}}%
   \iffieldundef{#3}{}{\mbox{-}\thefield{#3}}%
   \iffieldundef{#4}{}{\mbox{-}\thefield{#4}}}
@@ -5430,15 +5466,19 @@
 \def\blx@imc@ifdatemeta@i#1#2{%
   \appto\blx@blxinit{%
     \csdef{if#1date#2}{\iftoggle{abx@bool@#1date#2}}%
+    \csdef{if#1enddate#2}{\iftoggle{abx@bool@#1enddate#2}}%
     \appto\blx@TE@hook{%
-      \csdef{if#1date#2}{\blx@TE\iftoggle{abx@bool@#1date#2}}}}}
+      \csdef{if#1date#2}{\blx@TE\iftoggle{abx@bool@#1date#2}}%
+      \csdef{if#1enddate#2}{\blx@TE\iftoggle{abx@bool@#1enddate#2}}}}}
 
 % Set up era date internals
 \def\blx@imc@ifdatemeta@ii#1{%
   \appto\blx@blxinit{%
     \csdef{if#1dateera}##1{\ifcsstring{abx@field@#1dateera}{##1}}%
+    \csdef{if#1enddateera}##1{\ifcsstring{abx@field@#1enddateera}{##1}}%
     \appto\blx@TE@hook{%
-      \csdef{if#1dateera}##1{\blx@TE\ifcsstring{abx@field@#1dateera}{##1}}}}}
+      \csdef{if#1dateera}##1{\blx@TE\ifcsstring{abx@field@#1dateera}{##1}}%
+      \csdef{if#1enddateera}##1{\blx@TE\ifcsstring{abx@field@#1enddateera}{##1}}}}}
 
 % Create date meta information boolean tests
 \def\do#1{%
@@ -5461,7 +5501,8 @@
 % earlier because its not available until the tests are in scope.
 \appto\blx@blxinit{%
   \iftoggle{blx@labeldate}
-    {\def\iflabeldateera#1{%
+    {% start era
+      \def\iflabeldateera#1{%
        \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
          {\ifcsstring{abx@field@\abx@field@labeldatesource dateera}{#1}}
          {\@secondoftwo}}%
@@ -5469,6 +5510,16 @@
        \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
          {\blx@TE\ifcsstring{abx@field@\abx@field@labeldatesource dateera}{#1}}
          {\blx@TE\@secondoftwo}}}%
+     % end era
+     \def\iflabelenddateera#1{%
+       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+         {\ifcsstring{abx@field@\abx@field@labeldatesource enddateera}{#1}}
+         {\@secondoftwo}}%
+     \appto\blx@TE@hook{\def\iflabelenddateera#1{%
+       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+         {\blx@TE\ifcsstring{abx@field@\abx@field@labeldatesource enddateera}{#1}}
+         {\blx@TE\@secondoftwo}}}%
+     % start circa
      \def\iflabeldatecirca{%
        \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
          {\iftoggle{abx@bool@\abx@field@labeldatesource datecirca}}
@@ -5477,6 +5528,16 @@
        \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
          {\blx@TE\iftoggle{abx@bool@\abx@field@labeldatesource datecirca}}
          {\blx@TE\@secondoftwo}}}%
+     % end circa
+     \def\iflabelenddatecirca{%
+       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+         {\iftoggle{abx@bool@\abx@field@labeldatesource enddatecirca}}
+         {\@secondoftwo}}%
+     \appto\blx@TE@hook{\def\iflabelenddatecirca{%
+       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+         {\blx@TE\iftoggle{abx@bool@\abx@field@labeldatesource enddatecirca}}
+         {\blx@TE\@secondoftwo}}}%
+     % start uncertain
      \def\iflabeldateuncertain{%
        \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
          {\iftoggle{abx@bool@\abx@field@labeldatesource dateuncertain}}
@@ -5484,6 +5545,15 @@
      \appto\blx@TE@hook{\def\iflabeldateuncertain{%
        \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
          {\blx@TE\iftoggle{abx@bool@\abx@field@labeldatesource dateuncertain}}
+         {\blx@TE\@secondoftwo}}}%
+     % end uncertain
+     \def\iflabelenddateuncertain{%
+       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+         {\iftoggle{abx@bool@\abx@field@labeldatesource enddateuncertain}}
+         {\@secondoftwo}}%
+     \appto\blx@TE@hook{\def\iflabelenddateuncertain{%
+       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+         {\blx@TE\iftoggle{abx@bool@\abx@field@labeldatesource enddateuncertain}}
          {\blx@TE\@secondoftwo}}}}%
     {}}
 
@@ -5962,7 +6032,9 @@
             {abx@field@\abx@field@labeldatesource endyear}
             {\edef\abx@field@labelyear{\csuse{abx@field@\abx@field@labeldatesource year}}}
             {\edef\abx@field@labelyear{\csuse{abx@field@\abx@field@labeldatesource year}\bibdatedash \csuse{abx@field@\abx@field@labeldatesource endyear}}}}
-          {\edef\abx@field@labelyear{\csuse{abx@field@\abx@field@labeldatesource year}}}%
+          {\ifcsdef{abx@field@\abx@field@labeldatesource year}
+            {\edef\abx@field@labelyear{\csuse{abx@field@\abx@field@labeldatesource year}}}
+            {}}%
         % labelmonth
         \ifcsdef{abx@field@\abx@field@labeldatesource endmonth}
           {\ifcsequal
@@ -5970,7 +6042,9 @@
             {abx@field@\abx@field@labeldatesource endmonth}
             {\edef\abx@field@labelmonth{\csuse{abx@field@\abx@field@labeldatesource month}}}
             {\edef\abx@field@labelmonth{\csuse{abx@field@\abx@field@labeldatesource month}\bibdatedash \csuse{abx@field@\abx@field@labeldatesource endmonth}}}}
-          {\edef\abx@field@labelmonth{\csuse{abx@field@\abx@field@labeldatesource month}}}%
+          {\ifcsdef{abx@field@\abx@field@labeldatesource month}
+            {\edef\abx@field@labelmonth{\csuse{abx@field@\abx@field@labeldatesource month}}}
+            {}}%
         % labelday
         \ifcsdef{abx@field@\abx@field@labeldatesource endday}
           {\ifcsequal
@@ -5978,7 +6052,59 @@
             {abx@field@\abx@field@labeldatesource endday}
             {\edef\abx@field@labelday{\csuse{abx@field@\abx@field@labeldatesource day}}}
             {\edef\abx@field@labelday{\csuse{abx@field@\abx@field@labeldatesource day}\bibdatedash \csuse{abx@field@\abx@field@labeldatesource endday}}}}
-          {\edef\abx@field@labelday{\csuse{abx@field@\abx@field@labeldatesource day}}}}}%
+          {\ifcsdef{abx@field@\abx@field@labeldatesource day}
+            {\edef\abx@field@labelday{\csuse{abx@field@\abx@field@labeldatesource day}}}
+            {}}%
+        % labelhour
+        \ifcsdef{abx@field@\abx@field@labeldatesource endhour}
+          {\ifcsequal
+            {abx@field@\abx@field@labeldatesource hour}
+            {abx@field@\abx@field@labeldatesource endhour}
+            {\edef\abx@field@labelhour{\csuse{abx@field@\abx@field@labeldatesource hour}}}
+            {\edef\abx@field@labelhour{\csuse{abx@field@\abx@field@labeldatesource hour}\bibdatedash \csuse{abx@field@\abx@field@labeldatesource endhour}}}}
+          {\ifcsdef{abx@field@\abx@field@labeldatesource hour}
+            {\edef\abx@field@labelhour{\csuse{abx@field@\abx@field@labeldatesource hour}}}
+            {}}%
+        % labelminute
+        \ifcsdef{abx@field@\abx@field@labeldatesource endminute}
+          {\ifcsequal
+            {abx@field@\abx@field@labeldatesource minute}
+            {abx@field@\abx@field@labeldatesource endminute}
+            {\edef\abx@field@labelminute{\csuse{abx@field@\abx@field@labeldatesource minute}}}
+            {\edef\abx@field@labelminute{\csuse{abx@field@\abx@field@labeldatesource minute}\bibdatedash \csuse{abx@field@\abx@field@labeldatesource endminute}}}}
+          {\ifcsdef{abx@field@\abx@field@labeldatesource minute}
+            {\edef\abx@field@labelminute{\csuse{abx@field@\abx@field@labeldatesource minute}}}
+            {}}%
+        % labelsecond
+        \ifcsdef{abx@field@\abx@field@labeldatesource endsecond}
+          {\ifcsequal
+            {abx@field@\abx@field@labeldatesource second}
+            {abx@field@\abx@field@labeldatesource endsecond}
+            {\edef\abx@field@labelsecond{\csuse{abx@field@\abx@field@labeldatesource second}}}
+            {\edef\abx@field@labelsecond{\csuse{abx@field@\abx@field@labeldatesource second}\bibdatedash \csuse{abx@field@\abx@field@labeldatesource endsecond}}}}
+          {\ifcsdef{abx@field@\abx@field@labeldatesource second}
+            {\edef\abx@field@labelsecond{\csuse{abx@field@\abx@field@labeldatesource second}}}
+            {}}%
+        % labeltimezone
+        \ifcsdef{abx@field@\abx@field@labeldatesource endtimezone}
+          {\ifcsequal
+            {abx@field@\abx@field@labeldatesource timezone}
+            {abx@field@\abx@field@labeldatesource endtimezone}
+            {\edef\abx@field@labeltimezone{\csuse{abx@field@\abx@field@labeldatesource timezone}}}
+            {\edef\abx@field@labeltimezone{\csuse{abx@field@\abx@field@labeldatesource timezone}\bibdatedash \csuse{abx@field@\abx@field@labeldatesource endtimezone}}}}
+          {\ifcsdef{abx@field@\abx@field@labeldatesource timezone}
+            {\edef\abx@field@labeltimezone{\csuse{abx@field@\abx@field@labeldatesource timezone}}}
+            {}}%
+        % labelseason
+        \ifcsdef{abx@field@\abx@field@labeldatesource endseason}
+          {\ifcsequal
+            {abx@field@\abx@field@labeldatesource season}
+            {abx@field@\abx@field@labeldatesource endseason}
+            {\edef\abx@field@labelseason{\csuse{abx@field@\abx@field@labeldatesource season}}}
+            {\edef\abx@field@labelseason{\csuse{abx@field@\abx@field@labeldatesource season}\bibdatedash \csuse{abx@field@\abx@field@labeldatesource endseason}}}}
+          {\ifcsdef{abx@field@\abx@field@labeldatesource season}
+            {\edef\abx@field@labelseason{\csuse{abx@field@\abx@field@labeldatesource season}}}
+            {}}}}%
   \blx@setcitecounter}
 
 \def\blx@getdata@cite#1{%
@@ -11851,23 +11977,31 @@
   \toggletrue{blx@dateera}%
   \ifstrequal{#1}{secular}
     {\protected\def\dateeraprint{%
-       \ifdateera{bce}{\printdelim{dateeradelim}\bibstring{beforecommonera}}{}}}
+       \ifdateera{bce}{\printdelim{dateeradelim}\bibstring{beforecommonera}}{}}%
+     \protected\def\enddateeraprint{%
+       \ifenddateera{bce}{\printdelim{dateeradelim}\bibstring{beforecommonera}}{}}}
     {}%
   \ifstrequal{#1}{christian}
     {\protected\def\dateeraprint{%
-      \ifdateera{bce}{\printdelim{dateeradelim}\bibstring{beforechrist}}{}}}
+       \ifdateera{bce}{\printdelim{dateeradelim}\bibstring{beforechrist}}{}}%
+     \protected\def\enddateeraprint{%
+       \ifenddateera{bce}{\printdelim{dateeradelim}\bibstring{beforechrist}}{}}}
     {}}
 
 \DeclareBibliographyOption[boolean]{datecirca}[true]{%
   \ifstrequal{#1}{true}
     {\protected\def\datecircaprint{%
-       \ifdatecirca{\bibstring{circa}\printdelim{datecircadelim}}{}}}
+       \ifdatecirca{\bibstring{circa}\printdelim{datecircadelim}}{}}%
+     \protected\def\enddatecircaprint{%
+       \ifenddatecirca{\bibstring{circa}\printdelim{datecircadelim}}{}}}
     {}}
 
 \DeclareBibliographyOption[boolean]{dateuncertain}[true]{%
   \ifstrequal{#1}{true}
     {\protected\def\dateuncertainprint{%
-       \ifdateuncertain{\bibdateuncertain}{}}}
+       \ifdateuncertain{\bibdateuncertain}{}}%
+     \protected\def\enddateuncertainprint{%
+       \ifenddateuncertain{\bibdateuncertain}{}}}
     {}}
 
 % Set up datamodel dates
@@ -11896,7 +12030,9 @@
     % Define date metadata toggles
     \StrCut{#1}{date}\blx@datetype\blx@tempnull
     \newtoggle{abx@bool@\blx@datetype datecirca}%
-    \newtoggle{abx@bool@\blx@datetype dateuncertain}
+    \newtoggle{abx@bool@\blx@datetype enddatecirca}%
+    \newtoggle{abx@bool@\blx@datetype dateuncertain}%
+    \newtoggle{abx@bool@\blx@datetype enddateuncertain}%
     % We need to know if a date is EDTF because of things like era information which are
     % formatted differently
     \newtoggle{abx@bool@\blx@datetype date@edtfdate}}
