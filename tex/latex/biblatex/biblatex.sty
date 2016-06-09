@@ -4915,33 +4915,33 @@
     {}%
   \mkbibrangefullextra{short}{#1}}
 
-\expandafter\newrobustcmd
-\expandafter*\csname mkbibrangeiso8601\endcsname[1]{%
+\newrobustcmd*{\mkbibrangeedtf}[1]{%
   \blx@metadateinfo{#1}%
   \datecircaprint
   \iffieldundef{#1year}
     {}
     {\printtext[#1date]{%
-       \blx@isodate{#1year}{#1month}{#1day}%
+       \blx@edtfdate{#1year}{#1month}{#1day}%
        \iffieldundef{#1endyear}
          {}
-         {\addslash\blx@isodate{#1endyear}{#1endmonth}{#1endday}}}}%
+         {\addslash\blx@edtfdate{#1endyear}{#1endmonth}{#1endday}}}}%
   \dateuncertainprint}
+\cslet{mkbibrangeiso8601}\mkbibrangeedtf% Legacy option support
 
-\expandafter\newrobustcmd
-\expandafter*\csname mkbibrangeiso8601extra\endcsname[1]{%
+\newrobustcmd*{\mkbibrangeedtfextra}[1]{%
   \blx@metadateinfo{#1}%
   \datecircaprint
   \iffieldundef{#1year}
     {}
     {\printtext[#1date]{%
-       \blx@isodate[extrayear]{#1year}{#1month}{#1day}%
+       \blx@edtfdate[extrayear]{#1year}{#1month}{#1day}%
        \iffieldundef{#1endyear}
          {}
-         {\addslash\blx@isodate{#1endyear}{#1endmonth}{#1endday}}}}%
+         {\addslash\blx@edtfdate{#1endyear}{#1endmonth}{#1endday}}}}%
   \dateuncertainprint}
+\cslet{mkbibrangeiso8601extra}\mkbibrangeedtfextra% Legacy option support
 
-\newrobustcmd*{\blx@isodate}[4][]{%
+\newrobustcmd*{\blx@edtfdate}[4][]{%
   % Note that this is before the date as ISO8601 is "-d" and not "d BCE"
   % Using internals of \dateeraprint as that isn't suited to this since it uses localisation
   \ifdateera{bce}{-}{}%
@@ -11827,9 +11827,14 @@
     {\setcounter{maxparens}{#1}}}
 
 \DeclareBibliographyOption[string]{datelabel}{%
+   \ifstrequal{#1}{iso8601}
+    {\blx@warning@noline{%
+     'iso8601' date format specifier is deprecated, use 'edtf' instead}%
+     \global\toggletrue{abx@bool@labeldate@edtfdate}}
+    {}%
   \ifcsdef{mkbibrange#1}
-    {\ifstrequal{#1}{iso8601}
-      {\global\toggletrue{abx@bool@labeldate@isodate}}
+    {\ifstrequal{#1}{edtf}
+      {\global\toggletrue{abx@bool@labeldate@edtfdate}}
       {}%
      \protected\def\blx@imc@printdatelabel{%
        \blx@imc@iffieldundef{year}
@@ -11868,6 +11873,11 @@
 % Set up datamodel dates
 \def\do#1{%
   \DeclareBibliographyOption[string]{#1}{%
+    \ifstrequal{##1}{iso8601}
+      {\blx@warning@noline{%
+       'iso8601' date format specifier is deprecated, use 'edtf' instead}%
+       \global\toggletrue{abx@bool@\blx@datetype date@edtfdate}}
+      {}%
     \StrCut{#1}{date}\blx@datetype\blx@tempnull
     \ifcsdef{mkbibrange##1}
       {\protected\csedef{blx@imc@print#1}{\noexpand\csuse{mkbibrange##1}{\blx@datetype}}}
@@ -11877,8 +11887,8 @@
       {}%
     % toggle to say if this is an ISO date - it may need special treatment for meta-information
     % in styles (like printing era information as "-d" instead of "d BCE")
-    \ifstrequal{##1}{iso8601}
-      {\global\toggletrue{abx@bool@\blx@datetype date@isodate}}
+    \ifstrequal{##1}{edtf}
+      {\global\toggletrue{abx@bool@\blx@datetype date@edtfdate}}
       {}}%
     % Default for new date fields is "comp" but this is overridden below by
     % biblatex defaults
@@ -11887,13 +11897,13 @@
     \StrCut{#1}{date}\blx@datetype\blx@tempnull
     \newtoggle{abx@bool@\blx@datetype datecirca}%
     \newtoggle{abx@bool@\blx@datetype dateuncertain}
-    % We need to know if a date is iso because of things like era information which are
+    % We need to know if a date is EDTF because of things like era information which are
     % formatted differently
-    \newtoggle{abx@bool@\blx@datetype date@isodate}}
+    \newtoggle{abx@bool@\blx@datetype date@edtfdate}}
 \abx@dodates
 \newtoggle{abx@bool@labeldatecirca}
 \newtoggle{abx@bool@labeldateuncertain}
-\newtoggle{abx@bool@labeldate@isodate}
+\newtoggle{abx@bool@labeldate@edtfdate}
 
 \DeclareBibliographyOption[string]{alldates}{%
   \ExecuteBibliographyOptions{datelabel=#1}%
