@@ -9,34 +9,39 @@
 \usepackage{filecontents}
 \begin{filecontents}{\jobname.bib}
 @misc{date1,
-  note      = {years with implicit and explicit eras},
-  date      = {-477},         % Negative ISO8601 date = BCE/BC
-  origdate  = {-877/-866},    % Negative ISO8601 date range
-  eventdate = {840BC/830BC},  % Explicit era (CE/AD/BCE/BC)
-  urldate   = {2004 CE},      % Explicit era (CE/AD/BCE/BC)
+  note      = {years with implicit era},
+  date      = {-0477},        % Negative EDTF date = BCE/BC
+  origdate  = {-0877/-0866},  % Negative ETDF date range
+  eventdate = {0477/0566},    % Forced CE era due to dateeraauto setting
 }
 @misc{date2,
-  note      = {dates with implicit and explicit eras},
-  date      = {-08770203},            % Negative ISO8601 date with month and day
-  origdate  = {8780203 BCE},          % Explicit era with month and day
-  eventdate = {840-01BC/830-05BC},    % Explicit era range with month 
-  urldate   = {1976-03 AD/1976-05 CE} % Explicit era range with month 
+  note      = {dates with circa and uncertain markers},
+  date      = {1723~},         % year with ETDF approximate (circa) marker
+  origdate  = {1934-02~},      % year and month with circa marker
+  eventdate = {1976?},         % year with EDTF uncertainty marker
+  urldate   = {1922?~},        % year with ETDF approximate (circa) and uncertainty markers
 }
 @misc{date3,
-  note      = {dates with circa and uncertain markers},
-  date      = {c 1723},        % year with circa marker
-  origdate  = {ca. 1934-02},   % year and month with circa marker
-  eventdate = {circa 1922 CE}, % circa and explicit era
-  urldate   = {1976?}          % year with uncertainty marker
+  note      = {date ranges},
+  date      = {1934~/1936~},    % year range with circa markers
+  origdate  = {1723~/},         % open-ended year range with circa marker
+  eventdate = {1976?/},         % open-ended year range with uncertainty marker
+  urldate   = {1976/open}       % open-ended year range with EDTF open marker
 }
 @misc{date4,
-  note      = {dates with open ends},
-  date      = {c 1723/},        % open-ended year range with circa marker
-  origdate  = {ca. 1934-02/},   % open-ended year and month range with circa marker
-  eventdate = {circa 1922 CE/}, % open-ended year range with circa and explicit era
-  urldate   = {1976?/}          % open-ended year range with uncertainty marker
+  note      = {times},
+  date      = {2004-04-05T14:34:00},                     % Date with time, floating timezone
+  origdate  = {2004-04-05T14:34:00Z},                    % Date with time, UTC timezone
+  eventdate = {2004-04-05T14:34:00+05:00},               % Date with time, explicit timezone
+  urldate   = {2004-04-05T14:34:00/2004-04-05T15:00:00}, % Datetime range
 }
 @misc{date5,
+  note      = {seasons},
+  date      = {1723-21},          % EDTF season (21=spring, 22=summer, 23=autumn, 24=winter)
+  origdate  = {1934-24~},         % uncertain year plus season
+  eventdate  = {1934-22/1934-23}, % range with seasons
+}
+@misc{date6,
   % uses the 'nodate' localisation string due to default \DeclareLabeldate setting
   note      = {date from literal/localisation string},
 }
@@ -44,9 +49,11 @@
 \usepackage[style=authoryear,%
             alldates=short,%
             dateera=secular,%
+            dateeraauto=600,%
             dateuncertain=true,%
             datecirca=true,%
             sorting=none,%
+            abbreviate=false,%
             backend=biber]{biblatex}
 \addbibresource{\jobname.bib}
 
@@ -65,45 +72,31 @@
 
 \DeclareBibliographyDriver{misc}{%
   \printfield[emph]{note}\\
-  \iffieldundef{labelyear}{}{\printtext[bold]{labeldate} = \printdatelabel\\}
-  \iffieldundef{year}{}{\printtext[bold]{date} = \printdate\\}
-  \iffieldundef{origyear}{}{\printtext[bold]{origdate} = \printorigdate\\}
-  \iffieldundef{eventyear}{}{\printtext[bold]{eventdate} = \printeventdate\\}
-  \iffieldundef{urlyear}{}{\printtext[bold]{urldate} = \printurldate}}
-
-% This will output eras for all dates
-%
-% \renewcommand*{\dateeraprint}{%
-%   \ifdateera{bce}
-%     {\printdelim{dateeradelim}\bibstring{beforecommonera}}
-%     {\printdelim{dateeradelim}\bibstring{commonera}}}
-
-
-% This will only output era information for dates with year < 500
-% Has to be done inside the appropriate \mkbibdate* macros as before this
-% the date field names are not available.
-%
-% \renewcommand*{\dateeraprint}{}%
-% \DefineBibliographyExtras{english}{%
-% \protected\def\mkbibdateshort#1#2#3{%
-%    \iffieldundef{#2}
-%     {}
-%     {\mkdatezeros{\thefield{#2}}%
-%       \iffieldundef{#3}
-%         {\iffieldundef{#1}{}{/}}
-%         {/}}%
-%   \iffieldundef{#3}
-%     {}
-%     {\mkdatezeros{\thefield{#3}}%
-%        \iffieldundef{#1}{}{/}}%
-%   \iffieldbibstring{#1}
-%     {\bibstring{\thefield{#1}}}
-%     {\mkdatezeros{\thefield{#1}}}%
-%   \ifdateera{bce}
-%     {\ifnumcomp{\thefield{#1}}{<}{500}
-%       {\printdelim{dateeradelim}\bibstring{beforecommonera}}
-%       {}}
-%     {}}}
+  \iffieldundef{labelyear}{}{%
+    \printtext[bold]{labeldate} = \printdatelabel
+    \iffieldundef{labelseason}{}{\space(\bibstring{\thefield{labelseason}}%
+      \iffieldundef{labelendseason}{)}{\bibrangedash\bibstring{\thefield{labelendseason}})}}%
+    \\}
+  \iffieldundef{year}{}{%
+    \printtext[bold]{date} = \printdate
+    \iffieldundef{season}{}{\space(\bibstring{\thefield{season}}%
+      \iffieldundef{endseason}{)}{\bibrangedash\bibstring{\thefield{endseason}})}}%
+    \\}
+  \iffieldundef{origyear}{}{%
+    \printtext[bold]{origdate} = \printorigdate
+    \iffieldundef{origseason}{}{\space(\bibstring{\thefield{origseason}}%
+      \iffieldundef{origendseason}{)}{\bibrangedash\bibstring{\thefield{origendseason}})}}%
+    \\}
+  \iffieldundef{eventyear}{}{%
+    \printtext[bold]{eventdate} = \printeventdate
+    \iffieldundef{eventseason}{}{\space(\bibstring{\thefield{eventseason}}%
+      \iffieldundef{eventendseason}{)}{\bibrangedash\bibstring{\thefield{eventendseason}})}}%
+    \\}
+  \iffieldundef{urlyear}{}{%
+    \printtext[bold]{urldate} = \printurldate
+    \iffieldundef{urlseason}{}{\space(\bibstring{\thefield{urlseason}}%
+      \iffieldundef{urlendseason}{)}{\bibrangedash\bibstring{\thefield{urlendseason}})}}%
+  }}
 
 \begin{document}
 
