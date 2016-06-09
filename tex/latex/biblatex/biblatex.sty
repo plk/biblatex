@@ -5016,9 +5016,6 @@
     \blx@warning@entry{Month out of range}#1%
   \fi}
 
-\protected\def\blx@imc@printdatelabel{}
-\protected\def\blx@imc@printdateextralabel{}
-
 \protected\def\blx@imc@forcezeros#1{%
   \ifnumcomp{#1}{<}{10}
     {0\the\numexpr(#1)\relax}% strip leading zeros and prepend zero
@@ -5041,7 +5038,20 @@
    \@tempcnta#1\relax}
   {\egroup#1}}
 
-\blx@regimcs{\printdatelabel \printdateextralabel \printorigdate \stripzeros \forcezeros \mkdatezeros}
+\protected\def\blx@imc@printlabeldate{}
+\protected\def\blx@imc@printlabeldateextra{}
+
+\blx@regimcs{\printlabeldate \printlabeldateextra \stripzeros \forcezeros \mkdatezeros}
+
+\protected\def\printdatelabel{%
+  \blx@warning@noline{%
+    '\string\printdatelabel' is deprecated, please use '\string\printlabeldate'}%
+  \blx@imc@printlabeldate}
+
+\protected\def\printdatelabelextra{%
+  \blx@warning@noline{%
+    '\string\printdatelabelextra' is deprecated, please use '\string\printlabeldateextra'}%
+  \blx@imc@printlabeldateextra}
 
 % User macro for retrieving currrent language
 \def\currentlang{\blx@languagename}
@@ -11962,11 +11972,11 @@
     {\ifstrequal{#1}{edtf}
       {\global\toggletrue{abx@bool@labeldate@edtfdate}}
       {}%
-     \protected\def\blx@imc@printdatelabel{%
+     \protected\def\blx@imc@printlabeldate{%
        \blx@imc@iffieldundef{year}
          {\csuse{mkbibrange#1}{label}}
          {\csuse{mkbibrange#1}{}}}%
-     \protected\def\blx@imc@printdateextralabel{%
+     \protected\def\blx@imc@printlabeldateextra{%
        \blx@imc@iffieldundef{year}
          {\csuse{mkbibrange#1extra}{label}}
          {\csuse{mkbibrange#1extra}{}}}}
