@@ -528,8 +528,8 @@
 \let\enddatecircaprint\relax
 \let\dateuncertainprint\relax
 \let\enddateuncertainprint\relax
-\let\dateeraprint\relax
-\let\enddateeraprint\relax
+\let\dateeraprint\@gobble
+\let\enddateeraprint\@gobble
 
 % Nice command from etextools which causes too many problems if you load
 % the whole package
@@ -4833,7 +4833,7 @@
      \printtext[#2date]{%
        \csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
        \dateuncertainprint
-       \dateeraprint
+       \dateeraprint{#2year}%
        \iffieldundef{#2endyear}
          {}
          {\iffieldequalstr{#2endyear}{}
@@ -4842,7 +4842,7 @@
              \enddatecircaprint
              \csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}%
           \enddateuncertainprint
-          \enddateeraprint}}}}
+          \enddateeraprint{#2endyear}}}}}
 
 \newrobustcmd*{\mkbibrangetrunc}[2]{%
   \blx@metadateinfo{#2}%
@@ -4856,7 +4856,7 @@
             {\csuse{mkbibdate#1}{}{#2month}{#2day}}}
          {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}}%
        \dateuncertainprint
-       \dateeraprint
+       \dateeraprint{#2year}%
        \iffieldundef{#2endyear}
          {}
          {\iffieldequalstr{#2endyear}{}
@@ -4865,7 +4865,7 @@
              \enddatecircaprint
              \csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}%
           \enddateuncertainprint
-          \enddateeraprint}}}}
+          \enddateeraprint{#2endyear}}}}}
 
 \newrobustcmd*{\mkbibrangefullextra}[2]{%
   \blx@metadateinfo{#2}%
@@ -4876,7 +4876,7 @@
        \printtext{%
          \csuse{mkbibdate#1}{#2year}{#2month}{#2day}}%
        \dateuncertainprint
-       \dateeraprint
+       \dateeraprint{#2year}%
        \iffieldundef{#2endyear}
          {\printfield{extrayear}}
          {\iffieldequalstr{#2endyear}{}
@@ -4888,7 +4888,7 @@
                \csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}%
                \printfield{extrayear}}}%
           \enddateuncertainprint
-          \enddateeraprint}}}}
+          \enddateeraprint{#2endyear}}}}}
 
 \newrobustcmd*{\mkbibrangetruncextra}[2]{%
   \blx@metadateinfo{#2}%
@@ -4903,7 +4903,7 @@
               {\csuse{mkbibdate#1}{}{#2month}{#2day}}}
            {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}}}%
        \dateuncertainprint
-       \dateeraprint
+       \dateeraprint{#2year}%
        \iffieldundef{#2endyear}
          {\printfield{extrayear}}
          {\iffieldequalstr{#2endyear}{}
@@ -4915,7 +4915,7 @@
                \csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}%
                \printfield{extrayear}}}%
           \enddateuncertainprint
-          \enddateeraprint}}}}
+          \enddateeraprint{#2endyear}}}}}
 
 \newrobustcmd*{\mkbibrangeyear}[1]{%
   \blx@imc@clearfield{#1month}%
@@ -11976,17 +11976,51 @@
 \DeclareBibliographyOption[string]{dateera}{%
   \toggletrue{blx@dateera}%
   \ifstrequal{#1}{secular}
-    {\protected\def\dateeraprint{%
-       \ifdateera{bce}{\printdelim{dateeradelim}\bibstring{beforecommonera}}{}}%
-     \protected\def\enddateeraprint{%
-       \ifenddateera{bce}{\printdelim{dateeradelim}\bibstring{beforecommonera}}{}}}
+    {\protected\def\dateeraprint##1{%
+       % don't print data meta-information for empty or strings (nodate)
+       \IfInteger{\thefield{##1}}
+         {\ifdateera{bce}
+           {\printdelim{dateeradelim}\bibstring{beforecommonera}}
+           {\ifnumless{\thefield{##1}}\blx@dateeraauto
+             {\printdelim{dateeradelim}\bibstring{commonera}}
+             {}}}
+         {}}%
+     \protected\def\enddateeraprint##1{%
+       % don't print data meta-information for empty or strings (nodate)
+       \IfInteger{\thefield{##1}}
+         {\ifenddateera{bce}
+           {\printdelim{dateeradelim}\bibstring{beforecommonera}}
+           {\ifnumless{\thefield{##1}}\blx@dateeraauto
+             {\printdelim{dateeradelim}\bibstring{commonera}}
+             {}}}
+         {}}}
     {}%
   \ifstrequal{#1}{christian}
-    {\protected\def\dateeraprint{%
-       \ifdateera{bce}{\printdelim{dateeradelim}\bibstring{beforechrist}}{}}%
-     \protected\def\enddateeraprint{%
-       \ifenddateera{bce}{\printdelim{dateeradelim}\bibstring{beforechrist}}{}}}
+    {\protected\def\dateeraprint##1{%
+       % don't print data meta-information for empty or strings (nodate)
+       \IfInteger{\thefield{##1}}
+         {\ifdateera{bce}
+           {\printdelim{dateeradelim}\bibstring{beforechrist}}
+           {\ifnumless{##1}\blx@dateeraauto
+             {\printdelim{dateeradelim}\bibstring{annodomini}}
+             {}}}
+         {}}
+     \protected\def\enddateeraprint##1{%
+       % don't print data meta-information for empty or strings (nodate)
+       \IfInteger{\thefield{##1}}
+         {\ifenddateera{bce}
+           {\printdelim{dateeradelim}\bibstring{beforechrist}}
+           {\ifnumless{##1}\blx@dateeraauto
+             {\printdelim{dateeradelim}\bibstring{annodomini}}
+             {}}}
+         {}}}
     {}}
+
+% Effectively turns off dateeraauto since it's only used on ce dates which
+% are never less than zero (as that would be a bce date)
+\numdef\blx@dateeraauto{0}
+\DeclareBibliographyOption[integer]{dateeraauto}{%
+  \numdef\blx@dateeraauto{#1}}
 
 \DeclareBibliographyOption[boolean]{datecirca}[true]{%
   \ifstrequal{#1}{true}
