@@ -507,7 +507,6 @@
 \newtoggle{blx@uniquetitle}
 \newtoggle{blx@terseinits}
 \newtoggle{blx@giveninits}
-\newtoggle{blx@sortgiveninits}
 \newtoggle{blx@useprefix}
 \newtoggle{blx@addset}
 \newtoggle{blx@setonly}
@@ -10233,7 +10232,6 @@
       \blx@xml@svalue{mincrossrefs}{\blx@mincrossrefs}%
       \blx@xml@svalue{minxrefs}{\blx@minxrefs}%
       \blx@xml@toggle{sortcase}%
-      \blx@xml@toggle{sortgiveninits}%
       \blx@xml@toggle{sortupper}%
     }%
     \blx@xml@comment{BIBLATEX OPTIONS}%
@@ -11145,6 +11143,11 @@
     {\appto\blx@tempc{ use="1"}}
     {\appto\blx@tempc{ use="0"}}}
 
+\define@key{blx@sortnk@namepart}{inits}[true]{% initials only option for namepart true|false
+  \ifstrequal{#1}{true}
+    {\appto\blx@tempc{ inits="1"}}
+    {\appto\blx@tempc{ inits="0"}}}
+
 % {<name>}{<spec>}
 \newrobustcmd*{\DeclareSortingScheme}[3][]{%
   \ifblank{#1}
@@ -11655,17 +11658,18 @@
     'firstinits' option is deprecated, use 'giveninits' instead}%
   \settoggle{blx@giveninits}{#1}}
 
-% Legacy for sortgiveninits
-\DeclareBibliographyOption[boolean]{sortfirstinits}[true]{%
-  \blx@warning@noline{%
-    'sortfirstinits' option is deprecated, use 'sortgiveninits' instead}%
-  \settoggle{blx@sortgiveninits}{#1}}
-
 \DeclareBibliographyOption[boolean]{giveninits}[true]{%
   \settoggle{blx@giveninits}{#1}}
 
-\DeclareBibliographyOption[boolean]{sortgiveninits}[true]{%
-  \settoggle{blx@sortgiveninits}{#1}}
+% Legacy for sortfirstinits/sortgiveninits
+\DeclareBibliographyOption[boolean]{sortfirstinits}[true]{%
+  \blx@warning@noline{%
+    'sortfirstinits' option is deprecated, use 'inits' option\MessageBreak
+    to \string\namepart\space in \string\DeclareSortingNamekeyScheme}}
+\DeclareBibliographyOption[boolean]{sortgiveninits}{%
+  \blx@warning@noline{%
+    'sortgiveninits' option is deprecated, use 'inits' option\MessageBreak
+    to \string\namepart\space in \string\DeclareSortingNamekeyScheme}}
 
 \DeclareBibliographyOption[boolean]{abbreviate}[true]{%
   \ifstrequal{#1}{true}
