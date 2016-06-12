@@ -7560,7 +7560,7 @@ This model specifies:
 \subsubsection{Labels}
 \label{aut:ctm:lab}
 
-Alphabetic styles use a label to identify bibliography entries. This label is constructed from components of the entry using a template which describes how to build the label. The template can be customised on a global or per-type basis.
+Alphabetic styles use a label to identify bibliography entries. This label is constructed from components of the entry using a template which describes how to build the label. The template can be customised on a global or per-type basis. A separate template is used to specify how to extract parts of name fields for labels, since names can be quite complex fields.
 
 \begin{ltxsyntax}
 
@@ -7574,7 +7574,7 @@ Specifies the elements used to build the label. The \prm{elements} are an undeli
 
 \cmditem{field}[options]{field}
 
-If \prm{field} is non-empty, use it as the current label \cmd{labelelement}, subject to the options below. Useful values for \prm{field} are typically the name list type fields, date fields, and title fields. You may also use the `citekey' pseudo-field to specify the citation key as part of the label. Name list fields are treated specially and the options which take substrings of the \prm{field} to use in the \cmd{labelelement} are applied to the family name of every name in a name list (see below).
+If \prm{field} is non-empty, use it as the current label \cmd{labelelement}, subject to the options below. Useful values for \prm{field} are typically the name list type fields, date fields, and title fields. You may also use the `citekey' pseudo-field to specify the citation key as part of the label. Name list fields are treated specially and when a name list field is specified, the template defined with \cmd{DeclareLabelalphaNameTemplate} is used to extract parts from the name which then returns the string that the \cmd{field} option uses.
 
 \begin{optionlist*}
 
@@ -7588,15 +7588,11 @@ Forces the label part derived from the field to lowercase. By default, the case 
 
 \intitem[1]{strwidth}
 
-The number of characters of the \prm{field} to use.
-
-\intitem[1]{pstrwidth}
-
-For name list fields only, the number of characters of any name prefix to prepend to the label part derived from the last name. Only applies if the \biblatex option \kvopt{useprefix}{true}.
+The number of characters of the \prm{field} to use. This setting may be overridden by an individual name part when extracting characters from a name. See \cmd{DeclareLabelalphaNameTemplate} below.
 
 \choitem[left]{strside}{left, right}
 
-The side of the string from which to take the \texttt{strwidth} number of characters.
+The side of the string from which to take the \texttt{strwidth} number of characters. This setting may be overridden by an individual name part when extracting characters from a name. See \cmd{DeclareLabelalphaNameTemplate} below.
 
 \choitem[right]{padside}{left, right}
 
@@ -7612,7 +7608,7 @@ Forces the label part derived from the field to uppercase. By default, the case 
 
 \boolitem[false]{varwidth}
 
-Use a variable width, left-side substring of characters from the \prm{field} (each family name in name list fields). The length of the string is determined by the minimum length needed to disambiguate the substring from all other \prm{field} elements in the same position in the label. For name list fields, this means that each name substring is disambiguated from all other name substrings which occur in the same position in the name list (see examples below). This option overrides \texttt{strwidth} if both are used. The short form \opt{varwidth} is equivalent to \kvopt{varwidth}{true}. For name list fields, if \kvopt{useprefix}{true}, the first character of the name prefix is prepended to the substring.
+Use a variable width, left-side substring of characters from the string returned for \prm{field}. The length of the string is determined by the minimum length needed to disambiguate the substring from all other \prm{field} elements in the same position in the label. For name list fields, this means that each name substring is disambiguated from all other name substrings which occur in the same position in the name list (see examples below). This option overrides \texttt{strwidth} if both are used. The short form \opt{varwidth} is equivalent to \kvopt{varwidth}{true}. For name list fields, the \cmd{namepart}s with the \opt{pre} option set are prepended to the string returned from this disambiguation.
 
 \boolitem[false]{varwidthnorm}
 
@@ -7620,7 +7616,7 @@ As \texttt{varwidth} but will force the disambiguated substrings for the \prm{fi
 
 \boolitem[false]{varwidthlist}
 
-Alternative method of automatic label disambiguation where the field as a whole is disambiguated from all other fields in the same label position. For non-name list fields, this is equivalent to \texttt{varwidth}. For name list fields, names in a name list are not disambiguated from other names in the same position in their name lists but instead the entire name list is disambiguated as a whole from other name lists (see examples below). This option overrides \texttt{strwidth} if both are used. The short form \opt{varwidthlist} is equivalent to \kvopt{varwidthlist}{true}. For name list fields, if \kvopt{useprefix}{true}, the first character of the name prefix is prepended to the substring.
+Alternative method of automatic label disambiguation where the field as a whole is disambiguated from all other fields in the same label position. For non-name list fields, this is equivalent to \texttt{varwidth}. For name list fields, names in a name list are not disambiguated from other names in the same position in their name lists but instead the entire name list is disambiguated as a whole from other name lists (see examples below). This option overrides \texttt{strwidth} if both are used. The short form \opt{varwidthlist} is equivalent to \kvopt{varwidthlist}{true}.  For name list fields, the \cmd{namepart}s with the \opt{pre} option set are prepended to the string returned from this disambiguation.
 
 \intitem{strwidthmax}
 
@@ -7629,14 +7625,6 @@ When using \texttt{varwidth}, this option sets a limit (in number of characters)
 \intitem[1]{strfixedcount}
 
 When using \texttt{varwidthnorm}, there must be at least \texttt{strfixedcount} disambiguated substrings with the same, maximal length to trigger the forcing of all disambiguated substrings to this same maximal length.
-
-\boolitem[false]{compound}
-
-For static (non-varwidth) disambiguation, treat family name name components separated by whitespace or hyphens (compound last names) as separate names for label generation. This means that when forming a label out of, for example the surname <Ballam Forsyth> with a 1 character, left-side substring, this name would give <BF> with \kvopt{compound}{true} and <B> with \kvopt{compound}{false}. The short form \opt{compound} is equivalent to \kvopt{compound}{true}.
-
-\boolitem[false]{pcompound}
-
-As \opt{compound} but applies to name prefices. Only applies if the \biblatex option \kvopt{useprefix}{true}.
 
 \valitem{ifnames}{range}
 
@@ -7676,10 +7664,50 @@ By default, \cmd{labelalphaothers} is appended to label parts derived from name 
 Insert the literal \prm{characters} into the label at this point.
 
 \end{ltxsyntax}
+%
+When a name list \cmd{field} is specified, the method of extracting the string is specified by a separate template specified by the following command:
 
-Note that the template for labels can be defined per-type and you should be aware of this when using the automatically disambiguated label functionality. Disambiguation is not per-type as this might lead to ambiguity due to different label formats for different types being isolated from each others disambiguation process. Normally, you will want to use very different label formats for different types to make the type obvious by the label.
+\begin{ltxsyntax}
+
+\cmditem{DeclareLabelalphaNameTemplate}[entrytype, \dots]{specification}
+
+Specifies the template to use to extract a label string from a name list when a \cmd{field} specification in \cmd{DeclareLabelalphaTemplate} contains a name list. The template can be specified per"=entrytype.
+
+\cmditem{namepart}[options]{namepart}
+
+\prm{namepart} is one of the datamodel nameparts defined with the \cmd{DeclareDatamodelConstant} command (see \secref{aut:bbx:drv}). The \opt{options} are:
+
+\begin{optionlist*}
+
+\boolitem[false]{use}
+
+Only use the \prm{namepart} in constructing the label information if there is a corresponding option \opt{use<namepart>} and that option is true.
+
+\boolitem[false]{pre}
+
+When constructing label strings from names, the \cmd{namepart} \emph{without} a \opt{pre} option will be used to construct label string, passing through disambiguation, substring etc. operations as specified by the \cmd{field} options in \cmd{DeclareLabelalpaTemplate}. Then the \cmd{namepart} options \emph{with} the \opt{pre} option set will be prepended to the result, (in the order given, if there are more than one such \cmd{namepart}s). This allows to unconditionally prepend certain namepart information to name label strings, like name prefices. Note that the \opt{uppercase} and \opt{lowercase} options of \cmd{field} in \cmd{DeclareLabelalphaTemplate} are applied to the entire label returned from \cmd{DeclareLabelalphaTemplate}, both \opt{pre} parts and non \opt{pre}.
+
+\boolitem[false]{compound}
+
+For static (non-varwidth) disambiguation in \cmd{DeclareLabelalphaTemplate}, nameparts separated by whitespace or hyphens (compound names) as separate names for label generation. This means that when forming a label out of, for example the surname <Ballam Forsyth> with a 1 character, left-side substring, this name would give <BF> with \kvopt{compound}{true} and <B> with \kvopt{compound}{false}. The short form \opt{compound} is equivalent to \kvopt{compound}{true}.
+
+\intitem[1]{strwidth}
+
+The number of characters of the \prm{namepart} to use.
+
+\choitem[left]{strside}{left, right}
+
+The side of the string from which to take the \texttt{strwidth} number of characters.
+
+\end{optionlist*}
+
+\end{ltxsyntax}
+
+Note that the templates for labels can be defined per-type and you should be aware of this when using the automatically disambiguated label functionality. Disambiguation is not per-type as this might lead to ambiguity due to different label formats for different types being isolated from each others disambiguation process. Normally, you will want to use very different label formats for different types to make the type obvious by the label.
 
 Here are some examples. The default global \biblatex alphabetic label template is defined below. Firstly, \bibfield{shorthand} has \kvopt{final}{true} and so if there is a \bibfield{shorthand} field, it is used as the label and nothing more of the template is considered. Next, the \bibfield{label} field is used as the first label element if it exists. Otherwise, if there is only one name (\kvopt{ifnames}{1}) in the \bibfield{labelname} list, then three characters from the left side of the family name in the \bibfield{labelname} are used as the first label element. If the \bibfield{labelname} has more than one name in it, one character from the left side of each family name is used as the first label element. The second label element consists of 2 characters from the right side of the \bibfield{year} field.
+
+The default template for constructing labels from names is also shown. This prepends the first character from the left side of any prefix (if the \opt{useprefix} option is true) to a label extracted from the family name (according to the options on the calling \cmd{field} option from \cmd{DeclareLabelalphaTemplate}), allowing for compound family names.
 
 \begin{ltxexample}
 \DeclareLabelalphaTemplate{
@@ -7692,6 +7720,11 @@ Here are some examples. The default global \biblatex alphabetic label template i
   \labelelement{
     \field[strwidth=2,strside=right]{<<year>>}
   }
+}
+
+\DeclareLabelalphaNameTemplate{
+  \namepart[use=true, pre=true, strwidth=1]{prefix}
+  \namepart[compound=true]{family}
 }
 \end{ltxexample}
 %
@@ -12365,6 +12398,7 @@ This revision history is a list of changes relevant to users of this package. Ch
 \begin{changelog}
 
 \begin{release}{3.5}{2016-}
+\item Added \cmd{DeclareLabelalphaNameTemplate}\see{aut:ctm:lab}
 \item Added \opt{timezeros}\see{use:opt:pre:gen}
 \item Added \opt{mktimezeros}\see{aut:fmt:ich}
 \item Changed \opt{iso8601} to \opt{edtf}\see{use:opt:pre:gen}
