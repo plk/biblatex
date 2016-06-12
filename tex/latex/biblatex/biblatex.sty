@@ -5453,6 +5453,11 @@
   \listxadd\blx@datemetabooleans{\blx@datetype enddateuncertain}}
 \abx@dodates
 
+\def\do#1{%
+  \listxadd\blx@namepartmetafields{#1namehash}%
+  \listxadd\blx@namepartmetafields{#1fullhash}}
+\abx@donameparts
+
 \def\abx@dointernalfields{%
   \do{childentrykey}%
   \do{clonesourcekey}%
@@ -5475,7 +5480,8 @@
   \do{labelprefix}%
   \do{sortinit}%
   \do{sortinithash}%
-  \forlistloop{\do}\blx@datemetafields}
+  \forlistloop{\do}\blx@datemetafields
+  \forlistloop{\do}\blx@namepartmetafields}
 
 \def\abx@dobooleans{%
   \do{crossrefsource}%
@@ -6085,12 +6091,7 @@
   \def\do##1{%
     \ifcsundef{abx@field@##1source}
      {}
-     {% resolve namehash/fullhash but not when they already exist (bibtex)
-       \ifundef\abx@field@namehash
-         {\letcs\abx@field@namehash{abx@field@\csuse{abx@field@##1source}namehash}%
-          \letcs\abx@field@fullhash{abx@field@\csuse{abx@field@##1source}fullhash}}
-         {}%
-      % resolve labelname
+     {% resolve labelname
       \csname c@##1\expandafter\endcsname\expandafter\the\csname c@\csuse{abx@field@##1source}\endcsname
       \csletcs{abx@name@##1}{abx@name@\csuse{abx@field@##1source}}}}%
   \dolistloop\abx@rnames%
@@ -8662,7 +8663,6 @@
   \global\undef\blx@saved@lastkey@foot}
 
 % idem tracker
-
 \def\blx@idemtracker@global{%
   \ifbool{citetracker}
     {\global\let\blx@lasthash@text\abx@field@fullhash}
