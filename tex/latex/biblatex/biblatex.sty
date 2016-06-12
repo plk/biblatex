@@ -5622,28 +5622,42 @@
     '\string\iffirstinits' is deprecated, use '\string\ifgiveninits'}%
   \iftoggle{abx@bool@giveninits}}
 
-% Define name toggles
-\def\do#1{\newtoggle{blx@use#1}\toggletrue{blx@use#1}}
+\def\do#1{%
+  % Define use<name> options scope for biber
+  \blx@collectopts{boolean}{blx@globalopts}{use#1}%
+  \blx@collectopts{boolean}{blx@typeopts}{use#1}%
+  \blx@collectopts{boolean}{blx@entryopts}{use#1}%
+  % Define name toggles
+  \newtoggle{blx@use#1}\toggletrue{blx@use#1}%
+  % Define tests
+  \appto\blx@blxinit{%
+    \csdef{ifuse#1}{\iftoggle{blx@use#1}}%
+    \appto\blx@TE@hook{%
+      \csdef{ifuse#1}{\blx@TE\iftoggle{blx@use#1}}}}}
 \abx@donames
+
+% Define name toggles
+% \def\do#1{\newtoggle{blx@use#1}\toggletrue{blx@use#1}}
+% \abx@donames
 
 % Define name toggle checking macros
-\let\blx@nametoggles\@empty
-\def\do#1{\gappto\blx@nametoggles{\expandafter\def\csname ifuse#1\endcsname{\iftoggle{blx@use#1}}}}
-\abx@donames
-\eappto\blx@blxinit{\expandafter\expandonce\noexpand\blx@nametoggles}
+% \let\blx@nametoggles\@empty
+% \def\do#1{\gappto\blx@nametoggles{\expandafter\def\csname ifuse#1\endcsname{\iftoggle{blx@use#1}}}}
+% \abx@donames
+% \eappto\blx@blxinit{\expandafter\expandonce\noexpand\blx@nametoggles}
 
 % Define ifthen interface name toggle checking macros
-\let\blx@nametogglesit\@empty
-\def\do#1{\gappto\blx@nametogglesit{\expandafter\def\csname ifuse#1\endcsname{\blx@TE{\iftoggle{blx@use#1}}}}}
-\abx@donames
-\expandafter\def\expandafter\blx@nametogglesite\expandafter{\expandonce\blx@nametogglesit}
-\appto\blx@blxinit{\appto\blx@TE@hook{\blx@nametogglesite}}
+% \let\blx@nametogglesit\@empty
+% \def\do#1{\gappto\blx@nametogglesit{\expandafter\def\csname ifuse#1\endcsname{\blx@TE{\iftoggle{blx@use#1}}}}}
+% \abx@donames
+% \expandafter\def\expandafter\blx@nametogglesit\expandafter{\expandonce\blx@nametogglesit}
+% \appto\blx@blxinit{\appto\blx@TE@hook{\blx@nametogglesite}}
 
 % Define use<name> options scope for biber
-\def\do#1{\blx@collectopts{boolean}{blx@globalopts}{use#1}%
-          \blx@collectopts{boolean}{blx@typeopts}{use#1}%
-          \blx@collectopts{boolean}{blx@entryopts}{use#1}}
-\abx@donames
+% \def\do#1{\blx@collectopts{boolean}{blx@globalopts}{use#1}%
+%           \blx@collectopts{boolean}{blx@typeopts}{use#1}%
+%           \blx@collectopts{boolean}{blx@entryopts}{use#1}}
+% \abx@donames
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -6051,14 +6065,15 @@
   %
   % An unanswered question is whether such dynamic resolution causes problems due to the fact
   % that biber uses the label* field to generate counters internally and changing the
-  % label* field resolution in biblatex would occur after such counters have been used to generate
-  % the .bbl
-  % This could all be removed from biblatex if necessary and biber could output all resolved label*
-  % fields to the .bbl
+  % label* field resolution in biblatex would occur after such counters have been used to
+  % generate the .bbl
+  % This could all be removed from biblatex if necessary and biber could output all resolved
+  % label* fields to the .bbl but then it potentially removes control of such things from
+  % macros
   \def\do##1{%
     \ifcsundef{abx@field@##1source}
       {}%
-      {\csdef{abx@field@##1}{\csuse{abx@field@\csuse{abx@field@##1source}}}}}%
+      {\csletcs{abx@field@##1}{abx@field@\csuse{abx@field@##1source}}}}%
   \dolistloop\abx@rfields%
   % Just in case we ever have non-name lists to instantiate
   % \def\do##1{%
@@ -6070,7 +6085,13 @@
   \def\do##1{%
     \ifcsundef{abx@field@##1source}
      {}
-     {\csname c@##1\expandafter\endcsname\expandafter\the\csname c@\csuse{abx@field@##1source}\endcsname
+     {% resolve namehash/fullhash but not when they already exist (bibtex)
+       \ifundef\abx@field@namehash
+         {\letcs\abx@field@namehash{abx@field@\csuse{abx@field@##1source}namehash}%
+          \letcs\abx@field@fullhash{abx@field@\csuse{abx@field@##1source}fullhash}}
+         {}%
+      % resolve labelname
+      \csname c@##1\expandafter\endcsname\expandafter\the\csname c@\csuse{abx@field@##1source}\endcsname
       \csletcs{abx@name@##1}{abx@name@\csuse{abx@field@##1source}}}}%
   \dolistloop\abx@rnames%
   % Resolve labeldate
