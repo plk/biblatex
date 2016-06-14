@@ -390,13 +390,15 @@
   {citetitle}{#1}
 % labelyear can be a localisation string to allow for "no date" etc.
 \DeclareFieldFormat{labelyear}{% = the '1995' part in 'Jones 1995a'
-  \ifbibstring{#1}{\bibstring{#1}}{\stripzeros{#1}}}
-\DeclareFieldFormat{extrayear}{% = the 'a' in 'Jones 1995a'
-  \iffieldnums{labelyear}
+  \ifbibstring{#1}{\bibstring{#1}}{#1}}
+% Don't check labelyear directly as it is already processed into a range with markers
+% and so is never nums due to unexpandable parts of labelyear determination
+\DeclareFieldFormat{extrayear}{%
+  \iffieldnums{\thefield{labeldatesource}year}
     {\mknumalph{#1}}
     {\mkbibparens{\mknumalph{#1}}}}
-\DeclareFieldFormat{labelalpha}{#1}% = the 'Jon95' part of 'Jon95a'
-\DeclareFieldFormat{extraalpha}{\mknumalph{#1}}% = the 'a' in 'Jon95a'
+\DeclareFieldFormat{labelalpha}{#1}%
+\DeclareFieldFormat{extraalpha}{\mknumalph{#1}}%
 \DeclareFieldFormat{shorthand}{#1\isdot}
 \DeclareFieldFormat{shorthandintro}{%
   \ifcapital{\MakeCapital{#1}}{#1}\isdot}

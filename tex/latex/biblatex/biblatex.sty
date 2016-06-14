@@ -521,10 +521,10 @@
 \newtoggle{blx@refcontext}
 
 % date meta-information option defaults
-\let\datecircaprint\relax
-\let\enddatecircaprint\relax
-\let\dateuncertainprint\relax
-\let\enddateuncertainprint\relax
+\let\datecircaprint\@empty
+\let\enddatecircaprint\@empty
+\let\dateuncertainprint\@empty
+\let\enddateuncertainprint\@empty
 \let\dateeraprint\@gobble
 \let\enddateeraprint\@gobble
 
@@ -4980,7 +4980,7 @@
 \newrobustcmd*{\blx@edtfdate}[4][]{%
   % Note that this is before the date as EDTF is "-d" and not "d BCE"
   % Using internals of \dateeraprint as that isn't suited to this since it uses localisation
-  \ifdateera{bce}{-}{}%
+  \ifdateera{bce}{\printtext{-}}{}%
   \thefield{#2}\ifblank{#1}{}{\printfield{#1}}%
   \iffieldundef{#3}{}{\mbox{-}\thefield{#3}}%
   \iffieldundef{#4}{}{\mbox{-}\thefield{#4}}}
@@ -4988,7 +4988,7 @@
 \newrobustcmd*{\blx@edtfenddate}[4][]{%
   % Note that this is before the date as EDTF is "-d" and not "d BCE"
   % Using internals of \dateeraprint as that isn't suited to this since it uses localisation
-  \ifenddateera{bce}{-}{}%
+  \ifdateera{bce}{\printtext{-}}{}%
   \thefield{#2}\ifblank{#1}{}{\printfield{#1}}%
   \iffieldundef{#3}{}{\mbox{-}\thefield{#3}}%
   \iffieldundef{#4}{}{\mbox{-}\thefield{#4}}}
@@ -5024,12 +5024,25 @@
     \blx@warning@entry{Month out of range}#1%
   \fi}
 
-\protected\def\blx@imc@forcezeros#1{%
-  \ifnumcomp{#1}{<}{10}
-    {0\the\numexpr(#1)\relax}% strip leading zeros and prepend zero
+% strip leading zeros and prepend zero for month/day/timeparts
+\protected\def\blx@imc@forcezerosmdt#1{%
+  \ifnumless{#1}{10}
+    {0\the\numexpr(#1)\relax}
     {#1}}
 
-\let\blx@imc@mkdatezeros\blx@imc@forcezeros
+% strip leading zeros and prepend zero(s) for year
+\protected\def\blx@imc@forcezerosy#1{%
+  \ifnumless{#1}{10}% 1-digit year
+    {000\the\numexpr(#1)\relax}
+    {\ifnumless{#1}{100}% 2-digit year
+      {00\the\numexpr(#1)\relax}
+      {\ifnumless{#1}{1000}% 3-digit year
+        {0\the\numexpr(#1)\relax}
+        {#1}}}}
+
+\let\blx@imc@mkyearzeros\blx@imc@forcezerosy
+\let\blx@imc@mkmonthzeros\blx@imc@forcezerosmdt
+\let\blx@imc@mkdayzeros\blx@imc@forcezerosmdt
 \protected\def\blx@imc@stripzeros#1{%
   \begingroup
   \setbox\@tempboxa=\hbox\bgroup
@@ -5049,7 +5062,14 @@
 \protected\def\blx@imc@printlabeldate{}
 \protected\def\blx@imc@printlabeldateextra{}
 
-\blx@regimcs{\printlabeldate \printlabeldateextra \stripzeros \forcezeros \mkdatezeros \mktimezeros}
+\blx@regimcs{\printlabeldate \printlabeldateextra \stripzeros \forcezerosy \forcezerosmdt \mkyearzeros \mkmonthzeros \mkdayzeros \mktimezeros}
+
+\protected\def\mkdatezeros{%
+  \blx@warning@noline{%
+    '\string\mkdatezeros' is deprecated, please use '\string\mkyearzeros',\MessageBreak
+    '\string\mkmonthzeros' or '\string\mkdayzeros' as appropriate. \MessageBreak
+    falling back to '\string\mkmonthzeros'}%
+  \mkmonthzeros}
 
 \protected\def\printdatelabel{%
   \blx@warning@noline{%
@@ -5461,6 +5481,7 @@
 \def\abx@dointernalfields{%
   \do{childentrykey}%
   \do{clonesourcekey}%
+  \do{labeldate}%
   \do{labeldatesource}%
   \do{entrykey}%
   \do{entryset}%
@@ -5472,12 +5493,15 @@
   \do{extrayear}%
   \do{fullhash}%
   \do{labelalpha}%
+  \do{labelday}%
+  \do{labelmonth}%
   \do{labelnumber}%
+  \do{labelprefix}%
   \do{labeltitleyear}%
-  \do{labeldate}%
+  \do{labelyear}%
   \do{localnumber}%
   \do{namehash}%
-  \do{labelprefix}%
+  \do{options}%
   \do{sortinit}%
   \do{sortinithash}%
   \forlistloop{\do}\blx@datemetafields
@@ -5678,7 +5702,6 @@
   \abx@dolists
   \let\do\blx@imc@clearfield
   \abx@dofields
-  \do{options}\do{labelyear}\do{labelmonth}\do{labelday}\do{labeldatesource}%
   \abx@dointernalfields
   \def\do##1{\togglefalse{abx@bool@##1}}%
   \abx@dobooleans
@@ -5706,7 +5729,6 @@
   \abx@dofields
   \let\do\blx@saverelfield
   \dolistloop\abx@dorelfields
-  \do{options}\do{labelyear}\do{labelmonth}\do{labelday}\do{labeldatesource}%
   \abx@dointernalfields
   \let\do\blx@savebool
   \abx@dobooleans
@@ -6073,6 +6095,10 @@
       \csletcs{abx@name@##1}{abx@name@\csuse{abx@field@##1source}}}}%
   \dolistloop\abx@rnames%
   % Resolve labeldate
+  % Note that here we can't refer to labelyear as this is where we create it, hence the
+  % complications in constructing test names etc.
+  % This also shows why biber shouldn't resolved labeldate fields as we have to add
+  % circa/uncertain/era etc. information to them and that has to be done here.
   \ifundef\abx@field@labeldatesource
     {}
     {\ifcsundef{abx@field@\abx@field@labeldatesource year}
@@ -6085,64 +6111,122 @@
         {\edef\abx@field@labelyear{\csuse{abx@field@\abx@field@labeldatesource}}}}%
       % \DeclareLabeldate resolved to a date field name prefix like "", "event", "url" or "orig"
       {% labelyear - end can be open
+        \letcs\ifdateera{if\abx@field@labeldatesource dateera}%
+        \letcs\ifenddateera{if\abx@field@labeldatesource enddateera}%
+        \letcs\ifdatecirca{if\abx@field@labeldatesource datecirca}%
+        \letcs\ifenddatecirca{if\abx@field@labeldatesource enddatecirca}%
+        \letcs\ifdateuncertain{if\abx@field@labeldatesource dateuncertain}%
+        \letcs\ifenddateuncertain{if\abx@field@labeldatesource enddateuncertain}%
         \ifcsdef{abx@field@\abx@field@labeldatesource endyear}
           {\ifcsequal
             {abx@field@\abx@field@labeldatesource year}
             {abx@field@\abx@field@labeldatesource endyear}
-            {\edef\abx@field@labelyear{\csuse{abx@field@\abx@field@labeldatesource year}}}
-            {\edef\abx@field@labelyear{\csuse{abx@field@\abx@field@labeldatesource year}\bibdatedash \csuse{abx@field@\abx@field@labeldatesource endyear}}}}
+            {\edef\abx@field@labelyear{%
+                \datecircaprint
+                \iftoggle{abx@bool@labeldate@edtfdate}
+                  {\ifdateera{bce}{\printtext{-}}{}}
+                  {}%
+                \mkyearzeros{\csuse{abx@field@\abx@field@labeldatesource year}}%
+                \iftoggle{abx@bool@labeldate@edtfdate}
+                  {}
+                  {\dateeraprint{\abx@field@labeldatesource year}}%
+                \dateuncertainprint}}
+            {\edef\abx@field@labelyear{%
+                \datecircaprint
+                \iftoggle{abx@bool@labeldate@edtfdate}
+                  {\ifdateera{bce}{\printtext{-}}{}}
+                  {}%
+                \mkyearzeros{\csuse{abx@field@\abx@field@labeldatesource year}}%
+                \iftoggle{abx@bool@labeldate@edtfdate}
+                  {}
+                  {\dateeraprint{\abx@field@labeldatesource year}}%
+                \dateuncertainprint
+                \bibdatedash % RANGE
+                \enddatecircaprint
+                \iftoggle{abx@bool@labeldate@edtfdate}
+                  {\ifdateera{bce}{\printtext{-}}{}}
+                  {}%
+                \mkyearzeros{\csuse{abx@field@\abx@field@labeldatesource endyear}}%
+                \iftoggle{abx@bool@labeldate@edtfdate}
+                  {}
+                  {\dateeraprint{\abx@field@labeldatesource year}}%
+                \dateuncertainprint}}}
           {\ifcsdef{abx@field@\abx@field@labeldatesource year}
-            {\edef\abx@field@labelyear{\csuse{abx@field@\abx@field@labeldatesource year}}}
+            {\edef\abx@field@labelyear{%
+                \datecircaprint
+                \iftoggle{abx@bool@labeldate@edtfdate}
+                  {\ifdateera{bce}{\printtext{-}}{}}
+                  {}%
+                \mkyearzeros{\csuse{abx@field@\abx@field@labeldatesource year}}%
+                \iftoggle{abx@bool@labeldate@edtfdate}
+                  {}
+                  {\dateeraprint{\abx@field@labeldatesource year}}%
+                \dateuncertainprint}}
             {}}%
         % labelmonth
         \ifcsdef{abx@field@\abx@field@labeldatesource endmonth}
           {\ifcsequal
             {abx@field@\abx@field@labeldatesource month}
             {abx@field@\abx@field@labeldatesource endmonth}
-            {\edef\abx@field@labelmonth{\csuse{abx@field@\abx@field@labeldatesource month}}}
-            {\edef\abx@field@labelmonth{\csuse{abx@field@\abx@field@labeldatesource month}\bibdatedash \csuse{abx@field@\abx@field@labeldatesource endmonth}}}}
+            {\edef\abx@field@labelmonth{%
+                \mkmonthzeros{\csuse{abx@field@\abx@field@labeldatesource month}}}}
+            {\edef\abx@field@labelmonth{%
+                \mkmonthzeros{\csuse{abx@field@\abx@field@labeldatesource month}\bibdatedash \csuse{abx@field@\abx@field@labeldatesource endmonth}}}}}
           {\ifcsdef{abx@field@\abx@field@labeldatesource month}
-            {\edef\abx@field@labelmonth{\csuse{abx@field@\abx@field@labeldatesource month}}}
+            {\edef\abx@field@labelmonth{%
+                \mkmonthzeros{\csuse{abx@field@\abx@field@labeldatesource month}}}}
             {}}%
         % labelday
         \ifcsdef{abx@field@\abx@field@labeldatesource endday}
           {\ifcsequal
             {abx@field@\abx@field@labeldatesource day}
             {abx@field@\abx@field@labeldatesource endday}
-            {\edef\abx@field@labelday{\csuse{abx@field@\abx@field@labeldatesource day}}}
-            {\edef\abx@field@labelday{\csuse{abx@field@\abx@field@labeldatesource day}\bibdatedash \csuse{abx@field@\abx@field@labeldatesource endday}}}}
+            {\edef\abx@field@labelday{%
+                \mkdayzeros{\csuse{abx@field@\abx@field@labeldatesource day}}}}
+            {\edef\abx@field@labelday{%
+                \mkdayzeros{\csuse{abx@field@\abx@field@labeldatesource day}\bibdatedash \csuse{abx@field@\abx@field@labeldatesource endday}}}}}
           {\ifcsdef{abx@field@\abx@field@labeldatesource day}
-            {\edef\abx@field@labelday{\csuse{abx@field@\abx@field@labeldatesource day}}}
+            {\edef\abx@field@labelday{%
+                \mkdayzeros{\csuse{abx@field@\abx@field@labeldatesource day}}}}
             {}}%
         % labelhour
         \ifcsdef{abx@field@\abx@field@labeldatesource endhour}
           {\ifcsequal
             {abx@field@\abx@field@labeldatesource hour}
             {abx@field@\abx@field@labeldatesource endhour}
-            {\edef\abx@field@labelhour{\csuse{abx@field@\abx@field@labeldatesource hour}}}
-            {\edef\abx@field@labelhour{\csuse{abx@field@\abx@field@labeldatesource hour}\bibdatedash \csuse{abx@field@\abx@field@labeldatesource endhour}}}}
+            {\edef\abx@field@labelhour{%
+                \mkdayzeros{\csuse{abx@field@\abx@field@labeldatesource hour}}}}
+            {\edef\abx@field@labelhour{%
+                \mkdayzeros{\csuse{abx@field@\abx@field@labeldatesource hour}\bibdatedash \csuse{abx@field@\abx@field@labeldatesource endhour}}}}}
           {\ifcsdef{abx@field@\abx@field@labeldatesource hour}
-            {\edef\abx@field@labelhour{\csuse{abx@field@\abx@field@labeldatesource hour}}}
+            {\edef\abx@field@labelhour{%
+                \mkdayzeros{\csuse{abx@field@\abx@field@labeldatesource hour}}}}
             {}}%
         % labelminute
         \ifcsdef{abx@field@\abx@field@labeldatesource endminute}
           {\ifcsequal
             {abx@field@\abx@field@labeldatesource minute}
             {abx@field@\abx@field@labeldatesource endminute}
-            {\edef\abx@field@labelminute{\csuse{abx@field@\abx@field@labeldatesource minute}}}
-            {\edef\abx@field@labelminute{\csuse{abx@field@\abx@field@labeldatesource minute}\bibdatedash \csuse{abx@field@\abx@field@labeldatesource endminute}}}}
+            {\edef\abx@field@labelminute{%
+                \mkdayzeros{\csuse{abx@field@\abx@field@labeldatesource minute}}}}
+            {\edef\abx@field@labelminute{%
+                \mkdayzeros{\csuse{abx@field@\abx@field@labeldatesource minute}\bibdatedash \csuse{abx@field@\abx@field@labeldatesource endminute}}}}}
           {\ifcsdef{abx@field@\abx@field@labeldatesource minute}
-            {\edef\abx@field@labelminute{\csuse{abx@field@\abx@field@labeldatesource minute}}}
+            {\edef\abx@field@labelminute{%
+                \mkdayzeros{\csuse{abx@field@\abx@field@labeldatesource minute}}}}
             {}}%
         % labelsecond
         \ifcsdef{abx@field@\abx@field@labeldatesource endsecond}
           {\ifcsequal
             {abx@field@\abx@field@labeldatesource second}
             {abx@field@\abx@field@labeldatesource endsecond}
-            {\edef\abx@field@labelsecond{\csuse{abx@field@\abx@field@labeldatesource second}}}
-            {\edef\abx@field@labelsecond{\csuse{abx@field@\abx@field@labeldatesource second}\bibdatedash \csuse{abx@field@\abx@field@labeldatesource endsecond}}}}
+            {\edef\abx@field@labelsecond{%
+                \mkdayzeros{\csuse{abx@field@\abx@field@labeldatesource second}}}}
+            {\edef\abx@field@labelsecond{%
+                \mkdayzeros{\csuse{abx@field@\abx@field@labeldatesource second}\bibdatedash \csuse{abx@field@\abx@field@labeldatesource endsecond}}}}}
           {\ifcsdef{abx@field@\abx@field@labeldatesource second}
-            {\edef\abx@field@labelsecond{\csuse{abx@field@\abx@field@labeldatesource second}}}
+            {\edef\abx@field@labelsecond{%
+                \mkdayzeros{\csuse{abx@field@\abx@field@labeldatesource second}}}}
             {}}%
         % labeltimezone
         \ifcsdef{abx@field@\abx@field@labeldatesource endtimezone}
@@ -12108,7 +12192,7 @@
   \ifstrequal{#1}{secular}
     {\protected\def\dateeraprint##1{%
        % don't print data meta-information for empty or strings (nodate)
-       \IfInteger{\thefield{##1}}
+       \iffieldnum{##1}
          {\ifdateera{bce}
            {\printtext{\printdelim{dateeradelim}\bibstring{beforecommonera}}}
            {\ifnumless{\thefield{##1}}\blx@dateeraauto
@@ -12117,7 +12201,7 @@
          {}}%
      \protected\def\enddateeraprint##1{%
        % don't print data meta-information for empty or strings (nodate)
-       \IfInteger{\thefield{##1}}
+       \iffieldnum{##1}
          {\ifenddateera{bce}
            {\printtext{\printdelim{dateeradelim}\bibstring{beforecommonera}}}
            {\ifnumless{\thefield{##1}}\blx@dateeraauto
@@ -12128,7 +12212,7 @@
   \ifstrequal{#1}{christian}
     {\protected\def\dateeraprint##1{%
        % don't print data meta-information for empty or strings (nodate)
-       \IfInteger{\thefield{##1}}
+       \iffieldnum{##1}
          {\ifdateera{bce}
            {\printtext{\printdelim{dateeradelim}\bibstring{beforechrist}}}
            {\ifnumless{##1}\blx@dateeraauto
@@ -12137,7 +12221,7 @@
          {}}
      \protected\def\enddateeraprint##1{%
        % don't print data meta-information for empty or strings (nodate)
-       \IfInteger{\thefield{##1}}
+       \iffieldnum{##1}
          {\ifenddateera{bce}
            {\printtext{\printdelim{dateeradelim}\bibstring{beforechrist}}}
            {\ifnumless{##1}\blx@dateeraauto
@@ -12220,12 +12304,16 @@
 
 \DeclareBibliographyOption[boolean]{datezeros}[true]{%
   \ifstrequal{#1}{true}
-    {\let\blx@imc@mkdatezeros\blx@imc@forcezeros}
-    {\let\blx@imc@mkdatezeros\blx@imc@stripzeros}}
+    {\let\blx@imc@mkyearzeros\blx@imc@forcezerosy
+     \let\blx@imc@mkmonthzeros\blx@imc@forcezerosmdt
+     \let\blx@imc@mkdayzeros\blx@imc@forcezerosmdt}
+    {\let\blx@imc@mkyearzeros\blx@imc@stripzeros
+     \let\blx@imc@mkmonthzeros\blx@imc@stripzeros
+     \let\blx@imc@mkdayzeros\blx@imc@stripzeros}}
 
 \DeclareBibliographyOption[boolean]{timezeros}[true]{%
   \ifstrequal{#1}{true}
-    {\let\blx@imc@mktimezeros\blx@imc@forcezeros}
+    {\let\blx@imc@mktimezeros\blx@imc@forcezerosmdt}
     {\let\blx@imc@mktimezeros\blx@imc@stripzeros}}
 
 \DeclareBibliographyOption[string]{autocite}{%
