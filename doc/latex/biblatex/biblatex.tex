@@ -1631,7 +1631,7 @@ Date fields such as the default data model dates \bibfield{date}, \bibfield{orig
 
 Date field names must end with the string <date>, as with the default date fields. Bear this in mind when adding new date fields to the datamodel (see \secref{aut:ctm:dm}).
 
-\acr{EDTF} supports dates before common era (BCE/BC) by way of a negative date format and supports  <approximate> (circa) and uncertain dates. Such date formats set internal markers which can be tested for so that appropriate localised markers (such as \opt{circa} or \opt{beforecommonera}) can be inserted. Also supported are <uncertain> dates (\acr{EDTF} 5.2.2) which are automatically expanded into appropriate data ranges accompanied by a field \bibfield{<datetype>dateunspecified} which details the granularity of the unspecified data. Styles may use this information to format such dates appropriately but the standard styles do not do this. See \tabref{bib:use:tab3} on page~\pageref{bib:use:tab3} for the allowed \acr{EDTF} <unspecified> formats, their range expansions and \bibfield{{<datetype>dateunspecified} values (see \secref{aut:bbx:fld:gen}).
+\acr{EDTF} supports dates before common era (BCE/BC) by way of a negative date format and supports  <approximate> (circa) and uncertain dates. Such date formats set internal markers which can be tested for so that appropriate localised markers (such as \opt{circa} or \opt{beforecommonera}) can be inserted. Also supported are <uncertain> dates (\acr{EDTF} 5.2.2) which are automatically expanded into appropriate data ranges accompanied by a field \bibfield{<datetype>dateunspecified} which details the granularity of the unspecified data. Styles may use this information to format such dates appropriately but the standard styles do not do this. See \tabref{bib:use:tab3} on page~\pageref{bib:use:tab3} for the allowed \acr{EDTF} <unspecified> formats, their range expansions and \bibfield{<datetype>dateunspecified} values (see \secref{aut:bbx:fld:gen}).
 
 \begin{table}
 \tablesetup
@@ -2272,9 +2272,9 @@ This option controls whether to output <circa> information about dates. If set t
 
 This option controls whether to output uncertainty information about dates. If set to \opt{true}, dates will be followed by the expansion of the \cmd{dateuncertainprint} macro (\secref{use:fmt:fmt}).
 
-\optitem[secular]{dateera}{\opt{secular}, \opt{christian}}
+\optitem[simple]{dateera}{\opt{simple}, \opt{secular}, \opt{christian}}
 
-This option controls which localisation strings are used to format date era information (see \secref{aut:lng:key:era}). By default, secular eras are used and only printed for BC/BCE dates. If set, \cmd{dateeraprint} will be used to format the era information, see \secref{use:fmt:fmt}.
+This option controls how date era information is printed. <simple> uses \cmd{dateeraprintpre/enddateeraprintpre} to print era information \emph{before} start/end dates. <secular> and <christian> uses \cmd{dateeraprint/enddateeraprint} to print era information \emph{after} the start/end/dates. By default <simple> results in a minus sign before BCE/BC dates and <secular> and <christian> results in the relevant localisation strings like <BCE> or <BC> after BCE/BC dates. See the relevant commends in \secref{use:fmt:fmt} and the localisation strings in \secref{aut:lng:key:era}.
 
 \intitem{dateeraauto}
 
@@ -4431,13 +4431,22 @@ When formatting dates with the global option \opt{datecirca} enabled, the delimi
 When formatting dates with the global option \opt{dateera} set, the delimiter printed before the localisation era term. Defaults to interword space.
 
 \csitem{dateuncertainprint}
-Command which formats the printing of date uncertainty information when the global option \opt{dateuncertain} is enabled. By default, prints the language specific \cmd{bibdateuncertain} string (\secref{use:fmt:lng}).
+Prints date uncertainty information when the global option \opt{dateuncertain} is enabled. By default, prints the language specific \cmd{bibdateuncertain} string (\secref{use:fmt:lng}).
 
 \csitem{datecircaprint}
-Command which formats the printing of date uncertainty information when the global option \opt{datecirca} is enabled. By default, prints the <circa> localised term (\secref{aut:lng:key:circa}) and the \opt{datecircadelim} delimiter.
+Prints date uncertainty information when the global option \opt{datecirca} is enabled. By default, prints the <circa> localised term (\secref{aut:lng:key:circa}) and the \opt{datecircadelim} delimiter.
 
 \csitem{dateeraprint}
-Command which formats the printing of date era information when the global option \opt{dateera} is set. By default, prints the \opt{dateeradelim} delimiter and the appropriate localised era term (\secref{aut:lng:key:era}). Note that all dates are assumed to be AD/CE and this era is never output. In the event that you always want to include AD/CE eras in dates, customise this command.
+Prints date era information when the global option \opt{dateera} is set to <secular> or <christian>. By default, prints the \opt{dateeradelim} delimiter and the appropriate localised era term (\secref{aut:lng:key:era}).
+
+\csitem{enddateeraprint}
+As \cmd{dateeraprint} but used after end dates in a date range.
+
+\csitem{dateeraprintpre}
+Prints date era information when the global option \opt{dateera} is set to <simple>. By default, prints \opt{bibdataeraprefix}.
+
+\csitem{enddateeraprintpre}
+As \cmd{dateeraprintpre} but used before end dates in a date range.
 
 \csitem{textcitedelim}
 Similar to \cmd{multicitedelim}, but used by \cmd{textcite} and related commands (\secref{use:cit:cbx}). The default is a comma plus an interword space. The standard styles modify this provisional definition to ensure that the delimiter before the final citation is the localised term <and>, separated by interword spaces. See also \cmd{finalandcomma} and \cmd{finalandsemicolon} in \secref{use:fmt:lng}.
@@ -4626,6 +4635,10 @@ Similar to \cmd{mkbibdatelong} but using the language specific short date format
 \csitem{bibdateuncertain}
 
 The language specific marker to be used after uncertain dates when the global option \opt{dateuncertain} is enabled. Defaults to a space followed by a question mark.
+
+\csitem{bibdateeraprefix}
+
+The language specific marker which is printed as a prefix to BCE/BC dates when the option \opt{dateera} is set to <simple>. Defaults to a hyphen.
 
 \csitem{finalandcomma}
 

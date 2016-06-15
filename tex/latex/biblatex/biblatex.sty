@@ -4990,7 +4990,7 @@
 \newrobustcmd*{\blx@edtfdate}[4][]{%
   % Note that this is before the date as EDTF is "-d" and not "d BCE"
   % Using internals of \dateeraprint as that isn't suited to this since it uses localisation
-  \ifdateera{bce}{\printtext{-}}{}%
+  \ifdateera{bce}{\printtext{\bibdateeraprefix}}{}%
   \thefield{#2}\ifblank{#1}{}{\printfield{#1}}%
   \iffieldundef{#3}{}{\mbox{-}\thefield{#3}}%
   \iffieldundef{#4}{}{\mbox{-}\thefield{#4}}}
@@ -4998,7 +4998,7 @@
 \newrobustcmd*{\blx@edtfenddate}[4][]{%
   % Note that this is before the date as EDTF is "-d" and not "d BCE"
   % Using internals of \dateeraprint as that isn't suited to this since it uses localisation
-  \ifdateera{bce}{\printtext{-}}{}%
+  \ifdateera{bce}{\printtext{\bibdateeraprefix}}{}%
   \thefield{#2}\ifblank{#1}{}{\printfield{#1}}%
   \iffieldundef{#3}{}{\mbox{-}\thefield{#3}}%
   \iffieldundef{#4}{}{\mbox{-}\thefield{#4}}}
@@ -6136,34 +6136,26 @@
                 \datecircaprint
                 \dateeraprintpre
                 \mkyearzeros{\csuse{abx@field@\abx@field@labeldatesource year}}%
-                \ifdefstring\blx@dateera{simple}
-                  {}
-                  {\dateeraprint{\abx@field@labeldatesource year}}%
+                \dateeraprint{\abx@field@labeldatesource year}%
                 \dateuncertainprint}}
             {\edef\abx@field@labelyear{%
                 \datecircaprint
                 \dateeraprintpre
                 \mkyearzeros{\csuse{abx@field@\abx@field@labeldatesource year}}%
-                \ifdefstring\blx@dateera{simple}
-                  {}
-                  {\dateeraprint{\abx@field@labeldatesource year}}%
+                \dateeraprint{\abx@field@labeldatesource year}%
                 \dateuncertainprint
                 \bibdatedash % RANGE
                 \enddatecircaprint
                 \enddateeraprintpre
                 \mkyearzeros{\csuse{abx@field@\abx@field@labeldatesource endyear}}%
-                \ifdefstring\blx@dateera{simple}
-                  {}
-                  {\dateeraprint{\abx@field@labeldatesource year}}%
+                \dateeraprint{\abx@field@labeldatesource year}%
                 \dateuncertainprint}}}
           {\ifcsdef{abx@field@\abx@field@labeldatesource year}
             {\edef\abx@field@labelyear{%
                 \datecircaprint
                 \dateeraprintpre
                 \mkyearzeros{\csuse{abx@field@\abx@field@labeldatesource year}}%
-                \ifdefstring\blx@dateera{simple}
-                  {}
-                  {\dateeraprint{\abx@field@labeldatesource year}}%
+                \dateeraprint{\abx@field@labeldatesource year}%
                 \dateuncertainprint}}
             {}}%
         % labelmonth
@@ -12190,8 +12182,8 @@
 \DeclareBibliographyOption[string]{dateera}{%
   \gdef\blx@dateera{#1}%
   \ifstrequal{#1}{simple}
-    {\protected\def\dateeraprintpre{\ifdateera{bce}{\printtext{-}}{}}
-     \protected\def\enddateeraprintpre{\ifdateera{bce}{\printtext{-}}{}}}
+    {\protected\def\dateeraprintpre{\ifdateera{bce}{\printtext{\bibdateeraprefix}}{}}%
+     \protected\def\enddateeraprintpre{\ifdateera{bce}{\printtext{\bibdateeraprefix}}{}}}
     {}%
   \ifstrequal{#1}{secular}
     {\protected\def\dateeraprint##1{%
@@ -12283,10 +12275,10 @@
       {\blx@err@invopt{#1=##1}{}}%
     \ifcsdef{mkbibrange##1extra}
       {\protected\csedef{blx@imc@print#1extra}{\noexpand\csuse{mkbibrange##1extra}{\blx@datetype}}}
-      {}%
+      {}}%
     % Default for new date fields is "comp" but this is overridden below by
     % biblatex defaults
-    \setkeys{blx@opt@pre}{#1=comp}}}
+    \setkeys{blx@opt@pre}{#1=comp}}
 \abx@dodates
 \newtoggle{abx@bool@labeldatecirca}
 \newtoggle{abx@bool@labeldateuncertain}
@@ -12589,7 +12581,6 @@
 %% Initial setup
 
 % Set defaults
-
 \setkeys{blx@opt@ldt}{style=numeric}
 \setkeys{blx@opt@pre}{%
   sorting=nty,sortlocale=auto,sortcase,sortupper,sortcites=false,
@@ -12605,26 +12596,21 @@
   parentracker,maxparens=3,bibencoding=auto,bibwarn}
 
 % Load compatibility code
-
 \blx@inputonce{blx-compat.def}{compatibility code}{}{}{}{}
 
 % Restore catcodes
-
 \blx@catcodes
 \undef\blx@catcodes
 
 % Process load-time options
-
 \ProcessOptions*
 
 % Switch to BibTeX support if requests
-
 \iftoggle{blx@bibtex}
   {\blx@inputonce{blx-bibtex.def}{BibTeX backend compatibility}{}{}{}{}}
   {}
 
 % Load citation and bibliography styles, configuration file
-
 \blx@inputonce{biblatex.def}{generic definitions}{}{}{}{}
 \iftoggle{blx@natbib}
   {\blx@inputonce{blx-natbib.def}{natbib compatibility}{}{}{}{}}
@@ -12639,7 +12625,6 @@
 \blx@inputonce{biblatex.cfg}{configuration file}{}{}{}{}
 
 % Process preamble options
-
 \blx@processoptions
 
 % Deferred setup at end of preamble
