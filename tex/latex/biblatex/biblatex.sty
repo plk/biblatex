@@ -527,6 +527,8 @@
 \let\enddateuncertainprint\@empty
 \let\dateeraprint\@gobble
 \let\enddateeraprint\@gobble
+\let\dateeraprintpre\@empty
+\let\enddateeraprintpre\@empty
 
 % Nice command from etextools which causes too many problems if you load
 % the whole package
@@ -4838,6 +4840,7 @@
   \iffieldundef{#2year}
     {}
     {\datecircaprint
+     \dateeraprintpre
      \printtext[#2date]{%
        \csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
        \dateuncertainprint
@@ -4848,6 +4851,7 @@
             {\mbox{\bibdatedash}}
             {\bibdatedash
              \enddatecircaprint
+             \enddateeraprintpre
              \csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}%
           \enddateuncertainprint
           \enddateeraprint{#2endyear}}}}}
@@ -4857,6 +4861,7 @@
     \iffieldundef{#2year}
     {}
     {\datecircaprint
+     \dateeraprintpre
      \printtext[#2date]{%
        \iffieldsequal{#2year}{#2endyear}
          {\iffieldsequal{#2month}{#2endmonth}
@@ -4871,6 +4876,7 @@
             {\mbox{\bibdatedash}}
             {\bibdatedash
              \enddatecircaprint
+             \enddateeraprintpre
              \csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}%
           \enddateuncertainprint
           \enddateeraprint{#2endyear}}}}}
@@ -4880,6 +4886,7 @@
   \iffieldundef{#2year}
     {}
     {\datecircaprint
+     \dateeraprintpre
      \printtext[#2date]{%
        \printtext{%
          \csuse{mkbibdate#1}{#2year}{#2month}{#2day}}%
@@ -4893,6 +4900,7 @@
             {\printtext{%
                \bibdatedash
                \enddatecircaprint
+               \enddateeraprintpre
                \csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}%
                \printfield{extrayear}}}%
           \enddateuncertainprint
@@ -4903,6 +4911,7 @@
   \iffieldundef{#2year}
     {}
     {\datecircaprint
+     \dateeraprintpre
      \printtext[#2date]{%
        \printtext{%
          \iffieldsequal{#2year}{#2endyear}
@@ -4920,6 +4929,7 @@
             {\printtext{%
                \bibdatedash
                \enddatecircaprint
+               \enddateeraprintpre
                \csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}%
                \printfield{extrayear}}}%
           \enddateuncertainprint
@@ -6124,42 +6134,34 @@
             {abx@field@\abx@field@labeldatesource endyear}
             {\edef\abx@field@labelyear{%
                 \datecircaprint
-                \iftoggle{abx@bool@labeldate@edtfdate}
-                  {\ifdateera{bce}{\printtext{-}}{}}
-                  {}%
+                \dateeraprintpre
                 \mkyearzeros{\csuse{abx@field@\abx@field@labeldatesource year}}%
-                \iftoggle{abx@bool@labeldate@edtfdate}
+                \ifdefstring\blx@dateera{simple}
                   {}
                   {\dateeraprint{\abx@field@labeldatesource year}}%
                 \dateuncertainprint}}
             {\edef\abx@field@labelyear{%
                 \datecircaprint
-                \iftoggle{abx@bool@labeldate@edtfdate}
-                  {\ifdateera{bce}{\printtext{-}}{}}
-                  {}%
+                \dateeraprintpre
                 \mkyearzeros{\csuse{abx@field@\abx@field@labeldatesource year}}%
-                \iftoggle{abx@bool@labeldate@edtfdate}
+                \ifdefstring\blx@dateera{simple}
                   {}
                   {\dateeraprint{\abx@field@labeldatesource year}}%
                 \dateuncertainprint
                 \bibdatedash % RANGE
                 \enddatecircaprint
-                \iftoggle{abx@bool@labeldate@edtfdate}
-                  {\ifdateera{bce}{\printtext{-}}{}}
-                  {}%
+                \enddateeraprintpre
                 \mkyearzeros{\csuse{abx@field@\abx@field@labeldatesource endyear}}%
-                \iftoggle{abx@bool@labeldate@edtfdate}
+                \ifdefstring\blx@dateera{simple}
                   {}
                   {\dateeraprint{\abx@field@labeldatesource year}}%
                 \dateuncertainprint}}}
           {\ifcsdef{abx@field@\abx@field@labeldatesource year}
             {\edef\abx@field@labelyear{%
                 \datecircaprint
-                \iftoggle{abx@bool@labeldate@edtfdate}
-                  {\ifdateera{bce}{\printtext{-}}{}}
-                  {}%
+                \dateeraprintpre
                 \mkyearzeros{\csuse{abx@field@\abx@field@labeldatesource year}}%
-                \iftoggle{abx@bool@labeldate@edtfdate}
+                \ifdefstring\blx@dateera{simple}
                   {}
                   {\dateeraprint{\abx@field@labeldatesource year}}%
                 \dateuncertainprint}}
@@ -12171,14 +12173,10 @@
 \DeclareBibliographyOption[string]{datelabel}{%
    \ifstrequal{#1}{iso8601}
     {\blx@warning@noline{%
-     'iso8601' date format specifier is deprecated, use 'edtf' instead}%
-     \global\toggletrue{abx@bool@labeldate@edtfdate}}
+     'iso8601' date format specifier is deprecated, use 'edtf' instead}}
     {}%
   \ifcsdef{mkbibrange#1}
-    {\ifstrequal{#1}{edtf}
-      {\global\toggletrue{abx@bool@labeldate@edtfdate}}
-      {}%
-     \protected\def\blx@imc@printlabeldate{%
+    {\protected\def\blx@imc@printlabeldate{%
        \blx@imc@iffieldundef{year}
          {\csuse{mkbibrange#1}{label}}
          {\csuse{mkbibrange#1}{}}}%
@@ -12190,6 +12188,11 @@
 
 % Date meta-information
 \DeclareBibliographyOption[string]{dateera}{%
+  \gdef\blx@dateera{#1}%
+  \ifstrequal{#1}{simple}
+    {\protected\def\dateeraprintpre{\ifdateera{bce}{\printtext{-}}{}}
+     \protected\def\enddateeraprintpre{\ifdateera{bce}{\printtext{-}}{}}}
+    {}%
   \ifstrequal{#1}{secular}
     {\protected\def\dateeraprint##1{%
        % don't print data meta-information for empty or strings (nodate)
@@ -12272,8 +12275,7 @@
   \DeclareBibliographyOption[string]{#1}{%
     \ifstrequal{##1}{iso8601}
       {\blx@warning@noline{%
-       'iso8601' date format specifier is deprecated, use 'edtf' instead}%
-       \global\toggletrue{abx@bool@\blx@datetype date@edtfdate}}
+       'iso8601' date format specifier is deprecated, use 'edtf' instead}}
       {}%
     \StrCut{#1}{date}\blx@datetype\blx@tempnull
     \ifcsdef{mkbibrange##1}
@@ -12282,21 +12284,12 @@
     \ifcsdef{mkbibrange##1extra}
       {\protected\csedef{blx@imc@print#1extra}{\noexpand\csuse{mkbibrange##1extra}{\blx@datetype}}}
       {}%
-    % toggle to say if this is an ISO date - it may need special treatment for meta-information
-    % in styles (like printing era information as "-d" instead of "d BCE")
-    \ifstrequal{##1}{edtf}
-      {\global\toggletrue{abx@bool@\blx@datetype date@edtfdate}}
-      {}}%
     % Default for new date fields is "comp" but this is overridden below by
     % biblatex defaults
-    \setkeys{blx@opt@pre}{#1=comp}%
-    % We need to know if a date is EDTF because of things like era information which are
-    % formatted differently
-    \newtoggle{abx@bool@\blx@datetype date@edtfdate}}
+    \setkeys{blx@opt@pre}{#1=comp}}}
 \abx@dodates
 \newtoggle{abx@bool@labeldatecirca}
 \newtoggle{abx@bool@labeldateuncertain}
-\newtoggle{abx@bool@labeldate@edtfdate}
 
 \DeclareBibliographyOption[string]{alldates}{%
   \ExecuteBibliographyOptions{datelabel=#1}%
@@ -12602,7 +12595,7 @@
   sorting=nty,sortlocale=auto,sortcase,sortupper,sortcites=false,
   maxnames=3,minnames=1,maxalphanames=3,minalphanames=1,
   maxitems=3,minitems=1,mincrossrefs=2,minxrefs=2,useauthor=true,useeditor=true,
-  usetranslator=false,indexing=false,abbreviate=true,dateabbrev=true,dateera=secular,
+  usetranslator=false,indexing=false,abbreviate=true,dateabbrev=true,dateera=simple,
   backref=false,backrefsetstyle=setonly,pagetracker=false,ibidtracker=false,
   idemtracker=false,opcittracker=false,loccittracker=false,citetracker=false,
   citecounter=false,block=none,language=autobib,clearlang=true,autolang=none,
