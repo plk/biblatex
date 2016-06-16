@@ -8456,7 +8456,7 @@
   \blx@tempcnta\z@
   \blx@tempcntb\z@
   \let\blx@tempa\@empty
-  \forcsvlist\blx@citeadd{#1}%
+  \forcsvlist\blx@citeadd{#1}% adds to \blx@tempa
   \blx@thenotecheck
   \ifnum\blx@tempcnta>\z@
     \ifnum\blx@tempcntb>\z@
@@ -8464,6 +8464,8 @@
     \fi
   \fi
   \letcs\blx@tempb{blx@slist@centry@\the\c@refsection @\blx@refcontext@context}%
+  % \blx@tempb is a sorted list of all cites, \blx@tempa is the list of cites to
+  % sort using this list
   \blx@thecitesort
   \edef\blx@tempa{\endgroup
     \c@citecount\z@
@@ -8514,13 +8516,9 @@
   % made (a bit strangely but some styles do this) inside a biblist
   % which never appear in any printed bib/biblist and therefore have no default
   % refcontext defined
-  % However, only do this if sortcites is not used for in this case, by default we
-  % want to use the current refcontext in which the cites occur
-  \ifbool{sortcites}
-    {}
-    {\ifcsdef{blx@assignedrefcontextbib@\the\c@refsection @#1}
-      {\letcs\blx@refcontext@context{blx@assignedrefcontextbib@\the\c@refsection @#1}}
-      {\edef\blx@refcontext@context{\blx@sorting/global/}}}%
+  \ifcsdef{blx@assignedrefcontextbib@\the\c@refsection @#1}
+    {\letcs\blx@refcontext@context{blx@assignedrefcontextbib@\the\c@refsection @#1}}
+    {\edef\blx@refcontext@context{\blx@sorting/global/}}%
   % assignment via keyword list
   \ifdef\blx@assignedrefcontextkeywlist
     {\def\do##1{%
@@ -8610,7 +8608,6 @@
   \let\blx@refcontext@context\blx@refcontext@context@saved}
 
 % cite counter
-
 \def\blx@citecounter@global{%
   \ifbool{@filesw}
     {\ifbool{citetracker}
@@ -8632,7 +8629,6 @@
     {}}
 
 % {<refsection>}{<entrykey>}
-
 \protected\def\blx@aux@count#1#2{%
   \csnumgdef{blx@count@#1@\detokenize{#2}}{\csuse{blx@count@#1@\detokenize{#2}}+1}}
 \protected\def\blx@aux@fncount#1#2{%
@@ -8658,7 +8654,6 @@
   \relax}
 
 % cite tracker
-
 \def\blx@citetracker@global{%
   \ifbool{citetracker}
     {\xifinlistcs\abx@field@entrykey{blx@bsee@\the\c@refsection}
@@ -8690,7 +8685,6 @@
   \global\cslet{blx@saved@fsee@\the\c@refsection}\@empty}
 
 % ibidem tracker
-
 \def\blx@ibidtracker@global{%
   \ifbool{citetracker}
     {\global\let\blx@lastkey@text\abx@field@entrykey}
