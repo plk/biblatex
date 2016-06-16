@@ -5573,7 +5573,7 @@
   \expandafter\blx@imc@ifdatemeta@ii\expandafter{\blx@datetype}}
 \abx@dodates
 
-% Resolve date meta information tests for labeldate
+% Resolve date meta information tests and print routines for labeldate
 % We have to test here, in each \def, whether the labeldatesource
 % is a real date field or not. If it's not, then we don't want to use
 % any of the meta-information and so make the conditionals always return false
@@ -5581,7 +5581,25 @@
 % earlier because its not available until the tests are in scope.
 \appto\blx@blxinit{%
   \iftoggle{blx@labeldate}
-    {% start era
+    {\protected\def\dateeraprintpre{%
+       \ifdefstring{\blx@dateera}{simple}
+       {\ifdateera{bce}{\printtext{\bibdateeraprefix}}{}}
+       {}}%
+     \protected\def\enddateeraprintpre{%
+       \ifdefstring{\blx@dateera}{simple}
+       {\ifdateera{bce}{\printtext{\bibdateeraprefix}}{}}
+       {}}%
+     \protected\def\dateeraprint#1{%
+       % don't print data meta-information for empty or strings (nodate)
+       \iffieldnum{#1}
+       {\ifdateera{bce}
+         {\printtext{\printdelim{dateeradelim}\bibstring{\blx@dateera@bce}}}
+         {\ifnumless{\thefield{#1}}\blx@dateeraauto
+           {\printtext{\printdelim{dateeradelim}\bibstring{\blx@dateera@ce}}}
+           {}}}
+       {}}%
+     \let\enddateeraprint\dateeraprint
+     % start era
      \def\iflabeldateera#1{%
        \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
          {\ifcsstring{abx@field@\abx@field@labeldatesource dateera}{#1}}
@@ -6120,7 +6138,8 @@
         {\edef\abx@field@labelyear{\abx@field@labeldatesource}}
         % \DeclareLabeldate resolved to a non-date field
         {\edef\abx@field@labelyear{\csuse{abx@field@\abx@field@labeldatesource}}}}%
-      % \DeclareLabeldate resolved to a date field name prefix like "", "event", "url" or "orig"
+      % \DeclareLabeldate resolved to a date field name prefix like '', 'event', 'url'
+      % or 'orig'
       {% labelyear - end can be open
         \letcs\ifdateera{if\abx@field@labeldatesource dateera}%
         \letcs\ifenddateera{if\abx@field@labeldatesource enddateera}%
@@ -6144,7 +6163,7 @@
                 \mkyearzeros{\csuse{abx@field@\abx@field@labeldatesource year}}%
                 \dateeraprint{\abx@field@labeldatesource year}%
                 \dateuncertainprint
-                \bibdatedash % RANGE
+                \bibdatedash% RANGE
                 \enddatecircaprint
                 \enddateeraprintpre
                 \mkyearzeros{\csuse{abx@field@\abx@field@labeldatesource endyear}}%
@@ -12180,51 +12199,15 @@
 
 % Date meta-information
 \DeclareBibliographyOption[string]{dateera}{%
-  \gdef\blx@dateera{#1}%
-  \ifstrequal{#1}{simple}
-    {\protected\def\dateeraprintpre{\ifdateera{bce}{\printtext{\bibdateeraprefix}}{}}%
-     \protected\def\enddateeraprintpre{\ifdateera{bce}{\printtext{\bibdateeraprefix}}{}}}
-    {}%
-  \ifstrequal{#1}{secular}
-    {\protected\def\dateeraprint##1{%
-       % don't print data meta-information for empty or strings (nodate)
-       \iffieldnum{##1}
-         {\ifdateera{bce}
-           {\printtext{\printdelim{dateeradelim}\bibstring{beforecommonera}}}
-           {\ifnumless{\thefield{##1}}\blx@dateeraauto
-             {\printtext{\printdelim{dateeradelim}\bibstring{commonera}}}
-             {}}}
-         {}}%
-     \protected\def\enddateeraprint##1{%
-       % don't print data meta-information for empty or strings (nodate)
-       \iffieldnum{##1}
-         {\ifenddateera{bce}
-           {\printtext{\printdelim{dateeradelim}\bibstring{beforecommonera}}}
-           {\ifnumless{\thefield{##1}}\blx@dateeraauto
-             {\printtext{\printdelim{dateeradelim}\bibstring{commonera}}}
-             {}}}
-         {}}}
-    {}%
-  \ifstrequal{#1}{christian}
-    {\protected\def\dateeraprint##1{%
-       % don't print data meta-information for empty or strings (nodate)
-       \iffieldnum{##1}
-         {\ifdateera{bce}
-           {\printtext{\printdelim{dateeradelim}\bibstring{beforechrist}}}
-           {\ifnumless{\thefield{##1}}\blx@dateeraauto
-             {\printtext{\printdelim{dateeradelim}\bibstring{annodomini}}}
-             {}}}
-         {}}%
-     \protected\def\enddateeraprint##1{%
-       % don't print data meta-information for empty or strings (nodate)
-       \iffieldnum{##1}
-         {\ifenddateera{bce}
-           {\printtext{\printdelim{dateeradelim}\bibstring{beforechrist}}}
-           {\ifnumless{\thefield{##1}}\blx@dateeraauto
-             {\printtext{\printdelim{dateeradelim}\bibstring{annodomini}}}
-             {}}}
-         {}}}
-    {}}
+  \def\blx@dateera{#1}%
+  \ifstrequal{#1}{secular}{%
+    \def\blx@dateera@bce{beforecommonera}%
+    \def\blx@dateera@ce{commonera}}
+  {}%
+  \ifstrequal{#1}{christian}{%
+    \def\blx@dateera@bce{beforechrist}%
+    \def\blx@dateera@ce{annodomini}}
+  {}}
 
 % Effectively turns off dateeraauto since it's only used on ce dates which
 % are never less than zero (as that would be a bce date)
