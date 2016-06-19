@@ -31,10 +31,10 @@
 }
 @misc{date4,
   note      = {times},
-  date      = {2004-04-05T14:34:00},                     % Date with time, floating timezone
-  origdate  = {2004-04-05T14:34:00Z},                    % Date with time, UTC timezone
-  eventdate = {2004-04-05T14:34:00+05:00},               % Date with time, explicit timezone
-  urldate   = {2004-04-05T14:34:00/2004-04-05T15:00:00}, % Datetime range
+  date      = {2004-04-05T14:34:00/2004-04-05T14:37:06},   % Date with time, floating timezone
+  origdate  = {2004-04-05T14:34:00Z/2004-04-05T14:34:05Z}, % Date with time, UTC timezone
+  eventdate = {2004-04-05T14:34:00+05:00/2004-04-05T15:34:00+05:00}, % Date with time, explicit timezone
+  urldate   = {2004-04-05T14:34:00/2004-04-05T15:00:00},   % Datetime range
 }
 @misc{date5,
   note      = {seasons},
@@ -55,10 +55,14 @@
 \end{filecontents}
 \usepackage[style=authoryear,%
             alldates=short,%
-            alltimes=HH,%
+            alltimes=hh,%
             datezeros=false,%
+            %alltimes=HH,% uncomment to print 24 hour format times
+            %alltimes=HHcomp,% uncomment to print 24 hour compressed format times
+            %seconds=true,% uncomment to print seconds
+            %timezones=true,% uncomment to print timezones
             dateera=secular,%
-            dateeraauto=600,%
+            dateeraauto=600,% Sets the max year ceiling for automatic printing of AD/CE
             dateuncertain=true,%
             datecirca=true,%
             sorting=none,%
@@ -87,31 +91,41 @@
 \DeclareBibliographyDriver{misc}{%
   \printfield[emph]{note}\\
   \iffieldundef{labelyear}{}{%
-    \printtext[bold]{labeldate = }\printlabeldate\addspace\printlabeltime
+    \printtext[bold]{labeldate = }\printlabeldate
+    \iffieldundef{labelhour}{}
+      {\space\printtext[bold]{labeltime = }\printlabeltime}%
     \iffieldundef{labelseason}{}{\space(\bibstring{\thefield{labelseason}}%
       \iffieldundef{labelendseason}{)}{\bibrangedash\bibstring{\thefield{labelendseason}})}}%
     \\}
   \iffieldundef{year}{}{%
     \iffieldequalstr{dateunspecified}{yearincentury}
       {\printtext[bold]{date = }\number\numexpr\thefield{year}/100+1\relax th Century}
-      {\printtext[bold]{date = }\printdate\addspace\printtime}%
+      {\printtext[bold]{date = }\printdate
+       \iffieldundef{hour}{}
+         {\space\printtext[bold]{time = }\printtime}}%
     \iffieldundef{season}{}{\space(\bibstring{\thefield{season}}%
       \iffieldundef{endseason}{)}{\bibrangedash\bibstring{\thefield{endseason}})}}%
     \\}
   \iffieldundef{origyear}{}{%
     \iffieldequalstr{origdateunspecified}{yearindecade}
       {\printtext[bold]{date = }The \expandafter\@gobbletwo\number\thefield{origyear}s}
-      {\printtext[bold]{origdate = }\printorigdate\addspace\printorigtime}%
+      {\printtext[bold]{origdate = }\printorigdate
+       \iffieldundef{orighour}{}
+         {\space\printtext[bold]{origtime = }\printorigtime}}%
     \iffieldundef{origseason}{}{\space(\bibstring{\thefield{origseason}}%
       \iffieldundef{origendseason}{)}{\bibrangedash\bibstring{\thefield{origendseason}})}}%
     \\}
   \iffieldundef{eventyear}{}{%
-    \printtext[bold]{eventdate = }\printeventdate\addspace\printeventtime
+    \printtext[bold]{eventdate = }\printeventdate
+    \iffieldundef{eventhour}{}
+      {\space\printtext[bold]{eventtime = }\printeventtime}%
     \iffieldundef{eventseason}{}{\space(\bibstring{\thefield{eventseason}}%
       \iffieldundef{eventendseason}{)}{\bibrangedash\bibstring{\thefield{eventendseason}})}}%
     \\}
   \iffieldundef{urlyear}{}{%
-    \printtext[bold]{urldate = }\printurldate\addspace\printurltime
+    \printtext[bold]{urldate = }\printurldate
+    \iffieldundef{urlhour}{}
+      {\space\printtext[bold]{urltime = }\printurltime}%
     \iffieldundef{urlseason}{}{\space(\bibstring{\thefield{urlseason}}%
       \iffieldundef{urlendseason}{)}{\bibrangedash\bibstring{\thefield{urlendseason}})}}%
   }}
