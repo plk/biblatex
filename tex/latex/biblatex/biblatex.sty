@@ -92,8 +92,7 @@
   \ifdefstring\blx@sortlocale{auto}
     {\ifdef\bbl@main@language% babel or polyglossia is loaded
       {\edef\blx@sortlocale{\bbl@main@language}}
-      {\def\blx@sortlocale{english}%
-       \def\bbl@main@language{english}}}
+      {\def\blx@sortlocale{english}}}
     {}%
   \@ifpackageloaded{polyglossia}
     {% This is required for languages which are never explicitly selected
@@ -3397,8 +3396,11 @@
 \newrobustcmd*{\MakeSentenceCase}{%
   \@ifstar\blx@mksc@i\blx@mksc@ii}
 
-% if we have option language=<lang>, then this overrides
-% langid field, otherwise try main doc lang
+% Check, in order:
+% * option language=<lang>
+% * langid field,
+% * babel/polyglossia lang
+% * main document lang
 \def\blx@mksc@i{%
   \ifdef\blx@forcelanguagename
     {\xifinlist\blx@forcelanguagename\blx@cmksc@lang
@@ -3408,9 +3410,13 @@
       {\xifinlist\abx@field@langid\blx@cmksc@lang
          {\blx@mksc@ii}
          {\@firstofone}}
-      {\xifinlist\bbl@main@language\blx@cmksc@lang
-         {\blx@mksc@ii}
-         {\@firstofone}}}}
+      {\ifdef\bbl@main@language
+        {\xifinlist\bbl@main@language\blx@cmksc@lang
+          {\blx@mksc@ii}
+          {\@firstofone}}
+        {\xifinlist\blx@languagename\blx@cmksc@lang
+          {\blx@mksc@ii}
+          {\@firstofone}}}}}
 
 \long\def\blx@mksc@ii#1{%
   \begingroup
