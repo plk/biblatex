@@ -4835,25 +4835,47 @@
 \newrobustcmd*{\mktimerangeHH}{%
   \mktimerange{HH}}
 
-\newrobustcmd*{\mktimerangeHHcomp}{%
-  \mktimerange{HHcomp}}
-
 \newrobustcmd*{\mktimerangehh}{%
   \mktimerange{hh}}
 
-% {<short|long>}{<basename>}
+\newrobustcmd*{\mktimerangeHHcomp}[1]{%
+  \iffieldundef{#1hour}{}
+    {\ifboolexpr{test {\iffieldundef{#1endhour}}
+                 or
+                 test {\iffieldequalstr{#1endhour}{}}}
+       {\mktimerange{HH}{#1}}
+       {\iffieldsequal{#1hour}{#1endhour}
+         % 14:xx:xx 14:xx:xx
+         {\iffieldsequal{#1minute}{#1endminute}
+         % 14:13:xx 14:13:xx
+           {\toggletrue{blx@seconds}%
+            \printtext[#1time]{\mkbibtimeHH{#1hour}{#1minute}{#1second}{}%
+            \bibdatedash
+            \mkbibtimeHH{}{}{#1endsecond}{}}}
+           % 14:13:xx 14:14:xx
+           {\toggletrue{blx@seconds}%
+            \printtext[#1time]{\csuse{mkbibtimeHH}{#1hour}{#1minute}{}{}%
+            \bibdatedash
+            \csuse{mkbibtimeHH}{}{#1endminute}{}{}}}}
+         % 14:xx:xx 15:xx:xx
+         {\mktimerange{HH}{#1}}}}}
+
+% {<HH|HHcomp|hh>}{<basename>}
 \newrobustcmd*{\mktimerange}[2]{%
-  \nottoggle{blx@timezones}
-    {\blx@imc@clearfield{#2timezone}%
-     \blx@imc@clearfield{#2endtimezone}}
-    {}%
-  \printtext[#2time]{\csuse{mkbibtime#1}{#2hour}{#2minute}{#2second}{#2timezone}%
-    \iffieldundef{#2endhour}
-    {}
-    {\iffieldequalstr{#2endhour}{}
-      {\mbox{\bibdatedash}}
-      {\bibdatedash
-       \csuse{mkbibtime#1}{#2endhour}{#2endminute}{#2endsecond}{#2endtimezone}}}}}
+  \iffieldundef{#2hour}{}
+    {\iftoggle{blx@timezones}{}
+      {\blx@imc@clearfield{#2timezone}%
+       \blx@imc@clearfield{#2endtimezone}}%
+    \iftoggle{blx@seconds}{}
+      {\blx@imc@clearfield{#2second}%
+       \blx@imc@clearfield{#2endsecond}}%
+    \printtext[#2time]{\csuse{mkbibtime#1}{#2hour}{#2minute}{#2second}{#2timezone}%
+      \iffieldundef{#2endhour}
+      {}
+      {\iffieldequalstr{#2endhour}{}
+        {\mbox{\bibdatedash}}
+        {\bibdatedash
+         \csuse{mkbibtime#1}{#2endhour}{#2endminute}{#2endsecond}{#2endtimezone}}}}}}
 
 % {<short|long>}{<basename>}
 \newrobustcmd*{\mkdaterangefull}[2]{%
@@ -12286,6 +12308,12 @@
     {\toggletrue{blx@timezones}}
     {\togglefalse{blx@timezones}}}
 
+\newtoggle{blx@seconds}
+\DeclareBibliographyOption[boolean]{seconds}[true]{%
+  \ifstrequal{#1}{true}
+    {\toggletrue{blx@seconds}}
+    {\togglefalse{blx@seconds}}}
+
 \DeclareBibliographyOption[string]{autocite}{%
   \ifcsundef{blx@acite@#1}
     {\blx@error
@@ -12582,7 +12610,7 @@
   date=comp,datelabel=year,origdate=comp,eventdate=comp,urldate=short,
   autopunct=true,punctfont=false,defernumbers=false,timezeros=true,
   refsection=none,refsegment=none,citereset=none,hyperref=auto,
-  parentracker,maxparens=3,bibencoding=auto,bibwarn,timezones=false}
+  parentracker,maxparens=3,bibencoding=auto,bibwarn,timezones=false,seconds=false}
 
 % Load compatibility code
 \blx@inputonce{blx-compat.def}{compatibility code}{}{}{}{}
