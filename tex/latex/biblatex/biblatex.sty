@@ -3397,8 +3397,8 @@
   \@ifstar\blx@mksc@i\blx@mksc@ii}
 
 % Check, in order:
-% * option language=<lang>
-% * langid field,
+% * explicit option language=<lang>, which overrides everything
+% * langid field of entry
 % * babel/polyglossia lang
 % * main document lang
 \def\blx@mksc@i{%
@@ -4277,6 +4277,8 @@
     \def\bibcpsstring{\blx@imc@biblcsstring}}}
 
 \def\abx@dostrings{%
+  \do{am}%
+  \do{pm}%
   \do{bibliography}%
   \do{references}%
   \do{shorthands}%
@@ -4830,14 +4832,21 @@
   \letcs\ifdateuncertain{if#1dateuncertain}%
   \letcs\ifenddateuncertain{if#1enddateuncertain}}
 
-\newrobustcmd*{\mktimerangeshort}{%
-  \mktimerange{short}}
+\newrobustcmd*{\mktimerangeHH}{%
+  \mktimerange{HH}}
 
-\newrobustcmd*{\mktimerangecomp}{%
-  \mktimerange{comp}}
+\newrobustcmd*{\mktimerangeHHcomp}{%
+  \mktimerange{HHcomp}}
+
+\newrobustcmd*{\mktimerangehh}{%
+  \mktimerange{hh}}
 
 % {<short|long>}{<basename>}
 \newrobustcmd*{\mktimerange}[2]{%
+  \nottoggle{blx@timezones}
+    {\blx@imc@clearfield{#2timezone}%
+     \blx@imc@clearfield{#2endtimezone}}
+    {}%
   \printtext[#2time]{\csuse{mkbibtime#1}{#2hour}{#2minute}{#2second}{#2timezone}%
     \iffieldundef{#2endhour}
     {}
@@ -12216,8 +12225,8 @@
     \ifcsdef{mktimerange##1}
       {\protected\csedef{blx@imc@print\blx@datetype time}{\csuse{mktimerange##1}{\blx@datetype}}}
       {\blx@err@invopt{\blx@datetype time=##1}{}}}%
-  % Default for new time fields is "short"
-  \setkeys{blx@opt@pre}{\blx@datetype time=short}}
+  % Default for new time fields is "HH"
+  \setkeys{blx@opt@pre}{\blx@datetype time=HH}}
 \abx@dodates
 
 % date parts
@@ -12270,6 +12279,12 @@
   \ifstrequal{#1}{true}
     {\let\blx@imc@mktimezeros\blx@imc@forcezerosmdt}
     {\let\blx@imc@mktimezeros\blx@imc@stripzeros}}
+
+\newtoggle{blx@timezones}
+\DeclareBibliographyOption[boolean]{timezones}[true]{%
+  \ifstrequal{#1}{true}
+    {\toggletrue{blx@timezones}}
+    {\togglefalse{blx@timezones}}}
 
 \DeclareBibliographyOption[string]{autocite}{%
   \ifcsundef{blx@acite@#1}
@@ -12567,7 +12582,7 @@
   date=comp,datelabel=year,origdate=comp,eventdate=comp,urldate=short,
   autopunct=true,punctfont=false,defernumbers=false,timezeros=true,
   refsection=none,refsegment=none,citereset=none,hyperref=auto,
-  parentracker,maxparens=3,bibencoding=auto,bibwarn}
+  parentracker,maxparens=3,bibencoding=auto,bibwarn,timezones=false}
 
 % Load compatibility code
 \blx@inputonce{blx-compat.def}{compatibility code}{}{}{}{}
