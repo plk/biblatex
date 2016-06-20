@@ -5011,7 +5011,7 @@
          {\addslash
           \enddatecircaprint
           \blx@edtfenddate{#1endyear}{#1endmonth}{#1endday}}%
-       \dateuncertainprint}}}
+       \enddateuncertainprint}}}
 \cslet{mkdaterangeiso8601}\mkdaterangeedtf% Legacy option support
 
 \newrobustcmd*{\mkdaterangeedtfextra}[1]{%
@@ -5031,20 +5031,20 @@
 \cslet{mkdaterangeiso8601extra}\mkdaterangeedtfextra% Legacy option support
 
 \newrobustcmd*{\blx@edtfdate}[4][]{%
-  % Note that this is before the date as EDTF is "-d" and not "d BCE"
-  % Using internals of \dateeraprint as that isn't suited to this since it uses localisation
+  % don't use \dateeraprintpre - this isn't optional in EDTF
+  % use forcezeros - this isn't optional in EDTF
   \ifdateera{bce}{\printtext{\bibdateeraprefix}}{}%
-  \thefield{#2}\ifblank{#1}{}{\printfield{#1}}%
-  \iffieldundef{#3}{}{\mbox{-}\thefield{#3}}%
-  \iffieldundef{#4}{}{\mbox{-}\thefield{#4}}}
+  \blx@imc@forcezerosy{\thefield{#2}}\ifblank{#1}{}{\printfield{#1}}%
+  \iffieldundef{#3}{}{\mbox{-}\blx@imc@forcezerosmdt{\thefield{#3}}}%
+  \iffieldundef{#4}{}{\mbox{-}\blx@imc@forcezerosmdt{\thefield{#4}}}}
 
 \newrobustcmd*{\blx@edtfenddate}[4][]{%
-  % Note that this is before the date as EDTF is "-d" and not "d BCE"
-  % Using internals of \dateeraprint as that isn't suited to this since it uses localisation
+  % don't use \dateeraprintpre - this isn't optional in EDTF
+  % use forcezeros - this isn't optional in EDTF
   \ifdateera{bce}{\printtext{\bibdateeraprefix}}{}%
-  \thefield{#2}\ifblank{#1}{}{\printfield{#1}}%
-  \iffieldundef{#3}{}{\mbox{-}\thefield{#3}}%
-  \iffieldundef{#4}{}{\mbox{-}\thefield{#4}}}
+  \blx@imc@forcezerosy{\thefield{#2}}\ifblank{#1}{}{\printfield{#1}}%
+  \iffieldundef{#3}{}{\mbox{-}\blx@imc@forcezerosmdt{\thefield{#3}}}%
+  \iffieldundef{#4}{}{\mbox{-}\blx@imc@forcezerosmdt{\thefield{#4}}}}
 
 \newrobustcmd*{\bibdateuncertain}{?}
 \newrobustcmd*{\mkbibdatelong}[3]{}
@@ -5631,83 +5631,86 @@
 % This can't be neater by testing for the \abx@field@labeldatesource value
 % earlier because its not available until the tests are in scope.
 \appto\blx@blxinit{%
+   \ifdefstring{\blx@dateera}{simple}
+     {\protected\def\dateeraprintpre{%
+        \ifdateera{bce}{\printtext{\bibdateeraprefix}}{}}%
+      \protected\def\enddateeraprintpre{%
+        \ifenddateera{bce}{\printtext{\bibdateeraprefix}}{}}}
+     {\protected\def\dateeraprint#1{%
+        \iffieldnum{#1}
+          {\ifdateera{bce}
+            {\ifnum\numexpr1-\thefield{#1}\relax<\blx@dateeraauto
+               \printtext{\printdelim{dateeradelim}\bibstring{\blx@dateera@bce}}\relax
+             \fi}
+            {\ifnumless{\thefield{#1}}\blx@dateeraauto
+              {\printtext{\printdelim{dateeradelim}\bibstring{\blx@dateera@ce}}}
+              {}}}
+          {}}%
+      \protected\def\enddateeraprint#1{%
+        \iffieldnum{#1}
+          {\ifenddateera{bce}
+            {\ifnum\numexpr1-\thefield{#1}\relax<\blx@dateeraauto
+               \printtext{\printdelim{dateeradelim}\bibstring{\blx@dateera@bce}}\relax
+             \fi}
+            {\ifnumless{\thefield{#1}}\blx@dateeraauto
+              {\printtext{\printdelim{dateeradelim}\bibstring{\blx@dateera@ce}}}
+              {}}}
+        {}}}%
   \iftoggle{blx@labeldate}
-    {\ifdefstring{\blx@dateera}{simple}
-       {\protected\def\dateeraprintpre{%
-          \ifdateera{bce}{\printtext{\bibdateeraprefix}}{}}%
-        \protected\def\enddateeraprintpre{%
-          \ifenddateera{bce}{\printtext{\bibdateeraprefix}}{}}}
-       {\protected\def\dateeraprint#1{%
-          \iffieldnum{#1}
-            {\ifdateera{bce}
-              {\printtext{\printdelim{dateeradelim}\bibstring{\blx@dateera@bce}}}
-              {\ifnumless{\thefield{#1}}\blx@dateeraauto
-                {\printtext{\printdelim{dateeradelim}\bibstring{\blx@dateera@ce}}}
-                {}}}
-            {}}%
-        \protected\def\enddateeraprint#1{%
-          \iffieldnum{#1}
-            {\ifenddateera{bce}
-              {\printtext{\printdelim{dateeradelim}\bibstring{\blx@dateera@bce}}}
-              {\ifnumless{\thefield{#1}}\blx@dateeraauto
-                {\printtext{\printdelim{dateeradelim}\bibstring{\blx@dateera@ce}}}
-                {}}}
-          {}}}%
-     % start era
-     \def\iflabeldateera#1{%
-       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
-         {\ifcsstring{abx@field@\abx@field@labeldatesource dateera}{#1}}
-         {\@secondoftwo}}%
-     \appto\blx@TE@hook{\def\iflabeldateera#1{%
-       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
-         {\blx@TE\ifcsstring{abx@field@\abx@field@labeldatesource dateera}{#1}}
-         {\@secondoftwo}}}%
-     % end era
-     \def\iflabelenddateera#1{%
-       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
-         {\ifcsstring{abx@field@\abx@field@labeldatesource enddateera}{#1}}
-         {\@secondoftwo}}%
-     \appto\blx@TE@hook{\def\iflabelenddateera#1{%
-       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
-         {\blx@TE\ifcsstring{abx@field@\abx@field@labeldatesource enddateera}{#1}}
-         {\@secondoftwo}}}%
-     % start circa
-     \def\iflabeldatecirca{%
-       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
-         {\iftoggle{abx@bool@\abx@field@labeldatesource datecirca}}
-         {\@secondoftwo}}%
-     \appto\blx@TE@hook{\def\iflabeldatecirca{%
-       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
-         {\blx@TE\iftoggle{abx@bool@\abx@field@labeldatesource datecirca}}
-         {\@secondoftwo}}}%
-     % end circa
-     \def\iflabelenddatecirca{%
-       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
-         {\iftoggle{abx@bool@\abx@field@labeldatesource enddatecirca}}
-         {\@secondoftwo}}%
-     \appto\blx@TE@hook{\def\iflabelenddatecirca{%
-       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
-         {\blx@TE\iftoggle{abx@bool@\abx@field@labeldatesource enddatecirca}}
-         {\@secondoftwo}}}%
-     % start uncertain
-     \def\iflabeldateuncertain{%
-       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
-         {\iftoggle{abx@bool@\abx@field@labeldatesource dateuncertain}}
-         {\@secondoftwo}}%
-     \appto\blx@TE@hook{\def\iflabeldateuncertain{%
-       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
-         {\blx@TE\iftoggle{abx@bool@\abx@field@labeldatesource dateuncertain}}
-         {\@secondoftwo}}}%
-     % end uncertain
-     \def\iflabelenddateuncertain{%
-       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
-         {\iftoggle{abx@bool@\abx@field@labeldatesource enddateuncertain}}
-         {\@secondoftwo}}%
-     \appto\blx@TE@hook{\def\iflabelenddateuncertain{%
-       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
-         {\blx@TE\iftoggle{abx@bool@\abx@field@labeldatesource enddateuncertain}}
-         {\@secondoftwo}}}}%
-    {}}
+    {\def\iflabeldateera#1{% start era
+     \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+       {\ifcsstring{abx@field@\abx@field@labeldatesource dateera}{#1}}
+       {\@secondoftwo}}%
+   \appto\blx@TE@hook{\def\iflabeldateera#1{%
+     \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+       {\blx@TE\ifcsstring{abx@field@\abx@field@labeldatesource dateera}{#1}}
+       {\@secondoftwo}}}%
+   % end era
+   \def\iflabelenddateera#1{%
+     \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+       {\ifcsstring{abx@field@\abx@field@labeldatesource enddateera}{#1}}
+       {\@secondoftwo}}%
+   \appto\blx@TE@hook{\def\iflabelenddateera#1{%
+     \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+       {\blx@TE\ifcsstring{abx@field@\abx@field@labeldatesource enddateera}{#1}}
+       {\@secondoftwo}}}%
+   % start circa
+   \def\iflabeldatecirca{%
+     \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+       {\iftoggle{abx@bool@\abx@field@labeldatesource datecirca}}
+       {\@secondoftwo}}%
+   \appto\blx@TE@hook{\def\iflabeldatecirca{%
+     \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+       {\blx@TE\iftoggle{abx@bool@\abx@field@labeldatesource datecirca}}
+       {\@secondoftwo}}}%
+   % end circa
+   \def\iflabelenddatecirca{%
+     \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+       {\iftoggle{abx@bool@\abx@field@labeldatesource enddatecirca}}
+       {\@secondoftwo}}%
+   \appto\blx@TE@hook{\def\iflabelenddatecirca{%
+     \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+       {\blx@TE\iftoggle{abx@bool@\abx@field@labeldatesource enddatecirca}}
+       {\@secondoftwo}}}%
+   % start uncertain
+   \def\iflabeldateuncertain{%
+     \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+       {\iftoggle{abx@bool@\abx@field@labeldatesource dateuncertain}}
+       {\@secondoftwo}}%
+   \appto\blx@TE@hook{\def\iflabeldateuncertain{%
+     \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+       {\blx@TE\iftoggle{abx@bool@\abx@field@labeldatesource dateuncertain}}
+       {\@secondoftwo}}}%
+   % end uncertain
+   \def\iflabelenddateuncertain{%
+     \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+       {\iftoggle{abx@bool@\abx@field@labeldatesource enddateuncertain}}
+       {\@secondoftwo}}%
+   \appto\blx@TE@hook{\def\iflabelenddateuncertain{%
+     \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+       {\blx@TE\iftoggle{abx@bool@\abx@field@labeldatesource enddateuncertain}}
+       {\@secondoftwo}}}}%
+  {}}
 
 % Name toggles like \ifauthor etc. need to be dynamically created for all
 % name datatypes in the data model and we have to do this here after the
