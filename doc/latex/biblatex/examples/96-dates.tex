@@ -9,66 +9,85 @@
 \usepackage{filecontents}
 \begin{filecontents}{\jobname.bib}
 @misc{date1,
-  note      = {years with implicit era},
+  note      = {Years with implicit era},
+  author    = {Author1},
   date      = {-0477},        % Negative EDTF date = BCE/BC
   origdate  = {-0877/-0866},  % Negative ETDF date range
   eventdate = {0477/0566},    % Forced CE era due to dateeraauto setting
   urldate   = {-0020/0100},   % Cross BCE/CE range
 }
 @misc{date2,
-  note      = {dates with circa and uncertain markers},
+  note      = {Dates with circa and uncertain markers},
+  author    = {Author2},
   date      = {1723?~},        % year with ETDF approximate (circa) and uncertainty markers
   origdate  = {1934-02~},      % year and month with circa marker
   eventdate = {1976?},         % year with EDTF uncertainty marker
   urldate   = {1922~},         % year with ETDF approximate (circa) marker
 }
 @misc{date3,
-  note      = {date ranges},
+  note      = {Date ranges},
+  author    = {Author3},
   date      = {1934~/1936~},    % year range with circa markers
   origdate  = {1723~/},         % open-ended year range with circa marker
   eventdate = {1976?/},         % open-ended year range with uncertainty marker
   urldate   = {1976/open}       % open-ended year range with EDTF open marker
 }
 @misc{date4,
-  note      = {times},
+  note      = {Times},
+  author    = {Author4},
   date      = {2004-04-05T14:34:00/2004-04-05T14:37:06},   % Date with time, floating timezone
   origdate  = {2004-04-05T14:34:00Z/2004-04-05T14:34:05Z}, % Date with time, UTC timezone
   eventdate = {2004-04-05T14:34:00+05:00/2004-04-05T15:34:00+05:00}, % Date with time, explicit timezone
   urldate   = {2004-04-05T14:34:00/2004-04-05T15:00:00},   % Datetime range
 }
 @misc{date5,
-  note      = {seasons},
+  note      = {Seasons},
+  author    = {Author5},
   date      = {1723-21},          % EDTF season (21=spring, 22=summer, 23=autumn, 24=winter)
   origdate  = {1934-24~},         % uncertain year plus season
   eventdate = {1934-22/1934-23},  % range with seasons
 }
 @misc{date6,
   % uses the 'nodate' localisation string due to default \DeclareLabeldate setting
-  note      = {date from literal/localisation string},
+  note      = {Date from literal/localisation string},
+  author    = {Author6},
 }
 @misc{date7,
-  note      = {unspecified},
+  note      = {Unspecified},
+  author    = {Author7},
   date      = {19uu},         % EDTF unspecified year in century
   origdate  = {199u},         % EDTF unspecified year in decade
 }
-
+@misc{date8,
+  note      = {Astronomical year era},
+  author    = {Author8},
+  date      = {0001},     % with dateera=astronomical, 1, otherwise 1 CE
+  origdate  = {0000},     % with dateera=astronomical, 0, otherwise 1 BCE
+  eventdate = {-0001},    % with dateera=astronomical, -1, otherwise 2 BCE
+  urldate   = {-0379}     % with dateera=astronomical, -379, otherwise 380 BCE
+}
 \end{filecontents}
 \usepackage[style=authoryear,%
             alldates=short,%
-            alltimes=hh,%
+            % alldates=edtf,% prints EDTF format, strict datezeros and
+                            % dateera enforcement
+            alltimes=12h,%
+            % alltimes=24h,% prints 24 hour format times
+            % alltimes=24hcomp,% prints 24 hour compressed format times
+            % seconds=true,% uncomment to print seconds
+            % timezones=true,% uncomment to print timezones
             datezeros=false,%
-            %alltimes=HH,% uncomment to print 24 hour format times
-            %alltimes=HHcomp,% uncomment to print 24 hour compressed format times
-            %seconds=true,% uncomment to print seconds
-            %timezones=true,% uncomment to print timezones
-            dateera=secular,%
-            dateeraauto=600,% Sets the max year ceiling for automatic printing of AD/CE
+            dateera=secular,% prints BCE/CE controlled by dateerauto, datezeros
+            % dateera=christian,% prints BC/AD controlled by dateerauto, datezeros
+            % dateera=astronomical,% prints astronomical dates, controlled by datezeros
+            dateeraauto=600,% Sets the max year ceiling for automatic
+                            % printing of era "secular" or "christian" 
+            % abbreviate=false,% prints full date localisation strings
             dateuncertain=true,%
             datecirca=true,%
             sorting=none,%
             backend=biber]{biblatex}
 \addbibresource{\jobname.bib}
-
 
 \defbibenvironment{simple}
 {\list{}
@@ -88,12 +107,13 @@
 \DeclareFieldFormat{urltime}{\mkbibemph{#1}}
 
 \makeatletter
+
 \DeclareBibliographyDriver{misc}{%
   \printfield[emph]{note}\\
   \iffieldundef{labelyear}{}{%
     \printtext[bold]{labeldate = }\printlabeldate
     \iffieldundef{labelhour}{}
-      {\space\printtext[bold]{labeltime = }\printlabeltime}%
+      {\\\printtext[bold]{labeltime = }\printlabeltime}%
     \iffieldundef{labelseason}{}{\space(\bibstring{\thefield{labelseason}}%
       \iffieldundef{labelendseason}{)}{\bibrangedash\bibstring{\thefield{labelendseason}})}}%
     \\}
@@ -102,7 +122,7 @@
       {\printtext[bold]{date = }\number\numexpr\thefield{year}/100+1\relax th Century}
       {\printtext[bold]{date = }\printdate
        \iffieldundef{hour}{}
-         {\space\printtext[bold]{time = }\printtime}}%
+         {\\\printtext[bold]{time = }\printtime}}%
     \iffieldundef{season}{}{\space(\bibstring{\thefield{season}}%
       \iffieldundef{endseason}{)}{\bibrangedash\bibstring{\thefield{endseason}})}}%
     \\}
@@ -111,31 +131,56 @@
       {\printtext[bold]{date = }The \expandafter\@gobbletwo\number\thefield{origyear}s}
       {\printtext[bold]{origdate = }\printorigdate
        \iffieldundef{orighour}{}
-         {\space\printtext[bold]{origtime = }\printorigtime}}%
+         {\\\printtext[bold]{origtime = }\printorigtime}}%
     \iffieldundef{origseason}{}{\space(\bibstring{\thefield{origseason}}%
       \iffieldundef{origendseason}{)}{\bibrangedash\bibstring{\thefield{origendseason}})}}%
     \\}
   \iffieldundef{eventyear}{}{%
     \printtext[bold]{eventdate = }\printeventdate
     \iffieldundef{eventhour}{}
-      {\space\printtext[bold]{eventtime = }\printeventtime}%
+      {\\\printtext[bold]{eventtime = }\printeventtime}%
     \iffieldundef{eventseason}{}{\space(\bibstring{\thefield{eventseason}}%
       \iffieldundef{eventendseason}{)}{\bibrangedash\bibstring{\thefield{eventendseason}})}}%
     \\}
   \iffieldundef{urlyear}{}{%
     \printtext[bold]{urldate = }\printurldate
     \iffieldundef{urlhour}{}
-      {\space\printtext[bold]{urltime = }\printurltime}%
+      {\\\printtext[bold]{urltime = }\printurltime}%
     \iffieldundef{urlseason}{}{\space(\bibstring{\thefield{urlseason}}%
       \iffieldundef{urlendseason}{)}{\bibrangedash\bibstring{\thefield{urlendseason}})}}%
   }}
-\makeatother
 
 \begin{document}
 \section*{Date formats}
-This example parses and formats some of the supported date formats and
-demonstrates the output options. See the source for details. Some citation
-examples: \cite{date1}, \cite{date2}, \cite{date3}, \cite{date4},
-\cite{date5}, \cite{date6}, \cite{date7}
-\printbibliography[env=simple,title={Examples}]
+This example file parses and formats some of the supported date formats and
+demonstrates the output options. See the source for details. You can change
+the options in the source file and this document will show you the options chosen.
+\subsection*{Options used to format this test document}
+\begingroup
+datecirca=\textbf{\iftoggle{blx@datecirca}{1}{0}}\\
+dateuncertain=\textbf{\iftoggle{blx@dateuncertain}{1}{0}}\\
+dateera=\textbf{\blx@dateera}\\
+dateerauto=\textbf{\blx@dateeraauto}\\
+datezeros=\textbf{\iftoggle{blx@datezeros}{1}{0}}\\
+timezeros=\textbf{\iftoggle{blx@timezeros}{1}{0}}\\
+\def\do#1{%
+  #1=\textbf{\csuse{blx@dateformat@#1}}\\}
+\do{labeldate}
+\abx@dodates
+\def\do#1{%
+  \StrCut{#1}{date}\blx@datetype\blx@tempnull
+  \blx@datetype time=\textbf{\csuse{blx@timeformat@\blx@datetype time}}\\}
+\do{labeldate}
+\abx@dodates
+\endgroup
+\subsection*{Example Citation Formats}
+\cite{date1}\\
+\cite{date2}\\
+\cite{date3}\\
+\cite{date4}\\
+\cite{date5}\\
+\cite{date6}\\
+\cite{date7}\\
+\cite{date8}
+\printbibliography[env=simple,title={Example Bibliography Formats}]
 \end{document}

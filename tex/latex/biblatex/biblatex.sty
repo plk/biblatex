@@ -521,16 +521,6 @@
 \newtoggle{blx@localnumber}
 \newtoggle{blx@refcontext}
 
-% date meta-information option defaults
-\let\datecircaprint\@empty
-\let\enddatecircaprint\@empty
-\let\dateuncertainprint\@empty
-\let\enddateuncertainprint\@empty
-\let\dateeraprint\@gobble
-\let\enddateeraprint\@gobble
-\let\dateeraprintpre\@empty
-\let\enddateeraprintpre\@empty
-
 % Nice command from etextools which causes too many problems if you load
 % the whole package
 % Don't use it on arbitrary user input as it dies on non-expandable arguments
@@ -4832,13 +4822,13 @@
   \letcs\ifdateuncertain{if#1dateuncertain}%
   \letcs\ifenddateuncertain{if#1enddateuncertain}}
 
-\newrobustcmd*{\mktimerangeHH}{%
+\expandafter\newrobustcmd\expandafter*\csname mktimerange24h\endcsname{%
   \mktimerange{HH}}
 
-\newrobustcmd*{\mktimerangehh}{%
+\expandafter\newrobustcmd\expandafter*\csname mktimerange12h\endcsname{%
   \mktimerange{hh}}
 
-\newrobustcmd*{\mktimerangeHHcomp}[1]{%
+\expandafter\newrobustcmd\expandafter*\csname mktimerange24hcomp\endcsname[1]{%
   \iffieldundef{#1hour}{}
     {\ifboolexpr{test {\iffieldundef{#1endhour}}
                  or
@@ -4883,7 +4873,7 @@
   \iffieldundef{#2year}
     {}
     {\datecircaprint
-     \dateeraprintpre
+     \dateeraprintpre{#2year}%
      \printtext[#2date]{%
        \csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
        \dateuncertainprint
@@ -4894,17 +4884,17 @@
             {\mbox{\bibdatedash}}
             {\bibdatedash
              \enddatecircaprint
-             \enddateeraprintpre
+             \enddateeraprintpre{#2endyear}%
              \csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}%
           \enddateuncertainprint
           \enddateeraprint{#2endyear}}}}}
 
 \newrobustcmd*{\mkdaterangetrunc}[2]{%
   \blx@metadateinfo{#2}%
-    \iffieldundef{#2year}
+  \iffieldundef{#2year}
     {}
     {\datecircaprint
-     \dateeraprintpre
+     \dateeraprintpre{#2year}%
      \printtext[#2date]{%
        \iffieldsequal{#2year}{#2endyear}
          {\iffieldsequal{#2month}{#2endmonth}
@@ -4919,7 +4909,7 @@
             {\mbox{\bibdatedash}}
             {\bibdatedash
              \enddatecircaprint
-             \enddateeraprintpre
+             \enddateeraprintpre{#2endyear}%
              \csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}%
           \enddateuncertainprint
           \enddateeraprint{#2endyear}}}}}
@@ -4929,7 +4919,7 @@
   \iffieldundef{#2year}
     {}
     {\datecircaprint
-     \dateeraprintpre
+     \dateeraprintpre{#2year}%
      \printtext[#2date]{%
        \printtext{%
          \csuse{mkbibdate#1}{#2year}{#2month}{#2day}}%
@@ -4943,7 +4933,7 @@
             {\printtext{%
                \bibdatedash
                \enddatecircaprint
-               \enddateeraprintpre
+               \enddateeraprintpre{#2endyear}%
                \csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}%
                \printfield{extrayear}}}%
           \enddateuncertainprint
@@ -4954,7 +4944,7 @@
   \iffieldundef{#2year}
     {}
     {\datecircaprint
-     \dateeraprintpre
+     \dateeraprintpre{#2year}%
      \printtext[#2date]{%
        \printtext{%
          \iffieldsequal{#2year}{#2endyear}
@@ -4972,7 +4962,7 @@
             {\printtext{%
                \bibdatedash
                \enddatecircaprint
-               \enddateeraprintpre
+               \enddateeraprintpre{#2endyear}%
                \csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}%
                \printfield{extrayear}}}%
           \enddateuncertainprint
@@ -5031,17 +5021,13 @@
 \cslet{mkdaterangeiso8601extra}\mkdaterangeedtfextra% Legacy option support
 
 \newrobustcmd*{\blx@edtfdate}[4][]{%
-  % don't use \dateeraprintpre - this isn't optional in EDTF
-  % use forcezeros - this isn't optional in EDTF
-  \ifdateera{bce}{\printtext{\bibdateeraprefix}}{}%
+  \dateeraprintpre{#2}%
   \blx@imc@forcezerosy{\thefield{#2}}\ifblank{#1}{}{\printfield{#1}}%
   \iffieldundef{#3}{}{\mbox{-}\blx@imc@forcezerosmdt{\thefield{#3}}}%
   \iffieldundef{#4}{}{\mbox{-}\blx@imc@forcezerosmdt{\thefield{#4}}}}
 
 \newrobustcmd*{\blx@edtfenddate}[4][]{%
-  % don't use \dateeraprintpre - this isn't optional in EDTF
-  % use forcezeros - this isn't optional in EDTF
-  \ifdateera{bce}{\printtext{\bibdateeraprefix}}{}%
+  \enddateeraprintpre{#2}%
   \blx@imc@forcezerosy{\thefield{#2}}\ifblank{#1}{}{\printfield{#1}}%
   \iffieldundef{#3}{}{\mbox{-}\blx@imc@forcezerosmdt{\thefield{#3}}}%
   \iffieldundef{#4}{}{\mbox{-}\blx@imc@forcezerosmdt{\thefield{#4}}}}
@@ -5517,6 +5503,26 @@
        {\define@key{blx@opt@ent}{#1}[#2]{#3}}}
     {\blx@err@optdef{#1}}}
 
+% date meta-information option fallbacks
+\def\do#1{%
+  \StrCut{#1}{date}\blx@datetype\blx@tempnull
+  \cslet{\blx@datetype datecircaprint}\@empty
+  \cslet{\blx@datetype enddatecircaprint}\@empty
+  \cslet{\blx@datetype dateuncertainprint}\@empty
+  \cslet{\blx@datetype enddateuncertainprint}\@empty
+  \cslet{\blx@datetype dateeraprint}\@gobble
+  \cslet{\blx@datetype enddateeraprint}\@gobble
+  \cslet{\blx@datetype dateeraprintpre}\@gobble
+  \cslet{\blx@datetype enddateeraprintpre}\@gobble
+  \csdef{if\blx@datetype dateera}##1{\@secondoftwo}%
+  \csdef{if\blx@datetype enddateera}##1{\@secondoftwo}%
+  \cslet{if\blx@datetype datecirca}\@secondoftwo
+  \cslet{if\blx@datetype enddatecirca}\@secondoftwo
+  \cslet{if\blx@datetype dateuncertain}\@secondoftwo
+  \cslet{if\blx@datetype enddateuncertain}\@secondoftwo}
+\abx@dodates
+\do{labeldate}
+
 % These are internal fields/booleans which are not part of the data model but
 % which need to be dealt with along with data model fields in places
 \def\do#1{%
@@ -5631,15 +5637,27 @@
 % This can't be neater by testing for the \abx@field@labeldatesource value
 % earlier because its not available until the tests are in scope.
 \appto\blx@blxinit{%
-   \ifdefstring{\blx@dateera}{simple}
-     {\protected\def\dateeraprintpre{%
-        \ifdateera{bce}{\printtext{\bibdateeraprefix}}{}}%
-      \protected\def\enddateeraprintpre{%
-        \ifenddateera{bce}{\printtext{\bibdateeraprefix}}{}}}
+   \ifdefstring\blx@dateera{astronomical}
+     {\protected\def\dateeraprintpre#1{%
+        \iffieldnum{#1}
+          {\ifdateera{bce}
+            {\ifnumless{0-\thefield{#1}}{0}
+              {\printtext{\bibdateeraprefix}}
+              {}}
+            {}}%
+          {}}%
+      \protected\def\enddateeraprintpre#1{%
+        \iffieldnum{#1}
+          {\ifenddateera{bce}
+            {\ifnumless{0-\thefield{#1}}{0}
+              {\printtext{\bibdateeraprefix}}
+              {}}
+            {}}%
+          {}}}
      {\protected\def\dateeraprint#1{%
         \iffieldnum{#1}
           {\ifdateera{bce}
-            {\ifnum\numexpr1-\thefield{#1}\relax<\blx@dateeraauto
+            {\ifnum\numexpr0-\thefield{#1}\relax<\blx@dateeraauto
                \printtext{\printdelim{dateeradelim}\bibstring{\blx@dateera@bce}}\relax
              \fi}
             {\ifnumless{\thefield{#1}}\blx@dateeraauto
@@ -5649,7 +5667,7 @@
       \protected\def\enddateeraprint#1{%
         \iffieldnum{#1}
           {\ifenddateera{bce}
-            {\ifnum\numexpr1-\thefield{#1}\relax<\blx@dateeraauto
+            {\ifnum\numexpr0-\thefield{#1}\relax<\blx@dateeraauto
                \printtext{\printdelim{dateeradelim}\bibstring{\blx@dateera@bce}}\relax
              \fi}
             {\ifnumless{\thefield{#1}}\blx@dateeraauto
@@ -6143,6 +6161,27 @@
 
 \def\blx@getdata#1{%
   \csuse{blx@data@\the\c@refsection @\blx@refcontext@context @#1}%
+  %
+  % All dates by default are output from biber in astronomcical era with a year 0
+  % So, if we are ouputting BCE/CE era, we need to adjust the years
+  \def\do##1{%
+    \StrCut{##1}{date}\blx@datetype\blx@tempnull
+    \letcs\ifdateera{if\blx@datetype dateera}%
+    \letcs\ifenddateera{if\blx@datetype enddateera}%
+    \ifdefstring\blx@dateera{astronomical}
+      {}
+      {\ifcsdef{abx@field@\blx@datetype year}
+        {\ifdateera{bce}
+          {\csedef{abx@field@\blx@datetype year}{\number\numexpr\csuse{abx@field@\blx@datetype year}+1}}
+          {}}
+        {}%
+       \ifcsdef{abx@field@\blx@datetype endyear}
+         {\ifenddateera{bce}
+           {\csedef{abx@field@\blx@datetype endyear}{\number\numexpr\csuse{abx@field@\blx@datetype endyear}+1}}
+           {}}
+         {}}%
+      {}}%
+  \abx@dodates
   % Here we resolve label* bib fields to their real fields. In fact, currently biber resolves
   % the label* fields too, as it needs to do this to generate various internal
   % counters for tracking things like singletitle etc. internally. However, it does not output
@@ -12166,8 +12205,9 @@
 \DeclareBibliographyOption[string]{datelabel}{%
    \ifstrequal{#1}{iso8601}
     {\blx@warning@noline{%
-     'iso8601' date format specifier is deprecated, use 'edtf' instead}}
-    {}%
+     'iso8601' date format specifier is deprecated, use 'edtf' instead}%
+     \def\blx@dateformat@labeldate{edtf}}
+    {\def\blx@dateformat@labeldate{#1}}%
   \ifcsdef{mkdaterange#1}
     {\protected\def\blx@imc@printlabeldate{\csuse{mkdaterange#1}{label}}
      \protected\def\blx@imc@printlabeldateextra{\csuse{mkdaterange#1extra}{label}}}
@@ -12178,20 +12218,28 @@
 
 \DeclareBibliographyOption[string]{timelabel}{%
   \ifcsdef{mktimerange#1}
-    {\protected\def\blx@imc@printlabeltime{\csuse{mktimerange#1}{label}}}
+    {\def\blx@timeformat@labeltime{#1}%
+     \protected\def\blx@imc@printlabeltime{\csuse{mktimerange#1}{label}}}
     {\blx@err@invopt{timelabel=#1}{}}}
 
 % Date meta-information
 \DeclareBibliographyOption[string]{dateera}{%
-  \def\blx@dateera{#1}%
-  \ifstrequal{#1}{secular}{%
-    \def\blx@dateera@bce{beforecommonera}%
-    \def\blx@dateera@ce{commonera}}
-  {}%
-  \ifstrequal{#1}{christian}{%
-    \def\blx@dateera@bce{beforechrist}%
-    \def\blx@dateera@ce{annodomini}}
-  {}}
+  \ifboolexpr{%
+              test {\ifstrequal{#1}{astronomical}}
+              or
+              test {\ifstrequal{#1}{secular}}
+              or
+              test {\ifstrequal{#1}{christian}}}
+  {\def\blx@dateera{#1}%
+   \ifstrequal{#1}{secular}
+     {\def\blx@dateera@bce{beforecommonera}%
+      \def\blx@dateera@ce{commonera}}
+     {}%
+   \ifstrequal{#1}{christian}
+     {\def\blx@dateera@bce{beforechrist}%
+      \def\blx@dateera@ce{annodomini}}
+     {}}
+  {\blx@err@invopt{dateera=#1}{}}}
 
 % Effectively turns off dateeraauto since it's only used on ce dates which
 % are never less than zero (as that would be a bce date)
@@ -12199,21 +12247,25 @@
 \DeclareBibliographyOption[integer]{dateeraauto}{%
   \numdef\blx@dateeraauto{#1}}
 
+\newtoggle{blx@datecirca}
 \DeclareBibliographyOption[boolean]{datecirca}[true]{%
   \ifstrequal{#1}{true}
-    {\protected\def\datecircaprint{%
+    {\toggletrue{blx@datecirca}%
+     \protected\def\datecircaprint{%
        \ifdatecirca{\bibstring{circa}\printdelim{datecircadelim}}{}}%
      \protected\def\enddatecircaprint{%
        \ifenddatecirca{\bibstring{circa}\printdelim{datecircadelim}}{}}}
-    {}}
+    {\togglefalse{blx@datecirca}}}
 
+\newtoggle{blx@dateuncertain}
 \DeclareBibliographyOption[boolean]{dateuncertain}[true]{%
   \ifstrequal{#1}{true}
-    {\protected\def\dateuncertainprint{%
+    {\toggletrue{blx@dateuncertain}%
+     \protected\def\dateuncertainprint{%
        \ifdateuncertain{\bibdateuncertain}{}}%
      \protected\def\enddateuncertainprint{%
        \ifenddateuncertain{\bibdateuncertain}{}}}
-    {}}
+    {\togglefalse{blx@dateuncertain}}}
 
 % Set up datamodel dates - both date and time parts
 % time parts
@@ -12221,13 +12273,14 @@
   % Need this here to set the right option
   \StrCut{#1}{date}\blx@datetype\blx@tempnull
   \DeclareBibliographyOption[string]{\blx@datetype time}{%
+    \csdef{blx@timeformat@\blx@datetype time}{##1}%
     % ... but here also so that we don't subsequently use the global scope \blx@datetype
     \StrCut{#1}{date}\blx@datetype\blx@tempnull
     \ifcsdef{mktimerange##1}
       {\protected\csedef{blx@imc@print\blx@datetype time}{\csuse{mktimerange##1}{\blx@datetype}}}
       {\blx@err@invopt{\blx@datetype time=##1}{}}}%
-  % Default for new time fields is "HH"
-  \setkeys{blx@opt@pre}{\blx@datetype time=HH}}
+  % Default for new time fields is "24h"
+  \setkeys{blx@opt@pre}{\blx@datetype time=24h}}
 \abx@dodates
 
 % date parts
@@ -12235,8 +12288,9 @@
 \def\do#1{%
   \DeclareBibliographyOption[string]{#1}{%
     \ifstrequal{##1}{iso8601}
-      {\blx@warning@noline{'iso8601' date format specifier is deprecated, use 'edtf' instead}}
-      {}%
+      {\blx@warning@noline{'iso8601' date format specifier is deprecated, use 'edtf' instead}%
+       \csdef{blx@dateformat@#1}{edtf}}
+      {\csdef{blx@dateformat@#1}{##1}}%
     \StrCut{#1}{date}\blx@datetype\blx@tempnull
     \ifcsdef{mkdaterange##1}
       {\protected\csedef{blx@imc@print#1}{\noexpand\csuse{mkdaterange##1}{\blx@datetype}}%
@@ -12267,19 +12321,25 @@
     \ExecuteBibliographyOptions{\blx@datetype time=#1}}%
   \abx@dodates}
 
+\newtoggle{blx@datezeros}
 \DeclareBibliographyOption[boolean]{datezeros}[true]{%
   \ifstrequal{#1}{true}
-    {\let\blx@imc@mkyearzeros\blx@imc@forcezerosy
+    {\toggletrue{blx@datezeros}%
+     \let\blx@imc@mkyearzeros\blx@imc@forcezerosy
      \let\blx@imc@mkmonthzeros\blx@imc@forcezerosmdt
      \let\blx@imc@mkdayzeros\blx@imc@forcezerosmdt}
-    {\let\blx@imc@mkyearzeros\blx@imc@stripzeros
+    {\togglefalse{blx@datezeros}%
+     \let\blx@imc@mkyearzeros\blx@imc@stripzeros
      \let\blx@imc@mkmonthzeros\blx@imc@stripzeros
      \let\blx@imc@mkdayzeros\blx@imc@stripzeros}}
 
+\newtoggle{blx@timezeros}
 \DeclareBibliographyOption[boolean]{timezeros}[true]{%
   \ifstrequal{#1}{true}
-    {\let\blx@imc@mktimezeros\blx@imc@forcezerosmdt}
-    {\let\blx@imc@mktimezeros\blx@imc@stripzeros}}
+    {\toggletrue{blx@timezeros}%
+     \let\blx@imc@mktimezeros\blx@imc@forcezerosmdt}
+    {\togglefalse{blx@timezeros}%
+     \let\blx@imc@mktimezeros\blx@imc@stripzeros}}
 
 \newtoggle{blx@timezones}
 \DeclareBibliographyOption[boolean]{timezones}[true]{%
@@ -12582,7 +12642,7 @@
   sorting=nty,sortlocale=auto,sortcase,sortupper,sortcites=false,
   maxnames=3,minnames=1,maxalphanames=3,minalphanames=1,
   maxitems=3,minitems=1,mincrossrefs=2,minxrefs=2,useauthor=true,useeditor=true,
-  usetranslator=false,indexing=false,abbreviate=true,dateabbrev=true,dateera=simple,
+  usetranslator=false,indexing=false,abbreviate=true,dateabbrev=true,dateera=astronomical,
   backref=false,backrefsetstyle=setonly,pagetracker=false,ibidtracker=false,
   idemtracker=false,opcittracker=false,loccittracker=false,citetracker=false,
   citecounter=false,block=none,language=autobib,clearlang=true,autolang=none,
@@ -12657,7 +12717,29 @@
           Setting 'uniquelist=true'}%
         \setkeys{blx@opt@pre}{uniquelist}}
        {}}
-    {}}
+    {}%
+    \def\do#1{%
+      \ifcsstring{blx@dateformat@#1}{edtf}
+        {\ifdefstring\blx@dateera{astronomical}{}
+           {\blx@warn@conflopt{%
+              '#1=edtf' requires 'dateera=astronomical'.\MessageBreak
+              Setting 'dateera=astrononmical'}%
+            \setkeys{blx@opt@pre}{dateera=astronomical}}%
+         \nottoggle{blx@datezeros}
+           {\blx@warn@conflopt{%
+              '#1=edtf' requires 'datezeros=true'.\MessageBreak
+              Setting 'datezeros=true'}%
+            \setkeys{blx@opt@pre}{datezeros=true}}
+           {}%
+         \nottoggle{blx@timezeros}
+           {\blx@warn@conflopt{%
+              '#1=edtf' requires 'timezeros=true'.\MessageBreak
+              Setting 'timezeros=true'}%
+            \setkeys{blx@opt@pre}{timezeros=true}}
+           {}}
+        {}}%
+    \abx@dodates
+    \do{labeldate}}
 
 \def\blx@checkencoding{%
   \ifdef\blx@texencoding
