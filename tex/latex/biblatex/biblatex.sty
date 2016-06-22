@@ -6973,9 +6973,13 @@
 \define@key{blx@bib1}{title}{}
 \define@key{blx@bib1}{prenote}{}
 \define@key{blx@bib1}{postnote}{}
-\define@key{blx@bib1}{resetnumbers}[]{}
 \define@key{blx@bib1}{omitnumbers}[]{}
 \define@key{blx@bib1}{prefixnumbers}{}% legacy name for labelprefix
+% Here we are using the first pass to see if there is an explicit setting for resetnumbers
+% If there isn't we will use the default behaviour where if there is a labelprefix, 
+% resetnumbers will default to "true"
+\define@key{blx@bib1}{resetnumbers}[true]{%
+  \toggletrue{blx@resetnumsexplicit}}
 
 \define@key{blx@bib2}{section}{}
 \define@key{blx@bib2}{sorting}{}
@@ -7260,6 +7264,11 @@
   \blx@bibheading\blx@theheading\blx@thetitle
   \endgroup}
 
+% We use this to determine whether an explicit value for resetnumbers is passed to
+% \printbibliography, if not, then we use the default behaviour where a labelprefix forces
+% a reset. It is useful that we have a 2-pass structure for \printbibliography keys anyway.
+\newtoggle{blx@resetnumsexplicit}
+
 % [<options>]
 \newrobustcmd*{\printbibliography}{%
   \begingroup
@@ -7270,9 +7279,6 @@
     {\blx@printbibliography[]}}
 
 \def\blx@printbibliography[#1]{%
-  \ifdefempty\blx@refcontext@labelprefix
-    {}
-    {\csnumdef{blx@labelnumber@\the\c@refsection}{0}}%
   \toggletrue{blx@tempa}%
   \toggletrue{blx@tempb}%
   \def\blx@theheading{bibliography}%
@@ -7296,7 +7302,16 @@
         { locale="\csuse{blx@sortdef@locale@\blx@refcontext@sorting}"}
         {}}{%
        \csuse{blx@sorting@\blx@refcontext@sorting}}}%
-  \setkeys{blx@bib1}{#1}% Set section only, if present ...
+  % 
+  \togglefalse{blx@resetnumsexplicit}%
+  \setkeys{blx@bib1}{#1}% First pass options keys - section and resetnumbers
+  % Is there a user-specified option for resetnumbers? If so, this overrides the default
+  % "labelprefix implies resetnumbers" behaviour
+  \iftoggle{blx@resetnumsexplicit}
+    {}
+    {\ifdefempty\blx@refcontext@labelprefix
+      {}
+      {\setkeys{blx@bib2}{resetnumbers}}}%
   \blx@rest@actives
   \ifcsvoid{blx@slist@entry@\blx@tempe @\blx@refcontext@context}
     {}
