@@ -5503,6 +5503,15 @@
        {\define@key{blx@opt@ent}{#1}[#2]{#3}}}
     {\blx@err@optdef{#1}}}
 
+% Sanity check on date field names - they *must* end in 'date' to make things easier/possible later
+\def\do#1{%
+  \IfEndWith{#1}{date}
+    {}
+    {\blx@error
+       {Invalid date field name '#1'}
+       {Date fields in the datemodel must end in the string 'date' but '#1' doesn't}}}
+\abx@dodates
+
 % date meta-information option fallbacks
 \def\do#1{%
   \StrCut{#1}{date}\blx@datetype\blx@tempnull
@@ -10149,9 +10158,9 @@
   ~~~~<bcf:defaults#1>\blx@nl
   #2%
   ~~~~</bcf:defaults>\blx@nl}
-\xdef\blx@xml@inherit@data#1{%
-  ~~~~<bcf:inherit>\blx@nl
-  #1%
+\xdef\blx@xml@inherit@data#1#2{%
+  ~~~~<bcf:inherit#1>\blx@nl
+  #2%
   ~~~~</bcf:inherit>\blx@nl}
 \xdef\blx@xml@inherit@type#1#2#3{%
   ~~~~~~<bcf:type\string_pair source="#1" target="#2"#3/>\blx@nl}
@@ -11053,12 +11062,14 @@
 % [<exceptions>]{<options>}
 \newrobustcmd*{\DefaultInheritance}[2][]{%
   \begingroup
+  \let\blx@tempf\@empty
   \ifblank{#2}
     {}
     {\setkeys{blx@inherit@default}{#2}}%
   \edef\blx@tempa{\space
     inherit\string_all="\iftoggle{blx@inherit@all}{true}{false}"\space
-    override\string_target="\iftoggle{blx@inherit@override}{true}{false}"}%
+    override\string_target="\iftoggle{blx@inherit@override}{true}{false}"%
+    \blx@tempf}%
   \let\blx@tempb\@empty
   \let\except\blx@inherit@except
   #1%
@@ -11074,6 +11085,8 @@
   \settoggle{blx@inherit@all}{#1}}
 \define@key{blx@inherit@default}{override}[true]{% true|false
   \settoggle{blx@inherit@override}{#1}}
+\define@key{blx@inherit@default}{suppress}{% csv list
+  \edef\blx@tempf{ suppress="#1"}}
 
 % {<source>}{<target>}{<options>}
 \newcommand*{\blx@inherit@except}[3]{%
@@ -11088,18 +11101,24 @@
   \eappto\blx@tempc{ inherit\string_all="#1"}}
 \define@key{blx@inherit@except}{override}[true]{% true|false
   \eappto\blx@tempc{ override\string_target="#1"}}
+\define@key{blx@inherit@except}{suppress}{% csv list
+  \eappto\blx@tempc{ suppress="#1"}}
 
 % {<type,type,...>}{<type,type,...>}{<spec>}
-\newrobustcmd*{\DeclareDataInheritance}[3]{%
+\newrobustcmd*{\DeclareDataInheritance}[4][]{%
   \begingroup
   \let\blx@tempa\@empty
-  \forcsvlist{\blx@inherit@i{#2}}{#1}%
+  \let\blx@tempf\@empty
+  \ifblank{#1}
+    {}
+    {\setkeys{blx@inherit}{#1}}%
+  \forcsvlist{\blx@inherit@i{#3}}{#2}%
   \let\blx@tempb\@empty
   \let\inherit\blx@inherit@field
   \let\noinherit\blx@inherit@block
-  #3%
+  #4%
   \xappto\blx@inherit@data{%
-    \blx@xml@inherit@data{%
+    \blx@xml@inherit@data{\blx@tempf}{%
       \blx@tempa
       \blx@tempb}}%
   \endgroup}
@@ -11124,6 +11143,9 @@
 
 \newcommand*{\blx@inherit@block}[1]{%
   \eappto\blx@tempb{\blx@xml@inherit@block{#1}}}
+
+\define@key{blx@inherit}{suppress}{% csv list
+  \edef\blx@tempf{ suppress="#1"}}
 
 \define@key{blx@inherit@field}{override}[true]{% true|false
   \ifstrequal{#1}{true}
