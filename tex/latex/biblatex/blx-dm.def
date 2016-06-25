@@ -105,7 +105,9 @@
     {}}
 
 % Valid dateparts
-\def\blx@dateparts{year,month,day,hour,minute,second,timezone,endmonth,endday,endhour,endminute,endsecond,endtimezone,season,endseason}
+\def\blx@notnulldateparts{year,month,day,hour,minute,second,timezone,season,endmonth,endday,endhour,endminute,endsecond,endtimezone,endseason}
+\def\blx@nullokdateparts{endyear}
+\edef\blx@dateparts{\blx@notnulldateparts,\blx@nullokdateparts}
 
 \newrobustcmd*{\DeclareDatamodelFields}[2][]{%
   \begingroup
@@ -207,7 +209,6 @@
     \xappto\blx@bcf@datamodel@fields{%
       \blx@xml@datamodel@field{\blx@tempa}{##1}}%
 
-
     % Dateparts are special - auto-create for all date fields
     \ifcsstring{blx@dm@datatype}{date}
       {\begingroup
@@ -222,13 +223,17 @@
          {}
          {\listcsgadd{blx@datamodel@fields}{##1}}%
        \StrCut{##1}{date}\blx@datetype\blx@tempnull
-       % *endyear
-       \xifinlistcs{\blx@datetype endyear}{blx@datamodel@fields}
-         {}
-         {\listcsxadd{blx@datamodel@fields}{\blx@datetype endyear}}%
-       \setkeys{blx@datamodel@field}{type=field,datatype=datepart,nullok}%
-       \xappto\blx@bcf@datamodel@fields{%
-         \blx@xml@datamodel@field{\blx@tempa}{\blx@datetype endyear}}%
+       % dateparts which are ok to be null (by default *endyear)
+       \def\do####1{%
+         \let\blx@tempa\@empty% reset setkeys buffer due to loop calls
+         \xifinlistcs{\blx@datetype ####1}{blx@datamodel@fields}
+           {}
+           {\listcsxadd{blx@datamodel@fields}{\blx@datetype ####1}}%
+         \setkeys{blx@datamodel@field}{type=field,datatype=datepart,nullok}%
+         \xappto\blx@bcf@datamodel@fields{%
+           \blx@xml@datamodel@field{\blx@tempa}{\blx@datetype ####1}}}%
+       \expandafter\docsvlist\expandafter{\blx@nullokdateparts}%
+       % dateparts which are not ok to be null by default:
        % *year, *(end)month, *(end)day, *(end)hour, *(end)minute, *(end)second, *(end)timezone
        % *(end)season
        \def\do####1{%
@@ -239,7 +244,7 @@
          \setkeys{blx@datamodel@field}{type=field,datatype=datepart}%
          \xappto\blx@bcf@datamodel@fields{%
            \blx@xml@datamodel@field{\blx@tempa}{\blx@datetype ####1}}}%
-       \expandafter\docsvlist\expandafter{\blx@dateparts}%
+       \expandafter\docsvlist\expandafter{\blx@notnulldateparts}%
        \endgroup}
       {}}%
    \docsvlist{#2}
