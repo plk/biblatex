@@ -4869,7 +4869,9 @@
     {\datecircaprint
      \dateeraprintpre{#2}%
      \printtext[#2date]{%
-       \csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
+       \iffieldundef{#2season}
+         {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}}
+         {\csuse{mkbibseasondate#1}{#2year}{#2season}}%
        \dateuncertainprint
        \dateeraprint{#2}%
        \iffieldundef{#2endyear}
@@ -4879,22 +4881,28 @@
             {\bibdatedash
              \enddatecircaprint
              \enddateeraprintpre{#2}%
-             \csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}%
+             \iffieldundef{#2season}
+               {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}
+               {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}}%
           \enddateuncertainprint
           \enddateeraprint{#2}}}}}
 
 \newrobustcmd*{\mkdaterangetrunc}[2]{%
   \blx@metadateinfo{#2}%
-  \iffieldundef{#2}
+  \iffieldundef{#2year}
     {}
     {\datecircaprint
      \dateeraprintpre{#2}%
      \printtext[#2date]{%
-       \iffieldsequal{#2year}{#2endyear}
-         {\iffieldsequal{#2month}{#2endmonth}
-            {\csuse{mkbibdate#1}{}{}{#2day}}
-            {\csuse{mkbibdate#1}{}{#2month}{#2day}}}
-         {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}}%
+       \iffieldundef{#2season}
+         {\iffieldsequal{#2year}{#2endyear}
+            {\iffieldsequal{#2month}{#2endmonth}
+               {\csuse{mkbibdate#1}{}{}{#2day}}
+               {\csuse{mkbibdate#1}{}{#2month}{#2day}}}
+            {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}}}
+         {\iffieldsequal{#2year}{#2endyear}
+           {\csuse{mkbibseasondate#1}{}{#2season}}
+           {\csuse{mkbibseasondate#1}{#2year}{#2season}}}%
        \dateuncertainprint
        \dateeraprint{#2}%
        \iffieldundef{#2endyear}
@@ -4904,7 +4912,9 @@
             {\bibdatedash
              \enddatecircaprint
              \enddateeraprintpre{#2}%
-             \csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}%
+             \iffieldundef{#2season}
+               {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}
+               {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}}%
           \enddateuncertainprint
           \enddateeraprint{#2}}}}}
 
@@ -4916,7 +4926,9 @@
      \dateeraprintpre{#2}%
      \printtext[#2date]{%
        \printtext{%
-         \csuse{mkbibdate#1}{#2year}{#2month}{#2day}}%
+       \iffieldundef{#2season}
+         {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}}
+         {\csuse{mkbibseasondate#1}{#2year}{#2season}}%
        \dateuncertainprint
        \dateeraprint{#2}%
        \iffieldundef{#2endyear}
@@ -4928,7 +4940,9 @@
                \bibdatedash
                \enddatecircaprint
                \enddateeraprintpre{#2}%
-               \csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}%
+               \iffieldundef{#2season}
+                 {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}
+                 {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}}%
                \printfield{extrayear}}}%
           \enddateuncertainprint
           \enddateeraprint{#2}}}}}
@@ -4941,11 +4955,15 @@
      \dateeraprintpre{#2}%
      \printtext[#2date]{%
        \printtext{%
-         \iffieldsequal{#2year}{#2endyear}
-           {\iffieldsequal{#2month}{#2endmonth}
-              {\csuse{mkbibdate#1}{}{}{#2day}}
-              {\csuse{mkbibdate#1}{}{#2month}{#2day}}}
-           {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}}}%
+       \iffieldundef{#2season}
+         {\iffieldsequal{#2year}{#2endyear}
+            {\iffieldsequal{#2month}{#2endmonth}
+               {\csuse{mkbibdate#1}{}{}{#2day}}
+               {\csuse{mkbibdate#1}{}{#2month}{#2day}}}
+            {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}}}
+         {\iffieldsequal{#2year}{#2endyear}
+           {\csuse{mkbibseasondate#1}{}{#2season}}
+           {\csuse{mkbibseasondate#1}{#2year}{#2season}}}%
        \dateuncertainprint
        \dateeraprint{#2}%
        \iffieldundef{#2endyear}
@@ -4957,7 +4975,9 @@
                \bibdatedash
                \enddatecircaprint
                \enddateeraprintpre{#2}%
-               \csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}%
+               \iffieldundef{#2season}
+                 {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}
+                 {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}}%
                \printfield{extrayear}}}%
           \enddateuncertainprint
           \enddateeraprint{#2}}}}}
@@ -5038,6 +5058,7 @@
 \newrobustcmd*{\mkbibmascord}{\mkbibordinal}
 \newrobustcmd*{\mkbibfemord}{\mkbibordinal}
 \newrobustcmd*{\mkbibneutord}{\mkbibordinal}
+\newrobustcmd*{\mkbibseason}[1]{\abx@bibseason{#1}}
 \newrobustcmd*{\mkbibmonth}[1]{%
   \ifcase0#1\relax
     \blx@warning@entry{Month out of range or not an integer}%
@@ -11839,8 +11860,10 @@
 
 \DeclareBibliographyOption[boolean]{dateabbrev}[true]{%
   \ifstrequal{#1}{true}
-    {\let\abx@bibmonth\blx@imc@bibsstring}
-    {\let\abx@bibmonth\blx@imc@biblstring}}
+    {\let\abx@bibmonth\blx@imc@bibsstring
+     \let\abx@bibseason\blx@imc@bibsstring}
+    {\let\abx@bibmonth\blx@imc@biblstring
+     \let\abx@bibseason\blx@imc@biblstring}}
 
 \DeclareBibliographyOption[string]{sortlocale}{%
   \edef\blx@sortlocale{\detokenize{#1}}}
