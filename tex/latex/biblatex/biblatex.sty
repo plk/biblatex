@@ -4813,6 +4813,8 @@
   \letcs\ifenddateera{if#1enddateera}%
   \letcs\ifdatecirca{if#1datecirca}%
   \letcs\ifenddatecirca{if#1enddatecirca}%
+  \letcs\ifdatejulian{if#1datejulian}%
+  \letcs\ifenddatejulian{if#1enddatejulian}%
   \letcs\ifdateuncertain{if#1dateuncertain}%
   \letcs\ifenddateuncertain{if#1enddateuncertain}}
 
@@ -5010,7 +5012,7 @@
        \datecircaprintedtf
        \iffieldundef{#1endyear}
          {}
-         {\addslash          
+         {\addslash
           \blx@edtfenddate{#1}}%
        \enddateuncertainprint
        \enddatecircaprintedtf}}}
@@ -5026,7 +5028,7 @@
        \datecircaprintedtf
        \iffieldundef{#1endyear}
          {}
-         {\addslash          
+         {\addslash
           \blx@edtfenddate{#1}}%
        \dateuncertainprint
        \enddatecircaprintedtf}}}
@@ -5557,6 +5559,8 @@
   \csdef{if#1enddateera}##1{\@secondoftwo}%
   \cslet{if#1datecirca}\@secondoftwo
   \cslet{if#1enddatecirca}\@secondoftwo
+  \cslet{if#1datejulian}\@secondoftwo
+  \cslet{if#1enddatejulian}\@secondoftwo
   \cslet{if#1dateuncertain}\@secondoftwo
   \cslet{if#1enddateuncertain}\@secondoftwo}
 \abx@dodatetypes
@@ -5573,6 +5577,8 @@
 \def\do#1{%
   \listxadd\blx@datemetabooleans{#1datecirca}%
   \listxadd\blx@datemetabooleans{#1enddatecirca}%
+  \listxadd\blx@datemetabooleans{#1datejulian}%
+  \listxadd\blx@datemetabooleans{#1enddatejulian}%
   \listxadd\blx@datemetabooleans{#1dateuncertain}%
   \listxadd\blx@datemetabooleans{#1enddateuncertain}}
 \abx@dodatetypes
@@ -5638,7 +5644,7 @@
   \xappto\blx@blxinit{\csletcs{print#1dateextra}{blx@imc@print#1dateextra}}}
 \abx@dodatetypes
 
-% Set up circa and uncertain date internals
+% Set up circa, julian and uncertain date internals
 \def\blx@imc@ifdatemeta@i#1#2{%
   \appto\blx@blxinit{%
     \csdef{if#1date#2}{\iftoggle{abx@bool@#1date#2}}%
@@ -5659,6 +5665,7 @@
 % Create date meta information boolean tests
 \def\do#1{%
   \blx@imc@ifdatemeta@i{#1}{circa}%
+  \blx@imc@ifdatemeta@i{#1}{julian}%
   \blx@imc@ifdatemeta@i{#1}{uncertain}}
 \abx@dodatetypes
 
@@ -5742,6 +5749,24 @@
    \appto\blx@TE@hook{\def\iflabelenddatecirca{%
      \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
        {\blx@TE\iftoggle{abx@bool@\abx@field@labeldatesource enddatecirca}}
+       {\@secondoftwo}}}%
+   % start julian
+   \def\iflabeldatejulian{%
+     \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+       {\iftoggle{abx@bool@\abx@field@labeldatesource datejulian}}
+       {\@secondoftwo}}%
+   \appto\blx@TE@hook{\def\iflabeldatejulian{%
+     \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+       {\blx@TE\iftoggle{abx@bool@\abx@field@labeldatesource datejulian}}
+       {\@secondoftwo}}}%
+   % end julian
+   \def\iflabelenddatejulian{%
+     \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+       {\iftoggle{abx@bool@\abx@field@labeldatesource enddatejulian}}
+       {\@secondoftwo}}%
+   \appto\blx@TE@hook{\def\iflabelenddatejulian{%
+     \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+       {\blx@TE\iftoggle{abx@bool@\abx@field@labeldatesource enddatejulian}}
        {\@secondoftwo}}}%
    % start uncertain
    \def\iflabeldateuncertain{%
@@ -10333,6 +10358,9 @@
     \blx@xml@mvalue{labeltitlespec}{\blx@bcf@labeltitlespec}%
     \blx@xml@toggle{labeltitleyear}%
     \blx@xml@toggle{labeldate}%
+    \blx@xml@toggle{julian}%
+    \ifdef\blx@julianstart{\blx@xml@svalue{julianstart}{\blx@julianstart}}{}%
+    \blx@xml@svalue{julianend}{\blx@julianend}%
     \blx@xml@mvalue{labeldatespec}{\blx@bcf@labeldatespec}%
     \blx@xml@svalue{maxalphanames}{\blx@maxalphanames}%
     \blx@xml@svalue{maxbibnames}{\blx@maxbibnames}%
@@ -12366,8 +12394,6 @@
     % biblatex defaults
     \setkeys{blx@opt@pre}{#1date=comp}}
 \abx@dodatetypes
-\newtoggle{abx@bool@labeldatecirca}
-\newtoggle{abx@bool@labeldateuncertain}
 
 \DeclareBibliographyOption[string]{alldates}{%
   \ExecuteBibliographyOptions{datelabel=#1}%
@@ -12379,6 +12405,19 @@
   \def\do##1{%
     \ExecuteBibliographyOptions{##1time=#1}}%
   \abx@dodatetypes}
+
+\newtoggle{blx@julian}
+\def\blx@julianend{1582-10-15}
+\DeclareBibliographyOption[boolean]{julian}[true]{%
+  \ifstrequal{#1}{true}
+    {\toggletrue{blx@julian}}
+    {\togglefalse{blx@julian}}}
+
+\DeclareBibliographyOption[string]{julianstart}{%
+  \def\blx@julianstart{#1}}
+
+\DeclareBibliographyOption[string]{julianend}{%
+  \def\blx@julianend{#1}}
 
 \newtoggle{blx@datezeros}\toggletrue{blx@datezeros}
 \DeclareBibliographyOption[boolean]{datezeros}[true]{%
@@ -12708,7 +12747,8 @@
   date=comp,datelabel=year,origdate=comp,eventdate=comp,urldate=short,
   autopunct=true,punctfont=false,defernumbers=false,timezeros=true,
   refsection=none,refsegment=none,citereset=none,hyperref=auto,
-  parentracker,maxparens=3,bibencoding=auto,bibwarn,timezones=false,seconds=false}
+  parentracker,maxparens=3,bibencoding=auto,bibwarn,timezones=false,
+  seconds=false,julian=false}
 
 % Load compatibility code
 \blx@inputonce{blx-compat.def}{compatibility code}{}{}{}{}

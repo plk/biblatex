@@ -1679,6 +1679,7 @@ The output of <circa>, uncertainty and era information in standard styles (or cu
 0768 & 0768 CE & using \opt{dateeraauto} set to <1000>  and \opt{commonera} localisation string\\
 -0343-02 & 344-02 BCE & \\
 0343-02-03 & 343-02-03 CE & with \opt{dateeraauto=400} \\
+0343-02-03 & 343-02-02 CE & with \opt{dateeraauto=400} and \opt{julian} \\
 1723\textasciitilde & circa 1723 & using \cmd{ifdatecirca} test\\
 1723? & 1723? & using \cmd{ifdateuncertain} test\\
 1723?\textasciitilde & circa 1723? & using \cmd{ifdateuncertain} and \cmd{ifdatecirca} tests\\
@@ -2237,7 +2238,11 @@ January 21--30, 2010\par
 2010-01-21/2010-01-30
 \end{valuelist}
 %
-As seen in the above examples, the actual date format is language specific. Note that the month name in all long formats is responsive to the \opt{abbreviate} package option. The leading zeros in all short formats may be controlled separately with the \opt{datezeros} package option. Note that \opt{edtf} format will enforce \kvopt{dateera}{astronomical}, \kvopt{datezeros}{true} and \kvopt{timezeros}{true}.
+Note that \opt{edtf} format will enforce \kvopt{dateera}{astronomical}, \kvopt{datezeros}{true}, \kvopt{timezeros}{true} and \kvopt{seconds}{true}.
+
+As seen in the above examples, the actual date format is language specific. Note that the month name in all long formats is responsive to the \opt{abbreviate} package option. The leading zeros for months and days in all short formats may be controlled separately with the \opt{datezeros} package option. The leading zeros for hours, minutes and seconds in all short formats may be controlled separately with the \opt{timezeros} package option. If outputting times, the printing of seconds and timezones is controlled by the \opt{seconds} and \opt{timezones} options respectively.
+
+The options \opt{julian}, \opt{julianstart} and \opt{julianend}  may be used to control when to output Julian Calendar dates.
 
 \optitem[year]{datelabel}{\opt{year}, \opt{short}, \opt{long}, \opt{terse}, \opt{comp}, \opt{edtf}}
 
@@ -2250,6 +2255,18 @@ Similar to the \opt{date} option but controls the format of the \bibfield{$<$dat
 \optitem{alldates}{\opt{year}, \opt{short}, \opt{long}, \opt{terse}, \opt{comp}, \opt{edtf}}
 
 Sets the option for all dates in the datamodel to the same value. The date fields in the default data model are \bibfield{date}, \bibfield{origdate}, \bibfield{eventdate} and \bibfield{urldate}.
+
+\boolitem[false]{julian}
+
+This option controls whether dates between the dates specified with the \opt{julianstart} and \opt{julianend} options will be converted automatically to the Julian Calendar. Dates so changed will return <true> for the \cmd{ifdatejulian} and \cmd{if$<$datetype$>$datejulian} tests (see \secref{aut:aux:tst}).
+
+\valitem{julianstart}{YYYY-MM-DD}
+
+This option controls the date after which dates are converted to the Julian Calendar. It is a strict format string, 4-digit year, 2-digit month and day, separated by a single dash character (any valid Unicode character with the <Dash> property). There is no default, meaning that if \opt{julianend} is set, all dates before \opt{julianend} will be converted to the Julian Calendar. This option does not nothing unless \opt{julian} is set to <true>.
+
+\valitem{julianend}{YYYY-MM-DD}
+
+This option controls the date before which dates are converted to the Julian Calendar. It is a strict format string, 4-digit year, 2-digit month and day, separated by a single dash character (any valid Unicode character with the <Dash> property). The default is '1582-10-15', the date of the instigation of the standard Gregorian Calendar. This option does not nothing unless \opt{julian} is set to <true>.
 
 \boolitem[true]{datezeros}
 
@@ -8925,6 +8942,14 @@ Clears the \prm{name list} within a local scope. A list cleared this way is trea
 The commands in this section are various kinds of stand"=alone tests for use in bibliography and citation styles.
 
 \begin{ltxsyntax}
+
+\cmditem{if$<$datetype$>$julian}{true}{false}
+
+Expands to \prm{true} if the date <datetype>date (\opt{date}, \opt{urldate}, \opt{eventdate} etc.) Was converted to the Julian Calendar due to the settings of the \opt{julian}, \opt{julianstart} and \opt{julianend}  options.
+
+\cmditem{ifdatejulian}{true}{false}
+
+As \cmd{if$<$datetype$>$julian} but for use in \cmd{mkbibdate*} formatting commands (\secref{aut:fmt:lng}) inside which the appropriate \cmd{if$<$datetype$>$julian} command is aliased to this command.
 
 \cmditem{if$<$datetype$>$dateera}{era}{true}{false}
 
