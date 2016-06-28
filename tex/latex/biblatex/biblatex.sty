@@ -5007,15 +5007,29 @@
   \iffieldundef{#1year}
     {}
     {\printtext[#1date]{%
-       \blx@edtfdate{#1}%
+       \blx@edtfdate{#1}{}%
+       \ifboolexpr{%
+         togl {blx@#1usetime}
+         and
+         not test {\iffieldundef{#1hour}}}
+         {\printtext{\bibdatetimesep}%
+          \blx@edtftime{#1}{}}
+         {}%
        \dateuncertainprint
        \datecircaprintedtf
        \iffieldundef{#1endyear}
          {}
          {\addslash
-          \blx@edtfenddate{#1}}%
-       \enddateuncertainprint
-       \enddatecircaprintedtf}}}
+          \blx@edtfdate{#1}{end}%
+          \ifboolexpr{%
+            togl {blx@#1usetime}
+            and
+            not test {\iffieldundef{#1endhour}}}
+            {\printtext{\bibdatetimesep}%
+             \blx@edtftime{#1}{end}}
+            {}%
+         \enddateuncertainprint
+         \enddatecircaprintedtf}}}}
 \cslet{mkdaterangeiso8601}\mkdaterangeedtf% Legacy option support
 
 \newrobustcmd*{\mkdaterangeedtfextra}[1]{%
@@ -5023,28 +5037,45 @@
   \iffieldundef{#1year}
     {}
     {\printtext[#1date]{%
-       \blx@edtfdate[extrayear]{#1}%
+       \blx@edtfdate[extrayear]{#1}{}%
+       \ifboolexpr{%
+         togl {blx@#1usetime}
+         and
+         not test {\iffieldundef{#1hour}}}
+         {\printtext{\bibdatetimesep}%
+          \blx@edtftime{#1}{}}
+         {}%
        \dateuncertainprint
        \datecircaprintedtf
        \iffieldundef{#1endyear}
          {}
          {\addslash
-          \blx@edtfenddate{#1}}%
-       \dateuncertainprint
-       \enddatecircaprintedtf}}}
+          \blx@edtfdate{#1}{end}}%
+          \ifboolexpr{%
+            togl {blx@#1usetime}
+            and
+            not test {\iffieldundef{#1endhour}}}
+            {\printtext{\bibdatetimesep}%
+             \blx@edtftime{#1}{end}}
+            {}%
+          \enddateuncertainprint
+          \enddatecircaprintedtf}}}
 \cslet{mkdaterangeiso8601extra}\mkdaterangeedtfextra% Legacy option support
 
-\newrobustcmd*{\blx@edtfdate}[2][]{%
-  \dateeraprintpre{#2year}%
-  \blx@imc@forcezerosy{\thefield{#2year}}\ifblank{#1}{}{\printfield{#1}}%
-  \iffieldundef{#2month}{}{\mbox{-}\blx@imc@forcezerosmdt{\thefield{#2month}}}%
-  \iffieldundef{#2day}{}{\mbox{-}\blx@imc@forcezerosmdt{\thefield{#2day}}}}
+\newrobustcmd*{\blx@edtfdate}[3][]{%
+  \dateeraprintpre{#2#3year}%
+  \blx@imc@forcezerosy{\thefield{#2#3year}}\ifblank{#1}{}{\printfield{#1}}%
+  \iffieldundef{#2#3month}{}{\mbox{-}\blx@imc@forcezerosmdt{\thefield{#2#3month}}}%
+  \iffieldundef{#2#3day}{}{\mbox{-}\blx@imc@forcezerosmdt{\thefield{#2#3day}}}}
 
-\newrobustcmd*{\blx@edtfenddate}[2][]{%
-  \dateeraprintpre{#2endyear}%
-  \blx@imc@forcezerosy{\thefield{#2endyear}}\ifblank{#1}{}{\printfield{#1}}%
-  \iffieldundef{#2endmonth}{}{\mbox{-}\blx@imc@forcezerosmdt{\thefield{#2endmonth}}}%
-  \iffieldundef{#2endday}{}{\mbox{-}\blx@imc@forcezerosmdt{\thefield{#2endday}}}}
+\newrobustcmd*{\blx@edtftime}[2]{%
+  \blx@imc@forcezerosmdt{\thefield{#1#2hour}}%
+  \mbox{-}\blx@imc@forcezerosmdt{\thefield{#1#2minute}}%
+  \mbox{-}\blx@imc@forcezerosmdt{\thefield{#1#2second}}%
+  \iftoggle{blx@timezones}
+    {\bibtimezonesep
+     \thefield{#1#2timezone}}
+    {}}
 
 \newrobustcmd*{\bibdateuncertain}{?}
 \newrobustcmd*{\mkbibdatelong}[3]{}
@@ -12290,6 +12321,12 @@
     {\blx@err@invopt{maxparens=#1}{}}
     {\setcounter{maxparens}{#1}}}
 
+\newtoggle{blx@labelusetime}
+\DeclareBibliographyOption[boolean]{labelusetime}[true]{%
+  \ifstrequal{#1}{true}
+    {\toggletrue{blx@labelusetime}}
+    {\togglefalse{blx@labelusetime}}}
+
 \DeclareBibliographyOption[string]{datelabel}{%
    \ifstrequal{#1}{iso8601}
     {\blx@warning@noline{%
@@ -12304,11 +12341,11 @@
        \protected\def\blx@imc@printlabeldateextra{\csuse{mkbibrange#1extra}{label}}}
       {\blx@err@invopt{datelabel=#1}{}}}}
 
-\DeclareBibliographyOption[string]{timelabel}{%
+\DeclareBibliographyOption[string]{labeltime}{%
   \ifcsdef{mktimerange#1}
     {\def\blx@timeformat@labeltime{#1}%
      \protected\def\blx@imc@printlabeltime{\csuse{mktimerange#1}{label}}}
-    {\blx@err@invopt{timelabel=#1}{}}}
+    {\blx@err@invopt{labeltime=#1}{}}}
 
 % Date meta-information
 \DeclareBibliographyOption[string]{dateera}{%
@@ -12359,21 +12396,10 @@
        \ifenddateuncertain{\bibdateuncertain}{}}}
     {\togglefalse{blx@dateuncertain}}}
 
-% Set up datamodel dates - both date and time parts
-% time parts
-\def\do#1{%
-  % Need this here to set the right option
-  \DeclareBibliographyOption[string]{#1time}{%
-    \csdef{blx@timeformat@#1time}{##1}%
-    \ifcsdef{mktimerange##1}
-      {\protected\csedef{blx@imc@print#1time}{\csuse{mktimerange##1}{#1}}}
-      {\blx@err@invopt{#1time=##1}{}}}%
-  % Default for new time fields is "24h"
-  \setkeys{blx@opt@pre}{#1time=24h}}
-\abx@dodatetypes
-
-% date parts
-% Datemetadata toggles are defined in one of the \abx@dobooleans calls
+% *time format options - auto-created for all datamodel date fields
+% *date format options - auto-created for all datamodel date fields
+% *usetime options - auto-created for all datamodel date fields
+% Date metadata toggles are defined in one of the \abx@dobooleans calls
 \def\do#1{%
   \DeclareBibliographyOption[string]{#1date}{%
     \ifstrequal{##1}{iso8601}
@@ -12392,8 +12418,27 @@
         {\blx@err@invopt{#1date=##1}{}}}}%
     % Default for new date fields is "comp" but this is overridden below by
     % biblatex defaults
-    \setkeys{blx@opt@pre}{#1date=comp}}
+    \setkeys{blx@opt@pre}{#1date=comp}%
+    % Need this here to set the right option
+    \DeclareBibliographyOption[string]{#1time}{%
+      \csdef{blx@timeformat@#1time}{##1}%
+      \ifcsdef{mktimerange##1}
+        {\protected\csedef{blx@imc@print#1time}{\csuse{mktimerange##1}{#1}}}
+        {\blx@err@invopt{#1time=##1}{}}}%
+    % Default for new time fields is "24h"
+    \setkeys{blx@opt@pre}{#1time=24h}%
+    % Boolean to determine if times are printed with dates
+    \newtoggle{blx@#1usetime}%
+    \DeclareBibliographyOption[boolean]{#1usetime}{%
+      \ifstrequal{##1}{true}
+        {\toggletrue{blx@#1usetime}}
+        {\togglefalse{blx@#1usetime}}}}
 \abx@dodatetypes
+
+\DeclareBibliographyOption[string]{allusetime}{%
+  \ExecuteBibliographyOptions{labelusetime=#1}%
+  \def\do##1{\ExecuteBibliographyOptions{##1usetime=#1}}%
+  \abx@dodatetypes}
 
 \DeclareBibliographyOption[string]{alldates}{%
   \ExecuteBibliographyOptions{datelabel=#1}%
@@ -12401,7 +12446,7 @@
   \abx@dodates}
 
 \DeclareBibliographyOption[string]{alltimes}{%
-  \ExecuteBibliographyOptions{timelabel=#1}%
+  \ExecuteBibliographyOptions{labeltime=#1}%
   \def\do##1{%
     \ExecuteBibliographyOptions{##1time=#1}}%
   \abx@dodatetypes}
@@ -12819,11 +12864,18 @@
     {}%
     \def\do#1{%
       \ifcsstring{blx@dateformat@#1}{edtf}
-        {\ifdefstring\blx@dateera{astronomical}{}
+        {\StrCut{#1}{date}\blx@datetype\blx@tempnull
+         \ifdefstring\blx@dateera{astronomical}{}
            {\blx@warn@conflopt{%
               '#1=edtf' requires 'dateera=astronomical'.\MessageBreak
               Setting 'dateera=astrononmical'}%
             \setkeys{blx@opt@pre}{dateera=astronomical}}%
+          \ifcsstring{blx@timeformat@\blx@datetype time}{12h}%
+           {\blx@warn@conflopt{%
+              '#1=edtf' requires '\blx@datetype time=24h'.\MessageBreak
+              Setting '\blx@datetype time=24h'}%
+            \setkeys{blx@opt@pre}{\blx@datetype time=24h}}
+           {}%
          \nottoggle{blx@datezeros}
            {\blx@warn@conflopt{%
               '#1=edtf' requires 'datezeros=true'.\MessageBreak
