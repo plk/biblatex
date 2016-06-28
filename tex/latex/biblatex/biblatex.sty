@@ -5011,6 +5011,74 @@
     {}%
   \mkdaterangefull{short}{#1}}
 
+% {<datetype>}
+\newrobustcmd*{\mkdaterangeymd}[1]{%
+  \blx@metadateinfo{#1}%
+  \iffieldundef{#1year}
+    {}
+    {\datecircaprint
+     \printtext[#1date]{%
+       % Such a season component can only come from an EDTF 5.1.5 season which replaces
+       % a normal month so if it exists, we know that a normal date print is ruled out
+       \iffieldundef{#1season}
+         {\blx@ymddate{#1}{}%
+          % Optionally print the time after the date
+          \blx@printtime{#1}{}}
+         {\csuse{mkbibseasondateshort}{#1year}{#1season}}%
+       \dateuncertainprint
+       \dateeraprint{#1year}%
+       \iffieldundef{#1endyear}
+         {}
+         {\iffieldequalstr{#1endyear}{}
+            {\mbox{\addslash}}
+            {\addslash
+             \enddatecircaprint
+             \iffieldundef{#1season}
+               {\blx@ymddate{#1}{end}%
+                % Optionally print the time after the date
+                \blx@printtime{#1}{end}}
+               {\csuse{mkbibseasondateshort}{#1endyear}{#1endseason}}%
+             \enddateuncertainprint
+             \dateeraprint{#1endyear}}}}}}
+
+% {<datetype>}
+\newrobustcmd*{\mkdaterangeymdextra}[1]{%
+  \blx@metadateinfo{#1}%
+  \iffieldundef{#1year}
+    {}
+    {\datecircaprint
+     \printtext[#1date]{%
+       % Such a season component can only come from an EDTF 5.1.5 season which replaces
+       % a normal month so if it exists, we know that a normal date print is ruled out
+       \iffieldundef{#1season}
+         {\blx@ymddate[extrayear]{#1}{}%
+          % Optionally print the time after the date
+          \blx@printtime{#1}{}}
+         {\csuse{mkbibseasondateshort}{#1year}{#1season}}%
+       \dateuncertainprint
+       \dateeraprint{#1year}%
+       \iffieldundef{#1endyear}
+         {\printfield{extrayear}}
+         {\iffieldequalstr{#1endyear}{}
+            {\printfield{extrayear}%
+             \mbox{\addslash}}
+            {\printtext{%
+               \addslash
+               \enddatecircaprint
+               \iffieldundef{#1season}
+                 {\blx@ymddate{#1}{end}%
+                  % Optionally print the time after the date
+                  \blx@printtime{#1}{end}}
+                 {\csuse{mkbibseasondateshort}{#1endyear}{#1endseason}}}%
+             \printfield{extrayear}
+             \enddateuncertainprint
+             \dateeraprint{#1endyear}}}}}}
+
+\newrobustcmd*{\blx@ymddate}[3][]{%
+  \mkyearzeros{\thefield{#2#3year}}\ifblank{#1}{}{\printfield{#1}}%
+  \iffieldundef{#2#3month}{}{\mbox{-}\mkmonthzeros{\thefield{#2#3month}}}%
+  \iffieldundef{#2#3day}{}{\mbox{-}\mkdayzeros{\thefield{#2#3day}}}}
+
 \newrobustcmd*{\mkdaterangeyearextra}[1]{%
   \blx@imc@clearfield{#1month}%
   \blx@imc@clearfield{#1day}%
