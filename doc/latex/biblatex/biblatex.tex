@@ -2336,7 +2336,23 @@ Similar to the \opt{time} option but controls the format of the time part fields
 
 \optitem{alltimes}{\opt{12h}, \opt{24h}, \opt{24hcomp}}
 
-Sets the option for all times in the datamodel to the same value. The date fields supporting time parts in the default data model are \bibfield{date}, \bibfield{origdate}, \bibfield{eventdate} and \bibfield{urldate}.
+Sets \opt{labeltime} and the \opt{$<$datetype$>$time} option for all times in the datamodel to the same value. The date fields supporting time parts in the default data model are \bibfield{date}, \bibfield{origdate}, \bibfield{eventdate} and \bibfield{urldate}.
+
+\boolitem[false]{dateusetime}
+
+Specifies whether to print any time component of a date field after the date component. The separator between the date and time components is \cmd{bibdatetimesep} from \secref{use:fmt:lng}. This option does nothing if a compact date format is being used (see \secref{use:opt:pre:gen}) as this would be very confusing.
+
+\boolitem[false]{labeldateusetime}
+
+Similar to the \opt{dateusetime} option but controls the whether to print time components for the field selected with \cmd{DeclareLabeldate}.
+
+\boolitem[false]{$<$datetype$>$dateusetime}
+
+Similar to the \opt{dateusetime} option but controls the whether to print time components for the \bibfield{$<$datetype$>$date} field in the datamodel.
+
+\boolitem[false]{alldatesusetime}
+
+Sets \opt{labeldateusetime} and the \opt{$<$datetype$>$dateusetime} option for all \bibfield{$<$datetype$>$date} fields in the datamoel.
 
 \boolitem[false]{defernumbers}
 
@@ -2572,7 +2588,7 @@ Whether or not to provide the special field \bibfield{extratitle}, see \secref{a
 
 Whether or not to provide the special field \bibfield{extratitleyear}, see \secref{aut:bbx:fld} for details. Note that the special field \bibfield{labeltitle} is always provided and this option controls rather whether \bibfield{labeltitle} is used to generate \bibfield{extratitleyear} information. This option is also settable on a per-type basis. Table \ref{use:opt:tab1} summarises the various \opt{extra*} disambiguation counters and what they track.
 
-\boolitem[false]{labeldate}
+\boolitem[false]{labeldateparts}
 
 Whether or not to provide the special fields \bibfield{labelyear}, \bibfield{labelmonth}, \bibfield{labelday}, \bibfield{labelendyear}, \bibfield{labelendmonth}, \bibfield{labelendday}, \bibfield{labelhour}, \bibfield{labelendhour}, \bibfield{labelminute}, \bibfield{labelendminute}, \bibfield{labelsecond}, \bibfield{labelendsecond}, \bibfield{labelseason}, \bibfield{labelendseason}, \bibfield{labeltimezone}, \bibfield{labelendtimeone} and \bibfield{extrayear}, see \secref{aut:bbx:fld} for details. 
 This option is also settable on a per-type basis. Table \ref{use:opt:tab1} summarises the various \opt{extra*} disambiguation counters and what they track.
@@ -2640,7 +2656,7 @@ Whether or not to update the \cnt{uniquelist} counter, see \secref{aut:aux:tst} 
 \begin{valuelist}
 \item[true] Disambiguate the \bibfield{labelname} list.
 \item[false] Disable this feature.
-\item[minyear] Disambiguate the \bibfield{labelname} list only if the truncated list is identical to another one with the same \bibfield{labelyear}. This mode of operation is useful for author-year styles and requires \kvopt{labeldate}{true}.
+\item[minyear] Disambiguate the \bibfield{labelname} list only if the truncated list is identical to another one with the same \bibfield{labelyear}. This mode of operation is useful for author-year styles and requires \kvopt{labeldateparts}{true}.
 \end{valuelist}
 %
 Note that the \opt{uniquelist} option will also affect the \cmd{ifsingletitle} test and the \bibfield{extrayear} field. See \secref{aut:cav:amb} for further details and practical examples.
@@ -2659,7 +2675,7 @@ Note that the \opt{uniquelist} option will also affect the \cmd{ifsingletitle} t
 \multicolumn{1}{@{}H}{Counter tracks} \\
 \cmidrule(r){1-1}\cmidrule(r){2-2}\cmidrule(r){3-3}\cmidrule{4-4}
 labelalpha     & labelalpha       & extraalpha     &  label\\
-labeldate      & labelyear        & extrayear      &  labelname+\\
+labeldateparts & labelyear        & extrayear      &  labelname+\\
                & labelmonth       &                &  labelyear\\
                & labelday         &                &  \\
                & labelendyear     &                &  \\
@@ -2849,16 +2865,16 @@ This style implements an alphabetic citation scheme similar to the \path{alpha.b
 A verbose variant of the \texttt{alphabetic} style. The difference affects the handling of a list of citations and is only apparent when multiple entry keys are passed to a single citation command. For example, instead of «[Doe92; Doe95; Jon98]» this style would print «[Doe92]; [Doe95]; [Jon98]». It is intended for in-text citations. The style will set the following package options at load time: \kvopt{autocite}{inline}, \kvopt{labelalpha}{true}.
 
 \item[authoryear]
-This style implements an author"=year citation scheme. If the bibliography contains two or more works by the same author which were all published in the same year, a letter is appended to the year. For example, this style would print citations such as «Doe 1995a; Doe 1995b; Jones 1998». This style should be employed in conjunction with an author"=year bibliography style which prints the corresponding labels in the bibliography. It is primarily intended for in-text citations, but it could also be used with citations given in footnotes. The style will set the following package options at load time: \kvopt{autocite}{inline}, \kvopt{labeldate}{true}, \kvopt{uniquename}{full}, \kvopt{uniquelist}{true}.
+This style implements an author"=year citation scheme. If the bibliography contains two or more works by the same author which were all published in the same year, a letter is appended to the year. For example, this style would print citations such as «Doe 1995a; Doe 1995b; Jones 1998». This style should be employed in conjunction with an author"=year bibliography style which prints the corresponding labels in the bibliography. It is primarily intended for in-text citations, but it could also be used with citations given in footnotes. The style will set the following package options at load time: \kvopt{autocite}{inline}, \kvopt{labeldateparts}{true}, \kvopt{uniquename}{full}, \kvopt{uniquelist}{true}.
 
 \item[authoryear-comp]
-A compact variant of the \texttt{authoryear} style which prints the author only once if subsequent references passed to a single citation command share the same author. If they share the same year as well, the year is also printed only once. For example, instead of «Doe 1995b; Doe 1992; Jones 1998; Doe 1995a» this style would print «Doe 1992, 1995a,b; Jones 1998». It is primarily intended for in-text citations, but it could also be used with citations given in footnotes. The style will set the following package options at load time: \kvopt{autocite}{inline}, \kvopt{sortcites}{true}, \kvopt{labeldate}{true}, \kvopt{uniquename}{full}, \kvopt{uniquelist}{true}.
+A compact variant of the \texttt{authoryear} style which prints the author only once if subsequent references passed to a single citation command share the same author. If they share the same year as well, the year is also printed only once. For example, instead of «Doe 1995b; Doe 1992; Jones 1998; Doe 1995a» this style would print «Doe 1992, 1995a,b; Jones 1998». It is primarily intended for in-text citations, but it could also be used with citations given in footnotes. The style will set the following package options at load time: \kvopt{autocite}{inline}, \kvopt{sortcites}{true}, \kvopt{labeldateparts}{true}, \kvopt{uniquename}{full}, \kvopt{uniquelist}{true}.
 
 \item[authoryear-ibid]
-A variant of the \texttt{authoryear} style which replaces repeated citations by the abbreviation \emph{ibidem} unless the citation is the first one on the current page or double-page spread, or the \emph{ibidem} would be ambiguous in the sense of the package option \kvopt{ibidtracker}{constrict}. The style will set the following package options at load time: \kvopt{autocite}{inline}, \kvopt{labeldate}{true}, \kvopt{uniquename}{full}, \kvopt{uniquelist}{true}, \kvopt{ibidtracker}{constrict}, \kvopt{pagetracker}{true}. This style also provides an additional preamble option called \opt{ibidpage}. See the style example for details.
+A variant of the \texttt{authoryear} style which replaces repeated citations by the abbreviation \emph{ibidem} unless the citation is the first one on the current page or double-page spread, or the \emph{ibidem} would be ambiguous in the sense of the package option \kvopt{ibidtracker}{constrict}. The style will set the following package options at load time: \kvopt{autocite}{inline}, \kvopt{labeldateparts}{true}, \kvopt{uniquename}{full}, \kvopt{uniquelist}{true}, \kvopt{ibidtracker}{constrict}, \kvopt{pagetracker}{true}. This style also provides an additional preamble option called \opt{ibidpage}. See the style example for details.
 
 \item[authoryear-icomp]
-A style combining \texttt{authoryear-comp} and \texttt{authoryear-ibid}. The style will set the following package options at load time: \kvopt{autocite}{inline}, \kvopt{labeldate}{true}, \kvopt{uniquename}{full}, \kvopt{uniquelist}{true}, \kvopt{ibidtracker}{constrict}, \kvopt{pagetracker}{true}, \kvopt{sortcites}{true}. This style also provides an additional preamble option called \opt{ibidpage}. See the style example for details.
+A style combining \texttt{authoryear-comp} and \texttt{authoryear-ibid}. The style will set the following package options at load time: \kvopt{autocite}{inline}, \kvopt{labeldateparts}{true}, \kvopt{uniquename}{full}, \kvopt{uniquelist}{true}, \kvopt{ibidtracker}{constrict}, \kvopt{pagetracker}{true}, \kvopt{sortcites}{true}. This style also provides an additional preamble option called \opt{ibidpage}. See the style example for details.
 
 \item[authortitle]
 This style implements a simple author"=title citation scheme. It will make use of the \bibfield{shorttitle} field, if available. It is intended for citations given in footnotes. The style will set the following package options at load time: \kvopt{autocite}{footnote}, \kvopt{uniquename}{full}, \kvopt{uniquelist}{true}.
@@ -2933,7 +2949,7 @@ This style prints a numeric label similar to the standard bibliographic faciliti
 This style prints an alphabetic label similar to the \path{alpha.bst} style of traditional \bibtex. It is intended for use in conjunction with an alphabetic citation style. Note that the \bibfield{shorthand} field overrides the default label. The style will set the following package options at load time: \kvopt{labelalpha}{true}, \kvopt{sorting}{anyt}.
 
 \item[authoryear]
-This style differs from the other styles in that the publication date is not printed towards the end of the entry but rather after the author\slash editor. It is intended for use in conjunction with an author"=year citation style. Recurring author and editor names are replaced by a dash unless the entry is the first one on the current page or double-page spread. This style provides an additional preamble option called \opt{dashed} which controls this feature. It also provided a preamble option called \opt{mergedate}. See the style example for details. The style will set the following package options at load time: \kvopt{labeldate}{true}, \kvopt{sorting}{nyt}, \kvopt{pagetracker}{true}, \kvopt{mergedate}{true}.
+This style differs from the other styles in that the publication date is not printed towards the end of the entry but rather after the author\slash editor. It is intended for use in conjunction with an author"=year citation style. Recurring author and editor names are replaced by a dash unless the entry is the first one on the current page or double-page spread. This style provides an additional preamble option called \opt{dashed} which controls this feature. It also provided a preamble option called \opt{mergedate}. See the style example for details. The style will set the following package options at load time: \kvopt{labeldateparts}{true}, \kvopt{sorting}{nyt}, \kvopt{pagetracker}{true}, \kvopt{mergedate}{true}.
 
 \item[authortitle]
 This style does not print any label at all. It is intended for use in conjunction with an author"=title citation style. Recurring author and editor names are replaced by a dash unless the entry is the first one on the current page or double-page spread. This style also provides an additional preamble option called \opt{dashed} which controls this feature. See the style example for details. The style will set the following package options at load time: \kvopt{pagetracker}{true}.
@@ -4740,6 +4756,10 @@ The language specific marker which separates time components. Default to a colon
 
 The language specific marker which separates an optional time zone component from a time. Empty by default.
 
+\csitem{bibdatetimesep}
+
+The language specific separator printed between date and time components when printing time components along with date components (see the \opt{$<$datetype$>$dateusetime} option in \secref{use:opt:pre:gen}). Defaults to a space for non-EDTF output formats, and 'T' for EDTF output format.
+
 \csitem{finalandcomma}
 
 Prints the comma to be inserted before the final <and> in a list, if applicable in the respective language. Here is an example:
@@ -6096,7 +6116,7 @@ It is sometimes useful, for example in author"=title citation schemes, to be abl
 
 \fielditem{labelyear}{literal}
 
-The year of the date field selected by \cmd{DeclareLabeldate} (\secref{aut:ctm:fld}) or the \bibfield{year} field, for use in author-year labels. A complete author-year label consists of the fields \bibfield{labelyear} plus \bibfield{extrayear}. Note that the \bibfield{labelyear} and \bibfield{extrayear} fields need to be requested with the package option \opt{labeldate}, see \secref{use:opt:pre:int} for details. See also \bibfield{extrayear}.
+The year of the date field selected by \cmd{DeclareLabeldate} (\secref{aut:ctm:fld}) or the \bibfield{year} field, for use in author-year labels. A complete author-year label consists of the fields \bibfield{labelyear} plus \bibfield{extrayear}. Note that the \bibfield{labelyear} and \bibfield{extrayear} fields need to be requested with the package option \opt{labeldateparts}, see \secref{use:opt:pre:int} for details. See also \bibfield{extrayear}.
 
 \fielditem{labelendyear}{literal}
 
@@ -6104,7 +6124,7 @@ The end year of the date field selected by \cmd{DeclareLabeldate} (\secref{aut:c
 
 \fielditem{labelmonth}{datepart}
 
-The month of the date field selected by \cmd{DeclareLabeldate} (\secref{aut:ctm:fld}), or the \bibfield{month} field for use in author-year labels. Note that the \bibfield{labelmonth} field needs to be requested with the package option \opt{labeldate}, see \secref{use:opt:pre:int} for details.
+The month of the date field selected by \cmd{DeclareLabeldate} (\secref{aut:ctm:fld}), or the \bibfield{month} field for use in author-year labels. Note that the \bibfield{labelmonth} field needs to be requested with the package option \opt{labeldateparts}, see \secref{use:opt:pre:int} for details.
 
 \fielditem{labelendmonth}{datepart}
 
@@ -6112,7 +6132,7 @@ The end month of the date field selected by \cmd{DeclareLabeldate} (\secref{aut:
 
 \fielditem{labelday}{datepart}
 
-The month of the date field selected by \cmd{DeclareLabeldate} (\secref{aut:ctm:fld}) for use in author-year labels. Note that the \bibfield{labelday} field needs to be requested with the package option \opt{labeldate}, see \secref{use:opt:pre:int} for details.
+The month of the date field selected by \cmd{DeclareLabeldate} (\secref{aut:ctm:fld}) for use in author-year labels. Note that the \bibfield{labelday} field needs to be requested with the package option \opt{labeldateparts}, see \secref{use:opt:pre:int} for details.
 
 \fielditem{labelendday}{datepart}
 
@@ -6120,7 +6140,7 @@ The end day of the date field selected by \cmd{DeclareLabeldate} (\secref{aut:ct
 
 \fielditem{extrayear}{integer}
 
-The author"=year citation scheme usually requires a letter to be appended to the year if the bibliography contains two or more works by the same author which were all published in the same year. In this case, the \bibfield{extrayear} field holds an integer which may be converted to a letter with \cmd{mknumalph} or formatted in some other way. This field is undefined if there is only one work by the author in the bibliography or if all works by the author have different publication years. A complete author-year label consists of the fields \bibfield{labelyear} plus \bibfield{extrayear}. Note that the \bibfield{labelyear} and \bibfield{extrayear} fields need to be requested with the package option \opt{labeldate}, see \secref{use:opt:pre:int} for details. See also \bibfield{labelyear}. Table \ref{use:opt:tab1} summarises the various \opt{extra*} disambiguation counters and what they track.
+The author"=year citation scheme usually requires a letter to be appended to the year if the bibliography contains two or more works by the same author which were all published in the same year. In this case, the \bibfield{extrayear} field holds an integer which may be converted to a letter with \cmd{mknumalph} or formatted in some other way. This field is undefined if there is only one work by the author in the bibliography or if all works by the author have different publication years. A complete author-year label consists of the fields \bibfield{labelyear} plus \bibfield{extrayear}. Note that the \bibfield{labelyear} and \bibfield{extrayear} fields need to be requested with the package option \opt{labeldateparts}, see \secref{use:opt:pre:int} for details. See also \bibfield{labelyear}. Table \ref{use:opt:tab1} summarises the various \opt{extra*} disambiguation counters and what they track.
 
 \end{fieldlist}
 
@@ -6742,7 +6762,7 @@ As \cmd{printdate} but prints the \bibfield{$<$datetype$>$date} of the entry. Th
 
 \csitem{printtime}
 
-This command prints the time of the entry, as specified in the \bibfield{date} field (see \secref{bib:use:dat}). The time format is controlled by the package option \opt{time} from \secref{use:opt:pre:gen}. Additional formatting (fonts etc.) may be applied by adjusting the field format \texttt{time} (\secref{aut:fmt:ich}). Note that this command interfaces with the punctuation tracker. There is no need to wrap it in a \cmd{printtext} command.
+This command prints the time range of the entry, as specified in the \bibfield{date} field (see \secref{bib:use:dat}). The time format is controlled by the package option \opt{time} from \secref{use:opt:pre:gen}. Additional formatting (fonts etc.) may be applied by adjusting the field format \texttt{time} (\secref{aut:fmt:ich}). Relevant to time formatting are the \opt{timezeros} option and the \cmd{bibtimesep} and \cmd{bibtimezonesep} macros (\secref{use:fmt:lng}). Note that this command interfaces with the punctuation tracker. There is no need to wrap it in a \cmd{printtext} command. Note that this command prints a stand-alone time range apart from the date elements. With the \opt{$<$datepart$>$dateusetime} option, you can have the printed along with a date when printing a date range instead of printing the time range completely separately, which is what this command allows for.
 
 \csitem{print$<$datetype$>$time}
 
@@ -12556,6 +12576,7 @@ The following table provides an overview of the scope (global\slash per-type\sla
 \endfoot
 abbreviate	&\+&\+&\_&\_\\
 alldates	&\+&\+&\_&\_\\
+alldatesusetime	&\+&\+&\_&\_\\
 alltimes	&\+&\+&\_&\_\\
 arxiv		&\+&\+&\_&\_\\
 autocite	&\+&\+&\_&\_\\
@@ -12577,6 +12598,8 @@ clearlang	&\+&\+&\_&\_\\
 datamodel &\+&\_&\_&\_\\
 dataonly	&\_&\_&\+&\+\\
 date		&\+&\+&\_&\_\\
+labeldate		&\+&\+&\_&\_\\
+$<$datetype$>$date		&\+&\+&\_&\_\\
 dateabbrev	&\+&\+&\_&\_\\
 datecirca &\+&\+&\_&\_\\
 dateera &\+&\+&\_&\_\\
@@ -12586,20 +12609,26 @@ datezeros	&\+&\+&\_&\_\\
 defernumbers	&\+&\+&\_&\_\\
 doi		&\+&\+&\_&\_\\ % style
 eprint		&\+&\+&\_&\_\\ % style
-eventdate	&\+&\+&\_&\_\\
 $<$namepart$>$inits	&\+&\+&\_&\_\\
 hyperref	&\+&\+&\_&\_\\
 ibidtracker	&\+&\+&\_&\_\\
 idemtracker	&\+&\+&\_&\_\\
 indexing	&\+&\+&\+&\+\\
 isbn		&\+&\+&\_&\_\\ % style
+julian &\+&\+&\_&\_\\
+julianend &\+&\+&\_&\_\\
+julianstart &\+&\+&\_&\_\\
 labelalpha	&\+&\+&\+&\_\\
 labelnamefield  &\_&\_&\_&\+\\
 labelnumber	&\+&\+&\+&\_\\
 labeltitle	&\+&\+&\+&\_\\
 labeltitlefield &\_&\_&\_&\+\\
 labeltitleyear	&\+&\+&\+&\_\\
-labeldate	&\+&\+&\+&\_\\
+labeldateparts	&\+&\+&\+&\_\\
+labeltime	&\+&\+&\_&\_\\
+labeldateusetime	&\+&\+&\_&\_\\
+$<$datetype$>$time	&\+&\+&\_&\_\\
+$<$datetype$>$dateusetime	&\+&\+&\_&\_\\
 language	&\+&\+&\_&\_\\
 loadfiles	&\+&\+&\_&\_\\
 loccittracker	&\+&\+&\_&\_\\
@@ -12622,7 +12651,6 @@ noinherit		&\_&\_&\_&\+\\
 notetype	&\+&\+&\_&\_\\
 opcittracker	&\+&\+&\_&\_\\
 openbib		&\+&\+&\_&\_\\
-origdate	&\+&\+&\_&\_\\
 pagetracker	&\+&\+&\_&\_\\
 parentracker	&\+&\+&\_&\_\\
 punctfont	&\+&\+&\_&\_\\
@@ -12651,7 +12679,6 @@ uniquename	&\+&\+&\+&\+\\
 uniquetitle	&\+&\+&\+&\_\\
 uniquework	&\+&\+&\+&\_\\
 uniqueprimaryauthor	&\+&\+&\_&\_\\
-urldate		&\+&\+&\_&\_\\
 url		&\+&\+&\_&\_\\
 useprefix	&\+&\+&\+&\+\\
 use$<$name$>$	&\+&\+&\+&\+\\
