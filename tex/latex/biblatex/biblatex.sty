@@ -4997,7 +4997,7 @@
                \iffieldundef{#2season}
                  {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}
                  {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}}%
-               \printfield{extrayear}
+               \printfield{extrayear}%
                \enddateuncertainprint
                \dateeraprint{#2endyear}}}}}}}
 
@@ -10490,8 +10490,7 @@
     \blx@xml@toggle{labeltitleyear}%
     \blx@xml@toggle{labeldateparts}%
     \blx@xml@toggle{julian}%
-    \ifdef\blx@julianstart{\blx@xml@svalue{julianstart}{\blx@julianstart}}{}%
-    \blx@xml@svalue{julianend}{\blx@julianend}%
+    \blx@xml@svalue{gregorianstart}{\blx@gregorianstart}%
     \blx@xml@mvalue{labeldatespec}{\blx@bcf@labeldatespec}%
     \blx@xml@svalue{maxalphanames}{\blx@maxalphanames}%
     \blx@xml@svalue{maxbibnames}{\blx@maxbibnames}%
@@ -12569,17 +12568,14 @@
   \do{label}}
 
 \newtoggle{blx@julian}
-\def\blx@julianend{1582-10-15}
+\def\blx@gregorianstart{1582-10-15}
 \DeclareBibliographyOption[boolean]{julian}[true]{%
   \ifstrequal{#1}{true}
     {\toggletrue{blx@julian}}
     {\togglefalse{blx@julian}}}
 
-\DeclareBibliographyOption[string]{julianstart}{%
-  \def\blx@julianstart{#1}}
-
-\DeclareBibliographyOption[string]{julianend}{%
-  \def\blx@julianend{#1}}
+\DeclareBibliographyOption[string]{gregorianstart}{%
+  \def\blx@gregorianstart{#1}}
 
 \newtoggle{blx@datezeros}\toggletrue{blx@datezeros}
 \DeclareBibliographyOption[boolean]{datezeros}[true]{%
@@ -12993,6 +12989,12 @@
               '#1=edtf' requires '\blx@datetype time=24h'.\MessageBreak
               Setting '\blx@datetype time=24h'}%
             \setkeys{blx@opt@pre}{\blx@datetype time=24h}}%
+         \iftoggle{blx@julian}
+           {\blx@warn@conflopt{%
+              '#1=edtf' requires 'julian=false'.\MessageBreak
+              Setting 'julian=false'}%
+            \setkeys{blx@opt@pre}{julian=false}}
+           {}%
          \nottoggle{blx@datezeros}
            {\blx@warn@conflopt{%
               '#1=edtf' requires 'datezeros=true'.\MessageBreak

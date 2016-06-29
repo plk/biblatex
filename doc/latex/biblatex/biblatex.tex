@@ -2241,11 +2241,11 @@ January 21--30, 2010\par
 2010-1-21/2010-1-30
 \end{valuelist}
 %
-Note that \opt{edtf} format will enforce \kvopt{dateera}{astronomical}, \kvopt{datezeros}{true}, \kvopt{timezeros}{true}, \kvopt{seconds}{true} and \kvopt{$<$datetype$>$time}{24h}. \opt{ymd} is an ETFT-like format but which can change the various options which the strict \opt{edtf} option does not allow for.
+Note that \opt{edtf} format will enforce \kvopt{dateera}{astronomical}, \kvopt{datezeros}{true}, \kvopt{timezeros}{true}, \kvopt{seconds}{true}, \kvopt{$<$datetype$>$time}{24h} and \kvopt{julian}{false}. \opt{ymd} is an ETFT-like format but which can change the various options which the strict \opt{edtf} option does not allow for.
 
 As seen in the above examples, the actual date format is language specific. Note that the month name in all long formats is responsive to the \opt{abbreviate} package option. The leading zeros for months and days in all short formats may be controlled separately with the \opt{datezeros} package option. The leading zeros for hours, minutes and seconds in all short formats may be controlled separately with the \opt{timezeros} package option. If outputting times, the printing of seconds and timezones is controlled by the \opt{seconds} and \opt{timezones} options respectively.
 
-The options \opt{julian}, \opt{julianstart} and \opt{julianend}  may be used to control when to output Julian Calendar dates.
+The options \opt{julian} and \opt{gregorianstart}  may be used to control when to output Julian Calendar dates.
 
 \optitem[year]{datelabel}{\opt{year}, \opt{short}, \opt{long}, \opt{terse}, \opt{comp}, \opt{edtf}}
 
@@ -2261,13 +2261,9 @@ Sets the option for all dates in the datamodel to the same value. The date field
 
 \boolitem[false]{julian}
 
-This option controls whether dates between the dates specified with the \opt{julianstart} and \opt{julianend} options will be converted automatically to the Julian Calendar. Dates so changed will return <true> for the \cmd{ifdatejulian} and \cmd{if$<$datetype$>$datejulian} tests (see \secref{aut:aux:tst}). Please bear in mind that dates consisting of just a year like <1565> will never be converted to a Julian Calendar date because a date without a month and day has an ambiguous Julian Calendar representation\footnote{This is potentially true for dates missing times too but this is not relevant for bibliographic work.}. For example, in the case of <1565>, this is Julian year <1564> until after the Gregorian date <10th January 1565> when the Julian year becomes <1565>.
+This option controls whether dates before the date specified in the \opt{gregorianstart} option will be converted automatically to the Julian Calendar. Dates so changed will return <true> for the \cmd{ifdatejulian} and \cmd{if$<$datetype$>$datejulian} tests (see \secref{aut:aux:tst}). Please bear in mind that dates consisting of just a year like <1565> will never be converted to a Julian Calendar date because a date without a month and day has an ambiguous Julian Calendar representation\footnote{This is potentially true for dates missing times too but this is not relevant for bibliographic work.}. For example, in the case of <1565>, this is Julian year <1564> until after the Gregorian date <10th January 1565> when the Julian year becomes <1565>.
 
-\valitem{julianstart}{YYYY-MM-DD}
-
-This option controls the date after which dates are converted to the Julian Calendar. It is a strict format string, 4-digit year, 2-digit month and day, separated by a single dash character (any valid Unicode character with the <Dash> property). There is no default, meaning that if \opt{julianend} is set, all dates before \opt{julianend} will be converted to the Julian Calendar. This option does not nothing unless \opt{julian} is set to <true>.
-
-\valitem{julianend}{YYYY-MM-DD}
+\valitem{gregorianstart}{YYYY-MM-DD}
 
 This option controls the date before which dates are converted to the Julian Calendar. It is a strict format string, 4-digit year, 2-digit month and day, separated by a single dash character (any valid Unicode character with the <Dash> property). The default is '1582-10-15', the date of the instigation of the standard Gregorian Calendar. This option does not nothing unless \opt{julian} is set to <true>.
 
@@ -8699,7 +8695,7 @@ Configures the default inheritance behavior. This command may only be used in th
 
 \valitem{suppress}{csv list of uniqueness options}
 
-This option takes a comma-separated list of one of more of <singletitle>, <uniquetitle> and/or <uniquework>. The purpose of this option is to suppress tracking information for these three options when the field which would trigger the tracking (\tabref{use:opt:wu})is inherited. An example---Suppose that you have several \bibtype{book} entries which all crossref a \bibtype{mvbook} from which they get their \bibfield{author} field. You might reasonably want the \cmd{ifsingletitle} test to return <true> for this author as their only <work> is the \bibtype{mvbook}. Similar comments would apply to situations involving the \cmd{ifuniquetitle} and \cmd{ifuniquework} tests. The \opt{suppress} option lists which of these should have their tracking information suppressed when the fields which would trigger them are inherited. The idea is that the presence of an inherited field does not contribute towards the determination of whether some combination of name/title is unique in the bibliographic data. For example, this would suppress \opt{singletitle} and \opt{uniquetitle} tracking by default:
+This option takes a comma-separated list of one of more of <singletitle>, <uniquetitle> and/or <uniquework>. The purpose of this option is to suppress tracking information for these three options when the field which would trigger the tracking (\tabref{use:opt:wu}) is inherited. An example---Suppose that you have several \bibtype{book} entries which all crossref a \bibtype{mvbook} from which they get their \bibfield{author} field. You might reasonably want the \cmd{ifsingletitle} test to return <true> for this author as their only <work> is the \bibtype{mvbook}. Similar comments would apply to situations involving the \cmd{ifuniquetitle} and \cmd{ifuniquework} tests. The \opt{suppress} option lists which of these should have their tracking information suppressed when the fields which would trigger them are inherited. The idea is that the presence of an inherited field does not contribute towards the determination of whether some combination of name/title is unique in the bibliographic data. For example, this would suppress \opt{singletitle} and \opt{uniquetitle} tracking by default:
 
 \begin{ltxexample}
 \DefaultInheritance{suppress={singletitle,uniquetitle}}
@@ -8968,7 +8964,7 @@ The commands in this section are various kinds of stand"=alone tests for use in 
 
 \cmditem{if$<$datetype$>$julian}{true}{false}
 
-Expands to \prm{true} if the date <datetype>date (\opt{date}, \opt{urldate}, \opt{eventdate} etc.) Was converted to the Julian Calendar due to the settings of the \opt{julian}, \opt{julianstart} and \opt{julianend}  options.
+Expands to \prm{true} if the date <datetype>date (\opt{date}, \opt{urldate}, \opt{eventdate} etc.) Was converted to the Julian Calendar due to the settings of the \opt{julian}and \opt{gregorianstart}  options.
 
 \cmditem{ifdatejulian}{true}{false}
 
@@ -12613,14 +12609,13 @@ defernumbers	&\+&\+&\_&\_\\
 doi		&\+&\+&\_&\_\\ % style
 eprint		&\+&\+&\_&\_\\ % style
 $<$namepart$>$inits	&\+&\+&\_&\_\\
+gregorianstart &\+&\+&\_&\_\\
 hyperref	&\+&\+&\_&\_\\
 ibidtracker	&\+&\+&\_&\_\\
 idemtracker	&\+&\+&\_&\_\\
 indexing	&\+&\+&\+&\+\\
 isbn		&\+&\+&\_&\_\\ % style
 julian &\+&\+&\_&\_\\
-julianend &\+&\+&\_&\_\\
-julianstart &\+&\+&\_&\_\\
 labelalpha	&\+&\+&\+&\_\\
 labelnamefield  &\_&\_&\_&\+\\
 labelnumber	&\+&\+&\+&\_\\
