@@ -2602,7 +2602,7 @@ This option is also settable on a per-type basis. Table \ref{use:opt:tab1} summa
 \multicolumn{1}{@{}H}{Test} &
 \multicolumn{1}{@{}H}{Tracks} \\
 \cmidrule(r){1-1}\cmidrule(r){2-2}\cmidrule(r){3-3}
-singletitle & \cmd{ifsingletitle} & labelname or labeltitle\\
+singletitle & \cmd{ifsingletitle} & labelname\\
 uniquetitle & \cmd{ifuniquetitle} & labeltitle\\
 uniquework  & \cmd{ifuniquework}  & labelname+labeltitle\\
 \bottomrule
@@ -8693,15 +8693,15 @@ Configures the default inheritance behavior. This command may only be used in th
 
 \boolitem[false]{override} Whether or not to overwrite target fields with source fields if both are defined. This applies both to automatic inheritance and to explicit inheritance rules. The package default is \kvopt{override}{false}, \ie existing fields of the child entry are not overwritten.
 
-\valitem{suppress}{csv list of uniqueness options}
+\valitem{ignore}{csv list of uniqueness options}
 
-This option takes a comma-separated list of one of more of <singletitle>, <uniquetitle> and/or <uniquework>. The purpose of this option is to suppress tracking information for these three options when the field which would trigger the tracking (\tabref{use:opt:wu}) is inherited. An example---Suppose that you have several \bibtype{book} entries which all crossref a \bibtype{mvbook} from which they get their \bibfield{author} field. You might reasonably want the \cmd{ifsingletitle} test to return <true> for this author as their only <work> is the \bibtype{mvbook}. Similar comments would apply to situations involving the \cmd{ifuniquetitle} and \cmd{ifuniquework} tests. The \opt{suppress} option lists which of these should have their tracking information suppressed when the fields which would trigger them are inherited. The idea is that the presence of an inherited field does not contribute towards the determination of whether some combination of name/title is unique in the bibliographic data. For example, this would suppress \opt{singletitle} and \opt{uniquetitle} tracking by default:
+This option takes a comma-separated list of one of more of <singletitle>, <uniquetitle> and/or <uniquework>. The purpose of this option is to ignore tracking information for these three options when the field which would trigger the tracking (\tabref{use:opt:wu}) is inherited. An example---Suppose that you have several \bibtype{book} entries which all crossref a \bibtype{mvbook} from which they get their \bibfield{author} field. You might reasonably want the \cmd{ifsingletitle} test to return <true> for this author as their only <work> is the \bibtype{mvbook}. Similar comments would apply to situations involving the \cmd{ifuniquetitle} and \cmd{ifuniquework} tests. The \opt{ignore} option lists which of these should have their tracking information ignored when the fields which would trigger them are inherited. The idea is that the presence of an inherited field does not contribute towards the determination of whether some combination of name/title is unique in the bibliographic data. For example, this modified default setting would ignore \opt{singletitle} and \opt{uniquetitle} tracking:
 
 \begin{ltxexample}
-\DefaultInheritance{suppress={singletitle,uniquetitle}}
+\DefaultInheritance{ignore={singletitle,uniquetitle}, all=true, override=false}
 \end{ltxexample}
 %
-Of course, the suppression of tracking does nothing if the fields inherited do not play a role in tracking. Only the fields listed in \tabref{use:opt:wu} are relevant to this option.
+Of course, the ignoring of tracking does nothing if the fields inherited do not play a role in tracking. Only the fields listed in \tabref{use:opt:wu} are relevant to this option.
 
 \end{optionlist*}
 
@@ -8719,12 +8719,12 @@ Declares inheritance rules. The \prm{source} and \prm{target} arguments specify 
 
 \begin{optionlist*}
 
-\valitem{suppress}{csv list of uniqueness options}
+\valitem{ignore}{csv list of uniqueness options}
 
-As the \opt{suppress} option on \cmd{DefaultInheritance} explained above. When set here, it takes precedence over any global options set with \cmd{DefaultInheritance}. For example, this would suppress \opt{singletitle} and \opt{uniquetitle} tracking for a \bibtype{book} inheriting from a \bibtype{mvbook}.
+As the \opt{ignore} option on \cmd{DefaultInheritance} explained above. When set here, it takes precedence over any global options set with \cmd{DefaultInheritance}. For example, this would ignore \opt{singletitle} and \opt{uniquetitle} tracking for a \bibtype{book} inheriting from a \bibtype{mvbook}.
 
 \begin{ltxexample}
-\DeclareDataInheritance[suppress={singletitle,uniquetitle}]{mvbook}{book}{<<...>>}
+\DeclareDataInheritance[ignore={singletitle,uniquetitle}]{mvbook}{book}{<<...>>}
 \end{ltxexample}
 
 \end{optionlist*}
@@ -9119,7 +9119,7 @@ Expands to \prm{true} if the entry was inclued in the \file{.bbl} due to being r
 
 \cmditem{ifsingletitle}{true}{false}
 
-Expands to \prm{true} if there is only one work by the \opt{labelname} name in the bibliography, and to \prm{false} otherwise. If there is no \opt{labelname} name at all for the entry, then this expands to \prm{true} if there is only one work with the \opt{labeltitle} title in the bibliography and \prm{false} otherwise. If neither \opt{labelname} nor \opt{labeltitle} are set for an entry, this will always expand to \prm{false}. Note that this feature needs to be enabled explicitly with the package option \opt{singletitle}.
+Expands to \prm{true} if there is only one work by the \opt{labelname} name in the bibliography, and to \prm{false} otherwise. If \opt{labelname} is not set for an entry, this will always expand to \prm{false}. Note that this feature needs to be enabled explicitly with the package option \opt{singletitle}.
 
 \cmditem{ifuniquetitle}{true}{false}
 
