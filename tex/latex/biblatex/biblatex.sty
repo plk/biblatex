@@ -4885,8 +4885,8 @@
        \iffieldundef{#2endyear}
          {}
          {\iffieldequalstr{#2endyear}{}
-            {\mbox{\bibdatedash}}
-            {\bibdatedash
+            {\mbox{\bibdaterangesep}}
+            {\bibdaterangesep
              \enddatecircaprint
              \iffieldundef{#2season}
                {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}%
@@ -4921,8 +4921,8 @@
        \iffieldundef{#2endyear}
          {}
          {\iffieldequalstr{#2endyear}{}
-            {\mbox{\bibdatedash}}
-            {\bibdatedash
+            {\mbox{\bibdaterangesep}}
+            {\bibdaterangesep
              \enddatecircaprint
              \iffieldundef{#2season}
                {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}
@@ -4950,9 +4950,9 @@
          {\printfield{extrayear}}
          {\iffieldequalstr{#2endyear}{}
             {\printfield{extrayear}%
-             \printtext{\mbox{\bibdatedash}}}
+             \printtext{\mbox{\bibdaterangesep}}}
             {\printtext{%
-               \bibdatedash
+               \bibdaterangesep
                \enddatecircaprint
                \iffieldundef{#2season}
                  {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}%
@@ -4990,9 +4990,9 @@
          {\printfield{extrayear}}
          {\iffieldequalstr{#2endyear}{}
             {\printfield{extrayear}%
-             \printtext{\mbox{\bibdatedash}}}
+             \printtext{\mbox{\bibdaterangesep}}}
             {\printtext{%
-               \bibdatedash
+               \bibdaterangesep
                \enddatecircaprint
                \iffieldundef{#2season}
                  {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}
@@ -5030,8 +5030,8 @@
        \iffieldundef{#1endyear}
          {}
          {\iffieldequalstr{#1endyear}{}
-            {\mbox{\addslash}}
-            {\addslash
+            {\mbox{\bibdaterangesep}}
+            {\bibdaterangesep
              \enddatecircaprint
              \iffieldundef{#1season}
                {\blx@ymddate{#1}{end}%
@@ -5061,9 +5061,9 @@
          {\printfield{extrayear}}
          {\iffieldequalstr{#1endyear}{}
             {\printfield{extrayear}%
-             \mbox{\addslash}}
+             \mbox{\bibdaterangesep}}
             {\printtext{%
-               \addslash
+               \bibdaterangesep
                \enddatecircaprint
                \iffieldundef{#1season}
                  {\blx@ymddate{#1}{end}%
@@ -5190,6 +5190,7 @@
 \newrobustcmd*{\bibrangedash}{\textendash}
 \newrobustcmd*{\bibrangessep}{,\space}
 \newrobustcmd*{\bibdatedash}{\bibrangedash}
+\newrobustcmd*{\bibdaterangesep}{\bibdatedash}
 \newrobustcmd*{\finalandcomma}{}
 \newrobustcmd*{\finalandsemicolon}{}
 \newrobustcmd*{\mkbibordinal}[1]{#1}
@@ -5826,7 +5827,10 @@
             {\StrCut{#1}{year}\blx@datetype\blx@tempnull}%
            \csuse{if\blx@datetype\blx@tempa dateera}{bce}
             {\ifnumless{0-\thefield{#1}}{0}
-              {\printtext{\bibdateeraprefix}}
+              {\ifdefstring\bibdaterangesep\bibdatedash
+                {\,}% Extra space between dash range seps and negative end years
+                {}%
+                \printtext{\bibdateeraprefix}}
               {}}
             {}%
            \endgroup}%
@@ -12458,6 +12462,9 @@
      'iso8601' date format specifier is deprecated, use 'edtf' instead}%
      \def\blx@dateformat@labeldate{edtf}}
     {\def\blx@dateformat@labeldate{#1}}%
+   \ifstrequal{#1}{ymd}
+      {\renewrobustcmd*{\bibdaterangesep}{\slash}}
+      {}%
   \ifcsdef{mkdaterange#1}
     {\protected\def\blx@imc@printlabeldate{\csuse{mkdaterange#1}{label}}
      \protected\def\blx@imc@printlabeldateextra{\csuse{mkdaterange#1extra}{label}}}
@@ -12536,6 +12543,9 @@
       {\blx@warning@noline{'iso8601' date format specifier is deprecated, use 'edtf' instead}%
        \csdef{blx@dateformat@#1date}{edtf}}
       {\csdef{blx@dateformat@#1date}{##1}}%
+    \ifstrequal{##1}{ymd}
+      {\renewrobustcmd*{\bibdaterangesep}{\slash}}
+      {}%
     \ifcsdef{mkdaterange##1}
       {\protected\csedef{blx@imc@print#1date}{\noexpand\csuse{mkdaterange##1}{#1}}%
        \protected\csedef{blx@imc@print#1dateextra}{\noexpand\csuse{mkdaterange##1extra}{#1}}}
