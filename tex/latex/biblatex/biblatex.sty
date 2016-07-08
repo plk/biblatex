@@ -5168,19 +5168,34 @@
 \newrobustcmd*{\blx@edtfdate}[3][]{%
   \dateeraprintpre{#2#3year}%
   \blx@imc@forcezerosy{\thefield{#2#3year}}\ifblank{#1}{}{\printfield{#1}}%
-  \iffieldundef{#2#3month}{}{\mbox{-}\blx@imc@forcezerosmdt{\thefield{#2#3month}}}%
-  \iffieldundef{#2#3day}{}{\mbox{-}\blx@imc@forcezerosmdt{\thefield{#2#3day}}}}
+  % Such a season component can only come from an EDTF 5.1.5 season which replaces
+  % a normal month so if it exists, we know that a normal date print is ruled out
+  \iffieldundef{#2#3season}
+    {\iffieldundef{#2#3month}{}{-\blx@imc@forcezerosmdt{\thefield{#2#3month}}}%
+     \iffieldundef{#2#3day}{}{-\blx@imc@forcezerosmdt{\thefield{#2#3day}}}}
+    {-\blx@seasonmap{\thefield{#2#3season}}}}
+
+\def\blx@seasonmap#1{%
+  \blx@xifstrcmp{#1}{spring}{21}
+    {\blx@xifstrcmp{#1}{summer}{22}
+      {\blx@xifstrcmp{#1}{autumn}{23}
+        {\blx@xifstrcmp{#1}{winter}{24}{}}}}}
 
 \newrobustcmd*{\blx@edtftime}[2]{%
   \blx@imc@forcezerosmdt{\thefield{#1#2hour}}%
-  \mbox{-}\blx@imc@forcezerosmdt{\thefield{#1#2minute}}%
-  \mbox{-}\blx@imc@forcezerosmdt{\thefield{#1#2second}}%
+  :\blx@imc@forcezerosmdt{\thefield{#1#2minute}}%
+  :\blx@imc@forcezerosmdt{\thefield{#1#2second}}%
   \iftoggle{blx@timezones}
-    {\bibtimezonesep
-     \thefield{#1#2timezone}}
+    {\mkbibtimezone{\thefield{#1#2timezone}}}
     {}}
 
+\newrobustcmd*{\bibdatetimesep}{\space}
+\newrobustcmd*{\bibdateeraprefix}{\textminus}
+\newrobustcmd*{\bibutctimezone}{Z}
+\newrobustcmd*{\bibtimezonesep}{}
+\newrobustcmd*{\bibtimesep}{:}
 \newrobustcmd*{\bibdateuncertain}{?}
+\newrobustcmd*{\mkbibtimezone}[1]{\blx@xifstrcmp{#1}{UTC}{\bibutctimezone}{#1}}
 \newrobustcmd*{\mkbibdatelong}[3]{}
 \newrobustcmd*{\mkbibdateshort}[3]{}
 \newrobustcmd*{\mkbibseasondateshort}[2]{}
