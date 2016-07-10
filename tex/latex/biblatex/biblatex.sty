@@ -5197,6 +5197,7 @@
 % dates
 \newrobustcmd*{\bibdateuncertain}{?}
 \newrobustcmd*{\bibdateeraprefix}{\textminus}
+\newrobustcmd*{\bibdateeraendprefix}{\,\bibdateeraprefix}
 \newrobustcmd*{\bibdatesep}{\hyphen}
 \newrobustcmd*{\bibdaterangesep}{\bibrangedash}
 \newrobustcmd*{\bibdatedash}{\bibrangedash}%LEGACY(<3.5)
@@ -5849,10 +5850,7 @@
             {\StrCut{#1}{year}\blx@datetype\blx@tempnull}%
            \csuse{if\blx@datetype\blx@tempa dateera}{bce}
             {\ifnumless{0-\thefield{#1}}{0}
-              {\ifdefstring\bibdaterangesep\bibdaterangesep
-                {\,}% Extra space between dash range seps and negative end years
-                {}%
-                \printtext{\bibdateeraprefix}}
+              {\printtext{\csuse{bibdateera\blx@tempa prefix}}}
               {}}
             {}%
            \endgroup}%
@@ -12480,13 +12478,18 @@
    \ifstrequal{#1}{iso8601}
     {\blx@warning@noline{%
      'iso8601' date format specifier is deprecated, use 'edtf' instead}%
-     \def\blx@dateformat@labeldate{edtf}}
+     \def\blx@dateformat@labeldate{edtf}%
+     \renewrobustcmd*{\bibdateeraendprefix}{\bibdateeraprefix}}
     {\def\blx@dateformat@labeldate{#1}}%
    \ifstrequal{#1}{ymd}
       {\renewrobustcmd*{\bibdaterangesep}{\slash}%
-       \renewrobustcmd*{\bibtimerangesep}{\slash}}
+       \renewrobustcmd*{\bibtimerangesep}{\slash}%
+       \renewrobustcmd*{\bibdateeraendprefix}{\bibdateeraprefix}}
       {}%
-  \ifcsdef{mkdaterange#1}
+   \ifstrequal{#1}{edtf}% bibdaterangesep hard-coded to slash, no extra space before prefices
+     {\renewrobustcmd*{\bibdateeraendprefix}{\bibdateeraprefix}}
+     {}%
+   \ifcsdef{mkdaterange#1}
     {\protected\def\blx@imc@printlabeldate{\csuse{mkdaterange#1}{label}}
      \protected\def\blx@imc@printlabeldateextra{\csuse{mkdaterange#1extra}{label}}}
     {\ifcsdef{mkbibrange#1}%LEGACY(<3.5)
@@ -12566,7 +12569,8 @@
       {\csdef{blx@dateformat@#1date}{##1}}%
     \ifstrequal{##1}{ymd}
       {\renewrobustcmd*{\bibdaterangesep}{\slash}%
-       \renewrobustcmd*{\bibtimerangesep}{\slash}}
+       \renewrobustcmd*{\bibtimerangesep}{\slash}%
+       \renewrobustcmd*{\bibdateeraendprefix}{\bibdateeraprefix}}
       {}%
     \ifcsdef{mkdaterange##1}
       {\protected\csedef{blx@imc@print#1date}{\noexpand\csuse{mkdaterange##1}{#1}}%
