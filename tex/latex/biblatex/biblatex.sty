@@ -5844,14 +5844,14 @@
           {\begingroup
            \let\blx@tempa\@empty
            \IfEndWith{#1}{endyear}
-            {\StrCut{#1}{endyear}\blx@datetype\blx@tempnull
-             \def\blx@tempa{end}}
-            {\StrCut{#1}{year}\blx@datetype\blx@tempnull}%
+             {\StrCut{#1}{endyear}\blx@datetype\blx@tempnull
+              \def\blx@tempa{end}}
+             {\StrCut{#1}{year}\blx@datetype\blx@tempnull}%
            \csuse{if\blx@datetype\blx@tempa dateera}{bce}
-            {\ifnumless{0-\thefield{#1}}{0}
-              {\printtext{\csuse{bibdateera\blx@tempa prefix}}}
-              {}}
-            {}%
+             {\ifnumless{0-\thefield{#1}}{0}
+               {\printtext{\csuse{bibdateera\blx@tempa prefix}}}
+               {}}
+             {}%
            \endgroup}
           {}}}
      {\protected\def\dateeraprint#1{%
@@ -6444,18 +6444,19 @@
   % Resolve labeldate
   % Note that here we can't refer to labelyear as this is where we create it, hence the
   % complications in constructing test names etc.
-  % This also shows why biber shouldn't resolved labeldate fields as we have to add
+  % This also shows why biber shouldn't resolve labeldate fields as we have to add
   % circa/uncertain/era etc. information to them and that has to be done here.
   \ifundef\abx@field@labeldatesource
     {}
     {\ifcsundef{abx@field@\abx@field@labeldatesource year}
        % \DeclareLabeldate resolved to a literal/localisation string or a non-date field
-       % in which case we only set labelyear
+       % in which case we only set labelyear.
        {\ifcsundef{abx@field@\abx@field@labeldatesource}
          % \DeclareLabeldate resolved to a literal/localisation string
          {\edef\abx@field@labelyear{\abx@field@labeldatesource}}
-         % \DeclareLabeldate resolved to a non-date field
-         {\edef\abx@field@labelyear{\csuse{abx@field@\abx@field@labeldatesource}}}}
+         % \DeclareLabeldate resolved to a non-date field.  Not safe to \edef because
+         % such contents could contain arbitrary macros, unlike ETDT sourced labeldatesource values
+         {\def\abx@field@labelyear{\csuse{abx@field@\abx@field@labeldatesource}}}}
        % \DeclareLabeldate resolved to a date field name prefix like '', 'event', 'url'
        % or 'orig'
        {% labeldateera/labelenddateera
