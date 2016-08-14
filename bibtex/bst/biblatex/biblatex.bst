@@ -1226,7 +1226,7 @@ FUNCTION {output:write:name:last} {
         'skip$
       if$
       format:name:initials
-      "family_i" combine:key:value output:indent:subfield:keyval
+      "familyi" combine:key:value output:indent:subfield:keyval
     }
   if$
 }
@@ -1244,7 +1244,7 @@ FUNCTION {output:write:name:first} {
         'skip$
       if$
       format:name:initials
-      "given_i" combine:key:value output:indent:subfield:keyval
+      "giveni" combine:key:value output:indent:subfield:keyval
     }
   if$
 }
@@ -1270,7 +1270,7 @@ FUNCTION {output:write:name:prefix} {
         }
       if$
       format:name:initials
-      "prefix_i" combine:key:value output:indent:subfield:keyval
+      "prefixi" combine:key:value output:indent:subfield:keyval
     }
   if$
 }
@@ -1288,7 +1288,7 @@ FUNCTION {output:write:name:suffix} {
         'skip$
       if$
       format:name:initials
-      "suffix_i" combine:key:value output:indent:subfield:keyval
+      "suffixi" combine:key:value output:indent:subfield:keyval
     }
   if$
 }
