@@ -346,7 +346,7 @@ compatibility matrix for the recent versions.
 \sffamily\bfseries\spotcolor Biber version
   & \sffamily\bfseries\spotcolor \biblatex\ version\\
 \midrule
-2.6 & 3.5\\
+2.6 & 3.5, 3.6\\
 2.5 & 3.4\\
 2.4 & 3.3\\
 2.3 & 3.2\\
@@ -715,7 +715,7 @@ The supported list of name parts is defined as a constant list in the default da
 
 \item[Integer fields] hold integers which may be converted to ordinals or strings as they are printed. A typical example is the \bibfield{extrayear} or \bibfield{volume} field. Such fields are sorted as integers. \biber makes a (quite serious) effort to map non-arabic representations (roman numerals for example) to integers for sorting purposes. 
 
-\item[Datepart fields] hold unformatted integers which may be converted to ordinals or strings as they are printed. A typical example is the \bibfield{month} field. For every field X of datatype \bibfield{date} in the datamodel, datepart fields are automatically created with the following names: \bibfield{$<$datetype$>$year}, \bibfield{$<$datetype$>$endyear}, \bibfield{$<$datetype$>$month}, \bibfield{$<$datetype$>$endmonth}, \bibfield{$<$datetype$>$day}, \bibfield{$<$datetype$>$endday}, \bibfield{$<$datetype$>$hour}, \bibfield{$<$datetype$>$endhour}, \bibfield{$<$datetype$>$minute}, \bibfield{$<$datetype$>$endminute}, \bibfield{$<$datetype$>$second}, \bibfield{$<$datetype$>$endsecond}, \bibfield{$<$datetype$>$timezone}, \bibfield{$<$datetype$>$endtimezone}.
+\item[Datepart fields] hold unformatted integers which may be converted to ordinals or strings as they are printed. A typical example is the \bibfield{month} field. For every field X of datatype \bibfield{date} in the datamodel, datepart fields are automatically created with the following names: \bibfield{$<$datetype$>$year}, \bibfield{$<$datetype$>$endyear}, \bibfield{$<$datetype$>$month}, \bibfield{$<$datetype$>$endmonth}, \bibfield{$<$datetype$>$day}, \bibfield{$<$datetype$>$endday}, \bibfield{$<$datetype$>$hour}, \bibfield{$<$datetype$>$endhour}, \bibfield{$<$datetype$>$minute}, \bibfield{$<$datetype$>$endminute}, \bibfield{$<$datetype$>$second}, \bibfield{$<$datetype$>$endsecond}, \bibfield{$<$datetype$>$timezone}, \bibfield{$<$datetype$>$endtimezone}. $<$datetype$>$ is the string preceding <date> for any datamodel field of \kvopt{datatype}{date}. For example, in the default datamodel, <event>, <orig>, <url> and the empty string <> for the date field \bibfield{date}.
 
 \item[Date fields] hold a date specification in \texttt{yyyy-mm-ddThh:nn[+|-][hh[:nn]|Z]} format or a date range in \texttt{yyyy-mm-ddThh:nn[+|-][hh[:nn]|Z]/yyyy-mm-ddThh:nn[+|-][hh[:nn]|Z]} format and other formats permitted by EDTF level 1, see \secref{bib:use:dat}. Date fields are special in that the date is parsed and split up into its datepart type components. The \bibfield{datepart} components (see above) are automatically defined and recognised when a field of datatype \bibfield{date} is defined in the datamodel. A typical example is the \bibfield{date} field.
 
@@ -2293,7 +2293,7 @@ This option controls whether to output <circa> information about dates. If set t
 
 \boolitem[false]{dateuncertain}
 
-This option controls whether to output uncertainty information about dates. If set to \opt{true}, dates will be followed by the expansion of the \cmd{dateuncertainprint} macro (\secref{use:fmt:fmt}).
+This option controls whether to output uncertainty information about dates. If set to \opt{true}, dates will be followed by the expansion of the \cmd{dateuncertainprint} macro and end dates will be followed by the \cmd{enddateuncertainprint} macro (\secref{use:fmt:fmt}).
 
 \optitem[astronomical]{dateera}{\opt{astronomical}, \opt{secular}, \opt{christian}}
 
@@ -4550,10 +4550,22 @@ When formatting dates with the global option \opt{datecirca} enabled, the delimi
 When formatting dates with the global option \opt{dateera} set, the delimiter printed before the localisation era term. Defaults to interword space.
 
 \csitem{dateuncertainprint}
-Prints date uncertainty information when the global option \opt{dateuncertain} is enabled. By default, prints the language specific \cmd{bibdateuncertain} string (\secref{use:fmt:lng}).
+Prints date uncertainty information when the global option \opt{dateuncertain} is enabled and the \cmd{ifdateuncertain} test is true. By default, prints the language specific \cmd{bibdateuncertain} string (\secref{use:fmt:lng}).
+
+\csitem{enddateuncertainprint}
+Prints date uncertainty information when the global option \opt{dateuncertain} is enabled and the \cmd{ifenddateuncertain} test is true. By default, prints the language specific \cmd{bibdateuncertain} string (\secref{use:fmt:lng}).
 
 \csitem{datecircaprint}
-Prints date uncertainty information when the global option \opt{datecirca} is enabled. By default, prints the <circa> localised term (\secref{aut:lng:key:dt}) and the \opt{datecircadelim} delimiter.
+Prints date circa information when the global option \opt{datecirca} is enabled and the \cmd{ifdatecirca} test is true. By default, prints the <circa> localised term (\secref{aut:lng:key:dt}) and the \opt{datecircadelim} delimiter.
+
+\csitem{enddatecircaprint}
+Prints date circa information when the global option \opt{datecirca} is enabled and the \cmd{ifenddatecirca} test is true. By default, prints the <circa> localised term (\secref{aut:lng:key:dt}) and the \opt{datecircadelim} delimiter.
+
+\csitem{datecircaprintedtf}
+Prints EDTF format date circa information when the global option \opt{datecirca} is enabled and the \cmd{ifdatecirca} test is true. Prints \cmd{textasciitilde}.
+
+\csitem{enddatecircaprintedtf}
+Prints EDTF format date circa information when the global option \opt{datecirca} is enabled and the \cmd{ifenddatecirca} test is true. Prints \cmd{textasciitilde}.
 
 \csitem{dateeraprint}{yearfield}
 Prints date era information when the global option \opt{dateera} is set to <secular> or <christian>. By default, prints the \opt{dateeradelim} delimiter and the appropriate localised era term (\secref{aut:lng:key:dt}). If the \opt{dateeraauto} option is set, then the passed \prm{yearfield} (which is the name of a year field such as <year>, <origyear>, <endeventyear> etc.) is tested to see if its value is earlier than the \opt{dateeraauto} threshold and if so, then the BCE/CE localisation will be output too. The default setting for \opt{dateeraauto} is 0 and so only BCE/BC localisation strings are candidates for output. Detects whether the start or end year era information is to be printed by looking at the \prm{yearfield} name passed to it.
@@ -9043,13 +9055,17 @@ Expands to \prm{true} if the date <datetype>date (\opt{date}, \opt{urldate}, \op
 
 As \cmd{if$<$datetype$>$datecirca} but for use in \cmd{mkbibdate*} formatting commands (\secref{aut:fmt:lng}) inside which the appropriate \cmd{if$<$datetype$>$datecirca} command is aliased to this command.
 
-\cmditem{ifdate<datetype>uncertain}{true}{false}
+\cmditem{if$<$datetype$>$dateuncertain}{true}{false}
 
 Expands to \prm{true} if the date <datetype>date (\opt{date}, \opt{urldate}, \opt{eventdate} etc.) had an uncertainty marker in the source and \prm{false} otherwise.  See \secref{bib:use:dat}. This command is useful for determining whether to print, for example, a question mark after a year.
 
 \cmditem{ifdateuncertain}{true}{false}
 
 As \cmd{if$<$datetype$>$dateuncertain} but for use in \cmd{mkbibdate*} formatting commands (\secref{aut:fmt:lng}) inside which the appropriate \cmd{if$<$datetype$>$dateuncertain} command is aliased to this command.
+
+\cmditem{ifenddateuncertain}{true}{false}
+
+As \cmd{ifend$<$datetype$>$dateuncertain} but for use in \cmd{mkbibdate*} formatting commands (\secref{aut:fmt:lng}) inside which the appropriate \cmd{ifend$<$datetype$>$dateuncertain} command is aliased to this command.
 
 \cmditem{ifcaselang}[language]{true}{false}
 
@@ -12784,6 +12800,11 @@ use$<$name$>$	&\+&\+&\+&\+\\
 This revision history is a list of changes relevant to users of this package. Changes of a more technical nature which do not affect the user interface or the behavior of the package are not included in the list. More technical details are to be found in the \file{CHANGES.org} file. The numbers on the right indicate the relevant section of this manual.
 
 \begin{changelog}
+
+\begin{release}{3.6}{2016-09-15}
+\item Corrected some documentation and fixed a bug with labeldate
+  localisation strings.
+\end{release}
 
 \begin{release}{3.5}{2016-09-10}
 \item Added \cmd{ifuniquebaretitle} test\see{aut:aux:tst}
