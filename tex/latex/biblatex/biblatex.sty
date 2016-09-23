@@ -10471,6 +10471,12 @@
   ~~~~</bcf:sortexclusion>\blx@nl}
 \xdef\blx@xml@exclude#1{%
   ~~~~~~<bcf:exclusion>#1</bcf:exclusion>\blx@nl}
+\xdef\blx@xml@sortinclude#1#2{%
+  ~~~~<bcf:sortinclusion\noexpand\ifblank{#1}{}{ type="#1"}>\blx@nl
+  #2%
+  ~~~~</bcf:sortinclusion>\blx@nl}
+\xdef\blx@xml@include#1{%
+  ~~~~~~<bcf:inclusion>#1</bcf:inclusion>\blx@nl}
 \xdef\blx@xml@sort#1#2{%
   ~~~~<bcf:sort #1>\blx@nl
   #2%
@@ -10799,13 +10805,16 @@
   % sorting
   \def\do##1{%
     \eappto\blx@bcf@presort{\csuse{blx@bcf@presort@##1}}%
-    \eappto\blx@bcf@exclude{\csuse{blx@bcf@exclude@##1}}}%
+    \eappto\blx@bcf@exclude{\csuse{blx@bcf@exclude@##1}}%
+    \eappto\blx@bcf@include{\csuse{blx@bcf@include@##1}}}%
   \abx@doentrytypes
+  \do{*}% entrytype wildcard
   \eappto\blx@tempa{%
     \blx@xml@comment{SORTING}%
     \blx@xml@sorting{}{%
       \blx@bcf@presort
       \blx@bcf@exclude
+      \blx@bcf@include
       \csuse{blx@sorting@\blx@sorting}%
     }%
   }%
@@ -11660,22 +11669,43 @@
 \def\blx@undefpresort#1{%
   \global\csundef{blx@bcf@presort@#1}}
 
+% {<entrytype,...>}{<field,...>}
 \newrobustcmd*{\DeclareSortExclusion}[2]{%
-  \forcsvlist{\blx@sortexlude{#2}}{#1}}
+  \forcsvlist{\blx@sortexclude{#2}}{#1}}
 \blx@collectopts{xml}{blx@typeopts}{sortexclusion}% for passing to the .bcf
 
-\def\blx@sortexlude#1#2{%
+% {<field>}{<entrytype>}
+\def\blx@sortexclude#1#2{%
   \begingroup
   \ifblank{#1}
     {\global\csundef{blx@bcf@exclude@#2}}
     {\let\blx@tempa\@empty
-     \forcsvlist\blx@sortexlude@i{#1}%
+     \forcsvlist\blx@sortexclude@i{#1}%
      \csxdef{blx@bcf@exclude@#2}{%
        \blx@xml@sortexclude{#2}{\blx@tempa}}}
   \endgroup}
 
-\def\blx@sortexlude@i#1{%
+\def\blx@sortexclude@i#1{%
   \appto\blx@tempa{\blx@xml@exclude{#1}}}
+
+% {<entrytype,...>}{<field,...>}
+\newrobustcmd*{\DeclareSortInclusion}[2]{%
+  \forcsvlist{\blx@sortinclude{#2}}{#1}}
+\blx@collectopts{xml}{blx@typeopts}{sortinclusion}% for passing to the .bcf
+
+% {<field>}{<entrytype>}
+\def\blx@sortinclude#1#2{%
+  \begingroup
+  \ifblank{#1}
+    {\global\csundef{blx@bcf@include@#2}}
+    {\let\blx@tempa\@empty
+     \forcsvlist\blx@sortinclude@i{#1}%
+     \csxdef{blx@bcf@include@#2}{%
+       \blx@xml@sortinclude{#2}{\blx@tempa}}}
+  \endgroup}
+
+\def\blx@sortinclude@i#1{%
+  \appto\blx@tempa{\blx@xml@include{#1}}}
 
 % [<type,type,...>]{<field,field,...>}
 \newrobustcmd*{\DeclareLabelname}[2][]{%
