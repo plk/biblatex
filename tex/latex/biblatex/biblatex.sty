@@ -6131,7 +6131,7 @@
     {\csdef{blx@nih@#1}##1{#2}}}
 \@onlypreamble\DeclareNameInputHandler
 
-% {<entrykey>}{<refsection>}{<field>}{<sort context>}{<value>}
+% {<entrykey>}{<refsection>}{<field>}{<refcontext>}{<value>}
 \long\def\blx@bbl@addentryfield#1#2#3#4#5{%
   \csxappto{blx@data@#2@#4@#1}{%
     \def\expandafter\noexpand\csname abx@field@#3\endcsname{#5}}}
@@ -7772,7 +7772,7 @@
 
 % This sets and saves to the .aux the default refcontext for an entry. The
 % default refcontext for an entry is the refcontext of the last
-% bibliography in the refsection in which it is actually printed . This
+% bibliography in the refsection in which it is actually printed. This
 % allows citations to default to selecting data from the correct
 % bibliography list in standard cases where entries are not listed in
 % multiple bibliographies
@@ -7977,7 +7977,7 @@
   \iftoggle{blx@defernumbers}
     {\global\let\blx@printbibchecks\relax}
     {\iftoggle{blx@labelnumber}
-       {\blx@warning@noline{Setting 'defernumbers=true' recommended}}
+       {}
        {\global\let\blx@printbibchecks\relax}}}
 
 % {<entrykey>,...}
@@ -8724,12 +8724,12 @@
 % {<entrykey>,...}
 \protected\def\blx@citeloop#1{%
   \begingroup
-    % Make sure this counter exists. Sometimes it might not when using, e.g:
-    % refsection=chapter and \includeonly to put in the chapters or when
-    % inserting citations into table of contents
-    \ifcsname blx@sectionciteorder@\the\c@refsection\endcsname\else
-      \expandafter\newcount\csname blx@sectionciteorder@\the\c@refsection\endcsname
-    \fi
+  % Make sure this counter exists. Sometimes it might not when using, e.g:
+  % refsection=chapter and \includeonly to put in the chapters or when
+  % inserting citations into table of contents
+  \ifcsname blx@sectionciteorder@\the\c@refsection\endcsname\else
+    \expandafter\newcount\csname blx@sectionciteorder@\the\c@refsection\endcsname
+  \fi
   \global\advance\csname blx@sectionciteorder@\the\c@refsection\endcsname\@ne
   \blx@tempcnta\z@
   \blx@tempcntb\z@
@@ -8833,15 +8833,19 @@
     {}%
   % assignment via entrykeys
   % weak version
-  \ifboolexpr{test {\ifcsdef{blx@assignedrefcontextkeys*@\the\c@refsection @#1}}
-              and
-              not togl {blx@refcontext}}% inside explicit non-global refcontext
-    {\letcs\blx@refcontext@context{blx@assignedrefcontextkeys*@\the\c@refsection @#1}}
+  \nottoggle{blx@refcontext}
+    {\ifcsdef{blx@assignedrefcontextkeys*@\the\c@refsection @*}
+       {\letcs\blx@refcontext@context{blx@assignedrefcontextkeys*@\the\c@refsection @*}}
+       {\ifcsdef{blx@assignedrefcontextkeys*@\the\c@refsection @#1}
+         {\letcs\blx@refcontext@context{blx@assignedrefcontextkeys*@\the\c@refsection @#1}}
+         {}}}
     {}%
   % strong version
-  \ifcsdef{blx@assignedrefcontextkeys@\the\c@refsection @#1}
-    {\letcs\blx@refcontext@context{blx@assignedrefcontextkeys@\the\c@refsection @#1}}
-    {}}
+  \ifcsdef{blx@assignedrefcontextkeys@\the\c@refsection @*}
+    {\letcs\blx@refcontext@context{blx@assignedrefcontextkeys@\the\c@refsection @*}}
+    {\ifcsdef{blx@assignedrefcontextkeys@\the\c@refsection @#1}
+      {\letcs\blx@refcontext@context{blx@assignedrefcontextkeys@\the\c@refsection @#1}}
+      {}}}
 
 % {<entrykey>}
 \protected\def\blx@citeprint#1{%
@@ -11143,8 +11147,8 @@
 % [<entrytype>]{<spec>}
 \newrobustcmd*{\DeclareLabelalphaNameTemplate}[2][]{%
    \ifblank{#1}
-    {\blx@lantem{#2}{global}}
-    {\forcsvlist{\blx@lantem{#2}}{#1}}}
+     {\blx@lantem{#2}{global}}
+     {\forcsvlist{\blx@lantem{#2}}{#1}}}
 \@onlypreamble\DeclareLabelalphaNameTemplate
 \blx@collectopts{xml}{blx@globalopts}{labelalphanametemplate}% for passing to the .bcf
 \blx@collectopts{xml}{blx@typeopts}{labelalphanametemplate}% for passing to the .bcf

@@ -3821,14 +3821,14 @@ At the beginning of the document, there is always a global context containing gl
 %   labelprefix=A
 \end{refcontext}
 
-\newfcontext}[labelprefix=B]
+\newrefcontext}[labelprefix=B]
 % reference context:
 %   sorting=nty
 %   sortingnamekeyscheme=global
 %   labelprefix=B
 \endrefcontext
 
-\newfcontext}[sorting=ynt,labelprefix=C]{testrc}
+\newrefcontext}[sorting=ynt,labelprefix=C]{testrc}
 % reference context:
 %   sorting=ynt
 %   sortingnamekeyscheme=global
@@ -3844,9 +3844,11 @@ At the beginning of the document, there is always a global context containing gl
 \cmditem{assignrefcontextcats*}[key=value, \dots]{category1, category2, ...}
 \cmditem{assignrefcontextentries}[key=value, \dots]{entrykey1, entrykey2, ...}
 \cmditem{assignrefcontextentries*}[key=value, \dots]{entrykey1, entrykey2, ...}
+\cmditem{assignrefcontextentries}[key=value, \dots]{*}
+\cmditem{assignrefcontextentries*}[key=value, \dots]{*}
 
 \end{ltxsyntax}
-These commands automate putting citations into refcontexts when the default behaviour is not sufficient. The default behaviour is that the data for a citation is drawn from the refcontext of the last bibliography in which it was printed. For citations that are used in some way but not printed in a bibliography or bibliography list, they default to drawing their data from the global refcontext established at the beginning of the document. To override this behaviour, instead of manually wrapping citation commands in \env{refcontext} environments, which might be error-prone and tedious, you can register a comma"=separated list of \prm{keywords}, \prm{categories} or \prm{entrykeys} which, respectively, make the entries with any of the specified keywords, entries in any of the specified categories (see \secref{use:use:div}) or entries with any of the specified citation keys draw their data from a particular refcontext specified by the \prm{refcontext key/values} which are parsed as the per the corresponding \env{refcontext} options. Such refcontext auto-assignments are specific to the current refsection. You may specify the same citation key in any of these commands but be aware that assignment is done in the order \prm{keywords}, \prm{categories}, \prm{entrykeys} with the later specifications overriding the earlier. An example:
+These commands automate putting citations into refcontexts when the default behaviour is not sufficient. The default behaviour is that the data for a citation is drawn from the refcontext of the last bibliography in which it was printed. For citations that are used in some way but not printed in a bibliography or bibliography list, they default to drawing their data from the global refcontext established at the beginning of the document. To override this behaviour, instead of manually wrapping citation commands in \env{refcontext} environments, which might be error-prone and tedious, you can register a comma"=separated list of \prm{keywords}, \prm{categories} or \prm{entrykeys} which, respectively, make the entries with any of the specified keywords, entries in any of the specified categories (see \secref{use:use:div}) or entries with any of the specified citation keys draw their data from a particular refcontext specified by the \prm{refcontext key/values} which are parsed as the per the corresponding \env{refcontext} options. Such refcontext auto-assignments are specific to the current refsection. You may specify the same citation key in any of these commands but be aware that assignment is done in the order \prm{keywords}, \prm{categories}, \prm{entrykeys} with the later specifications overriding the earlier. \cmd{assignrefcontextentries} accepts a single asterisk instead of a list of entrykeys which allows the assignment of all keys in a refsection to a refcontext with having to explicitly list them. An example:
 
 \begin{ltxexample}[style=latex]{}
 \assignrefcontextentries[labelprefix=A]{key2}
@@ -4636,7 +4638,7 @@ A. Smith. Title. 2000, (Orig. pub. as<<->>Origtitle)
 \end{ltxexample}
 
 \csitem{relateddelim}
-The separator between the data of multiple related entries. The default definition is an optional dot plus linebreak. Here is an example where volumes A-E are related entries of the 5 volume main work:
+The generic separator between the data of multiple related entries. The default definition is an optional dot plus linebreak. Here is an example where volumes A-E are related entries of the 5 volume main work:
 
 \begin{ltxexample}
 Donald E. Knuth. Computers & Typesetting. 5 vols. Reading, Mass.: Addison-
@@ -4648,8 +4650,10 @@ Vol. D: METAFONT: The Program. 1986.
 Vol. E: Computer Modern Typefaces. 1986.
 \end{ltxexample}
 
-\end{ltxsyntax}
+\csitem{relateddelim$<$relatedtype$>$}
+The separator between the data of multiple related entries inside related entries of type <relatedtype>. There is no default, if such a type-specific delimiter does not exist, \cmd{relateddelim} is used.
 
+\end{ltxsyntax}
 
 \subsubsection{Context-sensitive Delimiters}
 \label{use:fmt:csd}
@@ -10951,6 +10955,9 @@ The separator between the relatedtype bibliography localisation string and the d
 \csitem{relateddelim}
 The separator between the data of multiple related entries. The default definition is a linebreak.
 
+\csitem{relateddelim$<$relatedtype$>$}
+The separator between the data of multiple related entries inside related entries of type <relatedtype>. There is no default, if such a type-specific delimiter does not exist, \cmd{relateddelim} is used.
+
 \end{ltxsyntax}
 
 \subsubsection{Language-specific Commands}
@@ -12153,7 +12160,7 @@ Since the alternative \file{lbx} file can inherit strings from the standard \pat
 \endinput
 \end{ltxexample}
 %
-Alternative \file{lbx} files must ensure that the localisation module is complete. They will typically do so by inheriting data from the corresponding standard module. If the language \texttt{american} is mapped to \path{american-mla.lbx}, \biblatex will not load \path{american.lbx} unless this module is requested explicitly. In the above example, inheriting <strings> and <extras> will cause \biblatex to load \path{american.lbx} before applying the modifications in \path{american-mla.lbx}.
+Alternative \file{lbx} files must ensure that the localisation module is complete. They should do so by inheriting data from the corresponding standard module. If the language \texttt{american} is mapped to \path{american-mla.lbx}, \biblatex will not load \path{american.lbx} unless this module is requested explicitly. In the above example, inheriting <strings> and <extras> will cause \biblatex to load \path{american.lbx} before applying the modifications in \path{american-mla.lbx}.
 
 Note that \cmd{DeclareLanguageMapping} is not intended to handle language variants (\eg American English vs. British English) or \sty{babel}/\sty{polyglossia} language aliases (\eg \texttt{USenglish} vs. \texttt{american}). For example, \sty{babel}/\sty{polyglossia} offers the \texttt{USenglish} option which is similar to \texttt{american}. Therefore, \biblatex ships with an \path{USenglish.lbx} file which simply inherits all data from \path{american.lbx} (which in turn gets the <strings> from \path{english.lbx}). In other words, the mapping of language variants and \sty{babel}/\sty{polyglossia} language aliases happens on the file level, the point being that \biblatex's language support can be extended simply by adding additional \file{lbx} files. There is no need for centralized mapping. If you need support for, say, Portuguese (babel/polyglossia: \file{portuges}), you create a file named \path{portuges.lbx}. If \sty{babel}/\sty{polyglossia} offered an alias named \texttt{brasil}, you would create \path{brasil.lbx} and inherit the data from \path{portuges.lbx}. In contrast to that, the point of \cmd{DeclareLanguageMapping} is handling \emph{stylistic} variants like <humanities vs. natural sciences> or <\acr{mla} vs. \acr{apa}> etc. which will typically be built on top of existing \file{lbx} files.
 
@@ -12815,6 +12822,7 @@ This revision history is a list of changes relevant to users of this package. Ch
 \begin{release}{3.7}{2016}
 \item Corrected default for \cmd{bibdateeraprefix}\see{aut:fmt:lng}
 \item Added \cmd{DeclareSortInclusion}\see{aut:ctm:srt}
+\item Added \cmd{relateddelim$<$relatedtype$>$}\see{use:fmt:fmt}
 \end{release}
 
 \begin{release}{3.6}{2016-09-15}
