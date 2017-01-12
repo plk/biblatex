@@ -61,8 +61,8 @@ then
 fi
 
 declare VERSION=$2
-declare VERSIONM=`echo -n "$VERSION" | perl -nE 'say s/^(\d+\.\d+)[a-z]/$1/r'`
-declare DATE=`date '+%Y/%m/%d'`
+declare VERSIONM=$(echo -n "$VERSION" | perl -nE 'say s/^(\d+\.\d+)[a-z]/$1/r')
+declare DATE=$(date '+%Y/%m/%d')
 
 if [[ "$1" == "upload" ]]
 then
@@ -70,11 +70,11 @@ then
     then
       if [[ "$3" == "DEV" ]]
       then
-        scp obuild/biblatex-$VERSION.*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/development/
+        scp obuild/biblatex-"$VERSION".*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/development/
         scp doc/latex/biblatex/CHANGES.org philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/development/
       else
-        scp obuild/biblatex-$VERSION.*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/biblatex-$VERSIONM/
-        scp doc/latex/biblatex/CHANGES.org philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/biblatex-$VERSIONM/
+        scp obuild/biblatex-"$VERSION".*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/biblatex-"$VERSIONM"/
+        scp doc/latex/biblatex/CHANGES.org philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/biblatex-"$VERSIONM"/
       fi
     exit 0
   fi
@@ -83,7 +83,7 @@ fi
 
 if [[ "$1" == "builddist" || "$1" == "build" || "$1" == "install" ]]
 then
-  find . -name \*~ -print | xargs rm >/dev/null 2>&1
+  find . -name \*~ -print0 | xargs -0 rm >/dev/null 2>&1
   # tds
   [[ -e obuild/tds ]] || mkdir obuild/tds
   \rm -rf obuild/tds/*
@@ -127,8 +127,8 @@ then
   perl -pi -e "s|\\\\abx\\@date\{[^\}]+\}|\\\\abx\\@date\{$DATE\}|;s|\\\\abx\\@version\{[^\}]+\}|\\\\abx\\@version\{$VERSION\}|;" obuild/tds/tex/latex/biblatex/biblatex.sty obuild/flat/biblatex/latex/biblatex.sty
 
   # Can't do in-place on windows (cygwin)
-  find obuild/tds -name \*.bak | xargs \rm -rf
-  find obuild/tds -name auto | xargs \rm -rf
+  find obuild/tds -name \*.bak -print0 | xargs -0 \rm -rf
+  find obuild/tds -name auto -print0 | xargs -0 \rm -rf
 
   echo "Created build trees ..."
 fi
@@ -154,7 +154,7 @@ fi
 
 if [[ "$1" == "builddocs" || "$1" == "build" ]]
 then
-  cd doc/latex/biblatex
+  cd doc/latex/biblatex || exit
 
   perl -pi.bak -e 's|DATEMARKER|\\today|;' biblatex.tex
 
@@ -168,7 +168,7 @@ then
 
   cp biblatex.pdf ../../../obuild/tds/doc/
   cp biblatex.pdf ../../../obuild/flat/doc/
-  cd ../../..
+  cd ../../.. || exit
 
   echo "Created main documentation ..."
 fi
@@ -192,7 +192,7 @@ then
   cp -r doc/latex/biblatex/examples/*.bib obuild/test/examples/
   \rm -f obuild/test/example_errs_biber.txt
   \rm -f obuild/test/example_errs_bibtex.txt
-  cd obuild/test/examples
+  cd obuild/test/examples || exit
 
   # Make the bibtex/biber backend test files
   for f in *.tex
@@ -346,11 +346,11 @@ $TEXENGINE errors/warnings
       fi
     done
   fi
-  cd ../../..
+  cd ../../.. || exit
 fi
 
 if [[ "$1" == "testoutput" ]]
 then
-  cd obuild
+  cd obuild || exit
   ./testfull.pl
 fi
