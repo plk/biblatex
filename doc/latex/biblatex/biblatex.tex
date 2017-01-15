@@ -60,7 +60,7 @@
   url={\biblatexhome},
   author={Philipp Lehman \\(with Philip Kime, Audrey Boruvka and Joseph Wright)},
   email={},
-  revision={3.5},
+  revision={3.7},
   date={\today}}
 
 \hypersetup{%
@@ -199,7 +199,8 @@ Ignacio Fernández Galván (Spanish);
 Per Starbäck, Carl-Gustav Werner, Filip Åsblom (Swedish);
 Martin Vrábel, Dávid Lupták (Slovak);
 Benson Muite (Estonian);
- 
+Kaloyan Ganev (Bulgarian); 
+
 \subsection{Prerequisites}
 \label{int:pre}
 
@@ -715,7 +716,7 @@ The supported list of name parts is defined as a constant list in the default da
 
 \item[Integer fields] hold integers which may be converted to ordinals or strings as they are printed. A typical example is the \bibfield{extrayear} or \bibfield{volume} field. Such fields are sorted as integers. \biber makes a (quite serious) effort to map non-arabic representations (roman numerals for example) to integers for sorting purposes. 
 
-\item[Datepart fields] hold unformatted integers which may be converted to ordinals or strings as they are printed. A typical example is the \bibfield{month} field. For every field X of datatype \bibfield{date} in the datamodel, datepart fields are automatically created with the following names: \bibfield{$<$datetype$>$year}, \bibfield{$<$datetype$>$endyear}, \bibfield{$<$datetype$>$month}, \bibfield{$<$datetype$>$endmonth}, \bibfield{$<$datetype$>$day}, \bibfield{$<$datetype$>$endday}, \bibfield{$<$datetype$>$hour}, \bibfield{$<$datetype$>$endhour}, \bibfield{$<$datetype$>$minute}, \bibfield{$<$datetype$>$endminute}, \bibfield{$<$datetype$>$second}, \bibfield{$<$datetype$>$endsecond}, \bibfield{$<$datetype$>$timezone}, \bibfield{$<$datetype$>$endtimezone}. $<$datetype$>$ is the string preceding <date> for any datamodel field of \kvopt{datatype}{date}. For example, in the default datamodel, <event>, <orig>, <url> and the empty string <> for the date field \bibfield{date}.
+\item[Datepart fields] hold unformatted integers which may be converted to ordinals or strings as they are printed. A typical example is the \bibfield{month} field. For every field of datatype \bibfield{date} in the datamodel, datepart fields are automatically created with the following names: \bibfield{$<$datetype$>$year}, \bibfield{$<$datetype$>$endyear}, \bibfield{$<$datetype$>$month}, \bibfield{$<$datetype$>$endmonth}, \bibfield{$<$datetype$>$day}, \bibfield{$<$datetype$>$endday}, \bibfield{$<$datetype$>$hour}, \bibfield{$<$datetype$>$endhour}, \bibfield{$<$datetype$>$minute}, \bibfield{$<$datetype$>$endminute}, \bibfield{$<$datetype$>$second}, \bibfield{$<$datetype$>$endsecond}, \bibfield{$<$datetype$>$timezone}, \bibfield{$<$datetype$>$endtimezone}. $<$datetype$>$ is the string preceding <date> for any datamodel field of \kvopt{datatype}{date}. For example, in the default datamodel, <event>, <orig>, <url> and the empty string <> for the date field \bibfield{date}.
 
 \item[Date fields] hold a date specification in \texttt{yyyy-mm-ddThh:nn[+|-][hh[:nn]|Z]} format or a date range in \texttt{yyyy-mm-ddThh:nn[+|-][hh[:nn]|Z]/yyyy-mm-ddThh:nn[+|-][hh[:nn]|Z]} format and other formats permitted by EDTF level 1, see \secref{bib:use:dat}. Date fields are special in that the date is parsed and split up into its datepart type components. The \bibfield{datepart} components (see above) are automatically defined and recognised when a field of datatype \bibfield{date} is defined in the datamodel. A typical example is the \bibfield{date} field.
 
@@ -1156,6 +1157,7 @@ The gender of the author or the gender of the editor, if there is no author. The
 \multicolumn{1}{@{}H}{Region/Dialect} &
 \multicolumn{1}{@{}H}{Identifiers} \\
 \cmidrule(r){1-1}\cmidrule(r){2-2}\cmidrule{3-3}
+Bulgarian    & Bulgaria       & \opt{bulgarian} \\
 Catalan      & Spain, France, Andorra, Italy & \opt{catalan} \\
 Croatian     & Croatia, Bosnia and Herzegovina, Serbia & \opt{croatian} \\
 Czech        & Czech Republic & \opt{czech} \\
@@ -1171,8 +1173,10 @@ Finnish      & Finland        & \opt{finnish} \\
 French       & France, Canada & \opt{french} \\
 German       & Germany        & \opt{german} \\
              & Austria        & \opt{austrian} \\
+             & Switzerland    & \opt{swissgerman} \\
 German (new) & Germany        & \opt{ngerman} \\
              & Austria        & \opt{naustrian} \\
+             & Switzerland    & \opt{nswissgerman} \\
 Greek        & Greece         & \opt{greek} \\
 Italian      & Italy          & \opt{italian} \\
 Norwegian    & Norway         & \opt{norwegian}, \opt{norsk}, \opt{nynorsk} \\
@@ -1274,9 +1278,9 @@ Similar to \bibfield{sortkey} but used in the list of shorthands. If present, \b
 
 A field used to modify the sorting order of the bibliography. If present, this field is used instead of the \bibfield{title} field when sorting the bibliography. The \bibfield{sorttitle} field may come in handy if you have an entry with a title like «An Introduction to\dots» and want that alphabetized under <I> rather than <A>. In this case, you could put «Introduction to\dots» in the \bibfield{sorttitle} field. Please refer to \secref{use:srt} for further details. This field is consumed by the backend processing and does not appear in the \path{.bbl}.
 
-\fielditem{sortyear}{integer}
+\fielditem{sortyear}{literal}
 
-A field used to modify the sorting order of the bibliography. If present, this field is used instead of the \bibfield{year} field when sorting the bibliography. Please refer to \secref{use:srt} for further details. This field is consumed by the backend processing and does not appear in the \path{.bbl}.
+A field used to modify the sorting order of the bibliography. If present, this field is used instead of the \bibfield{year} field when sorting the bibliography. Please refer to \secref{use:srt} for further details. This field is consumed by the backend processing and does not appear in the \path{.bbl}. Note that this is not an integer but rather a literal field as sometimes things like «1984-1» are used to modify temporal sorting.
 
 \fielditem{xdata}{separated list of entrykeys}
 
@@ -1617,8 +1621,13 @@ This entry will be printed as «\emph{Journal Name}. New ser. 9 (1998)». See \s
 \cmidrule{1-1}\cmidrule(l){2-2}\cmidrule(l){3-3}
 1850			& 1850				& 1850 \\
 1997/			& 1997--			& 1997-- \\
+/1997			& --1997			& --1997 \\
 1997/unknown		& 1997--			& 1997-- \\
+1997/*		& 1997--			& 1997-- \\
+unknown/1997		& --1997			& --1997 \\
+*/1997		& --1997			& --1997 \\
 1997/open		& 1997--			& 1997-- \\
+open/1997		& --1997			& --1997 \\
 1967-02			& 02/1967			& February 1967 \\
 2009-01-31		& 31/01/2009			& 31st January 2009 \\
 1988/1992		& 1988--1992			& 1988--1992 \\
@@ -1631,13 +1640,13 @@ This entry will be printed as «\emph{Journal Name}. New ser. 9 (1998)». See \s
 \label{bib:use:tab1}
 \end{table}
 
-Date fields such as the default data model dates \bibfield{date}, \bibfield{origdate}, \bibfield{eventdate}, and \bibfield{urldate} adhere to  \acr{EDTF}\footnote{\url{https://www.loc.gov/standards/datetime/pre-submission.html}} (Extended Date/Time Format) specification levels 0 and 1. \acr{EDTF} is a stricter subset of the somewhat messy formats allowed by \acr{ISO8601v2004} and is better suited to bibliographic data. In addition to the \acr{EDTF} empty date range markers, you may also specify an open ended date range by giving the range separator and omitting the end date (\eg \texttt{YYYY/}). See \tabref{bib:use:tab1} for some examples of valid date specifications and the formatted dates automatically generated by \biblatex. The formatted date is language specific and will be adapted automatically. If there is no \bibfield{date} field in an entry, \biblatex will also consider the fields \bibfield{year} and \bibfield{month} for backwards compatibility with traditional \bibtex but this is not encouraged as explicit \bibfield{year} and \bibfield{month} are not parsed for date meta-information markers or times and are used as-is. Style authors should note that date fields like \bibfield{date} or \bibfield{origdate} are only available in the \file{bib} file. All dates are parsed and dissected into their components as the \file{bib} file is processed. The date and time components are made available to styles by way of the special fields discussed in \secref{aut:bbx:fld:dat}. See this section and \tabref{aut:bbx:fld:tab1} on page~\pageref{aut:bbx:fld:tab1} for further information.
+Date fields such as the default data model dates \bibfield{date}, \bibfield{origdate}, \bibfield{eventdate}, and \bibfield{urldate} adhere to  \acr{EDTF}\footnote{\url{https://www.loc.gov/standards/datetime/pre-submission.html}} (Extended Date/Time Format) specification levels 0 and 1. Also supported are the open-ended range specifications in section 4.5 of the current working draft of ISO8601-2\footnote{\url{http://www.loc.gov/standards/datetime/iso-tc154-wg5_n0039_iso_wd_8601-2_2016-02-16.pdf}}. \acr{EDTF} is a stricter subset of the somewhat messy formats allowed by \acr{ISO8601v2004} and is better suited to bibliographic data. In addition to the \acr{EDTF} empty date range markers, you may also specify an open ended/start date range by giving the range separator and omitting the end/start date (\eg \texttt{YYYY/}, \texttt{/YYYY}). See \tabref{bib:use:tab1} for some examples of valid date specifications and the formatted dates automatically generated by \biblatex. The formatted date is language specific and will be adapted automatically. If there is no \bibfield{date} field in an entry, \biblatex will also consider the fields \bibfield{year} and \bibfield{month} for backwards compatibility with traditional \bibtex but this is not encouraged as explicit \bibfield{year} and \bibfield{month} are not parsed for date meta-information markers or times and are used as-is. Style authors should note that date fields like \bibfield{date} or \bibfield{origdate} are only available in the \file{bib} file. All dates are parsed and dissected into their components as the \file{bib} file is processed. The date and time components are made available to styles by way of the special fields discussed in \secref{aut:bbx:fld:dat}. See this section and \tabref{aut:bbx:fld:tab1} on page~\pageref{aut:bbx:fld:tab1} for further information.
 
 \acr{EDTF} dates are astronomical dates in which year <0> exists. When outputting dates in BCE or BC era (see the \opt{dateera} option below), note that they will typically be one year earlier since BCE/BC era do not have a year 0 (year 0 is 1 BCE/BC). This conversion is automatic. See examples in table \tabref{bib:use:tab2}.
 
 Date field names \emph{must} end with the string <date>, as with the default date fields. Bear this in mind when adding new date fields to the datamodel (see \secref{aut:ctm:dm}). \biblatex will check all date fields after reading the date model and will exit with an error if it finds a date field which does not adhere to this naming convention.
 
-\acr{EDTF} supports dates before common era (BCE/BC) by way of a negative date format and supports  <approximate> (circa) and uncertain dates. Such date formats set internal markers which can be tested for so that appropriate localised markers (such as \opt{circa} or \opt{beforecommonera}) can be inserted. Also supported are <uncertain> dates (\acr{EDTF} 5.2.2) which are automatically expanded into appropriate data ranges accompanied by a field \bibfield{$<$datetype$>$dateunspecified} which details the granularity of the unspecified data. Styles may use this information to format such dates appropriately but the standard styles do not do this. See \tabref{bib:use:tab3} on page~\pageref{bib:use:tab3} for the allowed \acr{EDTF} <unspecified> formats, their range expansions and \bibfield{$<$datetype$>$dateunspecified} values (see \secref{aut:bbx:fld:gen}).
+\acr{EDTF} supports dates before common era (BCE/BC) by way of a negative date format and supports  <approximate> (circa) and uncertain dates. Such date formats set internal markers which can be tested for so that appropriate localised markers (such as \opt{circa} or \opt{beforecommonera}) can be inserted. Also supported are <unspecified> dates (\acr{EDTF} 5.2.2) which are automatically expanded into appropriate data ranges accompanied by a field \bibfield{$<$datetype$>$dateunspecified} which details the granularity of the unspecified data. Styles may use this information to format such dates appropriately but the standard styles do not do this. See \tabref{bib:use:tab3} on page~\pageref{bib:use:tab3} for the allowed \acr{EDTF} <unspecified> formats, their range expansions and \bibfield{$<$datetype$>$dateunspecified} values (see \secref{aut:bbx:fld:gen}).
 
 \begin{table}
 \tablesetup
@@ -1658,7 +1667,7 @@ Date field names \emph{must} end with the string <date>, as with the default dat
 \label{bib:use:tab3}
 \end{table}
 
-\tabref{bib:use:tab2} shows formats which use appropriate tests and formatting. See the date meta-information tests in \secref{aut:aux:tst} and the localisation strings in in \secref{aut:lng:key:dt}. See also the \file{96-dates.tex} example file for complete examples of the tests and localisation strings use.
+\tabref{bib:use:tab2} shows formats which use appropriate tests and formatting. See the date meta-information tests in \secref{aut:aux:tst} and the localisation strings in \secref{aut:lng:key:dt}. See also the \file{96-dates.tex} example file for complete examples of the tests and localisation strings use.
 
 The output of <circa>, uncertainty and era information in standard styles (or custom styles not customising the internal \cmd{mkdaterange*} macros) is controlled by the package options \opt{datecirca}, \opt{dateuncertain}, \opt{dateera} and \opt{dateeraauto} (see \secref{use:opt:pre:gen}). See \tabref{bib:use:tab2} on page~\pageref{bib:use:tab2} for examples which assumes these options are all used.
 
@@ -4959,6 +4968,11 @@ This will yield <Œuvres> or <œuvres>.
 \label{use:loc}
 
 The facilities discussed in this section are specific to certain localisation modules.
+
+\subsubsection{Bulgarian}
+\label{use:loc:bul}
+
+Like the Greek localisation module, the Bulgarian module also requires \utf support. It will not work with any other encoding. 
 
 \subsubsection{American}
 \label{use:loc:us}
@@ -9543,7 +9557,7 @@ Similar to the \cmd{forcsvlist} command from the \sty{etoolbox} package, except 
 
 \cmditem{MakeCapital}{text}
 
-Similar to \cmd{MakeUppercase} but only coverts the first printable character in \prm{text} to uppercase. Note that the restrictions that apply to \cmd{MakeUppercase} also apply to this command. Namely, all commands in \prm{text} must either be robust or prefixed with \cmd{protect} since the \prm{text} is expanded during capitalization. Apart from Ascii characters and the standard accent commands, this command also handles the active characters of the \sty{inputenc} package as well as the shorthands of the \sty{babel} package. If the \prm{text} starts with a control sequence, nothing is capitalized. This command is robust.
+Similar to \cmd{MakeUppercase} but only converts the first printable character in \prm{text} to uppercase. Note that the restrictions that apply to \cmd{MakeUppercase} also apply to this command. Namely, all commands in \prm{text} must either be robust or prefixed with \cmd{protect} since the \prm{text} is expanded during capitalization. Apart from Ascii characters and the standard accent commands, this command also handles the active characters of the \sty{inputenc} package as well as the shorthands of the \sty{babel} package. If the \prm{text} starts with a control sequence, nothing is capitalized. This command is robust.
 
 \cmditem{MakeSentenceCase}{text}
 \cmditem*{MakeSentenceCase*}{text}
@@ -9963,7 +9977,7 @@ The following commands configure various features related to punctuation and aut
 This command declares characters that are to be treated specially when testing to see if \cmd{bibnamedelimc} is to be inserted between a name prefix and a family name. If a character is in the list of \prm{characters}, \cmd{bibnamedelimc} is not inserted. It is used to allow abbreviated name prefices like <d'Argent> where no space should be inserted after the apostrophe. The default setting is:
 
 \begin{ltxexample}
-\DeclarePrefChars{'}
+\DeclarePrefChars{'’-}
 \end{ltxexample}
 
 \cmditem{DeclareAutoPunctuation}{characters}
@@ -10198,7 +10212,8 @@ The \prm{language} is the string given in the \bibfield{language} field (without
 
 \begin{ltxexample}
 \DeclareRedundantLanguages{french}{french}
-\DeclareRedundantLanguages{german}{german,ngerman,austrian,naustrian}
+\DeclareRedundantLanguages{german}{german,ngerman,austrian,naustrian,
+        nswissgerman,swissgerman}
 \DeclareRedundantLanguages{english,american}{english,american,british,
 	canadian,australian,newzealand,USenglish,UKenglish}
 \end{ltxexample}
@@ -10208,6 +10223,16 @@ Note that this feature needs to be enabled globally with the \opt{clearlang} opt
 \cmditem{DeclareLanguageMapping}{language}{file}
 
 This command maps a \sty{babel}/\sty{polyglossia} language identifier to an \file{lbx} file. The \prm{language} must be a language name known to the \sty{babel}/\sty{polyglossia} package, \ie one of the identifiers listed in \tabref{bib:fld:tab1}. The \prm{file} argument is the name of an alternative \file{lbx} file without the \texttt{.lbx} suffix. Declaring the same mapping more than once is possible. Subsequent declarations will simply overwrite any previous ones. This command may only be used in the preamble. See \secref{aut:cav:lng} for further details.
+
+\cmditem{DeclareLanguageMappingSuffix}{suffix}
+
+This command defines a language file suffix which will be added when looking for \file{.lbx} language string definition files. This is intended for styles which provide their own \file{.lbx} files so that they will be used automatically. For example, the APA style defines:
+
+\begin{ltxexample}
+\DeclareLanguageMappingSuffix{-apa}
+\end{ltxexample}
+%
+When the document language is <german>, \biblatex will look for the file \file{german-apa.lbx} which defines some APA specific strings and in turn loads \file{german.lbx}. If \cmd{DeclareLanguageMapping} is defined for a language, this overrides \cmd{DeclareLanguageMappingSuffix}.
 
 \cmditem{NewBibliographyString}{key}
 
@@ -10672,6 +10697,7 @@ Other expressions frequently used in citations:
 \begin{keymarglist}
 \item[langamerican] The language <American> or <American English>.
 \item[langbrazilian] The language <Brazilian> or <Brazilian Portuguese>.
+\item[langbulgarian] The language <Bulgarian>.
 \item[langcatalan] The language <Catalan>.
 \item[langcroatian] The language <Croatian>.
 \item[langczech] The language <Czech>.
@@ -10701,6 +10727,7 @@ The following strings are intended for use in phrases like <translated from [the
 \begin{keymarglist}
 \item[fromamerican] The expression <from [the] American> or <from [the] American English>.
 \item[frombrazilian] The expression <from [the] Brazilian> or <from [the] Brazilian Portuguese>.
+\item[frombulgarian] The expression <from [the] Bulgarian>.
 \item[fromcatalan] The expression <from [the] Catalan>.
 \item[fromcroatian] The expression <from [the] Croatian>.
 \item[fromczech] The expression <from [the] Czech>.
@@ -12819,7 +12846,14 @@ This revision history is a list of changes relevant to users of this package. Ch
 
 \begin{changelog}
 
-\begin{release}{3.7}{2016}
+\begin{release}{3.8}{2016-12}
+\item Added Bulgarian localisation (Kaloyan Ganev)
+\item \bibfield{sortyear} is now a literal, not an integer\see{bib:fld:spc}
+\item Added \cmd{DeclareLanguageMappingSuffix}\see{aut:lng:cmd}
+\item Changed default for \cmd{DeclarePrefChars}\see{aut:pct:cfg}
+\end{release}
+
+\begin{release}{3.7}{2016-12-08}
 \item Corrected default for \cmd{bibdateeraprefix}\see{aut:fmt:lng}
 \item Added \cmd{DeclareSortInclusion}\see{aut:ctm:srt}
 \item Added \cmd{relateddelim$<$relatedtype$>$}\see{use:fmt:fmt}

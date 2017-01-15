@@ -21,7 +21,7 @@
 % This is not updated by build script as the control file version
 % does not necessarily change with the package version.
 % This is used when writing the .bcf
-\def\blx@bcfversion{3.3}
+\def\blx@bcfversion{3.4}
 
 % This is not updated by build script as the bbl version
 % does not necessarily change with the package version.
@@ -1310,7 +1310,7 @@
     {\blx@defprefchars}
     {\let\blx@prefchars\@empty
      \blx@defprefchars}}
-\DeclarePrefChars{'}
+\DeclarePrefChars{'’-}
 
 \protected\def\blx@imc@ifprefchar{%
   \ifhmode
@@ -3477,7 +3477,15 @@
 
 \long\def\blx@mksc@ingroup#1&#2{%
   \if\noexpand\@let@token\relax
-    \blx@mksc@locase{{#2}}%
+    \ifx\@let@token\blx@mkcp@sgl
+      \blx@mksc@nocase{{#2}}%
+    \else
+      \ifx\@let@token\blx@mkcp@dbl
+        \blx@mksc@nocase{{#2}}%
+      \else
+        \blx@mksc@locase{{#2}}%
+      \fi
+    \fi
   \else
     \blx@mksc@nocase{{#2}}%
   \fi}
@@ -4513,6 +4521,7 @@
   \do{december}%
   \do{langamerican}%
   \do{langbrazilian}%
+  \do{langbulgarian}%
   \do{langcatalan}%
   \do{langcroatian}%
   \do{langczech}%
@@ -4537,6 +4546,7 @@
   \do{langswedish}%
   \do{fromamerican}%
   \do{frombrazilian}%
+  \do{frombulgarian}%
   \do{fromcatalan}%
   \do{fromcroatian}%
   \do{fromczech}%
@@ -4713,6 +4723,12 @@
      \hyphenation{#2}%
      \endgroup}}
 
+% {<mapping suffix>}
+\newrobustcmd*{\DeclareLanguageMappingSuffix}[1]{%
+  \gdef\blx@lng@suff{#1}}
+\@onlypreamble\DeclareLanguageMappingSuffix
+\def\blx@lng@suff{}
+
 % {<language>}{<mapping>}
 \newrobustcmd*{\DeclareLanguageMapping}[2]{%
   \csgdef{blx@lng@#1}{#2}}
@@ -4724,7 +4740,7 @@
     {\expandafter\expandafter\expandafter\blx@lbxinput@i
      \expandafter\expandafter\expandafter{%
        \csname blx@lng@#1\endcsname}{#1}}
-    {\blx@lbxinput@ii{#1}{#1}{language '#1'}}}
+    {\blx@lbxinput@ii{#1}{#1\blx@lng@suff}{language '#1\blx@lng@suff'}}}
 
 % {<mapping>}{<language>}
 \def\blx@lbxinput@i#1#2{%
@@ -4759,7 +4775,8 @@
        \def\DeclareHyphenationExceptions{\blx@hyphexcept{#1}}%
        \begingroup
        \blx@saneccodes
-       \makeatletter}
+       \makeatletter
+       \gdef\blx@lng@suff{}}
       {\endgroup
        \csuse{blx@hook@strings@#1}%
        \csuse{blx@hook@strings@#2}%
@@ -5007,8 +5024,10 @@
 \newrobustcmd*{\mkdaterangeyear}[1]{%
   \blx@imc@clearfield{#1month}%
   \blx@imc@clearfield{#1day}%
+  \blx@imc@clearfield{#1season}%
   \blx@imc@clearfield{#1endmonth}%
   \blx@imc@clearfield{#1endday}%
+  \blx@imc@clearfield{#1endseason}%
   \iffieldsequal{#1year}{#1endyear}
     {\blx@imc@clearfield{#1endyear}}
     {}%
@@ -5085,8 +5104,10 @@
 \newrobustcmd*{\mkdaterangeyearextra}[1]{%
   \blx@imc@clearfield{#1month}%
   \blx@imc@clearfield{#1day}%
+  \blx@imc@clearfield{#1season}%
   \blx@imc@clearfield{#1endmonth}%
   \blx@imc@clearfield{#1endday}%
+  \blx@imc@clearfield{#1endseason}%
   \iffieldsequal{#1year}{#1endyear}
     {\blx@imc@clearfield{#1endyear}}
     {}%
@@ -6694,9 +6715,11 @@
 % available in the current context sortlist.
 \def\blx@addset{%
   \begingroup
-  \letcs\blx@tempa{blx@slist@centry@\the\c@refsection @\blx@refcontext@context}%
-  \global\cslet{blx@slist@centry@\the\c@refsection @\blx@refcontext@context}\@empty
-  \forlistloop\blx@addset@i\blx@tempa
+  \ifcsdef{blx@slist@centry@\the\c@refsection @\blx@refcontext@context}
+    {\letcs\blx@tempa{blx@slist@centry@\the\c@refsection @\blx@refcontext@context}%
+     \global\cslet{blx@slist@centry@\the\c@refsection @\blx@refcontext@context}\@empty
+     \forlistloop\blx@addset@i\blx@tempa}
+    {\PackageWarningNoLine{biblatex}{Sorting scheme has changed}}%
   \endgroup}
 
 \def\blx@addset@i#1{%
@@ -8723,6 +8746,8 @@
 % {<entrykey>,...}
 \protected\def\blx@citeloop#1{%
   \begingroup
+  % This must be here and not after \blx@citeadd as this changes the refcontext
+  \letcs\blx@tempb{blx@slist@centry@\the\c@refsection @\blx@refcontext@context}%
   % Make sure this counter exists. Sometimes it might not when using, e.g:
   % refsection=chapter and \includeonly to put in the chapters or when
   % inserting citations into table of contents
@@ -8740,7 +8765,6 @@
       \multicitedelim
     \fi
   \fi
-  \letcs\blx@tempb{blx@slist@centry@\the\c@refsection @\blx@refcontext@context}%
   % \blx@tempb is a sorted list of all cites, \blx@tempa is the list of cites to
   % sort using this list
   \blx@thecitesort
@@ -11920,11 +11944,11 @@
     {\blx@err@invopt{sorting=\blx@sorting}{}%
      \def\blx@sorting{nty}%
      \def\blx@refcontext@sorting{nty}}%
-     \listxadd\blx@sortschemes\blx@sorting
-     \def\blx@refcontext@sortingnamekey{global}%
-     \let\blx@refcontext@labelprefix\@empty
-     \xdef\blx@refcontext@context{\blx@refcontext@sorting/\blx@refcontext@sortingnamekey/\blx@refcontext@labelprefix}%
-     \listxadd\blx@refcontexts\blx@refcontext@context}
+  \listxadd\blx@sortschemes\blx@sorting
+  \def\blx@refcontext@sortingnamekey{global}%
+  \let\blx@refcontext@labelprefix\@empty
+  \xdef\blx@refcontext@context{\blx@refcontext@sorting/\blx@refcontext@sortingnamekey/\blx@refcontext@labelprefix}%
+  \listxadd\blx@refcontexts\blx@refcontext@context}
 
 \DeclareBibliographyOption[boolean]{sortcase}[true]{%
   \settoggle{blx@sortcase}{#1}}
@@ -12643,6 +12667,9 @@
         {\blx@err@invopt{#1time=##1}{}}}%
     % Default for new time fields is "24h"
     \setkeys{blx@opt@pre}{#1time=24h}%
+    % Boolean for unknown dates
+    \newtoggle{abx@bool@#1dateunknown}%
+    \newtoggle{abx@bool@end#1dateunknown}%
     % Boolean to determine if times are printed with dates
     \newtoggle{blx@#1dateusetime}%
     \DeclareBibliographyOption[boolean]{#1dateusetime}{%
