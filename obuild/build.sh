@@ -140,18 +140,6 @@ then
   echo "Installed TDS build tree ..."
 fi
 
-# Update git tag to HEAD of branch
-if [[ "$BIBLATEXDEV" == 'true' ]]
-then
-  if [[ "$1" == "builddist" || "$1" == "build" ]]
-  then
-      git tag -d v$VERSION
-      git push origin :refs/tags/v$VERSION
-      git tag v$VERSION
-      git push --tags
-  fi
-fi
-
 if [[ "$1" == "builddocs" || "$1" == "build" ]]
 then
   cd doc/latex/biblatex || exit
