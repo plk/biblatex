@@ -3129,13 +3129,25 @@
 \newcommand*{\DeclareDelimcontextAlias}[2]{%
   \csgdef{blx@delimcontextalias@#1}{#2}}
 
-% {<init>}{<entrytype>}
-\protected\def\blx@imc@usedriver#1#2{%
-  \begingroup
+\newrobustcmd*{\AtUsedriver}{%
+  \@ifstar
+    {\global\undef\blx@hook@usedriver
+     \gappto\blx@hook@usedriver}
+    {\gappto\blx@hook@usedriver}}
+\@onlypreamble\AtUsedriver
+\def\blx@imc@UseUsedriverHook{\csuse{blx@hook@usedriver}}
+\blx@regimcs{\UseUsedriverHook}
+
+\AtUsedriver{%
   \let\finentry\blx@finentry@usedrv
   \let\newblock\relax
   \let\abx@macro@bibindex\@empty
-  \let\abx@macro@pageref\@empty
+  \let\abx@macro@pageref\@empty}
+
+% {<init>}{<entrytype>}
+\protected\def\blx@imc@usedriver#1#2{%
+  \begingroup
+  \csuse{blx@hook@usedriver}%
   \csuse{blx@hook@bbxinit}#1%
   \delimcontext{bib}%
   \blx@beglangbib

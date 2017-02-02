@@ -9529,7 +9529,7 @@ otherwise.
 
 \cmditem{usedriver}{code}{entrytype}
 
-Executes the bibliography driver for an \prm{entrytype}. Calling this command in the \prm{loopcode} of a citation command defined with \cmd{DeclareCiteCommand} is a simple way to print full citations similar to a bibliography entry. Commands such as \cmd{newblock}, which are not applicable in a citation, are disabled automatically. Additional initialization commands may be passed as the \prm{code} argument. This argument is executed inside the group in which \cmd{usedriver} runs the respective driver. Note that it is mandatory in terms of the syntax but may be left empty. Also note that this command will automatically switch languages if the \opt{autolang} package option is enabled.
+Executes the bibliography driver for an \prm{entrytype}. Calling this command in the \prm{loopcode} of a citation command defined with \cmd{DeclareCiteCommand} is a simple way to print full citations similar to a bibliography entry. Commands such as \cmd{newblock}, which are not applicable in a citation, are disabled automatically by default. The global initialization can be changed with \cmd{AtUsedriver}, see \secref{aut:fmt:hok}. Additional local initialization commands may be passed as the \prm{code} argument. This argument is executed inside the group in which \cmd{usedriver} runs the respective driver. Note that it is mandatory in terms of the syntax but may be left empty. Also note that this command will automatically switch languages if the \opt{autolang} package option is enabled.
 
 \cmditem{bibhypertarget}{name}{text}
 
@@ -11462,6 +11462,20 @@ Appends the \prm{code} to an internal hook executed at the beginning of every it
 
 Similar to \cmd{AtBeginBibliography} but only affecting the next \cmd{printbibliography}. The internal hook is cleared after being executed once. This command may be used in the document body.
 
+\cmditem{AtUsedriver}{code}
+\cmditem*{AtUsedriver}*{code}
+
+Appends the \prm{code} to an internal hook executed when initializing \cmd{uisedriver}. The starred variant of the command clears the initialisation hook, so the defaults can be overwritten. This command may only be used in the preamble.
+The default setting is:
+
+\begin{ltxexample}
+\AtUsedriver{%
+  \let\finentry\blx@finentry@usedrv
+  \let\newblock\relax
+  \let\abx@macro@bibindex\@empty
+  \let\abx@macro@pageref\@empty}
+\end{ltxexample}
+
 \cmditem{AtEveryCite}{code}
 
 Appends the \prm{code} to an internal hook executed at the beginning of every citation command. The \prm{code} is executed immediately before the \prm{precode} of the command (see \secref{aut:cbx:cbx}). No bibliographic data is available at this point. This command may only be used in the preamble.
@@ -11497,6 +11511,10 @@ Appends the \prm{code} to an internal hook executed once for every entry as the 
 \cmditem{UseBibitemHook}
 
 Executes the internal hook corresponding to \cmd{AtEveryBibitem}.
+
+\cmditem{UseUsedriverHook}
+
+Executes the internal hook corresponding to \cmd{AtUsedriver}.
 
 \cmditem{UseEveryCiteHook}
 
@@ -12845,6 +12863,9 @@ use$<$name$>$	&\+&\+&\+&\+\\
 This revision history is a list of changes relevant to users of this package. Changes of a more technical nature which do not affect the user interface or the behavior of the package are not included in the list. More technical details are to be found in the \file{CHANGES.org} file. The numbers on the right indicate the relevant section of this manual.
 
 \begin{changelog}
+\begin{release}{3.9}{2017-?}
+\item Added \cmd{AtUsedriver}\see{aut:fmt:hok}
+\end{release}
 
 \begin{release}{3.8}{2016-12}
 \item Added Bulgarian localisation (Kaloyan Ganev)
