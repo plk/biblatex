@@ -75,6 +75,26 @@
 
 %% Compatibility
 
+\begingroup
+\catcode`\#=12
+\gdef\blx@patchbidifootnotes{%
+  \patchcmd\@footnotetext
+    {#1}
+    {\toggletrue{blx@footnote}#1}
+    {\togglefalse{blx@tempa}}
+    {}
+  \patchcmd\@LTRfootnotetext
+    {#1}
+    {\toggletrue{blx@footnote}#1}
+    {\togglefalse{blx@tempa}}
+    {}
+  \patchcmd\@RTLfootnotetext
+    {#1}
+    {\toggletrue{blx@footnote}#1}
+    {\togglefalse{blx@tempa}}
+    {}}
+\endgroup
+
 \AtEndPreamble{%
   \def\do#1{%
     \@ifpackageloaded{#1}
@@ -195,16 +215,8 @@
        {\togglefalse{blx@tempa}}
        {}}
     {}%
-  \@ifpackageloaded{bidi}{%   bidi
-    \def\do#1{
-      \pretocmd#1
-        {\toggletrue{blx@footnote}}
-        {\togglefalse{blx@tempa}}
-        {}}%
-    \docsvlist{%
-      \@footnotetext,
-      \@LTRfootnotetext,
-      \@RTLfootnotetext}}%
+  \@ifpackageloaded{bidi}%    bidi
+    {\blx@patchbidifootnotes}
     {}%
   \@ifclassloaded{memoir}
     {\def\do#1{%
