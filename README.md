@@ -1,4 +1,4 @@
-#Overview
+# Overview
 
 This package provides advanced bibliographic facilities for use with LaTeX.
 
@@ -30,24 +30,24 @@ available.
 The package is completely localised and can interface with
 the Babel and Polyglossia packages. 
 
-#Copyright and Licence
+# Copyright and Licence
 
-##Authors
+## Authors
 - Philipp Lehman
 - Philip Kime, Joseph Wright, Audrey Boruvka (since 2011)
 
-##Copyright
+## Copyright
 - Copyright 2006 --- 2011 Philipp Lehman
 - Copyright 2011 --- ... Philip Kime
 
-##Licence
+## Licence
 This work may be distributed and/or modified under the conditions of the LaTeX Project Public License, either version 1.3 of this license or (at your option) any later version.
 
 The latest version of the license is in [https://www.latex-project.org/lppl.txt](https://www.latex-project.org/lppl.txt) and version 1.3 or later is part of all distributions of LaTeX version 2003/06/01 or later.
 
 This work has the LPPL maintenance status "maintained".
 
-#Installation
+# Installation
 
 biblatex is bundled with TeXLive and its variants.
 
@@ -95,7 +95,7 @@ development folder and just unpack it into your `~/texmf` but this might
 not be quite as recent as the git development branch (but is usually very
 close).
 
-#Help
+# Help
 
 - biblatex comes with example files in the `doc/latex/biblatex/examples`
   directory in the distribution. There are a lot of practical examples here
@@ -103,7 +103,7 @@ close).
   details not dwelt on in the PDF manual.
 - [StackExchange](https://tex.stackexchange.com/questions/tagged/biblatex)
 
-#Debug and feature requests
+# Debug and feature requests
 
 Suggestions and bug reports are welcome.
 
@@ -111,8 +111,3 @@ Suggestions and bug reports are welcome.
 - Open an issue.
 - Add a [minimal working  example](http://www.tex.ac.uk/cgi-bin/texfaq2html?label=minxampl) if
   possible. This helps a great deal facilitate a swift response.
-
-
-
-
-
