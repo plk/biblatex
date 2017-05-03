@@ -3126,13 +3126,23 @@
       {\blx@warn@delimdeclare{##1}{#2}}
       {}%
     \csgdef{#1##1}{#4}}%
-  \docsvlist{#3}
+  \docsvlist{#3}%
   \endgroup}
 
-% {<alias>}{<delim>}
-\newrobustcmd*{\DeclareDelimAlias}{\blx@declaredelimalias}
+% *[<contextname, ...>]{<alias>}{<delim>}
+\newrobustcmd*{\DeclareDelimAlias}{%
+  \@ifstar
+    {\blx@declaredelimalias}
+    {\blx@declaredelimaliasauto}}
 
-\newrobustcmd*{\blx@declaredelimalias}[2]{%
+\newrobustcmd*{\blx@declaredelimalias}[3][]{%
+  \ifblank{#1}
+    {\blx@declaredelimalias@i{}{#2}{#3}}
+    {\def\do##1{%
+      \blx@declaredelimalias@i{blx@printdelim@##1@}{#2}{#3}}
+     \docsvlist{#1}}}
+
+\newrobustcmd*{\blx@declaredelimaliasauto}[2]{%
   \blx@declaredelimalias@i{}{#1}{#2}%
   \ifcsvoid{blx@declaredelimcontexts@#2}
     {}
