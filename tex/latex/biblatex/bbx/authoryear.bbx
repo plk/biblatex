@@ -19,6 +19,13 @@
 
 \providebibmacro*{date+extrayear}{}
 
+\newcommand*{\iflabeldateisdate}{%
+  \ifboolexpr{%
+    not test {\iffieldundef{labeldatesource}}
+    and 
+    (test {\iffieldequalstr{labeldatesource}{}} 
+     or test {\iffieldequalstr{labeldatesource}{year}})}}
+
 \def\bbx@opt@mergedate@true{\bbx@opt@mergedate@compact}
 
 % merge date/issue with date label
@@ -27,40 +34,22 @@
     \iffieldundef{labelyear}
       {}
       {\printtext[parens]{%
+         \iflabeldateisdate
+           {\printfield{issue}%
+            \setunit*{\addspace}%
+            \printdateextra}
+           {\printlabeldateextra}}}}%
+  \renewbibmacro*{date}{%
+    \iflabeldateisdate
+      {}
+      {\printdate}}%
+  \renewbibmacro*{issue+date}{%
+    \iflabeldateisdate
+      {}
+      {\printtext[parens]{%
          \printfield{issue}%
          \setunit*{\addspace}%
-         \iffieldsequal{year}{labelyear}
-           {\printlabeldateextra}%
-           {\ifdefstring\blx@dateformat@labeldate{edtf}
-              {}
-              {\datecircaprint}%
-            \dateeraprintpre{labelyear}%
-            \printfield{labelyear}%
-            \printfield{extrayear}%
-            \dateuncertainprint%
-            \iffieldsequal{labeldateera}{labelenddateera}
-              {}
-              {\dateeraprint{labelyear}}%
-            \ifdefstring\blx@dateformat@labeldate{edtf}
-              {\datecircaprintedtf}
-              {}%
-            \iffieldundef{labelendyear}
-              {}
-              {\iffieldsequal{labelyear}{labelendyear}
-                 {}
-                 {\ifdefstring\blx@dateformat@labeldate{edtf}
-                    {\slash}% strict EDTF
-                    {\bibdaterangesep
-                     \enddatecircaprint}%
-                  \dateeraprintpre{labelendyear}%
-                  \printfield{labelendyear}%
-                  \enddateuncertainprint
-                  \ifdefstring\blx@dateformat@labeldate{edtf}
-                    {\enddatecircaprintedtf}
-                    {}%
-                  \dateeraprint{labelendyear}}}}}}}%
-  \renewbibmacro*{date}{}%
-  \renewbibmacro*{issue+date}{}}
+         \printdateextra}}}}
 
 % merge date with date label
 \def\bbx@opt@mergedate@compact{%
@@ -68,41 +57,23 @@
     \iffieldundef{labelyear}
       {}
       {\printtext[parens]{%
-         \iffieldsequal{year}{labelyear}
-           {\printlabeldateextra}%
-           {\ifdefstring\blx@dateformat@labeldate{edtf}
-              {}
-              {\datecircaprint}%
-            \dateeraprintpre{labelyear}%
-            \printfield{labelyear}%
-            \printfield{extrayear}%
-            \dateuncertainprint%
-            \iffieldsequal{labeldateera}{labelenddateera}
-              {}
-              {\dateeraprint{labelyear}}%
-            \ifdefstring\blx@dateformat@labeldate{edtf}
-              {\datecircaprintedtf}
-              {}%
-            \iffieldundef{labelendyear}
-              {}
-              {\iffieldsequal{labelyear}{labelendyear}
-                 {}
-                 {\ifdefstring\blx@dateformat@labeldate{edtf}
-                    {\slash}% strict EDTF
-                    {\bibdaterangesep
-                     \enddatecircaprint}%
-                  \dateeraprintpre{labelendyear}%
-                  \printfield{labelendyear}%
-                  \enddateuncertainprint
-                  \ifdefstring\blx@dateformat@labeldate{edtf}
-                    {\enddatecircaprintedtf}
-                    {}%
-                  \dateeraprint{labelendyear}}}}}}}%
-  \renewbibmacro*{date}{}%
-  \renewbibmacro*{issue+date}{%
-    \iffieldundef{issue}
+         \iflabeldateisdate
+           {\printdateextra}
+           {\printlabeldateextra}}}}%
+  \renewbibmacro*{date}{%
+    \iflabeldateisdate
       {}
-      {\printtext[parens]{\printfield{issue}}}%
+      {\printdate}}%
+  \renewbibmacro*{issue+date}{%
+    \ifboolexpr{not test {\iffieldundef{issue}}
+                or test {\iflabeldateisdate}}
+      {\printtext[parens]{%
+         \printfield{issue}%
+         \setunit*{\addspace}%
+         \iflabeldateisdate
+           {}
+           {\printdate}}}
+      {}%
     \newunit}}
 
 % merge year-only date with date label
@@ -110,37 +81,11 @@
   \renewbibmacro*{date+extrayear}{%
     \iffieldundef{labelyear}
       {}
-      {\printtext[parens]{%
-         \ifdefstring\blx@dateformat@labeldate{edtf}
-           {}
-           {\datecircaprint}%
-         \dateeraprintpre{labelyear}%
-         \printfield{labelyear}%
-         \printfield{extrayear}%
-         \dateuncertainprint%
-         \iffieldsequal{labeldateera}{labelenddateera}
-           {}
-           {\dateeraprint{labelyear}}%
-         \ifdefstring\blx@dateformat@labeldate{edtf}
-           {\datecircaprintedtf}
-           {}%
-         \iffieldundef{labelendyear}
-           {}
-           {\iffieldsequal{labelyear}{labelendyear}
-              {}
-              {\ifdefstring\blx@dateformat@labeldate{edtf}
-                 {\slash}% strict EDTF
-                 {\bibdaterangesep
-                  \enddatecircaprint}%
-               \dateeraprintpre{labelendyear}%
-               \printfield{labelendyear}%
-               \enddateuncertainprint
-               \ifdefstring\blx@dateformat@labeldate{edtf}
-                 {\enddatecircaprintedtf}
-                 {}%
-               \dateeraprint{labelendyear}}}}}}%
+      {\printtext[parens]{\printlabeldateextra}}}%
   \renewbibmacro*{date}{%
     \ifboolexpr{
+      test {\iflabeldateisdate}
+      and
       test {\iffieldundef{season}}
       and
       test {\iffieldundef{month}}
@@ -149,6 +94,8 @@
       {\printdate}}%
   \renewbibmacro*{issue+date}{%
     \ifboolexpr{
+      test {\iflabeldateisdate}
+      and
       test {\iffieldundef{issue}}
       and
       test {\iffieldundef{season}}
@@ -167,37 +114,11 @@
   \renewbibmacro*{date+extrayear}{%
     \iffieldundef{labelyear}
       {}
-      {\printtext[parens]{%
-         \ifdefstring\blx@dateformat@labeldate{edtf}
-           {}
-           {\datecircaprint}%
-         \dateeraprintpre{labelyear}%
-         \printfield{labelyear}%
-         \printfield{extrayear}%
-         \dateuncertainprint%
-         \iffieldsequal{labeldateera}{labelenddateera}
-           {}
-           {\dateeraprint{labelyear}}%
-         \ifdefstring\blx@dateformat@labeldate{edtf}
-           {\datecircaprintedtf}
-           {}%
-         \iffieldundef{labelendyear}
-           {}
-           {\iffieldsequal{labelyear}{labelendyear}
-              {}
-              {\ifdefstring\blx@dateformat@labeldate{edtf}
-                 {\slash}% strict EDTF
-                 {\bibdaterangesep
-                  \enddatecircaprint}%
-               \dateeraprintpre{labelendyear}%
-               \printfield{labelendyear}%
-               \enddateuncertainprint
-               \ifdefstring\blx@dateformat@labeldate{edtf}
-                 {\enddatecircaprintedtf}
-                 {}%
-               \dateeraprint{labelendyear}}}}}}%
+      {\printtext[parens]{\printlabeldateextra}}}%
   \renewbibmacro*{date}{%
     \ifboolexpr{
+      test {\iflabeldateisdate}
+      and
       test {\iffieldundef{season}}
       and
       test {\iffieldundef{month}}
@@ -208,6 +129,8 @@
       {\printdate}}%
   \renewbibmacro*{issue+date}{%
     \ifboolexpr{
+      test {\iflabeldateisdate}
+      and
       test {\iffieldundef{issue}}
       and
       test {\iffieldundef{season}}
@@ -228,35 +151,7 @@
   \renewbibmacro*{date+extrayear}{%
     \iffieldundef{labelyear}
       {}
-      {\printtext[parens]{%
-         \ifdefstring\blx@dateformat@labeldate{edtf}
-           {}
-           {\datecircaprint}%
-         \dateeraprintpre{labelyear}%
-         \printfield{labelyear}%
-         \printfield{extrayear}%
-         \dateuncertainprint%
-         \iffieldsequal{labeldateera}{labelenddateera}
-           {}
-           {\dateeraprint{labelyear}}%
-         \ifdefstring\blx@dateformat@labeldate{edtf}
-           {\datecircaprintedtf}
-           {}%
-         \iffieldundef{labelendyear}
-           {}
-           {\iffieldsequal{labelyear}{labelendyear}
-              {}
-              {\ifdefstring\blx@dateformat@labeldate{edtf}
-                 {\slash}% strict EDTF
-                 {\bibdaterangesep
-                  \enddatecircaprint}%
-               \dateeraprintpre{labelendyear}%
-               \printfield{labelendyear}%
-               \enddateuncertainprint
-               \ifdefstring\blx@dateformat@labeldate{edtf}
-                 {\enddatecircaprintedtf}
-                 {}%
-               \dateeraprint{labelendyear}}}}}}%
+      {\printtext[parens]{\printlabeldateextra}}}%
   \renewbibmacro*{date}{\printdate}%
   \renewbibmacro*{issue+date}{%
     \printtext[parens]{%
@@ -265,7 +160,6 @@
       \printdate}%
     \newunit}}
 
-% n.b. the default labeldate=year overrides merging of months and days
 \ExecuteBibliographyOptions{labeldateparts,sorting=nyt,pagetracker,mergedate}
 
 \DeclareFieldFormat{shorthandwidth}{#1}
