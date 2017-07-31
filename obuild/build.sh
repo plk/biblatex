@@ -5,6 +5,7 @@ echo "Usage:
 
 build.sh help
 build.sh install <version> <tds_root>
+build.sh build <version>
 build.sh builddist|builddocs|build <version>
 build.sh testbibtex [file]|testbiber [file]|test [file]|testoutput 
 build.sh upload <version> [ \"DEV\" ]
@@ -158,6 +159,7 @@ then
   cp biblatex.pdf ../../../obuild/flat/doc/
   cd ../../.. || exit
 
+  echo
   echo "Created main documentation ..."
 fi
 
