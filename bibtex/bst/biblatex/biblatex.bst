@@ -1888,7 +1888,7 @@ FUNCTION {input:control:options} {
 % This version corresponds to the .bbl version, *not* the biblatex version!
 FUNCTION {input:control:version} {
   input:control:parse
-  "$Revision: 2.8 $"
+  "$Revision: 2.9 $"
   #12 entry.max$ substring$
   #-3 entry.max$ substring$
   'tempstrga :=
