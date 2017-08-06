@@ -2701,7 +2701,7 @@ SORT
 % This version corresponds to the .bbl version, *not* the biblatex version!
 FUNCTION {output:main:begin} {
   "% $ biblatex auxiliary file $"                               write$ newline$
-  "% $ biblatex bbl format version " "$Revision: 2.8 $"
+  "% $ biblatex bbl format version " "$Revision: 2.9 $"
   #12 entry.max$ substring$ #-3 entry.max$ substring$ * " $" *  write$ newline$
   "% Do not modify the above lines!"                            write$ newline$
   "%"                                                           write$ newline$
