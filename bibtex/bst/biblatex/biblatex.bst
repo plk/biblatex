@@ -1430,22 +1430,21 @@ FUNCTION {output:specials} {
   ctrl:labeldate
   dateyear empty$ not
   and
-    { "labelyear"
-      dateyear
+    { "labelyear" dateyear output:write:field
       dateendyear empty$
         'skip$
         { dateyear dateendyear =
             'skip$
             { dateendyear open.ended =
                 'skip$
-                { "\bibdatedash " * dateendyear * }
+                { "labelendyear" dateendyear output:write:field }
               if$
             }
           if$
         }
       if$
-      output:write:field
       "extrayear"   extrayear       output:write:field
+      "labeldatesource" "year"      output:write:field
     }
     'skip$
   if$
