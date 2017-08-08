@@ -1,5 +1,5 @@
 % Copyright (c) 2006-2011 Philipp Lehman.
-%               2012-2016 Philip Kime, Audrey Boruvka, Joseph Wright
+%               2012-2017 Philip Kime, Audrey Boruvka, Joseph Wright
 %
 % Permission is granted to copy, distribute and/or modify this
 % software under the terms of the LaTeX Project Public License
@@ -5859,7 +5859,6 @@
 \abx@dodateparts
 
 \def\abx@dointernalfields{%
-  \do{childentrykey}%
   \do{clonesourcekey}%
   \do{labeldate}%
   \do{labeldatesource}%
@@ -6634,24 +6633,43 @@
           {\edef\abx@field@labelendseason{\csuse{abx@field@\abx@field@labeldatesource endseason}}}
           {}}}}
 
+% This gets the entry data for a citation
 \def\blx@getdata@cite#1{%
+  \blx@getdata{#1}%
+  % Inject the relevant set parent fields like labelnumber/labelprefix into child
   \ifcsdef{blx@setc@\the\c@refsection @#1}
-    {\expandafter\expandafter\expandafter\blx@getdata
-     \expandafter\expandafter\expandafter{%
-       \csname blx@setc@\the\c@refsection @#1\endcsname}%
-     \blx@ifdata{#1}
-       {\def\abx@field@childentrykey{#1}%
+    {\blx@ifdata{#1}
+       {\def\abx@field@childentrykey{#1}%LEGACY(<3.8)
+        \edef\abx@field@childentrytype{\abx@field@entrytype}%LEGACY(<3.8)
         \begingroup
-        \blx@getdata{#1}%
-        \edef\blx@tempa{\endgroup
-          \def\noexpand\abx@field@childentrytype{\abx@field@entrytype}}%
-        \blx@tempa}
+        \expandafter\expandafter\expandafter\blx@getdata\expandafter\expandafter\expandafter{%
+          \csname blx@setc@\the\c@refsection @#1\endcsname}%
+        \let\blx@tempa\@empty
+        % Inject labelnumber if it exists
+        \ifdef\abx@field@labelnumber
+          {\appto\blx@tempa{\def\noexpand\abx@field@labelnumber{\abx@field@labelnumber}}}
+          {}%
+        % Inject labelprefix if it exists
+        \ifdef\abx@field@labelprefix
+          {\appto\blx@tempa{\def\noexpand\abx@field@labelprefix{\abx@field@labelprefix}}}
+          {}%
+        % Inject labelalpha if it exists
+        \ifdef\abx@field@labelalpha
+          {\appto\blx@tempa{\def\noexpand\abx@field@labelalpha{\abx@field@labelalpha}}}
+          {}%
+        % Inject extraalpha if it exists
+        \ifdef\abx@field@extraalpha
+          {\appto\blx@tempa{\def\noexpand\abx@field@extraalpha{\abx@field@extraalpha}}}
+          {}%
+        % Perform the injection  
+        \edef\blx@tempb{\endgroup\blx@tempa}%
+        \blx@tempb}
        {}}
-    {\blx@getdata{#1}}%
+    {}%
   \ifcsdef{blx@seti@\the\c@refsection @#1}
     {\letcs\abx@field@entrysetcount{blx@seti@\the\c@refsection @#1}}
     {}}
-
+    
 \def\blx@execute{%
   \blx@imc@thefield{execute}}
 
