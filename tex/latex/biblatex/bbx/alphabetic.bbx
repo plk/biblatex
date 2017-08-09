@@ -4,10 +4,16 @@
 \RequireBibliographyStyle{standard}
 \ExecuteBibliographyOptions{labelalpha,sorting=anyt}
 
+\providebool{bbx:subentry}
+
+\DeclareBibliographyOption[boolean]{subentry}[true]{%
+  \setbool{bbx:subentry}{#1}}
+
 \DeclareNameAlias{author}{default}
 \DeclareNameAlias{editor}{default}
 \DeclareNameAlias{translator}{default}
 
+\DeclareFieldFormat{bibentrysetcount}{\mkbibparens{\mknumalph{#1}}}
 \DeclareFieldFormat{labelalphawidth}{\mkbibbrackets{#1}}
 \DeclareFieldFormat{shorthandwidth}{\mkbibbrackets{#1}}
 
@@ -39,5 +45,16 @@
       \renewcommand*{\makelabel}[1]{##1\hss}}}
   {\endlist}
   {\item}
+
+\DeclareBibliographyDriver{set}{%
+  \entryset
+    {\ifbool{bbx:subentry}
+       {\printfield[bibentrysetcount]{entrysetcount}%
+        \printunit*{\addnbspace}}
+       {}}
+    {}%
+  \newunit\newblock
+  \usebibmacro{setpageref}%
+  \finentry}
 
 \endinput
