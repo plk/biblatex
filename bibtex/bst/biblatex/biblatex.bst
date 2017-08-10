@@ -2279,7 +2279,11 @@ FUNCTION {makelabel:ctrl:alpha} {
         { label makelabel:alpha:year * }
       if$
     }
-    { "" }
+    { shorthand empty$
+        { "" }
+        { shorthand }
+      if$
+    }
   if$
 }
 
