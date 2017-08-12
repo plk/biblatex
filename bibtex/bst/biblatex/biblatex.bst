@@ -1482,6 +1482,7 @@ FUNCTION {output:names} {
 FUNCTION {output:lists} {
   "language"        language        output:write:list
   "organization"    organization    output:write:list
+  "origlanguage"    origlanguage    output:write:list
   "origlocation"    origlocation    output:write:list
   "origpublisher"   origpublisher   output:write:list
   "publisher"       publisher       output:write:list
@@ -1525,7 +1526,6 @@ FUNCTION {output:fields.2} {
   "nameaddon"       nameaddon       output:write:field
   "note"            note            output:write:field
   "number"          number          output:write:field
-  "origlanguage"    origlanguage    output:write:field
   "origtitle"       origtitle       output:write:field
   "pages"           pages           output:write:range
   "pagetotal"       pagetotal       output:write:range
