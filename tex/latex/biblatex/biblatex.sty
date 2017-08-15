@@ -574,6 +574,11 @@
 % Used to track transliterations
 \global\let\blx@translits\@empty
 
+% Use to track every entry found in .bbl
+% Used to issue defernumbers warning about missing keys because this causes
+% defernumbers labelling to fail.
+\global\let\blx@entries\@empty
+
 % Initialise some lists which track changing citations/sortschemes
 % etc. between runs
 \global\let\blx@cites\@empty
@@ -6760,6 +6765,7 @@
   \edef\blx@bbl@data{blx@data@\the\c@refsection @\blx@slist@name @\abx@field@entrykey}%
   \csuse\blx@bbl@data
   \blx@bbl@addfield{entrykey}{\abx@field@entrykey}%
+  \listxadd\blx@entries{\abx@field@entrykey}%
   \blx@bbl@addfield{entrytype}{#2}%
   \blx@imc@iffieldundef{options}
     {}
@@ -6998,7 +7004,15 @@
   \let\endlverb\blx@bbl@verblend
   \let\annotation\blx@bbl@annotationdef}
 
-\def\blx@bblend{}
+\def\blx@bblend{%
+  % Special warning for defernumbers when a citation cannot be found
+  \iftoggle{blx@defernumbers}
+    {\def\do##1{\ifinlist{##1}\blx@entries
+                 {}
+                 {\blx@warning@noline{%
+                     citation '##1' was not found at all in the .bbl, bibliography labels cannot be generated, please correct the citation}}}%
+     \dolistloop\blx@lastcites}
+    {}}
 
 % {<entrykey>}
 % Get the saved information on which citations were mentioned last run
