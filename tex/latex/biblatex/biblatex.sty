@@ -544,6 +544,7 @@
 \newtoggle{blx@bibindex}
 \newtoggle{blx@localnumber}
 \newtoggle{blx@refcontext}
+\newtoggle{blx@nosuffrecurse}
 
 % Nice command from etextools which causes too many problems if you load
 % the whole package
@@ -4707,6 +4708,7 @@
 % in *.cbx/bbx/tex: (implicit)
 % in *.lbx:         inherit = {<language>},
 \define@key{blx@lbx}{inherit}{%
+  \global\toggletrue{blx@nosuffrecurse}%
   \blx@lbxinput{#1}{}{\blx@err@nolang{#1}}%
   \csuse{abx@strings@#1}}
 
@@ -4750,6 +4752,7 @@
 
 % {<language>}{<language>}
 \def\blx@letbibextras#1#2{%
+  \global\toggletrue{blx@nosuffrecurse}%
   \blx@lbxinput{#2}{}{\blx@err@nolang{#2}}%
   \global\csletcs{abx@extras@#1}{abx@extras@#2}
   \global\csletcs{abx@noextras@#1}{abx@noextras@#2}}%
@@ -4794,6 +4797,7 @@
 
 % {<language>}{<language>}
 \def\blx@letbibstrings#1#2{%
+  \global\toggletrue{blx@nosuffrecurse}%
   \blx@lbxinput{#2}{}{\blx@err@nolang{#2}}%
   \global\csletcs{abx@strings@#1}{abx@strings@#2}}%
 
@@ -4817,40 +4821,50 @@
 \newrobustcmd*{\DeclareLanguageMappingSuffix}[1]{%
   \gdef\blx@lng@suff{#1}}
 \@onlypreamble\DeclareLanguageMappingSuffix
-\def\blx@lng@suff{}
+\let\blx@lng@suff\@empty
 
 % {<language>}{<mapping>}
 \newrobustcmd*{\DeclareLanguageMapping}[2]{%
-  \csgdef{blx@lng@#1}{#2}}
+  \csgdef{blx@lng@#1}{#2}%
+  \csgdef{blx@lng@explicit@#1}{#2}}
 \@onlypreamble\DeclareLanguageMapping
 
 % {<language>}{<success>}{<failure>}
 \def\blx@lbxinput#1{%
+  \ifdefempty\blx@lng@suff
+    {}
+    {\ifcsdef{blx@lng@explicit@#1}% \DeclareLanguageMapping overrides \DeclareLanguageMappingSuffix
+      {}
+      {\nottoggle{blx@nosuffrecurse}
+        {\csgdef{blx@lng@#1}{#1\blx@lng@suff}}
+        {}}}%
+    \blx@lbxinput@0{#1}}
+
+\def\blx@lbxinput@0#1{%
   \ifcsdef{blx@lng@#1}
     {\expandafter\expandafter\expandafter\blx@lbxinput@i
      \expandafter\expandafter\expandafter{%
        \csname blx@lng@#1\endcsname}{#1}}
-   {\ifdefempty\blx@lng@suff
-    {\blx@lbxinput@ii{#1}{#1}{language '#1'}}
-    {\edef\blx@tempa{#1\blx@lng@suff}%
-     \expandafter\IfFileExists\expandafter{\blx@tempa.lbx}
-       {\blx@info@noline{Loading '\blx@lng@suff' suffixed version of '#1'}%
-        \blx@lbxinput@ii{#1}{#1\blx@lng@suff}{language '#1\blx@lng@suff'}}
-       {\blx@warning@noline{%
-           No '\blx@lng@suff' suffixed version of '#1' found, falling back to '#1'}%
-        \blx@lbxinput@ii{#1}{#1}{language '#1'}}}}}
- 
+    {\blx@lbxinput@ii{#1}{#1}{language '#1'}}}
+
 % {<mapping>}{<language>}
 \def\blx@lbxinput@i#1#2{%
   \global\csundef{blx@lng@#2}%
   \IfFileExists{#1.lbx}
     {\blx@lbxinput@ii{#2}{#1}{language '#2' -> '#1'}}
-    {\blx@warning@noline{%
-       File '#1.lbx' not found!\MessageBreak
-       Ignoring mapping '#2' -> '#1'}%
-     \blx@lbxinput{#2}}}
+    {\ifcsdef{blx@suffmaptried@#2}
+      {}
+      {\blx@warning@noline{%
+          File '#1.lbx' not found!\MessageBreak
+          Ignoring mapping '#2' -> '#1'}%
+       \cslet{blx@suffmaptried@#2}\@empty}%
+     \blx@lbxinput@0{#2}}}
 
 % {<language>}{<lbxfile>}{<message>}
+% toggle 'blx@nosuffrecurse' is set to true at the places where recursion into here
+% can occur when loading a .lbx otherwise, when using \DeclareLanguageMappingSuffix
+% it is possible to get into infinite loops. We only want to apply the suffix to explicitly
+% loaded languages, not those loaded by recursion.
 \def\blx@lbxinput@ii#1#2#3{%
   \begingroup
   \setbox\@tempboxa=\hbox\bgroup
@@ -4861,7 +4875,7 @@
        \global\cslet{abx@noextras@#1}\@empty
        \blx@maplang{#1}{#1}%
        \def\InheritBibliographyStrings{%
-       \blx@letbibstrings{#1}}%
+         \blx@letbibstrings{#1}}%
        \def\DeclareBibliographyStrings####1{%
          \begingroup
          \let\blx@defstring\blx@lbx@defstring
@@ -4873,8 +4887,7 @@
        \def\DeclareHyphenationExceptions{\blx@hyphexcept{#1}}%
        \begingroup
        \blx@saneccodes
-       \makeatletter
-       \def\blx@lng@suff{}}
+       \makeatletter}
       {\endgroup
        \csuse{blx@hook@strings@#1}%
        \csuse{blx@hook@strings@#2}%
@@ -4883,7 +4896,8 @@
        \csuse{blx@hook@noextras@#1}%
        \csuse{blx@hook@noextras@#2}%
        \csuse{blx@hook@hyph@#1}%
-       \csuse{blx@hook@hyph@#2}}
+       \csuse{blx@hook@hyph@#2}%
+       \global\togglefalse{blx@nosuffrecurse}}
       {\aftergroup\@firstoftwo}
       {\aftergroup\@secondoftwo}%
   \egroup}
