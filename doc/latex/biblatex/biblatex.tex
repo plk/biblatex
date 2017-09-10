@@ -2672,8 +2672,8 @@ Whether or not to update the \cnt{uniquename} counter, see \secref{aut:aux:tst} 
 \item[full] Disambiguate using initials or full names, as required.
 \item[allinit] Similar to \opt{init} but disambiguates all names in the \bibfield{labelname} list, beyond \opt{maxnames}\slash \opt{minnames}\slash \opt{uniquelist}.
 \item[allfull] Similar to \opt{full} but disambiguates all names in the \bibfield{labelname} list, beyond \opt{maxnames}\slash \opt{minnames}\slash \opt{uniquelist}.
-\item[mininit] A variant of \texttt{init} which only disambiguates names in lists with identical last names.
-\item[minfull] A variant of \texttt{full} which only disambiguates names in lists with identical last names.
+\item[mininit] A variant of \texttt{init} which only disambiguates names in identical lists of base nameparts (by default, lists of family names).
+\item[minfull] A variant of \texttt{full} which only disambiguates names in identical lists of base nameparts (by default, lists of family names).
 \end{valuelist}
 %
 Note that the \opt{uniquename} option will also affect \opt{uniquelist}, the \cmd{ifsingletitle} test, and the \bibfield{extrayear} field. See \secref{aut:cav:amb} for further details and practical examples.
@@ -2775,14 +2775,14 @@ defined. Global, per-type and per-entry options called <use$<$name$>$>are automa
 Whether the default date model name part <prefix> (von, van, of, da, de, della, etc.) is considered when:
 
 \begin{itemize}
-\item Printing the last name in citations
+\item Printing the family name in citations
 \item Sorting
 \item Generation of certain types of labels
 \item Generating name uniqueness information
 \item Formatting aspects of the bibliography
 \end{itemize}
 %
-For example, if this option is enabled, \biblatex precedes the last name with the prefix---Ludwig van Beethoven would be cited as «van Beethoven» and alphabetized as «Van Beethoven, Ludwig». If this option is disabled (the default), he is cited as «Beethoven» and alphabetized as «Beethoven, Ludwig van» instead.
+For example, if this option is enabled, \biblatex precedes the family name with the prefix---Ludwig van Beethoven would be cited as «van Beethoven» and alphabetized as «Van Beethoven, Ludwig». If this option is disabled (the default), he is cited as «Beethoven» and alphabetized as «Beethoven, Ludwig van» instead.
 This option is also settable on a per-type scope. With \biblatexml datasources and the \bibtex extended name format supported by \biber, this is also settable on per-namelist and per-name scopes.
 
 \optitem{indexing}{\opt{true}, \opt{false}, \opt{cite}, \opt{bib}}
@@ -4469,7 +4469,7 @@ This delimiter controls the spacing between the elements which make up a name pa
 This delimiter is inserted between the elements which make up a name part where \cmd{bibnamedelima} does not apply. The default definition is an interword space penalized by the value of the \cnt{lownamepenalty} counter (\secref{use:fmt:len}). Please refer to \secref{use:cav:nam} for further details.
 
 \csitem{bibnamedelimc}
-This delimiter controls the spacing between name parts. It is inserted between the name prefix and the last name if \kvopt{useprefix}{true}. The default definition is an interword space penalized by the value of the \cnt{highnamepenalty} counter (\secref{use:fmt:len}). Please refer to \secref{use:cav:nam} for further details.
+This delimiter controls the spacing between name parts. It is inserted between the name prefix and the family name if \kvopt{useprefix}{true}. The default definition is an interword space penalized by the value of the \cnt{highnamepenalty} counter (\secref{use:fmt:len}). Please refer to \secref{use:cav:nam} for further details.
 
 \csitem{bibnamedelimd}
 This delimiter is inserted between all name parts where \cmd{bibnamedelimc} does not apply. The default definition is an interword space penalized by the value of the \cnt{lownamepenalty} counter (\secref{use:fmt:len}). Please refer to \secref{use:cav:nam} for further details.
@@ -4511,7 +4511,7 @@ Replaces \cmd{bibinitdelim} in the index.
 Replaces \cmd{bibinithyphendelim} in the index.
 
 \csitem{revsdnamepunct}
-The punctuation to be printed between the first and last name parts when a name is reversed. Here is an example showing a name with the default comma as \cmd{revsdnamedelim}:
+The punctuation to be printed between the first and family name parts when a name is reversed. Here is an example showing a name with the default comma as \cmd{revsdnamedelim}:
 
 \begin{ltxexample}
 Jones<<,>> Edward
@@ -6056,7 +6056,7 @@ The name formatting directive is executed once for each name in the name list. H
     {}}
 \end{ltxexample}
 %
-The above directive reverses the name of the first author («Last, First») and prints the remaining names in their regular sequence («First Last»). Note that the only component which is guaranteed to be available is the last name, hence we have to check which parts of the name are actually present. If a certain name part is not available, the corresponding macro will be empty. As with directives for literal lists, the separator to be inserted between the individual items in the name list is also handled by the formatting directive, hence we have to check whether we are in the middle of the list or at the end when inserting it. This is what the second \cmd{ifthenelse} test does.
+The above directive reverses the name of the first author («Family, Given») and prints the remaining names in their regular sequence («Given Family»). Note that the only component which is guaranteed to be available is the family name, hence we have to check which parts of the name are actually present. If a certain name part is not available, the corresponding macro will be empty. As with directives for literal lists, the separator to be inserted between the individual items in the name list is also handled by the formatting directive, hence we have to check whether we are in the middle of the list or at the end when inserting it. This is what the second \cmd{ifthenelse} test does.
 
 \subsubsection{Special Fields}
 \label{aut:bbx:fld}
@@ -9471,7 +9471,7 @@ Expands to \prm{true} when located in a footnote, and to \prm{false} otherwise. 
 This counter indicates how many times the entry currently being processed is cited in the current reference section. Note that this feature needs to be enabled explicitly with the package option \opt{citecounter}. If the option is set to \texttt{context}, citations in the body text and in footnotes are counted separately. In this case, \cnt{citecounter} will hold the value of the context it is used in.
 
 \cntitem{uniquename}
-This counter refers to the \bibfield{labelname} list. It is set on a per-name basis. Its value is \texttt{0} if the base name (by default the <family> part of the name) is unique, \texttt{1} if adding the other parts of the name (as specified in the uniquename template defined by \cmd{DeclareUniquenameTemplate})as initials will make it unique, and \texttt{2} if the full name is required to disambiguate the name. This information is required by author-year and author-title citation schemes which add additional parts of the name when citing different authors with the same last name. For example, (given the default \cmd{DeclareUniquenameTemplate} definition) if there is one <John Doe> and one <Edward Doe> in the list of references, this counter will be set to \texttt{1}. If there is one <John Doe> and one <Jane Doe>, the value of the counter will be \texttt{2}. If the option is set to \texttt{init}\slash \texttt{allinit}\slash \texttt{mininit}, the counter will be limited to \texttt{1}. This is useful for citations styles which use initials to disambiguate names but never print the full name in citations. If adding the initials is not sufficient to disambiguate the name, \cnt{uniquename} will also be set to \texttt{0} for that name. This feature needs to be enabled explicitly with the package option \opt{uniquename}. Note that the \cnt{uniquename} counter is local to \cmd{printnames} and that it is only set for the \bibfield{labelname} list and to the name list \bibfield{labelname} has been derived from (typically \bibfield{author} or \bibfield{editor}). Its value is zero in any other context, i.e., it must be evaluated in the name formatting directives handling name lists. See \secref{aut:cav:amb} for further details and practical examples.
+This counter refers to the \bibfield{labelname} list. It is set on a per-name basis. Its value is \texttt{0} if the base name (by default the <family> part of the name) is unique, \texttt{1} if adding the other parts of the name (as specified in the uniquename template defined by \cmd{DeclareUniquenameTemplate})as initials will make it unique, and \texttt{2} if the full name is required to disambiguate the name. This information is required by author-year and author-title citation schemes which add additional parts of the name when citing different authors with the same family name. For example, (given the default \cmd{DeclareUniquenameTemplate} definition) if there is one <John Doe> and one <Edward Doe> in the list of references, this counter will be set to \texttt{1}. If there is one <John Doe> and one <Jane Doe>, the value of the counter will be \texttt{2}. If the option is set to \texttt{init}\slash \texttt{allinit}\slash \texttt{mininit}, the counter will be limited to \texttt{1}. This is useful for citations styles which use initials to disambiguate names but never print the full name in citations. If adding the initials is not sufficient to disambiguate the name, \cnt{uniquename} will also be set to \texttt{0} for that name. This feature needs to be enabled explicitly with the package option \opt{uniquename}. Note that the \cnt{uniquename} counter is local to \cmd{printnames} and that it is only set for the \bibfield{labelname} list and to the name list \bibfield{labelname} has been derived from (typically \bibfield{author} or \bibfield{editor}). Its value is zero in any other context, i.e., it must be evaluated in the name formatting directives handling name lists. See \secref{aut:cav:amb} for further details and practical examples.
 
 \cntitem{uniquelist}
 This counter refers to the \bibfield{labelname} list. It is set on a per-field basis. Its value indicates the number of names required to disambiguate the name list if automatic \cnt{maxnames}\slash \cnt{minnames} truncation would lead to ambiguous citations. For example, if there is one work by <Doe\slash Smith\slash Johnson> and another one by <Doe\slash Edwards\slash Williams>, setting \kvopt{maxnames}{1} would lead to <Doe et al.> in both cases. In this case, \cnt{uniquelist} would be set to \texttt{2} on the \bibfield{labelname} lists of both entries because at least the first two names are required to disambiguate them. Note that the \cnt{uniquelist} counter is local to \cmd{printnames} and that it is only set for the \bibfield{labelname} list and to the name list \bibfield{labelname} has been derived from (typically \bibfield{author} or \bibfield{editor}). Its value is zero in any other context. If available, the \cnt{uniquelist} value will be used automatically by \cmd{printnames} when processing the name list, \ie it will automatically override \cnt{maxnames}\slash \cnt{minnames}. This feature needs to be enabled explicitly with the package option \opt{uniquelist}. See \secref{aut:cav:amb} for further details and practical examples.
@@ -10928,7 +10928,7 @@ This delimiter controls the spacing between the elements which make up a name pa
 This delimiter controls the spacing between the elements which make up a name part. It is inserted automatically by the backend between all name elements where \cmd{bibnamedelima} does not apply. The default definition is \cmd{addlowpenspace}, \ie a space penalized by the value of the \cnt{lownamepenalty} counter (\secref{use:fmt:len}). Please refer to \secref{use:cav:nam} for further details.
 
 \csitem{bibnamedelimc}
-This delimiter controls the spacing between name parts. The default name formats use it between the name prefix and the last name if \kvopt{useprefix}{true}. The default definition is \cmd{addhighpenspace}, \ie a space penalized by the value of the \cnt{highnamepenalty} counter (\secref{use:fmt:len}). Please refer to \secref{use:cav:nam} for further details.
+This delimiter controls the spacing between name parts. The default name formats use it between the name prefix and the family name if \kvopt{useprefix}{true}. The default definition is \cmd{addhighpenspace}, \ie a space penalized by the value of the \cnt{highnamepenalty} counter (\secref{use:fmt:len}). Please refer to \secref{use:cav:nam} for further details.
 
 \csitem{bibnamedelimd}
 This delimiter controls the spacing between name parts. The default name formats use it between all name parts where \cmd{bibnamedelimc} does not apply. The default definition is \cmd{addlowpenspace}, \ie a space penalized by the value of the \cnt{lownamepenalty} counter (\secref{use:fmt:len}). Please refer to \secref{use:cav:nam} for further details.
@@ -10970,7 +10970,7 @@ Replaces \cmd{bibinitdelim} in the index.
 Replaces \cmd{bibinithyphendelim} in the index.
 
 \csitem{revsdnamepunct}
-The punctuation to be printed between the first and last name parts when a name is reversed. The default is a comma. This command should be incorporated in formatting directives for name lists.  Please refer to \secref{use:cav:nam} for further details.
+The punctuation to be printed between the given and family name parts when a name is reversed. The default is a comma. This command should be incorporated in formatting directives for name lists.  Please refer to \secref{use:cav:nam} for further details.
 
 \csitem{bibnamedash}
 The dash to be used as a replacement for recurrent authors or editors in the bibliography. The default is an <em> or an <en> dash, depending on the indentation of the list of references.
@@ -11823,7 +11823,7 @@ Doe
 Smith
 \end{lstlisting}
 %
-When disambiguating names, \kvopt{uniquename}{init/full} only consider the visible names. Since all visible last names are distinct in this example, no further name parts are added. Let's compare that to the output of \kvopt{uniquename}{allinit}:
+When disambiguating names, \kvopt{uniquename}{init/full} only consider the visible names. Since all visible family names are distinct in this example, no further name parts are added. Let's compare that to the output of \kvopt{uniquename}{allinit}:
 
 \begin{lstlisting}{}
 Jones et al.
@@ -11839,7 +11839,7 @@ J. Doe
 John Smith
 \end{lstlisting}
 %
-The options \kvopt{uniquename}{mininit/minfull} are similar to \texttt{init\slash full} in that they only consider visible names, but they perform minimal disambiguation. That is, they will disambiguate individual names only if they occur in identical lists of last names. Consider the following data:
+The options \kvopt{uniquename}{mininit/minfull} are similar to \texttt{init\slash full} in that they only consider visible names, but they perform minimal disambiguation. That is, they will disambiguate individual names only if they occur in identical lists of base nameparts (for the concept of <base> nameparts, see \cmd{DeclareUniquenameTemplate in \secref{aut:cav:amb}}). Consider the following data:
 
 \begin{lstlisting}{}
 John Doe/William Jones
@@ -11866,7 +11866,7 @@ Smith and Edwards
 Smith and Johnson
 \end{lstlisting}
 %
-The <Smiths> are not disambiguated because the visible name lists are not ambiguous and the \opt{mininit/minfull} options serve to disambiguate names occurring in identical last name lists only. Another way of looking at this is that they globally disambiguate family name lists. When it comes to ambiguous lists, note that a truncated list is considered to be distinct from an untruncated one even if the visible names are identical. For example, consider the following data:
+The <Smiths> are not disambiguated because the visible name lists are not ambiguous and the \opt{mininit/minfull} options serve to disambiguate names occurring in identical base namepart lists only. Another way of looking at this is that they globally disambiguate base namepart lists. When it comes to ambiguous lists, note that a truncated list is considered to be distinct from an untruncated one even if the visible names are identical. For example, consider the following data:
 
 \begin{lstlisting}{}
 John Doe/William Jones
