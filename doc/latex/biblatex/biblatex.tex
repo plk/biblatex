@@ -3261,7 +3261,7 @@ This command differs from \cmd{addbibresource} in that the \prm{resource} is add
 
 This command differs from \cmd{addbibresource} in that the resource \prm{options} are registered but the \prm{resource} not added to any resource list. This is only required for resources which 1) are given exclusively in the optional argument of \env{refsection} (\secref{use:bib:sec}) and 2) require options different from the default settings. In this case, \cmd{addsectionbib} is employed to qualify the \prm{resource} prior to using it by setting the appropriate \prm{options} in the preamble. The \opt{label} option may be useful to assign a short name to the resource.
 
-\cmditem{bibliography}{bibfile, \dots}|\DeprecatedMark|
+\cmditem{bibliography}{bibfile, \dots}\DeprecatedMark
 
 The legacy command for adding bibliographic resources, supported for backwards compatibility. Like \cmd{addbibresource}, this command is only available in the preamble and adds resources to the default resource list. Its argument is a comma"=separated list of \file{bib} files. The \file{.bib} extension may be omitted from the filename. Invoking this command multiple times to add more files is permissible. This command is deprecated. Please consider using \cmd{addbibresource} instead.
 
@@ -6093,7 +6093,7 @@ but would additionally have the field \bibfield{dateunspecified} set to <yearinc
 
 The entry key of an item in the \file{bib} file. This is the string used by \biblatex and the backend to identify an entry in the \file{bib} file. 
 
-\fielditem{childentrykey}{string}|\DeprecatedMark|
+\fielditem{childentrykey}{string}\DeprecatedMark
 
 This field is no longer necessary or recommended. For backwards
 compatibility, it is merely a copy of the \bibfield{entrykey} field in any
@@ -6142,7 +6142,7 @@ Normally holds the prefix coming before <date> of the date field name chosen by 
 
 The entry type (\bibtype{book}, \bibtype{inbook}, etc.), given in lowercase letters.
 
-\fielditem{childentrytype}{string}|\DeprecatedMark|
+\fielditem{childentrytype}{string}\DeprecatedMark
 
 This field is no longer necessary or recommended. For backwards
 compatibility, it is merely a copy of the \bibfield{entrytype} field in any
@@ -9127,8 +9127,8 @@ As \cmd{if$<$datetype$>$julian} but for use in \cmd{mkbibdate*} formatting comma
 Expands to \prm{true} if the date <datetype>date (\opt{date}, \opt{urldate}, \opt{eventdate} etc.) has an era specification equal to \prm{era} and \prm{false} otherwise.  The supported \prm{era} strings which \biber determines and passes in the \file{.bbl} are:
 
 \begin{description}
-\item[bce] BCE/BC era
-\item[ce] CE/AD era
+\item[bce]~BCE/BC era
+\item[ce]~CE/AD era
 \end{description}
 
 This command is useful for determining whether to print the location
@@ -11743,6 +11743,16 @@ Only use the \prm{namepart} in constructing the uniquename information if there 
 
 The \prm{namepart} is part of the <base> which is the main piece of namepart(s) information which is being disambiguated by uniqueness information.
 
+\choitem{context}{none, init, full}
+
+The \prm{namepart} will be disambiguated at most by information at the given <context>. If this option is not present then the default is inferred from the \opt{uniquename} package option setting (see \secref{use:opt:wu}). The <context> option is ignored for \prm{namepart}s which have the <base> option set to <true> since it is these nameparts which are being disambiguated by the <context> of the non-base \prm{namepart}s and therefore <context> does not apply.
+
+\begin{description}
+\item[none]~Do not use the \prm{namepart} to perform any name disambiguation
+\item[init]~Use only the initials of the \prm{namepart} to perform name disambiguation
+\item[full]~Use initials and if necessary the full \prm{namepart} to perform name disambiguation
+\end{description}
+
 \end{optionlist*}
 
 \end{ltxsyntax}
@@ -11753,11 +11763,11 @@ The default uniquename template is:
 \DeclareUniquenameTemplate{
   \namepart[use=true, base=true]{prefix}
   \namepart[base=true]{family}
-  \namepart{given}
+  \namepart[context=full]{given}
 }
 \end{ltxexample}
 %
-This means that the <base> to be disambiguated consists of the <family> namepart, along with any prefix, if the \opt{useprefix} option is true. The disambiguation is performed by adding aspects of any non <base> nameparts in the specification, here just the <given> namepart.
+This means that the <base> to be disambiguated consists of the <family> namepart, along with any prefix, if the \opt{useprefix} option is true. The disambiguation is performed by adding anything up to the full namepart of any non <base> nameparts in the specification, here just the <given> namepart.
 
 \paragraph{Individual Names (\opt{uniquename})}
 
