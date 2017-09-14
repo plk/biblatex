@@ -28,7 +28,8 @@ customisable labels, dynamic data modification and custom data models are
 available. 
 
 The package is completely localised and can interface with
-the Babel and Polyglossia packages. 
+the Babel and Polyglossia packages. Read below for how to
+update and/or add translations.
 
 # Copyright and Licence
 
@@ -94,6 +95,28 @@ Obviously, its is easier to get the TDS format package from the Sourceforge
 development folder and just unpack it into your `~/texmf` but this might
 not be quite as recent as the git development branch (but is usually very
 close).
+
+# Translation
+
+The language files (`*.lbx`) are located in `tex/latex/biblatex/lbx`. To add
+a new translation copy `english.lbx` (or another existing translation that is
+closer to your language) to `languagename.lbx` where `languagename`
+is the name used by Babel for the language.
+
+To debug or verify that a translation is complete, copy
+`doc/latex/biblatex/examples/03-localization-keys.tex` to
+`tex/latex/biblatex/lbx`. Edit `03-localization-keys.tex` so Babel (and hence
+Biblatex) uses the language you are translating. Compiling the file will
+warn you about missing strings, and looking at the generated file will
+help you to proofread your translation.
+
+If you are translating for an upcoming release, i.e., you have cloned the
+Git repository, please remember to build and install the package as descriped
+above before trying to compile `03-localization-keys.tex`.
+
+If your language inherits from another, you'll have to take extra care as
+new strings aren't reported if they are already translated in the inherited
+language.
 
 # Help
 
