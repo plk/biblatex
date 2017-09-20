@@ -100,8 +100,10 @@ close).
 
 The language files (`*.lbx`) are located in `tex/latex/biblatex/lbx`. To add
 a new translation copy `english.lbx` (or another existing translation that is
-closer to your language) to `languagename.lbx` where `languagename`
-is the name used by Babel for the language.
+closer to your language; note that `english.lbx` and `german.lbx` are
+reference translations, all other files are not guaranteed to be complete)
+to `languagename.lbx`, where `languagename` is the name used by Babel
+for the language.
 
 To debug or verify that a translation is complete, copy
 `doc/latex/biblatex/examples/03-localization-keys.tex` to
@@ -111,7 +113,7 @@ warn you about missing strings, and looking at the generated file will
 help you to proofread your translation.
 
 If you are translating for an upcoming release, i.e., you have cloned the
-Git repository, please remember to build and install the package as descriped
+Git repository, please remember to build and install the package as described
 above before trying to compile `03-localization-keys.tex`.
 
 If your language inherits from another, you'll have to take extra care as
