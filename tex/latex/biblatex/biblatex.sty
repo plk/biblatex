@@ -592,6 +592,9 @@
 % Used to track sorting name key specifications
 \global\let\blx@sortingnamekeyspecs\@empty
 
+% Used to track uniquename templates
+\global\let\blx@untemplatespecs\@empty
+
 % Used to track transliterations
 \global\let\blx@translits\@empty
 
@@ -10611,9 +10614,9 @@
 \xdef\blx@xml@nolabelwidthcount#1{%
   ~~~~<bcf:nolabelwidthcount value="#1"/>\blx@nl}
 
-\xdef\blx@xml@uniquenametemplate#1{%
-  ~~<bcf:uniquenametemplate>\blx@nl%
-  #1%
+\xdef\blx@xml@uniquenametemplate#1#2{%
+  ~~<bcf:uniquenametemplate name="#1">\blx@nl%
+  #2%
   ~~</bcf:uniquenametemplate>\blx@nl}
 
 \xdef\blx@xml@uniquenametemplatenamepart#1#2#3{%
@@ -10972,13 +10975,15 @@
      \dolistloop\blx@translits}%
   % uniquenametemplate
   \eappto\blx@tempa{\blx@xml@comment{UNIQUENAME TEMPLATE}}%
-  \eappto\blx@tempa{\blx@xml@uniquenametemplate{\blx@uniquenametemplate}}%
+  \def\do##1{%
+    \eappto\blx@tempa{%
+      \blx@xml@uniquenametemplate{##1}{\csuse{blx@uniquenametemplate@##1}}}}%
+  \dolistloop\blx@untemplatespecs
   % sortingnamekey
   \eappto\blx@tempa{\blx@xml@comment{SORTING NAME KEY}}%
   \def\do##1{%
     \eappto\blx@tempa{%
-      \blx@xml@sortingnamekey{##1}{%
-        \csuse{blx@sortingnamekey@##1}}}}%
+      \blx@xml@sortingnamekey{##1}{\csuse{blx@sortingnamekey@##1}}}}%
   \dolistloop\blx@sortingnamekeyspecs
   % sorting
   \def\do##1{%
@@ -11639,14 +11644,20 @@
   \eappto\blx@tempb{%
     \blx@xml@translit{#1}{#2}{#3}}}
 
-% {<spec>}
-\newrobustcmd*{\DeclareUniquenameTemplate}[1]{%
+% [<specname>]{<spec>}
+\newrobustcmd*{\DeclareUniquenameTemplate}[2][]{%
   \begingroup
+  \ifblank{#1}
+    {\def\blx@untname{global}}% default
+    {\def\blx@untname{#1}}%
   \let\namepart\blx@untemp@namepart
   \let\blx@tempa\@empty
   \blx@tempcnta\z@
-  #1%
-  \global\let\blx@uniquenametemplate\blx@tempa
+  #2%
+  \global\cslet{blx@uniquenametemplate@\blx@untname}\blx@tempa
+  \xifinlist\blx@untname\blx@untemplatespecs
+    {}
+    {\listxadd\blx@untemplatespecs\blx@untname}%
   \endgroup}
 \@onlypreamble\DeclareUniquenameTemplate
 \blx@collectopts{xml}{blx@globalopts}{uniquenametemplate}% for passing to the .bcf
