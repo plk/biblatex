@@ -16,6 +16,8 @@
     {Use the package option 'style' instead.\MessageBreak
      I'm ignoring this command}}
 
+\providecommand*{\@mkdouble}[1]{\@mkboth{#1}{#1}}
+
 % standard classes
 
 \DeclareOption{openbib}{\ExecuteBibliographyOptions{block=par}}
@@ -37,6 +39,31 @@
   {\newcommand{\ifmemoirbibintoc}[2]{#2}}
 
 % KOMA-Script
+
+\providecommand*{\@mkright}{%
+  \begingroup
+    \ifx\@mkboth\markboth \aftergroup\markright
+    \else
+      \ifx\@mkboth\@gobbletwo \aftergroup\@gobble
+      \else \def\@gobbletwo##1##2{}%
+        \ifx \@mkboth\@gobbletwo \aftergroup\@gobble
+        \else
+          \PackageWarning{biblatex}{% changed for biblatex
+            package incompatibility detected!\MessageBreak
+            \string\@mkboth it neither \string\markboth nor any\MessageBreak
+            kind of two arguments gobbling,\MessageBreak
+            e.g., \string\@gobbletwo.\MessageBreak
+            So I don't known, what to do\MessageBreak
+            with \string\@mkright.\MessageBreak
+            Nevertheless, \string\markright\space will be\MessageBreak
+            used%
+          }%
+          \aftergroup\markright
+        \fi
+      \fi
+    \fi
+  \endgroup
+}%
 
 \newcommand{\ifkomabibtotoc}[2]{#2}
 \newcommand{\ifkomabibtotocnumbered}[2]{#2}
