@@ -468,7 +468,7 @@
        \iffieldundef{eprintclass}
          {}
          {\addspace\texttt{\mkbibbrackets{\thefield{eprintclass}}}}}}
-    {\nolinkurl{#1}
+    {\nolinkurl{#1}%
      \iffieldundef{eprintclass}
        {}
        {\addspace\texttt{\mkbibbrackets{\thefield{eprintclass}}}}}}
@@ -1740,27 +1740,31 @@
 
 \defbibheading{none}{}
 
+\def\abx@MakeMarkcase{\MakeUppercase}
+\AtEndPreamble{%
+  \ifcsundef{MakeMarkcase}{}{\def\abx@MakeMarkcase{\MakeMarkcase}}}
+
 \ifcase\abx@classtype\relax % article
   \defbibheading{bibliography}[\refname]{%
     \section*{#1}%
-    \@mkboth{\MakeUppercase{#1}}{\MakeUppercase{#1}}}
+    \@mkdouble{\abx@MakeMarkcase{#1}}}
   \defbibheading{biblist}[\biblistname]{%
     \section*{#1}%
-    \@mkboth{\MakeUppercase{#1}}{\MakeUppercase{#1}}}
+    \@mkdouble{\abx@MakeMarkcase{#1}}}
   \defbibheading{bibintoc}[\refname]{%
     \section*{#1}%
     \addcontentsline{toc}{section}{#1}%
-    \@mkboth{\MakeUppercase{#1}}{\MakeUppercase{#1}}}
+    \@mkdouble{\abx@MakeMarkcase{#1}}}
   \defbibheading{biblistintoc}[\biblistname]{%
     \section*{#1}%
     \addcontentsline{toc}{section}{#1}%
-    \@mkboth{\MakeUppercase{#1}}{\MakeUppercase{#1}}}
+    \@mkdouble{\abx@MakeMarkcase{#1}}}
   \defbibheading{bibnumbered}[\refname]{%
     \section{#1}%
-    \if@twoside\markright{\MakeUppercase{#1}}\fi}
+    \if@twoside\markright{\abx@MakeMarkcase{#1}}\fi}
   \defbibheading{biblistnumbered}[\biblistname]{%
     \section{#1}%
-    \if@twoside\markright{\MakeUppercase{#1}}\fi}
+    \if@twoside\markright{\abx@MakeMarkcase{#1}}\fi}
   \defbibheading{subbibliography}[\refname]{%
     \subsection*{#1}}
   \defbibheading{subbibintoc}[\refname]{%
@@ -1772,131 +1776,144 @@
 \or % book/report
   \defbibheading{bibliography}[\bibname]{%
     \chapter*{#1}%
-    \@mkboth{\MakeUppercase{#1}}{\MakeUppercase{#1}}}
+    \@mkdouble{\abx@MakeMarkcase{#1}}}
   \defbibheading{biblist}[\biblistname]{%
     \chapter*{#1}%
-    \@mkboth{\MakeUppercase{#1}}{\MakeUppercase{#1}}}
+    \@mkdouble{\abx@MakeMarkcase{#1}}}
   \defbibheading{bibintoc}[\bibname]{%
     \chapter*{#1}%
     \addcontentsline{toc}{chapter}{#1}%
-    \@mkboth{\MakeUppercase{#1}}{\MakeUppercase{#1}}}
+    \@mkdouble{\abx@MakeMarkcase{#1}}}
   \defbibheading{biblistintoc}[\biblistname]{%
     \chapter*{#1}%
     \addcontentsline{toc}{chapter}{#1}%
-    \@mkboth{\MakeUppercase{#1}}{\MakeUppercase{#1}}}
+    \@mkdouble{\abx@MakeMarkcase{#1}}}
   \defbibheading{bibnumbered}[\bibname]{%
     \chapter{#1}%
-    \if@twoside\markright{\MakeUppercase{#1}}\fi}
+    \if@twoside\markright{\abx@MakeMarkcase{#1}}\fi}
   \defbibheading{biblistnumbered}[\biblistname]{%
     \chapter{#1}%
-    \if@twoside\markright{\MakeUppercase{#1}}\fi}
+    \if@twoside\markright{\abx@MakeMarkcase{#1}}\fi}
   \defbibheading{subbibliography}[\refname]{%
     \section*{#1}%
-    \if@twoside\markright{\MakeUppercase{#1}}\fi}
+    \if@twoside\markright{\abx@MakeMarkcase{#1}}\fi}
   \defbibheading{subbibintoc}[\refname]{%
     \section*{#1}%
     \addcontentsline{toc}{section}{#1}%
-    \if@twoside\markright{\MakeUppercase{#1}}\fi}
+    \if@twoside\markright{\abx@MakeMarkcase{#1}}\fi}
   \defbibheading{subbibnumbered}[\refname]{%
     \section{#1}}
 
 \or % scrartcl
   \defbibheading{bibliography}[\refname]{%
-    \ifkomabibtotocnumbered
-      {\section{#1}}
-      {\ifkomabibtotoc
-         {\addsec{#1}}
-         {\section*{#1}}%
-       \@mkboth{#1}{#1}}}
+    \ifcsundef{bibliography@heading}
+      {\ifkomabibtotocnumbered
+         {\section{#1}%
+          \@mkdouble{\abx@MakeMarkcase{\sectionmarkformat#1}}}
+         {\ifkomabibtotoc
+            {\addsec{#1}}
+            {\section*{#1}}%
+          \@mkdouble{\abx@MakeMarkcase{#1}}}}
+      {\bibliography@heading{#1}}}
   \defbibheading{biblist}[\biblistname]{%
-    \ifkomabibtotocnumbered
-      {\section{#1}}
-      {\ifkomabibtotoc
-         {\addsec{#1}}
-         {\section*{#1}}%
-       \@mkboth{#1}{#1}}}
+    \ifcsundef{bibliography@heading}
+      {\ifkomabibtotocnumbered
+         {\section{#1}%
+          \@mkdouble{\abx@MakeMarkcase{\sectionmarkformat#1}}}
+         {\ifkomabibtotoc
+            {\addsec{#1}}
+            {\section*{#1}}%
+          \@mkdouble{\abx@MakeMarkcase{#1}}}}
+      {\bibliography@heading{#1}}}
   \defbibheading{bibintoc}[\refname]{%
     \addsec{#1}%
-    \@mkboth{#1}{#1}}
+    \@mkdouble{\abx@MakeMarkcase{#1}}}
   \defbibheading{biblistintoc}[\biblistname]{%
     \addsec{#1}%
-    \@mkboth{#1}{#1}}
+    \@mkdouble{\abx@MakeMarkcase{#1}}}
   \defbibheading{bibnumbered}[\refname]{%
     \section{#1}%
-    \@mkboth{\sectionmarkformat#1}{\sectionmarkformat#1}}
+    \@mkdouble{\abx@MakeMarkcase{\sectionmarkformat#1}}}
   \defbibheading{biblistnumbered}[\biblistname]{%
     \section{#1}%
-    \@mkboth{\sectionmarkformat#1}{\sectionmarkformat#1}}
+    \@mkdouble{\abx@MakeMarkcase{\sectionmarkformat#1}}}
   \defbibheading{subbibliography}[\refname]{%
-    \subsection*{#1}}
+    \subsection*{#1}%
+    \@mkright{\abx@MakeMarkcase{#1}}}
   \defbibheading{subbibintoc}[\refname]{%
     \subsection*{#1}%
-    \addcontentsline{toc}{subsection}{#1}}
+    \addcontentsline{toc}{subsection}{#1}%
+    \@mkright{\abx@MakeMarkcase{#1}}}
   \defbibheading{subbibnumbered}[\refname]{%
     \subsection{#1}}
 
 \or % scrbook/scrreprt
   \defbibheading{bibliography}[\bibname]{%
-    \ifkomabibtotocnumbered
-      {\chapter{#1}}
-      {\ifkomabibtotoc
-         {\addchap{#1}}
-         {\chapter*{#1}}%
-       \@mkboth{#1}{#1}}}
+    \ifcsundef{bibliography@heading}
+      {\ifkomabibtotocnumbered
+         {\chapter{#1}%
+          \@mkdouble{\abx@MakeMarkcase{\chaptermarkformat#1}}}
+         {\ifkomabibtotoc
+            {\addchap{#1}}
+            {\chapter*{#1}}%
+          \@mkdouble{\abx@MakeMarkcase{#1}}}}
+      {\bibliography@heading{#1}}}
   \defbibheading{biblist}[\biblistname]{%
-    \ifkomabibtotocnumbered
-      {\chapter{#1}}
-      {\ifkomabibtotoc
-         {\addchap{#1}}
-         {\chapter*{#1}}%
-       \@mkboth{#1}{#1}}}
+    \ifcsundef{bibliography@heading}
+      {\ifkomabibtotocnumbered
+         {\chapter{#1}%
+          \@mkdouble{\abx@MakeMarkcase{\chaptermarkformat#1}}}
+         {\ifkomabibtotoc
+            {\addchap{#1}}
+            {\chapter*{#1}}%
+          \@mkdouble{\abx@MakeMarkcase{#1}}}}
+      {\bibliography@heading{#1}}}
   \defbibheading{bibintoc}[\bibname]{%
     \addchap{#1}%
-    \@mkboth{#1}{#1}}
+    \@mkdouble{\abx@MakeMarkcase{#1}}}
   \defbibheading{biblistintoc}[\biblistname]{%
     \addchap{#1}%
-    \@mkboth{#1}{#1}}
+    \@mkdouble{\abx@MakeMarkcase{#1}}}
   \defbibheading{bibnumbered}[\bibname]{%
     \chapter{#1}%
-    \@mkboth{\chaptermarkformat#1}{\chaptermarkformat#1}}
+    \@mkdouble{\abx@MakeMarkcase{\chaptermarkformat#1}}}
   \defbibheading{biblistnumbered}[\biblistname]{%
     \chapter{#1}%
-    \@mkboth{\chaptermarkformat#1}{\chaptermarkformat#1}}
+    \@mkdouble{\abx@MakeMarkcase{\chaptermarkformat#1}}}
   \defbibheading{subbibliography}[\refname]{%
     \section*{#1}%
-    \if@twoside\markright{#1}\fi}
+    \@mkright{\abx@MakeMarkcase{#1}}}
   \defbibheading{subbibintoc}[\refname]{%
-    \addsec{#1}%
-    \@mkboth{#1}{#1}}
+    \addsec{#1}}
   \defbibheading{subbibnumbered}[\refname]{%
     \section{#1}}
 
 \or % memoir (article)
-  \ifdef\memUChead{}{\let\memUChead\MakeUppercase}
+  \ifcsundef{memUChead}{}{\def\abx@MakeMarkcase{\memUChead}}%
   \defbibheading{bibliography}[\refname]{%
     \chapter*{#1}%
     \ifmemoirbibintoc
       {\phantomsection
        \addcontentsline{toc}{chapter}{#1}}
       {}%
-    \@mkboth{\memUChead{#1}}{\memUChead{#1}}}
+    \@mkdouble{\abx@MakeMarkcase{#1}}}
   \defbibheading{biblist}[\biblistname]{%
     \chapter*{#1}%
     \ifmemoirbibintoc
       {\phantomsection
        \addcontentsline{toc}{chapter}{#1}}
       {}%
-    \@mkboth{\memUChead{#1}}{\memUChead{#1}}}
+    \@mkdouble{\abx@MakeMarkcase{#1}}}
   \defbibheading{bibintoc}[\refname]{%
     \chapter*{#1}%
     \phantomsection
     \addcontentsline{toc}{chapter}{#1}%
-    \@mkboth{\memUChead{#1}}{\memUChead{#1}}}
+    \@mkdouble{\abx@MakeMarkcase{#1}}}
   \defbibheading{biblistintoc}[\biblistname]{%
     \chapter*{#1}%
     \phantomsection
     \addcontentsline{toc}{chapter}{#1}%
-    \@mkboth{\memUChead{#1}}{\memUChead{#1}}}
+    \@mkdouble{\abx@MakeMarkcase{#1}}}
   \defbibheading{bibnumbered}[\refname]{%
     \chapter{#1}}
   \defbibheading{biblistnumbered}[\biblistname]{%
@@ -1907,59 +1924,59 @@
       {\phantomsection
        \addcontentsline{toc}{section}{#1}}
       {}%
-    \if@twoside\markright{\memUChead{#1}}\fi}
+    \if@twoside\markright{\abx@MakeMarkcase{#1}}\fi}
   \defbibheading{subbibintoc}[\refname]{%
     \section*{#1}%
     \phantomsection
     \addcontentsline{toc}{section}{#1}%
-    \if@twoside\markright{\memUChead{#1}}\fi}
+    \if@twoside\markright{\abx@MakeMarkcase{#1}}\fi}
   \defbibheading{subbibnumbered}[\refname]{%
     \section{#1}}
 
 \or % memoir (book)
-  \ifdef\memUChead{}{\let\memUChead\MakeUppercase}
+  \ifcsundef{memUChead}{}{\def\abx@MakeMarkcase{\memUChead}}%
   \defbibheading{bibliography}[\bibname]{%
     \chapter*{#1}%
     \ifmemoirbibintoc
       {\phantomsection
        \addcontentsline{toc}{chapter}{#1}}
       {}%
-    \@mkboth{\memUChead{#1}}{\memUChead{#1}}}
+    \@mkdouble{\abx@MakeMarkcase{#1}}}
   \defbibheading{biblist}[\biblistname]{%
     \chapter*{#1}%
     \ifmemoirbibintoc
       {\phantomsection
        \addcontentsline{toc}{chapter}{#1}}
       {}%
-    \@mkboth{\memUChead{#1}}{\memUChead{#1}}}
+    \@mkdouble{\abx@MakeMarkcase{#1}}}
   \defbibheading{bibintoc}[\bibname]{%
     \chapter*{#1}%
     \phantomsection
     \addcontentsline{toc}{chapter}{#1}%
-    \@mkboth{\memUChead{#1}}{\memUChead{#1}}}
+    \@mkdouble{\abx@MakeMarkcase{#1}}}
   \defbibheading{biblistintoc}[\biblistname]{%
     \chapter*{#1}%
     \phantomsection
     \addcontentsline{toc}{chapter}{#1}%
-    \@mkboth{\memUChead{#1}}{\memUChead{#1}}}
+    \@mkdouble{\abx@MakeMarkcase{#1}}}
   \defbibheading{bibnumbered}[\bibname]{%
     \chapter{#1}%
-    \if@twoside\markright{\memUChead{#1}}\fi}
+    \if@twoside\markright{\abx@MakeMarkcase{#1}}\fi}
   \defbibheading{biblistnumbered}[\biblistname]{%
     \chapter{#1}%
-    \if@twoside\markright{\memUChead{#1}}\fi}
+    \if@twoside\markright{\abx@MakeMarkcase{#1}}\fi}
   \defbibheading{subbibliography}[\refname]{%
     \section*{#1}%
     \ifmemoirbibintoc
       {\phantomsection
        \addcontentsline{toc}{section}{#1}}
       {}%
-    \if@twoside\markright{\memUChead{#1}}\fi}
+    \if@twoside\markright{\abx@MakeMarkcase{#1}}\fi}
   \defbibheading{subbibintoc}[\refname]{%
     \section*{#1}%
     \phantomsection
     \addcontentsline{toc}{section}{#1}%
-    \if@twoside\markright{\memUChead{#1}}\fi}
+    \if@twoside\markright{\abx@MakeMarkcase{#1}}\fi}
   \defbibheading{subbibnumbered}[\refname]{%
     \section{#1}}
 
