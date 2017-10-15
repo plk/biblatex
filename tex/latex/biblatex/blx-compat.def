@@ -16,6 +16,8 @@
     {Use the package option 'style' instead.\MessageBreak
      I'm ignoring this command}}
 
+\providecommand*{\@mkdouble}[1]{\@mkboth{#1}{#1}}
+
 % standard classes
 
 \DeclareOption{openbib}{\ExecuteBibliographyOptions{block=par}}
@@ -38,6 +40,31 @@
 
 % KOMA-Script
 
+\providecommand*{\@mkright}{%
+  \begingroup
+    \ifx\@mkboth\markboth \aftergroup\markright
+    \else
+      \ifx\@mkboth\@gobbletwo \aftergroup\@gobble
+      \else \def\@gobbletwo##1##2{}%
+        \ifx \@mkboth\@gobbletwo \aftergroup\@gobble
+        \else
+          \PackageWarning{biblatex}{% changed for biblatex
+            package incompatibility detected!\MessageBreak
+            \string\@mkboth it neither \string\markboth nor any\MessageBreak
+            kind of two arguments gobbling,\MessageBreak
+            e.g., \string\@gobbletwo.\MessageBreak
+            So I don't known, what to do\MessageBreak
+            with \string\@mkright.\MessageBreak
+            Nevertheless, \string\markright\space will be\MessageBreak
+            used%
+          }%
+          \aftergroup\markright
+        \fi
+      \fi
+    \fi
+  \endgroup
+}%
+
 \newcommand{\ifkomabibtotoc}[2]{#2}
 \newcommand{\ifkomabibtotocnumbered}[2]{#2}
 
@@ -50,17 +77,41 @@
      {}%
    \DeclareOption{bibtotoc}{%
      \let\ifkomabibtotoc=\@firstoftwo
-     \let\ifkomabibtotocnumbered=\@secondoftwo}
+     \let\ifkomabibtotocnumbered=\@secondoftwo}%
    \DeclareOption{bibtotocnumbered}{%
      \let\ifkomabibtotoc=\@firstoftwo
      \let\ifkomabibtotocnumbered=\@firstoftwo}%
-   \DeclareOption{bibliography=totoc}{%
-     \let\ifkomabibtotoc=\@firstoftwo
-     \let\ifkomabibtotocnumbered=\@secondoftwo}
+   \DeclareOption{bibliography=notoc}{%
+     \let\ifkomabibtotoc=\@secondoftwo
+     \let\ifkomabibtotocnumbered=\@secondoftwo}%
    \DeclareOption{bibliography=nottotoc}{%
      \let\ifkomabibtotoc=\@secondoftwo
-     \let\ifkomabibtotocnumbered=\@secondoftwo}
+     \let\ifkomabibtotocnumbered=\@secondoftwo}%
+   \DeclareOption{bibliography=plainheading}{%
+     \let\ifkomabibtotoc=\@secondoftwo
+     \let\ifkomabibtotocnumbered=\@secondoftwo}%
+   \DeclareOption{bibliography=totoc}{%
+     \let\ifkomabibtotoc=\@firstoftwo
+     \let\ifkomabibtotocnumbered=\@secondoftwo}%
+   \DeclareOption{bibliography=toc}{%
+     \let\ifkomabibtotoc=\@firstoftwo
+     \let\ifkomabibtotocnumbered=\@secondoftwo}%
+   \DeclareOption{bibliography=notnumbered}{%
+     \let\ifkomabibtotoc=\@firstoftwo
+     \let\ifkomabibtotocnumbered=\@secondoftwo}%
+   \DeclareOption{bibliography=numbered}{%
+     \let\ifkomabibtotoc=\@firstoftwo
+     \let\ifkomabibtotocnumbered=\@firstoftwo}%
    \DeclareOption{bibliography=totocnumbered}{%
+     \let\ifkomabibtotoc=\@firstoftwo
+     \let\ifkomabibtotocnumbered=\@firstoftwo}%
+   \DeclareOption{bibliography=tocnumbered}{%
+     \let\ifkomabibtotoc=\@firstoftwo
+     \let\ifkomabibtotocnumbered=\@firstoftwo}%
+   \DeclareOption{bibliography=numberedtotoc}{%
+     \let\ifkomabibtotoc=\@firstoftwo
+     \let\ifkomabibtotocnumbered=\@firstoftwo}%
+   \DeclareOption{bibliography=numberedtoc}{%
      \let\ifkomabibtotoc=\@firstoftwo
      \let\ifkomabibtotocnumbered=\@firstoftwo}%
    \DeclareOption{bibliography=oldstyle}{%
