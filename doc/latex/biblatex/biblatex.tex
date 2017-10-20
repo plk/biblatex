@@ -3079,7 +3079,7 @@ You can use the \bibfield{relatedoptions} to set options on the related entry da
 \subsection{Sorting Options}
 \label{use:srt}
 
-This package supports various sorting schemes for the bibliography. The sorting scheme is selected with the \opt{sorting} package option from \secref{use:opt:pre:gen}. Apart from the regular data fields there are also some special fields which may be used to optimize the sorting of the bibliography. \Apxref{apx:srt:a1, apx:srt:a2} give an outline of the alphabetic sorting schemes supported by \biblatex. Chronological sorting schemes are listed in \apxref{apx:srt:chr}. A few explanations concerning these schemes are in order.
+This package supports fully customisable sorting schemes for the bibliography. The default global sorting scheme is selected with the \opt{sorting} package option from \secref{use:opt:pre:gen}. Apart from the regular data fields there are also some special fields which may be used to optimize the sorting of the bibliography. \Apxref{apx:srt:a1, apx:srt:a2} give an outline of the default alphabetic sorting schemes supported by \biblatex. Chronological sorting schemes are listed in \apxref{apx:srt:chr}. A few explanations concerning the default schemes are in order.
 
 The first item considered in the sorting process is always the \bibfield{presort} field of the entry. If this field is undefined, \biblatex will use the default value <\texttt{mm}> as a presort string. The next item considered is the \bibfield{sortkey} field. If this field is defined, it serves as the master sort key. Apart from the \bibfield{presort} field, no further data is considered in this case. If the \bibfield{sortkey} field is undefined, sorting continues with the name. The package will try using the \bibfield{sortname}, \bibfield{author}, \bibfield{editor}, and \bibfield{translator} fields, in this order. Which fields are considered also depends on the setting of the \opt{use$<$name$>$} options. If all such options are disabled, the \bibfield{sortname} field is ignored as well. Note that all name fields are responsive to \opt{maxnames} and \opt{minnames}. If no name field is available, either because all of them are undefined or because all \opt{use$<$name$>$} options are disabled, \biblatex will fall back to the \bibfield{sorttitle} and \bibfield{title} fields as a last resort. The remaining items are, in various order: the \bibfield{sortyear} field, if defined, or the first four digits of the \bibfield{year} field otherwise; the \bibfield{sorttitle} field, if defined, or the \bibfield{title} field otherwise; the \bibfield{volume} field. Note that the sorting schemes shown in \apxref{apx:srt:a2} include an additional item: \bibfield{labelalpha} is the label used by <alphabetic> bibliography styles. Strictly speaking, the string used for sorting is \bibfield{labelalpha}~+ \bibfield{extraalpha}. The sorting schemes in \apxref{apx:srt:a2} are intended to be used in conjunction with alphabetic styles only.
 
@@ -3689,16 +3689,17 @@ See the author guide, in particular \secref{aut:aux:tst,aut:aux:ife}, for furthe
 \subsubsection{Reference Contexts}
 \label{use:bib:context}
 
-References in a bibliography are cited and printed in a <context>. The context determines the data which is actually used to cite or provide bibliographic data for an entry. A context consists of the following information (the <context> concept is designed for future extensibility):
+References in a bibliography are cited and printed in a <context>. The context determines the data which is actually used to cite or provide bibliographic data for an entry. A context consists of the following information:
 
 \begin{itemize}
  \item A sorting scheme
  \item A scheme for constructing the sorting keys for names
- \item A string prefix for citation schemes which use alphabetic or numeric
-   labels
+ \item A string prefix for citation schemes which use alphabetic or numeric labels
+ \item A template for calculating name uniqueness information
+ \item A template for constructing alphabetic labels for names
 \end{itemize}
 %
-The point of bibliography contexts is twofold. Firstly, they are used to set options which influence a printed bibliography and secondly to influence the data printed by citation commands.
+The purpose of bibliography contexts is twofold. Firstly, they are used to set options which influence a printed bibliography and secondly to influence the data printed by citation commands.
 The former use is the most common when one needs to print more than one bibliography list with different, for example, sorting.
 
 \begin{ltxexample}
@@ -7901,7 +7902,7 @@ Alphabetic styles use a label to identify bibliography entries. This label is co
 
 \begin{ltxsyntax}
 
-\cmditem{DeclareLabelalphaTemplate}[entrytype, \dots]{specification}
+\cmditem{DeclareLabelalphaTemplate}[]{specification}
 
 Defines the alphabetic label template for the given entrytypes. If no entrytypes are specified in the first argument, then the global label template is defined. The \prm{specification} is an undelimited list of \cmd{labelelement} directives which specify the elements used to build the label. Spaces, tabs, and line endings may be used freely to visually arrange the \prm{specification}. Blank lines are not permissible. This command may only be used in the preamble.
 
@@ -8006,9 +8007,11 @@ When a name list \cmd{field} is specified, the method of extracting the string i
 
 \begin{ltxsyntax}
 
-\cmditem{DeclareLabelalphaNameTemplate}[entrytype, \dots]{specification}
+\cmditem{DeclareLabelalphaNameTemplate}[name]{specification}
 
-Specifies the template to use to extract a label string from a name list when a \cmd{field} specification in \cmd{DeclareLabelalphaTemplate} contains a name list. The template can be specified per"=entrytype.
+Defines the \opt{labelalphaname} template \prm{name}. The \prm{name} is optional and defaults to \prm{<global>}.
+
+These templates specify how to extract a label string from a name list when a \cmd{field} specification in \cmd{DeclareLabelalphaTemplate} contains a name list. The template name can be used to specify templates to use per"=entry and per"=name.
 
 \cmditem{namepart}[options]{namepart}
 
@@ -9301,9 +9304,8 @@ Expands to \prm{true} if \bibfield{labelname} is empty and there is only one wor
 Expands to \prm{true} if there is only one work by the \opt{labelname} name with the \opt{labeltitle} title in the bibliography, and to \prm{false} otherwise. If neither \opt{labelname} nor \opt{labeltitle} are set for an entry, this will always expand to \prm{false}. Note that this feature needs to be enabled explicitly with the package option \opt{uniquework}. If both \bibfield{singletitle} and \bibfield{uniquetitle} are false for the same entry, this could be because another entry has the same \bibfield{labdlname} and yet another, different, entry has the same \bibfield{labeltitle}. \bibfield{uniquework} would let you know that there is another entry that has \emph{both} the same \bibfield{labelname} \emph{and} the same \bibfield{labeltitle}. This could be helpful in cases where multiple people maintain bibliography datasources and there is a risk of adding the same work with different keys without other parties realising this. This test could help to find such duplicates.
 
 \cmditem{ifuniqueprimaryauthor}{true}{false}
-x
-Expands to \prm{true} if there is only one work by the primary (first) author family
-name of \opt{labelname} and to \prm{false} otherwise. If \opt{labelname} is not set for an entry, this will always expand to \prm{false}. Note that this feature needs to be enabled explicitly with the package option \opt{uniqueprimaryauthor}. 
+
+Expands to \prm{true} if there is only one work by the the primary (first) author name of \opt{labelname} and to \prm{false} otherwise. Only the base name parts of the author name are considered, as defined by \cmd{DeclareUniquenameTemplate} see \secref{aut:cav:amb}. If \opt{labelname} is not set for an entry, this will always expand to \prm{false}. Note that this feature needs to be enabled explicitly with the package option \opt{uniqueprimaryauthor}. 
 
 \cmditem{ifandothers}{list}{true}{false}
 
@@ -11736,9 +11738,11 @@ Name disambiguation works by taking a <base> which is composed of one or more na
 
 \begin{ltxsyntax}
 
-\cmditem{DeclareUniquenameTemplate}{specification}
+\cmditem{DeclareUniquenameTemplate}[name]{specification}
 
-The \prm{specification} is an ordered list of \cmd{namepart} commands which define the nameparts to use in determining the uniquename information.
+Defines the \opt{uniquename} template \prm{name}. The \prm{name} is optional and defaults to \prm{<global>}.
+
+The \prm{specification} is an ordered list of \cmd{namepart} commands which define the nameparts to use in determining the uniquename information. The template name can be used to specify templates to use per"=entry and per"=name.
 
 \cmditem{namepart}[options]{namepart}
 
@@ -12982,6 +12986,7 @@ This revision history is a list of changes relevant to users of this package. Ch
 \begin{changelog}
 
 \begin{release}{3.8}{2017-?}
+\item Changes to \cmd{DeclareUniquenameTemplate} and \cmd{DeclareLabelalphaNameTemplate} scopes\see{aut:cav:amb} and \see{aut:ctm:lab}
 \item Added new \opt{disambiguation} option to \cmd{DeclareUniquenameTemplate}\see{aut:cav:amb}
 \item Added new user-facing versions of some entry-querying commands\see{use:eq}
 \item Changed \bibfield{origlanguage} to a list in line with \bibfield{language}\see{bib:fld:dat}

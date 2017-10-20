@@ -14,9 +14,9 @@ With the \"DEV\" argument, uploads to the SourceForge development
 folder instead of the <version> numbered folder
 
 Examples: 
-obuild/build.sh install 2.2 ~/texmf/
-obuild/build.sh build 2.2
-obuild/build.sh upload 2.2 DEV
+obuild/build.sh install 3.8 ~/texmf/
+obuild/build.sh build 3.8
+obuild/build.sh upload 3.8 DEV
 
 \"build test\" runs all of the example files (in a temp dir) and puts errors in a log:
 

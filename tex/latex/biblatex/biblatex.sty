@@ -600,6 +600,9 @@
 % Used to track uniquename templates
 \global\let\blx@untemplatespecs\@empty
 
+% Used to track labelalphaname templates
+\global\let\blx@lantemplatespecs\@empty
+
 % Used to track transliterations
 \global\let\blx@translits\@empty
 
@@ -613,8 +616,8 @@
 \global\let\blx@cites\@empty
 \global\let\blx@refcontexts\@empty
 \global\let\blx@lastrefcontexts\@empty
-\global\let\blx@sortschemes\@empty
-\global\let\blx@lastsortschemes\@empty
+\global\let\blx@sortingschemenames\@empty
+\global\let\blx@dlistnames\@empty
 \global\let\blx@biblists\@empty
 \global\let\blx@lastbiblists\@empty
 \global\let\blx@lastcites\@empty
@@ -3943,6 +3946,10 @@
     {\setkeys{blx@opt@namelist}{#1}}%
   \def\blx@thedata{#2}}
 
+% These are options in the .bbl that biber makes explicit as they are needed in biblatex
+% for various reasons. Not all namelist/name scope options are necessary in the .bbl as
+% some are used by biber only and are not needed by biblatex after biber has finished
+% generating the .bbl
 % Per-namelist options
 \define@key{blx@opt@namelist}{uniquelist}{\c@uniquelist#1\relax}
 \define@key{blx@opt@namelist}{useprefix}{\settoggle{blx@useprefix}{#1}}
@@ -5790,6 +5797,14 @@
 \blx@collectopts{string}{blx@namelistopts}{sortnamekeyscheme}% for passing to bcf
 \blx@collectopts{string}{blx@nameopts}{sortnamekeyscheme}% for passing to the .bcf
 
+% uniquenametemplate namelist/name scope
+\blx@collectopts{string}{blx@namelistopts}{uniquenametemplatename}% for passing to bcf
+\blx@collectopts{string}{blx@nameopts}{uniquenametemplatename}% for passing to the .bcf
+
+% labelalphanametemplate namelist/name scope
+\blx@collectopts{string}{blx@namelistopts}{labelalphanametemplatename}% for passing to bcf
+\blx@collectopts{string}{blx@nameopts}{labelalphanametemplatename}% for passing to the .bcf
+
 % Misc globalopts
 \blx@collectopts{xml}{blx@globalopts}{datamodel}% for passing to the .bcf
 \blx@collectopts{string}{blx@globalopts}{controlversion}% for passing to the .bcf
@@ -6800,13 +6815,13 @@
   \csgdef{blx@keyalias@\the\c@refsection @#1}{\detokenize{#2}}%
   \listcsgadd{blx@keyaliases@\the\c@refsection}{#1}}
 
-% blx@slist@list@<section>@<scheme> - a list of list items in a scheme in a
+% blx@dlist@list@<section>@<scheme> - a list of list items in a scheme in a
 %                                     section (for tracking bibliography lists,
 %                                     obeys skipbiblist)
-% blx@slist@entry@<section>@<scheme> - a list of normal entries in a scheme in a
+% blx@dlist@entry@<section>@<scheme> - a list of normal entries in a scheme in a
 %                                      section (for tracking bibliographies,
 %                                      obeys skipbib)
-% blx@slist@centry@<section>@<scheme> - a list of normal entries in a scheme in a
+% blx@dlist@centry@<section>@<scheme> - a list of normal entries in a scheme in a
 %                                       section (for tracking citations,
 %                                       obeys skipbib). Same as @entry@ but
 %                                       with added set children
@@ -6818,7 +6833,7 @@
   \blx@setoptions@type{#2}%
   \blx@bbl@options{#3}%
   \blx@setoptions@entry
-  \edef\blx@bbl@data{blx@data@\the\c@refsection @\blx@slist@name @\abx@field@entrykey}%
+  \edef\blx@bbl@data{blx@data@\the\c@refsection @\blx@dlist@name @\abx@field@entrykey}%
   \csuse\blx@bbl@data
   \blx@bbl@addfield{entrykey}{\abx@field@entrykey}%
   \listxadd\blx@entries{\abx@field@entrykey}%
@@ -6839,9 +6854,9 @@
      \toggletrue{blx@skipbiblist}%
      \toggletrue{blx@skiplab}}%
   \nottoggle{blx@skipbib}
-    {\expandafter\ifstrequal\expandafter{\blx@slist@type}{entry}
-       {\listcsxadd{blx@slist@entry@\the\c@refsection @\blx@slist@name}{\abx@field@entrykey}%
-        \listcsxadd{blx@slist@centry@\the\c@refsection @\blx@slist@name}{\abx@field@entrykey}%
+    {\expandafter\ifstrequal\expandafter{\blx@dlist@type}{entry}
+       {\listcsxadd{blx@dlist@entry@\the\c@refsection @\blx@dlist@name}{\abx@field@entrykey}%
+        \listcsxadd{blx@dlist@centry@\the\c@refsection @\blx@dlist@name}{\abx@field@entrykey}%
         \listcsxadd{blx@type@\the\c@refsection @\abx@field@entrytype}{\abx@field@entrykey}%
         \ifdef\abx@field@entrysubtype
           {\listcsxadd{blx@subt@\the\c@refsection @\abx@field@entrysubtype}{\abx@field@entrykey}}
@@ -6849,9 +6864,9 @@
        {}}%
     {}%
   \nottoggle{blx@skipbiblist}
-    {\expandafter\ifstrequal\expandafter{\blx@slist@type}{list}
+    {\expandafter\ifstrequal\expandafter{\blx@dlist@type}{list}
       {\blx@bbl@labelfields
-        \listcsxadd{blx@slist@\blx@slist@type @\the\c@refsection @\blx@slist@name}{\abx@field@entrykey}}
+        \listcsxadd{blx@dlist@\blx@dlist@type @\the\c@refsection @\blx@dlist@name}{\abx@field@entrykey}}
       {}}%
     {}%
   \nottoggle{blx@skiplab}
@@ -6884,15 +6899,15 @@
 % available in the current context sortlist.
 \def\blx@addset{%
   \begingroup
-  \ifcsdef{blx@slist@centry@\the\c@refsection @\blx@refcontext@context}
-    {\letcs\blx@tempa{blx@slist@centry@\the\c@refsection @\blx@refcontext@context}%
-     \global\cslet{blx@slist@centry@\the\c@refsection @\blx@refcontext@context}\@empty
+  \ifcsdef{blx@dlist@centry@\the\c@refsection @\blx@refcontext@context}
+    {\letcs\blx@tempa{blx@dlist@centry@\the\c@refsection @\blx@refcontext@context}%
+     \global\cslet{blx@dlist@centry@\the\c@refsection @\blx@refcontext@context}\@empty
      \forlistloop\blx@addset@i\blx@tempa}
     {\PackageWarningNoLine{biblatex}{Sorting scheme has changed}}%
   \endgroup}
 
 \def\blx@addset@i#1{%
-  \listcsgadd{blx@slist@centry@\the\c@refsection @\blx@refcontext@context}{#1}%
+  \listcsgadd{blx@dlist@centry@\the\c@refsection @\blx@refcontext@context}{#1}%
   \ifcsdef{blx@setp@\the\c@refsection @#1}
     {\expandafter\expandafter\expandafter\forcsvlist
      \expandafter\expandafter\expandafter\blx@addset@ii
@@ -6901,7 +6916,7 @@
     {}}
 
 \def\blx@addset@ii#1{%
-  \listcsgadd{blx@slist@centry@\the\c@refsection @\blx@refcontext@context}{#1}}
+  \listcsgadd{blx@dlist@centry@\the\c@refsection @\blx@refcontext@context}{#1}}
 
 \def\blx@bbl@labelfields{%
   \def\do##1{%
@@ -7040,8 +7055,8 @@
   \let\endentry\blx@bbl@endentry
   \let\missing\blx@bbl@missing
   \let\keyalias\blx@bbl@keyalias
-  \let\sortlist\blx@bbl@slist
-  \let\endsortlist\blx@bbl@endslist
+  \let\datalist\blx@bbl@dlist
+  \let\enddatalist\blx@bbl@enddlist
   \let\set\blx@bbl@set
   \let\inset\blx@bbl@inset
   \let\xref\blx@bbl@xref % A No-op for Biber
@@ -7074,11 +7089,6 @@
 % Get the saved information on which citations were mentioned last run
 \protected\def\abx@aux@cite#1{%
   \listxadd\blx@lastcites{\detokenize{#1}}}
-
-% {<sortschemename>}
-% Get the saved information on which sorting schemes were mentioned last run
-\protected\def\abx@aux@sortscheme#1{%
-  \listgadd\blx@lastsortschemes{#1}}
 
 % {<refcontext>}
 % Get the saved information on which refcontexts were mentioned last run
@@ -7125,7 +7135,7 @@
   % lastcite lists as strings and comparing them. This doesn't apply
   % to biblist sortschemes as nobody wants to sort biblists with
   % "none", since it makes no sense
-  \ifinlist{none}\blx@sortschemes
+  \ifinlist{none}\blx@sortingschemenames
     {\ifdefstrequal{\blx@cites}{\blx@lastcites}
       {}
       {\blx@logreq@active{}}}
@@ -7216,13 +7226,13 @@
     {}%
   \endgroup}
 
-% {<sortlistname>}
-\def\blx@bbl@slist[#1]#2{%
+% {<datalistname>}
+\def\blx@bbl@dlist[#1]#2{%
   \begingroup
-  \def\blx@slist@type{#1}%
-  \def\blx@slist@name{#2}}
+  \def\blx@dlist@type{#1}%
+  \def\blx@dlist@name{#2}}
 
-\def\blx@bbl@endslist{%
+\def\blx@bbl@enddlist{%
   \csnumgdef{blx@labelnumber@\the\c@refsection}{0}%
   \endgroup}
 
@@ -7706,21 +7716,8 @@
   \let\blx@thetitle\@empty
   % defaults
   \let\blx@tempa\@empty% before there is a .bbl, this must not be undef
-  \edef\blx@tempd{%
-    \blx@xml@sorting{%
-      \ifcsdef{blx@sortdef@locale@\blx@refcontext@sorting}
-        { locale="\csuse{blx@sortdef@locale@\blx@refcontext@sorting}"}
-        {}}{%
-      \csuse{blx@sorting@\blx@refcontext@sorting}}}% default to context
   \edef\blx@tempe{\the\c@refsection}% default refsection is current
   \blx@safe@actives
-  \edef\blx@tempd{%
-    \blx@xml@sorting{%
-      \ifcsdef{blx@sortdef@locale@\blx@refcontext@sorting}
-        { locale="\csuse{blx@sortdef@locale@\blx@refcontext@sorting}"}
-        {}}{%
-       \csuse{blx@sorting@\blx@refcontext@sorting}}}%
-  % 
   \togglefalse{blx@resetnumsexplicit}%
   \setkeys{blx@bib1}{#1}% First pass options keys - section and resetnumbers
   % Is there a user-specified option for resetnumbers? If so, this overrides the default
@@ -7731,9 +7728,9 @@
       {}
       {\setkeys{blx@bib2}{resetnumbers}}}%
   \blx@rest@actives
-  \ifcsvoid{blx@slist@entry@\blx@tempe @\blx@refcontext@context}
+  \ifcsvoid{blx@dlist@entry@\blx@tempe @\blx@refcontext@context}
     {}
-    {\letcs\blx@tempa{blx@slist@entry@\blx@tempe @\blx@refcontext@context}}%
+    {\letcs\blx@tempa{blx@dlist@entry@\blx@tempe @\blx@refcontext@context}}%
   \blx@safe@actives
   % Must reset omitnumbers as it's a global macro and if we don't, any
   % \printbibliography following one with this set will inherit any
@@ -7741,8 +7738,12 @@
   \togglefalse{blx@omitnumbers}%
   \setkeys{blx@bib2}{#1}% ... now we have correct \blx@tempa, set rest of options
   \blx@rest@actives
-  \csxappto{blx@slists}{%
-    \blx@xml@slist{\blx@refcontext@context}{entry}{\blx@tempe}{\blx@refcontext@sorting}{\blx@refcontext@sortingnamekey}{\blx@refcontext@labelprefix}{\blx@tempd}{}}%
+  % Add datalist to list of seen datalists to prevent duplicates
+  \xifinlist{\blx@refcontext@context @entry}\blx@dlistnames
+    {}
+    {\listxadd\blx@dlistnames{\blx@refcontext@context @entry}%
+     \csxappto{blx@dlists}{%
+       \blx@xml@dlist{\blx@refcontext@context}{entry}{\blx@tempe}{\blx@xml@dlist@refcontext{\blx@refcontext@sorting}{\blx@refcontext@sortingnamekey}{\blx@refcontext@labelprefix}{\blx@refcontext@uniquenametemplate}{\blx@refcontext@labelalphanametemplate}}{}}}%
   \ifdefvoid\blx@tempa
     {\blx@warn@bibempty\endgroup}
     {\blx@bibliography\blx@tempa}}
@@ -7773,11 +7774,11 @@
   \blx@refsections}
 
 \def\blx@refsections{%
-  \ifcsvoid{blx@slist@entry@\the\c@refsection @\blx@refcontext@context}
+  \ifcsvoid{blx@dlist@entry@\the\c@refsection @\blx@refcontext@context}
     {}
     {\toggletrue{blx@tempa}%
      \begingroup
-     \expandafter\blx@bibliography\csname blx@slist@entry@\the\c@refsection @\blx@refcontext@context\endcsname}%
+     \expandafter\blx@bibliography\csname blx@dlist@entry@\the\c@refsection @\blx@refcontext@context\endcsname}%
   \ifnum\c@refsection<\blx@maxsection
     \advance\c@refsection\@ne
     \expandafter\blx@refsections
@@ -7817,9 +7818,9 @@
     {\toggletrue{blx@tempa}%
      \begingroup
      \let\blx@tempa\@empty
-     \ifcsvoid{blx@slist@entry@\the\c@refsection @\blx@refcontext@context}
+     \ifcsvoid{blx@dlist@entry@\the\c@refsection @\blx@refcontext@context}
        {}
-       {\letcs\blx@tempa{blx@slist@entry@\the\c@refsection @\blx@refcontext@context}}%
+       {\letcs\blx@tempa{blx@dlist@entry@\the\c@refsection @\blx@refcontext@context}}%
      \blx@filter\blx@tempa{blx@segm@\the\c@refsection @\the\c@refsegment}%
      \blx@bibliography\blx@tempa}%
   \ifnum\c@refsegment<\csname blx@maxsegment@\the\c@refsection\endcsname
@@ -7863,9 +7864,9 @@
      \begingroup
      \blx@key@heading{#1}%
      \let\blx@tempa\@empty
-     \ifcsvoid{blx@slist@entry@\the\c@refsection @\blx@refcontext@context}
+     \ifcsvoid{blx@dlist@entry@\the\c@refsection @\blx@refcontext@context}
        {}
-       {\letcs\blx@tempa{blx@slist@entry@\the\c@refsection @\blx@refcontext@context}}%
+       {\letcs\blx@tempa{blx@dlist@entry@\the\c@refsection @\blx@refcontext@context}}%
      \blx@filter\blx@tempa{blx@catg@#1}%
      \blx@bibliography\blx@tempa}}%
 
@@ -8129,15 +8130,12 @@
     \ifcsdef{blx@sorting@#2}
       {#2}
       {\blx@refcontext@sorting}}%
-  % locally define this since we want to fetch data from the slist named
+  % locally define this since we want to fetch data from the datalist named
   % after the list we are printing rather than the data in refcontext list
-  \edef\blx@refcontext@context{\blx@tempc/\blx@refcontext@sortingnamekey/\blx@refcontext@labelprefix}%
-  \edef\blx@tempd{%
-    \blx@xml@sorting
-      {\ifcsdef{blx@sortdef@locale@#2}
-        { locale="\csuse{blx@sortdef@locale@#2}"}
-        {}}
-      {\csuse{blx@sorting@\blx@tempc}}}%
+  \edef\blx@refcontext@context{\blx@tempc/\blx@refcontext@sortingnamekey/\blx@refcontext@labelprefix/\blx@refcontext@uniquenametemplate/\blx@refcontext@labelalphanametemplate}%
+  \xifinlist\blx@tempc\blx@sortingschemenames
+    {}
+    {\listxadd\blx@sortingschemenames\blx@tempc}%
   \let\blx@printbibchecks\relax
   \edef\blx@tempe{\the\c@refsection}% default refsection is current
   \blx@safe@actives
@@ -8148,17 +8146,11 @@
     {}
     {\listxadd\blx@biblists\blx@tempc
      \blx@auxwrite\@mainaux{}{\string\abx@aux@biblist{\blx@tempc}}}%
-  \edef\blx@tempd{%
-    \blx@xml@sorting{%
-      \ifcsdef{blx@sortdef@locale@\blx@tempc}
-        { locale="\csuse{blx@sortdef@locale@\blx@tempc}"}
-        {}}{%
-      \csuse{blx@sorting@\blx@tempc}}}%
   \setkeys{blx@biblist1}{#1}% Set section only, if present ...
   \blx@rest@actives
-  \ifcsvoid{blx@slist@list@\blx@tempe @\blx@refcontext@context}
+  \ifcsvoid{blx@dlist@list@\blx@tempe @\blx@refcontext@context}
     {}
-    {\letcs\blx@tempa{blx@slist@list@\blx@tempe @\blx@refcontext@context}}%
+    {\letcs\blx@tempa{blx@dlist@list@\blx@tempe @\blx@refcontext@context}}%
   \blx@safe@actives
   \setkeys{blx@biblist2}{#1}% ... now we have correct \blx@tempa, set rest of options
   \ifundef\blx@bibcheck
@@ -8167,8 +8159,12 @@
       {}}
     {}%
   \blx@rest@actives
-  \csxappto{blx@slists}{%
-    \blx@xml@slist{\blx@refcontext@context}{list}{\blx@tempe}{\blx@tempc}{\blx@refcontext@sortingnamekey}{\blx@refcontext@labelprefix}{\blx@tempd}{\csuse{blx@biblistfilters@#2}}}%
+  % Add datalist to list of seen datalists to prevent duplicates
+  \xifinlist{\blx@refcontext@context @list}\blx@dlistnames
+    {}
+    {\listxadd\blx@dlistnames{\blx@refcontext@context @list}%
+     \csxappto{blx@dlists}{%
+       \blx@xml@dlist{\blx@refcontext@context}{list}{\blx@tempe}{\blx@xml@dlist@refcontext{\blx@tempc}{\blx@refcontext@sortingnamekey}{\blx@refcontext@labelprefix}{\blx@refcontext@uniquenametemplate}{\blx@refcontext@labelalphanametemplate}}{\csuse{blx@biblistfilters@#2}}}}%
   \ifdefvoid\blx@tempa
     {\blx@warn@biblistempty{#2}\endgroup}
     {\blx@biblist\blx@tempa}}
@@ -8286,11 +8282,10 @@
      \setkeys{blx@refcontext}{#1}%
      % Add the sortscheme to the list of sortschemes so we can track
      % special cases like sorting=none which need cite order change detection
-     \xifinlist\blx@refcontext@sorting\blx@sortschemes
+     \xifinlist\blx@refcontext@sorting\blx@sortingschemenames
        {}
-       {\listxadd\blx@sortschemes\blx@refcontext@sorting
-        \blx@auxwrite\@mainaux{}{\string\abx@aux@sortscheme{\blx@refcontext@sorting}}}%
-     \xdef\blx@refcontext@context{\blx@refcontext@sorting/\blx@refcontext@sortingnamekey/\blx@refcontext@labelprefix}%
+       {\listxadd\blx@sortingschemenames\blx@refcontext@sorting}%
+     \xdef\blx@refcontext@context{\blx@refcontext@sorting/\blx@refcontext@sortingnamekey/\blx@refcontext@labelprefix/\blx@refcontext@uniquenametemplate/\blx@refcontext@labelalphanametemplate}%
      % Add the refcontext to the list of refcontexts so we can compare on next run
      \xifinlist\blx@refcontext@context\blx@refcontexts
        {}
@@ -8301,6 +8296,12 @@
        {}%
      \ifcsundef{blx@sortingnamekey@\blx@refcontext@sortingnamekey}
        {\blx@err@invopt{sortingnamekeyscheme=\blx@refcontext@sortingnamekey}{}}
+       {}%
+     \ifcsundef{blx@uniquenametemplate@\blx@refcontext@uniquenametemplate}
+       {\blx@err@invopt{uniquenametemplate=\blx@refcontext@uniquenametemplate}{}}
+       {}%
+     \ifcsundef{blx@labelalphanametemplate@\blx@refcontext@labelalphanametemplate}
+       {\blx@err@invopt{labelalphanametemplate=\blx@refcontext@labelalphanametemplate}{}}
        {}}}
 
 % Reset to global sorting etc. when we leave a ref context (since they can't be nested)
@@ -8309,10 +8310,14 @@
   \global\let\blx@refcontext@labelprefix\@empty
   \xdef\blx@refcontext@sorting{\blx@sorting}%
   \gdef\blx@refcontext@sortingnamekey{global}%
-  \xdef\blx@refcontext@context{\blx@refcontext@sorting/\blx@refcontext@sortingnamekey/}}
+  \gdef\blx@refcontext@uniquenametemplate{global}%
+  \gdef\blx@refcontext@labelalphanametemplate{global}%
+  \xdef\blx@refcontext@context{\blx@refcontext@sorting/\blx@refcontext@sortingnamekey//\blx@refcontext@uniquenametemplate/\blx@refcontext@labelalphanametemplate}}
 
 \define@key{blx@refcontext}{sorting}{\gdef\blx@refcontext@sorting{#1}}
 \define@key{blx@refcontext}{sortingnamekeyscheme}{\gdef\blx@refcontext@sortingnamekey{#1}}
+\define@key{blx@refcontext}{uniquenametemplate}{\gdef\blx@refcontext@uniquenametemplate{#1}}
+\define@key{blx@refcontext}{labelalphanametemplate}{\gdef\blx@refcontext@labelalphanametemplate{#1}}
 \define@key{blx@refcontext}{labelprefix}{%
   \gdef\blx@refcontext@labelprefix{#1}%
   \iftoggle{blx@defernumbers}
@@ -8338,10 +8343,12 @@
   \edef\blx@tempa{\blx@sorting}%
   \def\blx@tempb{global}%
   \let\blx@tempc\@empty%
+  \def\blx@tempd{global}%
+  \def\blx@tempe{global}%  
   \setkeys{blx@assignrefcontext}{#2}%
   \def\do##1{%
     \listxadd\blx@assignedrefcontextkeywlist{##1}%
-    \csxdef{blx@assignedrefcontextkeyws#1@\the\c@refsection @##1}{\blx@tempa/\blx@tempb/\blx@tempc}}
+    \csxdef{blx@assignedrefcontextkeyws#1@\the\c@refsection @##1}{\blx@tempa/\blx@tempb/\blx@tempc/\blx@tempd/\blx@tempe}}
   \docsvlist{#3}}
 
 % [refcontext keys]{<category1>,<category2>,...}
@@ -8354,10 +8361,12 @@
   \edef\blx@tempa{\blx@sorting}%
   \def\blx@tempb{global}%
   \let\blx@tempc\@empty%
+  \def\blx@tempd{global}%
+  \def\blx@tempe{global}%  
   \setkeys{blx@assignrefcontext}{#2}%
   \def\do##1{%
     \listxadd\blx@assignedrefcontextcatlist{##1}%
-    \csxdef{blx@assignedrefcontextcats#1@\the\c@refsection @##1}{\blx@tempa/\blx@tempb/\blx@tempc}}
+    \csxdef{blx@assignedrefcontextcats#1@\the\c@refsection @##1}{\blx@tempa/\blx@tempb/\blx@tempc/\blx@tempd/\blx@tempe}}
   \docsvlist{#3}}
 
 % [refcontext keys]{<entrykey1>,<entrykey2>,...}
@@ -8370,14 +8379,18 @@
   \edef\blx@tempa{\blx@sorting}%
   \def\blx@tempb{global}%
   \let\blx@tempc\@empty%
+  \def\blx@tempd{global}%
+  \def\blx@tempe{global}%  
   \setkeys{blx@assignrefcontext}{#2}%
   \def\do##1{%
-    \csxdef{blx@assignedrefcontextkeys#1@\the\c@refsection @##1}{\blx@tempa/\blx@tempb/\blx@tempc}}%
+    \csxdef{blx@assignedrefcontextkeys#1@\the\c@refsection @##1}{\blx@tempa/\blx@tempb/\blx@tempc/\blx@tempd/\blx@tempe}}%
   \docsvlist{#3}}
 
 \define@key{blx@assignrefcontext}{sorting}{\def\blx@tempa{#1}}
 \define@key{blx@assignrefcontext}{sortingnamekeyscheme}{\def\blx@tempb{#1}}
 \define@key{blx@assignrefcontext}{labelprefix}{\def\blx@tempc{#1}}
+\define@key{blx@assignrefcontext}{uniquenametemplate}{\def\blx@tempd{#1}}
+\define@key{blx@assignrefcontext}{labelalphanametemplate}{\def\blx@tempe{#1}}
 
 % Reference sections
 \newrobustcmd*{\newrefsection}{%
@@ -8847,8 +8860,8 @@
     {\blx@bibreq{*}%
      \global\csletcs
        {blx@segm@\the\c@refsection @\the\c@refsegment}
-       {blx@slist@entry@\the\c@refsection @\blx@refcontext@context}%
-      \ifcsvoid{blx@slist@entry@\the\c@refsection @\blx@refcontext@context}
+       {blx@dlist@entry@\the\c@refsection @\blx@refcontext@context}%
+      \ifcsvoid{blx@dlist@entry@\the\c@refsection @\blx@refcontext@context}
        {\blx@logreq@active{}}
        {}}
     {}}
@@ -8906,7 +8919,7 @@
 \protected\def\blx@citeloop#1{%
   \begingroup
   % This must be here and not after \blx@citeadd as this changes the refcontext
-  \letcs\blx@tempb{blx@slist@centry@\the\c@refsection @\blx@refcontext@context}%
+  \letcs\blx@tempb{blx@dlist@centry@\the\c@refsection @\blx@refcontext@context}%
   % Make sure this counter exists. Sometimes it might not when using, e.g:
   % refsection=chapter and \includeonly to put in the chapters or when
   % inserting citations into table of contents
@@ -8980,7 +8993,7 @@
   % refcontext defined
   \ifcsdef{blx@assignedrefcontextbib@\the\c@refsection @#1}
     {\letcs\blx@refcontext@context{blx@assignedrefcontextbib@\the\c@refsection @#1}}
-    {\edef\blx@refcontext@context{\blx@sorting/global/}}%
+    {\edef\blx@refcontext@context{\blx@sorting/global//global/global}}%
   % assignment via keyword list
   \ifdef\blx@assignedrefcontextkeywlist
     {\def\do##1{%
@@ -10562,7 +10575,7 @@
   ~~~~~~~~<bcf:map\string_step#1/>\blx@nl}
 
 \xdef\blx@xml@labelalphanametemplate#1#2{%
-  ~~<bcf:labelalphanametemplate type="#1">\blx@nl
+  ~~<bcf:labelalphanametemplate name="#1">\blx@nl
   #2%
   ~~</bcf:labelalphanametemplate>\blx@nl}
 \xdef\blx@xml@labelalphanametemplatenamepart#1#2#3{%
@@ -10650,26 +10663,26 @@
 \xdef\blx@xml@sortingnamekeyliteral#1#2{%
   ~~~~~~<bcf:part type="literal"#1>#2</bcf:part>\blx@nl}
 
-\xdef\blx@xml@sorting#1#2{%
-  ~~<bcf:sorting#1>\blx@nl%
-  #2%
+\xdef\blx@xml@sorting#1#2#3{%  
+  ~~<bcf:sorting scheme="#1"#2>\blx@nl%
+  #3%
   ~~</bcf:sorting>\blx@nl}
 \xdef\blx@xml@presort#1#2{%
-  ~~~~<bcf:presort\noexpand\ifblank{#1}{}{ type="#1"}>%
+  ~~<bcf:presort\noexpand\ifblank{#1}{}{ type="#1"}>%
   #2</bcf:presort>\blx@nl}
 
 \xdef\blx@xml@sortexclude#1#2{%
-  ~~~~<bcf:sortexclusion\noexpand\ifblank{#1}{}{ type="#1"}>\blx@nl
+  ~~<bcf:sortexclusion\noexpand\ifblank{#1}{}{ type="#1"}>\blx@nl
   #2%
-  ~~~~</bcf:sortexclusion>\blx@nl}
+  ~~</bcf:sortexclusion>\blx@nl}
 \xdef\blx@xml@exclude#1{%
-  ~~~~~~<bcf:exclusion>#1</bcf:exclusion>\blx@nl}
+  ~~~~<bcf:exclusion>#1</bcf:exclusion>\blx@nl}
 \xdef\blx@xml@sortinclude#1#2{%
-  ~~~~<bcf:sortinclusion\noexpand\ifblank{#1}{}{ type="#1"}>\blx@nl
+  ~~<bcf:sortinclusion\noexpand\ifblank{#1}{}{ type="#1"}>\blx@nl
   #2%
-  ~~~~</bcf:sortinclusion>\blx@nl}
+  ~~</bcf:sortinclusion>\blx@nl}
 \xdef\blx@xml@include#1{%
-  ~~~~~~<bcf:inclusion>#1</bcf:inclusion>\blx@nl}
+  ~~~~<bcf:inclusion>#1</bcf:inclusion>\blx@nl}
 \xdef\blx@xml@sort#1#2{%
   ~~~~<bcf:sort #1>\blx@nl
   #2%
@@ -10681,17 +10694,24 @@
 \xdef\blx@xml@endsection{%
   ~~</bcf:section>}
 
-\xdef\blx@xml@slist#1#2#3#4#5#6#7#8{%
-  ~~<bcf:sortlist section="#3" name="#1" type="#2" sortscheme="#4"
-  sortnamekeyscheme="#5" labelprefix="#6">\blx@nl
-  #8%
-  #7%
-  ~~</bcf:sortlist>\blx@nl}
-\xdef\blx@xml@slistfilterorbegin{%
+\xdef\blx@xml@dlist@refcontext#1#2#3#4#5{%
+  ~~~~~~~~~~~~~~~~sortscheme="#1"\blx@nl
+  ~~~~~~~~~~~~~~~~sortnamekeyscheme="#2"\blx@nl
+  ~~~~~~~~~~~~~~~~labelprefix="#3"\blx@nl
+  ~~~~~~~~~~~~~~~~uniquenametemplatename="#4"\blx@nl
+  ~~~~~~~~~~~~~~~~labelalphanametemplatename="#5"}
+\xdef\blx@xml@dlist#1#2#3#4#5{%
+  ~~<bcf:datalist section="#3"\blx@nl
+  ~~~~~~~~~~~~~~~~name="#1"\blx@nl
+  ~~~~~~~~~~~~~~~~type="#2"\blx@nl
+  #4>\blx@nl
+  #5%
+  ~~</bcf:datalist>\blx@nl}
+\xdef\blx@xml@dlistfilterorbegin{%
   ~~~~<bcf:filteror>\blx@nl}
-\xdef\blx@xml@slistfilterorend{%
+\xdef\blx@xml@dlistfilterorend{%
   ~~~~</bcf:filteror>\blx@nl}
-\xdef\blx@xml@slistfilter#1#2{%
+\xdef\blx@xml@dlistfilter#1#2{%
   ~~~~<bcf:filter type="#1">#2</bcf:filter>\blx@nl}
 
 \xdef\blx@xml@bibdata#1#2{%
@@ -10915,15 +10935,11 @@
          {}}}}
   {}%
   % labelalpha name template
-  \eappto\blx@tempa{%
-    \blx@xml@comment{LABELALPHA NAME TEMPLATE}}%
+  \eappto\blx@tempa{\blx@xml@comment{LABELALPHA NAME TEMPLATE}}%
   \def\do##1{%
     \eappto\blx@tempa{%
-      \blx@xml@labelalphanametemplate{##1}{%
-      \csuse{blx@labelalphanametemplate@##1}}%
-      }%
-    }%
-  \dolistloop\blx@lantem@type
+      \blx@xml@labelalphanametemplate{##1}{\csuse{blx@labelalphanametemplate@##1}}}}%
+  \dolistloop\blx@lantemplatespecs
   % labelalpha template
   \eappto\blx@tempa{%
     \blx@xml@comment{LABELALPHA TEMPLATE}}%
@@ -10997,7 +11013,7 @@
     \eappto\blx@tempa{%
       \blx@xml@sortingnamekey{##1}{\csuse{blx@sortingnamekey@##1}}}}%
   \dolistloop\blx@sortingnamekeyspecs
-  % sorting
+  % presort/sorting excludes/sorting includes
   \def\do##1{%
     \eappto\blx@bcf@presort{\csuse{blx@bcf@presort@##1}}%
     \eappto\blx@bcf@exclude{\csuse{blx@bcf@exclude@##1}}%
@@ -11005,14 +11021,9 @@
   \abx@doentrytypes
   \do{*}% entrytype wildcard
   \eappto\blx@tempa{%
-    \blx@xml@comment{SORTING}%
-    \blx@xml@sorting{}{%
-      \blx@bcf@presort
-      \blx@bcf@exclude
-      \blx@bcf@include
-      \csuse{blx@sorting@\blx@sorting}%
-    }%
-  }%
+    \blx@bcf@presort
+    \blx@bcf@exclude
+    \blx@bcf@include}%
   % datamodel
   \eappto\blx@tempa{%
     \blx@xml@comment{DATA MODEL}%
@@ -11044,9 +11055,18 @@
   \global\undef\blx@tempa
   \endgroup
   \AfterEndDocument{%
+    \def\do##1{%
+      \csxappto{blx@sortingschemes}{%
+        \blx@xml@sorting{##1}
+                        {\ifcsdef{blx@sortdef@locale@##1}{ locale="\csuse{blx@sortdef@locale@##1}"}{}}
+                        {\csuse{blx@sorting@##1}}}}%
+      \dolistloop\blx@sortingschemenames
     \blx@auxwrite\blx@bcfout{}{%
       \blx@xml@endsection\blx@nl
-      \csuse{blx@slists}%
+      \blx@xml@comment{SORTING SCHEMES}%
+      \csuse{blx@sortingschemes}%
+      \blx@xml@comment{DATALISTS}%
+      \csuse{blx@dlists}%
       \blx@xml@endfile}%
     \immediate\closeout\blx@bcfout}}
 
@@ -11335,29 +11355,25 @@
 \define@key{blx@sourcemap@step}{replace}{% characters
   \eappto\blx@tempf{ map\string_replace="#1"}}
 
-% [<entrytype>]{<spec>}
+% [<specname>]{<spec>}
 \newrobustcmd*{\DeclareLabelalphaNameTemplate}[2][]{%
-   \ifblank{#1}
-     {\blx@lantem{#2}{global}}
-     {\forcsvlist{\blx@lantem{#2}}{#1}}}
-\@onlypreamble\DeclareLabelalphaNameTemplate
-\blx@collectopts{xml}{blx@globalopts}{labelalphanametemplate}% for passing to the .bcf
-\blx@collectopts{xml}{blx@typeopts}{labelalphanametemplate}% for passing to the .bcf
-
-\def\blx@lantem#1#2{%
   \begingroup
+  \ifblank{#1}
+    {\def\blx@lantname{global}}% default
+    {\def\blx@lantname{#1}}%
   \let\namepart\blx@lantem@namepart
   \let\blx@tempa\@empty
   \blx@tempcnta\z@
-  #1%
-  \ifdef\blx@lantem@type
-    {\ifinlist{#2}\blx@lantem@type
-      {\global\cslet{blx@labelalphanametemplate@#2}\blx@tempa}
-      {\listgadd\blx@lantem@type{#2}%
-       \global\cslet{blx@labelalphanametemplate@#2}\blx@tempa}}
-    {\listgadd\blx@lantem@type{#2}%
-     \global\cslet{blx@labelalphanametemplate@#2}\blx@tempa}%
+  #2%
+  \global\cslet{blx@labelalphanametemplate@\blx@lantname}\blx@tempa
+  \xifinlist\blx@lantname\blx@lantemplatespecs
+    {}
+    {\listxadd\blx@lantemplatespecs\blx@lantname}%
   \endgroup}
+\@onlypreamble\DeclareLabelalphaNameTemplate
+\blx@collectopts{xml}{blx@globalopts}{labelalphanametemplate}% for passing to the .bcf
+\DeclareEntryOption[string]{labelalphanametemplatename}{%
+  \def\blx@refcontext@labelalphanametemplate{#1}}
 
 \newcommand*{\blx@lantem@namepart}[2][]{%
   \advance\blx@tempcntb\@ne
@@ -11614,16 +11630,16 @@
 \@onlypreamble\DeclareBiblistFilter
 
 \newcommand*{\blx@biblistfilteror}[1]{%
-  \eappto\blx@tempa{\blx@xml@slistfilterorbegin}%
+  \eappto\blx@tempa{\blx@xml@dlistfilterorbegin}%
   #1%
-  \eappto\blx@tempa{\blx@xml@slistfilterorend}}
+  \eappto\blx@tempa{\blx@xml@dlistfilterorend}}
 
 \newcommand*{\blx@biblistfilter}[1][2]{%
   \let\blx@tempc\@empty
   \let\blx@tempd\@empty
   \setkeys{blx@biblistfilter@filter}{#1}%
   \eappto\blx@tempa{%
-    \blx@xml@slistfilter{\blx@tempc}{\blx@tempd}}}
+    \blx@xml@dlistfilter{\blx@tempc}{\blx@tempd}}}
 
 \define@key{blx@biblistfilter@filter}{type}{%
   \def\blx@tempc{#1}}
@@ -11673,6 +11689,8 @@
   \endgroup}
 \@onlypreamble\DeclareUniquenameTemplate
 \blx@collectopts{xml}{blx@globalopts}{uniquenametemplate}% for passing to the .bcf
+\DeclareEntryOption[string]{uniquenametemplatename}{%
+  \def\blx@refcontext@uniquenametemplate{#1}}
 
 \newcommand*{\blx@untemp@namepart}[2][]{%
   \advance\blx@tempcntb\@ne
@@ -11759,7 +11777,7 @@
     {\appto\blx@tempc{ inits="1"}}
     {\appto\blx@tempc{ inits="0"}}}
 
-% {<name>}{<spec>}
+% [options]{<name>}{<spec>}
 \newrobustcmd*{\DeclareSortingScheme}[3][]{%
   \ifblank{#1}
     {}
@@ -12121,10 +12139,12 @@
     {\blx@err@invopt{sorting=\blx@sorting}{}%
      \def\blx@sorting{nty}%
      \def\blx@refcontext@sorting{nty}}%
-  \listxadd\blx@sortschemes\blx@sorting
+  \listxadd\blx@sortingschemenames\blx@sorting
   \def\blx@refcontext@sortingnamekey{global}%
   \let\blx@refcontext@labelprefix\@empty
-  \xdef\blx@refcontext@context{\blx@refcontext@sorting/\blx@refcontext@sortingnamekey/\blx@refcontext@labelprefix}%
+  \def\blx@refcontext@uniquenametemplate{global}%  
+  \def\blx@refcontext@labelalphanametemplate{global}%
+  \xdef\blx@refcontext@context{\blx@refcontext@sorting/\blx@refcontext@sortingnamekey/\blx@refcontext@labelprefix/\blx@refcontext@uniquenametemplate/\blx@refcontext@labelalphanametemplate}%
   \listxadd\blx@refcontexts\blx@refcontext@context}
 
 \DeclareBibliographyOption[boolean]{sortcase}[true]{%
@@ -13389,7 +13409,6 @@
 
 % Deferred last minute setup
 \AtBeginDocument{%
-  \blx@auxwrite\@mainaux{}{\string\abx@aux@sortscheme{\blx@sorting}}%
   \blx@auxwrite\@mainaux{}{\string\abx@aux@refcontext{\blx@refcontext@context}}
   \blx@checkencoding
   \if@filesw

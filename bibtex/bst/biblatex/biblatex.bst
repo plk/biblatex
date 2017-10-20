@@ -2723,7 +2723,7 @@ FUNCTION {output:main:begin} {
   "  {}"                                                        write$ newline$
   "\endgroup"                                                   write$ newline$
   newline$
-  "\sortlist[entry]{" ctrl.sortstr * "/global/}" *              write$
+  "\datalist[entry]{" ctrl.sortstr * "/global//global/global}" *              write$
 }
 
 FUNCTION {output:main:preamble} {
@@ -2738,7 +2738,7 @@ FUNCTION {output:main:preamble} {
 }
 
 FUNCTION {output:main:end} {
-  "\endsortlist" write$ newline$
+  "\enddatalist" write$ newline$
   "\endinput"    write$ newline$
 }
 
