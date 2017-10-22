@@ -595,7 +595,7 @@
 \listadd\blx@allrefsections{0}
 
 % Used to track sorting name key specifications
-\global\let\blx@sortingnamekeyspecs\@empty
+\global\let\blx@sortingnamekeytemplates\@empty
 
 % Used to track uniquename templates
 \global\let\blx@untemplatespecs\@empty
@@ -611,12 +611,12 @@
 % defernumbers labelling to fail.
 \global\let\blx@entries\@empty
 
-% Initialise some lists which track changing citations/sortschemes
+% Initialise some lists which track changing citations/sortingtemplates
 % etc. between runs
 \global\let\blx@cites\@empty
 \global\let\blx@refcontexts\@empty
 \global\let\blx@lastrefcontexts\@empty
-\global\let\blx@sortingschemenames\@empty
+\global\let\blx@sortingtemplatenames\@empty
 \global\let\blx@dlistnames\@empty
 \global\let\blx@biblists\@empty
 \global\let\blx@lastbiblists\@empty
@@ -999,8 +999,8 @@
 
 \def\blx@err@nosort#1{%
   \blx@error
-    {Sorting scheme '#1' not found}
-    {The sorting scheme '#1' does not seem to have been defined anywhere}}
+    {Sorting template '#1' not found}
+    {The sorting template '#1' does not seem to have been defined anywhere}}
 
 \def\blx@err@secfirst{%
   \blx@error
@@ -3953,14 +3953,18 @@
 % Per-namelist options
 \define@key{blx@opt@namelist}{uniquelist}{\c@uniquelist#1\relax}
 \define@key{blx@opt@namelist}{useprefix}{\settoggle{blx@useprefix}{#1}}
-\define@key{blx@opt@namelist}{sortnamekeyscheme}{\def\blx@refcontext@sortingnamekey{#1}}
+\define@key{blx@opt@namelist}{sortingnamekeytemplatename}{\def\blx@refcontext@sortingnamekeytemplatename{#1}}
+\define@key{blx@opt@namelist}{uniquenametemplatename}{\def\blx@refcontext@uniquenametemplatename{#1}}
+\define@key{blx@opt@namelist}{labelalphanametemplatename}{\def\blx@refcontext@labelalphanametemplatename{#1}}
 
 % Per-name options
 \define@key{blx@opt@name}{uniquename}{\c@uniquename#1\relax}
 \define@key{blx@opt@name}{uniquepart}{\def\abx@field@uniquepart{#1}}
 \define@key{blx@opt@name}{hash}{\edef\abx@field@hash{\detokenize{#1}}}
 \define@key{blx@opt@name}{useprefix}{\settoggle{blx@useprefix}{#1}}
-\define@key{blx@opt@name}{sortnamekeyscheme}{\def\blx@refcontext@sortingnamekey{#1}}
+\define@key{blx@opt@name}{sortingnamekeytemplatename}{\def\blx@refcontext@sortingnamekeytemplatename{#1}}
+\define@key{blx@opt@name}{uniquenametemplatename}{\def\blx@refcontext@uniquenametemplatename{#1}}
+\define@key{blx@opt@name}{labelalphanametemplatename}{\def\blx@refcontext@labelalphanametemplatename{#1}}
 
 \newrobustcmd*{\bibinitperiod}{\adddot}
 \newrobustcmd*{\bibinitdelim}{\addnbspace}
@@ -5793,9 +5797,9 @@
 \blx@collectopts{boolean}{blx@namelistopts}{useprefix}% for passing to bcf
 \blx@collectopts{boolean}{blx@nameopts}{useprefix}% for passing to the .bcf
 
-% sortnamekeyscheme namelist/name scope
-\blx@collectopts{string}{blx@namelistopts}{sortnamekeyscheme}% for passing to bcf
-\blx@collectopts{string}{blx@nameopts}{sortnamekeyscheme}% for passing to the .bcf
+% sortingnamekeytemplate namelist/name scope
+\blx@collectopts{string}{blx@namelistopts}{sortingnamekeytemplatename}% for passing to bcf
+\blx@collectopts{string}{blx@nameopts}{sortingnamekeytemplatename}% for passing to the .bcf
 
 % uniquenametemplate namelist/name scope
 \blx@collectopts{string}{blx@namelistopts}{uniquenametemplatename}% for passing to bcf
@@ -6815,13 +6819,13 @@
   \csgdef{blx@keyalias@\the\c@refsection @#1}{\detokenize{#2}}%
   \listcsgadd{blx@keyaliases@\the\c@refsection}{#1}}
 
-% blx@dlist@list@<section>@<scheme> - a list of list items in a scheme in a
+% blx@dlist@list@<section>@<refcontext> - a list of list items in a refcontext in a
 %                                     section (for tracking bibliography lists,
 %                                     obeys skipbiblist)
-% blx@dlist@entry@<section>@<scheme> - a list of normal entries in a scheme in a
+% blx@dlist@entry@<section>@<list> - a list of normal entries in a list in a
 %                                      section (for tracking bibliographies,
 %                                      obeys skipbib)
-% blx@dlist@centry@<section>@<scheme> - a list of normal entries in a scheme in a
+% blx@dlist@centry@<section>@<list> - a list of normal entries in a list in a
 %                                       section (for tracking citations,
 %                                       obeys skipbib). Same as @entry@ but
 %                                       with added set children
@@ -6903,7 +6907,7 @@
     {\letcs\blx@tempa{blx@dlist@centry@\the\c@refsection @\blx@refcontext@context}%
      \global\cslet{blx@dlist@centry@\the\c@refsection @\blx@refcontext@context}\@empty
      \forlistloop\blx@addset@i\blx@tempa}
-    {\PackageWarningNoLine{biblatex}{Sorting scheme has changed}}%
+    {\PackageWarningNoLine{biblatex}{Sorting template has changed}}%
   \endgroup}
 
 \def\blx@addset@i#1{%
@@ -7095,8 +7099,8 @@
 \protected\def\abx@aux@refcontext#1{%
   \listgadd\blx@lastrefcontexts{#1}}
 
-% {<sortschemename>}
-% Get the saved information on which shorthand sorting schemes were mentioned last run
+% {<sortingtemplatename>}
+% Get the saved information on which shorthand sorting templates were mentioned last run
 \protected\def\abx@aux@biblist#1{%
   \listgadd\blx@lastbiblists{#1}}
 
@@ -7115,7 +7119,7 @@
 \AtEndDocument{%
   % Here we run some tests to decide if we need to issue re-run
   % messages in certain circumstances. In general, if we add/remove
-  % any citations or add/remove any sorting schemes, we need to re-run
+  % any citations or add/remove any sorting templates, we need to re-run
   % biber. Also, if we have to re-run biber, we need to defer writing
   % the defernumbers .aux information because it will not yet be correct.
 
@@ -7127,15 +7131,15 @@
   \begingroup
   \def\do#1{\ifinlist{#1}\blx@cites{}{\blx@logreq@active{}}\relax}%
   \dolistloop\blx@lastcites
-  % Special case - if we are using sortscheme "none" anywhere, then changes
+  % Special case - if we are using sortingtemplate "none" anywhere, then changes
   % in citation order matter and we need to re-run biber. So a special test
   % to see if the cites from last run are identical in order. We have
   % already tested for more or less cites between runs by now, we are
   % testing here for exactly the same cites by treating the cite and
   % lastcite lists as strings and comparing them. This doesn't apply
-  % to biblist sortschemes as nobody wants to sort biblists with
+  % to biblist sortingtemplates as nobody wants to sort biblists with
   % "none", since it makes no sense
-  \ifinlist{none}\blx@sortingschemenames
+  \ifinlist{none}\blx@sortingtemplatenames
     {\ifdefstrequal{\blx@cites}{\blx@lastcites}
       {}
       {\blx@logreq@active{}}}
@@ -7743,7 +7747,7 @@
     {}
     {\listxadd\blx@dlistnames{\blx@refcontext@context @entry}%
      \csxappto{blx@dlists}{%
-       \blx@xml@dlist{\blx@refcontext@context}{entry}{\blx@tempe}{\blx@xml@dlist@refcontext{\blx@refcontext@sorting}{\blx@refcontext@sortingnamekey}{\blx@refcontext@labelprefix}{\blx@refcontext@uniquenametemplate}{\blx@refcontext@labelalphanametemplate}}{}}}%
+       \blx@xml@dlist{\blx@refcontext@context}{entry}{\blx@tempe}{\blx@xml@dlist@refcontext{\blx@refcontext@sortingtemplatename}{\blx@refcontext@sortingnamekeytemplatename}{\blx@refcontext@labelprefix}{\blx@refcontext@uniquenametemplatename}{\blx@refcontext@labelalphanametemplatename}}{}}}%
   \ifdefvoid\blx@tempa
     {\blx@warn@bibempty\endgroup}
     {\blx@bibliography\blx@tempa}}
@@ -8124,23 +8128,23 @@
   \let\blx@thetitle\@empty
   % defaults
   \let\blx@tempa\@empty% before there is a .bbl, this must not be undef
-  % default sorting scheme and scheme name for list is same name as list
+  % default sorting template and template name for list is same name as list
   % name, then current context if not found
   \edef\blx@tempc{%
-    \ifcsdef{blx@sorting@#2}
+    \ifcsdef{blx@sortingtemplate@#2}
       {#2}
-      {\blx@refcontext@sorting}}%
+      {\blx@refcontext@sortingtemplatename}}%
   % locally define this since we want to fetch data from the datalist named
   % after the list we are printing rather than the data in refcontext list
-  \edef\blx@refcontext@context{\blx@tempc/\blx@refcontext@sortingnamekey/\blx@refcontext@labelprefix/\blx@refcontext@uniquenametemplate/\blx@refcontext@labelalphanametemplate}%
-  \xifinlist\blx@tempc\blx@sortingschemenames
+  \edef\blx@refcontext@context{\blx@tempc/\blx@refcontext@sortingnamekeytemplatename/\blx@refcontext@labelprefix/\blx@refcontext@uniquenametemplatename/\blx@refcontext@labelalphanametemplatename}%
+  \xifinlist\blx@tempc\blx@sortingtemplatenames
     {}
-    {\listxadd\blx@sortingschemenames\blx@tempc}%
+    {\listxadd\blx@sortingtemplatenames\blx@tempc}%
   \let\blx@printbibchecks\relax
   \edef\blx@tempe{\the\c@refsection}% default refsection is current
   \blx@safe@actives
   \blx@printbibchecks
-  % Add the sortscheme to the list of sortschemes for this biblist
+  % Add the sortingtemplate to the list of sortingtemplates for this biblist
   % so we can compare on next run
   \xifinlist\blx@tempc\blx@biblists
     {}
@@ -8164,7 +8168,7 @@
     {}
     {\listxadd\blx@dlistnames{\blx@refcontext@context @list}%
      \csxappto{blx@dlists}{%
-       \blx@xml@dlist{\blx@refcontext@context}{list}{\blx@tempe}{\blx@xml@dlist@refcontext{\blx@tempc}{\blx@refcontext@sortingnamekey}{\blx@refcontext@labelprefix}{\blx@refcontext@uniquenametemplate}{\blx@refcontext@labelalphanametemplate}}{\csuse{blx@biblistfilters@#2}}}}%
+       \blx@xml@dlist{\blx@refcontext@context}{list}{\blx@tempe}{\blx@xml@dlist@refcontext{\blx@tempc}{\blx@refcontext@sortingnamekeytemplatename}{\blx@refcontext@labelprefix}{\blx@refcontext@uniquenametemplatename}{\blx@refcontext@labelalphanametemplatename}}{\csuse{blx@biblistfilters@#2}}}}%
   \ifdefvoid\blx@tempa
     {\blx@warn@biblistempty{#2}\endgroup}
     {\blx@biblist\blx@tempa}}
@@ -8280,44 +8284,53 @@
        {\edef\z{\noexpand\setkeys{blx@refcontext}{\csuse{blx@refcontext@name@#2}}}\z}%
      % Override with explicit refcontext keyvals, if given
      \setkeys{blx@refcontext}{#1}%
-     % Add the sortscheme to the list of sortschemes so we can track
+     % Add the sortingtemplate to the list of sortingtemplates so we can track
      % special cases like sorting=none which need cite order change detection
-     \xifinlist\blx@refcontext@sorting\blx@sortingschemenames
+     \xifinlist\blx@refcontext@sortingtemplatename\blx@sortingtemplatenames
        {}
-       {\listxadd\blx@sortingschemenames\blx@refcontext@sorting}%
-     \xdef\blx@refcontext@context{\blx@refcontext@sorting/\blx@refcontext@sortingnamekey/\blx@refcontext@labelprefix/\blx@refcontext@uniquenametemplate/\blx@refcontext@labelalphanametemplate}%
+       {\listxadd\blx@sortingtemplatenames\blx@refcontext@sortingtemplatename}%
+     \xdef\blx@refcontext@context{\blx@refcontext@sortingtemplatename/\blx@refcontext@sortingnamekeytemplatename/\blx@refcontext@labelprefix/\blx@refcontext@uniquenametemplatename/\blx@refcontext@labelalphanametemplatename}%
      % Add the refcontext to the list of refcontexts so we can compare on next run
      \xifinlist\blx@refcontext@context\blx@refcontexts
        {}
        {\listxadd\blx@refcontexts\blx@refcontext@context
         \blx@auxwrite\@mainaux{}{\string\abx@aux@refcontext{\blx@refcontext@context}}}%
-     \ifcsundef{blx@sorting@\blx@refcontext@sorting}
-       {\blx@err@invopt{sorting=\blx@refcontext@sorting}{}}
+     \ifcsundef{blx@sortingtemplate@\blx@refcontext@sortingtemplatename}
+       {\blx@err@invopt{sorting=\blx@refcontext@sortingtemplatename}{}}
        {}%
-     \ifcsundef{blx@sortingnamekey@\blx@refcontext@sortingnamekey}
-       {\blx@err@invopt{sortingnamekeyscheme=\blx@refcontext@sortingnamekey}{}}
+     \ifcsundef{blx@sortingnamekeytemplate@\blx@refcontext@sortingnamekeytemplatename}
+       {\blx@err@invopt{sortingnamekeytemplate=\blx@refcontext@sortingnamekeytemplatename}{}}
        {}%
-     \ifcsundef{blx@uniquenametemplate@\blx@refcontext@uniquenametemplate}
-       {\blx@err@invopt{uniquenametemplate=\blx@refcontext@uniquenametemplate}{}}
+     \ifcsundef{blx@uniquenametemplate@\blx@refcontext@uniquenametemplatename}
+       {\blx@err@invopt{uniquenametemplate=\blx@refcontext@uniquenametemplatename}{}}
        {}%
-     \ifcsundef{blx@labelalphanametemplate@\blx@refcontext@labelalphanametemplate}
-       {\blx@err@invopt{labelalphanametemplate=\blx@refcontext@labelalphanametemplate}{}}
+     \ifcsundef{blx@labelalphanametemplate@\blx@refcontext@labelalphanametemplatename}
+       {\blx@err@invopt{labelalphanametemplate=\blx@refcontext@labelalphanametemplatename}{}}
        {}}}
 
 % Reset to global sorting etc. when we leave a ref context (since they can't be nested)
 \protected\def\endrefcontext{%
   \togglefalse{blx@refcontext}%
   \global\let\blx@refcontext@labelprefix\@empty
-  \xdef\blx@refcontext@sorting{\blx@sorting}%
-  \gdef\blx@refcontext@sortingnamekey{global}%
-  \gdef\blx@refcontext@uniquenametemplate{global}%
-  \gdef\blx@refcontext@labelalphanametemplate{global}%
-  \xdef\blx@refcontext@context{\blx@refcontext@sorting/\blx@refcontext@sortingnamekey//\blx@refcontext@uniquenametemplate/\blx@refcontext@labelalphanametemplate}}
+  \xdef\blx@refcontext@sortingtemplatename{\blx@sorting}%
+  \gdef\blx@refcontext@sortingnamekeytemplatename{global}%
+  \gdef\blx@refcontext@uniquenametemplatename{global}%
+  \gdef\blx@refcontext@labelalphanametemplatename{global}%
+  \xdef\blx@refcontext@context{\blx@refcontext@sortingtemplatename/\blx@refcontext@sortingnamekeytemplatename//\blx@refcontext@uniquenametemplatename/\blx@refcontext@labelalphanametemplatename}}
 
-\define@key{blx@refcontext}{sorting}{\gdef\blx@refcontext@sorting{#1}}
-\define@key{blx@refcontext}{sortingnamekeyscheme}{\gdef\blx@refcontext@sortingnamekey{#1}}
-\define@key{blx@refcontext}{uniquenametemplate}{\gdef\blx@refcontext@uniquenametemplate{#1}}
-\define@key{blx@refcontext}{labelalphanametemplate}{\gdef\blx@refcontext@labelalphanametemplate{#1}}
+% Meta option to set all name template options
+\define@key{blx@refcontext}{nametemplates}{%
+  \gdef\blx@refcontext@sortingnamekeytemplatename{#1}%
+  \gdef\blx@refcontext@uniquenametemplatename{#1}%
+  \gdef\blx@refcontext@labelalphanametemplatename{#1}}
+
+\define@key{blx@refcontext}{sorting}{\gdef\blx@refcontext@sortingtemplatename{#1}}
+\define@key{blx@refcontext}{sortingnamekeyscheme}{%
+  \blx@warning@noline{sortingnamekeyscheme is deprecated, use 'sortingnamekeytemplatename' instead}%
+  \gdef\blx@refcontext@sortingnamekeytemplatename{#1}}
+\define@key{blx@refcontext}{sortingnamekeytemplatename}{\gdef\blx@refcontext@sortingnamekeytemplatename{#1}}
+\define@key{blx@refcontext}{uniquenametemplatename}{\gdef\blx@refcontext@uniquenametemplatename{#1}}
+\define@key{blx@refcontext}{labelalphanametemplatename}{\gdef\blx@refcontext@labelalphanametemplatename{#1}}
 \define@key{blx@refcontext}{labelprefix}{%
   \gdef\blx@refcontext@labelprefix{#1}%
   \iftoggle{blx@defernumbers}
@@ -8386,11 +8399,20 @@
     \csxdef{blx@assignedrefcontextkeys#1@\the\c@refsection @##1}{\blx@tempa/\blx@tempb/\blx@tempc/\blx@tempd/\blx@tempe}}%
   \docsvlist{#3}}
 
+% Meta option to set all name template options
+\define@key{blx@assignrefcontext}{nametemplates}{%
+  \def\blx@tempb{#1}%
+  \def\blx@tempd{#1}%
+  \def\blx@tempe{#1}}
+
 \define@key{blx@assignrefcontext}{sorting}{\def\blx@tempa{#1}}
-\define@key{blx@assignrefcontext}{sortingnamekeyscheme}{\def\blx@tempb{#1}}
+\define@key{blx@assignrefcontext}{sortingnamekeyscheme}{%
+  \blx@warning@noline{sortingnamekeyscheme is deprecated, use 'sortingnamekeytemplatename' instead}%
+  \def\blx@tempb{#1}}
+\define@key{blx@assignrefcontext}{sortingnamekeytemplatename}{\def\blx@tempb{#1}}
 \define@key{blx@assignrefcontext}{labelprefix}{\def\blx@tempc{#1}}
-\define@key{blx@assignrefcontext}{uniquenametemplate}{\def\blx@tempd{#1}}
-\define@key{blx@assignrefcontext}{labelalphanametemplate}{\def\blx@tempe{#1}}
+\define@key{blx@assignrefcontext}{uniquenametemplatename}{\def\blx@tempd{#1}}
+\define@key{blx@assignrefcontext}{labelalphanametemplatename}{\def\blx@tempe{#1}}
 
 % Reference sections
 \newrobustcmd*{\newrefsection}{%
@@ -10647,10 +10669,10 @@
 \xdef\blx@xml@uniquenametemplatenamepart#1#2#3{%
   ~~~~<bcf:namepart #1#2>#3</bcf:namepart>\blx@nl}
 
-\xdef\blx@xml@sortingnamekey#1#2{%
-  ~~<bcf:sortingnamekey keyscheme="#1">\blx@nl%
+\xdef\blx@xml@sortingnamekeytemplate#1#2{%
+  ~~<bcf:sortingnamekeytemplate name="#1">\blx@nl%
   #2%
-  ~~</bcf:sortingnamekey>\blx@nl}
+  ~~</bcf:sortingnamekeytemplate>\blx@nl}
 
 \xdef\blx@xml@sortingnamekeykeypart#1#2{%
   ~~~~<bcf:keypart#1>\blx@nl
@@ -10663,10 +10685,10 @@
 \xdef\blx@xml@sortingnamekeyliteral#1#2{%
   ~~~~~~<bcf:part type="literal"#1>#2</bcf:part>\blx@nl}
 
-\xdef\blx@xml@sorting#1#2#3{%  
-  ~~<bcf:sorting scheme="#1"#2>\blx@nl%
+\xdef\blx@xml@sortingtemplate#1#2#3{%  
+  ~~<bcf:sortingtemplate name="#1"#2>\blx@nl%
   #3%
-  ~~</bcf:sorting>\blx@nl}
+  ~~</bcf:sortingtemplate>\blx@nl}
 \xdef\blx@xml@presort#1#2{%
   ~~<bcf:presort\noexpand\ifblank{#1}{}{ type="#1"}>%
   #2</bcf:presort>\blx@nl}
@@ -10695,8 +10717,8 @@
   ~~</bcf:section>}
 
 \xdef\blx@xml@dlist@refcontext#1#2#3#4#5{%
-  ~~~~~~~~~~~~~~~~sortscheme="#1"\blx@nl
-  ~~~~~~~~~~~~~~~~sortnamekeyscheme="#2"\blx@nl
+  ~~~~~~~~~~~~~~~~sortingtemplatename="#1"\blx@nl
+  ~~~~~~~~~~~~~~~~sortingnamekeytemplatename="#2"\blx@nl
   ~~~~~~~~~~~~~~~~labelprefix="#3"\blx@nl
   ~~~~~~~~~~~~~~~~uniquenametemplatename="#4"\blx@nl
   ~~~~~~~~~~~~~~~~labelalphanametemplatename="#5"}
@@ -10766,7 +10788,7 @@
     \blx@xml@toggle{singletitle}%
     \blx@xml@svalue{sortalphaothers}{\sortalphaothers}%
     \blx@xml@svalue{sortlocale}{\blx@sortlocale}%
-    \blx@xml@svalue{sortscheme}{\blx@sorting}%
+    \blx@xml@svalue{sortingtemplatename}{\blx@sorting}%
     \blx@xml@svalue{uniquelist}{\blx@uniquelist}%
     \blx@xml@svalue{uniquename}{\blx@uniquename}%
     \blx@xml@toggle{uniqueprimaryauthor}%
@@ -11002,17 +11024,17 @@
        \eappto\blx@tempa{\blx@xml@transliteration{##1}{\csuse{blx@translit@##1}}}}%
      \dolistloop\blx@translits}%
   % uniquenametemplate
-  \eappto\blx@tempa{\blx@xml@comment{UNIQUENAME TEMPLATE}}%
+  \eappto\blx@tempa{\blx@xml@comment{UNIQUENAME TEMPLATES}}%
   \def\do##1{%
     \eappto\blx@tempa{%
       \blx@xml@uniquenametemplate{##1}{\csuse{blx@uniquenametemplate@##1}}}}%
   \dolistloop\blx@untemplatespecs
-  % sortingnamekey
-  \eappto\blx@tempa{\blx@xml@comment{SORTING NAME KEY}}%
+  % sortingnamekeytemplate
+  \eappto\blx@tempa{\blx@xml@comment{SORTING NAME KEY TEMPLATES}}%
   \def\do##1{%
     \eappto\blx@tempa{%
-      \blx@xml@sortingnamekey{##1}{\csuse{blx@sortingnamekey@##1}}}}%
-  \dolistloop\blx@sortingnamekeyspecs
+      \blx@xml@sortingnamekeytemplate{##1}{\csuse{blx@sortingnamekeytemplate@##1}}}}%
+  \dolistloop\blx@sortingnamekeytemplates
   % presort/sorting excludes/sorting includes
   \def\do##1{%
     \eappto\blx@bcf@presort{\csuse{blx@bcf@presort@##1}}%
@@ -11056,15 +11078,15 @@
   \endgroup
   \AfterEndDocument{%
     \def\do##1{%
-      \csxappto{blx@sortingschemes}{%
-        \blx@xml@sorting{##1}
+      \csxappto{blx@sortingtemplates}{%
+        \blx@xml@sortingtemplate{##1}
                         {\ifcsdef{blx@sortdef@locale@##1}{ locale="\csuse{blx@sortdef@locale@##1}"}{}}
-                        {\csuse{blx@sorting@##1}}}}%
-      \dolistloop\blx@sortingschemenames
+                        {\csuse{blx@sortingtemplate@##1}}}}%
+      \dolistloop\blx@sortingtemplatenames
     \blx@auxwrite\blx@bcfout{}{%
       \blx@xml@endsection\blx@nl
-      \blx@xml@comment{SORTING SCHEMES}%
-      \csuse{blx@sortingschemes}%
+      \blx@xml@comment{SORTING TEMPLATES}%
+      \csuse{blx@sortingtemplates}%
       \blx@xml@comment{DATALISTS}%
       \csuse{blx@dlists}%
       \blx@xml@endfile}%
@@ -11373,7 +11395,7 @@
 \@onlypreamble\DeclareLabelalphaNameTemplate
 \blx@collectopts{xml}{blx@globalopts}{labelalphanametemplate}% for passing to the .bcf
 \DeclareEntryOption[string]{labelalphanametemplatename}{%
-  \def\blx@refcontext@labelalphanametemplate{#1}}
+  \def\blx@refcontext@labelalphanametemplatename{#1}}
 
 \newcommand*{\blx@lantem@namepart}[2][]{%
   \advance\blx@tempcntb\@ne
@@ -11690,7 +11712,7 @@
 \@onlypreamble\DeclareUniquenameTemplate
 \blx@collectopts{xml}{blx@globalopts}{uniquenametemplate}% for passing to the .bcf
 \DeclareEntryOption[string]{uniquenametemplatename}{%
-  \def\blx@refcontext@uniquenametemplate{#1}}
+  \def\blx@refcontext@uniquenametemplatename{#1}}
 
 \newcommand*{\blx@untemp@namepart}[2][]{%
   \advance\blx@tempcntb\@ne
@@ -11715,8 +11737,8 @@
 \define@key{blx@untemp@namepart}{disambiguation}{% disambiguation option for namepart none|inits|full|fullonly
   \appto\blx@tempc{ disambiguation="#1"}}
 
-% [<specname>]{<spec>}
-\newrobustcmd*{\DeclareSortingNamekeyScheme}[2][]{%
+% [<templatename>]{<template>}
+\newrobustcmd*{\DeclareSortingNamekeyTemplate}[2][]{%
   \begingroup
   \ifblank{#1}
     {\def\blx@snkname{global}}% default
@@ -11727,19 +11749,27 @@
   \let\blx@tempa\@empty
   \blx@tempcnta\z@
   #2%
-  \global\cslet{blx@sortingnamekey@\blx@snkname}\blx@tempa
-  \xifinlist\blx@snkname\blx@sortingnamekeyspecs
+  \global\cslet{blx@sortingnamekeytemplate@\blx@snkname}\blx@tempa
+  \xifinlist\blx@snkname\blx@sortingnamekeytemplates
     {}
-    {\listxadd\blx@sortingnamekeyspecs\blx@snkname}%
+    {\listxadd\blx@sortingnamekeytemplates\blx@snkname}%
   \endgroup}
-\@onlypreamble\DeclareSortingNamekeyScheme
-\blx@collectopts{xml}{blx@globalopts}{sortingnamekey}% for passing to the .bcf
-\DeclareEntryOption[string]{sortnamekeyscheme}{%
-  \def\blx@refcontext@sortingnamekey{#1}}
+\@onlypreamble\DeclareSortingNamekeyTemplate
+\blx@collectopts{xml}{blx@globalopts}{sortingnamekeytemplate}% for passing to the .bcf
+\DeclareEntryOption[string]{sortingnamekeytemplatename}{%
+  \def\blx@refcontext@sortingnamekeytemplatename{#1}}
 
-% User-mode macro for checking sorting name key scheme
+\newrobustcmd*{\DeclareSortingNamekeyScheme}[2][]{%
+  \blx@warning@noline{%
+    'DeclareSortingNamekeyScheme' is deprecated, please use 'DeclareSortingNamekeyTemplate'}}
+
+% User-mode macro for checking sorting name key template
+\def\ifsortingnamekeytemplate#1{%
+  \expandafter\ifstrequal\expandafter{\blx@refcontext@sortingnamekeytemplatename}{#1}}
 \def\ifsortnamekeyscheme#1{%
-  \expandafter\ifstrequal\expandafter{\blx@refcontext@sortingnamekey}{#1}}
+  \blx@warning@noline{%
+    '\string\ifsortnamekeyscheme' is deprecated in sorting specifications, please use '\string\ifsortingnamekeytemplate'}%
+  \expandafter\ifstrequal\expandafter{\blx@refcontext@sortingnamekeytemplatename}{#1}}
 
 \newcommand*{\blx@sortnk@keypart}[1]{%
   \advance\blx@tempcnta\@ne
@@ -11777,8 +11807,8 @@
     {\appto\blx@tempc{ inits="1"}}
     {\appto\blx@tempc{ inits="0"}}}
 
-% [options]{<name>}{<spec>}
-\newrobustcmd*{\DeclareSortingScheme}[3][]{%
+% [options]{<templatename>}{<template>}
+\newrobustcmd*{\DeclareSortingTemplate}[3][]{%
   \ifblank{#1}
     {}
     {\setkeys{blx@sortdef@sorting}{#1}%
@@ -11799,13 +11829,17 @@
   \blx@tempcnta\z@
   \let\blx@tempa\@empty
   #3%
-  \global\cslet{blx@sorting@#2}\blx@tempa
+  \global\cslet{blx@sortingtemplate@#2}\blx@tempa
   \endgroup}
-\@onlypreamble\DeclareSortingScheme
-\blx@collectopts{xml}{blx@globalopts}{sorting}% for passing to the .bcf
+\@onlypreamble\DeclareSortingTemplate
+\blx@collectopts{xml}{blx@globalopts}{sortingtemplate}% for passing to the .bcf
 
 \define@key{blx@sortdef@sorting}{locale}{% locale name
   \def\blx@templ{#1}}
+
+\newrobustcmd*{\DeclareSortingScheme}[2][]{%
+  \blx@warning@noline{%
+    'DeclareSortingScheme' is deprecated, please use 'DeclareSortingTemplate'}}
 
 \newcommand*{\blx@sortdef@sort}[2][]{%
   \advance\blx@tempcnta\@ne
@@ -12129,28 +12163,28 @@
   \settoggle{blx@safeinputenc}{#1}}
 \newtoggle{blx@safeinputenc}
 
-% global "sorting" option becomes "sortscheme" in the .bcf and so
+% global "sorting" option becomes "sortingtemplatename" in the .bcf and so
 % don't use \DeclareBibliographyOption. This is a legacy naming issue
 % unlikely to be corrected as "sorting" is an obvious name for biblatex users
-% "sorting" is used in the .bcf for the actual sorting scheme definitions and is
+% "sorting" is used in the .bcf for the actual sorting template definitions and is
 % an XML format option
 \define@key{blx@opt@pre}{sorting}{%
   \def\blx@sorting{#1}%
-  \def\blx@refcontext@sorting{#1}}
-\blx@collectopts{string}{blx@globalopts}{sortscheme}% for passing to the .bcf
+  \def\blx@refcontext@sortingtemplatename{#1}}
+\blx@collectopts{string}{blx@globalopts}{sortingtemplatename}% for passing to the .bcf
 
 \AtEndPreamble{%
-  \ifcsdef{blx@sorting@\blx@sorting}
+  \ifcsdef{blx@sortingtemplate@\blx@sorting}
     {}
     {\blx@err@invopt{sorting=\blx@sorting}{}%
      \def\blx@sorting{nty}%
-     \def\blx@refcontext@sorting{nty}}%
-  \listxadd\blx@sortingschemenames\blx@sorting
-  \def\blx@refcontext@sortingnamekey{global}%
+     \def\blx@refcontext@sortingtemplatename{nty}}%
+  \listxadd\blx@sortingtemplatenames\blx@sorting
+  \def\blx@refcontext@sortingnamekeytemplatename{global}%
   \let\blx@refcontext@labelprefix\@empty
-  \def\blx@refcontext@uniquenametemplate{global}%  
-  \def\blx@refcontext@labelalphanametemplate{global}%
-  \xdef\blx@refcontext@context{\blx@refcontext@sorting/\blx@refcontext@sortingnamekey/\blx@refcontext@labelprefix/\blx@refcontext@uniquenametemplate/\blx@refcontext@labelalphanametemplate}%
+  \def\blx@refcontext@uniquenametemplatename{global}%  
+  \def\blx@refcontext@labelalphanametemplatename{global}%
+  \xdef\blx@refcontext@context{\blx@refcontext@sortingtemplatename/\blx@refcontext@sortingnamekeytemplatename/\blx@refcontext@labelprefix/\blx@refcontext@uniquenametemplatename/\blx@refcontext@labelalphanametemplatename}%
   \listxadd\blx@refcontexts\blx@refcontext@context}
 
 \DeclareBibliographyOption[boolean]{sortcase}[true]{%
@@ -12315,11 +12349,11 @@
 \DeclareBibliographyOption[boolean]{sortfirstinits}[true]{%
   \blx@warning@noline{%
     'sortfirstinits' option is deprecated, use 'inits' option\MessageBreak
-    to \string\namepart\space in \string\DeclareSortingNamekeyScheme}}
+    to \string\namepart\space in \string\DeclareSortingNamekeyTemplate}}
 \DeclareBibliographyOption[boolean]{sortgiveninits}{%
   \blx@warning@noline{%
     'sortgiveninits' option is deprecated, use 'inits' option\MessageBreak
-    to \string\namepart\space in \string\DeclareSortingNamekeyScheme}}
+    to \string\namepart\space in \string\DeclareSortingNamekeyTemplate}}
 
 \DeclareBibliographyOption[boolean]{terseinits}[true]{%
   \ifstrequal{#1}{true}
