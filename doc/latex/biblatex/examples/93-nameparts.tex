@@ -92,17 +92,47 @@
   publisher  = {Shangwu Yinshuguan},
   date       = {2016},
 }
+
+@book{bronte:c,
+  author     = {Charlotte Brontë},
+  date       = {1847},
+  title      = {Jane Eyre},
+}
+@book{bronte:e,
+  author     = {Emily Brontë},
+  date       = {1847},
+  title      = {Wuthering Heights},
+}
+
+@book{austen:jane,
+  author     = {Jane Austen},
+  date       = {1813},
+  title      = {Pride and Prejudice},
+}
+@collection{austen:john,
+  editor     = {John Austen},
+  editortype = {compiler},
+  date       = {1924},
+  title      = {Rogues in Porcelain: A Miscellany of 18th Poems},
+}
 \end{filecontents}
 \usepackage[style=authoryear,datamodel=93-nameparts,backend=biber, autolang=hyphen]{biblatex}
 \addbibresource{biblatex-examples.bib}
 \addbibresource{\jobname.bib}
 
 
+% Use transliteration to sort Cyrillic among Latin script
 \DeclareSortTranslit{
   \translit{russian}{bgn/pcgn-standard}
 }
 
 \makeatletter
+%% CJK names
+% the idea is to sort family -> given -> cjk (full name)
+% and disambiguate in the same manner using only full
+% forms of the name, no initials
+% the order should always be family -> given -> cjk
+% names are not reversed
 \DeclareSortingNamekeyTemplate[cjk]{
   \keypart{
     \namepart{family}
@@ -128,7 +158,10 @@
   \ifdefvoid{#2}{}{\bibnamedelimd\mkbibnamegiven{#2}}%
   \ifdefvoid{#3}{}{\bibnamedelimd\mkbibnamecjk{#3}}}
 
-
+%% Ethiopian names
+% Ethiopian names are given -> patronymic -> papponymic
+% the latter two are only needed for disambiguation
+% names order is never reversed
 \DeclareSortingNamekeyTemplate[ethiopian]{
   \keypart{
     \namepart{given}
@@ -143,8 +176,8 @@
 
 \DeclareUniquenameTemplate[ethiopian]{
   \namepart[base=true]{given}
-  \namepart{patronymic}
-  \namepart{papponymic}
+  \namepart[disambiguation=full]{patronymic}
+  \namepart[disambiguation=full]{papponymic}
 }
 
 \newbibmacro*{name:ethiopian}[3]{%
@@ -158,7 +191,12 @@
 \let\mkbibethpat\mkbibnamegiven
 \let\mkbibethpap\mkbibnamegiven
 
-
+%% Russian names
+% family -> given -> patronymic
+% we never show the given name alone, it is always accompanied
+% by the patronymic
+% (patronymic could just be treated as another given name)
+% reversed name order is 'family, given patronymic'
 \DeclareSortingNamekeyTemplate[russian]{
   \keypart{
     \namepart{family}
@@ -177,6 +215,17 @@
   \namepart{patronymic}
 }
 
+\newbibmacro*{name:russian}[3]{%
+  \usebibmacro{name:delim}{#1#2#3}%
+  \usebibmacro{name:hook}{#1#2#3}%
+  \ifdefvoid{#2}
+    {}
+    {\mkbibnamegiven{#2}\isdot\bibnamedelimd
+     \ifdefvoid{#3}
+       {}
+       {\mkbibnamepatronymic{#3}\isdot\bibnamedelimd}}%
+  \mkbibnamefamily{#1}}
+
 \newbibmacro*{name:russian-rev}[3]{%
   \usebibmacro{name:delim}{#1#2#3}%
   \usebibmacro{name:hook}{#1#2#3}%
@@ -189,18 +238,8 @@
        {}
        {\bibnamedelimd\mkbibnamepatronymic{#3}\isdot}}}
 
-\newbibmacro*{name:russian}[3]{%
-  \usebibmacro{name:delim}{#1#2#3}%
-  \usebibmacro{name:hook}{#1#2#3}%
-  \ifdefvoid{#2}
-    {}
-    {\mkbibnamegiven{#2}\isdot\bibnamedelimd
-     \ifdefvoid{#3}
-       {}
-       {\mkbibnamepatronymic{#3}\isdot\bibnamedelimd}}%
-  \mkbibnamefamily{#1}}
-
-
+%% sortname
+% helper to select the sorting template in \ifcase
 \newcommand*{\abx@sortingnamekeytemplate}{0}
 \newcommand*{\abx@getsortingnamekeytemplate}{%
   \ifsortingnamekeytemplatename{cjk}
@@ -211,6 +250,9 @@
            {\def\abx@sortingnamekeytemplate{3}}
            {}}}}
 
+% show fullest version of names,
+% reverse Russian and western names for sorting
+% all other names are always in the correct order for sorting
 \DeclareNameFormat{sortname}{%
   \abx@getsortingnamekeytemplate
   \ifcase\abx@sortingnamekeytemplate\relax
@@ -237,7 +279,9 @@
   \fi
   \usebibmacro{name:andothers}}
 
-
+%% labelname
+% copy of the standard definition in biblatex.def
+% uses the 'old way' of finding the disambiguating name part
 \newbibmacro{labelname:western}{%
   \ifcase\value{uniquename}%
     \usebibmacro{name:family}
@@ -263,8 +307,15 @@
       {\namepartgiven}
       {\namepartprefix}
       {\namepartsuffix}%
-  \fi}
+  \fi
+  \usebibmacro{name:andothers}}
 
+% Uses \iffieldequalstr{uniquepart} to find the disambiguating
+% name part.
+% If neither base (i.e. family) nor given name are enough,
+% go with the full name.
+% Uses \empty for suppressed name parts, so we don't have to define
+% dedicated macros for the shorter name forms.
 \newbibmacro{labelname:cjk}{%
   \iffieldequalstr{uniquepart}{base}%
     {\usebibmacro{name:cjk}
@@ -281,6 +332,7 @@
           {\namepartgiven}
           {\namepartcjk}}}}
 
+% similar to the CJK format
 \newbibmacro{labelname:ethiopian}{%
   \iffieldequalstr{uniquepart}{base}%
     {\usebibmacro{name:ethiopian}
@@ -297,6 +349,19 @@
           {\namepartpatronymic}
           {\namepartpapponymic}}}}
 
+% Uses \iffieldequalstr{uniquepart} to get the disambiguating
+% name part.
+% We only choose between 'Given Patronymic Family' and
+% 'G. P. Family', the decision whether or not to use
+% initials is for the given name to decide.
+% If the given initial is enough to disambiguate the name,
+% the given name and patronymic become initials.
+% Even if the initial of the patronymic would make the name
+% unique we go with the full name instead.
+% There is no 'Given P. Family' format.
+% \namepart<>un=1 says initials are enough
+% 2 means the full name is required
+% 0 means not used
 \newbibmacro{labelname:russian}{%
   \iffieldequalstr{uniquepart}{base}%
     {\usebibmacro{name:russian}
@@ -315,6 +380,7 @@
           {\namepartpatronymic}%
      \fi}}
 
+% helper to select the uniquename template in \ifcase
 \newcommand*{\abx@uniquenametemplatename}{0}
 \newcommand*{\abx@getuniquenametemplatename}{%
   \ifuniquenametemplatename{cjk}
@@ -348,16 +414,14 @@
 % it is possible to define arbitrary name parts since the allowable name
 % parts are defined in the data model (see accompanying file 93-nameparts.dbx).
 
-% Here we demonstrate the possibility of adding a new "patronymic" name part to the
+% Here we demonstrate the possibility of adding a new name parts to the
 % datamodel and then using it in formatting, sorting etc.
-% Notice that we can use the <patronymic> name part type in the datasource
+% Notice that we can use the new name part types in the datasource
 % which is now allowable due to the enhanced datamodel constant definition.
 % We have also defined a new name format and method of sorting names which
-% are aware of the new name part.
+% are aware of the new name parts.
 %
-\textcite{tolstoy}
-
-\textcite{bulgakov,bulgakov:val}
+\textcite{tolstoy,bulgakov,bulgakov:val}
 
 \textcite{dosto:1}
 
@@ -365,7 +429,9 @@
 
 \textcite{demeke,dameke,james,jonathan,william}
 
-\textcite{aksin,sigfridsson,worman,geer,knuth:ct:a,cicero,companion}
+\textcite{sigfridsson,worman,geer,knuth:ct:a,cicero,companion,vangennep}
+
+\textcite{bronte:c,bronte:e,austen:jane,austen:john}
 
 \textcite{zhangx1,zhangx2,zhangh}
 
