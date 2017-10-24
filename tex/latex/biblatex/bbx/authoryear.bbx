@@ -22,9 +22,28 @@
 \newcommand*{\iflabeldateisdate}{%
   \ifboolexpr{%
     not test {\iffieldundef{labeldatesource}}
-    and 
-    (test {\iffieldequalstr{labeldatesource}{}} 
+    and
+    (test {\iffieldequalstr{labeldatesource}{}}
      or test {\iffieldequalstr{labeldatesource}{year}})}}
+
+\newcommand*{\ifdatehasyearonlyprecision}[1]{%
+  \ifboolexpr{test {\ifcsstring{blx@dateformat@#1date}{year}}
+              or (test {\iffieldundef{#1month}}
+                  and test {\iffieldundef{#1season}})}}
+  
+\newcommand*{\ifdatehastime}[1]{%
+  \ifboolexpr{togl {blx@#1dateusetime}
+              and not test {\iffieldundef{#1hour}}}}
+
+\newcommand*{\ifdateshavedifferentprecision}[2]{%
+  \ifboolexpr{   (test {\ifdatehasyearonlyprecision{#1}}
+                  and not test {\ifdatehasyearonlyprecision{#2}})
+              or (not test {\ifdatehasyearonlyprecision{#1}}
+                  and test {\ifdatehasyearonlyprecision{#2}})
+              or (test {\ifdatehastime{#1}}
+                  and not test {\ifdatehastime{#2}})
+              or (not test {\ifdatehastime{#1}}
+                  and test {\ifdatehastime{#2}})}}
 
 \def\bbx@opt@mergedate@true{\bbx@opt@mergedate@compact}
 
@@ -86,9 +105,7 @@
     \ifboolexpr{
       test {\iflabeldateisdate}
       and
-      test {\iffieldundef{season}}
-      and
-      test {\iffieldundef{month}}
+      not test {\ifdateshavedifferentprecision{label}{}}
     }
       {}
       {\printdate}}%
@@ -96,11 +113,9 @@
     \ifboolexpr{
       test {\iflabeldateisdate}
       and
+      not test {\ifdateshavedifferentprecision{label}{}}
+      and
       test {\iffieldundef{issue}}
-      and
-      test {\iffieldundef{season}}
-      and
-      test {\iffieldundef{month}}
     }
       {}
       {\printtext[parens]{%
@@ -119,9 +134,7 @@
     \ifboolexpr{
       test {\iflabeldateisdate}
       and
-      test {\iffieldundef{season}}
-      and
-      test {\iffieldundef{month}}
+      not test {\ifdateshavedifferentprecision{label}{}}
       and
       test {\iffieldundef{extrayear}}
     }
@@ -131,13 +144,11 @@
     \ifboolexpr{
       test {\iflabeldateisdate}
       and
-      test {\iffieldundef{issue}}
-      and
-      test {\iffieldundef{season}}
-      and
-      test {\iffieldundef{month}}
+      not test {\ifdateshavedifferentprecision{label}{}}
       and
       test {\iffieldundef{extrayear}}
+      and
+      test {\iffieldundef{issue}}
     }
       {}
       {\printtext[parens]{%
