@@ -283,8 +283,14 @@ PDFLaTeX errors/warnings
           declare TEXENGINE=pdflatex
           declare BIBEROPTS='--output_safechars --onlylog'
       else
-          declare TEXENGINE=lualatex
-          declare BIBEROPTS='--onlylog'
+          if [[ "$f" == "93-nameparts-biber.tex" ]] # Needs xelatex
+          then
+             declare TEXENGINE=xelatex
+             declare BIBEROPTS='--onlylog'
+          else
+             declare TEXENGINE=lualatex
+             declare BIBEROPTS='--onlylog'
+          fi
       fi
       echo -n "File (biber): $f ... "
       exec 4>&1 7>&2 # save stdout/stderr
