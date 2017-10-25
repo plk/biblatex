@@ -3348,7 +3348,35 @@
 \def\ifentryinbib{\blx@imc@ifentryinbib}
 \def\ifentrycategory{\blx@imc@ifentrycategory}
 \def\ifentrykeyword{\blx@imc@ifentrykeyword}
-  
+
+\def\blx@imc@iflabeldateisdate{%
+  \ifboolexpr{%
+    togl {blx@labeldateparts}
+    and not test {\iffieldundef{labeldatesource}}
+    and
+    (test {\iffieldequalstr{labeldatesource}{}}
+     or test {\iffieldequalstr{labeldatesource}{year}})}}
+     
+\def\blx@imc@ifdatehasyearonlyprecision#1{%
+  \ifboolexpr{not test {\iffieldundef{#1year}}
+              and (test {\ifcsstring{blx@dateformat@#1date}{year}}
+                   or (test {\iffieldundef{#1month}}
+                       and test {\iffieldundef{#1season}}))}}
+                       
+\def\blx@imc@ifdatehastime#1{%
+  \ifboolexpr{togl {blx@#1dateusetime}
+                 and not test {\iffieldundef{#1hour}}}}
+                 
+\def\blx@imc@ifdateshavedifferentprecision#1#2{%
+  \ifboolexpr{   (test {\ifdatehasyearonlyprecision{#1}}
+                  and not test {\ifdatehasyearonlyprecision{#2}})
+              or (not test {\ifdatehasyearonlyprecision{#1}}
+                  and test {\ifdatehasyearonlyprecision{#2}})
+              or (test {\ifdatehastime{#1}}
+                  and not test {\ifdatehastime{#2}})
+              or (not test {\ifdatehastime{#1}}
+                  and test {\ifdatehastime{#2}})}}
+
 \blx@regimcs{%
   \ifdriver \thefield \strfield \csfield \usefield \thelist \strlist \thename \strname
   \clearfield \clearlist \clearname \restorefield \restorelist \restorename
@@ -3364,6 +3392,8 @@
   \savelistcs \savename \savenamecs \usedriver
   \ifinteger \ifnumeral \ifnumerals \ifpages
   \iffieldint \iffieldnum \iffieldnums \iffieldpages
+  \iflabeldateisdate \ifdatehasyearonlyprecision \ifdatehastime
+  \ifdateshavedifferentprecision
   \mkpageprefix \mkpagetotal
   \newblock \newunit \setunit \printunit \finentry}
 
@@ -5298,7 +5328,7 @@
     {}}
 
 \newrobustcmd*{\mkdaterangeedtf}[1]{%
-  \blx@metadateinfo{#1}%  
+  \blx@metadateinfo{#1}%
   \def\bibdatetimesep{T}%
   \iffieldundef{#1year}
     {}
@@ -5803,7 +5833,7 @@
 \abx@dodates
 % main date field has an empty prefix (''date) which can't be added to a list
 % and so do it explicity
-% This is one of the few (only?) hard-coded datamodel assumptions but it is 
+% This is one of the few (only?) hard-coded datamodel assumptions but it is
 % very unlikely that anyone would *remove* the main date field in a custom application ...
 \def\abx@dodatetypes{\do{}\dolistloop\blx@datetypes}
 
@@ -6090,76 +6120,76 @@
           {}}}%
   \iftoggle{blx@labeldateparts}
     {\def\iflabeldateera#1{% start era
-     \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
-       {\ifcsstring{abx@field@\abx@field@labeldatesource dateera}{#1}}
-       {\@secondoftwo}}%
-   \appto\blx@TE@hook{\def\iflabeldateera#1{%
-     \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
-       {\blx@TE{\ifcsstring{abx@field@\abx@field@labeldatesource dateera}{#1}}}
-       {\@secondoftwo}}}%
-   % end era
-   \def\iflabelenddateera#1{%
-     \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
-       {\ifcsstring{abx@field@\abx@field@labeldatesource enddateera}{#1}}
-       {\@secondoftwo}}%
-   \appto\blx@TE@hook{\def\iflabelenddateera#1{%
-     \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
-       {\blx@TE{\ifcsstring{abx@field@\abx@field@labeldatesource enddateera}{#1}}}
-       {\@secondoftwo}}}%
-   % start circa
-   \def\iflabeldatecirca{%
-     \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
-       {\iftoggle{abx@bool@\abx@field@labeldatesource datecirca}}
-       {\@secondoftwo}}%
-   \appto\blx@TE@hook{\def\iflabeldatecirca{%
-     \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
-       {\blx@TE{\iftoggle{abx@bool@\abx@field@labeldatesource datecirca}}}
-       {\@secondoftwo}}}%
-   % end circa
-   \def\iflabelenddatecirca{%
-     \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
-       {\iftoggle{abx@bool@\abx@field@labeldatesource enddatecirca}}
-       {\@secondoftwo}}%
-   \appto\blx@TE@hook{\def\iflabelenddatecirca{%
-     \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
-       {\blx@TE{\iftoggle{abx@bool@\abx@field@labeldatesource enddatecirca}}}
-       {\@secondoftwo}}}%
-   % start julian
-   \def\iflabeldatejulian{%
-     \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
-       {\iftoggle{abx@bool@\abx@field@labeldatesource datejulian}}
-       {\@secondoftwo}}%
-   \appto\blx@TE@hook{\def\iflabeldatejulian{%
-     \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
-       {\blx@TE{\iftoggle{abx@bool@\abx@field@labeldatesource datejulian}}}
-       {\@secondoftwo}}}%
-   % end julian
-   \def\iflabelenddatejulian{%
-     \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
-       {\iftoggle{abx@bool@\abx@field@labeldatesource enddatejulian}}
-       {\@secondoftwo}}%
-   \appto\blx@TE@hook{\def\iflabelenddatejulian{%
-     \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
-       {\blx@TE{\iftoggle{abx@bool@\abx@field@labeldatesource enddatejulian}}}
-       {\@secondoftwo}}}%
-   % start uncertain
-   \def\iflabeldateuncertain{%
-     \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
-       {\iftoggle{abx@bool@\abx@field@labeldatesource dateuncertain}}
-       {\@secondoftwo}}%
-   \appto\blx@TE@hook{\def\iflabeldateuncertain{%
-     \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
-       {\blx@TE{\iftoggle{abx@bool@\abx@field@labeldatesource dateuncertain}}}
-       {\@secondoftwo}}}%
-   % end uncertain
-   \def\iflabelenddateuncertain{%
-     \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
-       {\iftoggle{abx@bool@\abx@field@labeldatesource enddateuncertain}}
-       {\@secondoftwo}}%
-   \appto\blx@TE@hook{\def\iflabelenddateuncertain{%
-     \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
-       {\blx@TE{\iftoggle{abx@bool@\abx@field@labeldatesource enddateuncertain}}}
-       {\@secondoftwo}}}}%
+       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+         {\ifcsstring{abx@field@\abx@field@labeldatesource dateera}{#1}}
+         {\@secondoftwo}}%
+     \appto\blx@TE@hook{\def\iflabeldateera#1{%
+       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+         {\blx@TE{\ifcsstring{abx@field@\abx@field@labeldatesource dateera}{#1}}}
+         {\@secondoftwo}}}%
+     % end era
+     \def\iflabelenddateera#1{%
+       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+         {\ifcsstring{abx@field@\abx@field@labeldatesource enddateera}{#1}}
+         {\@secondoftwo}}%
+     \appto\blx@TE@hook{\def\iflabelenddateera#1{%
+       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+         {\blx@TE{\ifcsstring{abx@field@\abx@field@labeldatesource enddateera}{#1}}}
+         {\@secondoftwo}}}%
+     % start circa
+     \def\iflabeldatecirca{%
+       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+         {\iftoggle{abx@bool@\abx@field@labeldatesource datecirca}}
+         {\@secondoftwo}}%
+     \appto\blx@TE@hook{\def\iflabeldatecirca{%
+       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+         {\blx@TE{\iftoggle{abx@bool@\abx@field@labeldatesource datecirca}}}
+         {\@secondoftwo}}}%
+     % end circa
+     \def\iflabelenddatecirca{%
+       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+         {\iftoggle{abx@bool@\abx@field@labeldatesource enddatecirca}}
+         {\@secondoftwo}}%
+     \appto\blx@TE@hook{\def\iflabelenddatecirca{%
+       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+         {\blx@TE{\iftoggle{abx@bool@\abx@field@labeldatesource enddatecirca}}}
+         {\@secondoftwo}}}%
+     % start julian
+     \def\iflabeldatejulian{%
+       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+         {\iftoggle{abx@bool@\abx@field@labeldatesource datejulian}}
+         {\@secondoftwo}}%
+     \appto\blx@TE@hook{\def\iflabeldatejulian{%
+       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+         {\blx@TE{\iftoggle{abx@bool@\abx@field@labeldatesource datejulian}}}
+         {\@secondoftwo}}}%
+     % end julian
+     \def\iflabelenddatejulian{%
+       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+         {\iftoggle{abx@bool@\abx@field@labeldatesource enddatejulian}}
+         {\@secondoftwo}}%
+     \appto\blx@TE@hook{\def\iflabelenddatejulian{%
+       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+         {\blx@TE{\iftoggle{abx@bool@\abx@field@labeldatesource enddatejulian}}}
+         {\@secondoftwo}}}%
+     % start uncertain
+     \def\iflabeldateuncertain{%
+       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+         {\iftoggle{abx@bool@\abx@field@labeldatesource dateuncertain}}
+         {\@secondoftwo}}%
+     \appto\blx@TE@hook{\def\iflabeldateuncertain{%
+       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+         {\blx@TE{\iftoggle{abx@bool@\abx@field@labeldatesource dateuncertain}}}
+         {\@secondoftwo}}}%
+     % end uncertain
+     \def\iflabelenddateuncertain{%
+       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+         {\iftoggle{abx@bool@\abx@field@labeldatesource enddateuncertain}}
+         {\@secondoftwo}}%
+     \appto\blx@TE@hook{\def\iflabelenddateuncertain{%
+       \xifinlist{\abx@field@labeldatesource date}\blx@datamodel@dates
+         {\blx@TE{\iftoggle{abx@bool@\abx@field@labeldatesource enddateuncertain}}}
+         {\@secondoftwo}}}}%
   {}}
 
 % Name toggles like \ifauthor etc. need to be dynamically created for all
@@ -6767,7 +6797,7 @@
         \ifdef\abx@field@extraalpha
           {\appto\blx@tempa{\def\noexpand\abx@field@extraalpha{\abx@field@extraalpha}}}
           {}%
-        % Perform the injection  
+        % Perform the injection
         \edef\blx@tempb{\endgroup\blx@tempa}%
         \blx@tempb}
        {}}
@@ -6775,7 +6805,7 @@
   \ifcsdef{blx@seti@\the\c@refsection @#1}
     {\letcs\abx@field@entrysetcount{blx@seti@\the\c@refsection @#1}}
     {}}
-    
+
 \def\blx@execute{%
   \blx@imc@thefield{execute}}
 
@@ -7430,7 +7460,7 @@
 \define@key{blx@bib1}{omitnumbers}[]{}
 \define@key{blx@bib1}{prefixnumbers}{}%LEGACY(<3.4) legacy name for labelprefix
 % Here we are using the first pass to see if there is an explicit setting for resetnumbers
-% If there isn't we will use the default behaviour where if there is a labelprefix, 
+% If there isn't we will use the default behaviour where if there is a labelprefix,
 % resetnumbers will default to "true"
 \define@key{blx@bib1}{resetnumbers}[true]{%
   \toggletrue{blx@resetnumsexplicit}}
@@ -8379,7 +8409,7 @@
   \def\blx@tempb{global}%
   \let\blx@tempc\@empty%
   \def\blx@tempd{global}%
-  \def\blx@tempe{global}%  
+  \def\blx@tempe{global}%
   \setkeys{blx@assignrefcontext}{#2}%
   \def\do##1{%
     \listxadd\blx@assignedrefcontextkeywlist{##1}%
@@ -8397,7 +8427,7 @@
   \def\blx@tempb{global}%
   \let\blx@tempc\@empty%
   \def\blx@tempd{global}%
-  \def\blx@tempe{global}%  
+  \def\blx@tempe{global}%
   \setkeys{blx@assignrefcontext}{#2}%
   \def\do##1{%
     \listxadd\blx@assignedrefcontextcatlist{##1}%
@@ -8415,7 +8445,7 @@
   \def\blx@tempb{global}%
   \let\blx@tempc\@empty%
   \def\blx@tempd{global}%
-  \def\blx@tempe{global}%  
+  \def\blx@tempe{global}%
   \setkeys{blx@assignrefcontext}{#2}%
   \def\do##1{%
     \csxdef{blx@assignedrefcontextkeys#1@\the\c@refsection @##1}{\blx@tempa/\blx@tempb/\blx@tempc/\blx@tempd/\blx@tempe}}%
@@ -10200,7 +10230,13 @@
     \def\ifuniquebaretitle{\blx@TE{\iftoggle{abx@bool@uniquebaretitle}}}%
     \def\ifuniquework{\blx@TE{\iftoggle{abx@bool@uniquework}}}%
     \def\ifuniqueprimaryauthor{\blx@TE{\iftoggle{abx@bool@uniqueprimaryauthor}}}%
-    \def\ifandothers#1{\blx@TE{\iftoggle{abx@bool@more#1}}}}}
+    \def\ifandothers#1{\blx@TE{\iftoggle{abx@bool@more#1}}}%
+    \def\iflabeldateisdate{\blx@TE\blx@imc@iflabeldateisdate}%
+    \def\ifdatehasyearonlyprecision#1{%
+      \blx@TE{\blx@imc@ifdatehasyearonlyprecision{#1}}}%
+    \def\ifdatehastime#1{\blx@TE{\blx@imc@ifdatehastime{#1}}}%
+    \def\ifdateshavedifferentprecision#1#2{%
+      \blx@TE{\blx@imc@ifdateshavedifferentprecision{#1}{#2}}}}}
 
 % {<listmacro>}{<filtercsname>} => matches in <listmacro>
 \protected\def\blx@bibfilter#1#2{%
@@ -10707,7 +10743,7 @@
 \xdef\blx@xml@sortingnamekeyliteral#1#2{%
   ~~~~~~<bcf:part type="literal"#1>#2</bcf:part>\blx@nl}
 
-\xdef\blx@xml@sortingtemplate#1#2#3{%  
+\xdef\blx@xml@sortingtemplate#1#2#3{%
   ~~<bcf:sortingtemplate name="#1"#2>\blx@nl%
   #3%
   ~~</bcf:sortingtemplate>\blx@nl}
@@ -12208,7 +12244,7 @@
   \listxadd\blx@sortingtemplatenames\blx@sorting
   \def\blx@refcontext@sortingnamekeytemplatename{global}%
   \let\blx@refcontext@labelprefix\@empty
-  \def\blx@refcontext@uniquenametemplatename{global}%  
+  \def\blx@refcontext@uniquenametemplatename{global}%
   \def\blx@refcontext@labelalphanametemplatename{global}%
   \xdef\blx@refcontext@context{\blx@refcontext@sortingtemplatename/\blx@refcontext@sortingnamekeytemplatename/\blx@refcontext@labelprefix/\blx@refcontext@uniquenametemplatename/\blx@refcontext@labelalphanametemplatename}%
   \listxadd\blx@refcontexts\blx@refcontext@context}
