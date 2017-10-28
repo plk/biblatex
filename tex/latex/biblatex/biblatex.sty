@@ -456,8 +456,8 @@
 \def\themaxextratitle{\the\c@maxextratitle}
 \newcounter{maxextratitleyear}
 \def\themaxextratitleyear{\the\c@maxextratitleyear}
-\newcounter{maxextrayear}
-\def\themaxextrayear{\the\c@maxextrayear}
+\newcounter{maxextradate}
+\def\themaxextradate{\the\c@maxextradate}
 \newcounter{maxextraalpha}
 \def\themaxextraalpha{\the\c@maxextraalpha}
 \newcounter{abbrvpenalty}
@@ -3866,6 +3866,12 @@
 
 % [<format>]{<field>}
 \newrobustcmd*{\blx@imc@printfield}[2][]{%
+  \ifstrequal{#2}{extrayear}
+    {\blx@warning@noline{Field 'extrayear' deprecated, please print 'extradate' instead}%
+     \blx@imc@printfield@i[#1]{extrayear}}
+    {\blx@imc@printfield@i[#1]{#2}}}
+
+\newrobustcmd*{\blx@imc@printfield@i}[2][]{%
   \blx@imc@iffieldundef{#2}
     {\blx@nounit}
     {\blx@getformat\blx@theformat{ffd}{#1}{#2}%
@@ -3878,7 +3884,7 @@
         \expandafter\expandafter
         \expandafter{\csname abx@field@#2\endcsname}%
         \blx@endunit}}}
-
+  
 % [<format>]{<field>}
 \newcommand*{\blx@imc@indexfield}[2][]{%
   \blx@imc@iffieldundef{#2}
@@ -5155,9 +5161,9 @@
        \dateuncertainprint
        \dateeraprint{#2year}%
        \iffieldundef{#2endyear}
-         {\printfield{extrayear}}
+         {\printfield{extradate}}
          {\iffieldequalstr{#2endyear}{}
-            {\printfield{extrayear}%
+            {\printfield{extradate}%
              \printtext{\mbox{\bibdaterangesep}}}
             {\printtext{%
                \bibdaterangesep
@@ -5167,7 +5173,7 @@
                   % Optionally print the time after the date
                   \blx@printtime{#2}{end}}
                  {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}}%
-               \printfield{extrayear}%
+               \printfield{extradate}%
                \enddateuncertainprint
                \dateeraprint{#2endyear}}}}}}}
 
@@ -5195,9 +5201,9 @@
               {\dateeraprint{#2year}}}}%
        \dateuncertainprint
        \iffieldundef{#2endyear}
-         {\printfield{extrayear}}
+         {\printfield{extradate}}
          {\iffieldequalstr{#2endyear}{}
-            {\printfield{extrayear}%
+            {\printfield{extradate}%
              \printtext{\mbox{\bibdaterangesep}}}
             {\printtext{%
                \bibdaterangesep
@@ -5205,7 +5211,7 @@
                \iffieldundef{#2season}
                  {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}
                  {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}}%
-               \printfield{extrayear}%
+               \printfield{extradate}%
                \enddateuncertainprint
                \dateeraprint{#2endyear}}}}}}}
 
@@ -5269,7 +5275,7 @@
        % Such a season component can only come from an EDTF 5.1.5 season which replaces
        % a normal month so if it exists, we know that a normal date print is ruled out
        \iffieldundef{#1season}
-         {\blx@ymddate[extrayear]{#1}{}%
+         {\blx@ymddate[extradate]{#1}{}%
           % Optionally print the time after the date
           \blx@printtime{#1}{}}
          {\csuse{mkbibseasondateshort}{#1year}{#1season}}%
@@ -5290,7 +5296,7 @@
              \enddateuncertainprint
              \dateeraprint{#1endyear}}}}}}
 
-% [extrayear]{<datetype>}{''|end}
+% [extradate]{<datetype>}{''|end}
 \newrobustcmd*{\blx@ymddate}[3][]{%
   \dateeraprintpre{#2#3year}%
   \mkyearzeros{\thefield{#2#3year}}\ifblank{#1}{}{\printfield{#1}}%
@@ -5365,7 +5371,7 @@
   \iffieldundef{#1year}
     {}
     {\printtext[#1date]{%
-       \blx@edtfdate[extrayear]{#1}{}%
+       \blx@edtfdate[extradate]{#1}{}%
        \ifboolexpr{%
          togl {blx@#1dateusetime}
          and
@@ -5390,7 +5396,7 @@
           \enddatecircaprintedtf}}}
 \cslet{mkdaterangeiso8601extra}\mkdaterangeedtfextra% Legacy option support
 
-% [extrayear]{<datetype>}{''|end}
+% [extradate]{<datetype>}{''|end}
 \newrobustcmd*{\blx@edtfdate}[3][]{%
   \dateeraprintpre{#2#3year}%
   \blx@imc@forcezerosy{\thefield{#2#3year}}\ifblank{#1}{}{\printfield{#1}}%
@@ -6008,7 +6014,7 @@
   \do{extraalpha}%
   \do{extratitle}%
   \do{extratitleyear}%
-  \do{extrayear}%
+  \do{extradate}%
   \do{fullhash}%
   \do{labelalpha}%
   \do{labelnumber}%
@@ -7066,10 +7072,10 @@
      \fi}}
 
 \def\blx@bbl@labeldate{%
-  \ifundef\abx@field@extrayear
+  \ifundef\abx@field@extradate
     {}
-    {\ifnum\abx@field@extrayear>\c@maxextrayear
-       \global\c@maxextrayear\abx@field@extrayear\relax
+    {\ifnum\abx@field@extradate>\c@maxextradate
+       \global\c@maxextradate\abx@field@extradate\relax
      \fi}}
 
 \def\blx@bbl@titles{%
@@ -12852,7 +12858,7 @@
      test {\ifstrequal{#1}{false}}}
      {\blx@warning@noline{%
        'labeldate' option used to determine whether to provide label date fields and\MessageBreak
-       extrayear field is renamed to 'labeldateparts', setting this instead. This option is
+       extradate field is renamed to 'labeldateparts', setting this instead. This option is
        now used to set the format of the labeldate}%
       \settoggle{blx@labeldateparts}{#1}}
      {\ifstrequal{#1}{iso8601}
