@@ -159,7 +159,7 @@ ENTRY {
     verbc
   }
   { skipbib skiplos skiplab useauthor useeditor usetranslator useprefix singletitle }
-  { entryoptions labelhash namehash fullhash dateyear dateendyear extrayear labelalpha extraalpha 
+  { entryoptions labelhash namehash fullhash dateyear dateendyear extradate labelalpha extraalpha 
     sortinit label.name label.year sortkey.nosort sortkey.name sortkey.year
     sortkey.title sortkey.alpha sort.year sort.alph warningmsg }
 
@@ -1443,7 +1443,7 @@ FUNCTION {output:specials} {
           if$
         }
       if$
-      "extrayear"   extrayear       output:write:field
+      "extradate"   extradate       output:write:field
       "labeldatesource" "year"      output:write:field
     }
     'skip$
@@ -2552,10 +2552,10 @@ FUNCTION {labelsort:main:year:iterate} {
       'label.year :=
       label.year last.year =
         { last.extra.num #1 + 'last.extra.num :=
-          last.extra.num int.to.str$ 'extrayear :=
+          last.extra.num int.to.str$ 'extradate :=
         }
         { #1 'last.extra.num :=
-          "" 'extrayear :=
+          "" 'extradate :=
           label.year 'last.year :=
         }
       if$
@@ -2567,10 +2567,10 @@ FUNCTION {labelsort:main:year:iterate} {
 FUNCTION {labelsort:main:year:reverse} {
   ctrl:labeldate
     { last.extra "2" =
-        { "1" 'extrayear := }
+        { "1" 'extradate := }
         'skip$
       if$
-      extrayear 'last.extra :=
+      extradate 'last.extra :=
     }
     'skip$
   if$

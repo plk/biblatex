@@ -10679,6 +10679,15 @@
 \xdef\blx@xml@labelalpha@part#1#2{%
   ~~~~~~<bcf:labelpart#1>#2</bcf:labelpart>\blx@nl}
 
+\xdef\blx@xml@extradate#1{%
+  ~~<bcf:extradatespec>\blx@nl
+  #1%
+  ~~</bcf:extradatespec>\blx@nl}
+\xdef\blx@xml@extradatescope#1{%
+  ~~~~<bcf:scope>\blx@nl
+  #1%
+  ~~~~</bcf:scope>\blx@nl}
+
 \xdef\blx@xml@inheritance#1{%
   ~~<bcf:inheritance>\blx@nl
   #1%
@@ -11034,53 +11043,45 @@
   \def\do##1{%
     \eappto\blx@tempa{%
       \blx@xml@labelalphatemplate{##1}{%
-      \csuse{blx@labelalphatemplate@##1}}%
-      }%
-    }%
+      \csuse{blx@labelalphatemplate@##1}}}}%
   \dolistloop\blx@latem@type
+  % extradate specification
+  \eappto\blx@tempa{%
+    \blx@xml@comment{EXTRADATE}%
+    \blx@xml@extradate{\csuse{blx@bcf@extradatespec}}}%
   % data inheritance
   \eappto\blx@tempa{%
     \blx@xml@comment{INHERITANCE}%
     \blx@xml@inheritance{%
       \csuse{blx@inherit@default}%
-      \csuse{blx@inherit@data}%
-    }%
-  }%
+      \csuse{blx@inherit@data}}}%
   % noinit
   \ifcsdef{blx@noinit}
     {\eappto\blx@tempa{%
       \blx@xml@comment{NOINIT}%
       \blx@xml@noinits{%
-        \csuse{blx@noinit}%
-      }%
-    }}
+        \csuse{blx@noinit}}}}%
     {}%
   % nolabel
   \ifcsdef{blx@nolabel}
     {\eappto\blx@tempa{%
       \blx@xml@comment{NOLABEL}%
       \blx@xml@nolabels{%
-        \csuse{blx@nolabel}%
-      }%
-    }}
+        \csuse{blx@nolabel}}}}%
     {}%
   % nolabel
   \ifcsdef{blx@nolabelwidthcount}
     {\eappto\blx@tempa{%
       \blx@xml@comment{NOLABELWIDTHCOUNT}%
       \blx@xml@nolabelwidthcounts{%
-        \csuse{blx@nolabelwidthcount}%
-      }%
-    }}
+        \csuse{blx@nolabelwidthcount}}}}%
     {}%
   % nosort
   \ifcsdef{blx@nosort}
     {\eappto\blx@tempa{%
       \blx@xml@comment{NOSORT}%
       \blx@xml@nosorts{%
-        \csuse{blx@nosort}%
-      }%
-    }}
+        \csuse{blx@nosort}}}}%
     {}%
   % transliteration
   \ifdefempty\blx@translits
@@ -11977,7 +11978,6 @@
     \blx@xml@sortitem{order="\the\blx@tempcntb"}{\blx@tempe}}}
 
 % [<type,type,...>]{<string>}
-
 \newrobustcmd*{\DeclarePresort}[2][]{%
   \begingroup
   \blx@xmlsanitizeafter{\def\blx@tempa}{#2}%
@@ -12034,6 +12034,29 @@
 
 \def\blx@sortinclude@i#1{%
   \appto\blx@tempa{\blx@xml@include{#1}}}
+
+% {<field,field,...>}
+\newrobustcmd*{\DeclareExtradate}[1]{%
+  \begingroup
+  \let\blx@tempa\@empty
+  \let\scope\blx@extradate@scope
+  #1%
+  \global\let\blx@bcf@extradatespec\blx@tempa
+  \endgroup}
+\@onlypreamble\DeclareExtradate
+\blx@collectopts{xml}{blx@globalopts}{extradatespec}% for passing to the .bcf
+
+\newrobustcmd*{\blx@extradate@scope}[1]{%
+  \let\blx@tempb\@empty
+  \let\field\blx@ordereded@field
+  #1%
+  \csxappto{blx@tempa}{%
+    \noexpand\blx@xml@extradatescope{\blx@tempb}}}
+
+\newcommand*{\blx@ordereded@field}[1]{%
+  \advance\blx@tempcnta\@ne
+    \csxappto{blx@tempb}{%
+      \noexpand\blx@xml@ordered{\the\blx@tempcnta}{}{#1}}}
 
 % [<type,type,...>]{<field,field,...>}
 \newrobustcmd*{\DeclareLabelname}[2][]{%

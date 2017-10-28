@@ -8841,6 +8841,121 @@ Defines the date components to consider when generating \bibfield{labelyear}, \b
 Note that the \bibfield{date} field is split by the backend into \bibfield{year}, \bibfield{month} which are also valid fields in the default data model. In order to support legacy data which directly sets \bibfield{year} and/or \bibfield{month}, the specification <\bibfield{date}> in \cmd{DeclareLabeldate} will also match \bibfield{year} and \bibfield{month} fields, if present.
 The \bibfield{label*} fields may be customized globally or on a per-type basis. If the optional \prm{entrytype} argument is given, the specification applies to the respective entry type. If not, it is applied globally. The \prm{entrytype} argument may be a comma"=separated list of values. This command may only be used in the preamble. See also \secref{aut:bbx:fld:dat}.
 
+\cmditem{DeclareExtradate}{specification}
+
+Defines how \biber tracks information used to construct the \bibfield{extradate} field. This field (see \secref{aut:bbx:fld:lab}) is printed to disambiguate works by the same author which occur in the same date scope. By default, the date scope is the year and so two works by the same author within the same year will have different \bibfield{extrayear} values which are used to disambiguate the works in the bibliography in the usual manner seen in many authoryear type styles. The \prm{specification} is one or more \cmd{scope} specifications which can contain one or more \cmd{field} specifications. Within a \cmd{scope}, the existence of each \cmd{field} will be checked and if found, the first \cmd{field} is used and the rest are ignored. This allows a fallback in case certain fields are not available in all entries. All \cmd{scope}s are used to track information. The default definition is:
+
+\begin{ltxexample}
+\DeclareExtradate{%
+  \scope{
+    \field{labelyear}
+    \field{year}
+  }
+}
+\end{ltxexample}
+%
+This means that the \bibfield{labelyear} field only (or \bibfield{year} if this does not exist) will be used to track works by the same author. With the following datasource entries:
+
+\begin{lstlisting}[style=bibtex]{}
+@BOOK{extra1,
+  AUTHOR = {John Doe},
+  DATE   = {2001-01}
+}
+
+@BOOK{extra2,
+  AUTHOR = {John Doe},
+  DATE   = {2001-02}
+}
+\end{lstlisting}
+%
+The default definition would result in:
+
+\begin{lstlisting}{}
+Doe 2001a
+Doe 2001b
+\end{lstlisting}
+%
+Here, \bibfield{extradate} only considers the \bibfield((label)year) information and since this is identical, disambiguation is required. However, consider the following definition:
+\begin{ltxexample}
+\DeclareExtradate{%
+  \scope{
+    \field{labelyear}
+    \field{year}
+  }
+  \scope{
+    \field{labelmonth}
+  }
+}
+\end{ltxexample}
+%
+The result would be:
+\begin{lstlisting}{}
+Doe 2001
+Doe 2001
+\end{lstlisting}
+%
+If only years were printed, this would be ambiguous because \bibfield{extradate} now considers \bibfield{labelmonth} and since this differs, no disambiguation is necessary. Care should therefore be taken to synchronise the printed information with the \bibfield{extradate} disambiguation settings. Notice that the second definition is <month-in-year> disambiguation and quite different from:
+\begin{ltxexample}
+\DeclareExtradate{%
+  \scope{
+    \field{labelmonth}
+  }
+}
+\end{ltxexample}
+%
+which is just plain <month> disambiguation which is very unlikely to be what you ever want to do since this disambiguation only based on month and ignores the year entirely. \bibfield{extradate} calculation should almost always be based on all information down to the resolution you require. For example, if you wish to disambiguate right down to the hour level (perhaps useful in large bibliographies of rapidly changing online material), you would specify something like this:
+\begin{ltxexample}
+\DeclareExtradate{%
+  \scope{
+    \field{labelyear}
+    \field{year}
+  }
+  \scope{
+    \field{labelmonth}
+  }
+  \scope{
+    \field{labelday}
+  }
+  \scope{
+    \field{labelhour}
+  }
+}
+\end{ltxexample}
+% 
+Entries without the specified granularity of information will disambiguate at the lowest granularity they contain, so, for example, with:
+\begin{ltxexample}
+\DeclareExtradate{%
+  \scope{
+    \field{labelyear}
+    \field{year}
+  }
+  \scope{
+    \field{labelmonth}
+  }
+}
+\end{ltxexample}
+%
+\begin{lstlisting}[style=bibtex]{}
+@BOOK{extra1,
+  AUTHOR = {John Doe},
+  DATE   = {2001}
+}
+
+@BOOK{extra2,
+  AUTHOR = {John Doe},
+  DATE   = {2001}
+}
+\end{lstlisting}
+%
+The result would still be:
+
+\begin{lstlisting}{}
+Doe 2001a
+Doe 2001b
+\end{lstlisting}
+%
+This command may only be used in the preamble.
+
 \cmditem{DeclareLabeltitle}[entrytype, \dots]{specification}
 
 Defines the fields to consider when generating the \bibfield{labeltitle} field (see \secref{aut:bbx:fld:lab}). The \prm{specification} is an ordered list of \cmd{field} commands. The fields are checked in the order listed and the first field which is available will be used as \bibfield{labeltitle}. This is the default definition:
@@ -13065,6 +13180,7 @@ This revision history is a list of changes relevant to users of this package. Ch
 \begin{changelog}
 
 \begin{release}{3.8}{2017-?}
+\item Added \cmd{DeclareExtradate}\see{aut:ctm:fld}
 \item Renamed \opt{extrayear} to \opt{extradate}\see{aut:bbx:fld:lab}
 \item Added \opt{sortsets} global option\see{use:opt:pre:gen}
 \item Added \cmd{iflabelalphanametemplatename} and \cmd{uniquenametemplatename}\see{aut:aux:tst}
