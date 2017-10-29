@@ -159,8 +159,18 @@
   \undef\blx@mkautolangpoly
   \undef\blx@mknoautolang
   \ifnum\blx@hyperref=\thr@@
+    \def\blx@warn@multiplemanualhyperrefs{%
+      \blx@warning@noline{You must call either '\string\BiblatexManualHyperrefOn'\MessageBreak
+        or '\string\BiblatexManualHyperrefOff' exactly once.\MessageBreak
+        Subsequent calls to either command will be ignored}}%
     \let\BiblatexManualHyperrefOn\blx@mkhyperref
+    \appto\BiblatexManualHyperrefOn{%
+      \global\let\BiblatexManualHyperrefOn\blx@warn@multiplemanualhyperrefs
+      \global\let\BiblatexManualHyperrefOn\blx@warn@multiplemanualhyperrefs}%
     \let\BiblatexManualHyperrefOff\blx@mknohyperref
+    \appto\BiblatexManualHyperrefOff{%
+      \global\let\BiblatexManualHyperrefOn\blx@warn@multiplemanualhyperrefs
+      \global\def\BiblatexManualHyperrefOff\blx@warn@multiplemanualhyperrefs}%
   \else
     \ifnum\blx@hyperref=\z@
       \blx@mknohyperref
