@@ -22,20 +22,43 @@ Biber version 2.8 is required for biblatex 3.8
   ~\printfield~, this will need to be changed to ~\printlist~.
 
 ** Name handling enhancements
-   Name handling is now fully generalised to cover arbitrary name parts.
-   The final few pieces have been completed to allow fully customisable
-   name handling, allowing for better internationalisation. The code for
-   name uniqueness calculation and label generation for names is now fully
-   abstracted: templates created with ~\DeclareUniquenameTemplate~ and
-   ~\DeclareLabelalphaNameTemplate~ may now be specified at per-refcontext,
-   per-entry, per-namelist and per-name scope, which allows complete
-   control over all aspects of name usage. See the comments in the enhanced
-   ~93-nameparts.tex~ example file.
+- Name handling is now fully generalised to cover arbitrary name parts.
+  The final few pieces have been completed to allow fully customisable
+  name handling, allowing for better internationalisation. The code for
+  name uniqueness calculation and label generation for names is now fully
+  abstracted: templates created with ~\DeclareUniquenameTemplate~ and
+  ~\DeclareLabelalphaNameTemplate~ may now be specified at per-refcontext,
+  per-entry, per-namelist and per-name scope, which allows complete
+  control over all aspects of name usage. See the comments in the enhanced
+  ~93-nameparts.tex~ example file.
 
 ** ~extrayear~ is now ~extradate~ and the information used to track this can be customised
-  The new \DeclareExtradate command allows users to track authoryear
+- ~extrayear~ is called ~extradate~ now. Limited backwards compatibility is
+  in place to allow a smooth transition, but style developers should use the new name.
+- The new \DeclareExtradate command allows users to track authoryear
   disambiguation in arbitrary ways now, for example allowing disambiguation
   at month or day level instead of just year. See the PDF doc for details.
+- Some bibmacros from the ~authoryear~ style family were renamed,
+  ~cite:labelyear+extrayear~ becomes ~cite:labeldate+extradate~,
+  ~cite:extrayear~ is ~cite:extradate~ now, and ~date+extrayear~
+  is ~date+extradate~. Some backwards compatibility code is present,
+  but developers should make sure their code works as expected.
+
+** Date formatting
+- The ~mergedate~ output has been restored to its earlier form,
+  it has also been extended to cover all EDTF date parts.
+  In order to facilitate this, a few date-related tests were introduced
+  ~\iflabeldateisdate~, ~\ifdatehasyearonlyprecision~, ~\ifdatehastime~
+  and ~\ifdateshavedifferentprecision~.
+- The ~authoryear~ citation styles now use ~\printlabeldateextra~
+  instead of ~\printfield{labelyear}\printfield{extrayear}~.
+  This should have no consequences for end users (except that
+  dates in citations and bibliography don't differ any more -
+  previously there were subtle differences when many EDTF features
+  were used), but style developers should check if they assume
+  anything about the bibmacros that have now changed.
+  Style developers are invited to have a look at the changes and
+  to get inspired to offer full EDTF format for their styles as well.
 
 ** Set handling
 - Static entry sets used to have the behaviour that when citing a member of
@@ -105,22 +128,6 @@ Biber version 2.8 is required for biblatex 3.8
   will make ~finalnamedelim~ an alias for ~multinamedelim~.
   The starred version ~\DeclareDelimAlias*~ is local to the
   specified contexts.
-
-** Date formatting
-- The ~mergedate~ output has been restored to its earlier form,
-  it has also been extended to cover all EDTF date parts.
-  In order to facilitate this, a few date-related tests were introduced
-  ~\iflabeldateisdate~, ~\ifdatehasyearonlyprecision~, ~\ifdatehastime~
-  and ~\ifdateshavedifferentprecision~.
-- The ~authoryear~ citation styles now use ~\printlabeldateextra~
-  instead of ~\printfield{labelyear}\printfield{extrayear}~.
-  This should have no consequences for end users (except that
-  dates in citations and bibliography don't differ any more -
-  previously there were subtle differences when many EDTF features
-  were used), but style developers should check if they assume
-  anything about the bibmacros that have now changed.
-  Style developers are invited to have a look at the changes and
-  to get inspired to offer full EDTF format for their styles as well.
 
 ** Misc changes
 - The initialisation code for ~\usedriver~ can now be modified via
