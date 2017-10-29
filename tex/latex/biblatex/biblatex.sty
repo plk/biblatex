@@ -1953,6 +1953,22 @@
 \def\blx@defbibmacro#1#2{%
   \expandafter#1\csname abx@macro@\detokenize{#2}\endcsname}
 
+% {<alias>}{<name>}
+\newrobustcmd*{\letbibmacro}{%
+  \@ifstar
+    {\blx@letbibmacro@i}
+    {\blx@letbibmacro}}
+
+\def\blx@letbibmacro#1#2{%
+  \blx@letbibmacro@i{\detokenize{#1}}{\detokenize{#2}}}
+
+\def\blx@letbibmacro@i#1#2{%
+  \ifcsundef{abx@macro@#2}
+    {\blx@error
+       {Bibliography macro '#2' undefined}
+       {Use '\string\newbibmacro' to define this macro}}
+    {\csletcs{abx@macro@#1}{abx@macro@#2}}}
+
 % {<name>}
 \newrobustcmd*{\usebibmacro}{%
   \@ifstar
@@ -3884,7 +3900,7 @@
         \expandafter\expandafter
         \expandafter{\csname abx@field@#2\endcsname}%
         \blx@endunit}}}
-  
+
 % [<format>]{<field>}
 \newcommand*{\blx@imc@indexfield}[2][]{%
   \blx@imc@iffieldundef{#2}
@@ -12582,7 +12598,7 @@
 
 \DeclareBibliographyOption[boolean]{sortsets}[true]{%
   \settoggle{blx@sortsets}{#1}}
- 
+
 \DeclareBibliographyOption[boolean]{hyperref}[true]{%
   \ifcsdef{blx@opt@hyperref@#1}
     {\letcs\blx@hyperref{blx@opt@hyperref@#1}}
