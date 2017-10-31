@@ -159,18 +159,6 @@
   \undef\blx@mkautolangpoly
   \undef\blx@mknoautolang
   \ifnum\blx@hyperref=\thr@@
-    \def\blx@warn@multiplemanualhyperrefs{%
-      \blx@warning@noline{You must call either '\string\BiblatexManualHyperrefOn'\MessageBreak
-        or '\string\BiblatexManualHyperrefOff' exactly once.\MessageBreak
-        Subsequent calls to either command will be ignored}}%
-    \let\BiblatexManualHyperrefOn\blx@mkhyperref
-    \appto\BiblatexManualHyperrefOn{%
-      \global\let\BiblatexManualHyperrefOn\blx@warn@multiplemanualhyperrefs
-      \global\let\BiblatexManualHyperrefOn\blx@warn@multiplemanualhyperrefs}%
-    \let\BiblatexManualHyperrefOff\blx@mknohyperref
-    \appto\BiblatexManualHyperrefOff{%
-      \global\let\BiblatexManualHyperrefOn\blx@warn@multiplemanualhyperrefs
-      \global\def\BiblatexManualHyperrefOff\blx@warn@multiplemanualhyperrefs}%
   \else
     \ifnum\blx@hyperref=\z@
       \blx@mknohyperref
@@ -184,9 +172,9 @@
          \fi
          \blx@mknohyperref}%
     \fi
+    \undef\blx@mkhyperref
+    \undef\blx@mknohyperref
   \fi
-  \undef\blx@mkhyperref
-  \undef\blx@mknohyperref
   \providecommand*{\nolinkurl}{\url}%
   \ifundef\TE@hook
     {\let\TE@hook\@empty
@@ -12356,6 +12344,31 @@
 \def\blx@opt@hyperref@true{1}
 \def\blx@opt@hyperref@auto{2}
 \def\blx@opt@hyperref@manual{3}
+
+\def\blx@warn@usedmanualhyperrefs#1{
+  \blx@warning@noline{The command '\string#1' can only be used
+    with 'hyperref=manual'.\MessageBreak
+    The command is ignored}}}
+\def\blx@warn@multiplemanualhyperrefs{%
+  \blx@warning@noline{You must call either '\string\BiblatexManualHyperrefOn'\MessageBreak
+    or '\string\BiblatexManualHyperrefOff' exactly once.\MessageBreak
+    Subsequent calls to either command will be ignored}}%
+\def\BiblatexManualHyperrefOn{%
+  \ifnum\blx@hyperref=\thr@@
+    \blx@mkhyperref
+    \global\let\BiblatexManualHyperrefOn\blx@warn@multiplemanualhyperrefs
+    \global\let\BiblatexManualHyperrefOn\blx@warn@multiplemanualhyperrefs
+  \else
+    \blx@warn@usedmanualhyperrefs{\BiblatexManualHyperrefOn}%
+  \fi}
+\def\BiblatexManualHyperrefOff{%
+  \ifnum\blx@hyperref=\thr@@
+    \blx@mknohyperref
+    \global\let\BiblatexManualHyperrefOn\blx@warn@multiplemanualhyperrefs
+    \global\let\BiblatexManualHyperrefOn\blx@warn@multiplemanualhyperrefs
+  \else
+    \blx@warn@usedmanualhyperrefs{\BiblatexManualHyperrefOff}%
+  \fi}
 
 \DeclareBibliographyOption[boolean]{backref}[true]{%
   \ifstrequal{#1}{true}
