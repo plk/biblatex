@@ -15,6 +15,7 @@ folder instead of the <version> numbered folder
 
 Examples: 
 obuild/build.sh install 3.8 ~/texmf/
+obuild/build.sh uninstall ~/texmf/
 obuild/build.sh build 3.8
 obuild/build.sh upload 3.8 DEV
 
@@ -43,6 +44,12 @@ then
   exit 1
 fi
 
+if [[ "$1" == "uninstall" && -z "$2" ]]
+then
+  usage
+  exit 1
+fi
+
 if [[ "$1" == "install" && ( -z "$2" || -z "$3" ) ]]
 then
   usage
@@ -64,6 +71,20 @@ fi
 declare VERSION=$2
 declare VERSIONM=$(echo -n "$VERSION" | perl -nE 'say s/^(\d+\.\d+)[a-z]/$1/r')
 declare DATE=$(date '+%Y/%m/%d')
+
+if [[ "$1" == "uninstall" ]]
+then
+  \rm -f $2/biber/bltxml/biblatex/biblatex-examples.bltxml
+  \rm -f $2/bibtex/bib/biblatex/biblatex-examples.bib
+  \rm -f $2/bibtex/bst/biblatex/biblatex.bst
+  \rm -f $2/doc/latex/biblatex/README
+  \rm -f $2/doc/latex/biblatex/CHANGES.org
+  \rm -f $2/doc/latex/biblatex/biblatex.pdf
+  \rm -f $2/doc/latex/biblatex/biblatex.tex
+  \rm -rf $2/doc/latex/biblatex/examples
+  \rm -rf $2/tex/latex/biblatex
+  exit 0
+fi
 
 if [[ "$1" == "upload" ]]
 then
