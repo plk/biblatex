@@ -2923,10 +2923,10 @@
     {}
     {\iffieldequalstr{#1}{none}
        {\def\blx@tempa{\blx@mkpagetotal@i}}
-       {\iffieldbibstring{#1total}
-          {\edef\blx@tempa{\blx@mkpagetotal{\thefield{#1total}}}}
+       {\iffieldplusbibstring{#1}{total}
+          {\edef\blx@tempa{\blx@mkpagetotal{\thefield{#1}total}}}
           {\blx@warning@entry{%
-             Unknown pagination type '\strfield{#1total}'}}}}%
+             Unknown pagination type '\strfield{#1}total'}}}}%
   \@ifnextchar[%]
     {\blx@tempa}
     {\blx@tempa[\@firstofone]}}
@@ -4402,6 +4402,16 @@
                 \csname abx@field@#1\endcsname}}
        {\@secondoftwo}
        {\@firstoftwo}}}
+       
+% {<field>}{<string>}{<true>}{<false>}
+\def\blx@imc@iffieldplusbibstring#1#2{%
+  \blx@imc@iffieldundef{#1}
+    {\@secondoftwo}
+    {\ifcsundef{\abx@str @\detokenize\expandafter
+                          \expandafter\expandafter{%
+                \csname abx@field@#1\endcsname}#2}
+       {\@secondoftwo}
+       {\@firstoftwo}}}
 
 \blx@regimcs{%
   \bibstring   \biblstring   \bibsstring
@@ -4409,7 +4419,8 @@
   \bibcpstring \bibcplstring \bibcpsstring
   \biblcstring \biblclstring \biblcsstring
   \bibucstring \bibuclstring \bibucsstring
-  \ifbibstring \ifbibxstring \iffieldbibstring}
+  \ifbibstring \ifbibxstring \iffieldbibstring
+  \iffieldplusbibstring}
 
 \let\blx@hook@uc\relax
 \let\blx@hook@lc\relax
