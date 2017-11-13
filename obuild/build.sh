@@ -79,7 +79,7 @@ then
   \rm -f $2/bibtex/bib/biblatex/biblatex-examples.bib
   \rm -f $2/bibtex/bst/biblatex/biblatex.bst
   \rm -f $2/doc/latex/biblatex/README
-  \rm -f $2/doc/latex/biblatex/CHANGES.org
+  \rm -f $2/doc/latex/biblatex/CHANGES.md
   \rm -f $2/doc/latex/biblatex/biblatex.pdf
   \rm -f $2/doc/latex/biblatex/biblatex.tex
   \rm -rf $2/doc/latex/biblatex/examples
@@ -94,10 +94,10 @@ then
       if [[ "$3" == "DEV" ]]
       then
         scp obuild/biblatex-"$VERSION".*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/development/
-        scp doc/latex/biblatex/CHANGES.org philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/development/
+        scp doc/latex/biblatex/CHANGES.md philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/development/
       else
         scp obuild/biblatex-"$VERSION".*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/biblatex-"$VERSIONM"/
-        scp doc/latex/biblatex/CHANGES.org philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/biblatex-"$VERSIONM"/
+        scp doc/latex/biblatex/CHANGES.md philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/biblatex-"$VERSIONM"/
       fi
     exit 0
   fi
@@ -114,7 +114,7 @@ then
   cp -r biber obuild/tds/
   mkdir -p obuild/tds/doc/latex/biblatex
   cp doc/latex/biblatex/README obuild/tds/doc/latex/biblatex/
-  cp doc/latex/biblatex/CHANGES.org obuild/tds/doc/latex/biblatex/
+  cp doc/latex/biblatex/CHANGES.md obuild/tds/doc/latex/biblatex/
   cp doc/latex/biblatex/biblatex.pdf obuild/tds/doc/latex/biblatex/ 2>/dev/null
   cp doc/latex/biblatex/biblatex.tex obuild/tds/doc/latex/biblatex/
   cp -r doc/latex/biblatex/examples obuild/tds/doc/latex/biblatex/
@@ -131,7 +131,7 @@ then
   mkdir -p obuild/flat/biblatex/doc/examples
   mkdir -p obuild/flat/biblatex/latex/{cbx,bbx,lbx}
   cp doc/latex/biblatex/README obuild/flat/biblatex/
-  cp doc/latex/biblatex/CHANGES.org obuild/flat/biblatex/
+  cp doc/latex/biblatex/CHANGES.md obuild/flat/biblatex/
   cp bibtex/bib/biblatex/biblatex-examples.bib obuild/flat/biblatex/bibtex/bib/biblatex/  
   cp bibtex/bib/biblatex/biblatex-examples.bib obuild/flat/biblatex/doc/examples/
   cp biber/bltxml/biblatex/biblatex-examples.bltxml obuild/flat/biblatex/biber/bltxml/

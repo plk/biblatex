@@ -5137,7 +5137,7 @@
     {}
     {\datecircaprint
      \printtext[#2date]{%
-       % Such a season component can only come from an EDTF 5.1.5 season which replaces
+       % Such a season component can only come from an ISO8601 season which replaces
        % a normal month so if it exists, we know that a normal date print is ruled out
        \iffieldundef{#2season}
          {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
@@ -5166,7 +5166,7 @@
     {}
     {\datecircaprint
      \printtext[#2date]{%
-       % Such a season component can only come from an EDTF 5.1.5 season which replaces
+       % Such a season component can only come from an ISO8601 season which replaces
        % a normal month so if it exists, we know that a normal date print is ruled out
        \iffieldundef{#2season}
          {\iffieldsequal{#2year}{#2endyear}
@@ -5201,7 +5201,7 @@
     {\datecircaprint
      \printtext[#2date]{%
        \printtext{%
-       % Such a season component can only come from an EDTF 5.1.5 season which replaces
+       % Such a season component can only come from an ISO8601 season which replaces
        % a normal month so if it exists, we know that a normal date print is ruled out
        \iffieldundef{#2season}
          {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
@@ -5234,7 +5234,7 @@
     {\datecircaprint
      \printtext[#2date]{%
        \printtext{%
-       % Such a season component can only come from an EDTF 5.1.5 season which replaces
+       % Such a season component can only come from an ISO8601 season which replaces
        % a normal month so if it exists, we know that a normal date print is ruled out
        \iffieldundef{#2season}
          {\iffieldsequal{#2year}{#2endyear}
@@ -5292,7 +5292,7 @@
     {}
     {\datecircaprint
      \printtext[#1date]{%
-       % Such a season component can only come from an EDTF 5.1.5 season which replaces
+       % Such a season component can only come from an  ISO8601 season which replaces
        % a normal month so if it exists, we know that a normal date print is ruled out
        \iffieldundef{#1season}
          {\blx@ymddate{#1}{}%
@@ -5322,7 +5322,7 @@
     {}
     {\datecircaprint
      \printtext[#1date]{%
-       % Such a season component can only come from an EDTF 5.1.5 season which replaces
+       % Such a season component can only come from an ISO8601 season which replaces
        % a normal month so if it exists, we know that a normal date print is ruled out
        \iffieldundef{#1season}
          {\blx@ymddate[extradate]{#1}{}%
@@ -5384,71 +5384,79 @@
       \printtext[#1time]{\csuse{mkbibtime\csuse{blx@timeformat@#1time}}{#1#2hour}{#1#2minute}{#1#2second}{#1#2timezone}}}
     {}}
 
-\newrobustcmd*{\mkdaterangeedtf}[1]{%
+\def\mkdaterangeedtf{%LEGACY(<3.9)
+  \blx@warning@noline{'\string\mkdaterangeedtf' is deprecated, please use '\string\mkdaterangeiso'}%
+  \mkdaterangeiso}
+
+\newrobustcmd*{\mkdaterangeiso}[1]{%
   \blx@metadateinfo{#1}%
   \def\bibdatetimesep{T}%
   \iffieldundef{#1year}
     {}
     {\printtext[#1date]{%
-       \blx@edtfdate{#1}{}%
+       \blx@isodate{#1}{}%
        \ifboolexpr{%
          togl {blx@#1dateusetime}
          and
          not test {\iffieldundef{#1hour}}}
          {\printtext{\bibdatetimesep}%
-          \blx@edtftime{#1}{}}
+          \blx@isotime{#1}{}}
          {}%
        \dateuncertainprint
-       \datecircaprintedtf
+       \datecircaprintiso
        \iffieldundef{#1endyear}
          {}
          {\addslash
-          \blx@edtfdate{#1}{end}%
+          \blx@isodate{#1}{end}%
           \ifboolexpr{%
             togl {blx@#1dateusetime}
             and
             not test {\iffieldundef{#1endhour}}}
             {\printtext{\bibdatetimesep}%
-             \blx@edtftime{#1}{end}}
+             \blx@isotime{#1}{end}}
             {}%
          \enddateuncertainprint
-         \enddatecircaprintedtf}}}}
+         \enddatecircaprintiso}}}}
 
-\newrobustcmd*{\mkdaterangeedtfextra}[1]{%
+\def\mkdaterangeedtfextra{%LEGACY(<3.9)
+  \blx@warning@noline{'\string\mkdaterangeedtfextra' is deprecated, please use '\string\mkdaterangeisoextra'}%
+  \mkdaterangeisoextra}
+
+\newrobustcmd*{\mkdaterangeisoextra}[1]{%
   \blx@metadateinfo{#1}%
   \def\bibdatetimesep{T}%
   \iffieldundef{#1year}
     {}
     {\printtext[#1date]{%
-       \blx@edtfdate[extradate]{#1}{}%
+       \blx@isodate[extradate]{#1}{}%
        \ifboolexpr{%
          togl {blx@#1dateusetime}
          and
          not test {\iffieldundef{#1hour}}}
          {\printtext{\bibdatetimesep}%
-          \blx@edtftime{#1}{}}
+          \blx@isotime{#1}{}}
          {}%
        \dateuncertainprint
-       \datecircaprintedtf
+       \datecircaprintiso
        \iffieldundef{#1endyear}
          {}
          {\addslash
-          \blx@edtfdate{#1}{end}}%
+          \blx@isodate{#1}{end}}%
           \ifboolexpr{%
             togl {blx@#1dateusetime}
             and
             not test {\iffieldundef{#1endhour}}}
             {\printtext{\bibdatetimesep}%
-             \blx@edtftime{#1}{end}}
+             \blx@isotime{#1}{end}}
             {}%
           \enddateuncertainprint
-          \enddatecircaprintedtf}}}
+          \enddatecircaprintiso}}}
 
 % [extradate]{<datetype>}{''|end}
-\newrobustcmd*{\blx@edtfdate}[3][]{%
+\newrobustcmd*{\blx@isodate}[3][]{%
   \dateeraprintpre{#2#3year}%
   \blx@imc@forcezerosy{\thefield{#2#3year}}\ifblank{#1}{}{\printfield{#1}}%
-  % Such a season component can only come from an EDTF 5.1.5 season which replaces
+  % Such a season component can only come from an ISO8601 season which replaces
   % a normal month so if it exists, we know that a normal date print is ruled out
   \iffieldundef{#2#3season}
     {\iffieldundef{#2#3month}{}{\hyphen\blx@imc@forcezerosmdt{\thefield{#2#3month}}}%
@@ -5461,7 +5469,7 @@
       {\blx@xifstrcmp{#1}{autumn}{23}
         {\blx@xifstrcmp{#1}{winter}{24}{}}}}}
 
-\newrobustcmd*{\blx@edtftime}[2]{%
+\newrobustcmd*{\blx@isotime}[2]{%
   \blx@imc@forcezerosmdt{\thefield{#1#2hour}}%
   :\blx@imc@forcezerosmdt{\thefield{#1#2minute}}%
   :\blx@imc@forcezerosmdt{\thefield{#1#2second}}%
@@ -5987,8 +5995,8 @@
 \def\do#1{%
   \cslet{#1datecircaprint}\@empty
   \cslet{#1enddatecircaprint}\@empty
-  \cslet{#1datecircaprintedtf}\@empty
-  \cslet{#1enddatecircaprintedtf}\@empty
+  \cslet{#1datecircaprintiso}\@empty
+  \cslet{#1enddatecircaprintiso}\@empty
   \cslet{#1dateuncertainprint}\@empty
   \cslet{#1enddateuncertainprint}\@empty
   \cslet{#1dateeraprint}\@gobble
@@ -12844,8 +12852,8 @@
       \settoggle{blx@labeldateparts}{#1}}
      {\ifstrequal{#1}{iso8601}
        {\blx@warning@noline{%
-        'iso8601' date format specifier is deprecated, use 'edtf' instead}%
-        \def\blx@dateformat@labeldate{edtf}%
+        'edtf' date format specifier is deprecated, use 'iso' instead}%
+        \def\blx@dateformat@labeldate{iso}%
         \renewrobustcmd*{\bibdateeraendprefix}{\bibdateeraprefix}}
        {\def\blx@dateformat@labeldate{#1}}%
       \ifstrequal{#1}{ymd}
@@ -12853,7 +12861,7 @@
           \renewrobustcmd*{\bibtimerangesep}{\slash}%
           \renewrobustcmd*{\bibdateeraendprefix}{\bibdateeraprefix}}
          {}%
-      \ifstrequal{#1}{edtf}% bibdaterangesep hard-coded to slash, no extra space before prefices
+      \ifstrequal{#1}{iso}% bibdaterangesep hard-coded to slash, no extra space before prefices
         {\renewrobustcmd*{\bibdateeraendprefix}{\bibdateeraprefix}}
         {}%
       \ifcsdef{mkdaterange#1}
@@ -12903,9 +12911,15 @@
        \ifdatecirca{\bibstring{circa}\printdelim{datecircadelim}}{}}%
      \protected\def\enddatecircaprint{%
        \ifenddatecirca{\bibstring{circa}\printdelim{datecircadelim}}{}}%
-     \protected\def\datecircaprintedtf{%
+     \protected\def\datecircaprintedtf{%LEGACY(<3.9)
+       \blx@warning@noline{'\string\datecircaprintedtf' is deprecated, please use '\string\datecircaprintiso'}%
        \ifdatecirca{\textasciitilde}{}}%
-     \protected\def\enddatecircaprintedtf{%
+     \protected\def\enddatecircaprintedtf{%LEGACY(<3.9)
+       \blx@warning@noline{'\string\enddatecircaprintedtf' is deprecated, please use '\string\enddatecircaprintiso'}%
+       \ifenddatecirca{\textasciitilde}{}}%
+     \protected\def\datecircaprintiso{%
+       \ifdatecirca{\textasciitilde}{}}%
+     \protected\def\enddatecircaprintiso{%
        \ifenddatecirca{\textasciitilde}{}}}
     {\togglefalse{blx@datecirca}}}
 
@@ -12925,9 +12939,9 @@
 % Date metadata toggles are defined in one of the \abx@dobooleans calls
 \def\do#1{%
   \DeclareBibliographyOption[string]{#1date}{%
-    \ifstrequal{##1}{iso8601}
-      {\blx@warning@noline{'iso8601' date format specifier is deprecated, use 'edtf' instead}%
-       \csdef{blx@dateformat@#1date}{edtf}}
+    \ifstrequal{##1}{edtf}
+      {\blx@warning@noline{'edtf' date format specifier is deprecated, use 'iso' instead}%
+       \csdef{blx@dateformat@#1date}{iso}}
       {\csdef{blx@dateformat@#1date}{##1}}%
     \ifstrequal{##1}{ymd}
       {\renewrobustcmd*{\bibdaterangesep}{\slash}%
@@ -13381,40 +13395,40 @@
        {}}
     {}%
     \def\do#1{%
-      \ifcsstring{blx@dateformat@#1}{edtf}
+      \ifcsstring{blx@dateformat@#1}{iso}
         {\StrCut{#1}{date}\blx@datetype\blx@tempnull
          \ifdefstring\blx@dateera{astronomical}{}
            {\blx@warn@conflopt{%
-              '#1=edtf' requires 'dateera=astronomical'.\MessageBreak
+              '#1=iso' requires 'dateera=astronomical'.\MessageBreak
               Setting 'dateera=astrononmical'}%
             \setkeys{blx@opt@pre}{dateera=astronomical}}%
           \ifcsstring{blx@timeformat@\blx@datetype time}{24h}%
            {}
            {\blx@warn@conflopt{%
-              '#1=edtf' requires '\blx@datetype time=24h'.\MessageBreak
+              '#1=iso' requires '\blx@datetype time=24h'.\MessageBreak
               Setting '\blx@datetype time=24h'}%
             \setkeys{blx@opt@pre}{\blx@datetype time=24h}}%
          \iftoggle{blx@julian}
            {\blx@warn@conflopt{%
-              '#1=edtf' requires 'julian=false'.\MessageBreak
+              '#1=iso' requires 'julian=false'.\MessageBreak
               Setting 'julian=false'}%
             \setkeys{blx@opt@pre}{julian=false}}
            {}%
          \nottoggle{blx@datezeros}
            {\blx@warn@conflopt{%
-              '#1=edtf' requires 'datezeros=true'.\MessageBreak
+              '#1=iso' requires 'datezeros=true'.\MessageBreak
               Setting 'datezeros=true'}%
             \setkeys{blx@opt@pre}{datezeros=true}}
            {}%
          \nottoggle{blx@timezeros}
            {\blx@warn@conflopt{%
-              '#1=edtf' requires 'timezeros=true'.\MessageBreak
+              '#1=iso' requires 'timezeros=true'.\MessageBreak
               Setting 'timezeros=true'}%
             \setkeys{blx@opt@pre}{timezeros=true}}
            {}%
          \nottoggle{blx@seconds}
            {\blx@warn@conflopt{%
-              '#1=edtf' requires 'seconds=true'.\MessageBreak
+              '#1=iso' requires 'seconds=true'.\MessageBreak
               Setting 'seconds=true'}%
             \setkeys{blx@opt@pre}{seconds=true}}
            {}}
