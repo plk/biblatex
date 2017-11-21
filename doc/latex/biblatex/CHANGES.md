@@ -1,4 +1,4 @@
-# RELEASE NOTES FOR VERSION 3.9
+# RELEASE NOTES FOR VERSION 4.0
 - **INCOMPATIBLE CHANGE** The recent ISO8601:2016 standard supersedes
   the draft EDTF (Extended Date Time Format) extensions. Biblatex therefore
   now supports the ISO8601-2 Clause 4, Level 1 Extended Format which is
@@ -14,6 +14,10 @@
     start/end dates.
   - Unknown dates are now indicated by blank start/end dates rather than
     "unknown" or "*"
+
+# RELEASE NOTES FOR VERSION 3.9
+## Bug fix release
+- Fix `\mkpagetotal`
 
 # RELEASE NOTES FOR VERSION 3.8a
 ## Bug fix release
