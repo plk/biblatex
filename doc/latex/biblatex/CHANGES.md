@@ -1,5 +1,5 @@
 # RELEASE NOTES FOR VERSION 4.0
-- **INCOMPATIBLE CHANGE** The recent ISO8601:2016 standard supersedes
+- **INCOMPATIBLE CHANGE** The recent ISO8601:201x standard supersedes
   the draft EDTF (Extended Date Time Format) extensions. Biblatex therefore
   now supports the ISO8601-2 Clause 4, Level 1 Extended Format which is
   equivalent to the draft EDTF standard but with different syntax. *This
@@ -19,21 +19,21 @@
 ## Bug fix release
 - Fix `\mkpagetotal`
 - Fix issue with refcontexts not appearing in some circumstances
-- ** DEPRECATION NOTICE ** The coming update to the ISO8601 standard
-     supercedes the draft EDTF (Extended Date Time Format) extensions.
-     When the new ISO8601 standard is public, biblatex will therefore
-     support the ISO8601-2 Clause 4, Level 1 Extended Format which is
-     equivalent to the draft EDTF standard but with different syntax. This
-     syntax is in some cases not backwards compatible. Biblatex will not
-     support backwards compatibility for the draft EDTF syntax because it is
-     too messy to do so and few people were using this anyway since it is a
-     relatively new and specialised feature. Please note these syntax changes
-     which will effect only the formatting of DATE fields in bibliography
-     datasources:
-     - The "unspecified" marker `u` is now `X`
-     - An approximate+uncertain date is now indicated with `%` rather than `?~`
-     - Open dates are now marked with `..` instead of `open` or blank start/end dates.
-     - Unknown dates are now indicated by blank start/end dates rather than `unknown` or `*`
+- **DEPRECATION NOTICE** The coming update to the ISO8601 standard
+  supercedes the draft EDTF (Extended Date Time Format) extensions.
+  When the new ISO8601 standard is public, biblatex will therefore
+  support the ISO8601-2 Clause 4, Level 1 Extended Format which is
+  equivalent to the draft EDTF standard but with different syntax. This
+  syntax is in some cases not backwards compatible. Biblatex will not
+  support backwards compatibility for the draft EDTF syntax because it is
+  too messy to do so and few people were using this anyway since it is a
+  relatively new and specialised feature. Please note these syntax changes
+  which will effect only the formatting of DATE fields in bibliography
+  datasources:
+   - The "unspecified" marker `u` is now `X`
+   - An approximate+uncertain date is now indicated with `%` rather than `?~`
+   - Open dates are now marked with `..` instead of `open` or blank start/end dates.
+   - Unknown dates are now indicated by blank start/end dates rather than `unknown` or `*`
 
 # RELEASE NOTES FOR VERSION 3.8a
 ## Bug fix release
