@@ -1411,9 +1411,9 @@
 \newrobustcmd*{\DeclarePrefChars}{%
   \@ifstar
     {\blx@defprefchars}
-    {\let\blx@prefchars\@empty
+    {\global\let\blx@prefchars\@empty
      \blx@defprefchars}}
-\DeclarePrefChars{'’-}
+\DeclarePrefChars{'-}
 
 \protected\def\blx@imc@ifprefchar{%
   \ifhmode
@@ -1462,32 +1462,6 @@
   \blx@tempcnta"C0
   \blx@tempcntb"DF
   \blx@tempa
-\fi
-\ifx\Umathcode\undefined
-\else
-  \openin\blx@bcfin=UnicodeData.txt %
-  \ifeof\blx@bcfin
-  \else
-    \let\blx@setazcodes\@empty
-    \def\Lu{Lu}
-    \def\storedpar{\par}
-    \def\blx@tempa#1;#2;#3;#4\relax{%
-      \def\temp{#3}%
-      \ifx\temp\Lu
-        \xdef\blx@setazcodes{%
-          \blx@setazcodes
-          \sfcode"#1=\@m
-        }
-      \fi
-    }
-    \loop\unless\ifeof\blx@bcfin
-      \read\blx@bcfin to \blx@tempb
-      \unless\ifx\blx@tempb\storedpar
-        \expandafter\blx@tempa\blx@tempb\relax
-      \fi
-    \repeat
-  \fi
-  \closein\blx@bcfin
 \fi
 \endgroup
 
@@ -4402,7 +4376,7 @@
                 \csname abx@field@#1\endcsname}}
        {\@secondoftwo}
        {\@firstoftwo}}}
-       
+
 % {<field>}{<string>}{<true>}{<false>}
 \def\blx@imc@iffieldplusstringbibstring#1#2{%
   \blx@imc@iffieldundef{#1}
@@ -13336,6 +13310,14 @@
   parentracker,maxparens=3,bibencoding=auto,bibwarn,timezones=false,
   seconds=false,julian=false,labeltime=24h}
 
+% Load Unicode enhancements (only for LuaTeX and XeTeX)
+\ifboolexpr{
+    not test {\ifundef\XeTeXrevision}
+    or
+    not test {\ifundef\luatexversion}}
+  {\blx@inputonce{blx-unicode.def}{enhanced support for Unicode engines}{}{}{}{}}
+  {}
+
 % Load compatibility code
 \blx@inputonce{blx-compat.def}{compatibility code}{}{}{}{}
 
@@ -13346,7 +13328,7 @@
 % Process load-time options
 \ProcessOptions*
 
-% Switch to BibTeX support if requests
+% Switch to BibTeX support if requested
 \iftoggle{blx@bibtex}
   {\blx@inputonce{blx-bibtex.def}{BibTeX backend compatibility}{}{}{}{}}
   {}
