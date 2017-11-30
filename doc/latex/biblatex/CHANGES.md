@@ -14,6 +14,9 @@
     start/end dates.
   - Unknown dates are now indicated by blank start/end dates rather than
     "unknown" or "*"
+- Unicode support code that is problematic for non-Unicode engines,
+  but useful for XeTeX and LuaTeX now resides in `blx-unicode.def`.
+  That file is only read by XeTeX and LuaTeX.
 
 # RELEASE NOTES FOR VERSION 3.9
 ## Bug fix release
