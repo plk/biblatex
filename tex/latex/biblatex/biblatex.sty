@@ -5370,10 +5370,6 @@
       \printtext[#1time]{\csuse{mkbibtime\csuse{blx@timeformat@#1time}}{#1#2hour}{#1#2minute}{#1#2second}{#1#2timezone}}}
     {}}
 
-\def\mkdaterangeedtf{%LEGACY(<3.9)
-  \blx@warning@noline{'\string\mkdaterangeedtf' is deprecated, please use '\string\mkdaterangeiso'}%
-  \mkdaterangeiso}
-
 \newrobustcmd*{\mkdaterangeiso}[1]{%
   \blx@metadateinfo{#1}%
   \def\bibdatetimesep{T}%
@@ -5403,10 +5399,6 @@
             {}%
          \enddateuncertainprint
          \enddatecircaprintiso}}}}
-
-\def\mkdaterangeedtfextra{%LEGACY(<3.9)
-  \blx@warning@noline{'\string\mkdaterangeedtfextra' is deprecated, please use '\string\mkdaterangeisoextra'}%
-  \mkdaterangeisoextra}
 
 \newrobustcmd*{\mkdaterangeisoextra}[1]{%
   \blx@metadateinfo{#1}%
@@ -12838,10 +12830,17 @@
       \settoggle{blx@labeldateparts}{#1}}
      {\ifstrequal{#1}{iso8601}
        {\blx@warning@noline{%
-        'edtf' date format specifier is deprecated, use 'iso' instead}%
+          'iso8601' date format specifier is deprecated.\MessageBreak
+          Use 'iso' instead}%
         \def\blx@dateformat@labeldate{iso}%
         \renewrobustcmd*{\bibdateeraendprefix}{\bibdateeraprefix}}
-       {\def\blx@dateformat@labeldate{#1}}%
+       {\ifstrequal{#1}{edtf}
+          {\blx@warning@noline{%
+             'edtf' date format specifier is deprecated.\MessageBreak
+             Use 'iso' instead}%
+           \def\blx@dateformat@labeldate{iso}%
+           \renewrobustcmd*{\bibdateeraendprefix}{\bibdateeraprefix}}
+          {\def\blx@dateformat@labeldate{#1}}}%
       \ifstrequal{#1}{ymd}
          {\renewrobustcmd*{\bibdaterangesep}{\slash}%
           \renewrobustcmd*{\bibtimerangesep}{\slash}%
@@ -12898,11 +12897,15 @@
      \protected\def\enddatecircaprint{%
        \ifenddatecirca{\bibstring{circa}\printdelim{datecircadelim}}{}}%
      \protected\def\datecircaprintedtf{%LEGACY(<3.9)
-       \blx@warning@noline{'\string\datecircaprintedtf' is deprecated, please use '\string\datecircaprintiso'}%
-       \ifdatecirca{\textasciitilde}{}}%
+       \blx@warning@noline{%
+         '\string\datecircaprintedtf' is deprecated.
+         Please use '\string\datecircaprintiso'}%
+       \datecircaprintiso}%
      \protected\def\enddatecircaprintedtf{%LEGACY(<3.9)
-       \blx@warning@noline{'\string\enddatecircaprintedtf' is deprecated, please use '\string\enddatecircaprintiso'}%
-       \ifenddatecirca{\textasciitilde}{}}%
+       \blx@warning@noline{%
+         '\string\enddatecircaprintedtf' is deprecated.
+         Please use '\string\enddatecircaprintiso'}%
+       \enddatecircaprintiso}%
      \protected\def\datecircaprintiso{%
        \ifdatecirca{\textasciitilde}{}}%
      \protected\def\enddatecircaprintiso{%
@@ -12925,10 +12928,15 @@
 % Date metadata toggles are defined in one of the \abx@dobooleans calls
 \def\do#1{%
   \DeclareBibliographyOption[string]{#1date}{%
-    \ifstrequal{##1}{edtf}
-      {\blx@warning@noline{'edtf' date format specifier is deprecated, use 'iso' instead}%
+    \ifstrequal{##1}{iso8601}
+      {\blx@warning@noline{'iso8601' date format specifier is deprecated.\MessageBreak
+         Use 'iso' instead}%
        \csdef{blx@dateformat@#1date}{iso}}
-      {\csdef{blx@dateformat@#1date}{##1}}%
+      {\ifstrequal{##1}{edtf}
+         {\blx@warning@noline{'edtf' date format specifier is deprecated.\MessageBreak
+            Use 'iso' instead}%
+          \csdef{blx@dateformat@#1date}{iso}}
+         {\csdef{blx@dateformat@#1date}{##1}}}%
     \ifstrequal{##1}{ymd}
       {\renewrobustcmd*{\bibdaterangesep}{\slash}%
        \renewrobustcmd*{\bibtimerangesep}{\slash}%
