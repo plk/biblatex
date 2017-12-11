@@ -49,7 +49,7 @@
      {Outdated 'etoolbox' package}
      {Upgrade to etoolbox v2.1 (2010/11/29) or later.\MessageBreak
       I found: '\csuse{ver@etoolbox.sty}'.\MessageBreak
-      This is a fatal error. I'm aborting now.}%
+      This is a fatal error. I'm aborting now}%
    \endinput}
 
 \@ifpackagelater{xstring}{2013/10/13}
@@ -58,7 +58,7 @@
      {Outdated 'xstring' package}
      {Upgrade to xstring v1.7c (2013/10/13) or later.\MessageBreak
       I found: '\csuse{xstringversion}'.\MessageBreak
-      This is a fatal error. I'm aborting now.}%
+      This is a fatal error. I'm aborting now}%
    \endinput}
 
 % polyglossia pretends to be babel, so we need to make sure
@@ -73,7 +73,7 @@
              {Outdated 'babel' package}
              {Upgrade to babel 3.9r (2016/04/23) or later.\MessageBreak
               I found: '\csuse{ver@babel.sty}'.\MessageBreak
-              This is a fatal error. I'm aborting now.}%
+              This is a fatal error. I'm aborting now}%
             \endinput}}
        {}}}
 
@@ -130,7 +130,26 @@
   \docsvlist{%
     amsrefs,apacite,babelbib,backref,bibtopic,bibunits,chapterbib,
     cite,citeref,drftcite,footbib,inlinebib,jurabib,mcite,mciteplus,
-    mlbib,multibbl,multibib,natbib,opcit,overcite,splitbib,ucs,etextools}%
+    mlbib,multibbl,multibib,natbib,opcit,overcite,splitbib,ucs}%
+  \iftoggle{blx@noerroretextools}
+    {\@ifpackageloaded{etextools}
+       {\blx@warning@noline{%
+          Incompatible package 'etextools' loaded,\MessageBreak
+          no error is thrown because you set\MessageBreak
+          'noerroretextools=true'.\MessageBreak
+          'etextools' redefines '\string\forlistloop', you will\MessageBreak
+          need to restore the definition from 'etoolbox'}}
+       {\blx@warning@noline{%
+          You set 'noerroretextools=true',\MessageBreak
+          but 'etextools' is not loaded.\MessageBreak
+          Please do not set 'noerroretextools' to 'true'\MessageBreak
+          unless you really need it}}}
+    {\@ifpackageloaded{etextools}
+       {\blx@error
+          {Incompatible package 'etextools'}
+          {The 'etextools' package and biblatex are incompatible.\MessageBreak
+           If you must load 'etextools' at all costs, set 'noerroretextools=true'}}
+       {}}%
   \def\blx@langstrings{}%
   % Set up sortlocale defaults and default language if babel/polyglossia is not loaded
   \ifdefstring\blx@sortlocale{auto}
@@ -12172,6 +12191,10 @@
 
 \define@key{blx@opt@ldt}{mcite}[true]{%
   \settoggle{blx@mcite}{#1}}
+
+\newtoggle{blx@noerroretextools}
+\define@key{blx@opt@ldt}{noerroretextools}[true]{%
+  \settoggle{blx@noerroretextools}{#1}}
 
 % load-time and preamble
 
