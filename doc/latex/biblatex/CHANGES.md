@@ -17,6 +17,14 @@
 - Unicode support code that is problematic for non-Unicode engines,
   but useful for XeTeX and LuaTeX now resides in `blx-unicode.def`.
   That file is only read by XeTeX and LuaTeX.
+- The option `noerroretextools` demotes the incompatibility error
+  for `etextools` to a mere warning. Users still need to make sure that
+  `\forlistloop` has the definition from `etoolbox` and not the
+  completely incompatible definition from `etextools`.
+  This option is meant as a last resort for people who mustn at all
+  costs load `etextools` or a package that uses it.
+  Use of the option will always cause a warning even if `etextools`
+  is not loaded.
 
 # RELEASE NOTES FOR VERSION 3.9
 ## Bug fix release
