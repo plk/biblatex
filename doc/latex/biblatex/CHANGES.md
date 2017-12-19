@@ -1,4 +1,4 @@
-# RELEASE NOTES FOR VERSION ??
+# RELEASE NOTES FOR VERSION 3.10
 - **INCOMPATIBLE CHANGE** The recent ISO8601:201x standard supersedes
   the draft EDTF (Extended Date Time Format) extensions. Biblatex therefore
   now supports the ISO8601-2 Clause 4, Level 1 Extended Format which is
