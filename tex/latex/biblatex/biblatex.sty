@@ -8201,6 +8201,12 @@
 
 \appto\blx@mknohyperref{\let\blx@anchor\relax}
 
+\define@key{blx@biblist2}{driver}{\blx@key@driver{#1}}
+\define@key{blx@biblist1}{driver}{}
+
+\def\blx@key@driver#1{%
+  \def\blx@thebiblistdriver{#1}}
+
 % Custom bibliography list
 % [<otions>]{biblistname}
 \newrobustcmd*{\printbiblist}[2][]{%
@@ -8212,6 +8218,8 @@
   \def\blx@theheading{biblist}% default to biblist heading
   \def\blx@theenv{#2}% default to list name
   \def\blx@thebiblist{#2}%
+  \def\blx@thebiblistdriver{#2}%
+  \def\blx@thebiblistfilter{#2}%
   \let\blx@theprenote\@empty
   \let\blx@thepostnote\@empty
   \let\blx@thetitle\@empty
@@ -8257,7 +8265,7 @@
     {}
     {\listxadd\blx@dlistnames{\blx@refcontext@context @\blx@tempe @list}%
      \csxappto{blx@dlists}{%
-       \blx@xml@dlist{\blx@refcontext@context}{list}{\blx@tempe}{\blx@xml@dlist@refcontext{\blx@tempc}{\blx@refcontext@sortingnamekeytemplatename}{\blx@refcontext@labelprefix}{\blx@refcontext@uniquenametemplatename}{\blx@refcontext@labelalphanametemplatename}}{\csuse{blx@biblistfilters@#2}}}}%
+       \blx@xml@dlist{\blx@refcontext@context}{list}{\blx@tempe}{\blx@xml@dlist@refcontext{\blx@tempc}{\blx@refcontext@sortingnamekeytemplatename}{\blx@refcontext@labelprefix}{\blx@refcontext@uniquenametemplatename}{\blx@refcontext@labelalphanametemplatename}}{\csuse{blx@biblistfilters@\blx@thebiblistfilter}}}}%
   \ifdefvoid\blx@tempa
     {\blx@warn@biblistempty{#2}\endgroup}
     {\blx@biblist\blx@tempa}}
@@ -8323,7 +8331,7 @@
        \blx@beglangbib
        \bibsentence
        \blx@pagetracker
-       \blx@driver{\blx@thebiblist}%
+       \blx@driver{\blx@thebiblistdriver}%
        \blx@postpunct
        \blx@endlangbib}%
      \endgroup}
@@ -11736,6 +11744,17 @@
 % Predefine filters for label fields
 \def\do#1{\DeclareBiblistFilter{#1}{\filter[type=field,filter=#1]}}
 \abx@dolabelfields
+
+\define@key{blx@biblist2}{biblistfilter}{\blx@key@biblistfilter{#1}}
+\define@key{blx@biblist1}{biblistfilter}{}
+
+\def\blx@key@biblistfilter#1{%
+  \ifcsundef{blx@biblistfilters@#1}
+    {\blx@error
+        {BiblistFilter '#1' not found}
+        {The BiblistFilter '#1' could not be found.\MessageBreak
+         Use '\string\DeclareBiblistFilter' to define it}}
+    {\def\blx@thebiblistfilter{#1}}}
 
 % [<entrytype>]
 \newrobustcmd*{\DeclareSortTranslit}[2][]{%
