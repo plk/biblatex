@@ -1,3 +1,7 @@
+# RELEASE NOTES FOR VERSION ??
+- `\printbiblist` now supports `driver` and `biblistfilter` options
+  to change the defaults set by the biblistname.
+
 # RELEASE NOTES FOR VERSION 3.10
 - **INCOMPATIBLE CHANGE** The recent ISO8601:201x standard supersedes
   the draft EDTF (Extended Date Time Format) extensions. Biblatex therefore
