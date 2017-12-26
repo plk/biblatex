@@ -2,6 +2,29 @@
 - `\printbiblist` now supports `driver` and `biblistfilter` options
   to change the defaults set by the biblistname.
 - Add `\mknormrange` to normalise page ranges without compressing them.
+- **INCOMPATIBLE CHANGE** The format for `postnote` (`multipostnote`,
+  `volcitepages`) normalises page ranges with `\mknormrange`.
+  Since `\mknormrange` acts only on page ranges as detected by
+  `\ifpages`, this does not affect text other than page ranges.
+  Hyphens and dashes in page ranges will be transformed to
+  `\bibrangedash`, commas and semi-colons to `\bibrangesep`.
+  This is analogous to Biber's treatment of page-like fields.
+  If you always separated page ranges with `--` or `\bibrangedash`
+  anyway, this should not change the output you get.
+  If you used a single hyphen to separate page ranges (e.g., `23-27`)
+  you will now get the arguably more aesthetically pleasing output
+  with `\bibrangedash`.
+  In case you want to restore the old behaviour where page ranges were
+  not normalised add the following three lines to your preamble.
+  ```
+  \DeclareFieldFormat{postnote}{\mkpageprefix[pagination]{#1}}
+  \DeclareFieldFormat{volcitepages}{\mkpageprefix[pagination]{#1}}
+  \DeclareFieldFormat{multipostnote}{\mkpageprefix[pagination]{#1}}
+  ```
+  Style developers may note that the field format for `pages`
+  was not changed to include `\mknormrange` because the contents
+  of that field are prepared by the backend and Biber already does
+  the page range normalisation out of the box.
 
 # RELEASE NOTES FOR VERSION 3.10
 - **INCOMPATIBLE CHANGE** The recent ISO8601:201x standard supersedes
