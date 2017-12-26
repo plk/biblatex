@@ -2978,20 +2978,119 @@
     {}}
 
 % <*>[<postpro>]{<string>}
+\newrobustcmd*{\mknormrange}{%
+  \begingroup
+  \@ifstar
+    {\blx@range@aux\blx@normrange@ii}
+    {\blx@range@aux\blx@normrange@i}}
+
+\def\blx@range@aux#1{%
+  \@ifnextchar[{#1}{#1[\@firstofone]}}
+
+\def\blx@normrange@i[#1]#2{%
+  \let\blx@tempa\@empty
+  \protected\def\blx@range@out@value{\appto\blx@tempa}%
+  \let\blx@range@out@delim\blx@range@out@value
+  \let\blx@range@split\blx@normrange@split
+  \let\blx@range@process\blx@normrange@process
+  \blx@range@chunk{#2}%
+  \edef\blx@tempa{\endgroup
+    \unexpanded{#1}{\expandonce\blx@tempa}}%
+  \blx@tempa}
+
+\def\blx@normrange@ii[#1]#2{%
+  \protected\def\blx@range@out@value{#1}%
+  \let\blx@range@out@delim\@firstofone
+  \let\blx@range@split\blx@normrange@split
+  \let\blx@range@process\blx@normrange@process
+  \blx@range@chunk{#2}%
+  \endgroup}
+
+\def\blx@range@chunk#1{%
+  \blx@range@chunk@semcol#1;&}
+
+\def\blx@range@chunk@semcol#1;#2&{%
+  \notblank{#1}
+    {\blx@range@chunk@comma#1,&}
+    {}%
+  \notblank{#2}
+    {\notblank{#1}{\blx@range@out@delim{\bibrangessep}}{}%
+     \blx@range@chunk@semcol#2&}
+    {}}
+
+\def\blx@range@chunk@comma#1,#2&{%
+  \notblank{#1}
+    {\blx@range@chunk@sep#1\bibrangessep&}
+    {}%
+  \notblank{#2}
+    {\notblank{#1}{\blx@range@out@delim{\bibrangessep}}{}%
+     \blx@range@chunk@comma#2&}
+    {}}
+
+\def\blx@range@chunk@sep#1\bibrangessep#2&{%
+  \notblank{#1}
+    {\expandafter\blx@range@split
+     \expandafter{\@firstofone#1}}
+    {}%
+  \notblank{#2}
+    {\notblank{#1}{\blx@range@out@delim{\bibrangessep}}{}%
+     \blx@range@chunk@sep#2&}
+    {}}
+
+\def\blx@normrange@split#1{%
+  \def\blx@normrange@abort{\blx@range@out@value{#1}}%
+  \blx@imc@ifpages{#1}
+    {\blx@normrange@range#1\bibrangedash\bibrangedash&}
+    {\blx@normrange@abort}}
+
+\def\blx@normrange@range#1\bibrangedash#2\bibrangedash#3&{%
+  \ifblank{#3}
+    {\blx@normrange@hyphen#1--&}
+    {\ifblank{#2}
+       {\blx@range@out@value{#1\bibrangedash}}
+       {\ifblank{#1}
+          {\blx@range@out@value{\bibrangedash#2}}
+          {\blx@range@process{#1}{#2}}}}}
+
+\def\blx@normrange@hyphen#1-#2-#3&{%
+  \ifblank{#3}
+    {\blx@normrange@abort}
+    {\ifblank{#2}
+       {\ifblank{#1}
+          {\let\blx@tempb\@empty}
+          {\def\blx@tempb{#1}}%
+        \blx@normrange@hyphen@i#3&}
+       {\ifblank{#1}
+          {\blx@range@out@value{\bibrangedash#2}}
+          {\blx@range@process{#1}{#2}}}}}
+
+\def\blx@normrange@hyphen@i#1-#2&{%
+  \ifblank{#1#2}
+    {\expandafter\blx@range@out@value
+     \expandafter{\blx@tempb\bibrangedash}}
+    {\notblank{#1}
+       {\ifdefempty\blx@tempb
+          {\blx@range@out@value{\bibrangedash#1}}
+          {\expandafter\blx@range@process
+           \expandafter{\blx@tempb}{#1}}}
+       {\blx@normrange@hyphen@i#2&}}}
+
+\def\blx@normrange@process#1#2{%
+  \blx@range@out@value{#1\bibrangedash#2}}
+
+% <*>[<postpro>]{<string>}
 \newrobustcmd*{\mkcomprange}{%
   \begingroup
   \@ifstar
-    {\blx@comprange\blx@comprange@ii}
-    {\blx@comprange\blx@comprange@i}}
-
-\def\blx@comprange#1{%
-  \@ifnextchar[{#1}{#1[\@firstofone]}}
+    {\blx@range@aux\blx@comprange@ii}
+    {\blx@range@aux\blx@comprange@i}}
 
 \def\blx@comprange@i[#1]#2{%
   \let\blx@tempa\@empty
   \protected\def\blx@range@out@value{\appto\blx@tempa}%
   \let\blx@range@out@delim\blx@range@out@value
-  \let\blx@range@split\blx@comprange@split
+  \let\blx@range@split\blx@normrange@split
+  \let\blx@range@process\blx@comprange@check
   \blx@range@chunk{#2}%
   \edef\blx@tempa{\endgroup
     \unexpanded{#1}{\expandonce\blx@tempa}}%
@@ -3000,47 +3099,10 @@
 \def\blx@comprange@ii[#1]#2{%
   \protected\def\blx@range@out@value{#1}%
   \let\blx@range@out@delim\@firstofone
-  \let\blx@range@split\blx@comprange@split
+  \let\blx@range@split\blx@normrange@split
+  \let\blx@range@process\blx@comprange@check
   \blx@range@chunk{#2}%
   \endgroup}
-
-\def\blx@comprange@split#1{%
-  \def\blx@comprange@abort{\blx@range@out@value{#1}}%
-  \blx@imc@ifpages{#1}
-    {\blx@comprange@range#1\bibrangedash\bibrangedash&}
-    {\blx@comprange@abort}}
-
-\def\blx@comprange@range#1\bibrangedash#2\bibrangedash#3&{%
-  \ifblank{#3}
-    {\blx@comprange@hyphen#1--&}
-    {\ifblank{#2}
-       {\blx@range@out@value{#1\bibrangedash}}
-       {\ifblank{#1}
-          {\blx@range@out@value{\bibrangedash#2}}
-          {\blx@comprange@check{#1}{#2}}}}}
-
-\def\blx@comprange@hyphen#1-#2-#3&{%
-  \ifblank{#3}
-    {\blx@comprange@abort}
-    {\ifblank{#2}
-       {\ifblank{#1}
-          {\let\blx@tempb\@empty}
-          {\def\blx@tempb{#1}}%
-        \blx@comprange@hyphen@i#3&}
-       {\ifblank{#1}
-          {\blx@range@out@value{\bibrangedash#2}}
-          {\blx@comprange@check{#1}{#2}}}}}
-
-\def\blx@comprange@hyphen@i#1-#2&{%
-  \ifblank{#1#2}
-    {\expandafter\blx@range@out@value
-     \expandafter{\blx@tempb\bibrangedash}}
-    {\notblank{#1}
-       {\ifdefempty\blx@tempb
-          {\blx@range@out@value{\bibrangedash#1}}
-          {\expandafter\blx@comprange@check
-           \expandafter{\blx@tempb}{#1}}}
-       {\blx@comprange@hyphen@i#2&}}}
 
 \def\blx@comprange@check#1#2{%
   \blx@imc@ifinteger{#1}
@@ -3101,37 +3163,6 @@
   \else
     \expandafter\blx@comprange@end
   \fi}
-
-\def\blx@range@chunk#1{%
-  \blx@range@chunk@semcol#1;&}
-
-\def\blx@range@chunk@semcol#1;#2&{%
-  \notblank{#1}
-    {\blx@range@chunk@comma#1,&}
-    {}%
-  \notblank{#2}
-    {\notblank{#1}{\blx@range@out@delim{\bibrangessep}}{}%
-     \blx@range@chunk@semcol#2&}
-    {}}
-
-\def\blx@range@chunk@comma#1,#2&{%
-  \notblank{#1}
-    {\blx@range@chunk@sep#1\bibrangessep&}
-    {}%
-  \notblank{#2}
-    {\notblank{#1}{\blx@range@out@delim{\bibrangessep}}{}%
-     \blx@range@chunk@comma#2&}
-    {}}
-
-\def\blx@range@chunk@sep#1\bibrangessep#2&{%
-  \notblank{#1}
-    {\expandafter\blx@range@split
-     \expandafter{\@firstofone#1}}
-    {}%
-  \notblank{#2}
-    {\notblank{#1}{\blx@range@out@delim{\bibrangessep}}{}%
-     \blx@range@chunk@sep#2&}
-    {}}
 
 % <*>[<postpro>]{<string>}
 \newrobustcmd*{\mkfirstpage}{%
