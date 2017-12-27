@@ -9867,11 +9867,10 @@ The problem with this convention is that the braces will suppress the kerning on
 This command is intended for use in field formatting directives which format the page numbers in the \prm{postnote} argument of citation commands and the \bibfield{pages} field of bibliography entries. It will parse its \prm{text} argument and prefix it with <p.> or <pp.> by default. The optional \prm{pagination} argument holds the name of a field indicating the pagination type. This may be either \bibfield{pagination} or \bibfield{bookpagination}, with \bibfield{pagination} being the default. The spacing between the prefix and the \prm{text} may be modified by redefining \cmd{ppspace}. The default is an unbreakable interword space. See \secref{bib:use:pag, use:cav:pag} for further details. See also \cmd{DeclareNumChars}, \cmd{DeclareRangeChars}, \cmd{DeclareRangeCommands}, and \cmd{NumCheckSetup}. The optional \prm{postpro} argument specifies a macro to be used for post-processing the \prm{text}. If only one optional argument is given, it is taken as \prm{pagination}. Here are two typical examples:
 
 \begin{ltxexample}
-\DeclareFieldFormat{postnote}{<<\mkpageprefix[pagination]{#1}>>}
+\DeclareFieldFormat{postnote}{<<\mkpageprefix[pagination][\mknormrange]{#1}>>}
 \DeclareFieldFormat{pages}{<<\mkpageprefix[bookpagination]{#1}>>}
 \end{ltxexample}
 %
-The optional argument \bibfield{pagination} in the first example is omissible.
 
 \cmditem{mkpagetotal}[pagination][postpro]{text}
 
@@ -9923,7 +9922,7 @@ The pagination strings are taken from \texttt{$<$pagination$>$total} and \texttt
 \cmditem{mkcomprange}[postpro]{text}
 \cmditem*{mkcomprange*}[postpro]{text}
 
-This command, which is intended for use in field formatting directives, will parse its \prm{text} argument for page ranges and compress them. For example, «125--129» may be formatted as «125--9». You may configure the behavior of \cmd{mkcomprange} by adjusting the \latex counters \cnt{mincomprange}, \cnt{maxcomprange}, and \cnt{mincompwidth}, as illustrated in \tabref{aut:aux:tab1}. The default settings are \texttt{10}, \texttt{100000}, and \texttt{1}, respectively. This means that the command tries to compress as much as possible by default. Use \cmd{setcounter} to adjust the parameters. The scanner recognises \cmd{bibrangedash} and hyphens as range dashes. It will normalize the dash by replacing any number of consecutive hyphens with \cmd{bibrangedash}. Lists of ranges delimited with \cmd{bibrangessep} are also supported. The backend will normalise any comma or semi-colons surrounded by optional space by replacing them with \cmd{bibrangessep}. If you want to hide a character from the list/range scanner for some reason, wrap the character or the entire string in curly braces. The optional \prm{postpro} argument specifies a macro to be used for post-processing the \prm{text}. This is important if you want to combine \cmd{mkcomprange} with other formatting macros which also need to parse their \prm{text} argument, such as \cmd{mkpageprefix}. Simply nesting these commands will not work as expected. Use the \prm{postpro} argument to set up the processing chain as follows:
+This command, which is intended for use in field formatting directives, will parse its \prm{text} argument for page ranges and compress them. For example, «125--129» may be formatted as «125--9». You may configure the behavior of \cmd{mkcomprange} by adjusting the \latex counters \cnt{mincomprange}, \cnt{maxcomprange}, and \cnt{mincompwidth}, as illustrated in \tabref{aut:aux:tab1}. The default settings are \texttt{10}, \texttt{100000}, and \texttt{1}, respectively. This means that the command tries to compress as much as possible by default. Use \cmd{setcounter} to adjust the parameters. The scanner recognises \cmd{bibrangedash} and hyphens as range dashes. It will normalize the dash by replacing any number of consecutive hyphens with \cmd{bibrangedash}. Lists of ranges delimited with \cmd{bibrangessep} are also supported. The scanner will normalise any comma or semi-colons surrounded by optional space by replacing them with \cmd{bibrangessep}. If you want to hide a character from the list/range scanner for some reason, wrap the character or the entire string in curly braces. The optional \prm{postpro} argument specifies a macro to be used for post-processing the \prm{text}. This is important if you want to combine \cmd{mkcomprange} with other formatting macros which also need to parse their \prm{text} argument, such as \cmd{mkpageprefix}. Simply nesting these commands will not work as expected. Use the \prm{postpro} argument to set up the processing chain as follows:
 
 \begin{ltxexample}
 \DeclareFieldFormat{postnote}{\mkcomprange[<<{>>\mkpageprefix[pagination]<<}>>]{#1}}
@@ -9942,6 +9941,11 @@ will output:
 pp. 5, 123-9, 423-39
 p. 5, pp. 123-9, pp. 423-39
 \end{ltxexample}
+
+\cmditem{mknormrange}[postpro]{text}
+\cmditem*{mknormrange*}[postpro]{text}
+
+This command, which is intended for use in field formatting directives, will parse its \prm{text} argument for page ranges and will normalise them. The command is similar to \cmd{mkcomprange} except that the page ranges will not be compressed. The scanner recognises \cmd{bibrangedash} and hyphens as range dashes. It will normalize the dash by replacing any number of consecutive hyphens with \cmd{bibrangedash}. Lists of ranges delimited with \cmd{bibrangessep} are also supported. The scanner will normalise any comma or semi-colons surrounded by optional space by replacing them with \cmd{bibrangessep}. If you want to hide a character from the list/range scanner for some reason, wrap the character or the entire string in curly braces. The optional \prm{postpro} argument specifies a macro to be used for post-processing the \prm{text}. See \cmd{mkcomprange} on how to use this argument. The starred version of this command differs from the regular one in the way the \prm{postpro} argument is applied to a list of values.
 
 \cmditem{mkfirstpage}[postpro]{text}
 \cmditem*{mkfirstpage*}[postpro]{text}
@@ -13240,6 +13244,7 @@ This revision history is a list of changes relevant to users of this package. Ch
 \begin{changelog}
 \begin{release}{??}{20??-??-??}
 \item Added \opt{driver} and \opt{biblistfilter} options to \cmd{printbiblist}\see{use:bib:biblist}
+\item Added \cmd{mknormrange}\see{aut:aux:msc}
 \end{release}
 
 \begin{release}{3.10}{2017-12-19}
