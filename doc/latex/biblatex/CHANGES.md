@@ -171,17 +171,18 @@ Biber version 2.8 is required for biblatex 3.8
   ```
   \DeclareLanguageMapping{american}{american-apa}
   ```
-  so that the style supplied `america-apa.lbx` file is loaded. In a document
-  using the German language, the user would have to use:
+  so that the style supplied `america-apa.lbx` file is loaded.
+  In a document using the German language, the user would have to use:
   ```
   \DeclareLanguageMapping{german}{german-apa}
   ```
   A new macro `\DeclareLanguageMappingSuffix` is now supplied which allows
   styles to register a global localisation file suffix which is appended to
   any document language automatically. This removes the need for
-  \DeclareLanguageMapping in user documents as it ensures that the correct
-  localisation file will be read nomatter what the document language. For
-  example, the APA style (from version v7.5) now has this in apa.bbx:
+  `\DeclareLanguageMapping` in user documents as it ensures that the
+  correct localisation file will be read nomatter what the document language.
+  For example, the APA style (from version v7.5) now has this
+  in `apa.bbx`:
   ```
   \DeclareLanguageMappingSuffix{-apa}
   ```
