@@ -162,35 +162,33 @@ Biber version 2.8 is required for biblatex 3.8
   option.
 
 ## Localisation and styles
-- Styles which supply their own location strings in .lbx files typically
-  use \DeclareLanguageMapping to map a document language to the supplied
+- Styles which supply their own location strings in `.lbx` files typically
+  use `\DeclareLanguageMapping` to map a document language to the supplied
   language files. This is not ideal because the mapping has to be done by
   the user depending on the specific language. For example, for the APA
-  style, in a document using American english, this line is necessary in
+  style, in a document using American English, this line is necessary in
   every document:
-
+  ```
   \DeclareLanguageMapping{american}{american-apa}
-
-  so that the style supplied america-apa.lbx file is loaded. In a document
-  using the german language, the user would have to use:
-
+  ```
+  so that the style supplied `america-apa.lbx` file is loaded. In a document
+  using the German language, the user would have to use:
+  ```
   \DeclareLanguageMapping{german}{german-apa}
-
-  A new macro \DeclareLanguageMappingSuffix is now supplied which allows
+  ```
+  A new macro `\DeclareLanguageMappingSuffix` is now supplied which allows
   styles to register a global localisation file suffix which is appended to
   any document language automatically. This removes the need for
   \DeclareLanguageMapping in user documents as it ensures that the correct
   localisation file will be read nomatter what the document language. For
   example, the APA style (from version v7.5) now has this in apa.bbx:
-
+  ```
   \DeclareLanguageMappingSuffix{-apa}
-
-  which means that for a given document language <lang>, the localisation file:
-
-  <lang>-apa.lbx
-
-  will be loaded. \DeclareLanguageMapping, if present, will override
-  \DeclareLanguageMappingSuffix.
+  ```
+  which means that for a given document language `<lang>`
+  the localisation file `<lang>-apa.lbx` will be loaded.
+  `\DeclareLanguageMapping`, if present, will override
+  `\DeclareLanguageMappingSuffix`.
 
 ## Context-sensitive delimiters
 - Several delimiter macros now use the context-sensitive delimiter interface
