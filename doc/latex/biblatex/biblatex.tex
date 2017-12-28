@@ -3391,9 +3391,9 @@ A bibliography list differs from a normal bibliography in that the same bibliogr
 
 \begin{ltxsyntax}
 
-\cmditem{printbiblist}[key=value, \dots]{$<$biblistname$>$}
+\cmditem{printbiblist}[key=value, \dots]{biblistname}
 
-This command prints a bibliography list. It takes an optional argument, which is a list of options given in \keyval notation. Valid options are all options supported by \cmd{printbibliography} (\secref{use:bib:bib}) except \opt{resetnumbers} and \opt{omitnumbers}, two additional options are available. If there are any \env{refsection} environments in the document, the bibliography list will be local to these environments; see \secref{use:bib:sec} for details. By default, this command uses the heading \texttt{biblist}. See \secref{use:bib:hdg} for details.
+This command prints a bibliography list. It takes an optional argument, which is a list of options given in \keyval notation. Valid options are all options supported by \cmd{printbibliography} (\secref{use:bib:bib}) except \opt{resetnumbers} and \opt{omitnumbers}. Additionaly, the two options \opt{driver} and \opt{biblistfilter} are available. If there are any \env{refsection} environments in the document, the bibliography list will be local to these environments; see \secref{use:bib:sec} for details. By default, this command uses the heading \texttt{biblist}. See \secref{use:bib:hdg} for details.
 
 
 The \prm{biblistname} is a mandatory argument which names the bibliography list. This name is used to identify:
@@ -3407,17 +3407,18 @@ The \prm{biblistname} is a mandatory argument which names the bibliography list.
 
 The two additional options can be used to change some of the defaults set by the mandatory argument.
 
-\valitem{driver}{driver}
+\begin{optionlist*}
+\valitem[\prm{biblistname}]{driver}{driver}
 
 Change the bibliography driver used to print the list entries.
 % \prm{driver} must be a valid driver declared with \cmd{DeclareBibliographyDriver} (see \secref{aut:bbx:bbx}).
 
-\valitem{biblistfilter}{biblistfilter}
+\valitem[\prm{biblistname}]{biblistfilter}{biblistfilter}
 
 Change the bibliography list filter used to filter the entries. \prm{biblistfilter} must be a valid bibliography list filter defined with \cmd{DeclareBiblistFilter} (see \secref{aut:ctm:bibfilt}).
+\end{optionlist*}
 
-
-In terms of sorting the list, the default is to sort use the sorting template named after the bibliography list (if it exists) and only then to fall back to the current context sorting template is this is not defined (see \secref{use:bib:context}).
+In terms of sorting the list, the default is to sort using the sorting template named after the bibliography list (if it exists) and only then to fall back to the current context sorting template if this is not defined (see \secref{use:bib:context}).
 
 The most common bibliography list is a list of shorthand abbreviations for certain entries and so this has a convenience alias \cmd{printshorthands[\dots]} for backwards compatibility which is defined as:
 
@@ -3657,7 +3658,7 @@ Matches all entries assigned to \prm{category} with \cmd{addtocategory}.
 
 Here is an example of a filter expression:
 
-\begin{ltxexample}[style=latex,keywords={and,or,not,type,keyword}]{}
+\begin{ltxexample}[style=latex,keywords={and,or,not,type,keyword}]
 \defbibfilter{example}{%
   ( type=book or type=inbook )
   and keyword=abc
@@ -3667,7 +3668,7 @@ Here is an example of a filter expression:
 %
 This filter will match all entries whose entry type is either \bibtype{book} or \bibtype{inbook} and whose \bibfield{keywords} field includes the keyword <\texttt{abc}> but not <\texttt{x y z}>. As seen in the above example, all elements are separated by whitespace (spaces, tabs, or line endings). There is no spacing around the equal sign. The logical operators are evaluated with the \cmd{ifboolexpr} command from the \sty{etoolbox} package. See the \sty{etoolbox} manual for details about the syntax. The syntax of the \cmd{ifthenelse} command from the \sty{ifthen} package, which has been employed in older versions of \biblatex, is still supported. This is the same test using \sty{ifthen}-like syntax:
 
-\begin{ltxexample}[style=ifthen,morekeywords={\\type,\\keyword}]{}
+\begin{ltxexample}[style=ifthen,morekeywords={\\type,\\keyword}]
 \defbibfilter{example}{%
   \( \type{book} \or \type{inbook} \)
   \and \keyword{abc}
@@ -3769,7 +3770,7 @@ Reference contexts can be declared with \cmd{DeclareRefcontext} and referred to 
 
 By default, data for a citation is drawn from the reference context of the last bibliography in which it was printed. For example:
 
-\begin{ltxexample}[style=latex]{}
+\begin{ltxexample}[style=latex]
 \DeclareRefcontext{ap}{labelprefix=A}
 \begin{document}
 
@@ -3844,7 +3845,7 @@ This command is similar to the \env{refcontext} environment except that it is a 
 %
 At the beginning of the document, there is always a global context containing global settings for each of the reference context options. Here is an example summarising the reference contexts with various settings:
 
-\begin{ltxexample}[style=latex]{}
+\begin{ltxexample}[style=latex]
 \usepackage[sorting=nty]{biblatex}
 
 \DeclareRefcontext{testrc}{sorting=nyt}
@@ -3906,7 +3907,7 @@ At the beginning of the document, there is always a global context containing gl
 \end{ltxsyntax}
 These commands automate putting citations into refcontexts when the default behaviour is not sufficient. The \prm{key=value} options are as for \cmd{DeclareRefcontext}. The default behaviour is that the data for a citation is drawn from the refcontext of the last bibliography in which it was printed. For citations that are used in some way but not printed in a bibliography or bibliography list, they default to drawing their data from the global refcontext established at the beginning of the document. To override this behaviour, instead of manually wrapping citation commands in \env{refcontext} environments, which might be error-prone and tedious, you can register a comma"=separated list of \prm{keywords}, \prm{categories} or \prm{entrykeys} which, respectively, make the entries with any of the specified keywords, entries in any of the specified categories (see \secref{use:use:div}) or entries with any of the specified citation keys draw their data from a particular refcontext specified by the \prm{refcontext key/values} which are parsed as the per the corresponding \env{refcontext} options. Such refcontext auto-assignments are specific to the current refsection. You may specify the same citation key in any of these commands but be aware that assignment is done in the order \prm{keywords}, \prm{categories}, \prm{entrykeys} with the later specifications overriding the earlier. \cmd{assignrefcontextentries} accepts a single asterisk instead of a list of entrykeys which allows the assignment of all keys in a refsection to a refcontext with having to explicitly list them. An example:
 
-\begin{ltxexample}[style=latex]{}
+\begin{ltxexample}[style=latex]
 \assignrefcontextentries[labelprefix=A]{key2}
 \cite{key1}
 \begin{refcontext}[labelprefix=B]
@@ -3917,7 +3918,7 @@ These commands automate putting citations into refcontexts when the default beha
 Here, the data for the citation of \bibfield{key2} will be drawn from refcontext \opt{labelprefix=A} and not \opt{labelprefix=B} (resulting in a label with prefix <A> and not <B>).
 The starred versions do not override a local refcontext and so with:
 
-\begin{ltxexample}[style=latex]{}
+\begin{ltxexample}[style=latex]
 \assignrefcontextentries*[labelprefix=A]{key2}
 \cite{key1}
 \begin{refcontext}[labelprefix=B]
@@ -4033,7 +4034,7 @@ In addition to that, the entire citation list may also have a pre- and\slash or 
 %
 Note that the multicite commands keep on scanning for arguments until they encounter a token that is not the start of an optional or mandatory argument. If a left brace or bracket follows a multicite command, you need to mask it by adding \cmd{relax} or a control space (a backslash followed by a space) after the last valid argument. This will cause the scanner to stop.
 
-\begin{ltxexample}[style=latex,showspaces]{}
+\begin{ltxexample}[style=latex,showspaces]
 \parencites[35]{key1}[78]{key2}<<\relax>>[...]
 \parencites[35]{key1}[78]{key2}<<\ >>{...}
 \end{ltxexample}
@@ -4378,7 +4379,7 @@ consists of three entries and the entry key of the first one also serves as iden
 \mcite{<<set1>>,*glashow,*salam,*weinberg}
 \end{ltxexample}
 %
-Once defined, an entry set is handled like any regular entry in a \file{bib} file. When using one of the \texttt{numeric} styles which come with \texttt{biblatex} and activating its \opt{subentry} option, it is even possible to refer to set members. See \tabref{use:cit:mct:tab2} for some examples. Restating the original definition of the set is redundant, but permissible. In contrast to \sty{mciteplus}, however, restating a part of the original definition is invalid. Use the entry key of the set instead.
+Once defined, an entry set is handled like any regular entry in a \file{bib} file. When using one of the \texttt{numeric} styles which come with \biblatex and activating its \opt{subentry} option, it is even possible to refer to set members. See \tabref{use:cit:mct:tab2} for some examples. Restating the original definition of the set is redundant, but permissible. In contrast to \sty{mciteplus}, however, restating a part of the original definition is invalid. Use the entry key of the set instead.
 
 \begin{table}
 \tablesetup
@@ -4774,7 +4775,7 @@ therefore do not work. Therefore this command is provided for style authors
 which aliases the context \prm{alias} to the context \prm{name}. For
 example:
 
-\begin{ltxexample}[style=latex]{}
+\begin{ltxexample}[style=latex]
 \DeclareDelimcontextAlias{cbx@textcite}{textcite}
 \end{ltxexample}
 % 
@@ -4795,20 +4796,20 @@ as expected.
 
 For example, the defaults for \cmd{nametitledelim} are:
 
-\begin{ltxexample}[style=latex]{}
+\begin{ltxexample}[style=latex]
 \DeclareDelimFormat{nametitledelim}{\addcomma\space}
 \DeclareDelimFormat[textcite]{nametitledelim}{\addspace}
 \end{ltxexample}
 %
 This means that \cmd{nametitledelim} is defined globally as <\cmd{addcomma}\cmd{space}> as per the standard delimiter interface. However, in addition, the delimiter can be printed using \cmd{printdelim} which would print the same as \cmd{nametitledelim} apart from inside a \cmd{textcite}, in which it would print \cmd{addspace} which is more suitable for running text. If desired, a context can be forced with the optional argument to \cmd{printdelim}, so
 
-\begin{ltxexample}[style=latex]{}
+\begin{ltxexample}[style=latex]
 \printdelim[textcite]{nametitledelim}
 \end{ltxexample}
 %
 Would print \cmd{addspace} regardless of the surrounding context of the \cmd{printdelim}. Contexts are just arbitrary strings and so you can establish them at any time, using \cmd{delimcontext}. If \cmd{printdelim} finds no special value for the delimiter \prm{name} in the current context, it simply prints \cmd{name}. This means that style authors can use \cmd{printdelim} and users expecting to be able to use \cmd{renewcommand} to redefine delimiters can do so with one caveat---such a definition won't change any context-specific delimiters which are defined:
 
-\begin{ltxexample}[style=latex]{}
+\begin{ltxexample}[style=latex]
 \DeclareDelimFormat{delima}{X}
 \DeclareDelimFormat[textcite]{delima}{Y}
 \renewcommand*{\delima}{Z}
@@ -6345,6 +6346,7 @@ will tell you if the corresponding date is defined and a (fully specified) range
 %
 will tell you if the corresponding date is defined and an open"=ended range. Open"=ended ranges are indicated by an empty \texttt{endyear} component (as opposed to an undefined \texttt{endyear} component). See \secref{bib:use:dat} and \tabref{bib:use:tab1} on page~\pageref{bib:use:tab1} for further examples.
 
+\begingroup
 \tablesetup
 \begin{longtable}[l]{%
 	@{}V{0.15\textwidth}%
@@ -6493,6 +6495,7 @@ eventdate	& 1995-01-31/1995-02-05	& eventday	& 31 \\
 \caption{Date Interface}
 \label{aut:bbx:fld:tab1}
 \end{longtable}
+\endgroup
 
 \begin{fieldlist}
 
@@ -7151,7 +7154,7 @@ For example, here are the default sets defined by \biblatex for name fields and 
 
 \end{ltxsyntax}
 
-\begin{ltxexample}[style=latex]{}
+\begin{ltxexample}[style=latex]
 \DeclareDatafieldSet{setnames}{
   \member[datatype=name, fieldtype=list]
 }
@@ -7239,7 +7242,7 @@ Loop over all \cmd{step}s in this \cmd{map}, setting the special variable |$MAPL
 to each of the comma-separated values contained in \prm{loopval}. \prm{loopval} can either be the name of a datafield set defined with \cmd{DeclareDatafieldSet} (see \secref{aut:ctm:dsets}), a datasource field which is fetched and parsed as a comma"=separated values list or an explicit comma"=separated values list. \prm{loopval} is determined in this order. This allows the user to repeat a group of \cmd{step}s for each value \prm{loopval}. Using regexp maps, it is possible to create a CSV field for use with this functionality. The special variable |$MAPUNIQ| %$
 may also be used the \cmd{step}s to generate a random unique string. This can be useful when creating keys for new entries. An example:
 
-\begin{ltxexample}[style=latex]{}
+\begin{ltxexample}[style=latex]
 \DeclareSourcemap{
   \maps[datatype=bibtex]{
     \map[overwrite, foreach={author,editor, translator}]{
@@ -8677,8 +8680,8 @@ An example of transliterating titles so that they sort correctly in Sanskrit:
   & \sffamily\bfseries\spotcolor To
   & Description\\
 \midrule
-iast & devanagari & Sanskrit IAST\footnote{International Alphabet of Sanskrit Transliteration} to Devanāgarī\\
-russian & ala-lc & ALA-LC\footnote{American Library Association---Library of Congress} romanisation for Russian\\
+iast & devanagari & Sanskrit IAST to Devanāgarī\\
+russian & ala-lc & ALA-LC romanisation for Russian\\
 russian & bgn/pcgn-standard & BGN/PCGN:1947 (Standard Variant), Cyrillic to Latin, Russian\\
  \bottomrule
 \end{tabular}
@@ -10016,9 +10019,9 @@ This command configures the \cmd{ifnumerals} and \cmd{ifpages} tests from \secre
 \DeclareRangeChars{~,;-+/}
 \end{ltxexample}
 
-On engines that fully support Unicode the default is
-\begin{ltxexample}
-\DeclareRangeChars{~,;-–—+/}
+For engines that fully support Unicode these defaults are extended with
+\begin{ltxexample}[escapeinside={(*@}{@*)}]
+\DeclareRangeChars*{(*@–—@*)}
 \end{ltxexample}
 %
 This means that strings like <3--5>, <35+>, <8/9> and so on will be considered as a range by \cmd{ifnumerals} and \cmd{ifpages}. Non-range characters in such strings are recognized as numbers. So strings like <3a--5a> and <35b+> are not deemed to be ranges by default. See also \secref{bib:use:pag, use:cav:pag} for further details.
@@ -10263,16 +10266,15 @@ The following commands configure various features related to punctuation and aut
 \cmditem{DeclarePrefChars}{characters}
 \cmditem*{DeclarePrefChars*}{characters}
 
-This command declares characters that are to be treated specially when testing to see if \cmd{bibnamedelimc} is to be inserted between a name prefix and a family name. If a character is in the list of \prm{characters}, \cmd{bibnamedelimc} is not inserted. It is used to allow abbreviated name prefices like <d'Argent> where no space should be inserted after the apostrophe. The starred version appends its argument to the list of prefix characters, the unstarred version replaces current setting. The default setting is:
+This command declares characters that are to be treated specially when testing to see if \cmd{bibnamedelimc} is to be inserted between a name prefix and a family name. If a character is in the list of \prm{characters}, \cmd{bibnamedelimc} is not inserted. It is used to allow abbreviated name prefices like <d'Argent> where no space should be inserted after the apostrophe. The starred version appends its argument to the list of prefix characters, the unstarred version replaces the current setting. The default setting is:
 
 \begin{ltxexample}
 \DeclarePrefChars{'-}
 \end{ltxexample}
 
-On engines that fully support Unicode the default is
-
-\begin{ltxexample}
-\DeclarePrefChars{'’-}
+For engines that fully support Unicode these defaults are extended with
+\begin{ltxexample}[escapeinside={(*@}{@*)}]
+\DeclarePrefChars*{(*@’@*)}
 \end{ltxexample}
 
 \cmditem{DeclareAutoPunctuation}{characters}
