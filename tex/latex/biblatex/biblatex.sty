@@ -7071,12 +7071,18 @@
 \def\blx@addset@ii#1{%
   \listcsgadd{blx@dlist@centry@\the\c@refsection @\blx@refcontext@context}{#1}}
 
+% {<csname>}{<field>/<format>}{<field>}
+\def\abx@flfw@getfieldformat#1#2#3{%
+  \blx@getformat\abx@tmp@theformat{ffd}{#2}{#3}%
+  \csletcs{#1}{abx@tmp@theformat}}
+
 \def\blx@bbl@labelfields{%
   \def\do##1{%
     \ifcsundef{abx@field@##1}
       {}
-      {\blx@setlabwidth{\csname ##1width\endcsname}{%
-         \csuse{abx@ffd@*@##1width}{\csname abx@field@##1\endcsname}}}}%
+      {\abx@flfw@getfieldformat{abx@flfw@##1width}{##1width}{##1}%
+       \blx@setlabwidth{\csname ##1width\endcsname}{%
+         \csuse{abx@flfw@##1width}{\csname abx@field@##1\endcsname}}}}%
   \abx@dolabelfields}
 
 \def\blx@bbl@labelnumber{%
@@ -7085,15 +7091,9 @@
   % the labelnumbers for each sortlist
   \ifdefempty\abx@field@localnumber
     {}% only if omitnumbers=true
-    {\ifcsundef{abx@ffd@\blx@imc@thefield{entrytype}@labelnumberwidth}
-       {\letcs{\@lnw@labelnumberwidth}{abx@ffd@*@labelnumberwidth}}
-       {\letcs{\@lnw@labelnumberwidth}{abx@ffd@\blx@imc@thefield{entrytype}@labelnumberwidth}}%
-     \ifcsundef{abx@ffd@\blx@imc@thefield{entrytype}@labelprefix}
-       {\letcs{\@lnw@labelprefix}{abx@ffd@*@labelprefix}}
-       {\letcs{\@lnw@labelprefix}{abx@ffd@\blx@imc@thefield{entrytype}@labelprefix}}%
-     \ifcsundef{abx@ffd@\blx@imc@thefield{entrytype}@labelnumber}
-       {\letcs{\@lnw@labelnumber}{abx@ffd@*@labelnumber}}
-       {\letcs{\@lnw@labelnumber}{abx@ffd@\blx@imc@thefield{entrytype}@labelnumber}}%
+    {\abx@flfw@getfieldformat{abx@flfw@labelnumberwidth}{labelnumberwidth}{}%
+     \abx@flfw@getfieldformat{abx@flfw@labelprefix}{labelprefix}{}%
+     \abx@flfw@getfieldformat{abx@flfw@labelnumber}{labelnumber}{}%
      \ifundef\abx@field@shorthand
       {\iftoggle{blx@defernumbers}
         % only if defernumbers=true, we have to define localnumber to
@@ -7116,16 +7116,17 @@
         \iftoggle{blx@skipbib}
           {}
           {\blx@setlabwidth{\labelnumberwidth}{%
-             \csuse{@lnw@labelnumberwidth}{%
+             \csuse{abx@flfw@labelnumberwidth}{%
                 \ifdef\abx@field@labelprefix
-                  {\csuse{@lnw@labelprefix}{\abx@field@labelprefix}}
+                  {\csuse{abx@flfw@labelprefix}{\abx@field@labelprefix}}
                   {}%
-                \csuse{@lnw@labelnumber}{\abx@field@localnumber}}}}}
+                \csuse{abx@flfw@labelnumber}{\abx@field@localnumber}}}}}
       {\csgappto\blx@bbl@data{\let\abx@field@labelnumber\abx@field@shorthand}%
         \iftoggle{blx@skipbib}
           {}
           {\blx@setlabwidth{\labelnumberwidth}{%
-              \csuse{@lnw@labelnumberwidth}{\abx@field@shorthand}}}}}}
+             \csuse{abx@flfw@labelnumberwidth}{%
+               \csuse{abx@flfw@labelnumber}{\abx@field@shorthand}}}}}}}
 
 \def\blx@bbl@labelalpha{%
    \ifundef\abx@field@labelalpha
@@ -7137,15 +7138,19 @@
          \fi}%
       \iftoggle{blx@skipbib}
         {}
-        {\blx@setlabwidth{\labelalphawidth}{%
-           \csuse{abx@ffd@*@labelalphawidth}{%
+        {\abx@flfw@getfieldformat{abx@flfw@labelalphawidth}{labelalphawidth}{}%
+         \abx@flfw@getfieldformat{abx@flfw@labelprefix}{labelprefix}{}%
+         \abx@flfw@getfieldformat{abx@flfw@labelalpha}{labelalpha}{}%
+         \abx@flfw@getfieldformat{abx@flfw@extraalpha}{extraalpha}{}%
+         \blx@setlabwidth{\labelalphawidth}{%
+           \csuse{abx@flfw@labelalphawidth}{%
              \ifdef\abx@field@labelprefix
-               {\csuse{abx@ffd@*@labelprefix}{\abx@field@labelprefix}}
+               {\csuse{abx@flfw@labelprefix}{\abx@field@labelprefix}}
                {}%
-             \csuse{abx@ffd@*@labelalpha}{\abx@field@labelalpha}%
+             \csuse{abx@flfw@labelalpha}{\abx@field@labelalpha}%
              \ifundef\abx@field@extraalpha
                {}
-               {\csuse{abx@ffd@*@extraalpha}{\abx@field@extraalpha}}}}}}}
+               {\csuse{abx@flfw@extraalpha}{\abx@field@extraalpha}}}}}}}
 
 \def\blx@bbl@labeltitle{%
   \ifundef\abx@field@extratitle
