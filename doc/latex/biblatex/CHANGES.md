@@ -113,13 +113,14 @@ Biber version 2.8 is required for biblatex 3.8
   `93-nameparts.tex` example file.
 
 ## `extrayear` is now `extradate` and the information used to track this can be customised
-- `extrayear` is called `extradate` now. Limited backwards compatibility is
+- *INCOMPATIBLE CHANGE* `extrayear` is called `extradate` now.
+  Limited backwards compatibility is
   in place to allow a smooth transition, but style developers should use the new name.
-- The new \DeclareExtradate command allows users to track authoryear
+- The new `\DeclareExtradate` command allows users to track authoryear
   disambiguation in arbitrary ways now, for example allowing disambiguation
   at month or day level instead of just year. See the PDF doc for details.
-- Some bibmacros from the `authoryear` style family were renamed,
-  `cite:labelyear+extrayear` becomes `cite:labeldate+extradate`,
+- *INCOMPATIBLE CHANGE* Some bibmacros from the `authoryear` style family
+  were renamed, `cite:labelyear+extrayear` becomes `cite:labeldate+extradate`,
   `cite:extrayear` is `cite:extradate` now, and `date+extrayear`
   is `date+extradate`. Some backwards compatibility code is present,
   but developers should make sure their code works as expected.
