@@ -6161,11 +6161,14 @@
 % Set up date era internals
 \def\blx@imc@ifdatemeta@ii#1{%
   \appto\blx@blxinit{%
-    \csdef{if#1dateera}##1{\ifcsstring{abx@field@#1dateera}{##1}}%
-    \csdef{if#1enddateera}##1{\ifcsstring{abx@field@#1enddateera}{##1}}%
-    \appto\blx@TE@hook{%
-      \csdef{if#1dateera}##1{\blx@TE{\ifcsstring{abx@field@#1dateera}{##1}}}%
-      \csdef{if#1enddateera}##1{\blx@TE{\ifcsstring{abx@field@#1enddateera}{##1}}}}}}
+    \blx@imc@ifdatemeta@iii{#1}}}
+
+\def\blx@imc@ifdatemeta@iii#1{%
+  \csdef{if#1dateera}##1{\ifcsstring{abx@field@#1dateera}{##1}}%
+  \csdef{if#1enddateera}##1{\ifcsstring{abx@field@#1enddateera}{##1}}%
+  \appto\blx@TE@hook{%
+    \csdef{if#1dateera}##1{\blx@TE{\ifcsstring{abx@field@#1dateera}{##1}}}%
+    \csdef{if#1enddateera}##1{\blx@TE{\ifcsstring{abx@field@#1enddateera}{##1}}}}}
 
 % Create date meta information boolean tests
 \def\do#1{%
@@ -6388,11 +6391,13 @@
   \dolistloop\abx@dorellists
   \let\do\blx@savefield
   \abx@dofields
+  \abx@dointernalfields
   \let\do\blx@saverelfield
   \dolistloop\abx@dorelfields
-  \abx@dointernalfields
   \let\do\blx@savebool
   \abx@dobooleans
+  \let\do\blx@savedatetype
+  \abx@dodatetypes
   \c@savedcitecounter\c@citecounter
   \let\do\blx@saved@do}
 
@@ -6426,7 +6431,27 @@
   \csletcs{abx@field@saved@#1}{abx@field@relsaved#1}}
 
 \protected\def\blx@savebool#1{%
-  \csletcs{abx@bool@saved#1}{abx@bool@#1}}
+  \csletcs{etb@tgl@abx@bool@saved#1}{etb@tgl@abx@bool@#1}}
+
+\protected\def\blx@savedatetype#1{%
+  \csletcs{blx@dateformat@saved#1date}{blx@dateformat@#1date}%
+  \protected\csedef{blx@imc@printsaved#1date}{%
+    \noexpand\csuse{mkdaterange\csuse{blx@dateformat@#1saveddate}}
+      {saved#1}}%
+  \protected\csedef{blx@imc@printsaved#1dateextra}{%
+    \noexpand\csuse{mkdaterange\csuse{blx@dateformat@#1saveddate}extra}
+      {saved#1}}%
+  \csletcs{blx@timeformat@saved#1time}{blx@timeformat@#1time}%
+  \protected\csedef{blx@imc@printsaved#1time}{%
+    \noexpand\csuse{mktimerange\csuse{blx@timeformat@saved#1time}}
+      {saved#1}}%
+  \blx@savebool{#1dateunknown}%
+  \blx@savebool{end#1dateunknown}%
+  \csletcs{etb@tgl@blx@saved#1dateusetime}{etb@tgl@blx@#1dateusetime}%
+  \blx@imc@ifdatemeta@iii{saved#1}%
+  \csletcs{printsaved#1date}{blx@imc@printsaved#1date}%
+  \csletcs{printsaved#1time}{blx@imc@printsaved#1time}%
+  \csletcs{printsaved#1dateextra}{blx@imc@printsaved#1dateextra}}
 
 % {<code>}
 \protected\long\def\blx@bbl@preamble#1{%
