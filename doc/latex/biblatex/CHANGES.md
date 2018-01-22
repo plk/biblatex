@@ -25,6 +25,10 @@
   was not changed to include `\mknormrange` because the contents
   of that field are prepared by the backend and Biber already does
   the page range normalisation out of the box.
+- The standard definitions for headings were changed to be as close to the
+  defaults of the standard document classes or KOMA/memoir as possible.
+  **PLEASE CHECK** if your document headers relied on the behaviour of older
+  versions.
 - The `@unpublished` entry type now also supports `type`, `eventtitle`,
   `eventdate` and `venue`.
 
