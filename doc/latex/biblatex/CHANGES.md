@@ -29,6 +29,8 @@
   defaults of the standard document classes or KOMA/memoir as possible.
   **PLEASE CHECK** if your document headers relied on the behaviour of older
   versions.
+- The `@unpublished` entry type now also supports `type`, `eventtitle`,
+  `eventdate` and `venue`.
 
 # RELEASE NOTES FOR VERSION 3.10
 - **INCOMPATIBLE CHANGE** The recent ISO8601:201x standard supersedes
