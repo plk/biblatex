@@ -5146,7 +5146,9 @@
   \letcs\ifdatejulian{if#1datejulian}%
   \letcs\ifenddatejulian{if#1enddatejulian}%
   \letcs\ifdateuncertain{if#1dateuncertain}%
-  \letcs\ifenddateuncertain{if#1enddateuncertain}}
+  \letcs\ifenddateuncertain{if#1enddateuncertain}%
+  \letcs\ifdateunknown{if#1dateunknown}%
+  \letcs\ifenddateunknown{if#1enddateunknown}}
 
 \expandafter\newrobustcmd\expandafter*\csname mktimerange24h\endcsname{%
   \mktimerange{24h}}
@@ -6080,7 +6082,9 @@
   \cslet{if#1datejulian}\@secondoftwo
   \cslet{if#1enddatejulian}\@secondoftwo
   \cslet{if#1dateuncertain}\@secondoftwo
-  \cslet{if#1enddateuncertain}\@secondoftwo}
+  \cslet{if#1enddateuncertain}\@secondoftwo
+  \cslet{if#1dateunknown}\@secondoftwo
+  \cslet{if#1enddateunknown}\@secondoftwo}
 \abx@dodatetypes
 \do{labeldate}
 
@@ -6098,7 +6102,9 @@
   \listxadd\blx@datemetabooleans{#1datejulian}%
   \listxadd\blx@datemetabooleans{#1enddatejulian}%
   \listxadd\blx@datemetabooleans{#1dateuncertain}%
-  \listxadd\blx@datemetabooleans{#1enddateuncertain}}
+  \listxadd\blx@datemetabooleans{#1enddateuncertain}%
+  \listxadd\blx@datemetabooleans{#1dateunknown}%
+  \listxadd\blx@datemetabooleans{#1enddateunknown}}
 \abx@dodatetypes
 
 \def\do#1{%
@@ -6208,7 +6214,8 @@
 \def\do#1{%
   \blx@makeifdatemeta@bools@i{#1}{circa}%
   \blx@makeifdatemeta@bools@i{#1}{julian}%
-  \blx@makeifdatemeta@bools@i{#1}{uncertain}}
+  \blx@makeifdatemeta@bools@i{#1}{uncertain}%
+  \blx@makeifdatemeta@bools@i{#1}{unknown}}
 \abx@dodatetypes
 
 % Create date meta information field tests
@@ -6484,18 +6491,20 @@
   \protected\csedef{blx@imc@printsaved#1time}{%
     \noexpand\csuse{mktimerange\csuse{blx@timeformat@saved#1time}}
       {saved#1}}%
-  \blx@savebool{#1dateunknown}%
-  \blx@savebool{#1enddateunknown}%
+  \csletcs{etb@tgl@blx@saved#1dateusetime}{etb@tgl@blx@#1dateusetime}%
+  % the datemetabooleans are here again for labeldate
   \blx@savebool{#1datecirca}%
   \blx@savebool{#1enddatecirca}%
   \blx@savebool{#1datejulian}%
   \blx@savebool{#1enddatejulian}%
   \blx@savebool{#1dateuncertain}%
   \blx@savebool{#1enddateuncertain}%
-  \csletcs{etb@tgl@blx@saved#1dateusetime}{etb@tgl@blx@#1dateusetime}%
+  \blx@savebool{#1dateunknown}%
+  \blx@savebool{#1enddateunknown}%
   \blx@makeifdatemeta@bools{saved#1}{circa}%
   \blx@makeifdatemeta@bools{saved#1}{julian}%
   \blx@makeifdatemeta@bools{saved#1}{uncertain}%
+  \blx@makeifdatemeta@bools{saved#1}{unknown}%
   \blx@makeifdatemeta@fields{saved#1}%
   \csletcs{printsaved#1date}{blx@imc@printsaved#1date}%
   \csletcs{printsaved#1time}{blx@imc@printsaved#1time}%
@@ -6962,6 +6971,13 @@
           {}%
         \ifcsdef{etb@tgl@abx@bool@\abx@field@labeldatesource enddateuncertain}
           {\csletcs{etb@tgl@abx@bool@labelenddateuncertain}{etb@tgl@abx@bool@\abx@field@labeldatesource enddateuncertain}}
+          {}%
+        % labeldateunknown/labelenddateunknown
+        \ifcsdef{etb@tgl@abx@bool@\abx@field@labeldatesource dateunknown}
+          {\csletcs{etb@tgl@abx@bool@labeldateunknown}{etb@tgl@abx@bool@\abx@field@labeldatesource dateunknown}}
+          {}%
+        \ifcsdef{etb@tgl@abx@bool@\abx@field@labeldatesource enddateunknown}
+          {\csletcs{etb@tgl@abx@bool@labelenddateunknown}{etb@tgl@abx@bool@\abx@field@labeldatesource enddateunknown}}
           {}}}}
 
 % This gets the entry data for a citation
@@ -13168,9 +13184,6 @@
         {\blx@err@invopt{#1time=##1}{}}}%
     % Default for new time fields is "24h"
     \setkeys{blx@opt@pre}{#1time=24h}%
-    % Boolean for unknown dates
-    \newtoggle{abx@bool@#1dateunknown}%
-    \newtoggle{abx@bool@end#1dateunknown}%
     % Boolean to determine if times are printed with dates
     \newtoggle{blx@#1dateusetime}%
     \DeclareBibliographyOption[boolean]{#1dateusetime}{%
