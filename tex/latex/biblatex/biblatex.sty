@@ -5137,6 +5137,7 @@
 \newrobustcmd*{\mkdaterangecompextra}{%
   \mkdaterangetruncextra{long}}
 
+% calls to \blx@metadateinfo should be grouped to avoid name clashes
 \def\blx@metadateinfo#1{%
   \letcs\ifdateera{if#1dateera}%
   \letcs\ifenddateera{if#1enddateera}%
@@ -5145,7 +5146,9 @@
   \letcs\ifdatejulian{if#1datejulian}%
   \letcs\ifenddatejulian{if#1enddatejulian}%
   \letcs\ifdateuncertain{if#1dateuncertain}%
-  \letcs\ifenddateuncertain{if#1enddateuncertain}}
+  \letcs\ifenddateuncertain{if#1enddateuncertain}%
+  \letcs\ifdateunknown{if#1dateunknown}%
+  \letcs\ifenddateunknown{if#1enddateunknown}}
 
 \expandafter\newrobustcmd\expandafter*\csname mktimerange24h\endcsname{%
   \mktimerange{24h}}
@@ -5197,138 +5200,144 @@
 
 % {<short|long>}{<datetype>}
 \newrobustcmd*{\mkdaterangefull}[2]{%
-  \blx@metadateinfo{#2}%
-  \iffieldundef{#2year}
-    {}
-    {\datecircaprint
-     \printtext[#2date]{%
-       % Such a season component can only come from an ISO8601 season which replaces
-       % a normal month so if it exists, we know that a normal date print is ruled out
-       \iffieldundef{#2season}
-         {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
-          % Optionally print the time after the date
-          \blx@printtime{#2}{}}
-         {\csuse{mkbibseasondate#1}{#2year}{#2season}}%
-       \dateuncertainprint
-       \dateeraprint{#2year}%
-       \iffieldundef{#2endyear}
-         {}
-         {\iffieldequalstr{#2endyear}{}
-            {\mbox{\bibdaterangesep}}
-            {\bibdaterangesep
-             \enddatecircaprint
-             \iffieldundef{#2season}
-               {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}%
-                % Optionally print the time after the date
-                \blx@printtime{#2}{end}}
-               {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}%
-             \enddateuncertainprint
-             \dateeraprint{#2endyear}}}}}}
-
-\newrobustcmd*{\mkdaterangetrunc}[2]{%
-  \blx@metadateinfo{#2}%
-  \iffieldundef{#2year}
-    {}
-    {\datecircaprint
-     \printtext[#2date]{%
-       % Such a season component can only come from an ISO8601 season which replaces
-       % a normal month so if it exists, we know that a normal date print is ruled out
-       \iffieldundef{#2season}
-         {\iffieldsequal{#2year}{#2endyear}
-            {\iffieldsequal{#2month}{#2endmonth}
-               {\csuse{mkbibdate#1}{}{}{#2day}}
-               {\csuse{mkbibdate#1}{}{#2month}{#2day}}}
-            {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
-             \iffieldsequal{#2dateera}{#2enddateera}{}
-              {\dateeraprint{#2year}}}}
-         {\iffieldsequal{#2year}{#2endyear}
-           {\csuse{mkbibseasondate#1}{}{#2season}}
-           {\csuse{mkbibseasondate#1}{#2year}{#2season}%
-            \iffieldsequal{#2dateera}{#2enddateera}{}
-              {\dateeraprint{#2year}}}}%
-       \dateuncertainprint
-       \iffieldundef{#2endyear}
-         {}
-         {\iffieldequalstr{#2endyear}{}
-            {\mbox{\bibdaterangesep}}
-            {\bibdaterangesep
-             \enddatecircaprint
-             \iffieldundef{#2season}
-               {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}
-               {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}%
-             \enddateuncertainprint
-             \dateeraprint{#2endyear}}}}}}
-
-\newrobustcmd*{\mkdaterangefullextra}[2]{%
-  \blx@metadateinfo{#2}%
-  \iffieldundef{#2year}
-    {}
-    {\datecircaprint
-     \printtext[#2date]{%
-       \printtext{%
-       % Such a season component can only come from an ISO8601 season which replaces
-       % a normal month so if it exists, we know that a normal date print is ruled out
-       \iffieldundef{#2season}
-         {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
-          % Optionally print the time after the date
-          \blx@printtime{#2}{}}
-         {\csuse{mkbibseasondate#1}{#2year}{#2season}}%
-       \dateuncertainprint
-       \dateeraprint{#2year}%
-       \iffieldundef{#2endyear}
-         {\printfield{extradate}}
-         {\iffieldequalstr{#2endyear}{}
-            {\printfield{extradate}%
-             \printtext{\mbox{\bibdaterangesep}}}
-            {\printtext{%
-               \bibdaterangesep
+  \begingroup
+    \blx@metadateinfo{#2}%
+    \iffieldundef{#2year}
+      {}
+      {\printtext[#2date]{%
+         \datecircaprint
+         % Such a season component can only come from an ISO8601 season which replaces
+         % a normal month so if it exists, we know that a normal date print is ruled out
+         \iffieldundef{#2season}
+           {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
+            % Optionally print the time after the date
+            \blx@printtime{#2}{}}
+           {\csuse{mkbibseasondate#1}{#2year}{#2season}}%
+         \dateuncertainprint
+         \dateeraprint{#2year}%
+         \iffieldundef{#2endyear}
+           {}
+           {\iffieldequalstr{#2endyear}{}
+              {\mbox{\bibdaterangesep}}
+              {\bibdaterangesep
                \enddatecircaprint
                \iffieldundef{#2season}
                  {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}%
                   % Optionally print the time after the date
                   \blx@printtime{#2}{end}}
-                 {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}}%
-               \printfield{extradate}%
+                 {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}%
                \enddateuncertainprint
-               \dateeraprint{#2endyear}}}}}}}
+               \dateeraprint{#2endyear}}}}}%
+  \endgroup}
 
-\newrobustcmd*{\mkdaterangetruncextra}[2]{%
-  \blx@metadateinfo{#2}%
-  \iffieldundef{#2year}
-    {}
-    {\datecircaprint
-     \printtext[#2date]{%
-       \printtext{%
-       % Such a season component can only come from an ISO8601 season which replaces
-       % a normal month so if it exists, we know that a normal date print is ruled out
-       \iffieldundef{#2season}
-         {\iffieldsequal{#2year}{#2endyear}
-            {\iffieldsequal{#2month}{#2endmonth}
-               {\csuse{mkbibdate#1}{}{}{#2day}}
-               {\csuse{mkbibdate#1}{}{#2month}{#2day}}}
-            {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
-             \iffieldsequal{#2dateera}{#2enddateera}{}
-               {\dateeraprint{#2year}}}}
-         {\iffieldsequal{#2year}{#2endyear}
-           {\csuse{mkbibseasondate#1}{}{#2season}}
-           {\csuse{mkbibseasondate#1}{#2year}{#2season}%
-             \iffieldsequal{#2dateera}{#2enddateera}{}
-              {\dateeraprint{#2year}}}}%
-       \dateuncertainprint
-       \iffieldundef{#2endyear}
-         {\printfield{extradate}}
-         {\iffieldequalstr{#2endyear}{}
-            {\printfield{extradate}%
-             \printtext{\mbox{\bibdaterangesep}}}
-            {\printtext{%
-               \bibdaterangesep
+\newrobustcmd*{\mkdaterangetrunc}[2]{%
+  \begingroup
+    \blx@metadateinfo{#2}%
+    \iffieldundef{#2year}
+      {}
+      {\printtext[#2date]{%
+         \datecircaprint
+         % Such a season component can only come from an ISO8601 season which replaces
+         % a normal month so if it exists, we know that a normal date print is ruled out
+         \iffieldundef{#2season}
+           {\iffieldsequal{#2year}{#2endyear}
+              {\iffieldsequal{#2month}{#2endmonth}
+                 {\csuse{mkbibdate#1}{}{}{#2day}}
+                 {\csuse{mkbibdate#1}{}{#2month}{#2day}}}
+              {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
+               \iffieldsequal{#2dateera}{#2enddateera}{}
+                {\dateeraprint{#2year}}}}
+           {\iffieldsequal{#2year}{#2endyear}
+             {\csuse{mkbibseasondate#1}{}{#2season}}
+             {\csuse{mkbibseasondate#1}{#2year}{#2season}%
+              \iffieldsequal{#2dateera}{#2enddateera}{}
+                {\dateeraprint{#2year}}}}%
+         \dateuncertainprint
+         \iffieldundef{#2endyear}
+           {}
+           {\iffieldequalstr{#2endyear}{}
+              {\mbox{\bibdaterangesep}}
+              {\bibdaterangesep
                \enddatecircaprint
                \iffieldundef{#2season}
                  {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}
-                 {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}}%
-               \printfield{extradate}%
+                 {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}%
                \enddateuncertainprint
-               \dateeraprint{#2endyear}}}}}}}
+               \dateeraprint{#2endyear}}}}}%
+  \endgroup}
+
+\newrobustcmd*{\mkdaterangefullextra}[2]{%
+  \begingroup
+    \blx@metadateinfo{#2}%
+    \iffieldundef{#2year}
+      {}
+      {\printtext[#2date]{%
+         \datecircaprint
+         % Such a season component can only come from an ISO8601 season which replaces
+         % a normal month so if it exists, we know that a normal date print is ruled out
+         \iffieldundef{#2season}
+           {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
+            % Optionally print the time after the date
+            \blx@printtime{#2}{}}
+           {\csuse{mkbibseasondate#1}{#2year}{#2season}}%
+         \dateuncertainprint
+         \dateeraprint{#2year}%
+         \iffieldundef{#2endyear}
+           {\printfield{extradate}}
+           {\iffieldequalstr{#2endyear}{}
+              {\printfield{extradate}%
+               \printtext{\mbox{\bibdaterangesep}}}
+              {\printtext{%
+                 \bibdaterangesep
+                 \enddatecircaprint
+                 \iffieldundef{#2season}
+                   {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}%
+                    % Optionally print the time after the date
+                    \blx@printtime{#2}{end}}
+                   {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}}%
+                 \printfield{extradate}%
+                 \enddateuncertainprint
+                 \dateeraprint{#2endyear}}}}}%
+  \endgroup}
+
+\newrobustcmd*{\mkdaterangetruncextra}[2]{%
+  \begingroup
+    \blx@metadateinfo{#2}%
+    \iffieldundef{#2year}
+      {}
+      {\printtext[#2date]{%
+         \datecircaprint
+         % Such a season component can only come from an ISO8601 season which replaces
+         % a normal month so if it exists, we know that a normal date print is ruled out
+         \iffieldundef{#2season}
+           {\iffieldsequal{#2year}{#2endyear}
+              {\iffieldsequal{#2month}{#2endmonth}
+                 {\csuse{mkbibdate#1}{}{}{#2day}}
+                 {\csuse{mkbibdate#1}{}{#2month}{#2day}}}
+              {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
+               \iffieldsequal{#2dateera}{#2enddateera}{}
+                 {\dateeraprint{#2year}}}}
+           {\iffieldsequal{#2year}{#2endyear}
+             {\csuse{mkbibseasondate#1}{}{#2season}}
+             {\csuse{mkbibseasondate#1}{#2year}{#2season}%
+               \iffieldsequal{#2dateera}{#2enddateera}{}
+                {\dateeraprint{#2year}}}}%
+         \dateuncertainprint
+         \iffieldundef{#2endyear}
+           {\printfield{extradate}}
+           {\iffieldequalstr{#2endyear}{}
+              {\printfield{extradate}%
+               \printtext{\mbox{\bibdaterangesep}}}
+              {\printtext{%
+                 \bibdaterangesep
+                 \enddatecircaprint
+                 \iffieldundef{#2season}
+                   {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}
+                   {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}}%
+                 \printfield{extradate}%
+                 \enddateuncertainprint
+                 \dateeraprint{#2endyear}}}}}%
+  \endgroup}
 
 \newrobustcmd*{\mkdaterangeyear}[1]{%
   \blx@imc@clearfield{#1season}%
@@ -5352,64 +5361,68 @@
 
 % {<datetype>}
 \newrobustcmd*{\mkdaterangeymd}[1]{%
-  \blx@metadateinfo{#1}%
-  \iffieldundef{#1year}
-    {}
-    {\datecircaprint
-     \printtext[#1date]{%
-       % Such a season component can only come from an  ISO8601 season which replaces
-       % a normal month so if it exists, we know that a normal date print is ruled out
-       \iffieldundef{#1season}
-         {\blx@ymddate{#1}{}%
-          % Optionally print the time after the date
-          \blx@printtime{#1}{}}
-         {\csuse{mkbibseasondateshort}{#1year}{#1season}}%
-       \dateuncertainprint
-       \dateeraprint{#1year}%
-       \iffieldundef{#1endyear}
-         {}
-         {\iffieldequalstr{#1endyear}{}
-            {\mbox{\bibdaterangesep}}
-            {\bibdaterangesep
-             \enddatecircaprint
-             \iffieldundef{#1season}
-               {\blx@ymddate{#1}{end}%
-                % Optionally print the time after the date
-                \blx@printtime{#1}{end}}
-               {\csuse{mkbibseasondateshort}{#1endyear}{#1endseason}}%
-             \enddateuncertainprint
-             \dateeraprint{#1endyear}}}}}}
-
-% {<datetype>}
-\newrobustcmd*{\mkdaterangeymdextra}[1]{%
-  \blx@metadateinfo{#1}%
-  \iffieldundef{#1year}
-    {}
-    {\datecircaprint
-     \printtext[#1date]{%
-       % Such a season component can only come from an ISO8601 season which replaces
-       % a normal month so if it exists, we know that a normal date print is ruled out
-       \iffieldundef{#1season}
-         {\blx@ymddate[extradate]{#1}{}%
-          % Optionally print the time after the date
-          \blx@printtime{#1}{}}
-         {\csuse{mkbibseasondateshort}{#1year}{#1season}}%
-       \dateuncertainprint
-       \dateeraprint{#1year}%
-       \iffieldundef{#1endyear}
-         {}
-         {\iffieldequalstr{#1endyear}{}
-            {\mbox{\bibdaterangesep}}
-            {\printtext{%
-               \bibdaterangesep
+  \begingroup
+    \blx@metadateinfo{#1}%
+    \iffieldundef{#1year}
+      {}
+      {\printtext[#1date]{%
+         \datecircaprint
+         % Such a season component can only come from an  ISO8601 season which replaces
+         % a normal month so if it exists, we know that a normal date print is ruled out
+         \iffieldundef{#1season}
+           {\blx@ymddate{#1}{}%
+            % Optionally print the time after the date
+            \blx@printtime{#1}{}}
+           {\csuse{mkbibseasondateshort}{#1year}{#1season}}%
+         \dateuncertainprint
+         \dateeraprint{#1year}%
+         \iffieldundef{#1endyear}
+           {}
+           {\iffieldequalstr{#1endyear}{}
+              {\mbox{\bibdaterangesep}}
+              {\bibdaterangesep
                \enddatecircaprint
                \iffieldundef{#1season}
                  {\blx@ymddate{#1}{end}%
                   % Optionally print the time after the date
                   \blx@printtime{#1}{end}}
-                 {\csuse{mkbibseasondateshort}{#1endyear}{#1endseason}}}%
-             \enddateuncertainprint
-             \dateeraprint{#1endyear}}}}}}
+                 {\csuse{mkbibseasondateshort}{#1endyear}{#1endseason}}%
+               \enddateuncertainprint
+               \dateeraprint{#1endyear}}}}}%
+  \endgroup}
+
+% {<datetype>}
+\newrobustcmd*{\mkdaterangeymdextra}[1]{%
+  \begingroup
+    \blx@metadateinfo{#1}%
+    \iffieldundef{#1year}
+      {}
+      {\printtext[#1date]{%
+         \datecircaprint
+         % Such a season component can only come from an ISO8601 season which replaces
+         % a normal month so if it exists, we know that a normal date print is ruled out
+         \iffieldundef{#1season}
+           {\blx@ymddate[extradate]{#1}{}%
+            % Optionally print the time after the date
+            \blx@printtime{#1}{}}
+           {\csuse{mkbibseasondateshort}{#1year}{#1season}}%
+         \dateuncertainprint
+         \dateeraprint{#1year}%
+         \iffieldundef{#1endyear}
+           {}
+           {\iffieldequalstr{#1endyear}{}
+              {\mbox{\bibdaterangesep}}
+              {\printtext{%
+                 \bibdaterangesep
+                 \enddatecircaprint
+                 \iffieldundef{#1season}
+                   {\blx@ymddate{#1}{end}%
+                    % Optionally print the time after the date
+                    \blx@printtime{#1}{end}}
+                   {\csuse{mkbibseasondateshort}{#1endyear}{#1endseason}}}%
+               \enddateuncertainprint
+               \dateeraprint{#1endyear}}}}}%
+  \endgroup}
 
 % [extradate]{<datetype>}{''|end}
 \newrobustcmd*{\blx@ymddate}[3][]{%
@@ -5450,64 +5463,68 @@
     {}}
 
 \newrobustcmd*{\mkdaterangeiso}[1]{%
-  \blx@metadateinfo{#1}%
-  \def\bibdatetimesep{T}%
-  \iffieldundef{#1year}
-    {}
-    {\printtext[#1date]{%
-       \blx@isodate{#1}{}%
-       \ifboolexpr{%
-         togl {blx@#1dateusetime}
-         and
-         not test {\iffieldundef{#1hour}}}
-         {\printtext{\bibdatetimesep}%
-          \blx@isotime{#1}{}}
-         {}%
-       \dateuncertainprint
-       \datecircaprintiso
-       \iffieldundef{#1endyear}
-         {}
-         {\addslash
-          \blx@isodate{#1}{end}%
-          \ifboolexpr{%
-            togl {blx@#1dateusetime}
-            and
-            not test {\iffieldundef{#1endhour}}}
-            {\printtext{\bibdatetimesep}%
-             \blx@isotime{#1}{end}}
-            {}%
-         \enddateuncertainprint
-         \enddatecircaprintiso}}}}
+  \begingroup
+    \blx@metadateinfo{#1}%
+    \def\bibdatetimesep{T}%
+    \iffieldundef{#1year}
+      {}
+      {\printtext[#1date]{%
+         \blx@isodate{#1}{}%
+         \ifboolexpr{%
+           togl {blx@#1dateusetime}
+           and
+           not test {\iffieldundef{#1hour}}}
+           {\printtext{\bibdatetimesep}%
+            \blx@isotime{#1}{}}
+           {}%
+         \dateuncertainprint
+         \datecircaprintiso
+         \iffieldundef{#1endyear}
+           {}
+           {\addslash
+            \blx@isodate{#1}{end}%
+            \ifboolexpr{%
+              togl {blx@#1dateusetime}
+              and
+              not test {\iffieldundef{#1endhour}}}
+              {\printtext{\bibdatetimesep}%
+               \blx@isotime{#1}{end}}
+              {}%
+           \enddateuncertainprint
+           \enddatecircaprintiso}}}%
+  \endgroup}
 
 \newrobustcmd*{\mkdaterangeisoextra}[1]{%
-  \blx@metadateinfo{#1}%
-  \def\bibdatetimesep{T}%
-  \iffieldundef{#1year}
-    {}
-    {\printtext[#1date]{%
-       \blx@isodate[extradate]{#1}{}%
-       \ifboolexpr{%
-         togl {blx@#1dateusetime}
-         and
-         not test {\iffieldundef{#1hour}}}
-         {\printtext{\bibdatetimesep}%
-          \blx@isotime{#1}{}}
-         {}%
-       \dateuncertainprint
-       \datecircaprintiso
-       \iffieldundef{#1endyear}
-         {}
-         {\addslash
-          \blx@isodate{#1}{end}}%
-          \ifboolexpr{%
-            togl {blx@#1dateusetime}
-            and
-            not test {\iffieldundef{#1endhour}}}
-            {\printtext{\bibdatetimesep}%
-             \blx@isotime{#1}{end}}
-            {}%
-          \enddateuncertainprint
-          \enddatecircaprintiso}}}
+  \begingroup
+    \blx@metadateinfo{#1}%
+    \def\bibdatetimesep{T}%
+    \iffieldundef{#1year}
+      {}
+      {\printtext[#1date]{%
+         \blx@isodate[extradate]{#1}{}%
+         \ifboolexpr{%
+           togl {blx@#1dateusetime}
+           and
+           not test {\iffieldundef{#1hour}}}
+           {\printtext{\bibdatetimesep}%
+            \blx@isotime{#1}{}}
+           {}%
+         \dateuncertainprint
+         \datecircaprintiso
+         \iffieldundef{#1endyear}
+           {}
+           {\addslash
+            \blx@isodate{#1}{end}}%
+            \ifboolexpr{%
+              togl {blx@#1dateusetime}
+              and
+              not test {\iffieldundef{#1endhour}}}
+              {\printtext{\bibdatetimesep}%
+               \blx@isotime{#1}{end}}
+              {}%
+            \enddateuncertainprint
+            \enddatecircaprintiso}}%
+  \endgroup}
 
 % [extradate]{<datetype>}{''|end}
 \newrobustcmd*{\blx@isodate}[3][]{%
@@ -6065,7 +6082,9 @@
   \cslet{if#1datejulian}\@secondoftwo
   \cslet{if#1enddatejulian}\@secondoftwo
   \cslet{if#1dateuncertain}\@secondoftwo
-  \cslet{if#1enddateuncertain}\@secondoftwo}
+  \cslet{if#1enddateuncertain}\@secondoftwo
+  \cslet{if#1dateunknown}\@secondoftwo
+  \cslet{if#1enddateunknown}\@secondoftwo}
 \abx@dodatetypes
 \do{labeldate}
 
@@ -6083,7 +6102,9 @@
   \listxadd\blx@datemetabooleans{#1datejulian}%
   \listxadd\blx@datemetabooleans{#1enddatejulian}%
   \listxadd\blx@datemetabooleans{#1dateuncertain}%
-  \listxadd\blx@datemetabooleans{#1enddateuncertain}}
+  \listxadd\blx@datemetabooleans{#1enddateuncertain}%
+  \listxadd\blx@datemetabooleans{#1dateunknown}%
+  \listxadd\blx@datemetabooleans{#1enddateunknown}}
 \abx@dodatetypes
 
 \def\do#1{%
@@ -6102,6 +6123,22 @@
   \do{labeldatesource}%
   \do{labeldateera}%
   \do{labelenddateera}%
+  \do{labelyear}%
+  \do{labelendyear}%
+  \do{labelmonth}%
+  \do{labelendmonth}%
+  \do{labelday}%
+  \do{labelendday}%
+  \do{labelhour}%
+  \do{labelendhour}%
+  \do{labelminute}%
+  \do{labelendminute}%
+  \do{labelsecond}%
+  \do{labelendsecond}%
+  \do{labeltimezone}%
+  \do{labelendtimezone}%
+  \do{labelseason}%
+  \do{labelendseason}%
   \do{entrykey}%
   \do{entryset}%
   \do{entrysetcount}%
@@ -6150,33 +6187,40 @@
 \abx@dodatetypes
 
 % Set up circa, julian and uncertain date internals
-\def\blx@imc@ifdatemeta@i#1#2{%
+\def\blx@makeifdatemeta@bools@i#1#2{%
   \appto\blx@blxinit{%
-    \csdef{if#1date#2}{\iftoggle{abx@bool@#1date#2}}%
-    \csdef{if#1enddate#2}{\iftoggle{abx@bool@#1enddate#2}}%
-    \appto\blx@TE@hook{%
-      \csdef{if#1date#2}{\blx@TE{\iftoggle{abx@bool@#1date#2}}}%
-      \csdef{if#1enddate#2}{\blx@TE{\iftoggle{abx@bool@#1enddate#2}}}}}}
+    \blx@makeifdatemeta@bools{#1}{#2}}}
+
+\def\blx@makeifdatemeta@bools#1#2{%
+  \csdef{if#1date#2}{\iftoggle{abx@bool@#1date#2}}%
+  \csdef{if#1enddate#2}{\iftoggle{abx@bool@#1enddate#2}}%
+  \appto\blx@TE@hook{%
+    \csdef{if#1date#2}{\blx@TE{\iftoggle{abx@bool@#1date#2}}}%
+    \csdef{if#1enddate#2}{\blx@TE{\iftoggle{abx@bool@#1enddate#2}}}}}
 
 % Set up date era internals
-\def\blx@imc@ifdatemeta@ii#1{%
+\def\blx@makeifdatemeta@fields@i#1{%
   \appto\blx@blxinit{%
-    \csdef{if#1dateera}##1{\ifcsstring{abx@field@#1dateera}{##1}}%
-    \csdef{if#1enddateera}##1{\ifcsstring{abx@field@#1enddateera}{##1}}%
-    \appto\blx@TE@hook{%
-      \csdef{if#1dateera}##1{\blx@TE{\ifcsstring{abx@field@#1dateera}{##1}}}%
-      \csdef{if#1enddateera}##1{\blx@TE{\ifcsstring{abx@field@#1enddateera}{##1}}}}}}
+    \blx@makeifdatemeta@fields{#1}}}
+
+\def\blx@makeifdatemeta@fields#1{%
+  \csdef{if#1dateera}##1{\ifcsstring{abx@field@#1dateera}{##1}}%
+  \csdef{if#1enddateera}##1{\ifcsstring{abx@field@#1enddateera}{##1}}%
+  \appto\blx@TE@hook{%
+    \csdef{if#1dateera}##1{\blx@TE{\ifcsstring{abx@field@#1dateera}{##1}}}%
+    \csdef{if#1enddateera}##1{\blx@TE{\ifcsstring{abx@field@#1enddateera}{##1}}}}}
 
 % Create date meta information boolean tests
 \def\do#1{%
-  \blx@imc@ifdatemeta@i{#1}{circa}%
-  \blx@imc@ifdatemeta@i{#1}{julian}%
-  \blx@imc@ifdatemeta@i{#1}{uncertain}}
+  \blx@makeifdatemeta@bools@i{#1}{circa}%
+  \blx@makeifdatemeta@bools@i{#1}{julian}%
+  \blx@makeifdatemeta@bools@i{#1}{uncertain}%
+  \blx@makeifdatemeta@bools@i{#1}{unknown}}
 \abx@dodatetypes
 
 % Create date meta information field tests
 \def\do#1{%
-  \blx@imc@ifdatemeta@ii{#1}}
+  \blx@makeifdatemeta@fields@i{#1}}
 \abx@dodatetypes
 
 % Resolve date meta information tests and print routines for labeldate
@@ -6388,11 +6432,14 @@
   \dolistloop\abx@dorellists
   \let\do\blx@savefield
   \abx@dofields
+  \abx@dointernalfields
   \let\do\blx@saverelfield
   \dolistloop\abx@dorelfields
-  \abx@dointernalfields
   \let\do\blx@savebool
   \abx@dobooleans
+  \let\do\blx@savedatetype
+  \abx@dodatetypes
+  \do{label}%
   \c@savedcitecounter\c@citecounter
   \let\do\blx@saved@do}
 
@@ -6426,7 +6473,42 @@
   \csletcs{abx@field@saved@#1}{abx@field@relsaved#1}}
 
 \protected\def\blx@savebool#1{%
-  \csletcs{abx@bool@saved#1}{abx@bool@#1}}
+  \csletcs{etb@tgl@abx@bool@saved#1}{etb@tgl@abx@bool@#1}}
+
+\protected\def\blx@savedatetype#1{%
+  \csletcs{blx@dateformat@saved#1date}{blx@dateformat@#1date}%
+  \protected\csedef{blx@imc@printsaved#1date}{%
+    \noexpand\csuse{mkdaterange\csuse{blx@dateformat@saved#1date}}
+      {saved#1}}%
+  \protected\csedef{blx@imc@printsaved#1dateextra}{%
+    \begingroup
+      % extradate is hard-coded in date macros, so reset it temporarily
+      \csletcs{abx@field@extradate}{abx@field@savedextradate}%
+      \noexpand\csuse{mkdaterange\csuse{blx@dateformat@saved#1date}extra}
+        {saved#1}%
+    \endgroup}%
+  \csletcs{blx@timeformat@saved#1time}{blx@timeformat@#1time}%
+  \protected\csedef{blx@imc@printsaved#1time}{%
+    \noexpand\csuse{mktimerange\csuse{blx@timeformat@saved#1time}}
+      {saved#1}}%
+  \csletcs{etb@tgl@blx@saved#1dateusetime}{etb@tgl@blx@#1dateusetime}%
+  % the datemetabooleans are here again for labeldate
+  \blx@savebool{#1datecirca}%
+  \blx@savebool{#1enddatecirca}%
+  \blx@savebool{#1datejulian}%
+  \blx@savebool{#1enddatejulian}%
+  \blx@savebool{#1dateuncertain}%
+  \blx@savebool{#1enddateuncertain}%
+  \blx@savebool{#1dateunknown}%
+  \blx@savebool{#1enddateunknown}%
+  \blx@makeifdatemeta@bools{saved#1}{circa}%
+  \blx@makeifdatemeta@bools{saved#1}{julian}%
+  \blx@makeifdatemeta@bools{saved#1}{uncertain}%
+  \blx@makeifdatemeta@bools{saved#1}{unknown}%
+  \blx@makeifdatemeta@fields{saved#1}%
+  \csletcs{printsaved#1date}{blx@imc@printsaved#1date}%
+  \csletcs{printsaved#1time}{blx@imc@printsaved#1time}%
+  \csletcs{printsaved#1dateextra}{blx@imc@printsaved#1dateextra}}
 
 % {<code>}
 \protected\long\def\blx@bbl@preamble#1{%
@@ -6864,6 +6946,38 @@
           {}%
         \ifcsdef{abx@field@\abx@field@labeldatesource endseason}
           {\edef\abx@field@labelendseason{\csuse{abx@field@\abx@field@labeldatesource endseason}}}
+          {}%
+        % labeldateunspecified
+        \ifcsdef{abx@field@\abx@field@labeldatesource dateunspecified}
+          {\csletcs{abx@field@labeldateunspecified}{abx@field@\abx@field@labeldatesource dateunspecified}}
+          {}%
+        % labeldatecirca/labelenddatecirca
+        \ifcsdef{etb@tgl@abx@bool@\abx@field@labeldatesource datecirca}
+          {\csletcs{etb@tgl@abx@bool@labeldatecirca}{etb@tgl@abx@bool@\abx@field@labeldatesource datecirca}}
+          {}%
+        \ifcsdef{etb@tgl@abx@bool@\abx@field@labeldatesource enddatecirca}
+          {\csletcs{etb@tgl@abx@bool@labelenddatecirca}{etb@tgl@abx@bool@\abx@field@labeldatesource enddatecirca}}
+          {}%
+        % labeldatejulian/labelenddatejulian
+        \ifcsdef{etb@tgl@abx@bool@\abx@field@labeldatesource datejulian}
+          {\csletcs{etb@tgl@abx@bool@labeldatejulian}{etb@tgl@abx@bool@\abx@field@labeldatesource datejulian}}
+          {}%
+        \ifcsdef{etb@tgl@abx@bool@\abx@field@labeldatesource enddatejulian}
+          {\csletcs{etb@tgl@abx@bool@labelenddatejulian}{etb@tgl@abx@bool@\abx@field@labeldatesource enddatejulian}}
+          {}%
+        % labeldateuncertain/labelenddateuncertain
+        \ifcsdef{etb@tgl@abx@bool@\abx@field@labeldatesource dateuncertain}
+          {\csletcs{etb@tgl@abx@bool@labeldateuncertain}{etb@tgl@abx@bool@\abx@field@labeldatesource dateuncertain}}
+          {}%
+        \ifcsdef{etb@tgl@abx@bool@\abx@field@labeldatesource enddateuncertain}
+          {\csletcs{etb@tgl@abx@bool@labelenddateuncertain}{etb@tgl@abx@bool@\abx@field@labeldatesource enddateuncertain}}
+          {}%
+        % labeldateunknown/labelenddateunknown
+        \ifcsdef{etb@tgl@abx@bool@\abx@field@labeldatesource dateunknown}
+          {\csletcs{etb@tgl@abx@bool@labeldateunknown}{etb@tgl@abx@bool@\abx@field@labeldatesource dateunknown}}
+          {}%
+        \ifcsdef{etb@tgl@abx@bool@\abx@field@labeldatesource enddateunknown}
+          {\csletcs{etb@tgl@abx@bool@labelenddateunknown}{etb@tgl@abx@bool@\abx@field@labeldatesource enddateunknown}}
           {}}}}
 
 % This gets the entry data for a citation
@@ -13070,9 +13184,6 @@
         {\blx@err@invopt{#1time=##1}{}}}%
     % Default for new time fields is "24h"
     \setkeys{blx@opt@pre}{#1time=24h}%
-    % Boolean for unknown dates
-    \newtoggle{abx@bool@#1dateunknown}%
-    \newtoggle{abx@bool@end#1dateunknown}%
     % Boolean to determine if times are printed with dates
     \newtoggle{blx@#1dateusetime}%
     \DeclareBibliographyOption[boolean]{#1dateusetime}{%
