@@ -6571,29 +6571,55 @@
          \docsvlist{#5}}}
      {}}
 
-% {<annotation>}
-\newcommand*{\blx@imc@iffieldannotation}[1]{%
-  \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
-  \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
-  \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
+% [<field>]{<annotation>}
+\newcommand*{\blx@imc@iffieldannotation}[2][]{%
+  \ifblank{#1}
+    {\ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
+     \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
+     \ifdefvoid\currentname{}{\let\blx@tempa\currentname}}
+    {\def\blx@tempa{#1}}%
   \blx@resolve@annotation@label{\blx@tempa}%
-  \ifinlistcs{#1}{abx@annotation@field@\blx@tempa}}
+  \ifinlistcs{#2}{abx@annotation@field@\blx@tempa}}
 
-% {<annotation>}
-\newcommand*{\blx@imc@ifitemannotation}[1]{%
+% [<field>][<item>]{<annotation>}
+\def\blx@imc@ifitemannotation{%
   \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
   \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
   \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
-  \blx@resolve@annotation@label{\blx@tempa}%
-  \ifinlistcs{#1}{abx@annotation@item@\blx@tempa @\the\value{listcount}}}
+  \@ifnextchar[%
+    {\blx@imc@ifitemannotation@i}
+    {\blx@imc@ifitemannotation@i[\blx@tempa]}
+}
 
-% {<part>}{<annotation>}
-\newcommand*{\blx@imc@ifpartannotation}[2]{%
+\def\blx@imc@ifitemannotation@i[#1]{%
+  \@ifnextchar[%
+    {\blx@imc@ifitemannotation@ii{#1}}
+    {\blx@imc@ifitemannotation@ii{#1}[\the\value{listcount}]}}
+
+\def\blx@imc@ifitemannotation@ii#1[#2]#3{%
+  \def\blx@tempb{#1}%
+  \blx@resolve@annotation@label{\blx@tempb}%
+  \ifinlistcs{#3}{abx@annotation@item@\blx@tempb @#2}}
+
+% [<field>][<item>]{<part>}{<annotation>}
+\def\blx@imc@ifpartannotation{%
   \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
   \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
   \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
-  \blx@resolve@annotation@label{\blx@tempa}%
-  \ifinlistcs{#2}{abx@annotation@part@\blx@tempa @\the\value{listcount}@#1}}
+  \@ifnextchar[%
+    {\blx@imc@ifpartannotation@i}
+    {\blx@imc@ifpartannotation@i[\blx@tempa]}
+}
+
+\def\blx@imc@ifpartannotation@i[#1]{%
+  \@ifnextchar[%
+    {\blx@imc@ifpartannotation@ii{#1}}
+    {\blx@imc@ifpartannotation@ii{#1}[\the\value{listcount}]}}
+
+\def\blx@imc@ifpartannotation@ii#1[#2]#3#4{%
+  \def\blx@tempb{#1}%
+  \blx@resolve@annotation@label{\blx@tempb}%
+  \ifinlistcs{#4}{abx@annotation@part@\blx@tempb @#2@#3}}
 
 % {<datetype>}{<annotation>}
 \newcommand*{\blx@imc@ifdateannotation}[2]{%

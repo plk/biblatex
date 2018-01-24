@@ -3174,21 +3174,27 @@ To access the annotation information when formatting bibliography data, three ma
 
 \begin{ltxsyntax}
 
-\cmditem{iffieldannotation}{annotation}{true}{false}
+\cmditem{iffieldannotation}[field]{annotation}{true}{false}
 
-Executes \prm{true} if the current data field has an annotation \prm{annotation} and false otherwise.
+Executes \prm{true} if the data field \prm{field} has an annotation \prm{annotation} and false otherwise. If \prm{field} is not given, the current data field as indicated by \cmd{currentfield}, \cmd{currentlist} or \cmd{currentname} (see \secref{aut:bib:fmt}) is assumed. Of course, this is only possible if these commands are defined, that is, inside formatting directives.
 
-\cmditem{ifitemannotation}{annotation}{true}{false}
+\cmditem{ifitemannotation}[field][item]{annotation}{true}{false}
 
-Executes \prm{true} if the current item in the current data field has an annotation \prm{annotation} and false otherwise.
+Executes \prm{true} if the item \prm{item} in the data field \prm{field} has an annotation \prm{annotation} and false otherwise. The optional argument \prm{field} can be inferred if not provided as with \cmd{iffieldannotation}. If \prm{item} is not given, the number of the item currently being processed as given by \cnt{listcount} is used.
 
-\cmditem{ifpartannotation}{part}{annotation}{true}{false}
+\cmditem{ifpartannotation}[field][item]{part}{annotation}{true}{false}
 
-Executes \prm{true} if the part named \prm{part} in current item in the current data field has an annotation \prm{annotation} and false otherwise.
+Executes \prm{true} if the part named \prm{part} in item \prm{item} in the data field \prm{field} has an annotation \prm{annotation} and false otherwise. The two optional arguments \prm{field} and \prm{item} can be inferred as in \cmd{ifitemannotation}. The parameter \prm{part} can never be inferred and is therefore a mandatory argument.
+
+Date fields are special and handled in a context where \cmd{currentfield} is not accessible. Thus there is a fourth command to access annotations for dates.
+
+\cmditem{ifdateannotation}{datetype}{annotation}{true}{false}
+
+Executes \prm{true} if the date field \prm{datetype} has an annotation \prm{annotation} and false otherwise. The \prm{datetype} argument is mandatory, because it can not be inferred in most contexts where \cmd{ifdateannotation} will be used.
 
 \end{ltxsyntax}
 %
-These macros are available in the same places as \cmd{currentfield}, \cmd{currentlist} and \cmd{currentname} (see \secref{aut:bib:fmt}), that is, inside formatting directives. They automatically determine the name of the current data field being processed and also the current \opt{listcount} value which determines the current item in list fields. Parts such as name parts need to be named explicitly. As an example of how to use the annotation information to solve the problem originally presented in this section, this could be used in the name formatting directives to put an asterisk after all family names annotated as «student»:
+As an example of how to use the annotation information to solve the problem originally presented in this section, this could be used in the name formatting directives to put an asterisk after all family names annotated as «student»:
 
 \begin{lstlisting}[style=latex]{}
   \ifpartannotation{family}{student}
@@ -3209,15 +3215,6 @@ To put the given and family names of name list items annotated as «correspondin
     {\textbf{#1}}
     {#1}}
 \end{lstlisting}
-
-Date fields are special and handled in a context where \cmd{currentfield} is not accessible. Thus there is a fourth command to access annotations for dates.
-
-\begin{ltxsyntax}
-\cmditem{ifdateannotation}{datetype}{annotation}{true}{false}
-
-Executes \prm{true} if the date \prm{datetype} has an annotation \prm{annotation} and false otherwise.
-
-\end{ltxsyntax}
 
 \subsection{Bibliography Commands}
 \label{use:bib}
@@ -13257,6 +13254,7 @@ This revision history is a list of changes relevant to users of this package. Ch
 \item Added \opt{driver} and \opt{biblistfilter} options to \cmd{printbiblist}\see{use:bib:biblist}
 \item Added \cmd{mknormrange}\see{aut:aux:msc}
 \item Added \cmd{ifdateannotation}\see{use:annote}
+\item Extended \cmd{iffieldannotation} and friends\see{use:annote}
 \end{release}
 
 \begin{release}{3.10}{2017-12-19}
