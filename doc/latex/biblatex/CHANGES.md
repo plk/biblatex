@@ -31,6 +31,8 @@
   versions.
 - The `@unpublished` entry type now also supports `type`, `eventtitle`,
   `eventdate` and `venue`.
+- Added `\ifdateannotation`. Added optional argument for field and item to
+  `\iffieldannotation`, `\ifitemannotation`, and `\ifpartannotation`.
 
 # RELEASE NOTES FOR VERSION 3.10
 - **INCOMPATIBLE CHANGE** The recent ISO8601:201x standard supersedes
