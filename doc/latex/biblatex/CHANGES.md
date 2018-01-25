@@ -33,6 +33,7 @@
   `eventdate` and `venue`.
 - Added `\ifdateannotation`. Added optional argument for field and item to
   `\iffieldannotation`, `\ifitemannotation`, and `\ifpartannotation`.
+- `\DeclareSourcemap` can now be used multiple times.
 
 # RELEASE NOTES FOR VERSION 3.10
 - **INCOMPATIBLE CHANGE** The recent ISO8601:201x standard supersedes
