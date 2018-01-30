@@ -31,6 +31,10 @@
   versions.
 - The `@unpublished` entry type now also supports `type`, `eventtitle`,
   `eventdate` and `venue`.
+- A long-standing bug with punctuation before `eventdate` and `venue` was fixed.
+  Originally the round brackets were supposed preceded only by a space,
+  the addition of other fields caused this space to be replaced by new unit
+  punctuation. **PLEASE CHECK** if you can accept the changed output.
 - Added `\ifdateannotation`. Added optional argument for field and item to
   `\iffieldannotation`, `\ifitemannotation`, and `\ifpartannotation`.
 - `\DeclareSourcemap` can now be used multiple times.
