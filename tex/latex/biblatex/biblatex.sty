@@ -5025,18 +5025,21 @@
 
 % {<language>}{<success>}{<failure>}
 \def\blx@lbxinput#1{%
-  \csletcs{blx@lbx@input@process}{blx@lbx@input@process@all}%
   \csletcs{blx@lbx@input@handler}{blx@lbx@input@handler@once}%
+  \csletcs{blx@lbx@input@process}{blx@lbx@input@process@all}%
+  \csletcs{blx@lbx@input@postprocess}{blx@lbx@input@postprocess@all}%
   \blx@lbxinput@i{#1}}
 
 \def\blx@lbxinput@strings#1{%
+  \csletcs{blx@lbx@input@handler}{blx@lbx@input@handler@simple}%
   \csletcs{blx@lbx@input@process}{blx@lbx@input@process@strings}%
-  \csletcs{blx@lbx@input@handler}{blx@lbx@input@handler@simple}%
+  \csletcs{blx@lbx@input@postprocess}{blx@lbx@input@postprocess@strings}%
   \blx@lbxinput@i{#1}}
-  
+
 \def\blx@lbxinput@extras#1{%
-  \csletcs{blx@lbx@input@process}{blx@lbx@input@process@extras}%
   \csletcs{blx@lbx@input@handler}{blx@lbx@input@handler@simple}%
+  \csletcs{blx@lbx@input@process}{blx@lbx@input@process@extras}%
+  \csletcs{blx@lbx@input@postprocess}{blx@lbx@input@postprocess@extras}%
   \blx@lbxinput@i{#1}}
 
 \def\blx@lbxinput@i#1{%
@@ -5069,28 +5072,6 @@
        \global\cslet{blx@suffmaptried@#2}\@empty}%
      \blx@lbxinput@iv{#2}{#2}{language '#2'}}}
 
-\def\blx@lbx@input@process@strings#1{
-  \global\cslet{abx@strings@#1}\@empty
-  \def\InheritBibliographyStrings{%
-    \blx@letbibstrings{#1}}%
-  \def\DeclareBibliographyStrings##1{%
-    \begingroup
-      \let\blx@defstring\blx@lbx@defstring
-      \blx@defbibstrings{#1}{##1}%
-    \endgroup}}
-
-\def\blx@lbx@input@process@extras#1{%
-  \global\cslet{abx@extras@#1}\@empty
-  \global\cslet{abx@noextras@#1}\@empty
-  \def\InheritBibliographyExtras{\blx@letbibextras{#1}}%
-  \def\DeclareBibliographyExtras{\blx@defbibextras{#1}}%
-  \def\UndeclareBibliographyExtras{\blx@undefbibextras{#1}}}
-
-\def\blx@lbx@input@process@all#1{%
-  \blx@lbx@input@process@strings{#1}%
-  \blx@lbx@input@process@extras{#1}%
-  \def\DeclareHyphenationExceptions{\blx@hyphexcept{#1}}}
-
 % {<file>}{<message>}{<preload>}{<postload>}{<success>}{<failure>}
 \protected\long\def\blx@lbx@input@handler@simple#1#2#3#4#5#6{%
   \blx@info@noline{Trying to load #2..}%
@@ -5117,6 +5098,40 @@
        {\blx@info@noline{... file '#1' not found}#6}}
     {#5}}
 
+\def\blx@lbx@input@process@strings#1{
+  \global\cslet{abx@strings@#1}\@empty
+  \def\InheritBibliographyStrings{%
+    \blx@letbibstrings{#1}}%
+  \def\DeclareBibliographyStrings##1{%
+    \begingroup
+      \let\blx@defstring\blx@lbx@defstring
+      \blx@defbibstrings{#1}{##1}%
+    \endgroup}}
+
+\def\blx@lbx@input@process@extras#1{%
+  \global\cslet{abx@extras@#1}\@empty
+  \global\cslet{abx@noextras@#1}\@empty
+  \def\InheritBibliographyExtras{\blx@letbibextras{#1}}%
+  \def\DeclareBibliographyExtras{\blx@defbibextras{#1}}%
+  \def\UndeclareBibliographyExtras{\blx@undefbibextras{#1}}}
+
+\def\blx@lbx@input@process@all#1{%
+  \blx@lbx@input@process@strings{#1}%
+  \blx@lbx@input@process@extras{#1}%
+  \def\DeclareHyphenationExceptions{\blx@hyphexcept{#1}}}
+
+\def\blx@lbx@input@postprocess@strings#1{
+  \csuse{blx@hook@strings@#1}}
+
+\def\blx@lbx@input@postprocess@extras#1{%
+  \csuse{blx@hook@extras@#1}%
+  \csuse{blx@hook@noextras@#1}}
+
+\def\blx@lbx@input@postprocess@all#1{%
+  \blx@lbx@input@postprocess@strings{#1}%
+  \blx@lbx@input@postprocess@extras{#1}%
+  \csuse{blx@hook@hyph@#1}}
+
 % {<language>}{<lbxfile>}{<message>}
 \def\blx@lbxinput@iv#1#2#3{%
   \begingroup
@@ -5133,10 +5148,7 @@
        \blx@saneccodes
        \makeatletter}
       {\endgroup
-       \csuse{blx@hook@strings@#1}%
-       \csuse{blx@hook@extras@#1}%
-       \csuse{blx@hook@noextras@#1}%
-       \csuse{blx@hook@hyph@#1}}
+       \blx@lbx@input@postprocess{#1}}
       {\aftergroup\@firstoftwo}
       {\aftergroup\@secondoftwo}%
   \endgroup}
