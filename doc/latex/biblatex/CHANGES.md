@@ -45,7 +45,8 @@
   This is a an internal change and should not influence document output,
   save for a few bug fixes. Style authors should check if the changes introduce
   any bugs for their localisation handling and report them.
-  
+- Added `\begrelateddelim` and `\begrelateddelim<relatedtype>` for punctuation
+  before the related block.
 
 # RELEASE NOTES FOR VERSION 3.10
 - **INCOMPATIBLE CHANGE** The recent ISO8601:201x standard supersedes
