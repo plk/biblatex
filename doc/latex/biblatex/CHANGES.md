@@ -34,6 +34,18 @@
 - Added `\ifdateannotation`. Added optional argument for field and item to
   `\iffieldannotation`, `\ifitemannotation`, and `\ifpartannotation`.
 - `\DeclareSourcemap` can now be used multiple times.
+- **INCOMPATIBLE CHANGE** Language aliases are now also resolved when loading
+  localisation files, only infinite recursion is avoided.
+  Assuming `\DeclareLanguageMappingSuffix{-apa}`, loading `ngerman` localisation
+  causes `ngerman-apa.lbx` to be read. If that file inherits from `german`,
+  `german-apa.lbx` will be read. Previously only `german.lbx` would have been
+  read at that point. Of course if `german-apa.lbx` inherits from `german`,
+  `german.lbx` is loaded at that point, so infinite recursion is avoided.
+- **CRITICAL CHANGE** The code to load localisation files was changed.
+  This is a an internal change and should not influence document output,
+  save for a few bug fixes. Style authors should check if the changes introduce
+  any bugs for their localisation handling and report them.
+  
 
 # RELEASE NOTES FOR VERSION 3.10
 - **INCOMPATIBLE CHANGE** The recent ISO8601:201x standard supersedes
