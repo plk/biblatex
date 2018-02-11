@@ -16,10 +16,14 @@
   \protected\def\mkbibfemord{\mkbibordinal}%
   \protected\def\mkbibneutord{\mkbibordinal}%
   \protected\def\mkbibdatelong#1#2#3{%
-    \iffieldbibstring{#1}
-      {\bibstring{\thefield{#1}}}
-      {\dateeraprintpre{#1}\mkbibordinal{\thefield{#1}}%
-       \addspace\bibstring{dateyear}\iffieldundef{#2}{}{\space}}
+    \iffieldundef{#1}
+      {}
+      {\iffieldbibstring{#1}
+         {\bibstring{\thefield{#1}}}
+         {\dateeraprintpre{#1}%
+          \ifboolexpr{test {\iffieldundef{#2}} and test {\iffieldundef{#3}}}
+            {\stripzeros{\thefield{#1}}}
+            {\mkbibordinal{\thefield{#1}}\addspace\bibstring{dateyear}\space}}}%
     \iffieldundef{#3}
       {}
       {\mkbibordinal{\thefield{#3}}%
@@ -30,17 +34,16 @@
   \protected\def\mkbibdateshort#1#2#3{%
     \iffieldundef{#3}
       {}
-      {\mkdayzeros{\thefield{#3}}\adddot
-       \iffieldundef{#2}{}{\thinspace}}%
+      {\mkdayzeros{\thefield{#3}}\adddot}%
     \iffieldundef{#2}
       {}
-      {\mkmonthzeros{\thefield{#2}}%
-       \iffieldundef{#1}
-         {}
-         {\iffieldundef{#3}{/}{\adddot\thinspace}}}%
+      {\mkmonthzeros{\thefield{#2}}\adddot}%
     \iffieldbibstring{#1}
       {\bibstring{\thefield{#1}}}
-      {\dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}}}%
+      {\dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}%
+       \ifboolexpr{test {\iffieldundef{#2}} and test {\iffieldundef{#3}}}
+         {}
+         {\adddot}}}%
   \expandafter\protected\expandafter\def\csname mkbibtime24h\endcsname#1#2#3#4{%
       \iffieldundef{#1}{}
         {\printtext{\mktimezeros{\thefield{#1}}}\setunit{\bibtimesep}}%
@@ -66,13 +69,27 @@
        {\space\bibtimezonesep
         \parentext{\mkbibtimezone{\thefield{#4}}}}}%
   \protected\def\mkbibseasondateshort#1#2{%
-    \mkbibseason{\thefield{#2}}%
-    \iffieldundef{#1}{}{\space}%
-    \dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}}%
-  \protected\def\mkbibseasondatelong#1#2{%
-    \mkbibseason{\thefield{#2}}%
-    \iffieldundef{#1}{}{\space}%
-    \dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}}%
+    \iffieldundef{#1}
+      {}
+      {\iffieldbibstring{#1}
+         {\bibstring{\thefield{#1}}}
+         {\dateeraprintpre{#1}%
+          \iffieldundef{#2}
+            {\stripzeros{\thefield{#1}}}
+            {\mkbibordinal{\thefield{#1}}\addspace\bibstring{dateyear}\space}}}%
+    \mkbibseason{\thefield{#2}}}%
+  \protected\def\mkbibseasondatelong{\mkbibseasondateshort}%
+  \savecommand\mkdaterangecomp
+  \savecommand\mkdaterangecompextra
+  \protected\def\mkdaterangecomp{%
+    \lbx@lv@mkdaterangetrunc@long{long}}%
+  \protected\def\mkdaterangecompextra{%
+    \lbx@lv@mkdaterangetruncextra@long{long}}%
+}
+
+\UndeclareBibliographyExtras{%
+  \restorecommand\mkdaterangecomp
+  \restorecommand\mkdaterangecompextra
 }
 
 \DeclareBibliographyStrings{%
@@ -425,5 +442,74 @@
   pm               = {{pm}{pm}},
   dateyear         = {{gada}{gada}},
 }
+
+
+\protected\gdef\lbx@lv@mkdaterangetrunc@long#1#2{%
+  \begingroup
+    \blx@metadateinfo{#2}%
+    \iffieldundef{#2year}
+      {}
+      {\printtext[#2date]{%
+         \datecircaprint
+         \iffieldundef{#2season}
+           {\iffieldsequal{#2year}{#2endyear}
+             {\iffieldsequal{#2month}{#2endmonth}
+                {\csuse{mkbibdate#1}{#2year}{}{#2day}}
+                {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}}}
+             {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}}}%
+           {\iffieldsequal{#2year}{#2endyear}
+             {\csuse{mkbibseasondate#1}{}{#2season}}
+             {\csuse{mkbibseasondate#1}{#2year}{#2season}}}%
+         \dateeraprint{#2year}%
+         \dateuncertainprint
+         \iffieldundef{#2endyear}
+           {}
+           {\iffieldequalstr{#2endyear}{}
+             {\mbox{\bibdaterangesep}}
+             {\bibdaterangesep
+              \enddatecircaprint
+              \iffieldundef{#2season}
+                {\iffieldsequal{#2year}{#2endyear}
+                  {\csuse{mkbibdate#1}{}{#2endmonth}{#2endday}}
+                  {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}}
+                {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}%
+              \enddateuncertainprint
+              \dateeraprint{#2endyear}}}}}%
+  \endgroup}
+
+\protected\gdef\lbx@lv@mkdaterangetruncextra@long#1#2{%
+  \begingroup
+    \blx@metadateinfo{#2}%
+    \iffieldundef{#2year}
+      {}
+      {\printtext[#2date]{%
+         \datecircaprint
+         \iffieldundef{#2season}
+           {\iffieldsequal{#2year}{#2endyear}
+             {\iffieldsequal{#2month}{#2endmonth}
+                {\csuse{mkbibdate#1}{#2year}{}{#2day}}
+                {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}}}
+             {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}}}%
+           {\iffieldsequal{#2year}{#2endyear}
+             {\csuse{mkbibseasondate#1}{}{#2season}}
+             {\csuse{mkbibseasondate#1}{#2year}{#2season}}}%
+         \dateeraprint{#2year}%
+         \dateuncertainprint
+         \iffieldundef{#2endyear}
+           {\printfield{extradate}}
+           {\iffieldequalstr{#2endyear}{}
+              {\printfield{extradate}%
+               \mbox{\bibdaterangesep}}
+              {\bibdaterangesep
+               \enddatecircaprint
+               \iffieldundef{#2season}
+                 {\iffieldsequal{#2year}{#2endyear}
+                   {\csuse{mkbibdate#1}{}{#2endmonth}{#2endday}}
+                   {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}}
+                 {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}%
+               \printfield{extradate}%
+               \enddateuncertainprint
+               \dateeraprint{#2endyear}}}}}%
+  \endgroup}
 
 \endinput
