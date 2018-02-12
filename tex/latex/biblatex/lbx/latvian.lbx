@@ -16,6 +16,10 @@
   dateoctober,
   datenovember,
   datedecember,
+  datespring,
+  datesummer,
+  dateautumn,
+  datewinter,
   dateyear}
 
 \DeclareBibliographyExtras{%
@@ -94,7 +98,9 @@
           \iffieldundef{#2}
             {\stripzeros{\thefield{#1}}}
             {\mkbibordinal{\thefield{#1}}\addspace\bibstring{dateyear}\space}}}%
-    \mkbibseason{\thefield{#2}}}%
+    \iftoggle{lbx@lv@datewhen}
+      {\mkbibseason{date\thefield{#2}}}
+      {\mkbibseason{\thefield{#2}}}}%
   \let\mkbibseasondatelong\mkbibseasondateshort
   \savecommand\mkdaterangecomp
   \savecommand\mkdaterangecompextra
@@ -102,9 +108,29 @@
     \lbx@lv@mkdaterangetrunc@long{long}}%
   \protected\def\mkdaterangecompextra{%
     \lbx@lv@mkdaterangetruncextra@long{long}}%
+  \def\lbx@lv@makewhendate@i#1{%
+    \expandafter\savecommand\csname abx@ffd@#1@\lbx@lv@whendate@date\endcsname
+    \cspreto{abx@ffd@#1@\lbx@lv@whendate@date}{\lbx@lv@requestwhendate}}%
+  \providecommand*{\lbx@lv@makewhendate}[2][*]{%
+    \def\lbx@lv@whendate@date{#2}%
+    \def\lbx@lv@whendate@formats{#1}%
+    \expandafter\forcsvlist
+    \expandafter\lbx@lv@makewhendate@i
+    \expandafter{\lbx@lv@whendate@formats}}%
+  %\lbx@lv@makewhendate{eventdate}%
 }
 
 \UndeclareBibliographyExtras{%
+  \def\lbx@lv@restorewhendate@i#1{%
+    \expandafter\restorecommand
+      \csname abx@ffd@#1@\lbx@lv@whendate@date\endcsname}%
+  \providecommand*{\lbx@lv@restorewhendate}[2][*]{%
+    \def\lbx@lv@whendate@date{#2}%
+    \def\lbx@lv@whendate@formats{#1}%
+    \expandafter\forcsvlist
+    \expandafter\lbx@lv@restorewhendate@i
+    \expandafter{\lbx@lv@whendate@formats}}%
+  %\lbx@lv@restorewhendate{eventdate}%
   \restorecommand\mkdaterangecomp
   \restorecommand\mkdaterangecompextra
 }
@@ -467,6 +493,10 @@
   summer           = {{vasara}{vas\adddot}},
   autumn           = {{rudens}{rud\adddot}},
   winter           = {{ziema}{ziema}},
+  datespring       = {{pavasar\={\i}}{pav\adddot}},
+  datesummer       = {{vasar\={a}}{vas\adddot}},
+  dateautumn       = {{ruden\={\i}}{rud\adddot}},
+  datewinter       = {{ziem\={a}}{ziem\={a}}},
   am               = {{am}{am}},
   pm               = {{pm}{pm}},
   dateyear         = {{gada}{gada}},
