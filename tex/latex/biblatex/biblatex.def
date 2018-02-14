@@ -177,6 +177,11 @@
          {\textemdash}}}}
 \newcommand*{\relatedpunct}{\addspace}
 \newcommand*{\relateddelim}{\adddot\par\nobreak}
+\newcommand*{\begrelateddelim}{\newunitpunct}
+\newcommand*{\begrelateddelimmultivolume}{\newunitpunct\par\nobreak}
+% Examples of use, uncommenting these would break backwards compatibility
+%\newcommand*{\begrelateddelimorigpubin}{\addspace}
+%\newcommand*{\begrelateddelimorigpubas}{\addspace}
 \newcommand{\mkrelatedstring}{\mainlang}
 
 % Used for indexing
@@ -419,9 +424,9 @@
   \ifcapital{\MakeCapital{#1}}{#1}\isdot}
 % citation commands
 \DeclareFieldFormat{prenote}{#1\isdot}
-\DeclareFieldFormat{postnote}{\mkpageprefix[pagination]{#1}}
+\DeclareFieldFormat{postnote}{\mkpageprefix[pagination][\mknormrange]{#1}}
 \DeclareFieldFormat{volcitevolume}{\bibstring{volume}\ppspace#1}
-\DeclareFieldFormat{volcitepages}{\mkpageprefix[pagination]{#1}}
+\DeclareFieldFormat{volcitepages}{\mkpageprefix[pagination][\mknormrange]{#1}}
 \DeclareFieldFormat{volcitenote}{\mkvolcitenote#1}
 \newrobustcmd*{\mkvolcitenote}[2]{%
   \printtext[volcitevolume]{#1}%
@@ -429,7 +434,7 @@
 
 % multicite commands
 \DeclareFieldFormat{multiprenote}{#1\isdot}
-\DeclareFieldFormat{multipostnote}{\mkpageprefix[pagination]{#1}}
+\DeclareFieldFormat{multipostnote}{\mkpageprefix[pagination][\mknormrange]{#1}}
 
 % Used by \citeurl
 
@@ -466,7 +471,7 @@
 \DeclareFieldFormat{eprint:arxiv}{%
   arXiv\addcolon\space
   \ifhyperref
-    {\href{http://arxiv.org/\abx@arxivpath/#1}{%
+    {\href{https://arxiv.org/\abx@arxivpath/#1}{%
        \nolinkurl{#1}%
        \iffieldundef{eprintclass}
          {}
@@ -531,7 +536,7 @@
 \DeclareFieldFormat[article,periodical]{volume}{#1}% volume of a journal
 \DeclareFieldFormat{volumes}{#1~\bibstring{volumes}}
 \DeclareFieldFormat{related}{#1}
-\DeclareFieldFormat{related:multivolume}{\par\nobreak#1}
+\DeclareFieldFormat{related:multivolume}{#1}
 \DeclareFieldFormat{related:origpubin}{\mkbibparens{#1}}
 \DeclareFieldFormat{related:origpubas}{\mkbibparens{#1}}
 \DeclareFieldFormat{relatedstring:default}{#1\printunit{\relatedpunct}}
@@ -1752,48 +1757,23 @@
 
 \def\abx@MakeMarkcase{\MakeUppercase}
 \AtEndPreamble{%
-  \ifcsundef{MakeMarkcase}{}{\def\abx@MakeMarkcase{\MakeMarkcase}}%
-  \providecommand*{\@mkdouble}[1]{\@mkboth{#1}{#1}}%
-  \providecommand*{\@mkright}{%
-    \begingroup
-      \ifx\@mkboth\markboth \aftergroup\markright
-      \else
-        \ifx\@mkboth\@gobbletwo \aftergroup\@gobble
-        \else \def\@gobbletwo##1##2{}%
-          \ifx \@mkboth\@gobbletwo \aftergroup\@gobble
-          \else
-            \PackageWarning{biblatex}{% changed for biblatex
-              package incompatibility detected!\MessageBreak
-              \string\@mkboth it neither \string\markboth nor any\MessageBreak
-              kind of two arguments gobbling,\MessageBreak
-              e.g., \string\@gobbletwo.\MessageBreak
-              So I don't known, what to do\MessageBreak
-              with \string\@mkright.\MessageBreak
-              Nevertheless, \string\markright\space will be\MessageBreak
-              used%
-            }%
-            \aftergroup\markright
-          \fi
-        \fi
-      \fi
-    \endgroup
-  }}
+  \ifcsundef{MakeMarkcase}{}{\def\abx@MakeMarkcase{\MakeMarkcase}}}
 
 \ifcase\abx@classtype\relax % article
   \defbibheading{bibliography}[\refname]{%
     \section*{#1}%
-    \@mkdouble{\abx@MakeMarkcase{#1}}}
+    \@mkboth{\abx@MakeMarkcase{#1}}{\abx@MakeMarkcase{#1}}}
   \defbibheading{biblist}[\biblistname]{%
     \section*{#1}%
-    \@mkdouble{\abx@MakeMarkcase{#1}}}
+    \@mkboth{\abx@MakeMarkcase{#1}}{\abx@MakeMarkcase{#1}}}
   \defbibheading{bibintoc}[\refname]{%
     \section*{#1}%
     \addcontentsline{toc}{section}{#1}%
-    \@mkdouble{\abx@MakeMarkcase{#1}}}
+    \@mkboth{\abx@MakeMarkcase{#1}}{\abx@MakeMarkcase{#1}}}
   \defbibheading{biblistintoc}[\biblistname]{%
     \section*{#1}%
     \addcontentsline{toc}{section}{#1}%
-    \@mkdouble{\abx@MakeMarkcase{#1}}}
+    \@mkboth{\abx@MakeMarkcase{#1}}{\abx@MakeMarkcase{#1}}}
   \defbibheading{bibnumbered}[\refname]{%
     \section{#1}}
   \defbibheading{biblistnumbered}[\biblistname]{%
@@ -1809,18 +1789,18 @@
 \or % book/report
   \defbibheading{bibliography}[\bibname]{%
     \chapter*{#1}%
-    \@mkdouble{\abx@MakeMarkcase{#1}}}
+    \@mkboth{\abx@MakeMarkcase{#1}}{\abx@MakeMarkcase{#1}}}
   \defbibheading{biblist}[\biblistname]{%
     \chapter*{#1}%
-    \@mkdouble{\abx@MakeMarkcase{#1}}}
+    \@mkboth{\abx@MakeMarkcase{#1}}{\abx@MakeMarkcase{#1}}}
   \defbibheading{bibintoc}[\bibname]{%
     \chapter*{#1}%
     \addcontentsline{toc}{chapter}{#1}%
-    \@mkdouble{\abx@MakeMarkcase{#1}}}
+    \@mkboth{\abx@MakeMarkcase{#1}}{\abx@MakeMarkcase{#1}}}
   \defbibheading{biblistintoc}[\biblistname]{%
     \chapter*{#1}%
     \addcontentsline{toc}{chapter}{#1}%
-    \@mkdouble{\abx@MakeMarkcase{#1}}}
+    \@mkboth{\abx@MakeMarkcase{#1}}{\abx@MakeMarkcase{#1}}}
   \defbibheading{bibnumbered}[\bibname]{%
     \chapter{#1}}
   \defbibheading{biblistnumbered}[\biblistname]{%
@@ -1843,7 +1823,9 @@
          {\ifkomabibtotoc
             {\addsec{#1}}
             {\section*{#1}%
-             \@mkdouble{\abx@MakeMarkcase{#1}}}}}
+             \ifcsundef{@mkdouble}
+               {\@mkboth{\abx@MakeMarkcase{#1}}{\abx@MakeMarkcase{#1}}}
+               {\@mkdouble{\abx@MakeMarkcase{#1}}}}}}
       {\bibliography@heading{#1}}}
   \defbibheading{biblist}[\biblistname]{%
     \ifcsundef{bibliography@heading}
@@ -1852,7 +1834,9 @@
          {\ifkomabibtotoc
             {\addsec{#1}}
             {\section*{#1}%
-             \@mkdouble{\abx@MakeMarkcase{#1}}}}}
+             \ifcsundef{@mkdouble}
+               {\@mkboth{\abx@MakeMarkcase{#1}}{\abx@MakeMarkcase{#1}}}
+               {\@mkdouble{\abx@MakeMarkcase{#1}}}}}}
       {\bibliography@heading{#1}}}
   \defbibheading{bibintoc}[\refname]{%
     \addsec{#1}}
@@ -1864,11 +1848,15 @@
     \section{#1}}
   \defbibheading{subbibliography}[\refname]{%
     \subsection*{#1}%
-    \@mkright{\abx@MakeMarkcase{#1}}}
+    \ifcsundef{@mkright}
+      {\ifx\@mkboth\@gobbletwo\else\markright{\abx@MakeMarkcase{#1}}\fi}
+      {\@mkright{\abx@MakeMarkcase{#1}}}}
   \defbibheading{subbibintoc}[\refname]{%
     \subsection*{#1}%
     \addcontentsline{toc}{subsection}{#1}%
-    \@mkright{\abx@MakeMarkcase{#1}}}
+    \ifcsundef{@mkright}
+      {\ifx\@mkboth\@gobbletwo\else\markright{\abx@MakeMarkcase{#1}}\fi}
+      {\@mkright{\abx@MakeMarkcase{#1}}}}
   \defbibheading{subbibnumbered}[\refname]{%
     \subsection{#1}}
 
@@ -1880,7 +1868,9 @@
          {\ifkomabibtotoc
             {\addchap{#1}}
             {\chapter*{#1}
-             \@mkdouble{\abx@MakeMarkcase{#1}}}}}
+             \ifcsundef{@mkdouble}
+               {\@mkboth{\abx@MakeMarkcase{#1}}{\abx@MakeMarkcase{#1}}}
+               {\@mkdouble{\abx@MakeMarkcase{#1}}}}}}
       {\bibliography@heading{#1}}}
   \defbibheading{biblist}[\biblistname]{%
     \ifcsundef{bibliography@heading}
@@ -1889,7 +1879,9 @@
          {\ifkomabibtotoc
             {\addchap{#1}}
             {\chapter*{#1}
-             \@mkdouble{\abx@MakeMarkcase{#1}}}}}
+             \ifcsundef{@mkdouble}
+               {\@mkboth{\abx@MakeMarkcase{#1}}{\abx@MakeMarkcase{#1}}}
+               {\@mkdouble{\abx@MakeMarkcase{#1}}}}}}
       {\bibliography@heading{#1}}}
   \defbibheading{bibintoc}[\bibname]{%
     \addchap{#1}}
@@ -1901,7 +1893,9 @@
     \chapter{#1}}
   \defbibheading{subbibliography}[\refname]{%
     \section*{#1}%
-    \@mkright{\abx@MakeMarkcase{#1}}}
+    \ifcsundef{@mkright}
+      {\ifx\@mkboth\@gobbletwo\else\markright{\abx@MakeMarkcase{#1}}\fi}
+      {\@mkright{\abx@MakeMarkcase{#1}}}}
   \defbibheading{subbibintoc}[\refname]{%
     \addsec{#1}}
   \defbibheading{subbibnumbered}[\refname]{%

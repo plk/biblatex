@@ -1,0 +1,690 @@
+\ProvidesFile{latvian.lbx}
+[\abx@lbxid]
+
+\DeclareRedundantLanguages{latvian}{latvian}
+
+\NewBibliographyString{%
+  locjanuary,
+  locfebruary,
+  locmarch,
+  locapril,
+  locmay,
+  locjune,
+  locjuly,
+  locaugust,
+  locseptember,
+  lococtober,
+  locnovember,
+  locdecember,
+  locspring,
+  locsummer,
+  locautumn,
+  locwinter,
+  locdateyear,
+  dateyear}
+
+\DeclareBibliographyExtras{%
+  \providetoggle{lbx@lv@datewhen}%
+  \providecommand*{\lbx@lv@requestwhendate}{\toggletrue{lbx@lv@datewhen}}%
+  \DeclareCapitalPunctuation{.!?}%
+  \protected\def\bibrangedash{%
+    \textemdash\penalty\hyphenpenalty}% breakable dash
+  \let\finalandcomma=\empty
+  \let\finalandsemicolon=\empty
+  \protected\def\mkbibordinal#1{\stripzeros{#1}\adddot}%
+  \protected\def\mkbibmascord{\mkbibordinal}%
+  \protected\def\mkbibfemord{\mkbibordinal}%
+  \protected\def\mkbibneutord{\mkbibordinal}%
+  \protected\def\mkbibdatelong#1#2#3{%
+    \iffieldundef{#1}
+      {}
+      {\iffieldbibstring{#1}
+         {\bibstring{\thefield{#1}}}
+         {\dateeraprintpre{#1}%
+          \ifboolexpr{test {\iffieldundef{#2}} and test {\iffieldundef{#3}}}
+            {\iftoggle{lbx@lv@datewhen}
+               {\mkbibordinal{\thefield{#1}}\addspace\bibstring{locdateyear}}
+               {\stripzeros{\thefield{#1}}}}
+            {\mkbibordinal{\thefield{#1}}\addspace\bibstring{dateyear}\space}}}%
+    \iffieldundef{#3}
+      {}
+      {\mkbibordinal{\thefield{#3}}%
+       \iffieldundef{#2}{}{\nobreakspace}}%
+    \iffieldundef{#2}
+      {}
+      {\iftoggle{lbx@lv@datewhen}
+         {\lbx@ru@mkbibdatemonthwhen{\thefield{#2}}}
+         {\mkbibmonth{\thefield{#2}}}}}%
+  \protected\def\mkbibdateshort#1#2#3{%
+    \iffieldundef{#3}
+      {}
+      {\mkdayzeros{\thefield{#3}}\adddot}%
+    \iffieldundef{#2}
+      {}
+      {\mkmonthzeros{\thefield{#2}}\adddot}%
+    \iffieldbibstring{#1}
+      {\bibstring{\thefield{#1}}}
+      {\dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}%
+       \ifboolexpr{test {\iffieldundef{#2}} and test {\iffieldundef{#3}}}
+         {}
+         {\adddot}}}%
+  \expandafter\protected\expandafter\def\csname mkbibtime24h\endcsname#1#2#3#4{%
+      \iffieldundef{#1}{}
+        {\printtext{\mktimezeros{\thefield{#1}}}\setunit{\bibtimesep}}%
+      \iffieldundef{#2}{}
+        {\printtext{\mktimezeros{\thefield{#2}}}\setunit{\bibtimesep}}%
+      \iffieldundef{#3}{}
+        {\printtext{\mktimezeros{\thefield{#3}}}}%
+      \setunit{}%
+      \iffieldundef{#4}{}
+        {\bibtimezonesep
+         \mkbibtimezone{\thefield{#4}}}}%
+  \expandafter\protected\expandafter\def\csname mkbibtime12h\endcsname#1#2#3#4{%
+      \stripzeros{\mktimehh{\thefield{#1}}}\bibtimesep
+      \forcezerosmdt{\thefield{#2}}%
+      \iffieldundef{#3}{}
+        {\bibtimesep
+         \forcezeros{\thefield{#3}}}%
+       \space
+       \ifnumless{\thefield{#1}}{12}
+         {\bibstring{am}}
+         {\bibstring{pm}}%
+      \iffieldundef{#4}{}
+       {\space\bibtimezonesep
+        \parentext{\mkbibtimezone{\thefield{#4}}}}}%
+  \protected\def\mkbibseasondateshort#1#2{%
+    \iffieldundef{#1}
+      {}
+      {\iffieldbibstring{#1}
+         {\bibstring{\thefield{#1}}}
+         {\dateeraprintpre{#1}%
+          \iffieldundef{#2}
+            {\iftoggle{lbx@lv@datewhen}
+               {\mkbibordinal{\thefield{#1}}\addspace\bibstring{locdateyear}}
+               {\stripzeros{\thefield{#1}}}}
+            {\mkbibordinal{\thefield{#1}}\addspace\bibstring{dateyear}\space}}}%
+    \iftoggle{lbx@lv@datewhen}
+      {\mkbibseason{date\thefield{#2}}}
+      {\mkbibseason{\thefield{#2}}}}%
+  \let\mkbibseasondatelong\mkbibseasondateshort
+  \savecommand\mkdaterangecomp
+  \savecommand\mkdaterangecompextra
+  \protected\def\mkdaterangecomp{%
+    \lbx@lv@mkdaterangetrunc@long{long}}%
+  \protected\def\mkdaterangecompextra{%
+    \lbx@lv@mkdaterangetruncextra@long{long}}%
+  \def\lbx@lv@makewhendate@i#1{%
+    \expandafter\savecommand\csname abx@ffd@#1@\lbx@lv@whendate@date\endcsname
+    \cspreto{abx@ffd@#1@\lbx@lv@whendate@date}{\lbx@lv@requestwhendate}}%
+  \providecommand*{\lbx@lv@makewhendate}[2][*]{%
+    \def\lbx@lv@whendate@date{#2}%
+    \def\lbx@lv@whendate@formats{#1}%
+    \expandafter\forcsvlist
+    \expandafter\lbx@lv@makewhendate@i
+    \expandafter{\lbx@lv@whendate@formats}}%
+  %\lbx@lv@makewhendate{eventdate}%
+}
+
+\UndeclareBibliographyExtras{%
+  \def\lbx@lv@restorewhendate@i#1{%
+    \expandafter\restorecommand
+      \csname abx@ffd@#1@\lbx@lv@whendate@date\endcsname}%
+  \providecommand*{\lbx@lv@restorewhendate}[2][*]{%
+    \def\lbx@lv@whendate@date{#2}%
+    \def\lbx@lv@whendate@formats{#1}%
+    \expandafter\forcsvlist
+    \expandafter\lbx@lv@restorewhendate@i
+    \expandafter{\lbx@lv@whendate@formats}}%
+  %\lbx@lv@restorewhendate{eventdate}%
+  \restorecommand\mkdaterangecomp
+  \restorecommand\mkdaterangecompextra
+}
+
+\DeclareBibliographyStrings{%
+  bibliography     = {{Bibliogr\={a}fija}{Bibliogr\={a}fija}},
+  references       = {{Literat\={u}ras saraksts}{Literat\={u}ras saraksts}},
+  shorthands       = {{Sa\={\i}sin\={a}jumu saraksts}{Sa\={\i}sin\={a}jumi}},
+  % FIXME: not sure if correct, the standard editor translation seems to be the same as redactor
+  editor           = {{izdev\={e}js}{izdev\adddot}},
+  editors          = {{izdev\={e}ji}{izdev\adddot}},
+  compiler         = {{sast\={a}d\={\i}t\={a}js}{sast\={a}d\adddot}},
+  compilers        = {{sast\={a}d\={\i}t\={a}ji}{sast\={a}d\adddot}},
+  redactor         = {{redaktors}{redakt\adddot}},
+  redactors        = {{redaktori}{radakt\adddot}},
+  reviser          = {{revidents}{revid\adddot}},
+  revisers         = {{revidenti}{revid\adddot}},
+  founder          = {{dibin\={a}t\={a}js}{dib\adddot}},
+  founders         = {{dibin\={a}t\={a}ji}{dib\adddot}},
+  continuator      = {{turpin\={a}t\={a}js}{turp\adddot}},
+  continuators     = {{turpin\={a}t\={a}ji}{turp\adddot}},
+  collaborator     = {{l\={\i}dzstr\={a}dnieks}{l\={\i}dzstr\adddot}},
+  collaborators    = {{l\={\i}dzstr\={a}dnieki}{l\={\i}dzstr\adddot}},
+  translator       = {{tulkot\={a}js}{tulk\adddot}},
+  translators      = {{tulkot\={a}ji}{tulk\adddot}},
+  commentator      = {{koment\={e}t\={a}js}{koment\adddot}},
+  commentators     = {{koment\={e}t\={a}ji}{koment\adddot}},
+  annotator        = {{anot\={a}cijas autors}{anot\adddotspace autors}},
+  annotators       = {{anot\={a}cijas autori}{anot\adddotspace autori}},
+  commentary       = {{koment\={a}rs}{koment\adddot}},
+  annotations      = {{anot\={a}cijas}{anot\={a}c\adddot}},
+  introduction     = {{ievads}{ievads}},
+  foreword         = {{priek\v{s}v\={a}rds}{priek\v{s}v\adddot}},
+  afterword        = {{p\={e}cv\={a}rds}{p\={e}cv\adddot}},
+  editortr         = {{izdev\={e}js un tulkot\={a}js}{izdev\adddotspace un tulk\adddot}},
+  editorstr        = {{izdev\={e}ji un tulkot\={a}ji}{izdev\adddotspace un tulk\adddot}},
+  editorco         = {{izdev\={e}js un koment\={e}t\={a}js}{izdev\adddotspace un koment\adddot}},
+  editorsco        = {{izdev\={e}ji un koment\={e}t\={a}ji}{izdev\adddotspace un koment\adddot}},
+  editoran         = {{izdev\={e}js un anot\={a}cijas autors}%
+                      {izdev\adddotspace un anot\adddotspace autors}},
+  editorsan        = {{izdev\={e}ji un anot\={a}cijas autori}%
+                      {izdev\adddotspace un anot\adddotspace autori}},
+  editorin         = {{izdev\={e}js un ievada autors}{izdev\adddotspace un ievada autors}},
+  editorsin        = {{izdev\={e}ji un ievada autori}{izdev\adddotspace un ievada autori}},
+  editorfo         = {{izdev\={e}js un priek\v{s}v\={a}rda autors}%
+                      {izdev\adddotspace un priek\v{s}v\adddotspace autors}},
+  editoraf         = {{izdev\={e}js un p\={e}cv\={a}rda autors}%
+                      {izdev\adddotspace un p\={e}cv\adddotspace autors}},
+  editorsaf        = {{izdev\={e}ji un p\={e}cv\={a}rda autori}%
+                      {izdev\adddotspace un p\={e}cv\adddotspace autori}},
+  editortrco       = {{izdev\={e}js, tulkot\={a}js un koment\={e}t\={a}js}%
+                      {izdev\adddot, tulk\adddotspace un koment\adddot}},
+  editorstrco      = {{izdev\={e}ji, tulkot\={a}ji un koment\={e}t\={a}ji}%
+                      {izdev\adddot, tulk\adddotspace un koment\adddot}},
+  editortran       = {{izdev\={e}js, tulkot\={a}js un anot\={a}cijas autors}%
+                      {izdev\adddot, tulk\adddotspace un anot\adddotspace autors}},
+  editorstran      = {{izdev\={e}ji, tulkot\={a}ji un anot\={a}cijas autori}%
+                      {izdev\adddot, tulk\adddotspace un anot\adddotspace autori}},
+  editortrin       = {{izdev\={e}js, tulkot\={a}js un ievada autors}%
+                      {izdev\adddot, tulk\adddotspace un ievada autors}},
+  editorstrin      = {{izdev\={e}ji, tulkot\={a}ji un ievada autori}%
+                      {izdev\adddot, tulk\adddotspace un ievada autori}},
+  editortrfo       = {{izdev\={e}js, tulkot\={a}js un priek\v{s}v\={a}rds autors}%
+                      {izdev\adddot, tulk\adddotspace un priek\v{s}v\adddotspace autors}},
+  editorstrfo      = {{izdev\={e}ji, tulkot\={a}ji un priek\v{s}v\={a}rds autori}%
+                      {izdev\adddot, tulk\adddotspace un priek\v{s}v\adddotspace autori}},
+  editortraf       = {{izdev\={e}js, tulkot\={a}js un p\={e}cv\={a}rda autors}%
+                      {izdev\adddot, tulk\adddotspace un p\={e}cv\adddotspace autors}},
+  editorstraf      = {{izdev\={e}ji, tulkot\={a}ji un p\={e}cv\={a}rda autori}%
+                      {izdev\adddot, tulk\adddotspace un p\={e}cv\adddotspace autori}},
+  editorcoin       = {{izdev\={e}js, koment\={e}t\={a}js un ievada autors}%
+                      {izdev\adddot, koment\adddotspace un ievada autors}},
+  editorscoin      = {{izdev\={e}ji, koment\={e}t\={a}ji un ievada autori}%
+                      {izdev\adddot, koment\adddotspace un ievada autori}},
+  editorcofo       = {{izdev\={e}js, koment\={e}t\={a}js un priek\v{s}v\={a}rds autors}%
+                      {izdev\adddot, koment\adddotspace un priek\v{s}v\adddotspace autors}},
+  editorscofo      = {{izdev\={e}ji, koment\={e}t\={a}ji un priek\v{s}v\={a}rds autori}%
+                      {izdev\adddot, koment\adddotspace un priek\v{s}v\adddotspace autori}},
+  editorcoaf       = {{izdev\={e}js, koment\={e}t\={a}js un p\={e}cv\={a}rda autors}%
+                      {izdev\adddot, koment\adddotspace un p\={e}cv\adddotspace autors}},
+  editorscoaf      = {{izdev\={e}ji, koment\={e}t\={a}ji un p\={e}cv\={a}rda autori}%
+                      {izdev\adddot, koment\adddotspace un p\={e}cv\adddotspace autori}},
+  editoranin       = {{izdev\={e}js, anot\={a}cijas un ievada autors}%
+                      {izdev\adddot, anot\adddotspace un ievada autors}},
+  editorsanin      = {{izdev\={e}ji, anot\={a}cijas un ievada autori}%
+                      {izdev\adddot, anot\adddotspace un ievada autori}},
+  editoranfo       = {{izdev\={e}js, anot\={a}cijas un priek\v{s}v\={a}rda autors}%
+                      {izdev\adddot, anot\adddotspace un priek\v{s}v\adddotspace autors}},
+  editorsanfo      = {{izdev\={e}ji, anot\={a}cijas un priek\v{s}v\={a}rda autori}%
+                      {izdev\adddot, anot\adddotspace un priek\v{s}v\adddotspace autori}},
+  editoranaf       = {{izdev\={e}js, anot\={a}cijas un p\={e}cv\={a}rda autors}%
+                      {izdev\adddot, anot\adddotspace un p\={e}cv\adddotspace autors}},
+  editorsanaf      = {{izdev\={e}ji, anot\={a}cijas un p\={e}cv\={a}rda autori}%
+                      {izdev\adddot, anot\adddotspace un p\={e}cv\adddotspace autori}},
+  editortrcoin     = {{izdev\={e}js, tulkot\={a}js, koment\={e}t\={a}js un ievada autors}%
+                      {izdev\adddot, tulk\adddot, koment\adddotspace un ievada autors}},
+  editorstrcoin    = {{izdev\={e}ji, tulkot\={a}ji, koment\={e}t\={a}ji un ievada autori}%
+                      {izdev\adddot, tulk\adddot, koment\adddotspace un ievada autori}},
+  editortrcofo     = {{izdev\={e}js, tulkot\={a}js, koment\={e}t\={a}js un priek\v{s}v\={a}rda autors}%
+                      {izdev\adddot, tulk\adddot, koment\adddotspace un priek\v{s}v\adddotspace autors}},
+  editorstrcofo    = {{izdev\={e}ji, tulkot\={a}ji, koment\={e}t\={a}ji un priek\v{s}v\={a}rda autori}%
+                      {izdev\adddot, tulk\adddot, koment\adddotspace un priek\v{s}v\adddotspace autori}},
+  editortrcoaf     = {{izdev\={e}js, tulkot\={a}js, koment\={e}t\={a}js un p\={e}cv\={a}rda autors}%
+                      {izdev\adddot, tulk\adddot, koment\adddotspace un p\={e}cv\adddotspace autors}},
+  editorstrcoaf    = {{izdev\={e}ji, tulkot\={a}ji, koment\={e}t\={a}ji un p\={e}cv\={a}rda autori}%
+                      {izdev\adddot, tulk\adddot, koment\adddotspace un p\={e}cv\adddotspace autori}},
+  editortranin     = {{izdev\={e}js, koment\={e}t\={a}js, anot\={a}cijas un ievada autors}%
+                      {izdev\adddot, koment\adddot, anot\adddotspace un ievada autors}},
+  editorstranin    = {{izdev\={e}ji, koment\={e}t\={a}ji, anot\={a}cijas un ievada autori}%
+                      {izdev\adddot, koment\adddot, anot\adddotspace un ievada autori}},
+  editortranfo     = {{izdev\={e}js, koment\={e}t\={a}js, anot\={a}cijas un priek\v{s}v\={a}rda autors}%
+                      {izdev\adddot, koment\adddot, anot\adddotspace un priek\v{s}v\adddotspace autors}},
+  editorstranfo    = {{izdev\={e}ji, koment\={e}t\={a}ji, anot\={a}cijas un priek\v{s}v\={a}rda autori}%
+                      {izdev\adddot, koment\adddot, anot\adddotspace un priek\v{s}v\adddotspace autori}},
+  editortranaf     = {{izdev\={e}js, koment\={e}t\={a}js, anot\={a}cijas un p\={e}cv\={a}rda autors}%
+                      {izdev\adddot, koment\adddot, anot\adddotspace un p\={e}cv\adddotspace autors}},
+  editorstranaf    = {{izdev\={e}ji, koment\={e}t\={a}ji, anot\={a}cijas un p\={e}cv\={a}rda autori}%
+                      {izdev\adddot, koment\adddot, anot\adddotspace un p\={e}cv\adddotspace autori}},
+  translatorco     = {{tulkot\={a}js un koment\={e}t\={a}js}{tulk\adddotspace un koment\adddot}},
+  translatorsco    = {{tulkot\={a}ji un koment\={e}t\={a}ji}{tulk\adddotspace un koment\adddot}},
+  translatoran     = {{tulkot\={a}js un anot\={a}cijas autors}%
+                      {tulk\adddotspace un anot\adddotspace autors}},
+  translatorsan    = {{tulkot\={a}ji un anot\={a}cijas autori}%
+                      {tulk\adddotspace un anot\adddotspace autori}},
+  translatorin     = {{tulkot\={a}js un ievada autors}{tulk\adddotspace un ievada autors}},
+  translatorsin    = {{tulkot\={a}ji un ievada autori}{tulk\adddotspace un ievada autori}},
+  translatorfo     = {{tulkot\={a}js un priek\v{s}v\={a}rda autors}%
+                      {tulk\adddotspace un priek\v{s}v\adddotspace autors}},
+  translatorsfo    = {{tulkot\={a}ji un priek\v{s}v\={a}rda autori}%
+                      {tulk\adddotspace un priek\v{s}v\adddotspace autori}},
+  translatoraf     = {{tulkot\={a}js un p\={e}cv\={a}rda autors}%
+                      {tulk\adddotspace un p\={e}cv\adddotspace autors}},
+  translatorsaf    = {{tulkot\={a}ji un p\={e}cv\={a}rda autori}%
+                      {tulk\adddotspace un p\={e}cv\adddotspace autori}},
+  translatorcoin   = {{tulkot\={a}js, koment\={e}t\={a}js un ievada autors}%
+                      {tulk\adddot, koment\adddotspace un ievada autors}},
+  translatorscoin  = {{tulkot\={a}ji, koment\={e}t\={a}ji un ievada autori}%
+                      {tulk\adddot, koment\adddotspace un ievada autori}},
+  translatorcofo   = {{tulkot\={a}js, koment\={e}t\={a}js un priek\v{s}v\={a}rda autors}%
+                      {tulk\adddot, koment\adddotspace un priek\v{s}v\adddotspace autors}},
+  translatorscofo  = {{tulkot\={a}ji, koment\={e}t\={a}ji un priek\v{s}v\={a}rda autori}%
+                      {tulk\adddot, koment\adddotspace un priek\v{s}v\adddotspace autori}},
+  translatorcoaf   = {{tulkot\={a}js, koment\={e}t\={a}js un p\={e}cv\={a}rda autors}%
+                      {tulk\adddot, koment\adddotspace un p\={e}cv\adddotspace autors}},
+  translatorscoaf  = {{tulkot\={a}ji, koment\={e}t\={a}ji un p\={e}cv\={a}rda autori}%
+                      {tulk\adddot, koment\adddotspace un p\={e}cv\adddotspace autori}},
+  translatoranin   = {{tulkot\={a}js, anot\={a}cijas un ievada autors}%
+                      {tulk\adddot, anot\adddotspace un ievada autors}},
+  translatorsanin  = {{tulkot\={a}ji, anot\={a}cijas un ievada autori}%
+                      {tulk\adddot, anot\adddotspace un ievada autori}},
+  translatoranfo   = {{tulkot\={a}js, anot\={a}cijas un priek\v{s}v\={a}rda autors}%
+                      {tulk\adddot, anot\adddotspace un priek\v{s}v\adddotspace autors}},
+  translatorsanfo  = {{tulkot\={a}ji, anot\={a}cijas un priek\v{s}v\={a}rda autori}%
+                      {tulk\adddot, anot\adddotspace un priek\v{s}v\adddotspace autori}},
+  translatoranaf   = {{tulkot\={a}js, anot\={a}cijas un p\={e}cv\={a}rda autors}%
+                      {tulk\adddot, anot\adddotspace un p\={e}cv\adddotspace autors}},
+  translatorsanaf  = {{tulkot\={a}ji, anot\={a}cijas un p\={e}cv\={a}rda autori}%
+                      {tulk\adddot, anot\adddotspace un p\={e}cv\adddotspace autori}},
+  organizer        = {{organiz\={e}t\={a}js}{organiz\adddot}},
+  organizers       = {{organiz\={e}t\={a}ji}{organiz\adddot}},
+  % FIXME: currently by* strings can appear akward if they're followed by multiple
+  % words connected by "and" or feminine nouns and abbreviate=false is used
+  byorganizer      = {{organiz\={e}jis}{organiz\adddot}},
+  byauthor         = {{sarakst\={\i}jis}{sarakst\adddot}},
+  byeditor         = {{izdevis}{izdevis}},
+  bycompiler       = {{sast\={a}d\={\i}jis}{sast\={a}d\adddot}},
+  byredactor       = {{redi\v{g}\={e}jis}{redi\v{g}\adddot}},
+  byreviser        = {{revid\={e}jis}{revid\adddot}},
+  byreviewer       = {{recenz\={e}jis}{recenz\adddot}},
+  byfounder        = {{dibin\={a}jis}{dib\adddot}},
+  bycontinuator    = {{turpin\={a}jis}{turpin\adddot}},
+  bycollaborator   = {{ar sadarb\={\i}bu no}{ar sadarb\={\i}bu no}},
+  bytranslator     = {{tulkojis}{tulk\adddot}},
+  bycommentator    = {{koment\={e}jis}{koment\adddot}},
+  byannotator      = {{anot\={a}ciju sast\={a}d\={\i}jis}{anot\adddotspace sast\={a}d\adddot}},
+  withcommentator  = {{ar koment\={a}riem no}{ar koment\adddotspace no}},
+  withannotator    = {{ar anot\={a}ciju no}{ar anot\adddotspace no}},
+  withintroduction = {{ar ievadu no}{ar ievadu no}},
+  withforeword     = {{ar priek\v{s}v\={a}rdu no}{ar priek\v{s}v\adddotspace no}},
+  withafterword    = {{ar p\={e}cv\={a}rdu no}{ar p\={e}cv\adddotspace no}},
+  byeditortr       = {{izdevis un tulkojis}{izdev\adddotspace un tulk\adddot}},
+  byeditorco       = {{izdevis un koment\={e}jis}{izdev\adddotspace un koment\adddot}},
+  byeditoran       = {{izdevis un anot\={a}ciju sast\={a}d\={\i}jis}%
+                      {izdev\adddotspace un anot\adddotspace sast\={a}d\adddot}},
+  byeditorin       = {{izdevis un ievadu sast\={a}d\={\i}jis}%
+                      {izdev\adddotspace un ievadu sast\={a}d\adddot}},
+  byeditorfo       = {{izdevis un priek\v{s}v\={a}rdu sast\={a}d\={\i}jis}%
+                      {izdev\adddotspace un priek\v{s}v\adddotspace sast\={a}d\adddot}},
+  byeditoraf       = {{izdevis un p\={e}cv\={a}rdu sast\={a}d\={\i}jis}%
+                      {izdev\adddotspace un p\={e}cv\adddotspace sast\={a}d\adddot}},
+  byeditortrco     = {{izdevis, tulkojis un koment\={e}jis}%
+                      {izdev\adddot, tulk\adddotspace un koment\adddot}},
+  byeditortran     = {{izdevis, tulkojis un anot\={a}ciju sast\={a}d\={\i}jis}%
+                      {izdev\adddot, tulk\adddotspace un anot\adddotspace sast\={a}d\adddot}},
+  byeditortrin     = {{izdevis, tulkojis un ievadu sast\={a}d\={\i}jis}%
+                      {izdev\adddot, tulk\adddotspace un ievadu sast\={a}d\adddot}},
+  byeditortrfo     = {{izdevis, tulkojis un priek\v{s}v\={a}rdu sast\={a}d\={\i}jis}%
+                      {izdev\adddot, tulk\adddotspace un priek\v{s}v\adddotspace sast\={a}d\adddot}},
+  byeditortraf     = {{izdevis, tulkojis un p\={e}cv\={a}rdu sast\={a}d\={\i}jis}%
+                      {izdev\adddot, tulk\adddotspace un p\={e}cv\adddotspace sast\={a}d\adddot}},
+  byeditorcoin     = {{izdevis, koment\={e}jis un ievadu sast\={a}d\={\i}jis}%
+                      {izdev\adddot, koment\adddotspace un ievadu sast\={a}d\adddot}},
+  byeditorcofo     = {{izdevis, koment\={e}jis un priek\v{s}v\={a}rdu sast\={a}d\={\i}jis}%
+                      {izdev\adddot, koment\adddotspace un priek\v{s}v\adddotspace sast\={a}d\adddot}},
+  byeditorcoaf     = {{izdevis, koment\={e}jis un p\={e}cv\={a}rdu sast\={a}d\={\i}jis}%
+                      {izdev\adddot, koment\adddotspace un p\={e}cv\adddotspace sast\={a}d\adddot}},
+  byeditoranin     = {{izdevis, anot\={a}ciju un ievadu sast\={a}d\={\i}jis}%
+                      {izdev\adddot, anot\adddotspace un ievadu sast\={a}d\adddot}},
+  byeditoranfo     = {{izdevis, anot\={a}ciju un priek\v{s}v\={a}rdu sast\={a}d\={\i}jis}%
+                      {izdev\adddot, anot\adddotspace un priek\v{s}v\adddotspace sast\={a}d\adddot}},
+  byeditoranaf     = {{izdevis, anot\={a}ciju un p\={e}cv\={a}rdu sast\={a}d\={\i}jis}%
+                      {izdev\adddot, anot\adddotspace un p\={e}cv\adddotspace sast\={a}d\adddot}},
+  byeditortrcoin   = {{izdevis, tulkojis, koment\={e}jis un ievadu sast\={a}d\={\i}jis}%
+                      {izdev\adddot, tulk\adddot, koment\adddotspace un ievadu sast\={a}d\adddot}},
+  byeditortrcoin   = {{izdevis, tulkojis, koment\={e}jis un priek\v{s}v\={a}rdu sast\={a}d\={\i}jis}%
+                      {izdev\adddot, tulk\adddot, koment\adddotspace un priek\v{s}v\adddotspace sast\={a}d\adddot}},
+  byeditortrcoaf   = {{izdevis, tulkojis, koment\={e}jis un p\={e}cv\={a}rdu sast\={a}d\={\i}jis}%
+                      {izdev\adddot, tulk\adddot, koment\adddotspace un p\={e}cv\adddotspace sast\={a}d\adddot}},
+  byeditortranin   = {{izdevis, koment\={e}jis, anot\={a}ciju un ievadu sast\={a}d\={\i}jis}%
+                      {izdev\adddot, koment\adddot, anot\adddotspace un ievadu sast\={a}d\adddot}},
+  byeditortranfo   = {{izdevis, koment\={e}jis, anot\={a}ciju priek\v{s}v\={a}rdu sast\={a}d\={\i}jis}%
+                      {izdev\adddot, koment\adddot, anot\adddotspace un priek\v{s}v\adddotspace sast\={a}d\adddot}},
+  byeditortranaf   = {{izdevis, koment\={e}jis, anot\={a}ciju un p\={e}cv\={a}rdu sast\={a}d\={\i}jis}%
+                      {izdev\adddot, koment\adddot, anot\adddotspace un p\={e}cv\adddotspace sast\={a}d\adddot}},
+  bytranslatorco   = {{tulkojis un koment\={e}jis}{tulk\adddotspace un koment\adddot}},
+  bytranslatoran   = {{tulkojis un anot\={a}ciju sast\={a}d\={\i}jis}%
+                      {tulk\adddotspace un anot\adddotspace sast\={a}d\adddot}},
+  bytranslatorin   = {{tulkojis un ievadu sast\={a}d\={\i}jis}%
+                      {tulk\adddotspace un ievadu sast\={a}d\adddot}},
+  bytranslatorfo   = {{tulkojis un priek\v{s}v\={a}rdu sast\={a}d\={\i}jis}%
+                      {tulk\adddotspace un priek\v{s}v\adddotspace sast\={a}d\adddot}},
+  bytranslatoraf   = {{tulkojis un p\={e}cv\={a}rdu sast\={a}d\={\i}jis}%
+                      {tulk\adddotspace un p\={e}cv\adddotspace sast\={a}d\adddot}},
+  bytranslatorcoin = {{tulkojis, koment\={e}jis un ievadu sast\={a}d\={\i}jis}%
+                      {tulk\adddot, koment\adddotspace un ievadu sast\={a}d\adddot}},
+  bytranslatorcofo = {{tulkojis, koment\={e}jis un priek\v{s}v\={a}rdu sast\={a}d\={\i}jis}%
+                      {tulk\adddot, koment\adddotspace un priek\v{s}v\adddotspace sast\={a}d\adddot}},
+  bytranslatorcoaf = {{tulkojis, koment\={e}jis un p\={e}cv\={a}rdu sast\={a}d\={\i}jis}%
+                      {tulk\adddot, koment\adddotspace un p\={e}cv\adddotspace sast\={a}d\adddot}},
+  bytranslatoranin = {{tulkojis, anot\={a}ciju un ievadu sast\={a}d\={\i}jis}%
+                      {tulk\adddot, anot\adddotspace un ievadu sast\={a}d\adddot}},
+  bytranslatoranfo = {{tulkojis, anot\={a}ciju un priek\v{s}v\={a}rdu sast\={a}d\={\i}jis}%
+                      {tulk\adddot, anot\adddotspace un priek\v{s}v\adddotspace sast\={a}d\adddot}},
+  bytranslatoranaf = {{tulkojis, anot\={a}ciju un p\={e}cv\={a}rdu sast\={a}d\={\i}jis}%
+                      {tulk\adddot, anot\adddotspace un p\={e}cv\adddotspace sast\={a}d\adddot}},
+  and              = {{un}{un}},
+  andothers        = {{un citi}{u\adddotspace c\adddot}},
+  andmore          = {{un t\={a} t\={a}l\={a}k}{utt\adddot}},
+  volume           = {{s\={e}jums}{s\={e}jums}},
+  volumes          = {{s\={e}jumi}{s\={e}jumi}},
+  % FIXME: should be after the volume count not before, e.g. "10 s\={e}jumos"
+  % involumes        = {{s\={e}jumos}{s\={e}jumos}},
+  jourvol          = {{izdevums}{izdev\adddot}},
+  jourser          = {{s\={e}rija}{s\={e}rija}},
+  book             = {{gr\={a}mata}{gr\={a}m\adddot}},
+  part             = {{da\c{l}a}{da\c{l}a}},
+  issue            = {{izdevums}{izdev\adddot}},
+  newseries        = {{jaun\={a}s s\={e}rijas}{jaun\={a}s s\={e}r\adddot}},
+  oldseries        = {{vec\={a}s s\={e}rijas}{vec\={a}s s\={e}rijas}},
+  edition          = {{izdevums}{izdev\adddot}},
+  reprint          = {{atk\={a}rtots izdevums}{atk\={a}rt\adddotspace izdev\adddot}},
+  reprintof        = {{atk\={a}rtots izdevums no}{atk\={a}rt\adddotspace izdev\adddotspace no}},
+  reprintas        = {{atk\={a}rtoti izdots k\={a}}{atk\={a}rt\adddotspace izdots k\={a}}},
+  reprintfrom      = {{atk\={a}rtots izdevums no}{atk\={a}rt\adddotspace izdev\adddotspace no}},
+  translationof    = {{tulkojums no}{tulk\adddotspace no}},
+  translationas    = {{tulkots k\={a}}{tulk\adddotspace k\={a}}},
+  translationfrom  = {{tulkots no}{tulk\adddotspace no}},
+  reviewof         = {{recenzija}{recenz\adddot}},
+  origpubas        = {{ori\v{g}in\={a}li public\={e}ts k\={a}}{ori\v{g}\adddotspace public\adddotspace k\={a}}},
+  origpubin        = {{ori\v{g}in\={a}li public\={e}ts}{ori\v{g}\adddotspace public\adddot}},
+  astitle          = {{k\={a}}{k\={a}}},
+  bypublisher      = {{no}{no}},
+  nodate           = {{bez datuma}{bez dat\adddot}},
+  page             = {{lappuse}{lpp\adddot}},
+  pages            = {{lappuses}{lpp\adddot}},
+  column           = {{sleja}{sleja}},
+  columns          = {{slejas}{slejas}},
+  line             = {{rinda}{rinda}},
+  lines            = {{rindas}{rindas}},
+  verse            = {{pants}{pants}},
+  verses           = {{panti}{panti}},
+  section          = {{noda\c{l}a}{nod\adddot}},
+  sections         = {{noda\c{l}as}{nod\adddot}},
+  paragraph        = {{rindkopa}{rindk\adddot}},
+  paragraphs       = {{rindkopas}{rindk\adddot}},
+  pagetotal        = {{lappuse}{lpp\adddot}},
+  pagetotals       = {{lappuses}{lpp\adddot}},
+  columntotal      = {{sleja}{sleja}},
+  columntotals     = {{slejas}{slejas}},
+  linetotal        = {{rinda}{rinda}},
+  linetotals       = {{rindas}{rindas}},
+  versetotal       = {{pants}{pants}},
+  versetotals      = {{panti}{panti}},
+  sectiontotal     = {{noda\c{l}a}{nod\adddot}},
+  sectiontotals    = {{noda\c{l}as}{nod\adddot}},
+  paragraphtotal   = {{rindkopa}{rindk\adddot}},
+  paragraphtotals  = {{rindkopas}{rindk\adddot}},
+  in               = {{}{}}, % Works well as an empty string
+  inseries         = {{s\={e}rij\={a}s}{s\={e}rij\={a}s}},
+  ofseries         = {{s\={e}rijas}{s\={e}rijas}},
+  number           = {{numurs}{nr\adddot}},
+  chapter          = {{noda\c{l}a}{nod\adddot}},
+  % bathesis         = {{bakalaura darbs}{bak\adddotspace darbs}},
+  mathesis         = {{ma\v{g}istra darbs}{ma\v{g}\adddotspace darbs}},
+  phdthesis        = {{doktora gr\={a}da disert\={a}cija}{dokt\adddotspace gr\={a}da disert\adddot}},
+  candthesis       = {{kandid\={a}ta disert\={a}cija}{kand\adddotspace disert\adddot}},
+  resreport        = {{p\={e}tniec\={\i}bas darba p\={a}rskats}{p\={e}tn\adddotspace darba p\={a}rsk\adddot}},
+  techreport       = {{tehniskais zi\c{n}ojums}{tehn\adddotspace zi\c{n}\adddot}},
+  software         = {{programmat\={u}ra}{progr\adddot}},
+  datacd           = {{datu CD}{datu CD}},
+  audiocd          = {{audio CD}{audio CD}},
+  version          = {{versija}{versija}},
+  url              = {{pieejams}{pieejams}},
+  urlfrom          = {{pieejams no}{pieejams no}},
+  urlseen          = {{apl\={u}kots\aftergroup\lbx@lv@requestwhendate}{apl\={u}kots\aftergroup\lbx@lv@requestwhendate}},
+  inpreparation    = {{tiek gatavots}{tiek gatavots}},
+  submitted        = {{iesniegts}{iesniegts}},
+  forthcoming      = {{gaid\={a}mais}{gaid\={a}mais}},
+  inpress          = {{pres\={e}}{pres\={e}}},
+  prepublished     = {{agr\={a}k public\={e}ts}{agr\={a}k public\adddot}},% FIXME: not sure if correct
+  citedas          = {{turpm\={a}k cit\={e}ts k\={a}}{turpm\={a}k cit\={e}ts k\={a}}},
+  % thiscite         = {{}{}},% FIXME: missing
+  seenote          = {{skat\={\i}t piez\={\i}mi}{skat\adddotspace piez\adddot}},
+  quotedin         = {{cit\={e}ts}{cit\={e}ts}},
+  % idem             = {{}{}},% FIXME: missing
+  % idemsf           = {{}{}},% FIXME: missing
+  % idemsm           = {{}{}},% FIXME: missing
+  % idemsn           = {{}{}},% FIXME: missing
+  % idempf           = {{}{}},% FIXME: missing
+  % idempm           = {{}{}},% FIXME: missing
+  % idempn           = {{}{}},% FIXME: missing
+  % idempp           = {{}{}},% FIXME: missing
+  % ibidem           = {{}{}},% FIXME: missing
+  % opcit            = {{}{}},% FIXME: missing
+  % loccit           = {{}{}},% FIXME: missing
+  % confer           = {{}{}},% FIXME: missing
+  % sequens          = {{}{}},% FIXME: missing
+  % sequentes        = {{}{}},% FIXME: missing
+  % passim           = {{}{}},% FIXME: missing
+  see              = {{skat\={\i}t}{skat\adddot}},
+  seealso          = {{skat\={\i}t ar\={\i}}{skat\adddotspace ar\={\i}}},
+  backrefpage      = {{cit\={e}ts lappus\={e}}{cit\={e}ts lpp\adddot}},
+  backrefpages     = {{cit\={e}ts lappus\={e}s}{cit\={e}ts lpp\adddot}},
+  january          = {{janv\={a}ris}{janv\adddot}},
+  february         = {{febru\={a}ris}{febr\adddot}},
+  march            = {{marts}{marts}},
+  april            = {{apr\={\i}lis}{apr\adddot}},
+  may              = {{maijs}{maijs}},
+  june             = {{j\={u}nijs}{j\={u}n\adddot}},
+  july             = {{j\={u}lijs}{j\={u}l\adddot}},
+  august           = {{augusts}{aug\adddot}},
+  september        = {{septembris}{sept\adddot}},
+  october          = {{oktobris}{okt\adddot}},
+  november         = {{novembris}{nov\adddot}},
+  december         = {{decembris}{dec\adddot}},
+  locjanuary       = {{janv\={a}r\={\i}}{janv\adddot}},
+  locfebruary      = {{febru\={a}r\={\i}}{febr\adddot}},
+  locmarch         = {{mart\={a}}{mart\={a}}},
+  locapril         = {{apr\={\i}l\={\i}}{apr\adddot}},
+  locmay           = {{maij\={a}}{maij\={a}}},
+  locjune          = {{j\={u}nij\={a}}{j\={u}n\adddot}},
+  locjuly          = {{j\={u}lij\={a}}{j\={u}l\adddot}},
+  locaugust        = {{august\={a}}{aug\adddot}},
+  locseptember     = {{septembr\={\i}}{sept\adddot}},
+  lococtober       = {{oktobr\={\i}}{okt\adddot}},
+  locnovember      = {{novembr\={\i}}{nov\adddot}},
+  locdecember      = {{decembr\={\i}}{dec\adddot}},
+  langamerican     = {{amerik\={a}\c{n}u}{amerik\={a}\c{n}u}},
+  langbrazilian    = {{braz\={\i}lie\v{s}u}{braz\={\i}lie\v{s}u}},
+  langbulgarian    = {{bulg\={a}ru}{bulg\={a}ru}},
+  langcatalan      = {{katal\={a}\c{n}u}{katal\={a}\c{n}u}},
+  langcroatian     = {{horv\={a}tu}{horv\={a}tu}},
+  langczech        = {{\v{c}ehu}{\v{c}ehu}},
+  langdanish       = {{d\={a}\c{n}u}{d\={a}\c{n}u}},
+  langdutch        = {{n\={\i}derlandie\v{s}u}{n\={\i}derlandie\v{s}u}},
+  langenglish      = {{ang\c{l}u}{ang\c{l}u}},
+  langestonian     = {{igau\c{n}u}{igau\c{n}u}},
+  langfinnish      = {{somu}{somu}},
+  langfrench       = {{fran\v{c}u}{fran\v{c}u}},
+  langgalician     = {{galsie\v{s}u}{galsie\v{s}u}},
+  langgerman       = {{v\={a}cu}{v\={a}cu}},
+  langgreek        = {{grie\c{k}u}{grie\c{k}u}},
+  langitalian      = {{it\={a}\c{l}u}{it\={a}\c{l}u}},
+  langjapanese     = {{jap\={a}\c{n}u}{jap\={a}\c{n}u}},
+  langlatin        = {{lat\={\i}\c{n}u}{lat\={\i}\c{n}u}},
+  langlatvian      = {{latvie\v{s}u}{latvie\v{s}u}},
+  langnorwegian    = {{norv\={e}\v{g}u}{norv\={e}\v{g}u}},
+  langpolish       = {{po\c{l}u}{po\c{l}u}},
+  langportuguese   = {{portug\={a}\c{l}u}{portug\={a}\c{l}u}},
+  langrussian      = {{krievu}{krievu}},
+  langslovak       = {{slov\={a}ku}{slov\={a}ku}},
+  langslovene      = {{slov\={e}\c{n}u}{slov\={e}\c{n}u}},
+  langspanish      = {{sp\={a}\c{n}u}{sp\={a}\c{n}u}},
+  langswedish      = {{zviedru}{zviedru}},
+  langukrainian    = {{ukrai\c{n}u}{ukrai\c{n}u}},
+  fromamerican     = {{no amerik\={a}\c{n}u}{no amerik\={a}\c{n}u}},
+  frombrazilian    = {{no braz\={\i}lie\v{s}u}{no braz\={\i}lie\v{s}u}},
+  frombulgarian    = {{no bulg\={a}ru}{no bulg\={a}ru}},
+  fromcatalan      = {{no katal\={a}\c{n}u}{no katal\={a}\c{n}u}},
+  fromcroatian     = {{no horv\={a}tu}{no horv\={a}tu}},
+  fromczech        = {{no \v{c}ehu}{no \v{c}ehu}},
+  fromdanish       = {{no d\={a}\c{n}u}{no d\={a}\c{n}u}},
+  fromdutch        = {{no n\={\i}derlandie\v{s}u}{no n\={\i}derlandie\v{s}u}},
+  fromenglish      = {{no ang\c{l}u}{no ang\c{l}u}},
+  fromestonian     = {{no igau\c{n}u}{no igau\c{n}u}},
+  fromfinnish      = {{no somu}{no somu}},
+  fromfrench       = {{no fran\v{c}u}{no fran\v{c}u}},
+  fromgalician     = {{no galsie\v{s}u}{no galsie\v{s}u}},
+  fromgerman       = {{no v\={a}cu}{no v\={a}cu}},
+  fromgreek        = {{no grie\c{k}u}{no grie\c{k}u}},
+  fromitalian      = {{no it\={a}\c{l}u}{no it\={a}\c{l}u}},
+  fromjapanese     = {{no jap\={a}\c{n}u}{no jap\={a}\c{n}u}},
+  fromlatin        = {{no lat\={\i}\c{n}u}{no lat\={\i}\c{n}u}},
+  fromlatvian      = {{no latvie\v{s}u}{no latvie\v{s}u}},
+  fromnorwegian    = {{no norv\={e}\v{g}u}{no norv\={e}\v{g}u}},
+  frompolish       = {{no po\c{l}u}{no po\c{l}u}},
+  fromportuguese   = {{no portug\={a}\c{l}u}{no portug\={a}\c{l}u}},
+  fromrussian      = {{no krievu}{no krievu}},
+  fromslovak       = {{no slov\={a}ku}{no slov\={a}ku}},
+  fromslovene      = {{no slov\={e}\c{n}u}{no slov\={e}\c{n}u}},
+  fromspanish      = {{no sp\={a}\c{n}u}{no sp\={a}\c{n}u}},
+  fromswedish      = {{no zviedru}{no zviedru}},
+  fromukrainian    = {{no ukrai\c{n}u}{no ukrai\c{n}u}},
+  countryde        = {{V\={a}cija}{DE}},
+  countryeu        = {{Eiropas Savien\={\i}ba}{ES}},
+  countryep        = {{Eiropas Parlaments}{EP}},
+  countryfr        = {{Francija}{FR}},
+  countryuk        = {{Lielbrit\={a}nija}{GB}},
+  countryus        = {{Amerikas Savienot\={a}s Valstis}{ASV}},
+  patent           = {{patents}{patents}},
+  patentde         = {{v\={a}cu patents}{v\={a}cu pat\adddot}},
+  patenteu         = {{Eiropas patents}{Eiropas pat\adddot}},
+  patentfr         = {{fran\v{c}u patents}{fran\v{c}u pat\adddot}},
+  patentuk         = {{ang\c{l}u patents}{ang\c{l}u pat\adddot}},
+  patentus         = {{ASV patents}{ASV pat\adddot}},
+  patreq           = {{patenta piepras\={\i}jums}{pat\adddotspace piepras\adddot}},
+  patreqde         = {{v\={a}cu patenta piepras\={\i}jums}{V\={a}cu pat\adddotspace piepras\adddot}},
+  patreqeu         = {{Eiropas patenta piepras\={\i}jums}{Eiropas pat\adddotspace piepras\adddot}},
+  patreqfr         = {{fran\v{c}u patenta piepras\={\i}jums}{fran\v{c}u pat\adddotspace piepras\adddot}},
+  patrequk         = {{ang\c{l}u patenta piepras\={\i}jums}{ang\c{l}u pat\adddotspace piepras\adddot}},
+  patrequs         = {{ASV patenta piepras\={\i}jums}{ASV pat\adddotspace piepras\adddot}},
+  file             = {{fails}{fails}},
+  library          = {{bibliot\={e}ka}{bibliot\={e}ka}},
+  abstract         = {{atrefer\={e}jums}{atref\adddot}},
+  annotation       = {{anot\={a}cija}{anot\={a}cija}},
+  commonera        = {{m\={u}su \={e}ra}{m\adddotspace \={e}\adddot}},
+  beforecommonera  = {{pirms m\={u}su \={e}ras}{p\adddotspace m\adddotspace \={e}\adddot}},
+  annodomini       = {{p\={e}c Kristus dzim\v{s}anas}{AD}},
+  beforechrist     = {{pirms Kristus dzim\v{s}anas}{BC}},
+  circa            = {{ap}{ap}},
+  spring           = {{pavasaris}{pav\adddot}},
+  summer           = {{vasara}{vas\adddot}},
+  autumn           = {{rudens}{rud\adddot}},
+  winter           = {{ziema}{ziema}},
+  locspring        = {{pavasar\={\i}}{pav\adddot}},
+  locsummer        = {{vasar\={a}}{vas\adddot}},
+  locautumn        = {{ruden\={\i}}{rud\adddot}},
+  locwinter        = {{ziem\={a}}{ziem\={a}}},
+  am               = {{AM}{AM}},
+  pm               = {{PM}{PM}},
+  dateyear         = {{gada}{g\adddot}},
+  locdateyear      = {{gad\={a}}{g\adddot}},
+}
+
+\protected\gdef\lbx@ru@mkbibdatemonthwhen#1{%
+  \ifcase0#1\relax
+    #1\BibliographyWarning{Month out of range}%
+  \or\abx@bibmonth{locjanuary}%
+  \or\abx@bibmonth{locfebruary}%
+  \or\abx@bibmonth{locmarch}%
+  \or\abx@bibmonth{locapril}%
+  \or\abx@bibmonth{locmay}%
+  \or\abx@bibmonth{locjune}%
+  \or\abx@bibmonth{locjuly}%
+  \or\abx@bibmonth{locaugust}%
+  \or\abx@bibmonth{locseptember}%
+  \or\abx@bibmonth{lococtober}%
+  \or\abx@bibmonth{locnovember}%
+  \or\abx@bibmonth{locdecember}%
+  \else
+    #1\BibliographyWarning{Month out of range}%
+  \fi}%
+
+\protected\gdef\lbx@lv@mkdaterangetrunc@long#1#2{%
+  \begingroup
+    \blx@metadateinfo{#2}%
+    \iffieldundef{#2year}
+      {}
+      {\printtext[#2date]{%
+         \datecircaprint
+         \iffieldundef{#2season}
+           {\iffieldsequal{#2year}{#2endyear}
+             {\iffieldsequal{#2month}{#2endmonth}
+                {\csuse{mkbibdate#1}{#2year}{}{#2day}}
+                {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}}}
+             {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}}}%
+           {\csuse{mkbibseasondate#1}{#2year}{#2season}}%
+         \dateeraprint{#2year}%
+         \dateuncertainprint
+         \iffieldundef{#2endyear}
+           {}
+           {\iffieldequalstr{#2endyear}{}
+             {\mbox{\bibdaterangesep}}
+             {\bibdaterangesep
+              \enddatecircaprint
+              \iffieldundef{#2season}
+                {\iffieldsequal{#2year}{#2endyear}
+                  {\csuse{mkbibdate#1}{}{#2endmonth}{#2endday}}
+                  {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}}
+                {\iffieldsequal{#2year}{#2endyear}
+                   {\csuse{mkbibseasondate#1}{}{#2endseason}}
+                   {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}}%
+              \enddateuncertainprint
+              \dateeraprint{#2endyear}}}}}%
+  \endgroup}
+
+\protected\gdef\lbx@lv@mkdaterangetruncextra@long#1#2{%
+  \begingroup
+    \blx@metadateinfo{#2}%
+    \iffieldundef{#2year}
+      {}
+      {\printtext[#2date]{%
+         \datecircaprint
+         \iffieldundef{#2season}
+           {\iffieldsequal{#2year}{#2endyear}
+             {\iffieldsequal{#2month}{#2endmonth}
+                {\csuse{mkbibdate#1}{#2year}{}{#2day}}
+                {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}}}
+             {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}}}%
+           {\csuse{mkbibseasondate#1}{#2year}{#2season}}%
+         \dateeraprint{#2year}%
+         \dateuncertainprint
+         \iffieldundef{#2endyear}
+           {\printfield{extradate}}
+           {\iffieldequalstr{#2endyear}{}
+              {\printfield{extradate}%
+               \mbox{\bibdaterangesep}}
+              {\bibdaterangesep
+               \enddatecircaprint
+               \iffieldundef{#2season}
+                 {\iffieldsequal{#2year}{#2endyear}
+                   {\csuse{mkbibdate#1}{}{#2endmonth}{#2endday}}
+                   {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}}
+                 {\iffieldsequal{#2year}{#2endyear}
+                   {\csuse{mkbibseasondate#1}{}{#2endseason}}
+                   {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}}%
+               \printfield{extradate}%
+               \enddateuncertainprint
+               \dateeraprint{#2endyear}}}}}%
+  \endgroup}
+
+\endinput

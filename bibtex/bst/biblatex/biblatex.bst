@@ -1,5 +1,5 @@
 % Copyright (c) 2006-2011 Philipp Lehman.
-%               2012-2016 Philip Kime, Audrey Boruvka, Joseph Wright
+%               2012-2018 Philip Kime, Audrey Boruvka, Joseph Wright
 %
 % Permission is granted to copy, distribute and/or modify this
 % software under the terms of the LaTeX Project Public License

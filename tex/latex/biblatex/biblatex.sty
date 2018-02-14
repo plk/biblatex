@@ -1,6 +1,7 @@
 % Copyright (c) 2006-2011 Philipp Lehman.
 %               2012-2017 Philip Kime, Audrey Boruvka, Joseph Wright
-%
+%               2018- Philip Kime, Moritz Wemheuer
+%               
 % Permission is granted to copy, distribute and/or modify this
 % software under the terms of the LaTeX Project Public License
 % (LPPL), version 1.3c.
@@ -13,10 +14,10 @@
 % Set up the version strings here
 \def\abx@date{DATE}
 \def\abx@version{VERSION}
-\def\abx@bbxid{\abx@date\space v\abx@version\space biblatex bibliography style (PK/JW/AB)}
-\def\abx@cbxid{\abx@date\space v\abx@version\space biblatex citation style (PK/JW/AB)}
-\def\abx@lbxid{\abx@date\space v\abx@version\space biblatex localization (PK/JW/AB)}
-\def\abx@cptid{\abx@date\space v\abx@version\space biblatex compatibility (PK/JW/AB)}
+\def\abx@bbxid{\abx@date\space v\abx@version\space biblatex bibliography style (PK/MW)}
+\def\abx@cbxid{\abx@date\space v\abx@version\space biblatex citation style (PK/MW)}
+\def\abx@lbxid{\abx@date\space v\abx@version\space biblatex localization (PK/MW)}
+\def\abx@cptid{\abx@date\space v\abx@version\space biblatex compatibility (PK/MW)}
 
 % This is not updated by build script as the control file version
 % does not necessarily change with the package version.
@@ -30,7 +31,7 @@
 
 \NeedsTeXFormat{LaTeX2e}[2005/12/01]
 \ProvidesPackage{biblatex}
-[\abx@date\space v\abx@version\space programmable bibliographies (PK/JW/AB)]
+[\abx@date\space v\abx@version\space programmable bibliographies (PK/MW)]
 
 %% Dependencies
 \RequirePackage{pdftexcmds}
@@ -613,7 +614,6 @@
 \newtoggle{blx@bibindex}
 \newtoggle{blx@localnumber}
 \newtoggle{blx@refcontext}
-\newtoggle{blx@nosuffrecurse}
 
 % Nice command from etextools which causes too many problems if you load
 % the whole package
@@ -1152,7 +1152,8 @@
   #2}
 
 \protected\def\blx@warn@nostring#1{%
-  \blx@warning@entry{Bibliography string '#1' undefined}%
+  \blx@warning@entry{Bibliography string '#1'
+                     \ifcsundef{KV@blx@lbx@#1}{undefined}{untranslated}}%
   \abx@missing{#1}}
 
 \def\blx@warn@conflopt#1{%
@@ -2978,20 +2979,120 @@
     {}}
 
 % <*>[<postpro>]{<string>}
+\newrobustcmd*{\mknormrange}{%
+  \begingroup
+  \@ifstar
+    {\blx@range@aux\blx@normrange@ii}
+    {\blx@range@aux\blx@normrange@i}}
+
+\def\blx@range@aux#1{%
+  \@ifnextchar[{#1}{#1[\@firstofone]}}
+
+\def\blx@normrange@i[#1]#2{%
+  \let\blx@tempa\@empty
+  \protected\def\blx@range@out@value{\appto\blx@tempa}%
+  \let\blx@range@out@delim\blx@range@out@value
+  \let\blx@range@split\blx@normrange@split
+  \let\blx@range@process\blx@normrange@process
+  \blx@range@chunk{#2}%
+  \edef\blx@tempa{\endgroup
+    \unexpanded{#1}{\expandonce\blx@tempa}}%
+  \blx@tempa}
+
+\def\blx@normrange@ii[#1]#2{%
+  \protected\def\blx@range@out@value{#1}%
+  \let\blx@range@out@delim\@firstofone
+  \let\blx@range@split\blx@normrange@split
+  \let\blx@range@process\blx@normrange@process
+  \blx@range@chunk{#2}%
+  \endgroup}
+
+\def\blx@range@chunk#1{%
+  \blx@range@chunk@semcol#1;&}
+
+\def\blx@range@chunk@semcol#1;#2&{%
+  \notblank{#1}
+    {\blx@range@chunk@comma#1,&}
+    {}%
+  \notblank{#2}
+    {\notblank{#1}{\blx@range@out@delim{\bibrangessep}}{}%
+     \blx@range@chunk@semcol#2&}
+    {}}
+
+\def\blx@range@chunk@comma#1,#2&{%
+  \notblank{#1}
+    {\blx@range@chunk@sep#1\bibrangessep&}
+    {}%
+  \notblank{#2}
+    {\notblank{#1}{\blx@range@out@delim{\bibrangessep}}{}%
+     \blx@range@chunk@comma#2&}
+    {}}
+
+\def\blx@range@chunk@sep#1\bibrangessep#2&{%
+  \notblank{#1}
+    {\expandafter\blx@range@split
+     \expandafter{\@firstofone#1}}
+    {}%
+  \notblank{#2}
+    {\notblank{#1}{\blx@range@out@delim{\bibrangessep}}{}%
+     \blx@range@chunk@sep#2&}
+    {}}
+
+% Unicode en-dashes are supported in blx-unicode.def
+\def\blx@normrange@split#1{%
+  \def\blx@normrange@abort{\blx@range@out@value{#1}}%
+  \blx@imc@ifpages{#1}
+    {\blx@normrange@range#1\bibrangedash\bibrangedash&}
+    {\blx@normrange@abort}}
+
+\def\blx@normrange@range#1\bibrangedash#2\bibrangedash#3&{%
+  \ifblank{#3}
+    {\blx@normrange@hyphen#1--&}
+    {\ifblank{#2}
+       {\blx@range@out@value{#1\bibrangedash}}
+       {\ifblank{#1}
+          {\blx@range@out@value{\bibrangedash#2}}
+          {\blx@range@process{#1}{#2}}}}}
+
+\def\blx@normrange@hyphen#1-#2-#3&{%
+  \ifblank{#3}
+    {\blx@normrange@abort}
+    {\ifblank{#2}
+       {\ifblank{#1}
+          {\let\blx@tempb\@empty}
+          {\def\blx@tempb{#1}}%
+        \blx@normrange@hyphen@i#3&}
+       {\ifblank{#1}
+          {\blx@range@out@value{\bibrangedash#2}}
+          {\blx@range@process{#1}{#2}}}}}
+
+\def\blx@normrange@hyphen@i#1-#2&{%
+  \ifblank{#1#2}
+    {\expandafter\blx@range@out@value
+     \expandafter{\blx@tempb\bibrangedash}}
+    {\notblank{#1}
+       {\ifdefempty\blx@tempb
+          {\blx@range@out@value{\bibrangedash#1}}
+          {\expandafter\blx@range@process
+           \expandafter{\blx@tempb}{#1}}}
+       {\blx@normrange@hyphen@i#2&}}}
+
+\def\blx@normrange@process#1#2{%
+  \blx@range@out@value{#1\bibrangedash#2}}
+
+% <*>[<postpro>]{<string>}
 \newrobustcmd*{\mkcomprange}{%
   \begingroup
   \@ifstar
-    {\blx@comprange\blx@comprange@ii}
-    {\blx@comprange\blx@comprange@i}}
-
-\def\blx@comprange#1{%
-  \@ifnextchar[{#1}{#1[\@firstofone]}}
+    {\blx@range@aux\blx@comprange@ii}
+    {\blx@range@aux\blx@comprange@i}}
 
 \def\blx@comprange@i[#1]#2{%
   \let\blx@tempa\@empty
   \protected\def\blx@range@out@value{\appto\blx@tempa}%
   \let\blx@range@out@delim\blx@range@out@value
-  \let\blx@range@split\blx@comprange@split
+  \let\blx@range@split\blx@normrange@split
+  \let\blx@range@process\blx@comprange@check
   \blx@range@chunk{#2}%
   \edef\blx@tempa{\endgroup
     \unexpanded{#1}{\expandonce\blx@tempa}}%
@@ -3000,47 +3101,10 @@
 \def\blx@comprange@ii[#1]#2{%
   \protected\def\blx@range@out@value{#1}%
   \let\blx@range@out@delim\@firstofone
-  \let\blx@range@split\blx@comprange@split
+  \let\blx@range@split\blx@normrange@split
+  \let\blx@range@process\blx@comprange@check
   \blx@range@chunk{#2}%
   \endgroup}
-
-\def\blx@comprange@split#1{%
-  \def\blx@comprange@abort{\blx@range@out@value{#1}}%
-  \blx@imc@ifpages{#1}
-    {\blx@comprange@range#1\bibrangedash\bibrangedash&}
-    {\blx@comprange@abort}}
-
-\def\blx@comprange@range#1\bibrangedash#2\bibrangedash#3&{%
-  \ifblank{#3}
-    {\blx@comprange@hyphen#1--&}
-    {\ifblank{#2}
-       {\blx@range@out@value{#1\bibrangedash}}
-       {\ifblank{#1}
-          {\blx@range@out@value{\bibrangedash#2}}
-          {\blx@comprange@check{#1}{#2}}}}}
-
-\def\blx@comprange@hyphen#1-#2-#3&{%
-  \ifblank{#3}
-    {\blx@comprange@abort}
-    {\ifblank{#2}
-       {\ifblank{#1}
-          {\let\blx@tempb\@empty}
-          {\def\blx@tempb{#1}}%
-        \blx@comprange@hyphen@i#3&}
-       {\ifblank{#1}
-          {\blx@range@out@value{\bibrangedash#2}}
-          {\blx@comprange@check{#1}{#2}}}}}
-
-\def\blx@comprange@hyphen@i#1-#2&{%
-  \ifblank{#1#2}
-    {\expandafter\blx@range@out@value
-     \expandafter{\blx@tempb\bibrangedash}}
-    {\notblank{#1}
-       {\ifdefempty\blx@tempb
-          {\blx@range@out@value{\bibrangedash#1}}
-          {\expandafter\blx@comprange@check
-           \expandafter{\blx@tempb}{#1}}}
-       {\blx@comprange@hyphen@i#2&}}}
 
 \def\blx@comprange@check#1#2{%
   \blx@imc@ifinteger{#1}
@@ -3102,37 +3166,6 @@
     \expandafter\blx@comprange@end
   \fi}
 
-\def\blx@range@chunk#1{%
-  \blx@range@chunk@semcol#1;&}
-
-\def\blx@range@chunk@semcol#1;#2&{%
-  \notblank{#1}
-    {\blx@range@chunk@comma#1,&}
-    {}%
-  \notblank{#2}
-    {\notblank{#1}{\blx@range@out@delim{\bibrangessep}}{}%
-     \blx@range@chunk@semcol#2&}
-    {}}
-
-\def\blx@range@chunk@comma#1,#2&{%
-  \notblank{#1}
-    {\blx@range@chunk@sep#1\bibrangessep&}
-    {}%
-  \notblank{#2}
-    {\notblank{#1}{\blx@range@out@delim{\bibrangessep}}{}%
-     \blx@range@chunk@comma#2&}
-    {}}
-
-\def\blx@range@chunk@sep#1\bibrangessep#2&{%
-  \notblank{#1}
-    {\expandafter\blx@range@split
-     \expandafter{\@firstofone#1}}
-    {}%
-  \notblank{#2}
-    {\notblank{#1}{\blx@range@out@delim{\bibrangessep}}{}%
-     \blx@range@chunk@sep#2&}
-    {}}
-
 % <*>[<postpro>]{<string>}
 \newrobustcmd*{\mkfirstpage}{%
   \begingroup
@@ -3160,6 +3193,7 @@
   \blx@range@chunk{#2}%
   \endgroup}
 
+% Unicode en-dashes are supported in blx-unicode.def
 \def\blx@firstpage@split#1{%
   \def\blx@firstpage@abort{\blx@range@out@value{#1}}%
   \blx@firstpage@range#1\bibrangedash\bibrangedash&}
@@ -4249,11 +4283,17 @@
      \blx@imc@clearlist{pageref}%
      \blx@getdata{#1}%
      \blx@setoptions@type\abx@field@entrytype
+     \blx@setoptions@entry
      \def\abx@field@entrysetcount{1}%
+     \blx@execute
+     \blx@beglangbib
+     \blx@begunit
      \blx@anchor
      \blx@entryset@precode
      \blx@driver{\blx@imc@thefield{entrytype}}%
      \blx@entryset@postcode
+     \blx@endunit
+     \blx@endlangbib
      \endgroup}
     {}%
   \let\do\blx@entryset@i}
@@ -4268,11 +4308,11 @@
      \blx@setoptions@entry
      \addtocounter{instcount}\@ne
      \blx@execute
+     \blx@beglangbib
      \blx@begunit
      \blx@anchor
-     \blx@beglangbib
      \blx@entryset@precode
-     \blx@driver{\blx@imc@thefield{entrytype}}
+     \blx@driver{\blx@imc@thefield{entrytype}}%
      \blx@entryset@postcode
      \blx@endunit
      \blx@endlangbib
@@ -4782,6 +4822,7 @@
   \do{langitalian}%
   \do{langjapanese}%
   \do{langlatin}%
+  \do{langlatvian}%
   \do{langnorwegian}%
   \do{langpolish}%
   \do{langportuguese}%
@@ -4809,6 +4850,7 @@
   \do{fromitalian}%
   \do{fromjapanese}%
   \do{fromlatin}%
+  \do{fromlatvian}%
   \do{fromnorwegian}%
   \do{frompolish}%
   \do{fromportuguese}%
@@ -4866,8 +4908,7 @@
 % in *.cbx/bbx/tex: (implicit)
 % in *.lbx:         inherit = {<language>},
 \define@key{blx@lbx}{inherit}{%
-  \global\toggletrue{blx@nosuffrecurse}%
-  \blx@lbxinput{#1}{}{\blx@err@nolang{#1}}%
+  \blx@lbxinput@strings{#1}{}{\blx@err@nolang{#1}}%
   \csuse{abx@strings@#1}}
 
 \def\blx@cfg@defstring#1#2{%
@@ -4910,8 +4951,7 @@
 
 % {<language>}{<language>}
 \def\blx@letbibextras#1#2{%
-  \global\toggletrue{blx@nosuffrecurse}%
-  \blx@lbxinput{#2}{}{\blx@err@nolang{#2}}%
+  \blx@lbxinput@extras{#2}{}{\blx@err@nolang{#2}}%
   \global\csletcs{abx@extras@#1}{abx@extras@#2}
   \global\csletcs{abx@noextras@#1}{abx@noextras@#2}}%
 
@@ -4955,8 +4995,7 @@
 
 % {<language>}{<language>}
 \def\blx@letbibstrings#1#2{%
-  \global\toggletrue{blx@nosuffrecurse}%
-  \blx@lbxinput{#2}{}{\blx@err@nolang{#2}}%
+  \blx@lbxinput@strings{#2}{}{\blx@err@nolang{#2}}%
   \global\csletcs{abx@strings@#1}{abx@strings@#2}}%
 
 % {<language>}{<exceptions>}
@@ -4987,78 +5026,140 @@
   \csgdef{blx@lng@explicit@#1}{#2}}
 \@onlypreamble\DeclareLanguageMapping
 
+% to avoid copying, these commands simply redefine the input handlers and
+% process and postprocess code
 % {<language>}{<success>}{<failure>}
 \def\blx@lbxinput#1{%
-  \ifdefempty\blx@lng@suff
-    {}
-    {\ifcsdef{blx@lng@explicit@#1}% \DeclareLanguageMapping overrides \DeclareLanguageMappingSuffix
-      {}
-      {\nottoggle{blx@nosuffrecurse}
-        {\csgdef{blx@lng@#1}{#1\blx@lng@suff}}
-        {}}}%
-    \blx@lbxinput@0{#1}}
+  \csletcs{blx@lbx@input@handler}{blx@lbx@input@handler@once}%
+  \csletcs{blx@lbx@input@process}{blx@lbx@input@process@all}%
+  \csletcs{blx@lbx@input@postprocess}{blx@lbx@input@postprocess@all}%
+  \blx@lbxinput@i{#1}}
 
-\def\blx@lbxinput@0#1{%
+\def\blx@lbxinput@strings#1{%
+  \csletcs{blx@lbx@input@handler}{blx@lbx@input@handler@simple}%
+  \csletcs{blx@lbx@input@process}{blx@lbx@input@process@strings}%
+  \csletcs{blx@lbx@input@postprocess}{blx@lbx@input@postprocess@strings}%
+  \blx@lbxinput@i{#1}}
+
+\def\blx@lbxinput@extras#1{%
+  \csletcs{blx@lbx@input@handler}{blx@lbx@input@handler@simple}%
+  \csletcs{blx@lbx@input@process}{blx@lbx@input@process@extras}%
+  \csletcs{blx@lbx@input@postprocess}{blx@lbx@input@postprocess@extras}%
+  \blx@lbxinput@i{#1}}
+
+\def\blx@lbxinput@i#1{%
+  \ifcsundef{blx@nolbxrecurse@#1}
+    {\ifcsdef{blx@lng@explicit@#1}
+       {\global\csletcs{blx@lng@#1}{blx@lng@explicit@#1}}
+       {\ifdefempty\blx@lng@suff
+          {}
+          {\csgdef{blx@lng@#1}{#1\blx@lng@suff}}}}
+    {}%
+  \blx@lbxinput@ii{#1}}
+
+\def\blx@lbxinput@ii#1{%
   \ifcsdef{blx@lng@#1}
-    {\expandafter\expandafter\expandafter\blx@lbxinput@i
+    {\expandafter\expandafter\expandafter\blx@lbxinput@iii
      \expandafter\expandafter\expandafter{%
        \csname blx@lng@#1\endcsname}{#1}}
-    {\blx@lbxinput@ii{#1}{#1}{language '#1'}}}
+    {\blx@lbxinput@iv{#1}{#1}{language '#1'}}}
 
 % {<mapping>}{<language>}
-\def\blx@lbxinput@i#1#2{%
+\def\blx@lbxinput@iii#1#2{%
   \global\csundef{blx@lng@#2}%
   \IfFileExists{#1.lbx}
-    {\blx@lbxinput@ii{#2}{#1}{language '#2' -> '#1'}}
+    {\blx@lbxinput@iv{#2}{#1}{language '#2' -> '#1'}}
     {\ifcsdef{blx@suffmaptried@#2}
       {}
       {\blx@warning@noline{%
           File '#1.lbx' not found!\MessageBreak
           Ignoring mapping '#2' -> '#1'}%
-       \cslet{blx@suffmaptried@#2}\@empty}%
-     \blx@lbxinput@0{#2}}}
+       \global\cslet{blx@suffmaptried@#2}\@empty}%
+     \blx@lbxinput@iv{#2}{#2}{language '#2'}}}
+
+% .lbx files must be read with one of the two following commands,
+% do not use \blx@inputonce. Only the commands here make sure that the file
+% is read as many times as necessary.
+% {<file>}{<message>}{<preload>}{<postload>}{<success>}{<failure>}
+\protected\long\def\blx@lbx@input@handler@simple#1#2#3#4#5#6{%
+  \blx@info@noline{Trying to load #2..}%
+  \IfFileExists{#1}
+    {\blx@info@noline{... file '#1' found}%
+     \ifcsundef{blx@file@lbx@#1}
+       {\listxadd\blx@list@req@stat{#1}%
+        \@addtofilelist{#1}
+        \global\cslet{blx@file@lbx@#1}\@empty}
+       {}%
+     #3\@@input\@filef@und#4#5}
+    {\blx@info@noline{... file '#1' not found}#6}}
+
+% {<file>}{<message>}{<preload>}{<postload>}{<success>}{<failure>}
+\protected\long\def\blx@lbx@input@handler@once#1#2#3#4#5#6{%
+  \ifcsundef{blx@file@lbx@#1}
+    {\blx@info@noline{Trying to load #2..}%
+     \global\cslet{blx@file@lbx@#1}\@empty
+     \IfFileExists{#1}
+       {\blx@info@noline{... file '#1' found}%
+        \listxadd\blx@list@req@stat{#1}%
+        \@addtofilelist{#1}%
+        #3\@@input\@filef@und#4#5}
+       {\blx@info@noline{... file '#1' not found}#6}}
+    {#5}}
+
+\def\blx@lbx@input@process@strings#1{
+  \global\cslet{abx@strings@#1}\@empty
+  \def\InheritBibliographyStrings{%
+    \blx@letbibstrings{#1}}%
+  \def\DeclareBibliographyStrings##1{%
+    \begingroup
+      \let\blx@defstring\blx@lbx@defstring
+      \blx@defbibstrings{#1}{##1}%
+    \endgroup}}
+
+\def\blx@lbx@input@process@extras#1{%
+  \global\cslet{abx@extras@#1}\@empty
+  \global\cslet{abx@noextras@#1}\@empty
+  \def\InheritBibliographyExtras{\blx@letbibextras{#1}}%
+  \def\DeclareBibliographyExtras{\blx@defbibextras{#1}}%
+  \def\UndeclareBibliographyExtras{\blx@undefbibextras{#1}}}
+
+\def\blx@lbx@input@process@all#1{%
+  \blx@lbx@input@process@strings{#1}%
+  \blx@lbx@input@process@extras{#1}%
+  \def\DeclareHyphenationExceptions{\blx@hyphexcept{#1}}}
+
+\def\blx@lbx@input@postprocess@strings#1{
+  \csuse{blx@hook@strings@#1}}
+
+\def\blx@lbx@input@postprocess@extras#1{%
+  \csuse{blx@hook@extras@#1}%
+  \csuse{blx@hook@noextras@#1}}
+
+\def\blx@lbx@input@postprocess@all#1{%
+  \blx@lbx@input@postprocess@strings{#1}%
+  \blx@lbx@input@postprocess@extras{#1}%
+  \csuse{blx@hook@hyph@#1}}
 
 % {<language>}{<lbxfile>}{<message>}
-% toggle 'blx@nosuffrecurse' is set to true at the places where recursion into here
-% can occur when loading a .lbx otherwise, when using \DeclareLanguageMappingSuffix
-% it is possible to get into infinite loops. We only want to apply the suffix to explicitly
-% loaded languages, not those loaded by recursion.
-\def\blx@lbxinput@ii#1#2#3{%
+\def\blx@lbxinput@iv#1#2#3{%
   \begingroup
-  \setbox\@tempboxa=\hbox\bgroup
-    \aftergroup\endgroup
-    \blx@inputonce{#2.lbx}{#3}
-      {\global\cslet{abx@strings@#1}\@empty
-       \global\cslet{abx@extras@#1}\@empty
-       \global\cslet{abx@noextras@#1}\@empty
-       \blx@maplang{#1}{#1}%
-       \def\InheritBibliographyStrings{%
-         \blx@letbibstrings{#1}}%
-       \def\DeclareBibliographyStrings####1{%
-         \begingroup
-         \let\blx@defstring\blx@lbx@defstring
-         \blx@defbibstrings{#1}{####1}%
-         \endgroup}%
-       \def\InheritBibliographyExtras{\blx@letbibextras{#1}}%
-       \def\DeclareBibliographyExtras{\blx@defbibextras{#1}}%
-       \def\UndeclareBibliographyExtras{\blx@undefbibextras{#1}}%
-       \def\DeclareHyphenationExceptions{\blx@hyphexcept{#1}}%
+    \blx@lbx@input@handler{#2.lbx}{#3}
+      {\blx@maplang{#1}{#1}%
+       \let\InheritBibliographyStrings\@gobble
+       \let\DeclareBibliographyStrings\@gobble
+       \let\InheritBibliographyExtras\@gobble
+       \let\DeclareBibliographyExtras\@gobble
+       \let\UndeclareBibliographyExtras\@gobble
+       \blx@lbx@input@process{#1}%
        \begingroup
+       \cslet{blx@nolbxrecurse@#1}\@empty
        \blx@saneccodes
        \makeatletter}
       {\endgroup
-       \csuse{blx@hook@strings@#1}%
-       \csuse{blx@hook@strings@#2}%
-       \csuse{blx@hook@extras@#1}%
-       \csuse{blx@hook@extras@#2}%
-       \csuse{blx@hook@noextras@#1}%
-       \csuse{blx@hook@noextras@#2}%
-       \csuse{blx@hook@hyph@#1}%
-       \csuse{blx@hook@hyph@#2}%
-       \global\togglefalse{blx@nosuffrecurse}}
+       \blx@lbx@input@postprocess{#1}}
       {\aftergroup\@firstoftwo}
       {\aftergroup\@secondoftwo}%
-  \egroup}
+  \endgroup}
 
 % {<language>}
 \def\blx@langsetup#1{%
@@ -5098,6 +5199,7 @@
 \newrobustcmd*{\mkdaterangecompextra}{%
   \mkdaterangetruncextra{long}}
 
+% calls to \blx@metadateinfo should be grouped to avoid name clashes
 \def\blx@metadateinfo#1{%
   \letcs\ifdateera{if#1dateera}%
   \letcs\ifenddateera{if#1enddateera}%
@@ -5106,7 +5208,9 @@
   \letcs\ifdatejulian{if#1datejulian}%
   \letcs\ifenddatejulian{if#1enddatejulian}%
   \letcs\ifdateuncertain{if#1dateuncertain}%
-  \letcs\ifenddateuncertain{if#1enddateuncertain}}
+  \letcs\ifenddateuncertain{if#1enddateuncertain}%
+  \letcs\ifdateunknown{if#1dateunknown}%
+  \letcs\ifenddateunknown{if#1enddateunknown}}
 
 \expandafter\newrobustcmd\expandafter*\csname mktimerange24h\endcsname{%
   \mktimerange{24h}}
@@ -5158,138 +5262,144 @@
 
 % {<short|long>}{<datetype>}
 \newrobustcmd*{\mkdaterangefull}[2]{%
-  \blx@metadateinfo{#2}%
-  \iffieldundef{#2year}
-    {}
-    {\datecircaprint
-     \printtext[#2date]{%
-       % Such a season component can only come from an ISO8601 season which replaces
-       % a normal month so if it exists, we know that a normal date print is ruled out
-       \iffieldundef{#2season}
-         {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
-          % Optionally print the time after the date
-          \blx@printtime{#2}{}}
-         {\csuse{mkbibseasondate#1}{#2year}{#2season}}%
-       \dateuncertainprint
-       \dateeraprint{#2year}%
-       \iffieldundef{#2endyear}
-         {}
-         {\iffieldequalstr{#2endyear}{}
-            {\mbox{\bibdaterangesep}}
-            {\bibdaterangesep
-             \enddatecircaprint
-             \iffieldundef{#2season}
-               {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}%
-                % Optionally print the time after the date
-                \blx@printtime{#2}{end}}
-               {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}%
-             \enddateuncertainprint
-             \dateeraprint{#2endyear}}}}}}
-
-\newrobustcmd*{\mkdaterangetrunc}[2]{%
-  \blx@metadateinfo{#2}%
-  \iffieldundef{#2year}
-    {}
-    {\datecircaprint
-     \printtext[#2date]{%
-       % Such a season component can only come from an ISO8601 season which replaces
-       % a normal month so if it exists, we know that a normal date print is ruled out
-       \iffieldundef{#2season}
-         {\iffieldsequal{#2year}{#2endyear}
-            {\iffieldsequal{#2month}{#2endmonth}
-               {\csuse{mkbibdate#1}{}{}{#2day}}
-               {\csuse{mkbibdate#1}{}{#2month}{#2day}}}
-            {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
-             \iffieldsequal{#2dateera}{#2enddateera}{}
-              {\dateeraprint{#2year}}}}
-         {\iffieldsequal{#2year}{#2endyear}
-           {\csuse{mkbibseasondate#1}{}{#2season}}
-           {\csuse{mkbibseasondate#1}{#2year}{#2season}%
-            \iffieldsequal{#2dateera}{#2enddateera}{}
-              {\dateeraprint{#2year}}}}%
-       \dateuncertainprint
-       \iffieldundef{#2endyear}
-         {}
-         {\iffieldequalstr{#2endyear}{}
-            {\mbox{\bibdaterangesep}}
-            {\bibdaterangesep
-             \enddatecircaprint
-             \iffieldundef{#2season}
-               {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}
-               {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}%
-             \enddateuncertainprint
-             \dateeraprint{#2endyear}}}}}}
-
-\newrobustcmd*{\mkdaterangefullextra}[2]{%
-  \blx@metadateinfo{#2}%
-  \iffieldundef{#2year}
-    {}
-    {\datecircaprint
-     \printtext[#2date]{%
-       \printtext{%
-       % Such a season component can only come from an ISO8601 season which replaces
-       % a normal month so if it exists, we know that a normal date print is ruled out
-       \iffieldundef{#2season}
-         {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
-          % Optionally print the time after the date
-          \blx@printtime{#2}{}}
-         {\csuse{mkbibseasondate#1}{#2year}{#2season}}%
-       \dateuncertainprint
-       \dateeraprint{#2year}%
-       \iffieldundef{#2endyear}
-         {\printfield{extradate}}
-         {\iffieldequalstr{#2endyear}{}
-            {\printfield{extradate}%
-             \printtext{\mbox{\bibdaterangesep}}}
-            {\printtext{%
-               \bibdaterangesep
+  \begingroup
+    \blx@metadateinfo{#2}%
+    \iffieldundef{#2year}
+      {}
+      {\printtext[#2date]{%
+         \datecircaprint
+         % Such a season component can only come from an ISO8601 season which replaces
+         % a normal month so if it exists, we know that a normal date print is ruled out
+         \iffieldundef{#2season}
+           {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
+            % Optionally print the time after the date
+            \blx@printtime{#2}{}}
+           {\csuse{mkbibseasondate#1}{#2year}{#2season}}%
+         \dateuncertainprint
+         \dateeraprint{#2year}%
+         \iffieldundef{#2endyear}
+           {}
+           {\iffieldequalstr{#2endyear}{}
+              {\mbox{\bibdaterangesep}}
+              {\bibdaterangesep
                \enddatecircaprint
                \iffieldundef{#2season}
                  {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}%
                   % Optionally print the time after the date
                   \blx@printtime{#2}{end}}
-                 {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}}%
-               \printfield{extradate}%
+                 {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}%
                \enddateuncertainprint
-               \dateeraprint{#2endyear}}}}}}}
+               \dateeraprint{#2endyear}}}}}%
+  \endgroup}
 
-\newrobustcmd*{\mkdaterangetruncextra}[2]{%
-  \blx@metadateinfo{#2}%
-  \iffieldundef{#2year}
-    {}
-    {\datecircaprint
-     \printtext[#2date]{%
-       \printtext{%
-       % Such a season component can only come from an ISO8601 season which replaces
-       % a normal month so if it exists, we know that a normal date print is ruled out
-       \iffieldundef{#2season}
-         {\iffieldsequal{#2year}{#2endyear}
-            {\iffieldsequal{#2month}{#2endmonth}
-               {\csuse{mkbibdate#1}{}{}{#2day}}
-               {\csuse{mkbibdate#1}{}{#2month}{#2day}}}
-            {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
-             \iffieldsequal{#2dateera}{#2enddateera}{}
-               {\dateeraprint{#2year}}}}
-         {\iffieldsequal{#2year}{#2endyear}
-           {\csuse{mkbibseasondate#1}{}{#2season}}
-           {\csuse{mkbibseasondate#1}{#2year}{#2season}%
-             \iffieldsequal{#2dateera}{#2enddateera}{}
-              {\dateeraprint{#2year}}}}%
-       \dateuncertainprint
-       \iffieldundef{#2endyear}
-         {\printfield{extradate}}
-         {\iffieldequalstr{#2endyear}{}
-            {\printfield{extradate}%
-             \printtext{\mbox{\bibdaterangesep}}}
-            {\printtext{%
-               \bibdaterangesep
+\newrobustcmd*{\mkdaterangetrunc}[2]{%
+  \begingroup
+    \blx@metadateinfo{#2}%
+    \iffieldundef{#2year}
+      {}
+      {\printtext[#2date]{%
+         \datecircaprint
+         % Such a season component can only come from an ISO8601 season which replaces
+         % a normal month so if it exists, we know that a normal date print is ruled out
+         \iffieldundef{#2season}
+           {\iffieldsequal{#2year}{#2endyear}
+              {\iffieldsequal{#2month}{#2endmonth}
+                 {\csuse{mkbibdate#1}{}{}{#2day}}
+                 {\csuse{mkbibdate#1}{}{#2month}{#2day}}}
+              {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
+               \iffieldsequal{#2dateera}{#2enddateera}{}
+                {\dateeraprint{#2year}}}}
+           {\iffieldsequal{#2year}{#2endyear}
+             {\csuse{mkbibseasondate#1}{}{#2season}}
+             {\csuse{mkbibseasondate#1}{#2year}{#2season}%
+              \iffieldsequal{#2dateera}{#2enddateera}{}
+                {\dateeraprint{#2year}}}}%
+         \dateuncertainprint
+         \iffieldundef{#2endyear}
+           {}
+           {\iffieldequalstr{#2endyear}{}
+              {\mbox{\bibdaterangesep}}
+              {\bibdaterangesep
                \enddatecircaprint
                \iffieldundef{#2season}
                  {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}
-                 {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}}%
-               \printfield{extradate}%
+                 {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}%
                \enddateuncertainprint
-               \dateeraprint{#2endyear}}}}}}}
+               \dateeraprint{#2endyear}}}}}%
+  \endgroup}
+
+\newrobustcmd*{\mkdaterangefullextra}[2]{%
+  \begingroup
+    \blx@metadateinfo{#2}%
+    \iffieldundef{#2year}
+      {}
+      {\printtext[#2date]{%
+         \datecircaprint
+         % Such a season component can only come from an ISO8601 season which replaces
+         % a normal month so if it exists, we know that a normal date print is ruled out
+         \iffieldundef{#2season}
+           {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
+            % Optionally print the time after the date
+            \blx@printtime{#2}{}}
+           {\csuse{mkbibseasondate#1}{#2year}{#2season}}%
+         \dateuncertainprint
+         \dateeraprint{#2year}%
+         \iffieldundef{#2endyear}
+           {\printfield{extradate}}
+           {\iffieldequalstr{#2endyear}{}
+              {\printfield{extradate}%
+               \printtext{\mbox{\bibdaterangesep}}}
+              {\printtext{%
+                 \bibdaterangesep
+                 \enddatecircaprint
+                 \iffieldundef{#2season}
+                   {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}%
+                    % Optionally print the time after the date
+                    \blx@printtime{#2}{end}}
+                   {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}}%
+                 \printfield{extradate}%
+                 \enddateuncertainprint
+                 \dateeraprint{#2endyear}}}}}%
+  \endgroup}
+
+\newrobustcmd*{\mkdaterangetruncextra}[2]{%
+  \begingroup
+    \blx@metadateinfo{#2}%
+    \iffieldundef{#2year}
+      {}
+      {\printtext[#2date]{%
+         \datecircaprint
+         % Such a season component can only come from an ISO8601 season which replaces
+         % a normal month so if it exists, we know that a normal date print is ruled out
+         \iffieldundef{#2season}
+           {\iffieldsequal{#2year}{#2endyear}
+              {\iffieldsequal{#2month}{#2endmonth}
+                 {\csuse{mkbibdate#1}{}{}{#2day}}
+                 {\csuse{mkbibdate#1}{}{#2month}{#2day}}}
+              {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
+               \iffieldsequal{#2dateera}{#2enddateera}{}
+                 {\dateeraprint{#2year}}}}
+           {\iffieldsequal{#2year}{#2endyear}
+             {\csuse{mkbibseasondate#1}{}{#2season}}
+             {\csuse{mkbibseasondate#1}{#2year}{#2season}%
+               \iffieldsequal{#2dateera}{#2enddateera}{}
+                {\dateeraprint{#2year}}}}%
+         \dateuncertainprint
+         \iffieldundef{#2endyear}
+           {\printfield{extradate}}
+           {\iffieldequalstr{#2endyear}{}
+              {\printfield{extradate}%
+               \printtext{\mbox{\bibdaterangesep}}}
+              {\printtext{%
+                 \bibdaterangesep
+                 \enddatecircaprint
+                 \iffieldundef{#2season}
+                   {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}
+                   {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}}%
+                 \printfield{extradate}%
+                 \enddateuncertainprint
+                 \dateeraprint{#2endyear}}}}}%
+  \endgroup}
 
 \newrobustcmd*{\mkdaterangeyear}[1]{%
   \blx@imc@clearfield{#1season}%
@@ -5313,64 +5423,68 @@
 
 % {<datetype>}
 \newrobustcmd*{\mkdaterangeymd}[1]{%
-  \blx@metadateinfo{#1}%
-  \iffieldundef{#1year}
-    {}
-    {\datecircaprint
-     \printtext[#1date]{%
-       % Such a season component can only come from an  ISO8601 season which replaces
-       % a normal month so if it exists, we know that a normal date print is ruled out
-       \iffieldundef{#1season}
-         {\blx@ymddate{#1}{}%
-          % Optionally print the time after the date
-          \blx@printtime{#1}{}}
-         {\csuse{mkbibseasondateshort}{#1year}{#1season}}%
-       \dateuncertainprint
-       \dateeraprint{#1year}%
-       \iffieldundef{#1endyear}
-         {}
-         {\iffieldequalstr{#1endyear}{}
-            {\mbox{\bibdaterangesep}}
-            {\bibdaterangesep
-             \enddatecircaprint
-             \iffieldundef{#1season}
-               {\blx@ymddate{#1}{end}%
-                % Optionally print the time after the date
-                \blx@printtime{#1}{end}}
-               {\csuse{mkbibseasondateshort}{#1endyear}{#1endseason}}%
-             \enddateuncertainprint
-             \dateeraprint{#1endyear}}}}}}
-
-% {<datetype>}
-\newrobustcmd*{\mkdaterangeymdextra}[1]{%
-  \blx@metadateinfo{#1}%
-  \iffieldundef{#1year}
-    {}
-    {\datecircaprint
-     \printtext[#1date]{%
-       % Such a season component can only come from an ISO8601 season which replaces
-       % a normal month so if it exists, we know that a normal date print is ruled out
-       \iffieldundef{#1season}
-         {\blx@ymddate[extradate]{#1}{}%
-          % Optionally print the time after the date
-          \blx@printtime{#1}{}}
-         {\csuse{mkbibseasondateshort}{#1year}{#1season}}%
-       \dateuncertainprint
-       \dateeraprint{#1year}%
-       \iffieldundef{#1endyear}
-         {}
-         {\iffieldequalstr{#1endyear}{}
-            {\mbox{\bibdaterangesep}}
-            {\printtext{%
-               \bibdaterangesep
+  \begingroup
+    \blx@metadateinfo{#1}%
+    \iffieldundef{#1year}
+      {}
+      {\printtext[#1date]{%
+         \datecircaprint
+         % Such a season component can only come from an  ISO8601 season which replaces
+         % a normal month so if it exists, we know that a normal date print is ruled out
+         \iffieldundef{#1season}
+           {\blx@ymddate{#1}{}%
+            % Optionally print the time after the date
+            \blx@printtime{#1}{}}
+           {\csuse{mkbibseasondateshort}{#1year}{#1season}}%
+         \dateuncertainprint
+         \dateeraprint{#1year}%
+         \iffieldundef{#1endyear}
+           {}
+           {\iffieldequalstr{#1endyear}{}
+              {\mbox{\bibdaterangesep}}
+              {\bibdaterangesep
                \enddatecircaprint
                \iffieldundef{#1season}
                  {\blx@ymddate{#1}{end}%
                   % Optionally print the time after the date
                   \blx@printtime{#1}{end}}
-                 {\csuse{mkbibseasondateshort}{#1endyear}{#1endseason}}}%
-             \enddateuncertainprint
-             \dateeraprint{#1endyear}}}}}}
+                 {\csuse{mkbibseasondateshort}{#1endyear}{#1endseason}}%
+               \enddateuncertainprint
+               \dateeraprint{#1endyear}}}}}%
+  \endgroup}
+
+% {<datetype>}
+\newrobustcmd*{\mkdaterangeymdextra}[1]{%
+  \begingroup
+    \blx@metadateinfo{#1}%
+    \iffieldundef{#1year}
+      {}
+      {\printtext[#1date]{%
+         \datecircaprint
+         % Such a season component can only come from an ISO8601 season which replaces
+         % a normal month so if it exists, we know that a normal date print is ruled out
+         \iffieldundef{#1season}
+           {\blx@ymddate[extradate]{#1}{}%
+            % Optionally print the time after the date
+            \blx@printtime{#1}{}}
+           {\csuse{mkbibseasondateshort}{#1year}{#1season}}%
+         \dateuncertainprint
+         \dateeraprint{#1year}%
+         \iffieldundef{#1endyear}
+           {}
+           {\iffieldequalstr{#1endyear}{}
+              {\mbox{\bibdaterangesep}}
+              {\printtext{%
+                 \bibdaterangesep
+                 \enddatecircaprint
+                 \iffieldundef{#1season}
+                   {\blx@ymddate{#1}{end}%
+                    % Optionally print the time after the date
+                    \blx@printtime{#1}{end}}
+                   {\csuse{mkbibseasondateshort}{#1endyear}{#1endseason}}}%
+               \enddateuncertainprint
+               \dateeraprint{#1endyear}}}}}%
+  \endgroup}
 
 % [extradate]{<datetype>}{''|end}
 \newrobustcmd*{\blx@ymddate}[3][]{%
@@ -5411,64 +5525,68 @@
     {}}
 
 \newrobustcmd*{\mkdaterangeiso}[1]{%
-  \blx@metadateinfo{#1}%
-  \def\bibdatetimesep{T}%
-  \iffieldundef{#1year}
-    {}
-    {\printtext[#1date]{%
-       \blx@isodate{#1}{}%
-       \ifboolexpr{%
-         togl {blx@#1dateusetime}
-         and
-         not test {\iffieldundef{#1hour}}}
-         {\printtext{\bibdatetimesep}%
-          \blx@isotime{#1}{}}
-         {}%
-       \dateuncertainprint
-       \datecircaprintiso
-       \iffieldundef{#1endyear}
-         {}
-         {\addslash
-          \blx@isodate{#1}{end}%
-          \ifboolexpr{%
-            togl {blx@#1dateusetime}
-            and
-            not test {\iffieldundef{#1endhour}}}
-            {\printtext{\bibdatetimesep}%
-             \blx@isotime{#1}{end}}
-            {}%
-         \enddateuncertainprint
-         \enddatecircaprintiso}}}}
+  \begingroup
+    \blx@metadateinfo{#1}%
+    \def\bibdatetimesep{T}%
+    \iffieldundef{#1year}
+      {}
+      {\printtext[#1date]{%
+         \blx@isodate{#1}{}%
+         \ifboolexpr{%
+           togl {blx@#1dateusetime}
+           and
+           not test {\iffieldundef{#1hour}}}
+           {\printtext{\bibdatetimesep}%
+            \blx@isotime{#1}{}}
+           {}%
+         \dateuncertainprint
+         \datecircaprintiso
+         \iffieldundef{#1endyear}
+           {}
+           {\addslash
+            \blx@isodate{#1}{end}%
+            \ifboolexpr{%
+              togl {blx@#1dateusetime}
+              and
+              not test {\iffieldundef{#1endhour}}}
+              {\printtext{\bibdatetimesep}%
+               \blx@isotime{#1}{end}}
+              {}%
+           \enddateuncertainprint
+           \enddatecircaprintiso}}}%
+  \endgroup}
 
 \newrobustcmd*{\mkdaterangeisoextra}[1]{%
-  \blx@metadateinfo{#1}%
-  \def\bibdatetimesep{T}%
-  \iffieldundef{#1year}
-    {}
-    {\printtext[#1date]{%
-       \blx@isodate[extradate]{#1}{}%
-       \ifboolexpr{%
-         togl {blx@#1dateusetime}
-         and
-         not test {\iffieldundef{#1hour}}}
-         {\printtext{\bibdatetimesep}%
-          \blx@isotime{#1}{}}
-         {}%
-       \dateuncertainprint
-       \datecircaprintiso
-       \iffieldundef{#1endyear}
-         {}
-         {\addslash
-          \blx@isodate{#1}{end}}%
-          \ifboolexpr{%
-            togl {blx@#1dateusetime}
-            and
-            not test {\iffieldundef{#1endhour}}}
-            {\printtext{\bibdatetimesep}%
-             \blx@isotime{#1}{end}}
-            {}%
-          \enddateuncertainprint
-          \enddatecircaprintiso}}}
+  \begingroup
+    \blx@metadateinfo{#1}%
+    \def\bibdatetimesep{T}%
+    \iffieldundef{#1year}
+      {}
+      {\printtext[#1date]{%
+         \blx@isodate[extradate]{#1}{}%
+         \ifboolexpr{%
+           togl {blx@#1dateusetime}
+           and
+           not test {\iffieldundef{#1hour}}}
+           {\printtext{\bibdatetimesep}%
+            \blx@isotime{#1}{}}
+           {}%
+         \dateuncertainprint
+         \datecircaprintiso
+         \iffieldundef{#1endyear}
+           {}
+           {\addslash
+            \blx@isodate{#1}{end}}%
+            \ifboolexpr{%
+              togl {blx@#1dateusetime}
+              and
+              not test {\iffieldundef{#1endhour}}}
+              {\printtext{\bibdatetimesep}%
+               \blx@isotime{#1}{end}}
+              {}%
+            \enddateuncertainprint
+            \enddatecircaprintiso}}%
+  \endgroup}
 
 % [extradate]{<datetype>}{''|end}
 \newrobustcmd*{\blx@isodate}[3][]{%
@@ -6026,7 +6144,9 @@
   \cslet{if#1datejulian}\@secondoftwo
   \cslet{if#1enddatejulian}\@secondoftwo
   \cslet{if#1dateuncertain}\@secondoftwo
-  \cslet{if#1enddateuncertain}\@secondoftwo}
+  \cslet{if#1enddateuncertain}\@secondoftwo
+  \cslet{if#1dateunknown}\@secondoftwo
+  \cslet{if#1enddateunknown}\@secondoftwo}
 \abx@dodatetypes
 \do{labeldate}
 
@@ -6044,7 +6164,9 @@
   \listxadd\blx@datemetabooleans{#1datejulian}%
   \listxadd\blx@datemetabooleans{#1enddatejulian}%
   \listxadd\blx@datemetabooleans{#1dateuncertain}%
-  \listxadd\blx@datemetabooleans{#1enddateuncertain}}
+  \listxadd\blx@datemetabooleans{#1enddateuncertain}%
+  \listxadd\blx@datemetabooleans{#1dateunknown}%
+  \listxadd\blx@datemetabooleans{#1enddateunknown}}
 \abx@dodatetypes
 
 \def\do#1{%
@@ -6063,6 +6185,22 @@
   \do{labeldatesource}%
   \do{labeldateera}%
   \do{labelenddateera}%
+  \do{labelyear}%
+  \do{labelendyear}%
+  \do{labelmonth}%
+  \do{labelendmonth}%
+  \do{labelday}%
+  \do{labelendday}%
+  \do{labelhour}%
+  \do{labelendhour}%
+  \do{labelminute}%
+  \do{labelendminute}%
+  \do{labelsecond}%
+  \do{labelendsecond}%
+  \do{labeltimezone}%
+  \do{labelendtimezone}%
+  \do{labelseason}%
+  \do{labelendseason}%
   \do{entrykey}%
   \do{entryset}%
   \do{entrysetcount}%
@@ -6111,33 +6249,40 @@
 \abx@dodatetypes
 
 % Set up circa, julian and uncertain date internals
-\def\blx@imc@ifdatemeta@i#1#2{%
+\def\blx@makeifdatemeta@bools@i#1#2{%
   \appto\blx@blxinit{%
-    \csdef{if#1date#2}{\iftoggle{abx@bool@#1date#2}}%
-    \csdef{if#1enddate#2}{\iftoggle{abx@bool@#1enddate#2}}%
-    \appto\blx@TE@hook{%
-      \csdef{if#1date#2}{\blx@TE{\iftoggle{abx@bool@#1date#2}}}%
-      \csdef{if#1enddate#2}{\blx@TE{\iftoggle{abx@bool@#1enddate#2}}}}}}
+    \blx@makeifdatemeta@bools{#1}{#2}}}
+
+\def\blx@makeifdatemeta@bools#1#2{%
+  \csdef{if#1date#2}{\iftoggle{abx@bool@#1date#2}}%
+  \csdef{if#1enddate#2}{\iftoggle{abx@bool@#1enddate#2}}%
+  \appto\blx@TE@hook{%
+    \csdef{if#1date#2}{\blx@TE{\iftoggle{abx@bool@#1date#2}}}%
+    \csdef{if#1enddate#2}{\blx@TE{\iftoggle{abx@bool@#1enddate#2}}}}}
 
 % Set up date era internals
-\def\blx@imc@ifdatemeta@ii#1{%
+\def\blx@makeifdatemeta@fields@i#1{%
   \appto\blx@blxinit{%
-    \csdef{if#1dateera}##1{\ifcsstring{abx@field@#1dateera}{##1}}%
-    \csdef{if#1enddateera}##1{\ifcsstring{abx@field@#1enddateera}{##1}}%
-    \appto\blx@TE@hook{%
-      \csdef{if#1dateera}##1{\blx@TE{\ifcsstring{abx@field@#1dateera}{##1}}}%
-      \csdef{if#1enddateera}##1{\blx@TE{\ifcsstring{abx@field@#1enddateera}{##1}}}}}}
+    \blx@makeifdatemeta@fields{#1}}}
+
+\def\blx@makeifdatemeta@fields#1{%
+  \csdef{if#1dateera}##1{\ifcsstring{abx@field@#1dateera}{##1}}%
+  \csdef{if#1enddateera}##1{\ifcsstring{abx@field@#1enddateera}{##1}}%
+  \appto\blx@TE@hook{%
+    \csdef{if#1dateera}##1{\blx@TE{\ifcsstring{abx@field@#1dateera}{##1}}}%
+    \csdef{if#1enddateera}##1{\blx@TE{\ifcsstring{abx@field@#1enddateera}{##1}}}}}
 
 % Create date meta information boolean tests
 \def\do#1{%
-  \blx@imc@ifdatemeta@i{#1}{circa}%
-  \blx@imc@ifdatemeta@i{#1}{julian}%
-  \blx@imc@ifdatemeta@i{#1}{uncertain}}
+  \blx@makeifdatemeta@bools@i{#1}{circa}%
+  \blx@makeifdatemeta@bools@i{#1}{julian}%
+  \blx@makeifdatemeta@bools@i{#1}{uncertain}%
+  \blx@makeifdatemeta@bools@i{#1}{unknown}}
 \abx@dodatetypes
 
 % Create date meta information field tests
 \def\do#1{%
-  \blx@imc@ifdatemeta@ii{#1}}
+  \blx@makeifdatemeta@fields@i{#1}}
 \abx@dodatetypes
 
 % Resolve date meta information tests and print routines for labeldate
@@ -6349,11 +6494,14 @@
   \dolistloop\abx@dorellists
   \let\do\blx@savefield
   \abx@dofields
+  \abx@dointernalfields
   \let\do\blx@saverelfield
   \dolistloop\abx@dorelfields
-  \abx@dointernalfields
   \let\do\blx@savebool
   \abx@dobooleans
+  \let\do\blx@savedatetype
+  \abx@dodatetypes
+  \do{label}%
   \c@savedcitecounter\c@citecounter
   \let\do\blx@saved@do}
 
@@ -6387,7 +6535,42 @@
   \csletcs{abx@field@saved@#1}{abx@field@relsaved#1}}
 
 \protected\def\blx@savebool#1{%
-  \csletcs{abx@bool@saved#1}{abx@bool@#1}}
+  \csletcs{etb@tgl@abx@bool@saved#1}{etb@tgl@abx@bool@#1}}
+
+\protected\def\blx@savedatetype#1{%
+  \csletcs{blx@dateformat@saved#1date}{blx@dateformat@#1date}%
+  \protected\csedef{blx@imc@printsaved#1date}{%
+    \noexpand\csuse{mkdaterange\csuse{blx@dateformat@saved#1date}}
+      {saved#1}}%
+  \protected\csedef{blx@imc@printsaved#1dateextra}{%
+    \begingroup
+      % extradate is hard-coded in date macros, so reset it temporarily
+      \csletcs{abx@field@extradate}{abx@field@savedextradate}%
+      \noexpand\csuse{mkdaterange\csuse{blx@dateformat@saved#1date}extra}
+        {saved#1}%
+    \endgroup}%
+  \csletcs{blx@timeformat@saved#1time}{blx@timeformat@#1time}%
+  \protected\csedef{blx@imc@printsaved#1time}{%
+    \noexpand\csuse{mktimerange\csuse{blx@timeformat@saved#1time}}
+      {saved#1}}%
+  \csletcs{etb@tgl@blx@saved#1dateusetime}{etb@tgl@blx@#1dateusetime}%
+  % the datemetabooleans are here again for labeldate
+  \blx@savebool{#1datecirca}%
+  \blx@savebool{#1enddatecirca}%
+  \blx@savebool{#1datejulian}%
+  \blx@savebool{#1enddatejulian}%
+  \blx@savebool{#1dateuncertain}%
+  \blx@savebool{#1enddateuncertain}%
+  \blx@savebool{#1dateunknown}%
+  \blx@savebool{#1enddateunknown}%
+  \blx@makeifdatemeta@bools{saved#1}{circa}%
+  \blx@makeifdatemeta@bools{saved#1}{julian}%
+  \blx@makeifdatemeta@bools{saved#1}{uncertain}%
+  \blx@makeifdatemeta@bools{saved#1}{unknown}%
+  \blx@makeifdatemeta@fields{saved#1}%
+  \csletcs{printsaved#1date}{blx@imc@printsaved#1date}%
+  \csletcs{printsaved#1time}{blx@imc@printsaved#1time}%
+  \csletcs{printsaved#1dateextra}{blx@imc@printsaved#1dateextra}}
 
 % {<code>}
 \protected\long\def\blx@bbl@preamble#1{%
@@ -6532,29 +6715,70 @@
          \docsvlist{#5}}}
      {}}
 
-% {<annotation>}
-\newcommand*{\iffieldannotation}[1]{%
-  \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
-  \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
-  \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
+% [<field>]{<annotation>}
+\newcommand*{\blx@imc@iffieldannotation}[2][]{%
+  \ifblank{#1}
+    {\ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
+     \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
+     \ifdefvoid\currentname{}{\let\blx@tempa\currentname}}
+    {\def\blx@tempa{#1}}%
   \blx@resolve@annotation@label{\blx@tempa}%
-  \ifinlistcs{#1}{abx@annotation@field@\blx@tempa}}
+  \ifinlistcs{#2}{abx@annotation@field@\blx@tempa}}
 
-% {<annotation>}
-\newcommand*{\ifitemannotation}[1]{%
+% [<field>][<item>]{<annotation>}
+\def\blx@imc@ifitemannotation{%
   \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
   \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
   \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
-  \blx@resolve@annotation@label{\blx@tempa}%
-  \ifinlistcs{#1}{abx@annotation@item@\blx@tempa @\the\value{listcount}}}
+  \@ifnextchar[%]
+    {\blx@imc@ifitemannotation@i}
+    {\blx@imc@ifitemannotation@i[\blx@tempa]}
+}
 
-% {<part>}{<annotation>}
-\newcommand*{\ifpartannotation}[2]{%
+\def\blx@imc@ifitemannotation@i[#1]{%
+  \@ifnextchar[%]
+    {\blx@imc@ifitemannotation@ii{#1}}
+    {\blx@imc@ifitemannotation@ii{#1}[\the\value{listcount}]}}
+
+\def\blx@imc@ifitemannotation@ii#1[#2]#3{%
+  \def\blx@tempb{#1}%
+  \blx@resolve@annotation@label{\blx@tempb}%
+  \ifinlistcs{#3}{abx@annotation@item@\blx@tempb @#2}}
+
+% [<field>][<item>]{<part>}{<annotation>}
+\def\blx@imc@ifpartannotation{%
   \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
   \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
   \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
-  \blx@resolve@annotation@label{\blx@tempa}%
-  \ifinlistcs{#2}{abx@annotation@part@\blx@tempa @\the\value{listcount}@#1}}
+  \@ifnextchar[%]
+    {\blx@imc@ifpartannotation@i}
+    {\blx@imc@ifpartannotation@i[\blx@tempa]}}
+
+\def\blx@imc@ifpartannotation@i[#1]{%
+  \@ifnextchar[%]
+    {\blx@imc@ifpartannotation@ii{#1}}
+    {\blx@imc@ifpartannotation@ii{#1}[\the\value{listcount}]}}
+
+\def\blx@imc@ifpartannotation@ii#1[#2]#3#4{%
+  \def\blx@tempb{#1}%
+  \blx@resolve@annotation@label{\blx@tempb}%
+  \ifinlistcs{#4}{abx@annotation@part@\blx@tempb @#2@#3}}
+
+% {<datetype>}{<annotation>}
+% labeldatesource has a slightly different format than other <field>sources
+% that's one reason for a dedicated command, the other being that this command
+% is probably only used in contexts where \currentfield is not defined, so
+% the <datetype> argument is always required
+\newcommand*{\blx@imc@ifdateannotation}[2]{%
+  \def\blx@tempa{#1}%
+  \ifcsundef{abx@field@\blx@tempa source}
+    {}%
+    {\letcs\blx@tempa{abx@field@\blx@tempa source}%
+     \edef\blx@tempa{\blx@tempa date}}%
+  \ifinlistcs{#2}{abx@annotation@field@\blx@tempa}}
+
+\blx@regimcs{\iffieldannotation \ifitemannotation \ifpartannotation
+             \ifdateannotation}
 
 % {<fieldname>}
 \def\blx@resolve@annotation@label#1{%
@@ -6825,6 +7049,38 @@
           {}%
         \ifcsdef{abx@field@\abx@field@labeldatesource endseason}
           {\edef\abx@field@labelendseason{\csuse{abx@field@\abx@field@labeldatesource endseason}}}
+          {}%
+        % labeldateunspecified
+        \ifcsdef{abx@field@\abx@field@labeldatesource dateunspecified}
+          {\csletcs{abx@field@labeldateunspecified}{abx@field@\abx@field@labeldatesource dateunspecified}}
+          {}%
+        % labeldatecirca/labelenddatecirca
+        \ifcsdef{etb@tgl@abx@bool@\abx@field@labeldatesource datecirca}
+          {\csletcs{etb@tgl@abx@bool@labeldatecirca}{etb@tgl@abx@bool@\abx@field@labeldatesource datecirca}}
+          {}%
+        \ifcsdef{etb@tgl@abx@bool@\abx@field@labeldatesource enddatecirca}
+          {\csletcs{etb@tgl@abx@bool@labelenddatecirca}{etb@tgl@abx@bool@\abx@field@labeldatesource enddatecirca}}
+          {}%
+        % labeldatejulian/labelenddatejulian
+        \ifcsdef{etb@tgl@abx@bool@\abx@field@labeldatesource datejulian}
+          {\csletcs{etb@tgl@abx@bool@labeldatejulian}{etb@tgl@abx@bool@\abx@field@labeldatesource datejulian}}
+          {}%
+        \ifcsdef{etb@tgl@abx@bool@\abx@field@labeldatesource enddatejulian}
+          {\csletcs{etb@tgl@abx@bool@labelenddatejulian}{etb@tgl@abx@bool@\abx@field@labeldatesource enddatejulian}}
+          {}%
+        % labeldateuncertain/labelenddateuncertain
+        \ifcsdef{etb@tgl@abx@bool@\abx@field@labeldatesource dateuncertain}
+          {\csletcs{etb@tgl@abx@bool@labeldateuncertain}{etb@tgl@abx@bool@\abx@field@labeldatesource dateuncertain}}
+          {}%
+        \ifcsdef{etb@tgl@abx@bool@\abx@field@labeldatesource enddateuncertain}
+          {\csletcs{etb@tgl@abx@bool@labelenddateuncertain}{etb@tgl@abx@bool@\abx@field@labeldatesource enddateuncertain}}
+          {}%
+        % labeldateunknown/labelenddateunknown
+        \ifcsdef{etb@tgl@abx@bool@\abx@field@labeldatesource dateunknown}
+          {\csletcs{etb@tgl@abx@bool@labeldateunknown}{etb@tgl@abx@bool@\abx@field@labeldatesource dateunknown}}
+          {}%
+        \ifcsdef{etb@tgl@abx@bool@\abx@field@labeldatesource enddateunknown}
+          {\csletcs{etb@tgl@abx@bool@labelenddateunknown}{etb@tgl@abx@bool@\abx@field@labeldatesource enddateunknown}}
           {}}}}
 
 % This gets the entry data for a citation
@@ -6948,10 +7204,10 @@
   \blx@bbl@options{#3}%
   \blx@setoptions@entry
   \edef\blx@bbl@data{blx@data@\the\c@refsection @\blx@dlist@name @\abx@field@entrykey}%
-  \csuse\blx@bbl@data
   \blx@bbl@addfield{entrykey}{\abx@field@entrykey}%
   \listxadd\blx@entries{\abx@field@entrykey}%
   \blx@bbl@addfield{entrytype}{#2}%
+  \csuse\blx@bbl@data
   \blx@imc@iffieldundef{options}
     {}
     {\blx@bbl@fieldedef{options}{\expandonce\abx@field@options}}}
@@ -7032,12 +7288,18 @@
 \def\blx@addset@ii#1{%
   \listcsgadd{blx@dlist@centry@\the\c@refsection @\blx@refcontext@context}{#1}}
 
+% {<csname>}{<field>/<format>}{<field>}
+\def\abx@flfw@getfieldformat#1#2#3{%
+  \blx@getformat\abx@tmp@theformat{ffd}{#2}{#3}%
+  \csletcs{#1}{abx@tmp@theformat}}
+
 \def\blx@bbl@labelfields{%
   \def\do##1{%
     \ifcsundef{abx@field@##1}
       {}
-      {\blx@setlabwidth{\csname ##1width\endcsname}{%
-         \csuse{abx@ffd@*@##1width}{\csname abx@field@##1\endcsname}}}}%
+      {\abx@flfw@getfieldformat{abx@flfw@##1width}{##1width}{##1}%
+       \blx@setlabwidth{\csname ##1width\endcsname}{%
+         \csuse{abx@flfw@##1width}{\csname abx@field@##1\endcsname}}}}%
   \abx@dolabelfields}
 
 \def\blx@bbl@labelnumber{%
@@ -7046,15 +7308,9 @@
   % the labelnumbers for each sortlist
   \ifdefempty\abx@field@localnumber
     {}% only if omitnumbers=true
-    {\ifcsundef{abx@ffd@\blx@imc@thefield{entrytype}@labelnumberwidth}
-       {\letcs{\@lnw@labelnumberwidth}{abx@ffd@*@labelnumberwidth}}
-       {\letcs{\@lnw@labelnumberwidth}{abx@ffd@\blx@imc@thefield{entrytype}@labelnumberwidth}}%
-     \ifcsundef{abx@ffd@\blx@imc@thefield{entrytype}@labelprefix}
-       {\letcs{\@lnw@labelprefix}{abx@ffd@*@labelprefix}}
-       {\letcs{\@lnw@labelprefix}{abx@ffd@\blx@imc@thefield{entrytype}@labelprefix}}%
-     \ifcsundef{abx@ffd@\blx@imc@thefield{entrytype}@labelnumber}
-       {\letcs{\@lnw@labelnumber}{abx@ffd@*@labelnumber}}
-       {\letcs{\@lnw@labelnumber}{abx@ffd@\blx@imc@thefield{entrytype}@labelnumber}}%
+    {\abx@flfw@getfieldformat{abx@flfw@labelnumberwidth}{labelnumberwidth}{}%
+     \abx@flfw@getfieldformat{abx@flfw@labelprefix}{labelprefix}{}%
+     \abx@flfw@getfieldformat{abx@flfw@labelnumber}{labelnumber}{}%
      \ifundef\abx@field@shorthand
       {\iftoggle{blx@defernumbers}
         % only if defernumbers=true, we have to define localnumber to
@@ -7077,16 +7333,17 @@
         \iftoggle{blx@skipbib}
           {}
           {\blx@setlabwidth{\labelnumberwidth}{%
-             \csuse{@lnw@labelnumberwidth}{%
+             \csuse{abx@flfw@labelnumberwidth}{%
                 \ifdef\abx@field@labelprefix
-                  {\csuse{@lnw@labelprefix}{\abx@field@labelprefix}}
+                  {\csuse{abx@flfw@labelprefix}{\abx@field@labelprefix}}
                   {}%
-                \csuse{@lnw@labelnumber}{\abx@field@localnumber}}}}}
+                \csuse{abx@flfw@labelnumber}{\abx@field@localnumber}}}}}
       {\csgappto\blx@bbl@data{\let\abx@field@labelnumber\abx@field@shorthand}%
         \iftoggle{blx@skipbib}
           {}
           {\blx@setlabwidth{\labelnumberwidth}{%
-              \csuse{@lnw@labelnumberwidth}{\abx@field@shorthand}}}}}}
+             \csuse{abx@flfw@labelnumberwidth}{%
+               \csuse{abx@flfw@labelnumber}{\abx@field@shorthand}}}}}}}
 
 \def\blx@bbl@labelalpha{%
    \ifundef\abx@field@labelalpha
@@ -7098,15 +7355,19 @@
          \fi}%
       \iftoggle{blx@skipbib}
         {}
-        {\blx@setlabwidth{\labelalphawidth}{%
-           \csuse{abx@ffd@*@labelalphawidth}{%
+        {\abx@flfw@getfieldformat{abx@flfw@labelalphawidth}{labelalphawidth}{}%
+         \abx@flfw@getfieldformat{abx@flfw@labelprefix}{labelprefix}{}%
+         \abx@flfw@getfieldformat{abx@flfw@labelalpha}{labelalpha}{}%
+         \abx@flfw@getfieldformat{abx@flfw@extraalpha}{extraalpha}{}%
+         \blx@setlabwidth{\labelalphawidth}{%
+           \csuse{abx@flfw@labelalphawidth}{%
              \ifdef\abx@field@labelprefix
-               {\csuse{abx@ffd@*@labelprefix}{\abx@field@labelprefix}}
+               {\csuse{abx@flfw@labelprefix}{\abx@field@labelprefix}}
                {}%
-             \csuse{abx@ffd@*@labelalpha}{\abx@field@labelalpha}%
+             \csuse{abx@flfw@labelalpha}{\abx@field@labelalpha}%
              \ifundef\abx@field@extraalpha
                {}
-               {\csuse{abx@ffd@*@extraalpha}{\abx@field@extraalpha}}}}}}}
+               {\csuse{abx@flfw@extraalpha}{\abx@field@extraalpha}}}}}}}
 
 \def\blx@bbl@labeltitle{%
   \ifundef\abx@field@extratitle
@@ -8201,6 +8462,12 @@
 
 \appto\blx@mknohyperref{\let\blx@anchor\relax}
 
+\define@key{blx@biblist2}{driver}{\blx@key@driver{#1}}
+\define@key{blx@biblist1}{driver}{}
+
+\def\blx@key@driver#1{%
+  \def\blx@thebiblistdriver{#1}}
+
 % Custom bibliography list
 % [<otions>]{biblistname}
 \newrobustcmd*{\printbiblist}[2][]{%
@@ -8212,6 +8479,8 @@
   \def\blx@theheading{biblist}% default to biblist heading
   \def\blx@theenv{#2}% default to list name
   \def\blx@thebiblist{#2}%
+  \def\blx@thebiblistdriver{#2}%
+  \def\blx@thebiblistfilter{#2}%
   \let\blx@theprenote\@empty
   \let\blx@thepostnote\@empty
   \let\blx@thetitle\@empty
@@ -8257,7 +8526,7 @@
     {}
     {\listxadd\blx@dlistnames{\blx@refcontext@context @\blx@tempe @list}%
      \csxappto{blx@dlists}{%
-       \blx@xml@dlist{\blx@refcontext@context}{list}{\blx@tempe}{\blx@xml@dlist@refcontext{\blx@tempc}{\blx@refcontext@sortingnamekeytemplatename}{\blx@refcontext@labelprefix}{\blx@refcontext@uniquenametemplatename}{\blx@refcontext@labelalphanametemplatename}}{\csuse{blx@biblistfilters@#2}}}}%
+       \blx@xml@dlist{\blx@refcontext@context}{list}{\blx@tempe}{\blx@xml@dlist@refcontext{\blx@tempc}{\blx@refcontext@sortingnamekeytemplatename}{\blx@refcontext@labelprefix}{\blx@refcontext@uniquenametemplatename}{\blx@refcontext@labelalphanametemplatename}}{\csuse{blx@biblistfilters@\blx@thebiblistfilter}}}}%
   \ifdefvoid\blx@tempa
     {\blx@warn@biblistempty{#2}\endgroup}
     {\blx@biblist\blx@tempa}}
@@ -8323,7 +8592,7 @@
        \blx@beglangbib
        \bibsentence
        \blx@pagetracker
-       \blx@driver{\blx@thebiblist}%
+       \blx@driver{\blx@thebiblistdriver}%
        \blx@postpunct
        \blx@endlangbib}%
      \endgroup}
@@ -8488,6 +8757,7 @@
 
 % Reference sections
 \newrobustcmd*{\newrefsection}{%
+  \endrefcontext
   \ifnum\c@refsection>\z@
     \endrefsection
   \fi
@@ -9011,6 +9281,8 @@
 
 % {<entrykey>,...}
 \protected\def\blx@citeloop#1{%
+  \expandafter\blx@citeloop@i\expandafter{\detokenize{#1}}}
+\protected\def\blx@citeloop@i#1{%
   \begingroup
   % This must be here and not after \blx@citeadd as this changes the refcontext
   \letcs\blx@tempb{blx@dlist@centry@\the\c@refsection @\blx@refcontext@context}%
@@ -11293,7 +11565,7 @@
   \let\maps\blx@usersourcemap@maps
   \let\blx@tempa\@empty
   #1%
-  \csxdef{blx@sourcemap@user}{\blx@tempa}%
+  \xappto\blx@sourcemap@user\blx@tempa%
   \endgroup}
 \@onlypreamble\DeclareSourcemap
 
@@ -11431,6 +11703,10 @@
 \define@key{blx@sourcemap@step}{entrynull}[true]{% true|false
   \ifstrequal{#1}{true}
     {\appto\blx@tempf{ map\string_entry\string_null="1"}}
+    {}}
+\define@key{blx@sourcemap@step}{entrynocite}[true]{% true|false
+  \ifstrequal{#1}{true}
+    {\appto\blx@tempf{ map\string_entry\string_nocite="1"}}
     {}}
 \define@key{blx@sourcemap@step}{entrynew}{% characters
   \appto\blx@tempf{ map\string_entry\string_new="#1"}}
@@ -11736,6 +12012,17 @@
 % Predefine filters for label fields
 \def\do#1{\DeclareBiblistFilter{#1}{\filter[type=field,filter=#1]}}
 \abx@dolabelfields
+
+\define@key{blx@biblist2}{biblistfilter}{\blx@key@biblistfilter{#1}}
+\define@key{blx@biblist1}{biblistfilter}{}
+
+\def\blx@key@biblistfilter#1{%
+  \ifcsundef{blx@biblistfilters@#1}
+    {\blx@error
+        {BiblistFilter '#1' not found}
+        {The BiblistFilter '#1' could not be found.\MessageBreak
+         Use '\string\DeclareBiblistFilter' to define it}}
+    {\def\blx@thebiblistfilter{#1}}}
 
 % [<entrytype>]
 \newrobustcmd*{\DeclareSortTranslit}[2][]{%
@@ -13007,9 +13294,6 @@
         {\blx@err@invopt{#1time=##1}{}}}%
     % Default for new time fields is "24h"
     \setkeys{blx@opt@pre}{#1time=24h}%
-    % Boolean for unknown dates
-    \newtoggle{abx@bool@#1dateunknown}%
-    \newtoggle{abx@bool@end#1dateunknown}%
     % Boolean to determine if times are printed with dates
     \newtoggle{blx@#1dateusetime}%
     \DeclareBibliographyOption[boolean]{#1dateusetime}{%

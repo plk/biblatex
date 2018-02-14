@@ -1,3 +1,57 @@
+# RELEASE NOTES FOR VERSION ??
+- `\printbiblist` now supports `driver` and `biblistfilter` options
+  to change the defaults set by the biblistname.
+- Add `\mknormrange` to normalise page ranges without compressing them.
+- **INCOMPATIBLE CHANGE** The format for `postnote` (`multipostnote`,
+  `volcitepages`) normalises page ranges with `\mknormrange`.
+  Since `\mknormrange` acts only on page ranges as detected by
+  `\ifpages`, this does not affect text other than page ranges.
+  Hyphens and dashes in page ranges will be transformed to
+  `\bibrangedash`, commas and semi-colons to `\bibrangesep`.
+  This is analogous to Biber's treatment of page-like fields.
+  If you always separated page ranges with `--` or `\bibrangedash`
+  anyway, this should not change the output you get.
+  If you used a single hyphen to separate page ranges (e.g., `23-27`)
+  you will now get the arguably more aesthetically pleasing output
+  with `\bibrangedash`.
+  In case you want to restore the old behaviour where page ranges were
+  not normalised add the following three lines to your preamble.
+  ```
+  \DeclareFieldFormat{postnote}{\mkpageprefix[pagination]{#1}}
+  \DeclareFieldFormat{volcitepages}{\mkpageprefix[pagination]{#1}}
+  \DeclareFieldFormat{multipostnote}{\mkpageprefix[pagination]{#1}}
+  ```
+  Style developers may note that the field format for `pages`
+  was not changed to include `\mknormrange` because the contents
+  of that field are prepared by the backend and Biber already does
+  the page range normalisation out of the box.
+- The standard definitions for headings were changed to be as close to the
+  defaults of the standard document classes or KOMA/memoir as possible.
+  **PLEASE CHECK** if your document headers relied on the behaviour of older
+  versions.
+- The `@unpublished` entry type now also supports `type`, `eventtitle`,
+  `eventdate` and `venue`.
+- A long-standing bug with punctuation before `eventdate` and `venue` was fixed.
+  Originally the round brackets were supposed preceded only by a space,
+  the addition of other fields caused this space to be replaced by new unit
+  punctuation. **PLEASE CHECK** if you can accept the changed output.
+- Added `\ifdateannotation`. Added optional argument for field and item to
+  `\iffieldannotation`, `\ifitemannotation`, and `\ifpartannotation`.
+- `\DeclareSourcemap` can now be used multiple times.
+- **INCOMPATIBLE CHANGE** Language aliases are now also resolved when loading
+  localisation files, only infinite recursion is avoided.
+  Assuming `\DeclareLanguageMappingSuffix{-apa}`, loading `ngerman` localisation
+  causes `ngerman-apa.lbx` to be read. If that file inherits from `german`,
+  `german-apa.lbx` will be read. Previously only `german.lbx` would have been
+  read at that point. Of course if `german-apa.lbx` inherits from `german`,
+  `german.lbx` is loaded at that point, so infinite recursion is avoided.
+- **CRITICAL CHANGE** The code to load localisation files was changed.
+  This is a an internal change and should not influence document output,
+  save for a few bug fixes. Style authors should check if the changes introduce
+  any bugs for their localisation handling and report them.
+- Added `\begrelateddelim` and `\begrelateddelim<relatedtype>` for punctuation
+  before the related block.
+
 # RELEASE NOTES FOR VERSION 3.10
 - **INCOMPATIBLE CHANGE** The recent ISO8601:201x standard supersedes
   the draft EDTF (Extended Date Time Format) extensions. Biblatex therefore
@@ -85,13 +139,14 @@ Biber version 2.8 is required for biblatex 3.8
   `93-nameparts.tex` example file.
 
 ## `extrayear` is now `extradate` and the information used to track this can be customised
-- `extrayear` is called `extradate` now. Limited backwards compatibility is
+- **INCOMPATIBLE CHANGE** `extrayear` is called `extradate` now.
+  Limited backwards compatibility is
   in place to allow a smooth transition, but style developers should use the new name.
-- The new \DeclareExtradate command allows users to track authoryear
+- The new `\DeclareExtradate` command allows users to track authoryear
   disambiguation in arbitrary ways now, for example allowing disambiguation
   at month or day level instead of just year. See the PDF doc for details.
-- Some bibmacros from the `authoryear` style family were renamed,
-  `cite:labelyear+extrayear` becomes `cite:labeldate+extradate`,
+- **INCOMPATIBLE CHANGE** Some bibmacros from the `authoryear` style family
+  were renamed, `cite:labelyear+extrayear` becomes `cite:labeldate+extradate`,
   `cite:extrayear` is `cite:extradate` now, and `date+extrayear`
   is `date+extradate`. Some backwards compatibility code is present,
   but developers should make sure their code works as expected.
@@ -134,35 +189,34 @@ Biber version 2.8 is required for biblatex 3.8
   option.
 
 ## Localisation and styles
-- Styles which supply their own location strings in .lbx files typically
-  use \DeclareLanguageMapping to map a document language to the supplied
+- Styles which supply their own location strings in `.lbx` files typically
+  use `\DeclareLanguageMapping` to map a document language to the supplied
   language files. This is not ideal because the mapping has to be done by
   the user depending on the specific language. For example, for the APA
-  style, in a document using American english, this line is necessary in
+  style, in a document using American English, this line is necessary in
   every document:
-
+  ```
   \DeclareLanguageMapping{american}{american-apa}
-
-  so that the style supplied america-apa.lbx file is loaded. In a document
-  using the german language, the user would have to use:
-
+  ```
+  so that the style supplied `america-apa.lbx` file is loaded.
+  In a document using the German language, the user would have to use:
+  ```
   \DeclareLanguageMapping{german}{german-apa}
-
-  A new macro \DeclareLanguageMappingSuffix is now supplied which allows
+  ```
+  A new macro `\DeclareLanguageMappingSuffix` is now supplied which allows
   styles to register a global localisation file suffix which is appended to
   any document language automatically. This removes the need for
-  \DeclareLanguageMapping in user documents as it ensures that the correct
-  localisation file will be read nomatter what the document language. For
-  example, the APA style (from version v7.5) now has this in apa.bbx:
-
+  `\DeclareLanguageMapping` in user documents as it ensures that the
+  correct localisation file will be read nomatter what the document language.
+  For example, the APA style (from version v7.5) now has this
+  in `apa.bbx`:
+  ```
   \DeclareLanguageMappingSuffix{-apa}
-
-  which means that for a given document language <lang>, the localisation file:
-
-  <lang>-apa.lbx
-
-  will be loaded. \DeclareLanguageMapping, if present, will override
-  \DeclareLanguageMappingSuffix.
+  ```
+  which means that for a given document language `<lang>`
+  the localisation file `<lang>-apa.lbx` will be loaded.
+  `\DeclareLanguageMapping`, if present, will override
+  `\DeclareLanguageMappingSuffix`.
 
 ## Context-sensitive delimiters
 - Several delimiter macros now use the context-sensitive delimiter interface
