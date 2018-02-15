@@ -1,4 +1,4 @@
-# RELEASE NOTES FOR VERSION ??
+# RELEASE NOTES FOR VERSION 3.11
 - `\printbiblist` now supports `driver` and `biblistfilter` options
   to change the defaults set by the biblistname.
 - Add `\mknormrange` to normalise page ranges without compressing them.
@@ -32,7 +32,7 @@
 - The `@unpublished` entry type now also supports `type`, `eventtitle`,
   `eventdate` and `venue`.
 - A long-standing bug with punctuation before `eventdate` and `venue` was fixed.
-  Originally the round brackets were supposed preceded only by a space,
+  Originally the round brackets were supposed to be preceded only by a space,
   the addition of other fields caused this space to be replaced by new unit
   punctuation. **PLEASE CHECK** if you can accept the changed output.
 - Added `\ifdateannotation`. Added optional argument for field and item to
@@ -50,7 +50,10 @@
   save for a few bug fixes. Style authors should check if the changes introduce
   any bugs for their localisation handling and report them.
 - Added `\begrelateddelim` and `\begrelateddelim<relatedtype>` for punctuation
-  before the related block.
+  before the related block. **PLEASE CHECK** that this change does not interfere
+  with your punctuation settings. The change should be backwards compatible,
+  but might give different results if `\usebibmacro{related}` is used in
+  unusual positions.
 
 # RELEASE NOTES FOR VERSION 3.10
 - **INCOMPATIBLE CHANGE** The recent ISO8601:201x standard supersedes
