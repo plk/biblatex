@@ -681,15 +681,15 @@
 \newrobustcmd*{\DeprecateField}[2]{%
   \csdef{abx@field@#1}{%
     \ifcsundef{abx@field@legacy@warning@#1}{\blx@warning@noline{Field '#1' is deprecated. #2}}{}%
-    \global\csdef{abx@field@legacy@warning@#1}{}}}%
+    \global\cslet{abx@field@legacy@warning@#1}\@empty}}%
 \newrobustcmd*{\DeprecateList}[2]{%
   \csdef{abx@list@#1}{%
     \ifcsundef{abx@list@legacy@warning@#1}{\blx@warning@noline{List '#1' is deprecated. #2}}{}%
-    \global\csdef{abx@list@legacy@warning@#1}{}}}%
+    \global\cslet{abx@list@legacy@warning@#1}\@empty}}%
 \newrobustcmd*{\DeprecateName}[2]{%
   \csdef{abx@name@#1}{%
     \ifcsundef{abx@name@legacy@warning@#1}{\blx@warning@noline{Name '#1' is deprecated. #2}}{}%
-    \global\csdef{abx@name@legacy@warning@#1}{}}}%
+    \global\cslet{abx@name@legacy@warning@#1}\@empty}}%
 
 \let\blx@aliasfields\@empty
 
@@ -704,7 +704,7 @@
              Please use '#2' instead.\MessageBreak
              Using '#2' now}}
           {}%
-        \global\csdef{abx@field@legacy@warning@#1}{}}}}}
+        \global\cslet{abx@field@legacy@warning@#1}\@empty}}}}
 
 \newrobustcmd*{\DeprecateListWithReplacement}[2]{%
   \appto\blx@aliasfields{%
@@ -717,7 +717,7 @@
              Please use '#2' instead.\MessageBreak
              Using '#2' now}}
           {}%
-        \global\csdef{abx@list@legacy@warning@#1}{}}}}}
+        \global\cslet{abx@list@legacy@warning@#1}\@empty}}}}
 
 \newrobustcmd*{\DeprecateNameWithReplacement}[2]{%
   \appto\blx@aliasfields{%
@@ -730,7 +730,7 @@
              Please use '#2' instead.\MessageBreak
              Using '#2' now}}
           {}%
-        \global\csdef{abx@name@legacy@warning@#1}{}}}}}
+        \global\cslet{abx@name@legacy@warning@#1}\@empty}}}}
 
 %% Initialisation
 \def\blx@blxinit{%
@@ -900,11 +900,11 @@
     {\blx@info@noline{Trying to load #2..}%
      \IfFileExists{#1}
        {\blx@info@noline{... file '#1' found}%
+        #3\@@input\@filef@und#4#5%
         \listxadd\blx@list@req@stat{#1}%
-        #3\@@input\@filef@und#4#5}
+        \@addtofilelist{#1}}
        {\blx@info@noline{... file '#1' not found}#6}%
-     \global\csdef{blx@file@#1}{}%
-     \@addtofilelist{#1}}
+     \global\cslet{blx@file@#1}\@empty}
     {#5}}
 
 % {<write>}{<precode>}{<string>}
@@ -5085,12 +5085,12 @@
   \blx@info@noline{Trying to load #2..}%
   \IfFileExists{#1}
     {\blx@info@noline{... file '#1' found}%
+     #3\@@input\@filef@und#4#5%
      \ifcsundef{blx@file@lbx@#1}
        {\listxadd\blx@list@req@stat{#1}%
         \@addtofilelist{#1}
         \global\cslet{blx@file@lbx@#1}\@empty}
-       {}%
-     #3\@@input\@filef@und#4#5}
+       {}}
     {\blx@info@noline{... file '#1' not found}#6}}
 
 % {<file>}{<message>}{<preload>}{<postload>}{<success>}{<failure>}
@@ -5100,9 +5100,9 @@
      \global\cslet{blx@file@lbx@#1}\@empty
      \IfFileExists{#1}
        {\blx@info@noline{... file '#1' found}%
+        #3\@@input\@filef@und#4#5%
         \listxadd\blx@list@req@stat{#1}%
-        \@addtofilelist{#1}%
-        #3\@@input\@filef@und#4#5}
+        \@addtofilelist{#1}}
        {\blx@info@noline{... file '#1' not found}#6}}
     {#5}}
 
@@ -7594,7 +7594,7 @@
                      {\abx@field@localnumber}}%
                    % record that we have already generated and output localnum
                    % for this key in this refsection/refcontext
-                   \csgdef{blx@defer@\the\c@refsection @\blx@refcontext@context @\abx@field@entrykey}{}}}
+                   \global\cslet{blx@defer@\the\c@refsection @\blx@refcontext@context @\abx@field@entrykey}\@empty}}
            {}}
          {}}%
        {}}
