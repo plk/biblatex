@@ -1,7 +1,7 @@
 % Copyright (c) 2006-2011 Philipp Lehman.
 %               2012-2017 Philip Kime, Audrey Boruvka, Joseph Wright
 %               2018- Philip Kime, Moritz Wemheuer
-%               
+%
 % Permission is granted to copy, distribute and/or modify this
 % software under the terms of the LaTeX Project Public License
 % (LPPL), version 1.3c.
@@ -6470,6 +6470,11 @@
   \let\do\blx@imc@clearfield
   \abx@dofields
   \abx@dointernalfields
+  \ifundef\abx@annotation@defined
+    {}
+    {\def\do##1{\csundef{abx@annotation@##1}}%
+     \dolistloop\abx@annotation@defined}%
+  \let\abx@annotation@defined\@empty
   \def\do##1{\togglefalse{abx@bool@##1}}%
   \abx@dobooleans
   \let\do\blx@saved@do
@@ -6497,6 +6502,16 @@
   \abx@dointernalfields
   \let\do\blx@saverelfield
   \dolistloop\abx@dorelfields
+  \ifundef\abx@savedannotation@defined
+    {}
+    {\def\do##1{\csundef{abx@annotation@\blx@saveannotations@makesaved##1}}%
+     \dolistloop\abx@savedannotation@defined}%
+  \let\abx@savedannotation@defined\@empty
+  \ifundef\abx@annotation@defined
+    {}
+    {\let\do\blx@saveannotations
+     \dolistloop\abx@annotation@defined}%
+  \let\abx@savedannotation@defined\abx@annotation@defined
   \let\do\blx@savebool
   \abx@dobooleans
   \let\do\blx@savedatetype
@@ -6571,6 +6586,10 @@
   \csletcs{printsaved#1date}{blx@imc@printsaved#1date}%
   \csletcs{printsaved#1time}{blx@imc@printsaved#1time}%
   \csletcs{printsaved#1dateextra}{blx@imc@printsaved#1dateextra}}
+
+\def\blx@saveannotations@makesaved#1@#2{#1@saved#2}
+\protected\def\blx@saveannotations#1{%
+  \csletcs{abx@annotation@\blx@saveannotations@makesaved#1}{abx@annotation@#1}}
 
 % {<code>}
 \protected\long\def\blx@bbl@preamble#1{%
@@ -6699,20 +6718,23 @@
 
 % {<scope>}{<field>}{<itemcount>}{<part>}{<value>}
 \protected\def\blx@bbl@annotationdef#1#2#3#4#5{%
-  \ifboolexpr { test {\ifstrequal{#1}{field}} }
+  \ifstrequal{#1}{field}
      {\csxappto\blx@bbl@data{%
-         \def\do####1{\listcsadd{abx@annotation@#1@#2}{####1}}%
-         \docsvlist{#5}}}
+        \listadd\noexpand\abx@annotation@defined{#1@#2}%
+        \def\do####1{\listcsadd{abx@annotation@#1@#2}{####1}}%
+        \docsvlist{#5}}}
      {}%
-  \ifboolexpr { test {\ifstrequal{#1}{item}} }
+  \ifstrequal{#1}{item}
      {\csxappto\blx@bbl@data{%
-         \def\do####1{\listcsadd{abx@annotation@#1@#2@#3}{####1}}%
-         \docsvlist{#5}}}
+        \listadd\noexpand\abx@annotation@defined{#1@#2@#3}%
+        \def\do####1{\listcsadd{abx@annotation@#1@#2@#3}{####1}}%
+        \docsvlist{#5}}}
      {}%
-  \ifboolexpr { test {\ifstrequal{#1}{part}} }
+  \ifstrequal{#1}{part}
      {\csxappto\blx@bbl@data{%
-         \def\do####1{\listcsadd{abx@annotation@#1@#2@#3@#4}{####1}}%
-         \docsvlist{#5}}}
+        \listadd\noexpand\abx@annotation@defined{#1@#2@#3@#4}%
+        \def\do####1{\listcsadd{abx@annotation@#1@#2@#3@#4}{####1}}%
+        \docsvlist{#5}}}
      {}}
 
 % [<field>]{<annotation>}
