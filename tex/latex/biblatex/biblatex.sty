@@ -6461,6 +6461,11 @@
 \def\do#1{\expandafter\newlength\expandafter{\csname #1width\endcsname}}
 \abx@dolabelfields
 
+\newlength{\locallabelnumberwidth}
+\newlength{\locallabelalphawidth}
+\def\do#1{\expandafter\newlength\expandafter{\csname local#1width\endcsname}}
+\abx@dolabelfields
+
 \protected\def\blx@resetdata{%
   \let\blx@saved@do\do
   \let\do\blx@imc@clearname
@@ -7315,12 +7320,93 @@
   \blx@getformat\abx@tmp@theformat{ffd}{#2}{#3}%
   \csletcs{#1}{abx@tmp@theformat}}
 
-\def\blx@bbl@labelfields{%
+\def\blx@labelwidth@resetlocal{%
+  \locallabelnumberwidth0pt\relax
+  \locallabelalphawidth0pt\relax
+  \def\do##1{%
+    \csname local##1width\endcsname0pt\relax}%
+  \abx@dolabelfields}
+
+\def\blx@labelwidth@settolocal{%
+  \labelnumberwidth\locallabelnumberwidth
+  \labelalphawidth\locallabelalphawidth
+  \def\do##1{%
+    \csname ##1width\endcsname\csname local##1width\endcsname}%
+  \abx@dolabelfields}
+
+\def\blx@locallabelwidth#1{%
+  \blx@labelwidth@resetlocal
+  \let\blx@do\blx@lengthitem
+  \let\blx@done\relax
+  \blx@listloop{#1}%
+  \blx@labelwidth@settolocal}
+
+% {<prefix for labelwidth fields>}
+\def\blx@bbl@labelnumberwidth@numeric#1{%
+  \abx@flfw@getfieldformat{abx@flfw@labelnumberwidth}{labelnumberwidth}{}%
+  \abx@flfw@getfieldformat{abx@flfw@labelprefix}{labelprefix}{}%
+  \abx@flfw@getfieldformat{abx@flfw@labelnumber}{labelnumber}{}%
+    \iftoggle{blx@defernumbers}
+      {\ifundef\abx@field@localnumber
+        {\numdef\abx@field@localnumber{0}}%
+        {}}
+      {\ifundef\abx@field@localnumber
+         {\edef\abx@field@localnumber{%
+            \csuse{blx@labelnumber@\the\c@refsection}}}
+          {}}%
+  \blx@setlabwidth{\csname #1labelnumberwidth\endcsname}{%
+    \csuse{abx@flfw@labelnumberwidth}{%
+      \ifdef\abx@field@labelprefix
+        {\csuse{abx@flfw@labelprefix}{\abx@field@labelprefix}}
+        {}%
+      \csuse{abx@flfw@labelnumber}{\abx@field@localnumber}}}}
+
+\def\blx@bbl@labelnumberwidth@shorthand#1{%
+  \abx@flfw@getfieldformat{abx@flfw@labelnumberwidth}{labelnumberwidth}{}%
+  \abx@flfw@getfieldformat{abx@flfw@labelnumber}{labelnumber}{}%
+  \blx@setlabwidth{\csname #1labelnumberwidth\endcsname}{%
+    \csuse{abx@flfw@labelnumberwidth}{%
+      \csuse{abx@flfw@labelnumber}{\abx@field@shorthand}}}}
+
+\def\blx@bbl@locallabelnumberwidth{%
+  \ifdefempty\abx@field@localnumber
+    {}
+    {\ifundef\abx@field@shorthand
+       {\blx@bbl@labelnumberwidth@numeric{local}}
+       {\blx@bbl@labelnumberwidth@shorthand{local}}}}
+
+% {<prefix for labelwidth fields>}
+\def\blx@bbl@labelalphawidth#1{%
+  \abx@flfw@getfieldformat{abx@flfw@labelalphawidth}{labelalphawidth}{}%
+  \abx@flfw@getfieldformat{abx@flfw@labelprefix}{labelprefix}{}%
+  \abx@flfw@getfieldformat{abx@flfw@labelalpha}{labelalpha}{}%
+  \abx@flfw@getfieldformat{abx@flfw@extraalpha}{extraalpha}{}%
+  \blx@setlabwidth{\csname #1labelalphawidth\endcsname}{%
+    \csuse{abx@flfw@labelalphawidth}{%
+      \ifdef\abx@field@labelprefix
+        {\csuse{abx@flfw@labelprefix}{\abx@field@labelprefix}}
+        {}%
+      \csuse{abx@flfw@labelalpha}{\abx@field@labelalpha}%
+      \ifundef\abx@field@extraalpha
+        {}
+        {\csuse{abx@flfw@extraalpha}{\abx@field@extraalpha}}}}}
+
+\def\blx@bbl@locallabelalphawidth{%
+  \ifundef\abx@field@labelalpha
+    {}
+    {\blx@bbl@labelalphawidth{local}}}
+
+\def\blx@bbl@locallabelfields{\blx@bbl@labelfields@i{local}}
+
+\def\blx@bbl@labelfields{\blx@bbl@labelfields@i{}}
+
+% {<prefix for labelwidth fields>}
+\def\blx@bbl@labelfields@i#1{%
   \def\do##1{%
     \ifcsundef{abx@field@##1}
       {}
       {\abx@flfw@getfieldformat{abx@flfw@##1width}{##1width}{##1}%
-       \blx@setlabwidth{\csname ##1width\endcsname}{%
+       \blx@setlabwidth{\csname #1##1width\endcsname}{%
          \csuse{abx@flfw@##1width}{\csname abx@field@##1\endcsname}}}}%
   \abx@dolabelfields}
 
@@ -7330,10 +7416,7 @@
   % the labelnumbers for each sortlist
   \ifdefempty\abx@field@localnumber
     {}% only if omitnumbers=true
-    {\abx@flfw@getfieldformat{abx@flfw@labelnumberwidth}{labelnumberwidth}{}%
-     \abx@flfw@getfieldformat{abx@flfw@labelprefix}{labelprefix}{}%
-     \abx@flfw@getfieldformat{abx@flfw@labelnumber}{labelnumber}{}%
-     \ifundef\abx@field@shorthand
+    {\ifundef\abx@field@shorthand
       {\iftoggle{blx@defernumbers}
         % only if defernumbers=true, we have to define localnumber to
         % something to stop labelnumberwidth def complaining on first
@@ -7354,18 +7437,11 @@
           \blx@bbl@fieldedef{labelnumber}{\abx@field@localnumber}}%
         \iftoggle{blx@skipbib}
           {}
-          {\blx@setlabwidth{\labelnumberwidth}{%
-             \csuse{abx@flfw@labelnumberwidth}{%
-                \ifdef\abx@field@labelprefix
-                  {\csuse{abx@flfw@labelprefix}{\abx@field@labelprefix}}
-                  {}%
-                \csuse{abx@flfw@labelnumber}{\abx@field@localnumber}}}}}
+          {\blx@bbl@labelnumberwidth@numeric{}}}
       {\csgappto\blx@bbl@data{\let\abx@field@labelnumber\abx@field@shorthand}%
         \iftoggle{blx@skipbib}
           {}
-          {\blx@setlabwidth{\labelnumberwidth}{%
-             \csuse{abx@flfw@labelnumberwidth}{%
-               \csuse{abx@flfw@labelnumber}{\abx@field@shorthand}}}}}}}
+          {\blx@bbl@labelnumberwidth@shorthand{}}}}}
 
 \def\blx@bbl@labelalpha{%
    \ifundef\abx@field@labelalpha
@@ -7377,19 +7453,7 @@
          \fi}%
       \iftoggle{blx@skipbib}
         {}
-        {\abx@flfw@getfieldformat{abx@flfw@labelalphawidth}{labelalphawidth}{}%
-         \abx@flfw@getfieldformat{abx@flfw@labelprefix}{labelprefix}{}%
-         \abx@flfw@getfieldformat{abx@flfw@labelalpha}{labelalpha}{}%
-         \abx@flfw@getfieldformat{abx@flfw@extraalpha}{extraalpha}{}%
-         \blx@setlabwidth{\labelalphawidth}{%
-           \csuse{abx@flfw@labelalphawidth}{%
-             \ifdef\abx@field@labelprefix
-               {\csuse{abx@flfw@labelprefix}{\abx@field@labelprefix}}
-               {}%
-             \csuse{abx@flfw@labelalpha}{\abx@field@labelalpha}%
-             \ifundef\abx@field@extraalpha
-               {}
-               {\csuse{abx@flfw@extraalpha}{\abx@field@extraalpha}}}}}}}
+        {\blx@bbl@labelalphawidth{}}}}
 
 \def\blx@bbl@labeltitle{%
   \ifundef\abx@field@extratitle
@@ -8038,6 +8102,16 @@
          Use \string\defbibnote\space to define it}}
      {\def\blx@thepostnote{#1}}}
 
+\define@key{blx@bib1}{locallabelwidth}[]{}
+\define@key{blx@biblist1}{locallabelwidth}[]{}
+\define@key{blx@bib2}{locallabelwidth}[true]{\blx@key@locallabelwidth{#1}}
+\define@key{blx@biblist2}{locallabelwidth}[true]{\blx@key@locallabelwidth{#1}}
+
+\def\blx@key@locallabelwidth#1{%
+  \ifstrequal{#1}{true}
+    {\def\abx@locallabelwidth{\blx@locallabelwidth}}
+    {\let\abx@locallabelwidth\@gobble}}
+
 \define@key{blx@bib2}{resetnumbers}[true]{%
   \iftoggle{blx@defernumbers}
     {\ifstrequal{#1}{true}
@@ -8259,7 +8333,7 @@
   \endgroup}
 
 % {<entrykey>,...}
-\def\blx@bibliography{%
+\def\blx@bibliography#1{%
   \blx@langstrings
   \blx@bibheading\blx@theheading\blx@thetitle
   \blx@bibnote\blx@theprenote
@@ -8273,12 +8347,13 @@
   \ifnum\bibnamesep=\z@
     \let\blx@namesep\relax
   \fi
+  \abx@locallabelwidth{#1}%
   \csuse{blx@env@\blx@theenv}%
   \csuse{blx@hook@bibinit}%
   \csuse{blx@hook@bibinit@next}%
   \let\blx@do\blx@bibitem
   \let\blx@done\blx@endbibliography
-  \blx@listloop}
+  \blx@listloop{#1}}
 
 \def\blx@endbibliography{%
   \csuse{blx@endenv@\blx@theenv}%
@@ -8322,6 +8397,25 @@
   \bibsetup\bibfont
   \blx@setsfcodes
   \csuse{blx@bibsetup}}
+
+% {<entrykey>}
+\def\blx@lengthitem#1{%
+  \blx@ifdata{#1}
+    {\begingroup
+     \blx@getdata{#1}%
+     \blx@bibcheck
+     \iftoggle{blx@skipentry}{}{%
+       \iftoggle{blx@labelnumber}
+         {\blx@bbl@locallabelnumberwidth}
+         {}%
+       \iftoggle{blx@labelalpha}
+         {\blx@bbl@locallabelalphawidth}
+         {}%
+       \nottoggle{blx@skipbiblist}
+         {\blx@bbl@locallabelfields}
+         {}}%
+     \endgroup}
+    {}}
 
 % {<entrykey>}
 % output a bib item, this is why \blx@thelabelnumber is here so that
@@ -8562,7 +8656,7 @@
        {\global\let\blx@printbibchecks\relax}}}
 
 % {<entrykey>,...}
-\def\blx@biblist{%
+\def\blx@biblist#1{%
   \if@twocolumn
     \@restonecoltrue\onecolumn
   \else
@@ -8575,11 +8669,12 @@
   \blx@bibinit
   \let\@noitemerr\@empty
   \def\blx@noitem{\blx@warn@biblistempty{\blx@thebiblist}}%
+  \abx@locallabelwidth{#1}%
   \csuse{blx@env@\blx@theenv}%
   \csuse{blx@hook@biblistinit@\blx@thebiblist}%
   \let\blx@do\blx@biblistitem
   \let\blx@done\blx@endbiblist
-  \blx@listloop}
+  \blx@listloop{#1}}
 
 \def\blx@endbiblist{%
   \csuse{blx@endenv@\blx@theenv}%
@@ -13507,6 +13602,9 @@
     {\let\blx@thelabelnumber\relax
      \let\abx@aux@number\@gobblefive}}
 
+\DeclareBibliographyOption[boolean]{locallabelwidth}[true]{%
+  \blx@key@locallabelwidth{#1}}
+
 \DeclareBibliographyOption[string]{refsection}{%
   \ifcsdef{blx@opt@refsection@#1}
     {\letcs\blx@refsecreset@level{blx@opt@refsection@#1}}
@@ -13667,7 +13765,7 @@
   autopunct=true,punctfont=false,defernumbers=false,timezeros=true,
   refsection=none,refsegment=none,citereset=none,hyperref=auto,
   parentracker,maxparens=3,bibencoding=auto,bibwarn,timezones=false,
-  seconds=false,julian=false,labeltime=24h}
+  seconds=false,julian=false,labeltime=24h,locallabelwidth=false}
 
 % Load Unicode enhancements (only for LuaTeX and XeTeX)
 \ifboolexpr{

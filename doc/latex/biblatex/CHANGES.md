@@ -54,6 +54,9 @@
   with your punctuation settings. The change should be backwards compatible,
   but might give different results if `\usebibmacro{related}` is used in
   unusual positions.
+- Added `locallabelwidth` option to control the label spacing in bibliographies,
+  if set to true, the label width will be calculated locally for the current
+  bibliography and not globally from a list of all citation.
 
 # RELEASE NOTES FOR VERSION 3.10
 - **INCOMPATIBLE CHANGE** The recent ISO8601:201x standard supersedes
