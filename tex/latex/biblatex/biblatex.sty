@@ -3249,8 +3249,11 @@
     {\blx@declaredelim}}
 
 \newrobustcmd*{\blx@declaredelimclear}[3][]{%
-  \def\do##1{\global\cslet{blx@printdelim@##1@#2}=\undefined}%
-  \dolistcsloop{blx@declaredelimcontexts@#2}%
+  \ifcsvoid{blx@declaredelimcontexts@#2}
+    {}
+    {\def\do##1{\csundef{blx@printdelim@##1@#2}}%
+     \dolistcsloop{blx@declaredelimcontexts@#2}}%
+  \cslet{blx@declaredelimcontexts@#2}\@empty
   \ifblank{#1}
     {\blx@declaredelim{#2}{#3}}
     {\blx@declaredelim[#1]{#2}{#3}}}
@@ -3259,19 +3262,17 @@
   \ifblank{#1}
     {\blx@declaredelim@i{}{}{#2}{#3}}
     {\def\do##1{%
-      \listcsgadd{blx@declaredelimcontexts@#2}{##1}%
-      \blx@declaredelim@i{blx@printdelim@##1@}{##1}{#2}{#3}}%
+       \listcsadd{blx@declaredelimcontexts@#2}{##1}%
+       \blx@declaredelim@i{blx@printdelim@##1@}{##1}{#2}{#3}}%
      \docsvlist{#1}}}%
 
 \def\blx@declaredelim@i#1#2#3#4{%
-  \begingroup
-  \def\do##1{%
+  \def\do@i##1{%
     \ifcsdef{#1##1}
       {\blx@inf@delimdeclare{##1}{#2}}
       {}%
-    \csgdef{#1##1}{#4}}%
-  \docsvlist{#3}%
-  \endgroup}
+    \csdef{#1##1}{#4}}%
+  \forcsvlist{\do@i}{#3}}
 
 % *[<contextname, ...>]{<alias>}{<delim>}
 \newrobustcmd*{\DeclareDelimAlias}{%
@@ -3283,7 +3284,7 @@
   \ifblank{#1}
     {\blx@declaredelimalias@i{}{#2}{#3}}
     {\def\do##1{%
-      \blx@declaredelimalias@i{blx@printdelim@##1@}{#2}{#3}}%
+       \blx@declaredelimalias@i{blx@printdelim@##1@}{#2}{#3}}%
      \docsvlist{#1}}}
 
 \newrobustcmd*{\blx@declaredelimaliasauto}[2]{%
@@ -3298,7 +3299,7 @@
   \ifcsdef{#1#2}
     {\blx@inf@delimdeclare{#2}{#1}}
     {}%
-  \global\csletcs{#1#2}{#1#3}}
+  \csdef{#1#2}{\csuse{#1#3}}}
 
 \def\blx@delimcontext{none}
 \newcommand*{\printdelim}[2][]{%
