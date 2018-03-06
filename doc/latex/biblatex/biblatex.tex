@@ -6110,21 +6110,26 @@ Inside name formats, the nameparts constant declaration makes available two or t
 
 Note these per-namepart uniqueness macros are essentially an override of the \opt{uniquename} value (see \secref{aut:aux:tst}) for the name as a whole. Styles can choose to use either the less granular \opt{uniquename} value or the more detailed per-namepart values. Usually the general \opt{uniquename} value is enough for ordinary Western names but the more granular information per-namepart is provided to allow sophisticated name uniqueness processing for more complex name schemata.
 
-The name formatting directive is executed once for each name in the name list. Here is an example:
+The name formatting directive is executed once for each name in the name list. Here is a simplified example -- the standard name formats are more intricate:
 
 \begin{ltxexample}
 \DeclareNameFormat{author}{%
   \ifthenelse{\value{listcount}=1}
     {\namepartfamily%
-     \ifblank{\namepartgiven}{}{\addcomma\space\namepartgiven}}
-    {\ifblank{\namepartgiven}{}{\namepartgiven\space}%
+     \ifdefvoid{\namepartgiven}{}{\addcomma\space\namepartgiven}}
+    {\ifdefvoid{\namepartgiven}{}{\namepartgiven\space}%
      \namepartfamily}%
   \ifthenelse{\value{listcount}<\value{liststop}}
     {\addcomma\space}
     {}}
 \end{ltxexample}
 %
-The above directive reverses the name of the first author («Family, Given») and prints the remaining names in their regular sequence («Given Family»). Note that the only component which is guaranteed to be available is the family name, hence we have to check which parts of the name are actually present. If a certain name part is not available, the corresponding macro will be empty. As with directives for literal lists, the separator to be inserted between the individual items in the name list is also handled by the formatting directive, hence we have to check whether we are in the middle of the list or at the end when inserting it. This is what the second \cmd{ifthenelse} test does.
+The above directive reverses the name of the first author («Family, Given») and prints the remaining names in their regular sequence («Given Family»). Note that the only component which is guaranteed to be available is the family name, hence we have to check which parts of the name are actually present. If a certain name part is not available, the corresponding macro will be empty. As with directives for literal lists, the separator to be inserted between the individual items in the name list is also handled by the formatting directive, hence we have to check whether we are in the middle of the list or at the end when inserting it. This is what the second \cmd{ifthenelse} test does. See also \secref{aut:bib:fmt}.
+
+A similar output that also respects the \cmd{multinamedelim} and \cmd{finalnamedelim} commands as well as the <prefix> and <suffix> name parts can be achieved with
+\begin{ltxexample}
+\DeclareNameAlias{author}{family-given/given-family}
+\end{ltxexample}
 
 \subsubsection{Special Fields}
 \label{aut:bbx:fld}
