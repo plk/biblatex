@@ -9194,6 +9194,7 @@
   \def\blx@tempb{bibtex}%
   \def\blx@tempc{local}%
   \undef\blx@tempd
+  \let\blx@tempe\@empty
   \setkeys{blx@addbib}{#2}%
   \blx@xsanitizeafter{#1}{#3}%
   \endgroup}
@@ -9209,6 +9210,7 @@
 \define@key{blx@addbib}{datatype}{\def\blx@tempb{#1}}
 \define@key{blx@addbib}{location}{\def\blx@tempc{#1}}
 \define@key{blx@addbib}{label}{\edef\blx@tempd{\detokenize{#1}}}
+\define@key{blx@addbib}{bibencoding}{\def\blx@tempe{#1}}
 
 % \blx@res@type@<resource>      resource -> type
 % \blx@res@data@<resource>      resource -> datatype
@@ -9219,6 +9221,7 @@
   \csxdef{blx@res@type@#1}{\blx@tempa}%
   \csxdef{blx@res@data@#1}{\blx@tempb}%
   \csxdef{blx@res@loca@#1}{\blx@tempc}%
+  \csxdef{blx@res@bibencoding@#1}{\blx@tempe}%
   \ifdef\blx@tempd
     {\csxdef{blx@res@labl@\blx@tempd}{#1}}
     {}}
@@ -9248,6 +9251,9 @@
       {\ifcsdef{blx@res@data@#2}
         {\csuse{blx@res@data@#2}}
         {bibtex}}
+      {\ifcsvoid{blx@res@bibencoding@#2}
+        {}
+        { encoding="\csuse{blx@res@bibencoding@#2}"}}
       {#3}}}
 
 %% Citations
@@ -11234,8 +11240,8 @@
   ~~<bcf:bibdata section="#1">\blx@nl
   #2%
   ~~</bcf:bibdata>\blx@nl}
-\xdef\blx@xml@datasource#1#2#3{%
-  ~~~~<bcf:datasource type="#1" datatype="#2">#3</bcf:datasource>\blx@nl}
+\xdef\blx@xml@datasource#1#2#3#4{%
+  ~~~~<bcf:datasource type="#1" datatype="#2"#3>#4</bcf:datasource>\blx@nl}
 \xdef\blx@xml@citekey#1#2{%
   ~~~~<bcf:citekey order="#2">#1</bcf:citekey>}
 \xdef\blx@xml@citeset#1#2{%
