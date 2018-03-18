@@ -1,3 +1,11 @@
+# RELEASE NOTES FOR VERSION 3.12
+- The field `number` is a literal field now and not an integer. This allows for
+  a wider range of possible input such as "S1", "Suppl. 1", "1-3".
+  If you want to sort by `number` and only have integers in there, you should
+  consider using a custom data model to turn `number` back into an integer type
+  field, since sorting integers as literals has performance implications and
+  might lead to undesired sorting such as "1", "10", "2".
+  
 # RELEASE NOTES FOR VERSION 3.11
 - `\printbiblist` now supports `driver` and `biblistfilter` options
   to change the defaults set by the biblistname.
