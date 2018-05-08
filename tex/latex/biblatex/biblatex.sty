@@ -5080,30 +5080,36 @@
 % .lbx files must be read with one of the two following commands,
 % do not use \blx@inputonce. Only the commands here make sure that the file
 % is read as many times as necessary.
+% blx@file@lbx@simple@#1 only blocks the file being added to the file list
+% blx@file@lbx@once@#1 blocks a file from being loaded again by the input-once
+% routine
 % {<file>}{<message>}{<preload>}{<postload>}{<success>}{<failure>}
 \protected\long\def\blx@lbx@input@handler@simple#1#2#3#4#5#6{%
   \blx@info@noline{Trying to load #2..}%
   \IfFileExists{#1}
     {\blx@info@noline{... file '#1' found}%
      #3\@@input\@filef@und#4#5%
-     \ifcsundef{blx@file@lbx@#1}
+     \ifcsundef{blx@file@lbx@simple@#1}
        {\listxadd\blx@list@req@stat{#1}%
         \@addtofilelist{#1}%
-        \global\cslet{blx@file@lbx@#1}\@empty}
+        \global\cslet{blx@file@lbx@simple@#1}\@empty}
        {}}
     {\blx@info@noline{... file '#1' not found}#6}}
 
 % {<file>}{<message>}{<preload>}{<postload>}{<success>}{<failure>}
 \protected\long\def\blx@lbx@input@handler@once#1#2#3#4#5#6{%
-  \ifcsundef{blx@file@lbx@#1}
+  \ifcsundef{blx@file@lbx@once@#1}
     {\blx@info@noline{Trying to load #2..}%
-     \global\cslet{blx@file@lbx@#1}\@empty
      \IfFileExists{#1}
        {\blx@info@noline{... file '#1' found}%
         #3\@@input\@filef@und#4#5%
-        \listxadd\blx@list@req@stat{#1}%
-        \@addtofilelist{#1}}
-       {\blx@info@noline{... file '#1' not found}#6}}
+        \ifcsundef{blx@file@lbx@simple@#1}
+          {\listxadd\blx@list@req@stat{#1}%
+           \@addtofilelist{#1}}
+          {}}
+       {\blx@info@noline{... file '#1' not found}#6}%
+     \global\cslet{blx@file@lbx@once@#1}\@empty
+     \global\cslet{blx@file@lbx@simple@#1}\@empty}
     {#5}}
 
 \def\blx@lbx@input@process@strings#1{%
