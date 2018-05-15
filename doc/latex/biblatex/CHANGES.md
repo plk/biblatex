@@ -5,6 +5,23 @@
   consider using a custom data model to turn `number` back into an integer type
   field, since sorting integers as literals has performance implications and
   might lead to undesired sorting such as "1", "10", "2".
+- **INCOMPATIBLE CHANGE** Removed the 'semi-hidden' option `noerroretextools`.
+  If you want to load `noerroretextools` now, you need to define the macro
+  `\blx@noerroretextools` instead. This can for example be done with
+  ```
+  \usepackage{etoolbox}
+  \cslet{blx@noerroretextools}\empty
+  \usepackage{biblatex}
+  ```
+  or
+  ```
+  \makeatletter
+  \let\blx@noerroretextools\@empty
+  \makeatother
+  \usepackage{biblatex}
+  ```
+  You still need to make sure that all macros used by `biblatex` are restored
+  to their `etoolbox` definitions before loading `biblatex`.
   
 # RELEASE NOTES FOR VERSION 3.11
 - `\printbiblist` now supports `driver` and `biblistfilter` options
