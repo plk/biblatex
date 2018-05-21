@@ -9061,22 +9061,36 @@
 \def\blx@refpatch@chapter#1{%
   \ifundef\chapter
     {\blx@err@nodocdiv{chapter}}
-    {\pretocmd\@makechapterhead{#1}
-       {}
-       {\blx@err@patch{\string\@makechapterhead}}
-     \pretocmd\@makeschapterhead{#1}
-       {}
-       {\blx@err@patch{\string\@makeschapterhead}}}}
+    {% the \ifcsundef{KOMAClassName} should be redundant, but you never know
+     \ifboolexpr{test {\ifcsundef{KOMAClassName}}
+                 or test {\ifcsundef{startsection@secnumdepth}}}
+       {\pretocmd\@makechapterhead{#1}
+          {}
+          {\blx@err@patch{\string\@makechapterhead}}
+        \pretocmd\@makeschapterhead{#1}
+          {}
+          {\blx@err@patch{\string\@makeschapterhead}}}
+       {% <- new KOMA >= 3.26 defines \startsection@secnumdepth
+        \At@startsection{\ifnumequal{\startsection@secnumdepth}{0}{#1}{}}}}}
 
 \def\blx@refpatch@sect#1{%
   \ifcsundef{#1}
     {\blx@err@nodocdiv{#1}\@gobbletwo}
-    {\blx@refpatch@sect@i}}
+    {% the \ifcsundef{KOMAClassName} should be redundant, but you never know
+     \ifboolexpr{test {\ifcsundef{KOMAClassName}}
+                 or test {\ifcsundef{startsection@secnumdepth}}}
+       {\blx@refpatch@sect@i}
+       {\blx@refpatch@sect@koma}}}
+
+% KOMA >= 3.26 defines \startsection@secnumdepth to check the sectioning level,
+% so we can now use \At@startsection
+\def\blx@refpatch@sect@koma#1#2{%
+  \At@startsection{\ifnumequal{\startsection@secnumdepth}{#2}{#1}{}}}
 
 \edef\blx@refpatch@sect@i#1#2{%
   \def\noexpand\do##1{%
-     \pretocmd##1%
-       {\noexpand\blx@refpatch@sect@ii{#1}{#2}{\string#2}}
+    \pretocmd##1%
+      {\noexpand\blx@refpatch@sect@ii{#1}{#2}{\string#2}}
       {\togglefalse{blx@tempa}\noexpand\listbreak}
       {}}%
   \noexpand\blx@refpatch@sect@iii}
@@ -9092,7 +9106,7 @@
     \H@old@sect,%    hyperref
     \NR@sect,%       nameref
     \scr@sect,%      koma-script 3.x
-    \scr@startsection,%  bad hack for koma >= 3.15
+    \scr@startsection,%  bad hack for koma 3.15 <= v <= 3.25
     \@startsection}%         latex
   \iftoggle{blx@tempa}
     {\blx@err@patch{\string\@sect}}
