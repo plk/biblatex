@@ -186,7 +186,7 @@ Michal Hoftich (Czech);
 Jonas Nyrup (Danish);
 Johannes Wilm (Danish\slash Norwegian);
 Alexander van Loon, Pieter Belmans, Hendrik Maryns (Dutch);
-Benson Muite (Estonian);
+Kristian Kankainen, Benson Muite (Estonian);
 Hannu Väisänen, Janne Kujanpää (Finnish);
 Denis Bitouzé (French);
 Apostolos Syropoulos, Prokopis (Greek);
@@ -901,7 +901,7 @@ The author(s) of a foreword to the work. If the author of the foreword is identi
 
 \listitem{holder}{name}
 
-The holder(s) of a \bibtype{patent}, if different from the \bibfield{author}. Not that corporate holders need to be wrapped in an additional set of braces, see \secref{bib:use:inc} for details. This list may also be useful for the custom types listed in \secref{bib:typ:ctm}.
+The holder(s) of a \bibtype{patent}, if different from the \bibfield{author}. Note that corporate holders need to be wrapped in an additional set of braces, see \secref{bib:use:inc} for details. This list may also be useful for the custom types listed in \secref{bib:typ:ctm}.
 
 \fielditem{howpublished}{literal}
 
@@ -941,7 +941,7 @@ The International Standard Serial Number of a periodical.
 
 \fielditem{issue}{literal}
 
-The issue of a journal. This field is intended for journals whose individual issues are identified by a designation such as <Spring> or <Summer> rather than the month or a number. Since the placement of \bibfield{issue} is similar to \bibfield{month} and \bibfield{number}, this field may also be useful with double issues and other special cases. See also \bibfield{month}, \bibfield{number}, and \secref{bib:use:iss}.
+The issue of a journal. This field is intended for journals whose individual issues are identified by a designation such as <Spring> or <Summer> rather than the month or a number. The placement of \bibfield{issue} is similar to \bibfield{month} and \bibfield{number}, integer ranges and short designators are better written to the \bibfield{number} field. See also \bibfield{month}, \bibfield{number}, and \secref{bib:use:iss}.
 
 \fielditem{issuesubtitle}{literal}
 
@@ -1005,9 +1005,9 @@ An addon to be printed immediately after the author name in the bibliography. No
 
 Miscellaneous bibliographic data which does not fit into any other field. The \bibfield{note} field may be used to record bibliographic data in a free format. Publication facts such as «Reprint of the edition London 1831» are typical candidates for the \bibfield{note} field. See also \bibfield{addendum}.
 
-\fielditem{number}{integer}
+\fielditem{number}{literal}
 
-The number of a journal or the volume\slash number of a book in a \bibfield{series}. See also \bibfield{issue} as well as \secref{bib:use:ser, bib:use:iss}. With \bibtype{patent} entries, this is the number or record token of a patent or patent request. It is expected to be an integer, not necessarily in arabic numerals since \biber will automatically from roman numerals or arabic letter to integers internally for sorting purposes.
+The number of a journal or the volume\slash number of a book in a \bibfield{series}. See also \bibfield{issue} as well as \secref{bib:use:ser, bib:use:iss}. With \bibtype{patent} entries, this is the number or record token of a patent or patent request. Normally this field will be an integer or an integer range, but in certain cases it may also contain «S1», «Suppl.\ 1», in these cases the output should be scrutinised carefully.
 
 \listitem{organization}{literal}
 
@@ -1822,7 +1822,7 @@ encodings properly.
 
 \paragraph{Specifying Encodings}
 \label{bib:cav:enc:enc}
-When using a non-Ascii encoding in the \file{bib} file, it is important to understand what \biblatex can do for you and what may require manual intervention. The package takes care of the \latex side, \ie it ensures that the data imported from the \file{bbl} file is interpreted correctly, provided that the \opt{bibencoding} package option is set properly. All of this is handled automatically and no further steps, apart from setting the \opt{bibencoding} option in certain cases, are required. Here are a few typical usage scenarios along with the relevant lines from the document preamble:
+When using a non-Ascii encoding in the \file{bib} file, it is important to understand what \biblatex can do for you and what may require manual intervention. The package takes care of the \latex side, \ie it ensures that the data imported from the \file{bbl} file is interpreted correctly, provided that the \opt{bibencoding} package option (or the datasource specific override for this, see \secref{use:bib:res}) is set properly. All of this is handled automatically and no further steps, apart from setting the \opt{bibencoding} option in certain cases, are required. Here are a few typical usage scenarios along with the relevant lines from the document preamble:
 
 \begin{itemize}
 \setlength{\itemsep}{0pt}
@@ -1861,7 +1861,7 @@ Since \kvopt{bibencoding}{auto} is the default setting, the option is omissible.
 \usepackage[bibencoding=latin1]{biblatex}
 \end{ltxexample}
 
-The same scenario with \xetex or \luatex in native \utf mode:
+The same scenario with \latex release 2018-04-01 or above, \xetex or \luatex in native \utf mode:
 
 \begin{ltxexample}
 \usepackage[bibencoding=latin1]{biblatex}
@@ -2418,7 +2418,7 @@ Specifies the encoding of the \file{tex} file. This option affects the data tran
 
 \begin{valuelist}
 
-\item[auto] Try to auto-detect the input encoding. If the \sty{inputenc}\slash \sty{inputenx}\slash \sty{luainputenc} package is available, \biblatex will get the main encoding from that package. If not, it assumes \utf encoding if \xetex or \luatex has been detected, and Ascii otherwise.
+\item[auto] Try to auto-detect the input encoding. If the \sty{inputenc}\slash \sty{inputenx}\slash \sty{luainputenc} package is available, \biblatex will get the main encoding from that package. If not, it assumes \utf encoding if a \latex format using at least the April 2018 version of the kernel, \xetex or \luatex has been detected, and Ascii otherwise.
 
 \item[\prm{encoding}] Specifies the \prm{encoding} explicitly. This is for odd cases in which auto-detection fails or you want to force a certain encoding for some reason.
 
@@ -2428,7 +2428,7 @@ Note that setting \kvopt{texencoding}{\prm{encoding}} will also affect the \opt{
 
 \optitem[auto]{bibencoding}{\opt{auto}, \prm{encoding}}
 
-Specifies the encoding of the \file{bib} files. This option corresponds to \biber's \opt{--input-encoding} option. The following choices are available:
+Specifies the default encoding of the \file{bib} files. This can be overridden on a per-datasource basis using the \opt{bibencoding} option to \cmd{addbibresource}, see \secref{use:bib:res}. This option corresponds to \biber's \opt{--input-encoding} option. The following choices are available:
 
 \begin{valuelist}
 
@@ -2690,7 +2690,7 @@ Whether or not to update the \cnt{uniquename} counter, see \secref{aut:aux:tst} 
 \item[minfull] A variant of \texttt{full} which only disambiguates names in identical lists of base nameparts (by default, lists of family names).
 \end{valuelist}
 %
-Note that the \opt{uniquename} option will also affect \opt{uniquelist}, the \cmd{ifsingletitle} test, and the \bibfield{extradate} field. See \secref{aut:cav:amb} for further details and practical examples.
+Note that the \opt{uniquename} option will also affect \opt{uniquelist}, the \cmd{ifsingletitle} test, and the \bibfield{extradate} and \bibfield{extraname} fields. See \secref{aut:cav:amb} for further details and practical examples.
 
 \optitem[false]{uniquelist}{\opt{true}, \opt{false}, \opt{minyear}}
 
@@ -2702,7 +2702,7 @@ Whether or not to update the \cnt{uniquelist} counter, see \secref{aut:aux:tst} 
 \item[minyear] Disambiguate the \bibfield{labelname} list only if the truncated list is identical to another one with the same \bibfield{labelyear}. This mode of operation is useful for author-year styles and requires \kvopt{labeldateparts}{true}.
 \end{valuelist}
 %
-Note that the \opt{uniquelist} option will also affect the \cmd{ifsingletitle} test and the \bibfield{extradate} field. See \secref{aut:cav:amb} for further details and practical examples.
+Note that the \opt{uniquelist} option will also affect the \cmd{ifsingletitle} test and the \bibfield{extradate} and \bibfield{extraname} fields. See \secref{aut:cav:amb} for further details and practical examples.
 
 \end{optionlist}
 
@@ -2717,25 +2717,26 @@ Note that the \opt{uniquelist} option will also affect the \cmd{ifsingletitle} t
 \multicolumn{1}{@{}H}{Enabled counter} &
 \multicolumn{1}{@{}H}{Counter tracks} \\
 \cmidrule(r){1-1}\cmidrule(r){2-2}\cmidrule(r){3-3}\cmidrule{4-4}
-labelalpha     & labelalpha       & extraalpha     &  label\\
-labeldateparts & labelyear        & extradate      &  labelname+\\
-               & labelmonth       &                &  labelyear\\
-               & labelday         &                &  \\
-               & labelendyear     &                &  \\
-               & labelendmonth    &                &  \\
-               & labelendday      &                &  \\
-               & labelhour        &                &  \\
-               & labelminute      &                &  \\
-               & labelsecond      &                &  \\
-               & labelendhour     &                &  \\
-               & labelendminute   &                &  \\
-               & labelendsecond   &                &  \\
-               & labelseason      &                &  \\
-               & labelendseason   &                &  \\
-               & labeltimezone    &                &  \\
-               & labelendtimezone &                &  \\
-labeltitle     & {\rmfamily ---}  & extratitle     &  labelname+labeltitle\\
-labeltitleyear & {\rmfamily ---}  & extratitleyear &  labeltitle+labelyear\\
+labelalpha      & labelalpha       & extraalpha     &  label\\
+labeldateparts  & labelyear        & extradate      &  labelname+\\
+                & labelmonth       &                &  labelyear\\
+                & labelday         &                &  \\
+                & labelendyear     &                &  \\
+                & labelendmonth    &                &  \\
+                & labelendday      &                &  \\
+                & labelhour        &                &  \\
+                & labelminute      &                &  \\
+                & labelsecond      &                &  \\
+                & labelendhour     &                &  \\
+                & labelendminute   &                &  \\
+                & labelendsecond   &                &  \\
+                & labelseason      &                &  \\
+                & labelendseason   &                &  \\
+                & labeltimezone    &                &  \\
+                & labelendtimezone &                &  \\
+labeltitle      & {\rmfamily ---}  & extratitle     &  labelname+labeltitle\\
+labeltitleyear  & {\rmfamily ---}  & extratitleyear &  labeltitle+labelyear\\
+{\rmfamily ---} & {\rmfamily ---}  & extraname      &  labelname\\
 \bottomrule
 \end{tabularx}
 \caption{Disambiguation counters}
@@ -3246,6 +3247,10 @@ Adds a \prm{resource}, such as a \file{.bib} file, to the default resource list.
 Since the \prm{resource} string is read in a verbatim-like mode, it may contain arbitrary characters. The only restriction is that any curly braces must be balanced. The following \prm{options} are available:
 
 \begin{optionlist*}
+
+\valitem{bibencoding}{bibencoding}
+
+This option can be used to override the global \opt{bibencoding} option for a particular \prm{resource}.
 
 \valitem{label}{identifier}
 
@@ -5031,7 +5036,7 @@ Similar to \cmd{nohyphenation} but restricted to the \prm{text} argument.
 
 \cmditem{mknumalph}{integer}
 
-Takes an integer in the range 1--702 as its argument and converts it to a string as follows: 1=a, \textellipsis, 26=z, 27=aa, \textellipsis, 702=zz. This is intended for use in formatting directives for the \bibfield{extradate} and \bibfield{extraalpha} fields.
+Takes an integer in the range 1--702 as its argument and converts it to a string as follows: 1=a, \textellipsis, 26=z, 27=aa, \textellipsis, 702=zz. This is intended for use in formatting directives for the \bibfield{extradate}, \bibfield{extraname} and \bibfield{extraalpha} fields.
 
 \cmditem{mkbibacro}{text}
 
@@ -6109,21 +6114,26 @@ Inside name formats, the nameparts constant declaration makes available two or t
 
 Note these per-namepart uniqueness macros are essentially an override of the \opt{uniquename} value (see \secref{aut:aux:tst}) for the name as a whole. Styles can choose to use either the less granular \opt{uniquename} value or the more detailed per-namepart values. Usually the general \opt{uniquename} value is enough for ordinary Western names but the more granular information per-namepart is provided to allow sophisticated name uniqueness processing for more complex name schemata.
 
-The name formatting directive is executed once for each name in the name list. Here is an example:
+The name formatting directive is executed once for each name in the name list. Here is a simplified example -- the standard name formats are more intricate:
 
 \begin{ltxexample}
 \DeclareNameFormat{author}{%
   \ifthenelse{\value{listcount}=1}
     {\namepartfamily%
-     \ifblank{\namepartgiven}{}{\addcomma\space\namepartgiven}}
-    {\ifblank{\namepartgiven}{}{\namepartgiven\space}%
+     \ifdefvoid{\namepartgiven}{}{\addcomma\space\namepartgiven}}
+    {\ifdefvoid{\namepartgiven}{}{\namepartgiven\space}%
      \namepartfamily}%
   \ifthenelse{\value{listcount}<\value{liststop}}
     {\addcomma\space}
     {}}
 \end{ltxexample}
 %
-The above directive reverses the name of the first author («Family, Given») and prints the remaining names in their regular sequence («Given Family»). Note that the only component which is guaranteed to be available is the family name, hence we have to check which parts of the name are actually present. If a certain name part is not available, the corresponding macro will be empty. As with directives for literal lists, the separator to be inserted between the individual items in the name list is also handled by the formatting directive, hence we have to check whether we are in the middle of the list or at the end when inserting it. This is what the second \cmd{ifthenelse} test does.
+The above directive reverses the name of the first author («Family, Given») and prints the remaining names in their regular sequence («Given Family»). Note that the only component which is guaranteed to be available is the family name, hence we have to check which parts of the name are actually present. If a certain name part is not available, the corresponding macro will be empty. As with directives for literal lists, the separator to be inserted between the individual items in the name list is also handled by the formatting directive, hence we have to check whether we are in the middle of the list or at the end when inserting it. This is what the second \cmd{ifthenelse} test does. See also \secref{aut:bib:fmt}.
+
+A similar output that also respects the \cmd{multinamedelim} and \cmd{finalnamedelim} commands as well as the <prefix> and <suffix> name parts can be achieved with
+\begin{ltxexample}
+\DeclareNameAlias{author}{family-given/given-family}
+\end{ltxexample}
 
 \subsubsection{Special Fields}
 \label{aut:bbx:fld}
@@ -6289,6 +6299,10 @@ The <alphabetic> citation scheme usually requires a letter to be appended to the
 
 The name to be printed in citations. This list is a copy of either the \bibfield{shortauthor}, the \bibfield{author}, the \bibfield{shorteditor}, the \bibfield{editor}, or the \bibfield{translator} list, which are normally checked for in this order. If no authors and editors are available, this list is undefined. Note that this list is also responsive to the \opt{use$<$name$>$}, options, see \secref{use:opt:bib}. Citation styles should use this list when printing the name in a citation. This list is provided for convenience only and does not carry any additional meaning.
 This field may be customized. See \secref{aut:ctm:fld} for details.
+
+\fielditem{extraname}{integer}
+
+Holds a count of the number of bibliography entries within a refsection which derive from the same \bibfield{labelname} list. This counter takes account of \opt{uniquename} settings (see \secref{use:opt:pre:int}). While not used by any standard styles, this field is useful in styles which wish to number bibliography entries on a per-\bibfield{labelname} basis. This field will only exist if there is a \bibfield{labelname}. The \bibfield{extraname} counter is related to, but conceptually different from \cmd{ifsingletitle} (see \secref{use:opt:pre:int} and \secref{aut:aux:tst}).
 
 \fielditem{labelnumber}{literal}
 
@@ -7263,7 +7277,7 @@ As the same option on the parent \cmd{maps} element. This option allows an overr
 
 Loop over all \cmd{step}s in this \cmd{map}, setting the special variable |$MAPLOOP| %$
 to each of the comma-separated values contained in \prm{loopval}. \prm{loopval} can either be the name of a datafield set defined with \cmd{DeclareDatafieldSet} (see \secref{aut:ctm:dsets}), a datasource field which is fetched and parsed as a comma"=separated values list or an explicit comma"=separated values list. \prm{loopval} is determined in this order. This allows the user to repeat a group of \cmd{step}s for each value \prm{loopval}. Using regexp maps, it is possible to create a CSV field for use with this functionality. The special variable |$MAPUNIQ| %$
-may also be used the \cmd{step}s to generate a random unique string. This can be useful when creating keys for new entries. An example:
+may also be used in the \cmd{step}s to generate a random unique string. This can be useful when creating keys for new entries. An example:
 
 \begin{ltxexample}[style=latex]
 \DeclareSourcemap{
@@ -9903,6 +9917,21 @@ title = {An Introduction to {L}a{T}e{X}}
 \end{lstlisting}
 %
 The problem with this convention is that the braces will suppress the kerning on both sides of the enclosed letter. It is preferable to wrap the entire word in braces as shown in the first example.
+Macros in titles must also be protected with braces
+\begin{lstlisting}[style=bibtex]{}
+title = {The {\TeX book}},
+\end{lstlisting}
+%
+Due to its complex implementation this command can not accept arbitrary input, it only safely operates on raw text or field data. In the standard styles the \texttt{title} and other \texttt{title}-like field formats do not work together with \cmd{MakeSentenceCase} because of their argument structure, so the standard styles offer a dedicated \texttt{titlecase} field format to apply this command. To enable sentence casing in standard styles for languages that support it you would use:
+\begin{ltxexample}
+\DeclareFieldFormat{titlecase}{<<\MakeSentenceCase*{#1}>>}
+\end{ltxexample}
+%
+Sentence casing can then be disabled by resetting that field format to
+\begin{ltxexample}
+\DeclareFieldFormat{titlecase}{<<#1>>}
+\end{ltxexample}
+Custom styles may follow a different approach, but style authors are encouraged to apply the same general ideas to their styles.
 
 \cmditem{mkpageprefix}[pagination][postpro]{text}
 
@@ -11712,6 +11741,18 @@ This counter holds the highest number found in any \bibfield{extraalpha} field.
 
 This counter holds the highest number found in any \bibfield{extradate} field.
 
+\cntitem{maxextraname}
+
+This counter holds the highest number found in any \bibfield{extraname} field.
+
+\cntitem{maxextratitle}
+
+This counter holds the highest number found in any \bibfield{extratitle} field.
+
+\cntitem{maxextratitleyear}
+
+This counter holds the highest number found in any \bibfield{extratitleyear} field.
+
 \cntitem{refsection}
 
 This counter indicates the current \env{refsection} environment. When queried in a bibliography heading, the counter returns the value of the \opt{refsection} option passed to \cmd{printbibliography}.
@@ -13296,7 +13337,13 @@ use$<$name$>$	&\+&\+&\_&\+&\+&\_&\_\\
 This revision history is a list of changes relevant to users of this package. Changes of a more technical nature which do not affect the user interface or the behavior of the package are not included in the list. More technical details are to be found in the \file{CHANGES.md} file. The numbers on the right indicate the relevant section of this manual.
 
 \begin{changelog}
-\begin{release}{3.11}{2018-02-20}
+\begin{release}{3.12}{2018-??-??}
+\item Added \bibfield{extraname}\see{aut:bbx:fld:lab}
+\item Added \opt{bibencoding} option to \cmd{addbibresource}\see{use:bib:res}
+\item Changed type of \bibfield{number} from integer to literal \see{bib:fld:dat}
+\end{release}
+
+  \begin{release}{3.11}{2018-02-20}
 \item Added \opt{entrynocite} option to sourcemapping\see{aut:ctm:map}
 \item Added \opt{driver} and \opt{biblistfilter} options to \cmd{printbiblist}\see{use:bib:biblist}
 \item Added \cmd{mknormrange}\see{aut:aux:msc}

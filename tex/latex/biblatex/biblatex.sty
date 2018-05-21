@@ -27,7 +27,7 @@
 % This is not updated by build script as the bbl version
 % does not necessarily change with the package version.
 % This is used when checking the .bbl
-\def\blx@bblversion{2.9}
+\def\blx@bblversion{3.0}
 
 \NeedsTeXFormat{LaTeX2e}[2005/12/01]
 \ProvidesPackage{biblatex}
@@ -500,6 +500,8 @@
 \def\themaxextratitle{\the\c@maxextratitle}
 \newcounter{maxextratitleyear}
 \def\themaxextratitleyear{\the\c@maxextratitleyear}
+\newcounter{maxextraname}
+\def\themaxextraname{\the\c@maxextraname}
 \newcounter{maxextradate}
 \def\themaxextradate{\the\c@maxextradate}
 \newcounter{maxextraalpha}
@@ -994,7 +996,7 @@
   \PackageWarningNoLine{biblatex}{#1}%
   \endgroup}
 \let\blx@warning\blx@warning@noline
-\AtEndOfPackage{
+\AtEndOfPackage{%
   \protected\def\blx@warning#1{%
     \begingroup
     \blx@safe@actives
@@ -1012,7 +1014,7 @@
   \PackageInfo{biblatex}{#1\@gobble}%
   \endgroup}
 \let\blx@info\blx@info@noline
-\AtEndOfPackage{
+\AtEndOfPackage{%
   \protected\def\blx@info#1{%
     \begingroup
     \blx@safe@actives
@@ -3320,7 +3322,7 @@
     {#1}}
 
 \newcommand*{\DeclareDelimcontextAlias}[2]{%
-  \csgdef{blx@delimcontextalias@#1}{#2}}
+  \csdef{blx@delimcontextalias@#1}{#2}}
 
 \newrobustcmd*{\AtUsedriver}{%
   \@ifstar
@@ -4154,19 +4156,16 @@
 
 % {name opts}{nameparts}
 \long\def\blx@nameparser@i#1#2{%
+  \begingroup
   \ifblank{#1}
     {}
     {\setkeys{blx@opt@name}{#1}}%
-  % reset all the nameparts to empty between names
-  \def\do##1{%
-    \cslet{namepart##1}\@empty
-    \cslet{namepart##1i}\@empty}%
-  \expandafter\docsvlist\expandafter{\blx@datamodel@constant@nameparts}%
   \setkeys{blx@opt@namepart}{#2}% Extract nameparts information
   % Still pass the nameparts forward for backwards compat
   % When \nameparts is finally removed, remove the "{2}" and remove the
   % arg to \blx@defformat@d in def of \blx@defnameformat
-  \blx@theformat{#2}}
+  \blx@theformat{#2}%
+  \endgroup}
 
 \long\def\blx@namebreak#1&{}
 
@@ -5081,33 +5080,39 @@
 % .lbx files must be read with one of the two following commands,
 % do not use \blx@inputonce. Only the commands here make sure that the file
 % is read as many times as necessary.
+% blx@file@lbx@simple@#1 only blocks the file being added to the file list
+% blx@file@lbx@once@#1 blocks a file from being loaded again by the input-once
+% routine
 % {<file>}{<message>}{<preload>}{<postload>}{<success>}{<failure>}
 \protected\long\def\blx@lbx@input@handler@simple#1#2#3#4#5#6{%
   \blx@info@noline{Trying to load #2..}%
   \IfFileExists{#1}
     {\blx@info@noline{... file '#1' found}%
      #3\@@input\@filef@und#4#5%
-     \ifcsundef{blx@file@lbx@#1}
+     \ifcsundef{blx@file@lbx@simple@#1}
        {\listxadd\blx@list@req@stat{#1}%
         \@addtofilelist{#1}%
-        \global\cslet{blx@file@lbx@#1}\@empty}
+        \global\cslet{blx@file@lbx@simple@#1}\@empty}
        {}}
     {\blx@info@noline{... file '#1' not found}#6}}
 
 % {<file>}{<message>}{<preload>}{<postload>}{<success>}{<failure>}
 \protected\long\def\blx@lbx@input@handler@once#1#2#3#4#5#6{%
-  \ifcsundef{blx@file@lbx@#1}
+  \ifcsundef{blx@file@lbx@once@#1}
     {\blx@info@noline{Trying to load #2..}%
-     \global\cslet{blx@file@lbx@#1}\@empty
      \IfFileExists{#1}
        {\blx@info@noline{... file '#1' found}%
         #3\@@input\@filef@und#4#5%
-        \listxadd\blx@list@req@stat{#1}%
-        \@addtofilelist{#1}}
-       {\blx@info@noline{... file '#1' not found}#6}}
+        \ifcsundef{blx@file@lbx@simple@#1}
+          {\listxadd\blx@list@req@stat{#1}%
+           \@addtofilelist{#1}}
+          {}}
+       {\blx@info@noline{... file '#1' not found}#6}%
+     \global\cslet{blx@file@lbx@once@#1}\@empty
+     \global\cslet{blx@file@lbx@simple@#1}\@empty}
     {#5}}
 
-\def\blx@lbx@input@process@strings#1{
+\def\blx@lbx@input@process@strings#1{%
   \global\cslet{abx@strings@#1}\@empty
   \def\InheritBibliographyStrings{%
     \blx@letbibstrings{#1}}%
@@ -5129,7 +5134,7 @@
   \blx@lbx@input@process@extras{#1}%
   \def\DeclareHyphenationExceptions{\blx@hyphexcept{#1}}}
 
-\def\blx@lbx@input@postprocess@strings#1{
+\def\blx@lbx@input@postprocess@strings#1{%
   \csuse{blx@hook@strings@#1}}
 
 \def\blx@lbx@input@postprocess@extras#1{%
@@ -6058,7 +6063,7 @@
 % to biblatex. For options which only biber needs to see, they can be
 % passed to the .bcf directly using \blx@collectopts
 % [<datatype>]{<key>}[<value>]{<code>}
-\newrobustcmd*{\DeclareBibliographyOption}[2][]{
+\newrobustcmd*{\DeclareBibliographyOption}[2][]{%
   \ifblank{#1}
     {\def\blx@tempa{boolean}}
     {\ifcsundef{blx@globalopts@#1}
@@ -6207,6 +6212,7 @@
   \do{entrysetcount}%
   \do{entrytype}%
   \do{extraalpha}%
+  \do{extraname}%
   \do{extratitle}%
   \do{extratitleyear}%
   \do{extradate}%
@@ -7269,20 +7275,21 @@
     {}%
   \nottoggle{blx@skiplab}
     {\iftoggle{blx@labelnumber}
-      {\blx@bbl@labelnumber}
-      {}%
-    \iftoggle{blx@labelalpha}
-      {\blx@bbl@labelalpha}
-      {}%
-    \iftoggle{blx@labeltitle}
-      {\blx@bbl@labeltitle}
-      {}%
-    \iftoggle{blx@labeltitleyear}
-      {\blx@bbl@labeltitleyear}
-      {}%
-    \iftoggle{blx@labeldateparts}
-      {\blx@bbl@labeldate}
-      {}}
+       {\blx@bbl@labelnumber}
+       {}%
+     \iftoggle{blx@labelalpha}
+       {\blx@bbl@labelalpha}
+       {}%
+     \iftoggle{blx@labeltitle}
+       {\blx@bbl@labeltitle}
+       {}%
+     \iftoggle{blx@labeltitleyear}
+       {\blx@bbl@labeltitleyear}
+       {}%
+     \iftoggle{blx@labeldateparts}
+       {\blx@bbl@labeldate}
+       {}%
+     \blx@bbl@labelname}
     {}%
   \blx@bbl@titles
   \blx@bbl@hooks
@@ -7468,6 +7475,13 @@
     {}
     {\ifnum\abx@field@extratitleyear>\c@maxextratitleyear
        \global\c@maxextratitleyear\abx@field@extratitleyear\relax
+     \fi}}
+
+\def\blx@bbl@labelname{%
+  \ifundef\abx@field@extraname
+    {}
+    {\ifnum\abx@field@extraname>\c@maxextraname
+       \global\c@maxextraname\abx@field@extraname\relax
      \fi}}
 
 \def\blx@bbl@labeldate{%
@@ -8969,9 +8983,9 @@
     % Make sure this counter exists. Sometimes it might not when using, e.g:
     % refsection=chapter and \includeonly to put in the chapters or when
     % inserting citations into table of contents
-    \ifcsname blx@sectionciteorder@\the\c@refsection\endcsname\else
-      \expandafter\newcount\csname blx@sectionciteorder@\the\c@refsection\endcsname
-    \fi
+    \ifcscounter{blx@sectionciteorder@\the\c@refsection}
+      {}
+      {\expandafter\newcount\csname blx@sectionciteorder@\the\c@refsection\endcsname}%
     \global\advance\csname blx@sectionciteorder@\the\c@refsection\endcsname\@ne
     \blx@auxwrite\blx@bcfout{}{\blx@xml@citekey{##1}{\expandafter\the\csname blx@sectionciteorder@\the\c@refsection\endcsname}}}%
   \dolistcsloop{blx@keyaliases@\the\c@refsection}%
@@ -9137,6 +9151,8 @@
   \def\blx@tempa{file}%
   \def\blx@tempb{bibtex}%
   \def\blx@tempc{local}%
+  \undef\blx@tempd
+  \let\blx@tempe\@empty
   \blx@xsanitizeafter{\forcsvlist\blx@addbib@legacy}{#1}%
   \endgroup}
 \@onlypreamble\bibliography
@@ -9183,6 +9199,7 @@
   \def\blx@tempb{bibtex}%
   \def\blx@tempc{local}%
   \undef\blx@tempd
+  \let\blx@tempe\@empty
   \setkeys{blx@addbib}{#2}%
   \blx@xsanitizeafter{#1}{#3}%
   \endgroup}
@@ -9198,6 +9215,7 @@
 \define@key{blx@addbib}{datatype}{\def\blx@tempb{#1}}
 \define@key{blx@addbib}{location}{\def\blx@tempc{#1}}
 \define@key{blx@addbib}{label}{\edef\blx@tempd{\detokenize{#1}}}
+\define@key{blx@addbib}{bibencoding}{\def\blx@tempe{#1}}
 
 % \blx@res@type@<resource>      resource -> type
 % \blx@res@data@<resource>      resource -> datatype
@@ -9208,6 +9226,7 @@
   \csxdef{blx@res@type@#1}{\blx@tempa}%
   \csxdef{blx@res@data@#1}{\blx@tempb}%
   \csxdef{blx@res@loca@#1}{\blx@tempc}%
+  \csxdef{blx@res@bibencoding@#1}{\blx@tempe}%
   \ifdef\blx@tempd
     {\csxdef{blx@res@labl@\blx@tempd}{#1}}
     {}}
@@ -9237,6 +9256,9 @@
       {\ifcsdef{blx@res@data@#2}
         {\csuse{blx@res@data@#2}}
         {bibtex}}
+      {\ifcsvoid{blx@res@bibencoding@#2}
+        {}
+        { encoding="\csuse{blx@res@bibencoding@#2}"}}
       {#3}}}
 
 %% Citations
@@ -9405,12 +9427,15 @@
   \begingroup
   % This must be here and not after \blx@citeadd as this changes the refcontext
   \letcs\blx@tempb{blx@dlist@centry@\the\c@refsection @\blx@refcontext@context}%
+  \ifundef\blx@tempb
+    {\let\blx@tempb\@empty}
+    {}%
   % Make sure this counter exists. Sometimes it might not when using, e.g:
   % refsection=chapter and \includeonly to put in the chapters or when
   % inserting citations into table of contents
-  \ifcsname blx@sectionciteorder@\the\c@refsection\endcsname\else
-    \expandafter\newcount\csname blx@sectionciteorder@\the\c@refsection\endcsname
-  \fi
+  \ifcscounter{blx@sectionciteorder@\the\c@refsection}
+    {}
+    {\expandafter\newcount\csname blx@sectionciteorder@\the\c@refsection\endcsname}%
   \global\advance\csname blx@sectionciteorder@\the\c@refsection\endcsname\@ne
   \blx@tempcnta\z@
   \blx@tempcntb\z@
@@ -10077,9 +10102,9 @@
     % Make sure this counter exists. Sometimes it might not when using, e.g:
     % refsection=chapter and \includeonly to put in the chapters or when
     % inserting citations into table of contents
-    \ifcsname blx@sectionciteorder@\the\c@refsection\endcsname\else
-      \expandafter\newcount\csname blx@sectionciteorder@\the\c@refsection\endcsname
-    \fi
+    \ifcscounter{blx@sectionciteorder@\the\c@refsection}
+      {}
+      {\expandafter\newcount\csname blx@sectionciteorder@\the\c@refsection\endcsname}%
   \global\advance\csname blx@sectionciteorder@\the\c@refsection\endcsname\@ne
   \blx@citation{#1}\blx@msg@cundef}
 
@@ -11220,8 +11245,8 @@
   ~~<bcf:bibdata section="#1">\blx@nl
   #2%
   ~~</bcf:bibdata>\blx@nl}
-\xdef\blx@xml@datasource#1#2#3{%
-  ~~~~<bcf:datasource type="#1" datatype="#2">#3</bcf:datasource>\blx@nl}
+\xdef\blx@xml@datasource#1#2#3#4{%
+  ~~~~<bcf:datasource type="#1" datatype="#2"#3>#4</bcf:datasource>\blx@nl}
 \xdef\blx@xml@citekey#1#2{%
   ~~~~<bcf:citekey order="#2">#1</bcf:citekey>}
 \xdef\blx@xml@citeset#1#2{%
