@@ -5,6 +5,7 @@
   consider using a custom data model to turn `number` back into an integer type
   field, since sorting integers as literals has performance implications and
   might lead to undesired sorting such as "1", "10", "2".
+- New macro `\abx@missing@entry` to style missing entrykeys in citations.
   
 # RELEASE NOTES FOR VERSION 3.11
 - `\printbiblist` now supports `driver` and `biblistfilter` options
