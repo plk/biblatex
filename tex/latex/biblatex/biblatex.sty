@@ -22,7 +22,7 @@
 % This is not updated by build script as the control file version
 % does not necessarily change with the package version.
 % This is used when writing the .bcf
-\def\blx@bcfversion{3.4}
+\def\blx@bcfversion{3.5}
 
 % This is not updated by build script as the bbl version
 % does not necessarily change with the package version.
@@ -536,10 +536,14 @@
 \def\blx@minbibnames{0}
 \def\blx@maxcitenames{0}
 \def\blx@mincitenames{0}
+\def\blx@maxsortnames{0}
+\def\blx@minsortnames{0}
 \def\blx@maxbibnames@type{\blx@maxbibnames}
 \def\blx@minbibnames@type{\blx@minbibnames}
 \def\blx@maxcitenames@type{\blx@maxcitenames}
 \def\blx@mincitenames@type{\blx@mincitenames}
+\def\blx@maxsortnames@type{\blx@maxsortnames}
+\def\blx@minsortnames@type{\blx@minsortnames}
 \def\blx@maxalphanames{0}
 \def\blx@minalphanames{0}
 \def\blx@maxitems{0}
@@ -11305,10 +11309,12 @@
     \blx@xml@svalue{maxalphanames}{\blx@maxalphanames}%
     \blx@xml@svalue{maxbibnames}{\blx@maxbibnames}%
     \blx@xml@svalue{maxcitenames}{\blx@maxcitenames}%
+    \blx@xml@svalue{maxsortnames}{\blx@maxsortnames}%
     \blx@xml@svalue{maxitems}{\blx@maxitems}%
     \blx@xml@svalue{minalphanames}{\blx@minalphanames}%
     \blx@xml@svalue{minbibnames}{\blx@minbibnames}%
     \blx@xml@svalue{mincitenames}{\blx@mincitenames}%
+    \blx@xml@svalue{minsortnames}{\blx@minsortnames}%
     \blx@xml@svalue{minitems}{\blx@minitems}%
     \blx@xml@toggle{singletitle}%
     \blx@xml@svalue{sortalphaothers}{\sortalphaothers}%
@@ -11348,10 +11354,12 @@
     \blx@xml@svalue{maxalphanames}{\blx@maxalphanames}%
     \blx@xml@svalue{maxbibnames}{\blx@maxbibnames@type}%
     \blx@xml@svalue{maxcitenames}{\blx@maxcitenames@type}%
+    \blx@xml@svalue{maxsortnames}{\blx@maxsortnames@type}%
     \blx@xml@svalue{maxitems}{\blx@maxitems@type}%
     \blx@xml@svalue{minalphanames}{\blx@minalphanames}%
     \blx@xml@svalue{minbibnames}{\blx@minbibnames@type}%
     \blx@xml@svalue{mincitenames}{\blx@mincitenames@type}%
+    \blx@xml@svalue{minsortnames}{\blx@minsortnames@type}%
     \blx@xml@svalue{minitems}{\blx@minitems@type}%
     \blx@xml@toggle{singletitle}%
     \blx@xml@toggle{skipbib}%
@@ -12725,17 +12733,21 @@
 
 \DeclareBibliographyOption[integer]{maxnames}{%
   \numdef\blx@maxcitenames{#1}%
-  \numdef\blx@maxbibnames{#1}}
+  \numdef\blx@maxbibnames{#1}%
+  \numdef\blx@maxsortnames{#1}}
 \DeclareBibliographyOption[integer]{minnames}{%
   \numdef\blx@mincitenames{#1}%
-  \numdef\blx@minbibnames{#1}}
+  \numdef\blx@minbibnames{#1}%
+  \numdef\blx@minsortnames{#1}}
 \DeclareTypeOption[integer]{maxnames}{%
   \numdef\blx@maxcitenames@type{#1}%
   \numdef\blx@maxbibnames@type{#1}%
+  \numdef\blx@maxsortnames@type{#1}%
   \c@maxnames#1\relax}
 \DeclareTypeOption[integer]{minnames}{%
   \numdef\blx@mincitenames@type{#1}%
   \numdef\blx@minbibnames@type{#1}%
+  \numdef\blx@minsortnames@type{#1}%
   \c@minnames#1\relax}
 \DeclareEntryOption[integer]{maxnames}{%
   \c@maxnames#1\relax}
@@ -12788,12 +12800,37 @@
     {}
     {\c@minnames#1\relax}}
 
+\DeclareBibliographyOption[integer]{maxsortnames}{%
+  \numdef\blx@maxsortnames{#1}}
+\DeclareBibliographyOption[integer]{minsortnames}{%
+  \numdef\blx@minsortnames{#1}}
+\DeclareTypeOption[integer]{maxsortnames}{%
+  \numdef\blx@maxsortnames@type{#1}%
+  \iftoggle{blx@bibliography}
+    {}
+    {\c@maxnames#1\relax}}
+\DeclareTypeOption[integer]{minsortnames}{%
+  \numdef\blx@minsortnames@type{#1}%
+  \iftoggle{blx@bibliography}
+    {}
+    {\c@minnames#1\relax}}
+\DeclareEntryOption[integer]{maxsortnames}{%
+  \iftoggle{blx@bibliography}
+    {}
+    {\c@maxnames#1\relax}}
+\DeclareEntryOption[integer]{minsortnames}{%
+  \iftoggle{blx@bibliography}
+    {}
+    {\c@minnames#1\relax}}
+
 \appto\blx@checkoptions@global{%
   \blx@maxmin@num{maxbibnames}{minbibnames}\blx@maxbibnames\blx@minbibnames
-  \blx@maxmin@num{maxcitenames}{mincitenames}\blx@maxcitenames\blx@mincitenames}
+  \blx@maxmin@num{maxcitenames}{mincitenames}\blx@maxcitenames\blx@mincitenames
+  \blx@maxmin@num{maxsortnames}{minsortnames}\blx@maxsortnames\blx@minsortnames}
 \appto\blx@checkoptions@type{%
   \blx@maxmin@num{maxbibnames}{minbibnames}\blx@maxbibnames@type\blx@minbibnames@type
-  \blx@maxmin@num{maxcitenames}{mincitenames}\blx@maxcitenames@type\blx@mincitenames@type}
+  \blx@maxmin@num{maxcitenames}{mincitenames}\blx@maxcitenames@type\blx@mincitenames@type
+  \blx@maxmin@num{maxsortnames}{minsortnames}\blx@maxsortnames@type\blx@minsortnames@type}
 \appto\blx@checkoptions@entry{%
   \blx@maxmin@cnt{maxnames}{minnames}\c@maxnames\c@minnames}
 
