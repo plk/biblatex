@@ -3491,6 +3491,10 @@
                   and not test {\ifdatehastime{#2}})
               or (not test {\ifdatehastime{#1}}
                   and test {\ifdatehastime{#2}})}}
+                  
+\def\blx@imc@ifdateyearsequal#1#2{%
+  \ifboolexpr{ test {\iffieldsequal{#1year}{#2year}}
+               and test {\iffieldsequal{#1dateera}{#2dateera}}}}
 
 \blx@regimcs{%
   \ifdriver \thefield \strfield \csfield \usefield \thelist \strlist \thename \strname
@@ -3509,6 +3513,7 @@
   \iffieldint \iffieldnum \iffieldnums \iffieldpages
   \iflabeldateisdate \ifdatehasyearonlyprecision \ifdatehastime
   \ifdateshavedifferentprecision
+  \ifdateyearsequal
   \mkpageprefix \mkpagetotal
   \newblock \newunit \setunit \printunit \finentry}
 
@@ -5315,14 +5320,14 @@
          % Such a season component can only come from an ISO8601 season which replaces
          % a normal month so if it exists, we know that a normal date print is ruled out
          \iffieldundef{#2season}
-           {\iffieldsequal{#2year}{#2endyear}
+           {\ifdateyearsequal{#2}{#2end}
               {\iffieldsequal{#2month}{#2endmonth}
                  {\csuse{mkbibdate#1}{}{}{#2day}}
                  {\csuse{mkbibdate#1}{}{#2month}{#2day}}}
               {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
                \iffieldsequal{#2dateera}{#2enddateera}{}
-                {\dateeraprint{#2year}}}}
-           {\iffieldsequal{#2year}{#2endyear}
+                 {\dateeraprint{#2year}}}}
+           {\ifdateyearsequal{#2}{#2end}
              {\csuse{mkbibseasondate#1}{}{#2season}}
              {\csuse{mkbibseasondate#1}{#2year}{#2season}%
               \iffieldsequal{#2dateera}{#2enddateera}{}
@@ -5385,17 +5390,17 @@
          % Such a season component can only come from an ISO8601 season which replaces
          % a normal month so if it exists, we know that a normal date print is ruled out
          \iffieldundef{#2season}
-           {\iffieldsequal{#2year}{#2endyear}
+           {\ifdateyearsequal{#2}{#2end}
               {\iffieldsequal{#2month}{#2endmonth}
                  {\csuse{mkbibdate#1}{}{}{#2day}}
                  {\csuse{mkbibdate#1}{}{#2month}{#2day}}}
               {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
                \iffieldsequal{#2dateera}{#2enddateera}{}
                  {\dateeraprint{#2year}}}}
-           {\iffieldsequal{#2year}{#2endyear}
+           {\ifdateyearsequal{#2}{#2end}
              {\csuse{mkbibseasondate#1}{}{#2season}}
              {\csuse{mkbibseasondate#1}{#2year}{#2season}%
-               \iffieldsequal{#2dateera}{#2enddateera}{}
+              \iffieldsequal{#2dateera}{#2enddateera}{}
                 {\dateeraprint{#2year}}}}%
          \dateuncertainprint
          \iffieldundef{#2endyear}
@@ -5429,7 +5434,7 @@
   \blx@imc@clearfield{#1endminute}%
   \blx@imc@clearfield{#1endsecond}%
   \blx@imc@clearfield{#1endtimezone}%
-  \iffieldsequal{#1year}{#1endyear}
+  \ifdateyearsequal{#1}{#1end}
     {\blx@imc@clearfield{#1endyear}}
     {}%
   \mkdaterangefull{short}{#1}}
@@ -5521,7 +5526,7 @@
   \blx@imc@clearfield{#1endminute}%
   \blx@imc@clearfield{#1endsecond}%
   \blx@imc@clearfield{#1endtimezone}%
-  \iffieldsequal{#1year}{#1endyear}
+  \ifdateyearsequal{#1}{#1end}
     {\blx@imc@clearfield{#1endyear}}
     {}%
   \mkdaterangefullextra{short}{#1}}
@@ -10696,7 +10701,9 @@
       \blx@TE{\blx@imc@ifdatehasyearonlyprecision{#1}}}%
     \def\ifdatehastime#1{\blx@TE{\blx@imc@ifdatehastime{#1}}}%
     \def\ifdateshavedifferentprecision#1#2{%
-      \blx@TE{\blx@imc@ifdateshavedifferentprecision{#1}{#2}}}}}
+      \blx@TE{\blx@imc@ifdateshavedifferentprecision{#1}{#2}}}%
+    \def\ifdateyearsequal#1#2{%
+      \blx@TE{\blx@imc@ifdateyearsequal{#1}{#2}}}}}
 
 % {<listmacro>}{<filtercsname>} => matches in <listmacro>
 \protected\def\blx@bibfilter#1#2{%
