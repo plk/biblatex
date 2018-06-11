@@ -1,4 +1,17 @@
 # RELEASE NOTES FOR VERSION 3.12
+- The field `sortyear` is an integer field now and not a literal. This is
+  because the `sortX` fields should be the same datatype as the `X` field
+  as sorting depends on this. This fixes an issue where years were not
+  sorted properly as integers. `sortyear` was sometimes used to tune date
+  sorting as in "1984-1", "1984-2" etc. for multi-volume collections with
+  the same year. However, this is really an abuse of the sorting template
+  system since this should be done by having a semantically more granular
+  sorting item to differentiate below the year level (typically, `volume`
+  does this for multi-volume works and this is already part of all default
+  sorting templates). The example .bib that comes with biblatex has been
+  changed to remove such `sortyear` abuses and the sorting is not impacted
+  as they examples using this already have either `volume` or `sorttitle`
+  which made this abuse of `sortyear` unnecessary anyway.
 - The field `number` is a literal field now and not an integer. This allows for
   a wider range of possible input such as "S1", "Suppl. 1", "1-3".
   If you want to sort by `number` and only have integers in there, you should
