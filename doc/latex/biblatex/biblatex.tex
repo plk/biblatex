@@ -729,7 +729,7 @@ The supported list of name parts is defined as a constant list in the default da
 
 \item[Range fields] consist of one or more ranges where all dashes are normalized and replaced by the command \cmd{bibrangedash}. A range is something optionally followed by one or more dashes optionally followed by some non-dash (e.g. \texttt{5--7}). Any number of consecutive dashes will only yield a single range dash. A typical example of a range field is the \bibfield{pages} field. See also the \cmd{bibrangessep} command which can be used to customise the separator between multiple ranges. Range fields will be skipped and will generate a warning if they do not consist of one or more ranges. You can normalise messy range fields before they are parsed using \cmd{DeclareSourcemap} (see \secref{aut:ctm:map}).
 
-\item[Integer fields] hold integers which may be converted to ordinals or strings as they are printed. A typical example is the \bibfield{extradate} or \bibfield{volume} field. Such fields are sorted as integers. \biber makes a (quite serious) effort to map non-arabic representations (roman numerals for example) to integers for sorting purposes.
+\item[Integer fields] hold integers which may be converted to ordinals or strings as they are printed. A typical example is the \bibfield{extradate} or \bibfield{volume} field. Such fields are sorted as integers. \biber makes a (quite serious) effort to map non-arabic representations (roman numerals for example) to integers for sorting purposes. See the \opt{noroman} option which can be used to suppress roman numeral parsing. This can help in cases where there is an ambiguity between parsing as roman numerals or alphanumeric (e.g. <C>), see \secref{use:opt:pre:int}.
 
 \item[Datepart fields] hold unformatted integers which may be converted to ordinals or strings as they are printed. A typical example is the \bibfield{month} field. For every field of datatype \bibfield{date} in the datamodel, datepart fields are automatically created with the following names: \bibfield{$<$datetype$>$year}, \bibfield{$<$datetype$>$endyear}, \bibfield{$<$datetype$>$month}, \bibfield{$<$datetype$>$endmonth}, \bibfield{$<$datetype$>$day}, \bibfield{$<$datetype$>$endday}, \bibfield{$<$datetype$>$hour}, \bibfield{$<$datetype$>$endhour}, \bibfield{$<$datetype$>$minute}, \bibfield{$<$datetype$>$endminute}, \bibfield{$<$datetype$>$second}, \bibfield{$<$datetype$>$endsecond}, \bibfield{$<$datetype$>$timezone}, \bibfield{$<$datetype$>$endtimezone}. $<$datetype$>$ is the string preceding <date> for any datamodel field of \kvopt{datatype}{date}. For example, in the default datamodel, <event>, <orig>, <url> and the empty string <> for the date field \bibfield{date}.
 
@@ -1131,11 +1131,11 @@ The revision number of a piece of software, a manual, etc.
 
 \fielditem{volume}{integer}
 
-The volume of a multi"=volume book or a periodical. It is expected to be an integer, not necessarily in arabic numerals since \biber will automatically from roman numerals or arabic letter to integers internally for sorting purposes. See also \bibfield{part}.
+The volume of a multi"=volume book or a periodical. It is expected to be an integer, not necessarily in arabic numerals since \biber will automatically from roman numerals or arabic letter to integers internally for sorting purposes. See also \bibfield{part}. See the \opt{noroman} option which can be used to suppress roman numeral parsing. This can help in cases where there is an ambiguity between parsing as roman numerals or alphanumeric (e.g. <C>), see \secref{use:opt:pre:int}.
 
 \fielditem{volumes}{integer}
 
-The total number of volumes of a multi"=volume work. Depending on the entry type, this field refers to \bibfield{title} or \bibfield{maintitle}. It is expected to be an integer, not necessarily in arabic numerals since \biber will automatically from roman numerals or arabic letter to integers internally for sorting purposes.
+The total number of volumes of a multi"=volume work. Depending on the entry type, this field refers to \bibfield{title} or \bibfield{maintitle}. It is expected to be an integer, not necessarily in arabic numerals since \biber will automatically from roman numerals or arabic letter to integers internally for sorting purposes. See the \opt{noroman} option which can be used to suppress roman numeral parsing. This can help in cases where there is an ambiguity between parsing as roman numerals or alphanumeric (e.g. <C>), see \secref{use:opt:pre:int}.
 
 \fielditem{year}{literal}
 
@@ -2625,6 +2625,12 @@ Similar to the \opt{minnames} option but customizes the format of the \bibfield{
 
 Whether or not to provide the special field \bibfield{labelnumber}, see \secref{aut:bbx:fld} for details.
 This option is also settable on a per-type basis.
+
+\boolitem[false]{noroman}
+
+Whether or not to try to parse roman numerals encountered in integer fields for sorting purposes. Since \biber also tries to parse alphanumeric values when sorting integer fields, this roman numeral parsing can be a problem when, for example, <C> is encountered as this could be a roman numeral or a simple alphanumeric string which would have a different integer value depending on how it was parsed. It is likely that this is most useful on a per-entry basis for entries that have, for example, a \bibfield{volume} field with values such as <A>, <B>, <C>, <D> which should not be parsed as roman numerals since this would give incorrect integer values for <C> and <D>.
+
+This option is also settable on a per-type and per-entry basis.
 
 \boolitem[false]{labeltitle}
 
@@ -13353,6 +13359,7 @@ This revision history is a list of changes relevant to users of this package. Ch
 
 \begin{changelog}
 \begin{release}{3.12}{2018-??-??}
+\item Added \opt{noroman} option\see{use:opt:pre:int}
 \item Changed \bibfield{sortyear} to an integer field\see{bib:fld:spc}
 \item Added \bibfield{extraname}\see{aut:bbx:fld:lab}
 \item Added \opt{bibencoding} option to \cmd{addbibresource}\see{use:bib:res}
