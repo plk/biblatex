@@ -164,7 +164,8 @@ ENTRY {
     sortkey.title sortkey.alpha sort.year sort.alph warningmsg }
 
 INTEGERS { ctrl.debug ctrl.bibtex8 ctrl.maxline ctrl.sorting ctrl.cssort
-           ctrl.maxnames ctrl.minnames ctrl.useauthor ctrl.useeditor ctrl.usetranslator
+           ctrl.maxnames ctrl.minnames ctrl.maxalphanames ctrl.minalphanames
+           ctrl.useauthor ctrl.useeditor ctrl.usetranslator
            ctrl.useprefix ctrl.labelalpha ctrl.singletitle
            ctrl.labeldate citecount 
            tempctra tempctrb tempctrc resvctra resvctrb resvctrc
@@ -190,6 +191,8 @@ FUNCTION {initialize} {
    #0   'ctrl.useprefix :=
    #1   'ctrl.minnames :=
   #99   'ctrl.maxnames :=
+   #1   'ctrl.minalphanames :=
+   #3   'ctrl.maxalphanames :=
   #79   'ctrl.maxline :=
   "+"   'ctrl.alphaothers :=
   "nty" 'ctrl.sortstr :=
@@ -1918,6 +1921,8 @@ FUNCTION {input:control} {
           input:control:options 'ctrl.sorting :=
           input:control:options 'ctrl.maxnames :=
           input:control:options 'ctrl.minnames :=
+          input:control:options 'ctrl.maxalphanames :=
+          input:control:options 'ctrl.minalphanames :=
           input:control:options 'ctrl.maxline :=
           input:control:parse   'ctrl.alphaothers :=
           'ctrl.sortstr :=
