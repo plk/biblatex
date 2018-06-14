@@ -2173,7 +2173,7 @@ FUNCTION {makelabel:alpha:format} {
         { templist num.names$ #1 - 'tempctrb := }
         { templist num.names$ 'tempctrb := }
       if$
-      tempctrb ctrl.maxnames >
+      tempctrb ctrl.maxalphanames >
         { ctrl.minnames 'tempctrb := }
         'skip$
       if$
@@ -2202,7 +2202,7 @@ FUNCTION {makelabel:alpha:format} {
       if$
     }
   if$
-  templist num.names$ ctrl.maxnames >
+  templist num.names$ ctrl.maxalphanames >
   templist andothers
   or
     { ctrl.alphaothers * }
