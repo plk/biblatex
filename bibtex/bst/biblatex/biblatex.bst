@@ -159,7 +159,7 @@ ENTRY {
     verbc
   }
   { skipbib skiplos skiplab useauthor useeditor usetranslator useprefix singletitle }
-  { entryoptions labelhash namehash fullhash dateyear dateendyear extradate labelalpha extraalpha 
+  { entryoptions labelhash namehash fullhash dateyear dateendyear extradate labelalpha extraalpha
     sortinit label.name label.year sortkey.nosort sortkey.name sortkey.year
     sortkey.title sortkey.alpha sort.year sort.alph warningmsg }
 
@@ -167,7 +167,7 @@ INTEGERS { ctrl.debug ctrl.bibtex8 ctrl.maxline ctrl.sorting ctrl.cssort
            ctrl.maxnames ctrl.minnames ctrl.maxalphanames ctrl.minalphanames
            ctrl.useauthor ctrl.useeditor ctrl.usetranslator
            ctrl.useprefix ctrl.labelalpha ctrl.singletitle
-           ctrl.labeldate citecount 
+           ctrl.labeldate citecount
            tempctra tempctrb tempctrc resvctra resvctrb resvctrc
            last.extra.num }
 
@@ -477,7 +477,7 @@ FUNCTION {push:labelname:editor} {
           if$
         }
         { "shorteditor" }
-      if$  
+      if$
     }
     { push:labelname:translator }
   if$
@@ -599,7 +599,7 @@ FUNCTION {push:labelname} {
           if$
         }
         { "shortauthor" }
-      if$  
+      if$
     }
     { push:labelname:editor }
   if$
@@ -613,7 +613,7 @@ FUNCTION {check:sortname} {
 }
 
 FUNCTION {warning} {
-  "\item " swap$ * 
+  "\item " swap$ *
   warningmsg empty$
     'skip$
     { warningmsg " " * swap$ * }
@@ -689,7 +689,7 @@ FUNCTION {format:name:initials} {
 FUNCTION {is.number} {
   #1
   { #0 > }
-    { duplicate$ #1 #1 substring$ chr.to.int$ 
+    { duplicate$ #1 #1 substring$ chr.to.int$
       duplicate$ #47 >
       swap$      #58 <
       and
@@ -876,7 +876,7 @@ FUNCTION {split.date} {
       split.date:date
       tempctra
         'skip$
-        { pop$ pop$ pop$ pop$ pop$ pop$ "" "" "" "" "" "" 
+        { pop$ pop$ pop$ pop$ pop$ pop$ "" "" "" "" "" ""
           templist warning:invalid
         }
       if$
@@ -909,7 +909,7 @@ FUNCTION {sortkey:name:format} {
         { templist tempctra "{vv}" format.name$
           duplicate$ empty$
             { pop$ "" }
-            { "u" change.case$ "t" change.case$ 
+            { "u" change.case$ "t" change.case$
               delimiter.3 * }
           if$
           templist tempctra
@@ -1125,7 +1125,7 @@ FUNCTION {output:write:year} {
         'skip$
       if$
       swap$ "\field" swap$ wrap:braces *
-      swap$ wrap:braces * output:indent:field 
+      swap$ wrap:braces * output:indent:field
       }
   if$
 }
@@ -1318,7 +1318,7 @@ FUNCTION {output:write:name} {
           output:write:name:prefix
           output:write:name:last
           output:write:name:suffix
-	      output:write:name:first
+          output:write:name:first
           "}}%" output:indent:subfield
           tempctra #1 + 'tempctra :=
           tempctrb #1 - 'tempctrb :=
@@ -1349,28 +1349,28 @@ FUNCTION {output:write:list} {
       #0 'tempctrc :=
       { templist purify tempctrb global.max$ substring$ num.names$ #0 > }
         { templist tempctrb #1 substring$ "{" =
-	    { tempctrc #1 + 'tempctrc :=
-	      tempctrb #1 + 'tempctrb := }
-	    { templist tempctrb #1 substring$ "}" =
-		{ tempctrc #1 - 'tempctrc :=
-		  tempctrb #1 + 'tempctrb := }
-		{ templist tempctrb #5 substring$
-        	  duplicate$ " AND " =
-        	  swap$      " and " =
-        	  or
-		  tempctrc #1 <
-		  and
-        	    { templist tempctra tempctrb tempctra - substring$
-        	      wrap:braces "%" * output:indent:subfield
-        	      tempctrb #5 + duplicate$
-        	      'tempctra :=
-        	      'tempctrb :=
-        	    }
-        	    { tempctrb #1 + 'tempctrb := }
-        	  if$
-		}
+            { tempctrc #1 + 'tempctrc :=
+              tempctrb #1 + 'tempctrb := }
+            { templist tempctrb #1 substring$ "}" =
+                { tempctrc #1 - 'tempctrc :=
+                  tempctrb #1 + 'tempctrb := }
+                { templist tempctrb #5 substring$
+                  duplicate$ " AND " =
+                  swap$      " and " =
+                  or
+                  tempctrc #1 <
+                  and
+                    { templist tempctra tempctrb tempctra - substring$
+                      wrap:braces "%" * output:indent:subfield
+                      tempctrb #5 + duplicate$
+                      'tempctra :=
+                      'tempctrb :=
+                    }
+                    { tempctrb #1 + 'tempctrb := }
+                  if$
+                }
               if$
-	    }
+            }
           if$
         }
       while$
@@ -1391,7 +1391,7 @@ FUNCTION {output:specials} {
         { "\set"   }
         { "\inset" }
       if$
-      entryset wrap:braces * output:indent:field 
+      entryset wrap:braces * output:indent:field
     }
   if$
   xref empty$
@@ -1664,7 +1664,7 @@ FUNCTION {output:compat.1} {
       if$
     }
   if$
-  output:write:field 
+  output:write:field
   "location" location
   duplicate$ empty$
     { pop$ address }
@@ -1958,10 +1958,10 @@ FUNCTION {input:options:known} {
     { tempstrgb input:options:add
       #1 }
     { duplicate$ "true" =
-        { pop$ "" tempstrgb input:options:add 
+        { pop$ "" tempstrgb input:options:add
           #1 }
         { duplicate$ tempstrgb input:options:add
-          bol.to.int 
+          bol.to.int
         }
       if$
     }
@@ -1984,11 +1984,11 @@ FUNCTION {input:options:parse} {
                         { input:options:known 'skiplos := }
                         { tempstrgb "skiplab" =
                             { input:options:known 'skiplab := }
-                            { tempstrgb "dataonly" = 
-                                { input:options:known 
+                            { tempstrgb "dataonly" =
+                                { input:options:known
                                   duplicate$ 'skipbib :=
-                                  duplicate$ 'skiplos := 
-                                             'skiplab := 
+                                  duplicate$ 'skiplos :=
+                                             'skiplab :=
                                 }
                                 { tempstrgb input:options:add }
                               if$
@@ -2078,8 +2078,8 @@ FUNCTION {input:iterate} {
       ctrl:set entryset empty$ or
         'skip$
         { #1 'skipbib :=
-          #1 'skiplos := 
-          #1 'skiplab := 
+          #1 'skiplos :=
+          #1 'skiplab :=
         }
       if$
       "date" date split.date
@@ -2128,7 +2128,7 @@ FUNCTION {makelabel:name:format} {
         { templist tempctra "{vv}" format.name$
           duplicate$ empty$
             { pop$ "" }
-            { "u" change.case$ "t" change.case$ 
+            { "u" change.case$ "t" change.case$
               delimiter.3 * }
           if$
         }
