@@ -176,7 +176,7 @@ STRINGS  { ctrl.alphaothers ctrl.sortstr
            last.name last.hash last.year last.extra }
 
 FUNCTION {initialize} {
-  "$Revision: 3.8 $"
+  "$Revision: 3.11 $"
   #12 entry.max$ substring$
   #-3 entry.max$ substring$
   "Biblatex version: " swap$ * top$
@@ -1896,8 +1896,9 @@ FUNCTION {input:control:version} {
   'tempstrga :=
   duplicate$ tempstrga =
     { pop$ }
-    { "Version mismatch: biblatex.bst=" tempstrga *
-      ", biblatex.sty=" * swap$ * warning$
+    { "bbl version mismatch: biblatex.bst has " tempstrga *
+      ", but biblatex.sty has " * swap$ * warning$
+      "         The bbl version need not be the same as the biblatex version." top$
       pop$ "" }
   if$
 }
