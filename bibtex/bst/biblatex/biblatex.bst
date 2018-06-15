@@ -2174,7 +2174,7 @@ FUNCTION {makelabel:alpha:format} {
         { templist num.names$ 'tempctrb := }
       if$
       tempctrb ctrl.maxalphanames >
-        { ctrl.minnames 'tempctrb := }
+        { ctrl.minalphanames 'tempctrb := }
         'skip$
       if$
       tempctrb #1 >
