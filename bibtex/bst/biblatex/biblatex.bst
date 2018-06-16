@@ -259,8 +259,8 @@ FUNCTION {ctrl:skiplab} {
 }
 
 FUNCTION {ctrl:labelalpha} {
-  ctrl.labelalpha ctrl:skiplab not and
-  shorthand empty$
+  ctrl.labelalpha
+  ctrl:skiplab not
   and
 }
 
@@ -2281,33 +2281,36 @@ FUNCTION {makelabel:hash:format:full} {
 
 FUNCTION {makelabel:ctrl:alpha} {
   ctrl:labelalpha
-    { label empty$
-        { push:cite purify #1 #3 substring$
-          "u" change.case$ "t" change.case$ }
-        { label makelabel:alpha:year * }
-      if$
-    }
     { shorthand empty$
-        { "" }
+        { label empty$
+            { push:cite purify #1 #3 substring$
+              "u" change.case$ "t" change.case$ }
+            { label makelabel:alpha:year * }
+          if$
+        }
         { shorthand }
       if$
     }
+    { "" }
   if$
 }
 
 FUNCTION {makelabel:ctrl:alpha:format} {
   ctrl:labelalpha
-    { label empty$
-        { makelabel:alpha:format }
-        { pop$ label }
+    { shorthand empty$
+        { label empty$
+            { makelabel:alpha:format }
+            { pop$ label }
+          if$
+          makelabel:alpha:year *
+        }
+        { pop$
+          shorthand
+        }
       if$
-      makelabel:alpha:year *
     }
     { pop$
-      ctrl.labelalpha not shorthand empty$ or
-        { "" }
-        { shorthand }
-      if$
+      "" 
     }
   if$
 }
@@ -2361,7 +2364,8 @@ FUNCTION {labelsort:main} {
 
 FUNCTION {labelsort:alph} {
   ctrl:labelalpha
-    { labelalpha normalize delimiter.1 *
+    { labelalpha ctrl.alphaothers ctrl.sortalphaothers str:replace
+      purify delimiter.1 *
       push:presort * delimiter.1 *
       sortkey empty$
         { ctrl.sorting #10 >
