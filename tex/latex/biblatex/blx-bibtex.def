@@ -53,31 +53,30 @@
      \string\citation{biblatex-control}}}
 
 \def\blx@sig@bib{@Comment{$ biblatex control file $}}
-\edef\blx@ver@bib{@Comment{$ biblatex version \blx@bblversion\space $}}
+\edef\blx@ver@bib{%
+  @Comment{$ biblatex bbl format version \blx@bblversion\space $}}
 
 \let\blx@sig@aux\blx@sig@bbl
 \let\blx@ver@aux\blx@ver@bbl
 
-\edef\blx@msg@aux{%
-  \blx@sig@aux\blx@nl
-  \blx@ver@aux\blx@nl
+\edef\blx@msg@text{%
   \@percentchar\space Do not modify this file!\blx@nl
   \@percentchar\blx@nl
   \@percentchar\space This is an auxiliary file
   used by the 'biblatex' package.\blx@nl
   \@percentchar\space This file may safely be deleted.
   It will be recreated as\blx@nl
-  \@percentchar\space required.\blx@nl
+  \@percentchar\space required.\blx@nl}
+
+\edef\blx@msg@aux{%
+  \blx@sig@aux\blx@nl
+  \blx@ver@aux\blx@nl
+  \blx@msg@text
   \@percentchar\blx@nl\string\relax\blx@nl}
 \edef\blx@msg@bib{%
   \blx@sig@bib\blx@nl
   \blx@ver@bib\blx@nl
-  Do not modify this file!\blx@nl\blx@nl
-  This is an auxiliary file used
-  by the 'biblatex' package.\blx@nl
-  This file may safely be deleted.
-  It will be recreated as\blx@nl
-  required.\blx@nl\blx@nl}
+  \blx@msg@text\blx@nl}
 
 % User feedback
 
@@ -420,12 +419,16 @@
     \noexpand\blx@minalphanames:%
     \noexpand\blx@maxline:%
     \noexpand\detokenize\noexpand\expandafter{\noexpand\labelalphaothers}:%
+    \noexpand\detokenize\noexpand\expandafter{\noexpand\blx@sortalphaothers}:%
     \noexpand\detokenize\noexpand\expandafter{\noexpand\blx@sorting}%
   \string},\blx@nl
   \string}%
 }
 
 \def\blx@ctrlwrite{%
+  % \sortalphaothers should only contain safe characters,
+  % so we should be able to \edef it
+  \edef\blx@sortalphaothers{\sortalphaothers}%
   \immediate\openout\blx@write\blx@ctrlfile\blxauxsuffix.bib\relax
   \blx@auxwrite\blx@write{}{\blx@ctrl}%
   \immediate\closeout\blx@write}
