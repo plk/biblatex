@@ -158,10 +158,14 @@ ENTRY {
     verbb
     verbc
   }
-  { skipbib skiplos skiplab useauthor useeditor usetranslator useprefix singletitle }
-  { entryoptions labelhash namehash fullhash dateyear dateendyear extradate labelalpha extraalpha
-    sortinit label.name label.year sortkey.nosort sortkey.name sortkey.year
-    sortkey.title sortkey.alpha sort.year sort.alph warningmsg }
+  { skipbib skiplos skiplab
+    useauthor useeditor usetranslator useprefix
+    singletitle }
+  { entryoptions labelhash namehash fullhash
+    dateyear dateendyear extradate labelalpha extraalpha label.name label.year
+    sortinit sortkey.nosort sortkey.name sortkey.year
+    sortkey.title sortkey.alpha sort.year sort.alph
+    warningmsg }
 
 INTEGERS { ctrl.debug ctrl.bibtex8 ctrl.maxline ctrl.sorting ctrl.cssort
            ctrl.maxnames ctrl.minnames ctrl.maxalphanames ctrl.minalphanames
@@ -1205,7 +1209,8 @@ FUNCTION {output:write:verb} {
     { 'tempstrga :=
       "\verb" swap$ wrap:braces * output:indent:field
       { tempstrga empty$ not }
-        { "\verb " tempstrga #1 ctrl.maxline #10 - substring$ * output:indent:field
+        { "\verb " tempstrga #1 ctrl.maxline #10 - substring$ *
+          output:indent:field
           tempstrga ctrl.maxline #9 - global.max$ substring$ 'tempstrga :=
         }
       while$
@@ -1899,7 +1904,8 @@ FUNCTION {input:control:version} {
     { pop$ }
     { "bbl version mismatch: biblatex.bst has " tempstrga *
       ", but biblatex.sty has " * swap$ * warning$
-      "         The bbl version need not be the same as the biblatex version." top$
+      "         The bbl version need not be the same as the biblatex version."
+      top$
       pop$ "" }
   if$
 }
@@ -2310,7 +2316,7 @@ FUNCTION {makelabel:ctrl:alpha:format} {
       if$
     }
     { pop$
-      "" 
+      ""
     }
   if$
 }
@@ -2740,7 +2746,7 @@ FUNCTION {output:main:begin} {
   "  {}"                                                        write$ newline$
   "\endgroup"                                                   write$ newline$
   newline$
-  "\datalist[entry]{" ctrl.sortstr * "/global//global/global}" *              write$
+  "\datalist[entry]{" ctrl.sortstr * "/global//global/global}" *         write$
 }
 
 FUNCTION {output:main:preamble} {
