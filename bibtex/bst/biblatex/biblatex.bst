@@ -171,7 +171,7 @@ INTEGERS { ctrl.debug ctrl.bibtex8 ctrl.maxline ctrl.sorting ctrl.cssort
            tempctra tempctrb tempctrc resvctra resvctrb resvctrc
            last.extra.num }
 
-STRINGS  { ctrl.alphaothers ctrl.sortstr
+STRINGS  { ctrl.alphaothers ctrl.sortalphaothers ctrl.sortstr
            templist tempstrga tempstrgb resvstrga resvstrgb resvstrgc
            last.name last.hash last.year last.extra }
 
@@ -195,6 +195,7 @@ FUNCTION {initialize} {
    #3   'ctrl.maxalphanames :=
   #79   'ctrl.maxline :=
   "+"   'ctrl.alphaothers :=
+  " "   'ctrl.sortalphaothers :=
   "nty" 'ctrl.sortstr :=
 }
 
@@ -1926,6 +1927,7 @@ FUNCTION {input:control} {
           input:control:options 'ctrl.minalphanames :=
           input:control:options 'ctrl.maxline :=
           input:control:parse   'ctrl.alphaothers :=
+          input:control:parse   'ctrl.sortalphaothers :=
           'ctrl.sortstr :=
         }
       if$
@@ -2626,8 +2628,13 @@ FUNCTION {labelsort:alph:reverse} {
       labelalpha empty$
         'skip$
         { extraalpha empty$
-            { labelalpha normalize 'sortkey.alpha := }
-            { labelalpha normalize extraalpha #4 pad.number * 'sortkey.alpha := }
+            { labelalpha ctrl.alphaothers ctrl.sortalphaothers str:replace
+              purify
+              'sortkey.alpha := }
+            { labelalpha ctrl.alphaothers ctrl.sortalphaothers str:replace
+              purify
+              extraalpha #4 pad.number *
+              'sortkey.alpha := }
           if$
         }
       if$
