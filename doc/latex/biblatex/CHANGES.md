@@ -19,6 +19,8 @@
   field, since sorting integers as literals has performance implications and
   might lead to undesired sorting such as "1", "10", "2".
 - New macro `\abx@missing@entry` to style missing entrykeys in citations.
+- Added field format deprecation macros `\DeprecateFieldFormatWithReplacement`
+  and friends.
 - Add `\ifdateyearsequal` to check if two dates have the same year and era
   date part. Since `year`s are always non-negative integers and the 'sign' is
   stored as the `era`, you should use `\ifdateyearsequal` instead of a simple
@@ -26,6 +28,7 @@
   undesired results if the years have opposite signs, but are otherwise the
   same.
   
+
 # RELEASE NOTES FOR VERSION 3.11
 - `\printbiblist` now supports `driver` and `biblistfilter` options
   to change the defaults set by the biblistname.

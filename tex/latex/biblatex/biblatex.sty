@@ -690,16 +690,22 @@
 % Deprecations
 \newrobustcmd*{\DeprecateField}[2]{%
   \csdef{abx@field@#1}{%
-    \ifcsundef{abx@field@legacy@warning@#1}{\blx@warning@noline{Field '#1' is deprecated. #2}}{}%
-    \global\cslet{abx@field@legacy@warning@#1}\@empty}}%
+    \ifcsundef{abx@legacywarning@field@#1}
+      {\blx@warning@noline{Field '#1' is deprecated. #2}}
+      {}%
+    \global\cslet{abx@legacywarning@field@#1}\@empty}}%
 \newrobustcmd*{\DeprecateList}[2]{%
   \csdef{abx@list@#1}{%
-    \ifcsundef{abx@list@legacy@warning@#1}{\blx@warning@noline{List '#1' is deprecated. #2}}{}%
-    \global\cslet{abx@list@legacy@warning@#1}\@empty}}%
+    \ifcsundef{abx@legacywarning@list@#1}
+      {\blx@warning@noline{List '#1' is deprecated. #2}}
+      {}%
+    \global\cslet{abx@legacywarning@list@#1}\@empty}}
 \newrobustcmd*{\DeprecateName}[2]{%
   \csdef{abx@name@#1}{%
-    \ifcsundef{abx@name@legacy@warning@#1}{\blx@warning@noline{Name '#1' is deprecated. #2}}{}%
-    \global\cslet{abx@name@legacy@warning@#1}\@empty}}%
+    \ifcsundef{abx@legacywarning@name@#1}
+      {\blx@warning@noline{Name '#1' is deprecated. #2}}
+      {}%
+    \global\cslet{abx@legacywarning@name@#1}\@empty}}
 
 \let\blx@aliasfields\@empty
 
@@ -708,39 +714,39 @@
     \ifcsundef{abx@field@#2}
       {}
       {\csdef{abx@field@#1}{%
-        \csuse{abx@field@#2}%
-        \ifcsundef{abx@field@legacy@warning@#1}
-          {\blx@warning@noline{Field '#1' is deprecated.\MessageBreak
-             Please use '#2' instead.\MessageBreak
-             Using '#2' now}}
-          {}%
-        \global\cslet{abx@field@legacy@warning@#1}\@empty}}}}
+         \csuse{abx@field@#2}%
+         \ifcsundef{abx@legacywarning@field@#1}
+           {\blx@warning@noline{Field '#1' is deprecated.\MessageBreak
+              Please use '#2' instead.\MessageBreak
+              Using '#2' now}}
+           {}%
+         \global\cslet{abx@legacywarning@field@#1}\@empty}}}}
 
 \newrobustcmd*{\DeprecateListWithReplacement}[2]{%
   \appto\blx@aliasfields{%
     \ifcsundef{abx@list@#2}
       {}
       {\csdef{abx@list@#1}{%
-        \csuse{abx@list@#2}%
-        \ifcsundef{abx@list@legacy@warning@#1}
-          {\blx@warning@noline{List '#1' is deprecated.\MessageBreak
-             Please use '#2' instead.\MessageBreak
-             Using '#2' now}}
-          {}%
-        \global\cslet{abx@list@legacy@warning@#1}\@empty}}}}
+         \csuse{abx@list@#2}%
+         \ifcsundef{abx@legacywarning@list@#1}
+           {\blx@warning@noline{List '#1' is deprecated.\MessageBreak
+              Please use '#2' instead.\MessageBreak
+              Using '#2' now}}
+           {}%
+         \global\cslet{abx@legacywarning@list@#1}\@empty}}}}
 
 \newrobustcmd*{\DeprecateNameWithReplacement}[2]{%
   \appto\blx@aliasfields{%
     \ifcsundef{abx@name@#2}
       {}
       {\csdef{abx@name@#1}{%
-        \csuse{abx@name@#2}%
-        \ifcsundef{abx@name@legacy@warning@#1}
-          {\blx@warning@noline{Name '#1' is deprecated.\MessageBreak
-             Please use '#2' instead.\MessageBreak
-             Using '#2' now}}
-          {}%
-        \global\cslet{abx@name@legacy@warning@#1}\@empty}}}}
+         \csuse{abx@name@#2}%
+         \ifcsundef{abx@legacywarning@name@#1}
+           {\blx@warning@noline{Name '#1' is deprecated.\MessageBreak
+              Please use '#2' instead.\MessageBreak
+              Using '#2' now}}
+           {}%
+         \global\cslet{abx@legacywarning@name@#1}\@empty}}}}
 
 %% Initialisation
 \def\blx@blxinit{%
@@ -1170,7 +1176,8 @@
   \blx@warning{Conflicting options.\MessageBreak#1}}
 
 \def\blx@warn@badoptdt#1{%
-  \blx@warning{Invalid option datatype '#1'.\MessageBreak Defaulting to 'boolean'}}
+  \blx@warning{Invalid option datatype '#1'.\MessageBreak
+    Defaulting to 'boolean'}}
 
 \def\blx@warn@depropt#1{%
   \blx@warning{Deprecated option.\MessageBreak Ignoring '#1'}}
@@ -3970,6 +3977,46 @@
 
 \newrobustcmd*{\DeclareFieldAlias}{\blx@defalias{ffd}}
 \newrobustcmd*{\DeclareIndexFieldAlias}{\blx@defalias{fid}}
+
+% #1: internal type signature, #2: type text for warning
+%      #3         #4         #5          #6
+% [aliastype]{aliasname}[formattype]{formatname}
+\def\blx@deprecateformat#1#2{%
+  \@ifnextchar[%]
+    {\blx@deprecateformat@i{#1}{#2}}
+    {\blx@deprecateformat@i{#1}{#2}[*]}}
+\def\blx@deprecateformat@i#1#2[#3]#4{%
+  \@ifnextchar[%]
+    {\blx@deprecateformat@ii{#1}{#2}{#3}{#4}}
+    {\blx@deprecateformat@ii{#1}{#2}{#3}{#4}[*]}}
+\def\blx@deprecateformat@ii#1#2#3#4[#5]#6{%
+  \blx@safe@actives
+  \afterassignment\blx@rest@actives
+  \csdef{abx@#1@#3@#4}{%
+    \ifcsundef{abx@legacywarning@#1@#3@#4}
+      {\global\cslet{abx@legacywarning@#1@#3@#4}\@empty
+       \blx@warning@noline{%
+         #2 '#4' deprecated.\MessageBreak
+         Please use '#6' instead.\MessageBreak
+         Using '#6' now}}
+      {}%
+    \csname abx@#1@#5@#6\endcsname}}
+
+% [<entrytype>]{<alias>}[<entrytype>]{<name>}
+\newrobustcmd*{\DeprecateNameFormatWithReplacement}{%
+  \blx@deprecateformat{nfd}{Name format}}
+\newrobustcmd*{\DeprecateIndexNameFormatWithReplacement}{%
+  \blx@deprecateformat{nid}{Index name format}}
+
+\newrobustcmd*{\DeprecateListFormatWithReplacement}{%
+  \blx@deprecateformat{lfd}{List format}}
+\newrobustcmd*{\DeprecateIndexListFormatWithReplacement}{%
+  \blx@deprecateformat{lid}{Index list format}}
+
+\newrobustcmd*{\DeprecateFieldFormatWithReplacement}{%
+  \blx@deprecateformat{ffd}{Field format}}
+\newrobustcmd*{\DeprecateIndexFieldFormatWithReplacement}{%
+  \blx@deprecateformat{fid}{Index field format}}
 
 % [<format>]{<text>}
 \newrobustcmd{\blx@imc@printtext}[2][]{%
@@ -12822,7 +12869,7 @@
   \numdef\blx@minsortnames@type{#1}}
 \DeclareEntryOption[integer]{maxsortnames}{}
 \DeclareEntryOption[integer]{minsortnames}{}
-  
+
 \appto\blx@checkoptions@global{%
   \blx@maxmin@num{maxbibnames}{minbibnames}\blx@maxbibnames\blx@minbibnames
   \blx@maxmin@num{maxcitenames}{mincitenames}\blx@maxcitenames\blx@mincitenames
