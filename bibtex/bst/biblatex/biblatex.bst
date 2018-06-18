@@ -158,24 +158,29 @@ ENTRY {
     verbb
     verbc
   }
-  { skipbib skiplos skiplab useauthor useeditor usetranslator useprefix singletitle }
-  { entryoptions labelhash namehash fullhash dateyear dateendyear extradate labelalpha extraalpha 
-    sortinit label.name label.year sortkey.nosort sortkey.name sortkey.year
-    sortkey.title sortkey.alpha sort.year sort.alph warningmsg }
+  { skipbib skiplos skiplab
+    useauthor useeditor usetranslator useprefix
+    singletitle }
+  { entryoptions labelhash namehash fullhash
+    dateyear dateendyear extradate labelalpha extraalpha label.name label.year
+    sortinit sortkey.nosort sortkey.name sortkey.year
+    sortkey.title sortkey.alpha sort.year sort.alph
+    warningmsg }
 
 INTEGERS { ctrl.debug ctrl.bibtex8 ctrl.maxline ctrl.sorting ctrl.cssort
-           ctrl.maxnames ctrl.minnames ctrl.useauthor ctrl.useeditor ctrl.usetranslator
+           ctrl.maxnames ctrl.minnames ctrl.maxalphanames ctrl.minalphanames
+           ctrl.useauthor ctrl.useeditor ctrl.usetranslator
            ctrl.useprefix ctrl.labelalpha ctrl.singletitle
-           ctrl.labeldate citecount 
+           ctrl.labeldate citecount
            tempctra tempctrb tempctrc resvctra resvctrb resvctrc
            last.extra.num }
 
-STRINGS  { ctrl.alphaothers ctrl.sortstr
+STRINGS  { ctrl.alphaothers ctrl.sortalphaothers ctrl.sortstr
            templist tempstrga tempstrgb resvstrga resvstrgb resvstrgc
            last.name last.hash last.year last.extra }
 
 FUNCTION {initialize} {
-  "$Revision: 3.8 $"
+  "$Revision: 3.11 $"
   #12 entry.max$ substring$
   #-3 entry.max$ substring$
   "Biblatex version: " swap$ * top$
@@ -190,8 +195,11 @@ FUNCTION {initialize} {
    #0   'ctrl.useprefix :=
    #1   'ctrl.minnames :=
   #99   'ctrl.maxnames :=
+   #1   'ctrl.minalphanames :=
+   #3   'ctrl.maxalphanames :=
   #79   'ctrl.maxline :=
   "+"   'ctrl.alphaothers :=
+  " "   'ctrl.sortalphaothers :=
   "nty" 'ctrl.sortstr :=
 }
 
@@ -255,8 +263,8 @@ FUNCTION {ctrl:skiplab} {
 }
 
 FUNCTION {ctrl:labelalpha} {
-  ctrl.labelalpha ctrl:skiplab not and
-  shorthand empty$
+  ctrl.labelalpha
+  ctrl:skiplab not
   and
 }
 
@@ -474,7 +482,7 @@ FUNCTION {push:labelname:editor} {
           if$
         }
         { "shorteditor" }
-      if$  
+      if$
     }
     { push:labelname:translator }
   if$
@@ -596,7 +604,7 @@ FUNCTION {push:labelname} {
           if$
         }
         { "shortauthor" }
-      if$  
+      if$
     }
     { push:labelname:editor }
   if$
@@ -610,7 +618,7 @@ FUNCTION {check:sortname} {
 }
 
 FUNCTION {warning} {
-  "\item " swap$ * 
+  "\item " swap$ *
   warningmsg empty$
     'skip$
     { warningmsg " " * swap$ * }
@@ -686,7 +694,7 @@ FUNCTION {format:name:initials} {
 FUNCTION {is.number} {
   #1
   { #0 > }
-    { duplicate$ #1 #1 substring$ chr.to.int$ 
+    { duplicate$ #1 #1 substring$ chr.to.int$
       duplicate$ #47 >
       swap$      #58 <
       and
@@ -873,7 +881,7 @@ FUNCTION {split.date} {
       split.date:date
       tempctra
         'skip$
-        { pop$ pop$ pop$ pop$ pop$ pop$ "" "" "" "" "" "" 
+        { pop$ pop$ pop$ pop$ pop$ pop$ "" "" "" "" "" ""
           templist warning:invalid
         }
       if$
@@ -906,7 +914,7 @@ FUNCTION {sortkey:name:format} {
         { templist tempctra "{vv}" format.name$
           duplicate$ empty$
             { pop$ "" }
-            { "u" change.case$ "t" change.case$ 
+            { "u" change.case$ "t" change.case$
               delimiter.3 * }
           if$
           templist tempctra
@@ -1122,7 +1130,7 @@ FUNCTION {output:write:year} {
         'skip$
       if$
       swap$ "\field" swap$ wrap:braces *
-      swap$ wrap:braces * output:indent:field 
+      swap$ wrap:braces * output:indent:field
       }
   if$
 }
@@ -1201,7 +1209,8 @@ FUNCTION {output:write:verb} {
     { 'tempstrga :=
       "\verb" swap$ wrap:braces * output:indent:field
       { tempstrga empty$ not }
-        { "\verb " tempstrga #1 ctrl.maxline #10 - substring$ * output:indent:field
+        { "\verb " tempstrga #1 ctrl.maxline #10 - substring$ *
+          output:indent:field
           tempstrga ctrl.maxline #9 - global.max$ substring$ 'tempstrga :=
         }
       while$
@@ -1315,7 +1324,7 @@ FUNCTION {output:write:name} {
           output:write:name:prefix
           output:write:name:last
           output:write:name:suffix
-	      output:write:name:first
+          output:write:name:first
           "}}%" output:indent:subfield
           tempctra #1 + 'tempctra :=
           tempctrb #1 - 'tempctrb :=
@@ -1346,28 +1355,28 @@ FUNCTION {output:write:list} {
       #0 'tempctrc :=
       { templist purify tempctrb global.max$ substring$ num.names$ #0 > }
         { templist tempctrb #1 substring$ "{" =
-	    { tempctrc #1 + 'tempctrc :=
-	      tempctrb #1 + 'tempctrb := }
-	    { templist tempctrb #1 substring$ "}" =
-		{ tempctrc #1 - 'tempctrc :=
-		  tempctrb #1 + 'tempctrb := }
-		{ templist tempctrb #5 substring$
-        	  duplicate$ " AND " =
-        	  swap$      " and " =
-        	  or
-		  tempctrc #1 <
-		  and
-        	    { templist tempctra tempctrb tempctra - substring$
-        	      wrap:braces "%" * output:indent:subfield
-        	      tempctrb #5 + duplicate$
-        	      'tempctra :=
-        	      'tempctrb :=
-        	    }
-        	    { tempctrb #1 + 'tempctrb := }
-        	  if$
-		}
+            { tempctrc #1 + 'tempctrc :=
+              tempctrb #1 + 'tempctrb := }
+            { templist tempctrb #1 substring$ "}" =
+                { tempctrc #1 - 'tempctrc :=
+                  tempctrb #1 + 'tempctrb := }
+                { templist tempctrb #5 substring$
+                  duplicate$ " AND " =
+                  swap$      " and " =
+                  or
+                  tempctrc #1 <
+                  and
+                    { templist tempctra tempctrb tempctra - substring$
+                      wrap:braces "%" * output:indent:subfield
+                      tempctrb #5 + duplicate$
+                      'tempctra :=
+                      'tempctrb :=
+                    }
+                    { tempctrb #1 + 'tempctrb := }
+                  if$
+                }
               if$
-	    }
+            }
           if$
         }
       while$
@@ -1388,7 +1397,7 @@ FUNCTION {output:specials} {
         { "\set"   }
         { "\inset" }
       if$
-      entryset wrap:braces * output:indent:field 
+      entryset wrap:braces * output:indent:field
     }
   if$
   xref empty$
@@ -1661,7 +1670,7 @@ FUNCTION {output:compat.1} {
       if$
     }
   if$
-  output:write:field 
+  output:write:field
   "location" location
   duplicate$ empty$
     { pop$ address }
@@ -1893,8 +1902,10 @@ FUNCTION {input:control:version} {
   'tempstrga :=
   duplicate$ tempstrga =
     { pop$ }
-    { "Version mismatch: biblatex.bst=" tempstrga *
-      ", biblatex.sty=" * swap$ * warning$
+    { "bbl version mismatch: biblatex.bst has " tempstrga *
+      ", but biblatex.sty has " * swap$ * warning$
+      "         The bbl version need not be the same as the biblatex version."
+      top$
       pop$ "" }
   if$
 }
@@ -1918,8 +1929,11 @@ FUNCTION {input:control} {
           input:control:options 'ctrl.sorting :=
           input:control:options 'ctrl.maxnames :=
           input:control:options 'ctrl.minnames :=
+          input:control:options 'ctrl.maxalphanames :=
+          input:control:options 'ctrl.minalphanames :=
           input:control:options 'ctrl.maxline :=
           input:control:parse   'ctrl.alphaothers :=
+          input:control:parse   'ctrl.sortalphaothers :=
           'ctrl.sortstr :=
         }
       if$
@@ -1952,10 +1966,10 @@ FUNCTION {input:options:known} {
     { tempstrgb input:options:add
       #1 }
     { duplicate$ "true" =
-        { pop$ "" tempstrgb input:options:add 
+        { pop$ "" tempstrgb input:options:add
           #1 }
         { duplicate$ tempstrgb input:options:add
-          bol.to.int 
+          bol.to.int
         }
       if$
     }
@@ -1978,11 +1992,11 @@ FUNCTION {input:options:parse} {
                         { input:options:known 'skiplos := }
                         { tempstrgb "skiplab" =
                             { input:options:known 'skiplab := }
-                            { tempstrgb "dataonly" = 
-                                { input:options:known 
+                            { tempstrgb "dataonly" =
+                                { input:options:known
                                   duplicate$ 'skipbib :=
-                                  duplicate$ 'skiplos := 
-                                             'skiplab := 
+                                  duplicate$ 'skiplos :=
+                                             'skiplab :=
                                 }
                                 { tempstrgb input:options:add }
                               if$
@@ -2072,8 +2086,8 @@ FUNCTION {input:iterate} {
       ctrl:set entryset empty$ or
         'skip$
         { #1 'skipbib :=
-          #1 'skiplos := 
-          #1 'skiplab := 
+          #1 'skiplos :=
+          #1 'skiplab :=
         }
       if$
       "date" date split.date
@@ -2122,7 +2136,7 @@ FUNCTION {makelabel:name:format} {
         { templist tempctra "{vv}" format.name$
           duplicate$ empty$
             { pop$ "" }
-            { "u" change.case$ "t" change.case$ 
+            { "u" change.case$ "t" change.case$
               delimiter.3 * }
           if$
         }
@@ -2168,8 +2182,8 @@ FUNCTION {makelabel:alpha:format} {
         { templist num.names$ #1 - 'tempctrb := }
         { templist num.names$ 'tempctrb := }
       if$
-      tempctrb ctrl.maxnames >
-        { ctrl.minnames 'tempctrb := }
+      tempctrb ctrl.maxalphanames >
+        { ctrl.minalphanames 'tempctrb := }
         'skip$
       if$
       tempctrb #1 >
@@ -2197,7 +2211,7 @@ FUNCTION {makelabel:alpha:format} {
       if$
     }
   if$
-  templist num.names$ ctrl.maxnames >
+  templist num.names$ ctrl.maxalphanames >
   templist andothers
   or
     { ctrl.alphaothers * }
@@ -2273,33 +2287,36 @@ FUNCTION {makelabel:hash:format:full} {
 
 FUNCTION {makelabel:ctrl:alpha} {
   ctrl:labelalpha
-    { label empty$
-        { push:cite purify #1 #3 substring$
-          "u" change.case$ "t" change.case$ }
-        { label makelabel:alpha:year * }
-      if$
-    }
     { shorthand empty$
-        { "" }
+        { label empty$
+            { push:cite purify #1 #3 substring$
+              "u" change.case$ "t" change.case$ }
+            { label makelabel:alpha:year * }
+          if$
+        }
         { shorthand }
       if$
     }
+    { "" }
   if$
 }
 
 FUNCTION {makelabel:ctrl:alpha:format} {
   ctrl:labelalpha
-    { label empty$
-        { makelabel:alpha:format }
-        { pop$ label }
+    { shorthand empty$
+        { label empty$
+            { makelabel:alpha:format }
+            { pop$ label }
+          if$
+          makelabel:alpha:year *
+        }
+        { pop$
+          shorthand
+        }
       if$
-      makelabel:alpha:year *
     }
     { pop$
-      ctrl.labelalpha not shorthand empty$ or
-        { "" }
-        { shorthand }
-      if$
+      ""
     }
   if$
 }
@@ -2353,7 +2370,8 @@ FUNCTION {labelsort:main} {
 
 FUNCTION {labelsort:alph} {
   ctrl:labelalpha
-    { labelalpha normalize delimiter.1 *
+    { labelalpha ctrl.alphaothers ctrl.sortalphaothers str:replace
+      purify delimiter.1 *
       push:presort * delimiter.1 *
       sortkey empty$
         { ctrl.sorting #10 >
@@ -2620,8 +2638,13 @@ FUNCTION {labelsort:alph:reverse} {
       labelalpha empty$
         'skip$
         { extraalpha empty$
-            { labelalpha normalize 'sortkey.alpha := }
-            { labelalpha normalize extraalpha #4 pad.number * 'sortkey.alpha := }
+            { labelalpha ctrl.alphaothers ctrl.sortalphaothers str:replace
+              purify
+              'sortkey.alpha := }
+            { labelalpha ctrl.alphaothers ctrl.sortalphaothers str:replace
+              purify
+              extraalpha #4 pad.number *
+              'sortkey.alpha := }
           if$
         }
       if$
@@ -2723,7 +2746,7 @@ FUNCTION {output:main:begin} {
   "  {}"                                                        write$ newline$
   "\endgroup"                                                   write$ newline$
   newline$
-  "\datalist[entry]{" ctrl.sortstr * "/global//global/global}" *              write$
+  "\datalist[entry]{" ctrl.sortstr * "/global//global/global}" *         write$
 }
 
 FUNCTION {output:main:preamble} {
