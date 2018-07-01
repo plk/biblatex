@@ -11145,8 +11145,8 @@
   ~~<bcf:transliteration entrytype="#1">\blx@nl
   #2%
   ~~</bcf:transliteration>\blx@nl}
-\xdef\blx@xml@translit#1#2#3{%
-  ~~~~<bcf:translit target="#1" from="#2" to="#3"/>\blx@nl}
+\xdef\blx@xml@translit#1#2#3#4{%
+  ~~~~<bcf:translit #1target="#2" from="#3" to="#4"/>\blx@nl}
 
 \xdef\blx@xml@sourcemap#1{%
   ~~<bcf:sourcemap>\blx@nl
@@ -12251,15 +12251,15 @@
          Use '\string\DeclareBiblistFilter' to define it}}
     {\def\blx@thebiblistfilter{#1}}}
 
-% [<entrytype>]
+% [<langids>][<entrytype>]{translitsource}{translittarget}
 \newrobustcmd*{\DeclareSortTranslit}[2][]{%
   \begingroup
   \ifblank{#1}
     {\def\blx@tempa{*}}
     {\def\blx@tempa{#1}}%
-    \let\translit\blx@translit@setup
-    \let\blx@tempb\@empty
-    #2%
+  \let\translit\blx@translit@setup
+  \let\blx@tempb\@empty
+  #2%
   \global\cslet{blx@translit@\blx@tempa}\blx@tempb
   \xifinlist\blx@tempa\blx@translits
     {}
@@ -12269,9 +12269,11 @@
 \blx@collectopts{xml}{blx@globalopts}{translit}% for passing to the .bcf
 \blx@collectopts{xml}{blx@typeopts}{translit}% for passing to the .bcf
 
-\newcommand*{\blx@translit@setup}[3][*]{%
+\newcommand*{\blx@translit@setup}[4][]{%
   \eappto\blx@tempb{%
-    \blx@xml@translit{#1}{#2}{#3}}}
+    \ifblank{#1}
+     {\blx@xml@translit{}{#2}{#3}{#4}}
+     {\blx@xml@translit{langids="#1" }{#2}{#3}{#4}}}}
 
 % [<specname>]{<spec>}
 \newrobustcmd*{\DeclareUniquenameTemplate}[2][]{%

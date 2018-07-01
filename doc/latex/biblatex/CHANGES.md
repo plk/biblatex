@@ -1,4 +1,7 @@
 # RELEASE NOTES FOR VERSION 3.12
+- **INCOMPATIBLE CHANGE** The field/fieldset argument to the `\translit`
+  command is now  mandatory to allow for a new optional argument which
+  restricts transliteration to entries with particular `langid` fields.
 - The field `sortyear` is an integer field now and not a literal. This is
   because the `sortX` fields should be the same datatype as the `X` field
   as sorting depends on this. This fixes an issue where years were not
