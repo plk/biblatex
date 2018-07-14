@@ -5287,39 +5287,42 @@
   \mktimerange{12h}}
 
 \expandafter\newrobustcmd\expandafter*\csname mktimerange24hcomp\endcsname[1]{%
-  \iffieldundef{#1hour}{}
+  \iffieldundef{#1hour}
+    {}
     {\ifboolexpr{test {\iffieldundef{#1endhour}}
                  or
                  test {\iffieldequalstr{#1endhour}{}}}
        {\mktimerange{24h}{#1}}
        {\iffieldsequal{#1hour}{#1endhour}
-         % 14:xx:xx 14:xx:xx
-         {\iffieldsequal{#1minute}{#1endminute}
-         % 14:13:xx 14:13:xx
-           {\toggletrue{blx@seconds}%
-            \printtext[#1time]{\csuse{mkbibtime24h}{#1hour}{#1minute}{#1second}{}%
-            \bibtimerangesep
-            \csuse{mkbibtime24h}{}{}{#1endsecond}{}}}
-           % 14:13:xx 14:14:xx
-           {\toggletrue{blx@seconds}%
-            \printtext[#1time]{\csuse{mkbibtime24h}{#1hour}{#1minute}{}{}%
-            \bibtimerangesep
-            \csuse{mkbibtime24h}{}{#1endminute}{}{}}}}
-         % 14:xx:xx 15:xx:xx
-         {\mktimerange{24h}{#1}}}}}
+          % 14:xx:xx 14:xx:xx
+          {\iffieldsequal{#1minute}{#1endminute}
+             % 14:13:xx 14:13:xx
+             {\toggletrue{blx@seconds}%
+              \printtext[#1time]{%
+                \csuse{mkbibtime24h}{#1hour}{#1minute}{#1second}{}%
+              \bibtimerangesep
+              \csuse{mkbibtime24h}{}{}{#1endsecond}{}}}
+             % 14:13:xx 14:14:xx
+             {\toggletrue{blx@seconds}%
+              \printtext[#1time]{\csuse{mkbibtime24h}{#1hour}{#1minute}{}{}%
+              \bibtimerangesep
+              \csuse{mkbibtime24h}{}{#1endminute}{}{}}}}
+          % 14:xx:xx 15:xx:xx
+          {\mktimerange{24h}{#1}}}}}
 
 % {<24h|24hcomp|12h>}{<datetype>}
 \newrobustcmd*{\mktimerange}[2]{%
-  \iffieldundef{#2hour}{}
+  \iffieldundef{#2hour}
+    {\blx@nounit}
     {\blx@timepre{#2}{}%
      \printtext[#2time]{\csuse{mkbibtime#1}{#2hour}{#2minute}{#2second}{#2timezone}%
-      \iffieldundef{#2endhour}
-      {}
-      {\blx@timepre{#2}{end}%
-       \iffieldequalstr{#2endhour}{}
-         {\mbox{\bibtimerangesep}}
-         {\bibtimerangesep
-          \csuse{mkbibtime#1}{#2endhour}{#2endminute}{#2endsecond}{#2endtimezone}}}}}}
+     \iffieldundef{#2endhour}
+       {}
+       {\blx@timepre{#2}{end}%
+        \iffieldequalstr{#2endhour}{}
+          {\mbox{\bibtimerangesep}}
+          {\bibtimerangesep
+           \csuse{mkbibtime#1}{#2endhour}{#2endminute}{#2endsecond}{#2endtimezone}}}}}}
 
 % {<datetype>}{''|end}
 \newrobustcmd*{\blx@timepre}[2]{%
@@ -5333,7 +5336,7 @@
   \begingroup
     \blx@metadateinfo{#2}%
     \iffieldundef{#2year}
-      {}
+      {\blx@nounit}
       {\printtext[#2date]{%
          \datecircaprint
          % Such a season component can only come from an ISO8601 season which replaces
@@ -5364,7 +5367,7 @@
   \begingroup
     \blx@metadateinfo{#2}%
     \iffieldundef{#2year}
-      {}
+      {\blx@nounit}
       {\printtext[#2date]{%
          \datecircaprint
          % Such a season component can only come from an ISO8601 season which replaces
@@ -5400,7 +5403,7 @@
   \begingroup
     \blx@metadateinfo{#2}%
     \iffieldundef{#2year}
-      {}
+      {\blx@nounit}
       {\printtext[#2date]{%
          \datecircaprint
          % Such a season component can only come from an ISO8601 season which replaces
@@ -5434,7 +5437,7 @@
   \begingroup
     \blx@metadateinfo{#2}%
     \iffieldundef{#2year}
-      {}
+      {\blx@nounit}
       {\printtext[#2date]{%
          \datecircaprint
          % Such a season component can only come from an ISO8601 season which replaces
@@ -5494,7 +5497,7 @@
   \begingroup
     \blx@metadateinfo{#1}%
     \iffieldundef{#1year}
-      {}
+      {\blx@nounit}
       {\printtext[#1date]{%
          \datecircaprint
          % Such a season component can only come from an  ISO8601 season which replaces
@@ -5526,7 +5529,7 @@
   \begingroup
     \blx@metadateinfo{#1}%
     \iffieldundef{#1year}
-      {}
+      {\blx@nounit}
       {\printtext[#1date]{%
          \datecircaprint
          % Such a season component can only come from an ISO8601 season which replaces
@@ -5588,8 +5591,8 @@
     and
     not test {\iffieldundef{#1#2hour}}}
     {\blx@timepre{#1}{#2}%
-      \printtext{\bibdatetimesep}%
-      \printtext[#1time]{\csuse{mkbibtime\csuse{blx@timeformat@#1time}}{#1#2hour}{#1#2minute}{#1#2second}{#1#2timezone}}}
+     \printtext{\bibdatetimesep}%
+     \printtext[#1time]{\csuse{mkbibtime\csuse{blx@timeformat@#1time}}{#1#2hour}{#1#2minute}{#1#2second}{#1#2timezone}}}
     {}}
 
 \newrobustcmd*{\mkdaterangeiso}[1]{%
@@ -5597,7 +5600,7 @@
     \blx@metadateinfo{#1}%
     \def\bibdatetimesep{T}%
     \iffieldundef{#1year}
-      {}
+      {\blx@nounit}
       {\printtext[#1date]{%
          \blx@isodate{#1}{}%
          \ifboolexpr{%
@@ -5629,7 +5632,7 @@
     \blx@metadateinfo{#1}%
     \def\bibdatetimesep{T}%
     \iffieldundef{#1year}
-      {}
+      {\blx@nounit}
       {\printtext[#1date]{%
          \blx@isodate[extradate]{#1}{}%
          \ifboolexpr{%
