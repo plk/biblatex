@@ -186,7 +186,7 @@ Michal Hoftich (Czech);
 Jonas Nyrup (Danish);
 Johannes Wilm (Danish\slash Norwegian);
 Alexander van Loon, Pieter Belmans, Hendrik Maryns (Dutch);
-Benson Muite (Estonian);
+Kristian Kankainen, Benson Muite (Estonian);
 Hannu Väisänen, Janne Kujanpää (Finnish);
 Denis Bitouzé (French);
 Apostolos Syropoulos, Prokopis (Greek);
@@ -499,7 +499,7 @@ A fallback type for entries which do not fit into any other category. Use the fi
 An online resource. \bibfield{author}, \bibfield{editor}, and \bibfield{year} are omissible in terms of \secref{bib:use:key}. This entry type is intended for sources such as web sites which are intrinsically online resources. Note that all entry types support the \bibfield{url} field. For example, when adding an article from an online journal, it may be preferable to use the \bibtype{article} type and its \bibfield{url} field.
 
 \reqitem{author/editor, title, year/date, url}
-\optitem{subtitle, titleaddon, language, version, note, organization, date, month, year, addendum, pubstate, urldate}
+\optitem{subtitle, titleaddon, language, version, note, organization, date, month, year, addendum, pubstate, doi, eprint, eprintclass, eprinttype, urldate}
 
 \typeitem{patent}
 
@@ -583,7 +583,7 @@ This entry type is special. \bibtype{xdata} entries hold data which may be inher
 
 \typeitem{custom[a--f]}
 
-Custom types for special bibliography styles. Not used by the standard styles.
+Custom types for special bibliography styles. The standard styles defined no bibliography drivers for these types.
 
 \end{typelist}
 
@@ -610,10 +610,10 @@ An alias for \bibtype{online}, provided for \sty{jurabib} compatibility.
 
 \end{typelist}
 
-\subsubsection{Unsupported Types}
+\subsubsection{Non-standard Types}
 \label{bib:typ:ctm}
 
-The types in this section are similar to the custom types \bibtype{custom[a--f]}, \ie the standard bibliography styles provide no support for these types. When using the standard styles, they will be treated as \bibtype{misc} entries.
+The types in this section are similar to the custom types \bibtype{custom[a--f]}, \ie the standard bibliography styles provide no bibliography drivers for these types. When using the standard styles, they will therefore generally be treated as \bibtype{misc} entries---exceptions to this rule are noted in the descriptions below. The types are known to the default data model and will be happily accepted by \biber.
 
 \begin{typelist}
 
@@ -729,7 +729,7 @@ The supported list of name parts is defined as a constant list in the default da
 
 \item[Range fields] consist of one or more ranges where all dashes are normalized and replaced by the command \cmd{bibrangedash}. A range is something optionally followed by one or more dashes optionally followed by some non-dash (e.g. \texttt{5--7}). Any number of consecutive dashes will only yield a single range dash. A typical example of a range field is the \bibfield{pages} field. See also the \cmd{bibrangessep} command which can be used to customise the separator between multiple ranges. Range fields will be skipped and will generate a warning if they do not consist of one or more ranges. You can normalise messy range fields before they are parsed using \cmd{DeclareSourcemap} (see \secref{aut:ctm:map}).
 
-\item[Integer fields] hold integers which may be converted to ordinals or strings as they are printed. A typical example is the \bibfield{extradate} or \bibfield{volume} field. Such fields are sorted as integers. \biber makes a (quite serious) effort to map non-arabic representations (roman numerals for example) to integers for sorting purposes. 
+\item[Integer fields] hold integers which may be converted to ordinals or strings as they are printed. A typical example is the \bibfield{extradate} or \bibfield{volume} field. Such fields are sorted as integers. \biber makes a (quite serious) effort to map non-arabic representations (roman numerals for example) to integers for sorting purposes. See the \opt{noroman} option which can be used to suppress roman numeral parsing. This can help in cases where there is an ambiguity between parsing as roman numerals or alphanumeric (e.g. <C>), see \secref{use:opt:pre:int}.
 
 \item[Datepart fields] hold unformatted integers which may be converted to ordinals or strings as they are printed. A typical example is the \bibfield{month} field. For every field of datatype \bibfield{date} in the datamodel, datepart fields are automatically created with the following names: \bibfield{$<$datetype$>$year}, \bibfield{$<$datetype$>$endyear}, \bibfield{$<$datetype$>$month}, \bibfield{$<$datetype$>$endmonth}, \bibfield{$<$datetype$>$day}, \bibfield{$<$datetype$>$endday}, \bibfield{$<$datetype$>$hour}, \bibfield{$<$datetype$>$endhour}, \bibfield{$<$datetype$>$minute}, \bibfield{$<$datetype$>$endminute}, \bibfield{$<$datetype$>$second}, \bibfield{$<$datetype$>$endsecond}, \bibfield{$<$datetype$>$timezone}, \bibfield{$<$datetype$>$endtimezone}. $<$datetype$>$ is the string preceding <date> for any datamodel field of \kvopt{datatype}{date}. For example, in the default datamodel, <event>, <orig>, <url> and the empty string <> for the date field \bibfield{date}.
 
@@ -901,7 +901,7 @@ The author(s) of a foreword to the work. If the author of the foreword is identi
 
 \listitem{holder}{name}
 
-The holder(s) of a \bibtype{patent}, if different from the \bibfield{author}. Not that corporate holders need to be wrapped in an additional set of braces, see \secref{bib:use:inc} for details. This list may also be useful for the custom types listed in \secref{bib:typ:ctm}.
+The holder(s) of a \bibtype{patent}, if different from the \bibfield{author}. Note that corporate holders need to be wrapped in an additional set of braces, see \secref{bib:use:inc} for details. This list may also be useful for the custom types listed in \secref{bib:typ:ctm}.
 
 \fielditem{howpublished}{literal}
 
@@ -941,7 +941,7 @@ The International Standard Serial Number of a periodical.
 
 \fielditem{issue}{literal}
 
-The issue of a journal. This field is intended for journals whose individual issues are identified by a designation such as <Spring> or <Summer> rather than the month or a number. Since the placement of \bibfield{issue} is similar to \bibfield{month} and \bibfield{number}, this field may also be useful with double issues and other special cases. See also \bibfield{month}, \bibfield{number}, and \secref{bib:use:iss}.
+The issue of a journal. This field is intended for journals whose individual issues are identified by a designation such as <Spring> or <Summer> rather than the month or a number. The placement of \bibfield{issue} is similar to \bibfield{month} and \bibfield{number}, integer ranges and short designators are better written to the \bibfield{number} field. See also \bibfield{month}, \bibfield{number}, and \secref{bib:use:iss}.
 
 \fielditem{issuesubtitle}{literal}
 
@@ -1005,9 +1005,9 @@ An addon to be printed immediately after the author name in the bibliography. No
 
 Miscellaneous bibliographic data which does not fit into any other field. The \bibfield{note} field may be used to record bibliographic data in a free format. Publication facts such as «Reprint of the edition London 1831» are typical candidates for the \bibfield{note} field. See also \bibfield{addendum}.
 
-\fielditem{number}{integer}
+\fielditem{number}{literal}
 
-The number of a journal or the volume\slash number of a book in a \bibfield{series}. See also \bibfield{issue} as well as \secref{bib:use:ser, bib:use:iss}. With \bibtype{patent} entries, this is the number or record token of a patent or patent request. It is expected to be an integer, not necessarily in arabic numerals since \biber will automatically from roman numerals or arabic letter to integers internally for sorting purposes.
+The number of a journal or the volume\slash number of a book in a \bibfield{series}. See also \bibfield{issue} as well as \secref{bib:use:ser, bib:use:iss}. With \bibtype{patent} entries, this is the number or record token of a patent or patent request. Normally this field will be an integer or an integer range, but in certain cases it may also contain «S1», «Suppl.\ 1», in these cases the output should be scrutinised carefully.
 
 \listitem{organization}{literal}
 
@@ -1131,11 +1131,11 @@ The revision number of a piece of software, a manual, etc.
 
 \fielditem{volume}{integer}
 
-The volume of a multi"=volume book or a periodical. It is expected to be an integer, not necessarily in arabic numerals since \biber will automatically from roman numerals or arabic letter to integers internally for sorting purposes. See also \bibfield{part}.
+The volume of a multi"=volume book or a periodical. It is expected to be an integer, not necessarily in arabic numerals since \biber will automatically from roman numerals or arabic letter to integers internally for sorting purposes. See also \bibfield{part}. See the \opt{noroman} option which can be used to suppress roman numeral parsing. This can help in cases where there is an ambiguity between parsing as roman numerals or alphanumeric (e.g. <C>), see \secref{use:opt:pre:int}.
 
 \fielditem{volumes}{integer}
 
-The total number of volumes of a multi"=volume work. Depending on the entry type, this field refers to \bibfield{title} or \bibfield{maintitle}. It is expected to be an integer, not necessarily in arabic numerals since \biber will automatically from roman numerals or arabic letter to integers internally for sorting purposes.
+The total number of volumes of a multi"=volume work. Depending on the entry type, this field refers to \bibfield{title} or \bibfield{maintitle}. It is expected to be an integer, not necessarily in arabic numerals since \biber will automatically from roman numerals or arabic letter to integers internally for sorting purposes. See the \opt{noroman} option which can be used to suppress roman numeral parsing. This can help in cases where there is an ambiguity between parsing as roman numerals or alphanumeric (e.g. <C>), see \secref{use:opt:pre:int}.
 
 \fielditem{year}{literal}
 
@@ -1303,9 +1303,9 @@ Similar to \bibfield{sortkey} but used in the list of shorthands. If present, \b
 
 A field used to modify the sorting order of the bibliography. If present, this field is used instead of the \bibfield{title} field when sorting the bibliography. The \bibfield{sorttitle} field may come in handy if you have an entry with a title like «An Introduction to\dots» and want that alphabetized under <I> rather than <A>. In this case, you could put «Introduction to\dots» in the \bibfield{sorttitle} field. Please refer to \secref{use:srt} for further details. This field is consumed by the backend processing and does not appear in the \path{.bbl}.
 
-\fielditem{sortyear}{literal}
+\fielditem{sortyear}{integer}
 
-A field used to modify the sorting order of the bibliography. If present, this field is used instead of the \bibfield{year} field when sorting the bibliography. Please refer to \secref{use:srt} for further details. This field is consumed by the backend processing and does not appear in the \path{.bbl}. Note that this is not an integer but rather a literal field as sometimes things like «1984-1» are used to modify temporal sorting.
+A field used to modify the sorting order of the bibliography. In the default sorting templates, if this field is present, it is used instead of the \bibfield{year} field when sorting the bibliography. Please refer to \secref{use:srt} for further details. This field is consumed by the backend processing and does not appear in the \path{.bbl}.
 
 \fielditem{xdata}{separated list of entrykeys}
 
@@ -1363,7 +1363,7 @@ An alias for \bibfield{annotation}, provided for \sty{jurabib} compatibility. Se
 
 \fielditem{archiveprefix}{literal}
 
-An alias for \bibfield{eprinttype}, provided for arXiv compatibility. See \secref{bib:fld:dat,use:use:epr}. 
+An alias for \bibfield{eprinttype}, provided for arXiv compatibility. See \secref{bib:fld:dat,use:use:epr}.
 
 \fielditem{journal}{literal}
 
@@ -1379,7 +1379,7 @@ An alias for \bibfield{file}, provided for JabRef compatibility. See \secref{bib
 
 \fielditem{primaryclass}{literal}
 
-An alias for \bibfield{eprintclass}, provided for arXiv compatibility. See \secref{bib:fld:dat,use:use:epr}. 
+An alias for \bibfield{eprintclass}, provided for arXiv compatibility. See \secref{bib:fld:dat,use:use:epr}.
 
 \listitem{school}{literal}
 
@@ -1590,7 +1590,7 @@ Note that only the \bibfield{editor} is considered in citations and when sorting
   ...
 \end{lstlisting}
 %
-You may add more roles by initializing and defining a new localisation key whose name corresponds to the identifier in the \bibfield{editor...type} field. See \secref{use:lng,aut:lng:cmd} for details. 
+You may add more roles by initializing and defining a new localisation key whose name corresponds to the identifier in the \bibfield{editor...type} field. See \secref{use:lng,aut:lng:cmd} for details.
 
 \subsubsection{Publication and Journal Series}
 \label{bib:use:ser}
@@ -1823,7 +1823,7 @@ encodings properly.
 
 \paragraph{Specifying Encodings}
 \label{bib:cav:enc:enc}
-When using a non-Ascii encoding in the \file{bib} file, it is important to understand what \biblatex can do for you and what may require manual intervention. The package takes care of the \latex side, \ie it ensures that the data imported from the \file{bbl} file is interpreted correctly, provided that the \opt{bibencoding} package option is set properly. All of this is handled automatically and no further steps, apart from setting the \opt{bibencoding} option in certain cases, are required. Here are a few typical usage scenarios along with the relevant lines from the document preamble:
+When using a non-Ascii encoding in the \file{bib} file, it is important to understand what \biblatex can do for you and what may require manual intervention. The package takes care of the \latex side, \ie it ensures that the data imported from the \file{bbl} file is interpreted correctly, provided that the \opt{bibencoding} package option (or the datasource specific override for this, see \secref{use:bib:res}) is set properly. All of this is handled automatically and no further steps, apart from setting the \opt{bibencoding} option in certain cases, are required. Here are a few typical usage scenarios along with the relevant lines from the document preamble:
 
 \begin{itemize}
 \setlength{\itemsep}{0pt}
@@ -1862,7 +1862,7 @@ Since \kvopt{bibencoding}{auto} is the default setting, the option is omissible.
 \usepackage[bibencoding=latin1]{biblatex}
 \end{ltxexample}
 
-The same scenario with \xetex or \luatex in native \utf mode:
+The same scenario with \latex release 2018-04-01 or above, \xetex or \luatex in native \utf mode:
 
 \begin{ltxexample}
 \usepackage[bibencoding=latin1]{biblatex}
@@ -2026,7 +2026,7 @@ Whether or not to sort the bibliography and the list of shorthands case"=sensiti
 
 This option corresponds to \biber's \opt{--sortupper} command-line option. If enabled, the bibliography is sorted in <uppercase before lowercase> order. Disabling this option means <lowercase before uppercase> order.
 
-\optitem{sortlocale}{\opt{auto}, \prm{locale}}
+\optitem[auto]{sortlocale}{\opt{auto}, \prm{locale}}
 
 This option sets the global sorting locale. Every sorting template inherits this locale if none is specified using the \prm{locale} option to \cmd{printbibliography}. Setting this to \opt{auto} requests that it be set to the \sty{babel}/\sty{polyglossia} main document language identifier, if these packages are used and \texttt{en\_US} otherwise. \biber will map \sty{babel}/\sty{polyglossia} language identifiers into sensible locale identifiers (see the \biber documentation). You can therefore specify either a normal locale identifier like \texttt{de\_DE\_phonebook}, \texttt{es\_ES} or one of the supported \sty{babel}/\sty{polyglossia} language identifiers if the mapping \biber makes of this is fine for you.
 
@@ -2044,11 +2044,11 @@ Whether or not to sort set members according to the active reference context sor
 
 \intitem[3]{maxnames}
 
-A threshold affecting all lists of names (\bibfield{author}, \bibfield{editor}, etc.). If a list exceeds this threshold, \ie if it holds more than \prm{integer} names, it is automatically truncated according to the setting of the \opt{minnames} option. \opt{maxnames} is the master option which sets both \opt{maxbibnames} and \opt{maxcitenames}.
+A threshold affecting all lists of names (\bibfield{author}, \bibfield{editor}, etc.). If a list exceeds this threshold, \ie if it holds more than \prm{integer} names, it is automatically truncated according to the setting of the \opt{minnames} option. \opt{maxnames} is the master option which sets \opt{maxbibnames}, \opt{maxcitenames} and \opt{maxsortnames}. Note that the \opt{uniquelist} feature can locally override \opt{maxnames}, see the documentation of the \opt{uniquelist} option in \secref{use:opt:pre:int} and \secref{aut:cav:amb}.
 
 \intitem[1]{minnames}
 
-A limit affecting all lists of names (\bibfield{author}, \bibfield{editor}, etc.). If a list holds more than \prm{maxnames} names, it is automatically truncated to \prm{minnames} names. The \prm{minnames} value must be smaller than or equal to \prm{maxnames}. \opt{minnames} is the master option which sets both \opt{minbibnames} and \opt{mincitenames}.
+A limit affecting all lists of names (\bibfield{author}, \bibfield{editor}, etc.). If a list holds more than \prm{maxnames} names, it is automatically truncated to \prm{minnames} names. The \prm{minnames} value must be smaller than or equal to \prm{maxnames}. \opt{minnames} is the master option which sets both \opt{minbibnames} and \opt{mincitenames}. Like \opt{maxnames} the value of \opt{minnames} can be overridden by \opt{uniquelist}.
 
 \intitem[\prm{maxnames}]{maxbibnames}
 
@@ -2062,9 +2062,18 @@ Similar to \opt{minnames} but affects only the bibliography.
 
 Similar to \opt{maxnames} but affects only the citations in the document body.
 
+
 \intitem[\prm{minnames}]{mincitenames}
 
 Similar to \opt{minnames} but affects only the citations in the document body.
+
+\intitem[\prm{maxbibnames}]{maxsortnames}
+
+Similar to \opt{maxnames} but affects only the names visible to sorting. Since this defaults to \prm{maxbibnames}, you should set this after \opt{maxbibnames} if \opt{maxbibnames} is explicitly set.
+
+\intitem[\prm{minbibnames}]{minsortnames}
+
+Similar to \opt{minnames} but affects only the names visible to sorting. Since this defaults to \prm{minbibnames}, you should set this after \opt{minbibnames} if \opt{minbibnames} is explicitly set.
 
 \intitem[3]{maxitems}
 
@@ -2084,7 +2093,7 @@ This option controls whether the citation commands scan ahead for punctuation ma
 
 \optitem[autobib]{language}{\opt{autobib}, \opt{autocite}, \opt{auto}, \prm{language}}
 
-This option controls multilingual support. When set to \opt{autobib}, \opt{autocite} or \opt{auto}, \biblatex will try to get the main document language from the \sty{babel}/\sty{polyglossia} package (and fall back to English if \sty{babel}/\sty{polyglossia} is not available). It is also possible to select the package language manually. In this case, the language chosen will override the \bibfield{langid} of entries and you should still choose a language switching environment with the \opt{autolang} option to select how the switch to the manually chosen language is handled. Please refer to \tabref{bib:fld:tab1} for a list of supported languages and the corresponding identifiers. \opt{autobib} switches the language for each entry in the bibliography using the \bibfield{langid} field and the language environment specified by the \opt{autolang} option. \opt{autocite} switches the language for each citation using the \bibfield{langid} field and the language environment specified by the \opt{autolang} option. \opt{auto} is a shorthand to set both \opt{autobib} and \opt{autocite}.
+This option controls multilingual support. By default \biblatex automatically picks up the active surrounding language from the \sty{babel}/\sty{polyglossia} package (and fall back to English if \sty{babel}/\sty{polyglossia} is not available). \opt{autobib} switches the language for each entry in the bibliography using the \bibfield{langid} field and the language environment specified by the \opt{autolang} option. \opt{autocite} switches the language for each citation using the \bibfield{langid} field and the language environment specified by the \opt{autolang} option. \opt{auto} is a shorthand to set both \opt{autobib} and \opt{autocite}. It is also possible to select the package language manually. In this case, the language chosen will override the \bibfield{langid} of entries and you should still choose a language switching environment with the \opt{autolang} option to select how the switch to the manually chosen language is handled. Please refer to \tabref{bib:fld:tab1} for a list of supported languages and the corresponding identifiers.
 
 \boolitem[true]{clearlang}
 
@@ -2092,15 +2101,15 @@ If this option is enabled, \biblatex will automatically clear the \bibfield{lang
 
 \optitem[none]{autolang}{\opt{none}, \opt{hyphen}, \opt{other}, \opt{other*}, \opt{langname}}
 
-This option controls which \sty{babel} language environment\footnote{\sty{polyglossia} understands the \sty{babel} language environments too and so this option controls both the \sty{babel} and \sty{polyglossia} language environments.} is used if the \sty{babel}/\sty{polyglossia} package is loaded and a bibliography entry includes a \bibfield{langid} field (see \secref{bib:fld:spc}). Note that \biblatex automatically adjusts to the main document language if \sty{babel}/\sty{polyglossia} is loaded. In multilingual documents, it will also continually adjust to the current language as far as citations and the default language of the bibliography is concerned. The effect of language adjustment depends on the language environment selected by this option. The possible choices are:
+This option controls which \sty{babel} language environment\footnote{\sty{polyglossia} understands the \sty{babel} language environments too and so this option controls both the \sty{babel} and \sty{polyglossia} language environments.} is used if the \sty{babel}/\sty{polyglossia} package is loaded and a bibliography entry includes a \bibfield{langid} field (see \secref{bib:fld:spc}). Note that regardless of the selected value \biblatex automatically adjusts to the main document language if \sty{babel}/\sty{polyglossia} is loaded. In multilingual documents, it will also continually adjust to the current language as far as citations and the default language of the bibliography is concerned. The effect of additional language adjustment, which can negate the effect of picking up the surrounding language, depends on the language environment selected by this option. The possible choices are:
 
 \begin{valuelist}
 
 \item[none]
-Disable this feature, \ie do not use any language environment at all.
+Do not use any additional enclosing language environment at all. This means that citations and the bibliography are set in the currently active language---this need not be the main language.
 
 \item[hyphen]
-Enclose the entry in a \env{hyphenrules} environment. This will load hyphenation patterns for the language specified in the \bibfield{langid} field of the entry, if available.
+Enclose the entry in a \env{hyphenrules} environment. This will load hyphenation patterns for the language specified in the \bibfield{langid} field of the entry, if available. Localisation strings and extra language definitions are not changed and taken from the surrounding language environment.
 
 \item[other]
 Enclose the entry in an \env{otherlanguage} environment. This will load hyphenation patterns for the specified language, enable all extra definitions which \sty{babel}/\sty{polyglossia} and \biblatex provide for the respective language, and translate key terms such as <editor> and <volume>. The extra definitions include localisations of the date format, of ordinals, and similar things.
@@ -2132,6 +2141,10 @@ This option controls the extra spacing between blocks, \ie larger segments of a 
 \end{valuelist}
 
 The \cmd{newblockpunct} command may also be redefined directly to achieve different results, see \secref{use:fmt:fmt}. Also see \secref{aut:pct:new} for additional information.
+
+\boolitem[false]{locallabelwidth}
+
+This option controls whether \cmd{printbibliography} uses a locally calculated value for \cmd{labelnumberwidth} and \cmd{labelalphawidth} or the global value calculated from all entries. The local value is calculated separately for each bibliography and takes into account only the entries displayed in that bibliography. This option is useful if there are several bibliographies with wildly varying label lengths in the same document.
 
 \optitem[foot+end]{notetype}{\opt{foot+end}, \opt{footonly}, \opt{endonly}}
 
@@ -2415,7 +2428,7 @@ Specifies the encoding of the \file{tex} file. This option affects the data tran
 
 \begin{valuelist}
 
-\item[auto] Try to auto-detect the input encoding. If the \sty{inputenc}\slash \sty{inputenx}\slash \sty{luainputenc} package is available, \biblatex will get the main encoding from that package. If not, it assumes \utf encoding if \xetex or \luatex has been detected, and Ascii otherwise.
+\item[auto] Try to auto-detect the input encoding. If the \sty{inputenc}\slash \sty{inputenx}\slash \sty{luainputenc} package is available, \biblatex will get the main encoding from that package. If not, it assumes \utf encoding if a \latex format using at least the April 2018 version of the kernel, \xetex or \luatex has been detected, and Ascii otherwise.
 
 \item[\prm{encoding}] Specifies the \prm{encoding} explicitly. This is for odd cases in which auto-detection fails or you want to force a certain encoding for some reason.
 
@@ -2425,7 +2438,7 @@ Note that setting \kvopt{texencoding}{\prm{encoding}} will also affect the \opt{
 
 \optitem[auto]{bibencoding}{\opt{auto}, \prm{encoding}}
 
-Specifies the encoding of the \file{bib} files. This option corresponds to \biber's \opt{--input-encoding} option. The following choices are available:
+Specifies the default encoding of the \file{bib} files. This can be overridden on a per-datasource basis using the \opt{bibencoding} option to \cmd{addbibresource}, see \secref{use:bib:res}. This option corresponds to \biber's \opt{--input-encoding} option. The following choices are available:
 
 \begin{valuelist}
 
@@ -2614,6 +2627,12 @@ Similar to the \opt{minnames} option but customizes the format of the \bibfield{
 Whether or not to provide the special field \bibfield{labelnumber}, see \secref{aut:bbx:fld} for details.
 This option is also settable on a per-type basis.
 
+\boolitem[false]{noroman}
+
+Whether or not to try to parse roman numerals encountered in integer fields for sorting purposes. Since \biber also tries to parse alphanumeric values when sorting integer fields, this roman numeral parsing can be a problem when, for example, <C> is encountered as this could be a roman numeral or a simple alphanumeric string which would have a different integer value depending on how it was parsed. It is likely that this is most useful on a per-entry basis for entries that have, for example, a \bibfield{volume} field with values such as <A>, <B>, <C>, <D> which should not be parsed as roman numerals since this would give incorrect integer values for <C> and <D>.
+
+This option is also settable on a per-type and per-entry basis.
+
 \boolitem[false]{labeltitle}
 
 Whether or not to provide the special field \bibfield{extratitle}, see \secref{aut:bbx:fld} for details. Note that the special field \bibfield{labeltitle} is always provided and this option controls rather whether \bibfield{labeltitle} is used to generate \bibfield{extratitle} information. This option is also settable on a per-type basis. Table \ref{use:opt:tab1} summarises the various \opt{extra*} disambiguation counters and what they track.
@@ -2624,7 +2643,7 @@ Whether or not to provide the special field \bibfield{extratitleyear}, see \secr
 
 \boolitem[false]{labeldateparts}
 
-Whether or not to provide the special fields \bibfield{labelyear}, \bibfield{labelmonth}, \bibfield{labelday}, \bibfield{labelendyear}, \bibfield{labelendmonth}, \bibfield{labelendday}, \bibfield{labelhour}, \bibfield{labelendhour}, \bibfield{labelminute}, \bibfield{labelendminute}, \bibfield{labelsecond}, \bibfield{labelendsecond}, \bibfield{labelseason}, \bibfield{labelendseason}, \bibfield{labeltimezone}, \bibfield{labelendtimeone} and \bibfield{extradate}, see \secref{aut:bbx:fld} for details. 
+Whether or not to provide the special fields \bibfield{labelyear}, \bibfield{labelmonth}, \bibfield{labelday}, \bibfield{labelendyear}, \bibfield{labelendmonth}, \bibfield{labelendday}, \bibfield{labelhour}, \bibfield{labelendhour}, \bibfield{labelminute}, \bibfield{labelendminute}, \bibfield{labelsecond}, \bibfield{labelendsecond}, \bibfield{labelseason}, \bibfield{labelendseason}, \bibfield{labeltimezone}, \bibfield{labelendtimeone} and \bibfield{extradate}, see \secref{aut:bbx:fld} for details.
 This option is also settable on a per-type basis. Table \ref{use:opt:tab1} summarises the various \opt{extra*} disambiguation counters and what they track.
 
 \begin{table}
@@ -2687,7 +2706,7 @@ Whether or not to update the \cnt{uniquename} counter, see \secref{aut:aux:tst} 
 \item[minfull] A variant of \texttt{full} which only disambiguates names in identical lists of base nameparts (by default, lists of family names).
 \end{valuelist}
 %
-Note that the \opt{uniquename} option will also affect \opt{uniquelist}, the \cmd{ifsingletitle} test, and the \bibfield{extradate} field. See \secref{aut:cav:amb} for further details and practical examples.
+Note that the \opt{uniquename} option will also affect \opt{uniquelist}, the \cmd{ifsingletitle} test, and the \bibfield{extradate} and \bibfield{extraname} fields. See \secref{aut:cav:amb} for further details and practical examples.
 
 \optitem[false]{uniquelist}{\opt{true}, \opt{false}, \opt{minyear}}
 
@@ -2699,7 +2718,7 @@ Whether or not to update the \cnt{uniquelist} counter, see \secref{aut:aux:tst} 
 \item[minyear] Disambiguate the \bibfield{labelname} list only if the truncated list is identical to another one with the same \bibfield{labelyear}. This mode of operation is useful for author-year styles and requires \kvopt{labeldateparts}{true}.
 \end{valuelist}
 %
-Note that the \opt{uniquelist} option will also affect the \cmd{ifsingletitle} test and the \bibfield{extradate} field. See \secref{aut:cav:amb} for further details and practical examples.
+Note that the \opt{uniquelist} option will also affect the \cmd{ifsingletitle} test and the \bibfield{extradate} and \bibfield{extraname} fields. See \secref{aut:cav:amb} for further details and practical examples.
 
 \end{optionlist}
 
@@ -2714,25 +2733,26 @@ Note that the \opt{uniquelist} option will also affect the \cmd{ifsingletitle} t
 \multicolumn{1}{@{}H}{Enabled counter} &
 \multicolumn{1}{@{}H}{Counter tracks} \\
 \cmidrule(r){1-1}\cmidrule(r){2-2}\cmidrule(r){3-3}\cmidrule{4-4}
-labelalpha     & labelalpha       & extraalpha     &  label\\
-labeldateparts & labelyear        & extradate      &  labelname+\\
-               & labelmonth       &                &  labelyear\\
-               & labelday         &                &  \\
-               & labelendyear     &                &  \\
-               & labelendmonth    &                &  \\
-               & labelendday      &                &  \\
-               & labelhour        &                &  \\
-               & labelminute      &                &  \\
-               & labelsecond      &                &  \\
-               & labelendhour     &                &  \\
-               & labelendminute   &                &  \\
-               & labelendsecond   &                &  \\
-               & labelseason      &                &  \\
-               & labelendseason   &                &  \\
-               & labeltimezone    &                &  \\
-               & labelendtimezone &                &  \\
-labeltitle     & {\rmfamily ---}  & extratitle     &  labelname+labeltitle\\
-labeltitleyear & {\rmfamily ---}  & extratitleyear &  labeltitle+labelyear\\
+labelalpha      & labelalpha       & extraalpha     &  label\\
+labeldateparts  & labelyear        & extradate      &  labelname+\\
+                & labelmonth       &                &  labelyear\\
+                & labelday         &                &  \\
+                & labelendyear     &                &  \\
+                & labelendmonth    &                &  \\
+                & labelendday      &                &  \\
+                & labelhour        &                &  \\
+                & labelminute      &                &  \\
+                & labelsecond      &                &  \\
+                & labelendhour     &                &  \\
+                & labelendminute   &                &  \\
+                & labelendsecond   &                &  \\
+                & labelseason      &                &  \\
+                & labelendseason   &                &  \\
+                & labeltimezone    &                &  \\
+                & labelendtimezone &                &  \\
+labeltitle      & {\rmfamily ---}  & extratitle     &  labelname+labeltitle\\
+labeltitleyear  & {\rmfamily ---}  & extratitleyear &  labeltitle+labelyear\\
+{\rmfamily ---} & {\rmfamily ---}  & extraname      &  labelname\\
 \bottomrule
 \end{tabularx}
 \caption{Disambiguation counters}
@@ -2778,8 +2798,8 @@ With the standard styles, the \bibfield{translator} is printed after the title b
 
 \boolitem[true]{use$<$name$>$}
 
-As per \opt{useauthor}, \opt{useeditor} and \opt{usetranslator}, all name lists defined in the data model have an option controlling their behaviour in sorting and labelling automatically 
-defined. Global, per-type and per-entry options called <use$<$name$>$>are automatically created. 
+As per \opt{useauthor}, \opt{useeditor} and \opt{usetranslator}, all name lists defined in the data model have an option controlling their behaviour in sorting and labelling automatically
+defined. Global, per-type and per-entry options called <use$<$name$>$>are automatically created.
 
 \boolitem[false]{useprefix}
 
@@ -3244,6 +3264,10 @@ Since the \prm{resource} string is read in a verbatim-like mode, it may contain 
 
 \begin{optionlist*}
 
+\valitem{bibencoding}{bibencoding}
+
+This option can be used to override the global \opt{bibencoding} option for a particular \prm{resource}.
+
 \valitem{label}{identifier}
 
 Assigns a label to a resource. The \prm{identifier} may be used in place of the full resource name in the optional argument of \env{refsection} (see \secref{use:bib:sec}).
@@ -3368,6 +3392,10 @@ This option applies to numerical citation\slash bibliography styles only and req
 \boolitem{omitnumbers}
 
 This option applies to numerical citation\slash bibliography styles only and requires that the \opt{defernumbers} option from \secref{use:opt:pre:gen} be enabled globally. If enabled, \biblatex will not assign a numerical label to the entries in the respective bibliography. This is useful when mixing a numerical subbibliography with one or more subbibliographies using a different scheme (\eg author-title or author-year).
+
+\boolitem[false]{locallabelwidth}
+
+Calculate \cmd{labelnumberwidth}, \cmd{labelalphawidth} and similar lengths locally for the present bibliography and not globally for all entries. See also \opt{labelnumberwidth} in \secref{use:opt:pre:gen}.
 
 \end{optionlist*}
 
@@ -3536,7 +3564,7 @@ Bibliography categories allow you to split the bibliography into multiple parts 
 
 \cmditem{DeclareBibliographyCategory}{category}
 
-Declares a new \prm{category}, to be used in conjunction with \cmd{addtocategory} and the 
+Declares a new \prm{category}, to be used in conjunction with \cmd{addtocategory} and the
 \opt{category} and \opt{notcategory} filters of \cmd{printbibliography}. This command is used in the document preamble.
 
 \cmditem{addtocategory}{category}{key}
@@ -3806,7 +3834,7 @@ This example also shows the declaration and use of a named reference context. As
 \item The citation of entry \bibfield{misc} would draw its data from the reference context with \opt{sorting=ydnt}
 \end{itemize}
 %
-In cases where the user has entries which occur in multiple bibliographies in different forms or with potentially different labels (in a numeric scheme with different \bibfield{labelprefix} values for example), it may be necessary to tell \biblatex from which reference context you wish to draw the citation information. As shown above this can be done by explicitly putting citations inside reference contexts. This can be onerous in a large document and so there is specific functionality for assigning citations to reference contexts programatically, see the \cmd{assignrefcontext*} macros below. 
+In cases where the user has entries which occur in multiple bibliographies in different forms or with potentially different labels (in a numeric scheme with different \bibfield{labelprefix} values for example), it may be necessary to tell \biblatex from which reference context you wish to draw the citation information. As shown above this can be done by explicitly putting citations inside reference contexts. This can be onerous in a large document and so there is specific functionality for assigning citations to reference contexts programatically, see the \cmd{assignrefcontext*} macros below.
 
 \begin{ltxsyntax}
 
@@ -3818,7 +3846,7 @@ Declares a named reference context with name \prm{name}. The \prm{key=value} opt
 
 \valitem{sorting}{name}
 
-Specify a sorting template defined previously with \cmd{DeclareSortingTemplate}. This template is used to determine which data to retrieve and/or print for an entry in the commands inside the context. 
+Specify a sorting template defined previously with \cmd{DeclareSortingTemplate}. This template is used to determine which data to retrieve and/or print for an entry in the commands inside the context.
 
 \valitem{sortingnamekeytemplatename}{name}
 
@@ -4661,7 +4689,7 @@ Similar to \cmd{multicitedelim}, but used by \cmd{textcite} and related commands
 The delimiter printed between the author\slash editor and the title by author-title and some verbose citation styles. The default definition inside bibliographies is \cmd{labelnamepunct} and is a comma plus an interword space otherwise.
 
 \csitem{nameyeardelim}\CSdelimMark
-The delimiter printed between the author\slash editor and the year by author-year citation styles. The default definition is an interword space. 
+The delimiter printed between the author\slash editor and the year by author-year citation styles. The default definition is an interword space.
 
 \csitem{namelabeldelim}\CSdelimMark
 The delimiter printed between the name\slash title and the label by alphabetic and numeric citation styles. The default definition is an interword space.
@@ -4794,7 +4822,7 @@ example:
 \begin{ltxexample}[style=latex]
 \DeclareDelimcontextAlias{cbx@textcite}{textcite}
 \end{ltxexample}
-% 
+%
 This (which is a default setting), makes sure that when inside the
 \cmd{cbx@textcite} citation command, the context is in fact \opt{textcite}
 as expected.
@@ -4805,7 +4833,7 @@ as expected.
 
 \begin{description}
 \item[none] At begin document
-\item[bib] Inside a bibliography begun with \cmd{printbibliography} or inside a \cmd{usedriver} 
+\item[bib] Inside a bibliography begun with \cmd{printbibliography} or inside a \cmd{usedriver}
 \item[biblist] Inside a bibliography list begun with \cmd{printbiblist}
 \item[<citecommand>] Inside a citation command \cmd{citecommand} defined with \cmd{DeclareCiteCommand}
 \end{description}
@@ -5024,7 +5052,7 @@ Similar to \cmd{nohyphenation} but restricted to the \prm{text} argument.
 
 \cmditem{mknumalph}{integer}
 
-Takes an integer in the range 1--702 as its argument and converts it to a string as follows: 1=a, \textellipsis, 26=z, 27=aa, \textellipsis, 702=zz. This is intended for use in formatting directives for the \bibfield{extradate} and \bibfield{extraalpha} fields.
+Takes an integer in the range 1--702 as its argument and converts it to a string as follows: 1=a, \textellipsis, 26=z, 27=aa, \textellipsis, 702=zz. This is intended for use in formatting directives for the \bibfield{extradate}, \bibfield{extraname} and \bibfield{extraalpha} fields.
 
 \cmditem{mkbibacro}{text}
 
@@ -5062,7 +5090,7 @@ The facilities discussed in this section are specific to certain localisation mo
 \subsubsection{Bulgarian}
 \label{use:loc:bul}
 
-Like the Greek localisation module, the Bulgarian module also requires \utf support. It will not work with any other encoding. 
+Like the Greek localisation module, the Bulgarian module also requires \utf support. It will not work with any other encoding.
 
 \subsubsection{American}
 \label{use:loc:us}
@@ -5115,7 +5143,7 @@ The Greek localisation module requires \utf support. It will not work with any o
 \subsubsection{Russian}
 \label{use:loc:rus}
 
-Like the Greek localisation module, the Russian module also requires \utf support. It will not work with any other encoding. 
+Like the Greek localisation module, the Russian module also requires \utf support. It will not work with any other encoding.
 
 \subsubsection{Hungarian}
 \label{use:loc:hun}
@@ -5732,7 +5760,7 @@ This will not from a group, but otherwise works as usual. As far as \biblatex is
 
 To utilise all of the features described here, \biblatex must be used with the
 \biber program as a backend. Indeed, the documentation in general assumes this. However, for a \emph{limited} subset of use cases it is possible to use the
-long-established \bibtex program (either the 7-bit \texttt{bibtex} or 
+long-established \bibtex program (either the 7-bit \texttt{bibtex} or
 8-bit \texttt{bibtex8}) as the supporting backend. This works in much the
 same way as for \biber with the only proviso being that \bibtex is much more
 limited as a backend.
@@ -5740,7 +5768,7 @@ limited as a backend.
 Using \bibtex as the backend requires that the option \opt{backend=bibtex}
 or \opt{backend=bibtex8} is given at load time. The \biblatex package will
 then write appropriate data for use by \bibtex into the auxiliary file(s)
-and a special data file (automatically included in those to be read by 
+and a special data file (automatically included in those to be read by
 \bibtex).  The \bibtex(8) program should then be run on each auxiliary file:
 \biblatex will list all of the required files in the log.
 
@@ -5832,8 +5860,8 @@ The \biblatex package supports citations in any arbitrary format, hence citation
   {}{{0}{}{book}{1994}{}{}{}{}{Reading, Mass.\bpubaddr{}Addison-Wesley%
   \bibbdsep{} 1994}}{{The LaTeX Companion}{}{}{2}{}{}{}{}{}}{\bibnf
   {Goossens}{Michel}{M.}{}{}\Bibbfsasep\bibnf{Mittelbach}{Frank}{F.}%
-  {}{}\Bibbstasep\bibnf{Samarin}{Alexander}{A.}{}{}}{\bibtfont{The 
-  LaTeX Companion}.\ \apyformat{Reading, Mass.\bpubaddr{} 
+  {}{}\Bibbstasep\bibnf{Samarin}{Alexander}{A.}{}{}}{\bibtfont{The
+  LaTeX Companion}.\ \apyformat{Reading, Mass.\bpubaddr{}
   Addison-Wesley\bibbdsep{} 1994}}}
 \end{ltxexample}
 %
@@ -5856,7 +5884,7 @@ In order to streamline the whole procedure, \biblatex essentially employs the \f
 
 \begin{enumerate}
 
-\item Run \bin{latex}: The first step is similar to the traditional procedure described above: \cmd{bibstyle} and \cmd{bibdata} commands are written to th \file{bcf} file, along with \cmd{citation} commands for all citations. We then wait for the backend to supply the required data. 
+\item Run \bin{latex}: The first step is similar to the traditional procedure described above: \cmd{bibstyle} and \cmd{bibdata} commands are written to th \file{bcf} file, along with \cmd{citation} commands for all citations. We then wait for the backend to supply the required data.
 
 \item Run \bin{biber}: The backend supplies those entries from the \file{bib} file which were requested by the \cmd{citation} commands in the auxiliary file. However, it does not write a printable bibliography to the \file{bbl} file, but rather a structured representation of the bibliographic data. Just like an \file{aux} file, this \file{bbl} file does not print anything when read in. It merely puts data in memory.
 
@@ -5955,7 +5983,7 @@ If a bibliography driver covers more than one entry type, this command may be us
 
 \cmditem{DeclareBibliographyOption}[datatype]{key}[value]{code}
 
-This command defines additional preamble options in \keyval format. The \prm{key} is the option key. The \prm{code} is arbitrary \tex code to be executed whenever the option is used. The value passed to the option is passed on to the \prm{code} as |#1|. The optional \prm{value} is a default value to be used if the bare key is given without any value. This is useful for boolean switches. 
+This command defines additional preamble options in \keyval format. The \prm{key} is the option key. The \prm{code} is arbitrary \tex code to be executed whenever the option is used. The value passed to the option is passed on to the \prm{code} as |#1|. The optional \prm{value} is a default value to be used if the bare key is given without any value. This is useful for boolean switches.
 The \prm{datatype} is a the datatype for the option. If omitted, it defaults to <boolean>. For example, with a definition like the following:
 
 \begin{ltxexample}
@@ -6079,7 +6107,7 @@ List formats are slightly more complex. After splitting up the list into individ
     {}}
 \end{ltxexample}
 %
-Formatting directives for names are similar to those for literal lists. 
+Formatting directives for names are similar to those for literal lists.
 
 Names depend on the datamodel constant <nameparts> which has the default definition:
 
@@ -6108,21 +6136,26 @@ Inside name formats, the nameparts constant declaration makes available two or t
 
 Note these per-namepart uniqueness macros are essentially an override of the \opt{uniquename} value (see \secref{aut:aux:tst}) for the name as a whole. Styles can choose to use either the less granular \opt{uniquename} value or the more detailed per-namepart values. Usually the general \opt{uniquename} value is enough for ordinary Western names but the more granular information per-namepart is provided to allow sophisticated name uniqueness processing for more complex name schemata.
 
-The name formatting directive is executed once for each name in the name list. Here is an example:
+The name formatting directive is executed once for each name in the name list. Here is a simplified example---the standard name formats are more intricate:
 
 \begin{ltxexample}
 \DeclareNameFormat{author}{%
   \ifthenelse{\value{listcount}=1}
     {\namepartfamily%
-     \ifblank{\namepartgiven}{}{\addcomma\space\namepartgiven}}
-    {\ifblank{\namepartgiven}{}{\namepartgiven\space}%
+     \ifdefvoid{\namepartgiven}{}{\addcomma\space\namepartgiven}}
+    {\ifdefvoid{\namepartgiven}{}{\namepartgiven\space}%
      \namepartfamily}%
   \ifthenelse{\value{listcount}<\value{liststop}}
     {\addcomma\space}
     {}}
 \end{ltxexample}
 %
-The above directive reverses the name of the first author («Family, Given») and prints the remaining names in their regular sequence («Given Family»). Note that the only component which is guaranteed to be available is the family name, hence we have to check which parts of the name are actually present. If a certain name part is not available, the corresponding macro will be empty. As with directives for literal lists, the separator to be inserted between the individual items in the name list is also handled by the formatting directive, hence we have to check whether we are in the middle of the list or at the end when inserting it. This is what the second \cmd{ifthenelse} test does.
+The above directive reverses the name of the first author («Family, Given») and prints the remaining names in their regular sequence («Given Family»). Note that the only component which is guaranteed to be available is the family name, hence we have to check which parts of the name are actually present. If a certain name part is not available, the corresponding macro will be empty. As with directives for literal lists, the separator to be inserted between the individual items in the name list is also handled by the formatting directive, hence we have to check whether we are in the middle of the list or at the end when inserting it. This is what the second \cmd{ifthenelse} test does. See also \secref{aut:bib:fmt}.
+
+A similar output that also respects the \cmd{multinamedelim} and \cmd{finalnamedelim} commands as well as the <prefix> and <suffix> name parts can be achieved with
+\begin{ltxexample}
+\DeclareNameAlias{author}{family-given/given-family}
+\end{ltxexample}
 
 \subsubsection{Special Fields}
 \label{aut:bbx:fld}
@@ -6157,7 +6190,7 @@ but would additionally have the field \bibfield{dateunspecified} set to <yearinc
 
 \fielditem{entrykey}{string}
 
-The entry key of an item in the \file{bib} file. This is the string used by \biblatex and the backend to identify an entry in the \file{bib} file. 
+The entry key of an item in the \file{bib} file. This is the string used by \biblatex and the backend to identify an entry in the \file{bib} file.
 
 \fielditem{childentrykey}{string}\DeprecatedMark
 
@@ -6263,7 +6296,7 @@ This field holds a hash of the (locale-specific) Unicode Collation Algorithm pri
 
 \fielditem{clonesourcekey}{string}
 
-This field holds the entry key of the entry from which an entry was cloned. Clones are created for 
+This field holds the entry key of the entry from which an entry was cloned. Clones are created for
 entries which are mentioned in \bibfield{related} fields as part of related entry processing, for example.
 
 \fielditem{urlraw}{verbatim}
@@ -6288,6 +6321,10 @@ The <alphabetic> citation scheme usually requires a letter to be appended to the
 
 The name to be printed in citations. This list is a copy of either the \bibfield{shortauthor}, the \bibfield{author}, the \bibfield{shorteditor}, the \bibfield{editor}, or the \bibfield{translator} list, which are normally checked for in this order. If no authors and editors are available, this list is undefined. Note that this list is also responsive to the \opt{use$<$name$>$}, options, see \secref{use:opt:bib}. Citation styles should use this list when printing the name in a citation. This list is provided for convenience only and does not carry any additional meaning.
 This field may be customized. See \secref{aut:ctm:fld} for details.
+
+\fielditem{extraname}{integer}
+
+Holds a count of the number of bibliography entries within a refsection which derive from the same \bibfield{labelname} list. This counter takes account of \opt{uniquename} settings (see \secref{use:opt:pre:int}). While not used by any standard styles, this field is useful in styles which wish to number bibliography entries on a per-\bibfield{labelname} basis. This field will only exist if there is a \bibfield{labelname}. The \bibfield{extraname} counter is related to, but conceptually different from \cmd{ifsingletitle} (see \secref{use:opt:pre:int} and \secref{aut:aux:tst}).
 
 \fielditem{labelnumber}{literal}
 
@@ -6844,7 +6881,7 @@ This command provides definitions for the \cmd{autocite} and \cmd{autocites} com
 A definition provided in the document preamble can be subsequently adopted with the following: (see \secref{use:cfg:opt}).
 
 \begin{ltxexample}
-\ExecuteBibliographyOptions{autocite=<<name>>} 
+\ExecuteBibliographyOptions{autocite=<<name>>}
 \end{ltxexample}
 
 \end{ltxsyntax}
@@ -6895,7 +6932,7 @@ This section introduces the main data interface of the \biblatex package. These 
 \cmditem{DeprecateName}{name}{message}
 
 When an attempt is made to print \prm{field}, \prm{list}, \prm{name}, a
-deprecation warning issued with the additional \prm{message}.  This aids
+deprecation warning is issued with the additional \prm{message}.  This aids
 style authors who are changing field names in their style. Note that the
 deprecated item must no longer be defined in the datamodel for this work;
 \prm{field}, \prm{list} or \prm{name} cannot be listed anywhere as an
@@ -7019,12 +7056,12 @@ Generally, you would want to use \cmd{DeclareSourcemap} (see \secref{aut:ctm:map
 
 \cmditem{DeclareListInputHandler}{list}{code}
 
-As \cmd{DeclareFieldInputHandler} but for lists. Within the \prm{code}, the macro \cmd{NewValue} 
+As \cmd{DeclareFieldInputHandler} but for lists. Within the \prm{code}, the macro \cmd{NewValue}
 contains the value of the list and \cmd{NewCount} contains the number of items in the list.
 
 \cmditem{DeclareNameInputHandler}{name}{code}
 
-As \cmd{DeclareFieldInputHandler} but for names. Within the \prm{code}, the macro \cmd{NewValue} 
+As \cmd{DeclareFieldInputHandler} but for names. Within the \prm{code}, the macro \cmd{NewValue}
 contains the value of the name, \cmd{NewCount} contains the number of individual names in the name and \cmd{NewOption} contains any per-name options passed in the \file{.bbl}.
 
 \end{ltxsyntax}
@@ -7113,6 +7150,30 @@ Declares \prm{alias} to be an alias for the literal list format \prm{format}. If
 
 Declares \prm{alias} to be an alias for the name list format \prm{format}. If an \prm{entrytype} is specified, the alias is specific to that type. The \prm{format entry type} is the entry type of the backend format. This is only required when declaring an alias for a type"=specific formatting directive.
 
+\cmditem{DeprecateFieldFormatWithReplacement}[entry type]{alias}[format entry type]{format}
+
+Declares \prm{alias} to be an alias for the name list format \prm{format} and issue a deprecation warning. If an \prm{entrytype} is specified, the alias is specific to that type. The \prm{format entry type} is the entry type of the backend format. This is only required when declaring an alias for a type"=specific formatting directive.
+
+\cmditem{DeprecateListFormatWithReplacement}[entry type]{alias}[format entry type]{format}
+
+Similar to \cmd{DeprecateFieldFormatWithReplacement} but for list formats.
+
+\cmditem{DeprecateNameFormatWithReplacement}[entry type]{alias}[format entry type]{format}
+
+Similar to \cmd{DeprecateFieldFormatWithReplacement} but for name formats.
+
+\cmditem{DeprecateIndexFieldFormatWithReplacement}[entry type]{alias}[format entry type]{format}
+
+Similar to \cmd{DeprecateFieldFormatWithReplacement} but for index field formats.
+
+\cmditem{DeprecateIndexListFormatWithReplacement}[entry type]{alias}[format entry type]{format}
+
+Similar to \cmd{DeprecateFieldFormatWithReplacement} but for index list formats.
+
+\cmditem{DeprecateIndexNameFormatWithReplacement}[entry type]{alias}[format entry type]{format}
+
+Similar to \cmd{DeprecateFieldFormatWithReplacement} but for index name formats.
+
 \end{ltxsyntax}
 
 \subsection{Customization}
@@ -7148,7 +7209,7 @@ It is useful to be able to define named sets of datasource field names for use i
 
 \cmditem{DeclareDatafieldSet}{name}{specification}
 
-Declare a set of datasource fields with name \prm{name}. 
+Declare a set of datasource fields with name \prm{name}.
 
 \begin{optionlist*}
 
@@ -7262,7 +7323,7 @@ As the same option on the parent \cmd{maps} element. This option allows an overr
 
 Loop over all \cmd{step}s in this \cmd{map}, setting the special variable |$MAPLOOP| %$
 to each of the comma-separated values contained in \prm{loopval}. \prm{loopval} can either be the name of a datafield set defined with \cmd{DeclareDatafieldSet} (see \secref{aut:ctm:dsets}), a datasource field which is fetched and parsed as a comma"=separated values list or an explicit comma"=separated values list. \prm{loopval} is determined in this order. This allows the user to repeat a group of \cmd{step}s for each value \prm{loopval}. Using regexp maps, it is possible to create a CSV field for use with this functionality. The special variable |$MAPUNIQ| %$
-may also be used the \cmd{step}s to generate a random unique string. This can be useful when creating keys for new entries. An example:
+may also be used in the \cmd{step}s to generate a random unique string. This can be useful when creating keys for new entries. An example:
 
 \begin{ltxexample}[style=latex]
 \DeclareSourcemap{
@@ -7328,10 +7389,10 @@ For all boolean \cmd{step} options, the short form \opt{option} is equivalent to
 
 \begin{itemize}
 \item If \texttt{entrynew} is set, a new entry is created with the entry key \texttt{entrynewkey} and the entry type given in the option \texttt{entrynewtype}. This
-  entry is only in-scope during the processing of the current entry and can be referenced by   
-  \texttt{entrytarget}.  In \texttt{entrynewkey}, you may use standard Perl regular expression 
+  entry is only in-scope during the processing of the current entry and can be referenced by
+  \texttt{entrytarget}.  In \texttt{entrynewkey}, you may use standard Perl regular expression
   backreferences to captures from a  previous \texttt{match} step.
-\item When a \texttt{fieldset} step has \texttt{entrytarget} set to the entrykey of an entry 
+\item When a \texttt{fieldset} step has \texttt{entrytarget} set to the entrykey of an entry
   created by \texttt{entrynew}, the target for the field set will be the \texttt{entrytarget} entry
   rather than the entry being currently processed. This allows users to create new entries and set
   fields in them.
@@ -7344,10 +7405,10 @@ For all boolean \cmd{step} options, the short form \opt{option} is equivalent to
   select the entries which you want to apply this to using prior
   mapping steps.
 \item If \texttt{entryclone} is set, a clone of the entry is created with an entry key
-  \texttt{clonekey}. Obviously this may cause labelling problems in author/year styles etc.  
-  and should be used with care. The cloned entry is in-scope during the processing of the 
-  current entry and can be modified by passing its key as the value to \texttt{entrytarget}. 
-  In \texttt{clonekey}, you may use standard Perl regular expression backreferences to 
+  \texttt{clonekey}. Obviously this may cause labelling problems in author/year styles etc.
+  and should be used with care. The cloned entry is in-scope during the processing of the
+  current entry and can be modified by passing its key as the value to \texttt{entrytarget}.
+  In \texttt{clonekey}, you may use standard Perl regular expression backreferences to
   captures from a previous \texttt{match} step.
 \item Change the \texttt{typesource} \prm{entrytype} to the
   \texttt{typetarget} \prm{entrytype}, if defined. If
@@ -7446,8 +7507,8 @@ Copy the \bibfield{title} field to the \bibfield{note} field unless the
 }
 \end{ltxexample}
 %
-Any \bibfield{chat} entrytypes would become \bibfield{customa} entrytypes and 
-would automatically have a \bibfield{type} field set to 
+Any \bibfield{chat} entrytypes would become \bibfield{customa} entrytypes and
+would automatically have a \bibfield{type} field set to
 <chat> unless the \bibfield{type} field already exists in the entry (because
 \texttt{overwrite} is false by default). This mapping applies only to entries of type
 \bibtype{chat} since the first step has \texttt{final} set and so if the
@@ -7895,7 +7956,7 @@ Specifies how many of the \cmd{constraintfield}'s inside the \cmd{consequent} ha
 
 \cmditem{constraintfield}{field}
 
-For constraints of \prm{type} <data>, the constraint applies to this \prm{field}. For constraints of \prm{type} <mandatory>, the entry must contain this \prm{field}. 
+For constraints of \prm{type} <data>, the constraint applies to this \prm{field}. For constraints of \prm{type} <mandatory>, the entry must contain this \prm{field}.
 
 The data model declaration macros may be used multiple times as they append to the previous definitions. In order to replace, change or remove existing definitions (such as the default model which is loaded with \biblatex), you should reset (clear) the current definition and then set what you want using the following macros. Typically, these macros will be the first things in any \file{biblatex-dm.cfg} file:
 
@@ -8209,7 +8270,7 @@ With a restriction to two characters for the name components of the label elemen
   }
 }
 \end{ltxexample}
-% 
+%
 This would be the result (note that the individual family name label parts are no longer unambiguous):
 
 \begin{lstlisting}{}
@@ -8376,7 +8437,7 @@ Defines the sorting template \prm{name}. The \prm{name} is the identifier passed
 
 \choitem{locale}{\prm{locale}}
 
-The locale for the sorting template which then overrides the global sorting locale in the \opt{sortlocale} option discussed in \secref{use:opt:pre:gen}. 
+The locale for the sorting template which then overrides the global sorting locale in the \opt{sortlocale} option discussed in \secref{use:opt:pre:gen}.
 
 \end{optionlist*}
 
@@ -8418,7 +8479,7 @@ The \cmd{field} element adds a \prm{field} to the sorting specification. If the 
 
 \choitem[left]{padside}{left, right}
 
-Pads a field on the \texttt{left} or \texttt{right} side using \opt{padchar} so that its width is \opt{padwidth}. If no padding option is set, no padding is done at all. If any padding option is specified, then padding is performed and the missing options are assigned built-in default values. If padding and substring matching are both specified, the substring match is performed first. 
+Pads a field on the \texttt{left} or \texttt{right} side using \opt{padchar} so that its width is \opt{padwidth}. If no padding option is set, no padding is done at all. If any padding option is specified, then padding is performed and the missing options are assigned built-in default values. If padding and substring matching are both specified, the substring match is performed first.
 
 \intitem[4]{padwidth}
 
@@ -8671,14 +8732,14 @@ Specifies a string to be used to automatically populate the \bibfield{presort} f
 
 \cmditem{DeclareSortTranslit}[entrytype]{specification}
 
-Languages which can be written in different scripts or alphabets often only have CLDR sorting tailoring for one script and it is expected that you transliterate into the supported script for sorting purposes. A common example is Sanskrit which is often written in academic contexts in IAST 
+Languages which can be written in different scripts or alphabets often only have CLDR sorting tailoring for one script and it is expected that you transliterate into the supported script for sorting purposes. A common example is Sanskrit which is often written in academic contexts in IAST
 romanised script but which needs to be sorted in the <sa> locale which expects the Devanāgarī script. Another common case is transliteration of Russian Cyrillic into Latin as defined by the ALA-LC standard. Such requirement means that it is necessary to transliterate into the sorting script internally. \cmd{DeclareSortTranslit} declares which parts of an entry you would like to transliterate for sorting purposes. Without the \prm{entrytype} parameter, the \prm{specification} applies to all entrytypes. The \prm{specification} is one or more \cmd{translit} commands:
 
-\cmditem{translit}{field or fieldset}{from}{to}
+\cmditem{translit}[langids]{field or fieldset}{from}{to}
 
-Specifies that the data field \bibfield{field} or all fields in a fieldset \prm{fieldset} declared with \cmd{DeclareDatafieldSet} (see \secref{aut:ctm:dsets}) should be transliterated from script \prm{from} to script \prm{to} for sorting purposes. The field/set argument can also be <*> to apply transliteration to all fields. The valid \prm{from} and \prm{to} values are given in table \ref{tab:translit}. Note that \biblatex does not aim to support general transliteration, only those which are useful for sorting purposes. Please open a GitHub ticket for \biblatex\ if you think you need additional transliterations.
+Specifies that the data field \bibfield{field} or all fields in a fieldset \prm{fieldset} declared with \cmd{DeclareDatafieldSet} (see \secref{aut:ctm:dsets}) should be transliterated from script \prm{from} to script \prm{to} for sorting purposes. The field/set argument should be <*> to apply transliteration to all fields. The valid \prm{from} and \prm{to} values are given in table \ref{tab:translit}. The optional \prm{langids} parameter is a comma-separated list of \bibfield{langid} fields and the transliteration will apply only to bibliography entries containing one of the \bibfield{langid}s in the list. Note that \biblatex does not aim to support general transliteration, only those which are useful for sorting purposes. Please open a GitHub ticket for \biblatex\ if you think you need additional transliterations.
 
-An example of transliterating titles so that they sort correctly in Sanskrit:
+An example of transliterating titles so that they sort correctly in Sanskrit. This example assumes that entries that should have their title fields transliterated have a \bibfield{langid} field set to <sanskrit>.
 
 \begin{ltxexample}
 \DeclareDatafieldSet{settitles}{
@@ -8692,7 +8753,7 @@ An example of transliterating titles so that they sort correctly in Sanskrit:
 }
 
 \DeclareSortTranslit{
-  \translit[settitles]{iast}{devanagari}
+  \translit[sanskrit]{settitles}{iast}{devanagari}
 }
 \end{ltxexample}
 
@@ -8756,7 +8817,7 @@ Fields in the datamodel which are marked as <Label fields> (see \secref{aut:ctm:
 \subsubsection{Controlling Name Initials Generation}
 \label{aut:ctm:noinit}
 
-Generating initials for name parts from a given name involves some difficulties when you have names with prefixes, diacritics, hyphens etc. Often, you want to ignore things like prefixes when generating initials so that the initials for «al-Hasan» is just «H» instead of «a-H». This is tricky when you also have names like «Ho-Pun» where you want the initials to be «H-P», for example. 
+Generating initials for name parts from a given name involves some difficulties when you have names with prefixes, diacritics, hyphens etc. Often, you want to ignore things like prefixes when generating initials so that the initials for «al-Hasan» is just «H» instead of «a-H». This is tricky when you also have names like «Ho-Pun» where you want the initials to be «H-P», for example.
 
 \begin{ltxsyntax}
 
@@ -8794,9 +8855,9 @@ It can be useful to fine tune sorting so that it ignores certain parts of partic
 
 Defines regular expressions to strip from particular fields or types of fields when sorting. The \prm{specification} is an undelimited list of \cmd{nosort} directives which specify the regular expressions to remove from particular fields or type of field. Spaces, tabs and line endings may be used freely to visually arrange the \prm{specification}. Blank lines are not permissible. This command may only be used in the preamble.
 
-\cmditem{nosort}{field or field type}{regexp}
+\cmditem{nosort}{field or datafield set}{regexp}
 
-Any number of \cmd{nosort} commands can be given each of which specifies to remove the \prm{regexp} from the \prm{field} or \prm{field type}. A \prm{field type} is simple a convenience grouping of semantically similar fields from which you might want to remove a regexp. Table \ref{aut:nosort} shows the available field types. Since regular expressions usually contain special characters, it is best to enclose them in the provided \cmd{regexp} macro as shown---this will pass the expression through to \biber correctly.
+Any number of \cmd{nosort} commands can be given each of which specifies to remove the \prm{regexp} from the \prm{field} or \prm{datafield set}. A \prm{datafield set} is simply a convenience grouping of semantically similar fields from which you might want to remove a regexp. See \secref{aut:ctm:dsets} for the avaiable sets, their members and customisation. Since regular expressions usually contain special characters, it is best to enclose them in the provided \cmd{regexp} macro as shown---this will pass the expression through to \biber correctly.
 
 \end{ltxsyntax}
 
@@ -8805,13 +8866,13 @@ The default is:
 \begin{ltxexample}
 \DeclareNosort{
   % strip prefixes like 'al-' when sorting names
-  \nosort{type_names}{\regexp{<<\A\p{L}{2}\p{Pd}>>}}
+  \nosort{setnames}{\regexp{<<\A\p{L}{2}\p{Pd}>>}}
   % strip some diacritics when sorting names
-  \nosort{type_names}{\regexp{<<[\x{2bf}\x{2018}]>>}}
+  \nosort{setnames}{\regexp{<<[\x{2bf}\x{2018}]>>}}
 }
 \end{ltxexample}
 %
-This \biber default strips a couple of diacritics and also strips prefixes from names when sorting. Suppose you wanted to ignore «The» at the beginning of a \bibfield{title} field when sorting:
+This \biber default strips a couple of diacritics and also strips two-letter prefixes (like «Al-») from names when sorting. Suppose you wanted to ignore «The» at the beginning of the \bibfield{title} field when sorting:
 
 \begin{ltxexample}
 \DeclareNosort{
@@ -8823,47 +8884,9 @@ Or if you wanted to ignore «The» at the beginning of any title field:
 
 \begin{ltxexample}
 \DeclareNosort{
-  \nosort{<<type_title>>}{\regexp{<<\AThe\s+>>}}
+  \nosort{<<settitles>>}{\regexp{<<\AThe\s+>>}}
 }
 \end{ltxexample}
-
-\begin{table}[h]
-\tablesetup
-\begin{tabular}{@{}V{0.5\textwidth}@{}V{0.5\textwidth}@{}}
-\toprule
-\multicolumn{1}{@{}H}{Field Type} &
-\multicolumn{1}{@{}H}{Fields} \\
-\cmidrule(r){1-1}\cmidrule{2-2}
-|type_name| & |author| \\
-             & |afterword| \\
-             & |annotator| \\
-             & |bookauthor| \\
-             & |commentator| \\
-             & |editor| \\
-             & |editora| \\
-             & |editorb| \\
-             & |editorc| \\
-             & |foreword| \\
-             & |holder| \\
-             & |introduction| \\
-             & |namea| \\
-             & |nameb| \\
-             & |namec| \\
-             & |shortauthor| \\
-             & |shorteditor| \\
-             & |translator| \\
-|type_title| & |booktitle| \\
-              & |eventtitle| \\
-              & |issuetitle| \\
-              & |journaltitle| \\
-              & |maintitle| \\
-              & |origtitle| \\
-              & |title| \\
-\bottomrule
-\end{tabular}
-\caption{Field types for \cmd{nosort}}
-\label{aut:nosort}
-\end{table}
 
 \subsubsection{Special Fields}
 \label{aut:ctm:fld}
@@ -8986,7 +9009,7 @@ which is just plain <month> disambiguation which is very unlikely to be what you
   }
 }
 \end{ltxexample}
-% 
+%
 Entries without the specified granularity of information will disambiguate at the lowest granularity they contain, so, for example, with:
 \begin{ltxexample}
 \DeclareExtradate{%
@@ -9049,7 +9072,7 @@ Configures the default inheritance behavior. This command may only be used in th
 
 \begin{optionlist*}
 
-\boolitem[true]{all} Whether or not to inherit all fields from the parent by default. 
+\boolitem[true]{all} Whether or not to inherit all fields from the parent by default.
 
 \kvopt{all}{true} means that the child entry inherits all fields from the parent, unless a more specific inheritance rule has been set up with \cmd{DeclareDataInheritance}. If an inheritance rule is defined for a field, data inheritance is controlled by that rule. \kvopt{all}{false} means that no data is inherited from the parent by default and each field to be inherited requires an explicit inheritance rule set up with \cmd{DeclareDataInheritance}. The package default is \kvopt{all}{true}.
 
@@ -9154,7 +9177,7 @@ This rule is an example of one-to-many mapping: it maps the \bibfield{author} fi
 }
 \end{ltxexample}
 %
-This rule prevents inheritance of the \bibfield{introduction} field. It applies to all targets of type 
+This rule prevents inheritance of the \bibfield{introduction} field. It applies to all targets of type
 \bibtype{inbook} or \bibtype{incollection}, regardless of the source entry type.
 
 \begin{ltxexample}
@@ -9396,6 +9419,10 @@ Expands to \prm{true} if the \prm{datetype}date is defined, has a time component
 
 Expands to \prm{true} if the two dates \prm{datetype1} and \prm{datetype2} would show in different precision when printed with \cmd{print$<$datetype1$>$date} and \cmd{print$<$datetype2$>$date} respectively, and to \prm{false} otherwise.
 
+\cmditem{ifdateyearsequal}{datetype1}{datetype2}{true}{false}
+
+Expands to \prm{true} if the two dates \prm{datetype1} and \prm{datetype2} have the same year and era. Since the sign of the date is saved in the era field, years should be compared using this command to avoid confusion when the two years have opposite signs
+
 
 \cmditem{ifcaselang}[language]{true}{false}
 
@@ -9538,7 +9565,7 @@ Expands to \prm{true} if there is only one work by the \opt{labelname} name with
 
 \cmditem{ifuniqueprimaryauthor}{true}{false}
 
-Expands to \prm{true} if there is only one work by the the primary (first) author name of \opt{labelname} and to \prm{false} otherwise. Only the base name parts of the author name are considered, as defined by \cmd{DeclareUniquenameTemplate} see \secref{aut:cav:amb}. If \opt{labelname} is not set for an entry, this will always expand to \prm{false}. Note that this feature needs to be enabled explicitly with the package option \opt{uniqueprimaryauthor}. 
+Expands to \prm{true} if there is only one work by the the primary (first) author name of \opt{labelname} and to \prm{false} otherwise. Only the base name parts of the author name are considered, as defined by \cmd{DeclareUniquenameTemplate} see \secref{aut:cav:amb}. If \opt{labelname} is not set for an entry, this will always expand to \prm{false}. Note that this feature needs to be enabled explicitly with the package option \opt{uniqueprimaryauthor}.
 
 \cmditem{ifandothers}{list}{true}{false}
 
@@ -9902,6 +9929,21 @@ title = {An Introduction to {L}a{T}e{X}}
 \end{lstlisting}
 %
 The problem with this convention is that the braces will suppress the kerning on both sides of the enclosed letter. It is preferable to wrap the entire word in braces as shown in the first example.
+Macros in titles must also be protected with braces
+\begin{lstlisting}[style=bibtex]{}
+title = {The {\TeX book}},
+\end{lstlisting}
+%
+Due to its complex implementation this command can not accept arbitrary input, it only safely operates on raw text or field data. In the standard styles the \texttt{title} and other \texttt{title}-like field formats do not work together with \cmd{MakeSentenceCase} because of their argument structure, so the standard styles offer a dedicated \texttt{titlecase} field format to apply this command. To enable sentence casing in standard styles for languages that support it you would use:
+\begin{ltxexample}
+\DeclareFieldFormat{titlecase}{<<\MakeSentenceCase*{#1}>>}
+\end{ltxexample}
+%
+Sentence casing can then be disabled by resetting that field format to
+\begin{ltxexample}
+\DeclareFieldFormat{titlecase}{<<#1>>}
+\end{ltxexample}
+Custom styles may follow a different approach, but style authors are encouraged to apply the same general ideas to their styles.
 
 \cmditem{mkpageprefix}[pagination][postpro]{text}
 
@@ -9940,7 +9982,7 @@ The pagination strings are taken from \texttt{$<$pagination$>$total} and \texttt
 1111--1115	& 1111--5	& 1111--5	& 1111--5	\\
 \cmidrule{2-4}
 & \multicolumn{1}{@{}H}{\ttfamily maxcomprange=1000}
-& \multicolumn{1}{@{}H}{\ttfamily maxcomprange=100} 
+& \multicolumn{1}{@{}H}{\ttfamily maxcomprange=100}
 & \multicolumn{1}{@{}H}{\ttfamily maxcomprange=10} \\
 \cmidrule(r){2-2}\cmidrule(r){3-3}\cmidrule{4-4}
 1111--1115	& 1111--5	& 1111--5	& 1111--5	\\
@@ -9948,7 +9990,7 @@ The pagination strings are taken from \texttt{$<$pagination$>$total} and \texttt
 1111--1555	& 1111--555	& 1111--1555	& 1111--1555	\\
 \cmidrule{2-4}
 & \multicolumn{1}{@{}H}{\ttfamily mincompwidth=1}
-& \multicolumn{1}{@{}H}{\ttfamily mincompwidth=10} 
+& \multicolumn{1}{@{}H}{\ttfamily mincompwidth=10}
 & \multicolumn{1}{@{}H}{\ttfamily mincompwidth=100} \\
 \cmidrule(r){2-2}\cmidrule(r){3-3}\cmidrule{4-4}
 1111--1115	& 1111--5	& 1111--15	& 1111--115	\\
@@ -10410,7 +10452,7 @@ Localization strings are key terms such as <edition> or <volume> which are autom
 
 \cmditem{bibstring}[wrapper]{key}
 
-Prints the localisation string \prm{key}, where \prm{key} is an identifier in lowercase letters (see \secref{aut:lng:key}). The string will be capitalized as required, see \secref{aut:pct:cfg} for details. 
+Prints the localisation string \prm{key}, where \prm{key} is an identifier in lowercase letters (see \secref{aut:lng:key}). The string will be capitalized as required, see \secref{aut:pct:cfg} for details.
 Depending on the \opt{abbreviate} package option from \secref{use:opt:pre:gen}, \cmd{bibstring} prints the short or the long version of the string. If localisation strings are nested, \ie if \cmd{bibstring} is used in another string, it will behave like \cmd{bibxstring}.
 If the \prm{wrapper} argument is given, the string is passed to the \prm{wrapper} for formatting. This is intended for font commands such as \cmd{emph}.
 
@@ -11331,7 +11373,7 @@ The delimiter to be printed between the volume portion and the page/text portion
 The delimiter to be printed after the \prm{prenote} argument of a citation command.
 
 \csitem{postnotedelim}
-The delimiter to be printed after the \prm{postnote} argument of a citation command.
+The delimiter to be printed before the \prm{postnote} argument of a citation command.
 
 \csitem{extpostnotedelim}
 The delimiter printed between the citation and the parenthetical \prm{postnote} argument of a citation command when the postnote occurs outside of the citation parentheses. In the standard styles, this occurs when the citation uses the shorthand field of the entry.
@@ -11698,7 +11740,7 @@ For every field marked as a <label> field in the data model, a length register i
 
 \lenitem{labelnumberwidth}
 
-This length register indicates the width of the widest \bibfield{labelnumber}. Numeric bibliography styles 
+This length register indicates the width of the widest \bibfield{labelnumber}. Numeric bibliography styles
 should incorporate this length in the definition of the bibliography environment.
 
 \lenitem{labelalphawidth}
@@ -11712,6 +11754,18 @@ This counter holds the highest number found in any \bibfield{extraalpha} field.
 \cntitem{maxextradate}
 
 This counter holds the highest number found in any \bibfield{extradate} field.
+
+\cntitem{maxextraname}
+
+This counter holds the highest number found in any \bibfield{extraname} field.
+
+\cntitem{maxextratitle}
+
+This counter holds the highest number found in any \bibfield{extratitle} field.
+
+\cntitem{maxextratitleyear}
+
+This counter holds the highest number found in any \bibfield{extratitleyear} field.
 
 \cntitem{refsection}
 
@@ -12377,11 +12431,11 @@ When defining \cmd{bbx@xref}, the \prm{precode}, \prm{postcode}, and \prm{sepcod
 There is one fundamental principle style authors should keep in mind when designing a bibliography driver: block and unit punctuation is handled asynchronously. This is best explained by way of example. Consider the following code snippet:
 
 \begin{ltxexample}
-\printfield{title}% 
-\newunit 
+\printfield{title}%
+\newunit
 \printfield{edition}%
-\newunit 
-\printfield{note}% 
+\newunit
+\printfield{note}%
 \end{ltxexample}
 %
 If there is no \bibfield{edition} field, this piece of code will not print:
@@ -12411,11 +12465,11 @@ because the unit punctuation tracker works asynchronously. \cmd{newunit} will no
 Block and unit punctuation will only be inserted if \emph{all} of these conditions apply. Let's reconsider the above example:
 
 \begin{ltxexample}
-\printfield{title}% 
-\newunit 
+\printfield{title}%
+\newunit
 \printfield{edition}%
-\newunit 
-\printfield{note}% 
+\newunit
+\printfield{note}%
 \end{ltxexample}
 %
 Here's what happens if the \bibfield{edition} field is undefined. The first \cmd{printfield} command prints the title and sets an internal <new~text> flag. The first \cmd{newunit} sets an internal <new~unit> flag. No punctuation has been printed at this point. The second \cmd{printfield} does nothing because the \bibfield{edition} field is undefined. The next \cmd{newunit} command sets the internal flag <new unit> again. Still no punctuation has been printed. The third \cmd{printfield} checks if the \bibfield{note} field is defined. If so, it looks at the <new~text> and <new~unit> flags. If both are set, it inserts the punctuation buffer before printing the note. It then clears the <new~unit> flag and sets the <new~text> flag again.
@@ -12444,8 +12498,8 @@ This may all sound more complicated than it is. In practice, it means that it is
 It is a fairly common misconception to think of the unit punctuation as something that is handled synchronously. This typically causes problems if the driver includes any literal text. Consider this erroneous code snippet which will generate misplaced unit punctuation:
 
 \begin{ltxexample}
-\printfield{title}% 
-\newunit 
+\printfield{title}%
+\newunit
 <<(>>\printfield{series} \printfield{number}<<)>>%
 \end{ltxexample}
 %
@@ -12921,11 +12975,11 @@ The schema model, type and schema type namespace are given in the following line
 
 \begin{lstlisting}[language=xml]
 <?xml-model href="biblatexml.rng"
-            type="application/xml"            
+            type="application/xml"
             schematypens="http://relaxng.org/ns/structure/1.0"?>
 \end{lstlisting}
 %
-When \biber\ generates \biblatexml\ data sources, it automatically adds this line and points the schema model (href) attribute at the automatically generated RelaXNG XML schema for ease of validation. 
+When \biber\ generates \biblatexml\ data sources, it automatically adds this line and points the schema model (href) attribute at the automatically generated RelaXNG XML schema for ease of validation.
 
 \subsection{Body}
 
@@ -12951,7 +13005,7 @@ The body is one or more \bibfield{entry} elements inside the top-level \bibfield
 \begin{lstlisting}[language=xml]
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-model href="biblatexml.rng"
-            type="application/xml"            
+            type="application/xml"
             schematypens="http://relaxng.org/ns/structure/1.0"?>
 <bltx:entries
   xmlns:bltx="http://biblatex-biber.sourceforge.net/biblatexml">
@@ -13096,7 +13150,7 @@ Related entries are specified as follows:
 \begin{lstlisting}[language=xml]
     <bltx:related>
       <bltx:item type="reprint"
-                 ids="rel1,rel2" 
+                 ids="rel1,rel2"
                  string="Somestring"
                  options="skipbiblist"/>
     </bltx:related>
@@ -13113,7 +13167,7 @@ This corresponds to the \bibtex\ format:
 }
 \end{lstlisting}
 %
-As per \secref{aut:ctm:rel}, the \bibfield{string} and \bibfield{options} attributes are optional. 
+As per \secref{aut:ctm:rel}, the \bibfield{string} and \bibfield{options} attributes are optional.
 
 \section{Option Scope}
 \label{apx:opt}
@@ -13156,7 +13210,7 @@ Per-name:
 	V{0.3\textwidth}@{}%
 	C{0.1\textwidth}@{}%
   C{0.1\textwidth}@{}%
-  C{0.1\textwidth}@{}%  
+  C{0.1\textwidth}@{}%
   C{0.1\textwidth}@{}%
   C{0.1\textwidth}@{}%
   C{0.1\textwidth}@{}%
@@ -13238,6 +13292,7 @@ loccittracker	&\+&\+&\_&\_&\_&\_&\_\\
 maxalphanames	&\+&\+&\_&\+&\+&\_&\_\\
 maxbibnames	&\+&\+&\_&\+&\+&\_&\_\\
 maxcitenames	&\+&\+&\_&\+&\+&\_&\_\\
+maxsortnames	&\+&\+&\_&\+&\+&\_&\_\\
 maxitems	&\+&\+&\_&\+&\+&\_&\_\\
 maxnames	&\+&\+&\_&\+&\+&\_&\_\\
 maxparens	&\+&\+&\_&\_&\_&\_&\_\\
@@ -13245,6 +13300,7 @@ mcite		&\+&\_&\_&\_&\_&\_&\_\\
 minalphanames	&\+&\+&\_&\+&\+&\_&\_\\
 minbibnames	&\+&\+&\_&\+&\+&\_&\_\\
 mincitenames	&\+&\+&\_&\+&\+&\_&\_\\
+minsortnames	&\+&\+&\_&\+&\+&\_&\_\\
 mincrossrefs	&\+&\+&\_&\_&\_&\_&\_\\
 minxrefs	&\+&\+&\_&\_&\_&\_&\_\\
 minitems	&\+&\+&\_&\+&\+&\_&\_\\
@@ -13297,7 +13353,19 @@ use$<$name$>$	&\+&\+&\_&\+&\+&\_&\_\\
 This revision history is a list of changes relevant to users of this package. Changes of a more technical nature which do not affect the user interface or the behavior of the package are not included in the list. More technical details are to be found in the \file{CHANGES.md} file. The numbers on the right indicate the relevant section of this manual.
 
 \begin{changelog}
-\begin{release}{3.11}{2018-02-20}
+\begin{release}{3.12}{2018-??-??}
+\item Added \bibfield{langid}s optional argument to \cmd{DeclareSortTranslit}\see{aut:ctm:srt}
+\item Added \opt{noroman} option\see{use:opt:pre:int}
+\item Changed \bibfield{sortyear} to an integer field\see{bib:fld:spc}
+\item Added \bibfield{extraname}\see{aut:bbx:fld:lab}
+\item Added \opt{bibencoding} option to \cmd{addbibresource}\see{use:bib:res}
+\item Changed type of \bibfield{number} from integer to literal \see{bib:fld:dat}
+\item Added \opt{maxsortnames} and \opt{minsortnames}\see{use:opt:pre:gen}
+\item Added \cmd{DeprecateFieldFormatWithReplacement} and friends\see{aut:bib:fmt}
+\item Added \cs{ifdateyearsequal}\see{aut:aux:tst}
+\end{release}
+
+  \begin{release}{3.11}{2018-02-20}
 \item Added \opt{entrynocite} option to sourcemapping\see{aut:ctm:map}
 \item Added \opt{driver} and \opt{biblistfilter} options to \cmd{printbiblist}\see{use:bib:biblist}
 \item Added \cmd{mknormrange}\see{aut:aux:msc}
@@ -13305,6 +13373,7 @@ This revision history is a list of changes relevant to users of this package. Ch
 \item Extended \cmd{iffieldannotation} and friends\see{use:annote}
 \item Changed \cmd{DeclareSourcemap} so that it can be used multiple times\see{aut:ctm:map}
 \item Added Latvian localisation (Rihards Skuja)
+\item Added \opt{locallabelwidth} option\see{use:opt:pre:gen}
 \end{release}
 
 \begin{release}{3.10}{2017-12-19}
