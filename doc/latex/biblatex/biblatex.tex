@@ -4789,10 +4789,22 @@ The delimiters described in \secref{use:fmt:fmt} are globally defined. That is, 
 Declares the delimiter macros in the comma"=separated list \prm{names} with the replacement test \prm{code}. If the optional comma"=separated list of \prm{contexts} is given, declare the \prm{names} only for those contexts. \prm{names} defined without any \prm{contexts} behave just like the global delimiter definitions which \cmd{newcommand} gives---just a plain macro with a replacement which can be used as \cmd{name}. However, you can also call delimiter macros defined in this way by using \cmd{printdelim}, which is context-aware. The starred version clears all \prm{context} specific declarations for all \prm{names} first.
 
 \cmditem{DeclareDelimAlias}{alias}{delim}
-\cmditem*{DeclareDelimAlias}*[context, \dots]{alias}{delim}
+\cmditem*{DeclareDelimAlias}*[alias context, \dots]{alias}[delim context]{delim}
 
-Declares \prm{alias} to be an alias for the delimiter \prm{delim}. The assigment is valid for all existing contexts of \prm{alias}.
-The starred version assigns the alias for the given \opt{contexts} only---if the optional argument is empty, assigment is for the global/empty context.
+Declares \prm{alias} to be an alias for the delimiter \prm{delim}. The assigment is performed for all existing contexts of the target \prm{delim}.
+The starred version assigns the alias for specific contexts only. The first optional argument \prm{alias context} holds a list of contexts for which the assignment is going to be performed. If it is empty or missing the global/empty context is assumed. The second optional argument \prm{delim context} specifies the context of the target delimiter. This argument may not be a list, it can only hold one context. If it is missing the \prm{alias context} is assumed (if \prm{alias context} is a list, the assignment is performed separately for each list item), if it is empty the global context is used.
+
+\begin{ltxexample}[style=latex]
+\DeclareDelimAlias*[bib,biblist]{finalnamedelim}[]{multinamedelim}
+\end{ltxexample}
+%
+Defines the \opt{bib} and \opt{biblist} contexts of \cmd{finalnamedelim} as aliases of \cmd{multinamedelim} in global context.
+On the other hand
+\begin{ltxexample}[style=latex]
+\DeclareDelimAlias*[bib,biblist]{finalnamedelim}{multinamedelim}
+\end{ltxexample}
+%
+defines \cmd{finalnamedelim} in the context \opt{bib} to be an alias of \cmd{multinamedelim} in the \opt{bib} context and defines \cmd{finalnamedelim} in \opt{biblist} context to be an alias of \cmd{multinamedelim} in \opt{biblist}.
 
 \cmditem{printdelim}[context]{name}
 
