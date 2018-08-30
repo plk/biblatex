@@ -489,6 +489,8 @@
 \def\theminitems{\the\c@minitems}
 \newcounter{citecounter}
 \def\thecitecount{\the\c@citecounter}
+\newcounter{maxcitecounter}
+\def\themaxcitecounter{\the\c@maxcitecounter}
 \newcounter{savedcitecounter}
 \def\thecitecount{\the\c@savedcitecounter}
 \newcounter{uniquelist}
@@ -3501,7 +3503,7 @@
                   and not test {\ifdatehastime{#2}})
               or (not test {\ifdatehastime{#1}}
                   and test {\ifdatehastime{#2}})}}
-                  
+
 \def\blx@imc@ifdateyearsequal#1#2{%
   \ifboolexpr{ test {\iffieldsequal{#1year}{#2year}}
                and test {\iffieldsequal{#1dateera}{#2dateera}}}}
@@ -9703,10 +9705,31 @@
     {}}
 
 % {<refsection>}{<entrykey>}
+% set maxcitecounter as well, note that we also define a maxcitecounter across
+% all refsections, but that does not have a high-level interface
 \protected\def\blx@aux@count#1#2{%
-  \csnumgdef{blx@count@#1@\detokenize{#2}}{\csuse{blx@count@#1@\detokenize{#2}}+1}}
+  \csnumgdef{blx@count@#1@\detokenize{#2}}{%
+    \csuse{blx@count@#1@\detokenize{#2}}+1}%
+  \ifnumgreater{\csuse{blx@count@#1@\detokenize{#2}}}{%
+      0\csuse{blx@maxcitecounter@#1}}
+    {\csnumgdef{blx@maxcitecounter@#1}{\csuse{blx@count@#1@\detokenize{#2}}}}
+    {}
+  \ifnumgreater{\csuse{blx@count@#1@\detokenize{#2}}}{%
+      0\csuse{blx@maxcitecounter}}
+    {\csnumgdef{blx@maxcitecounter}{\csuse{blx@count@#1@\detokenize{#2}}}}
+    {}}
+
 \protected\def\blx@aux@fncount#1#2{%
-  \csnumgdef{blx@fncount@#1@\detokenize{#2}}{\csuse{blx@fncount@#1@\detokenize{#2}}+1}}
+  \csnumgdef{blx@fncount@#1@\detokenize{#2}}{%
+    \csuse{blx@fncount@#1@\detokenize{#2}}+1}%
+  \ifnumgreater{\csuse{blx@fncount@#1@\detokenize{#2}}}{%
+      0\csuse{blx@maxfncitecounter@#1}}
+    {\csnumgdef{blx@maxfncitecounter@#1}{\csuse{blx@fncount@#1@\detokenize{#2}}}}
+    {}
+  \ifnumgreater{\csuse{blx@fncount@#1@\detokenize{#2}}}{%
+      0\csuse{blx@maxfncitecounter}}
+    {\csnumgdef{blx@maxfncitecounter}{\csuse{blx@fncount@#1@\detokenize{#2}}}}
+    {}}
 
 \let\abx@aux@count\@gobbletwo
 \let\abx@aux@fncount\@gobbletwo
@@ -9717,14 +9740,22 @@
 
 \protected\def\blx@setcitecounter@global{%
   \c@citecounter0%
-  \csuse{blx@count@\the\c@refsection @\abx@field@entrykey}%
+    \csuse{blx@count@\the\c@refsection @\abx@field@entrykey}%
+  \relax
+  \c@maxcitecounter0%
+    \csuse{blx@maxcitecounter@\the\c@refsection}%
   \relax}
 
 \protected\def\blx@setcitecounter@context{%
   \c@citecounter0%
-  \iftoggle{blx@footnote}
-    {\csuse{blx@fncount@\the\c@refsection @\abx@field@entrykey}}
-    {\csuse{blx@count@\the\c@refsection @\abx@field@entrykey}}%
+    \iftoggle{blx@footnote}
+      {\csuse{blx@fncount@\the\c@refsection @\abx@field@entrykey}}
+      {\csuse{blx@count@\the\c@refsection @\abx@field@entrykey}}%
+  \relax
+  \c@maxcitecounter0%
+    \iftoggle{blx@footnote}
+      {\csuse{blx@maxfncitecounter@\the\c@refsection}}
+      {\csuse{blx@maxcitecounter@\the\c@refsection}}%
   \relax}
 
 % cite tracker
