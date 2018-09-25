@@ -687,7 +687,9 @@ FUNCTION {format:name:part} {
 }
 
 FUNCTION {format:name:initials} {
+  ".-" "\bibinithyphendelim " str:replace
   ".~" "\bibinitperiod\bibinitdelim " str:replace
+  ". " "\bibinitperiod\bibinitdelim " str:replace
   "." "\bibinitperiod" str:replace
 }
 
