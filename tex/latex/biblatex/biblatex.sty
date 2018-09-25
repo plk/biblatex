@@ -669,6 +669,7 @@
 % etc. between runs
 \global\let\blx@cites\@empty
 \global\let\blx@nocites\@empty
+\global\let\blx@directcites\@empty
 \global\let\blx@refcontexts\@empty
 \global\let\blx@lastrefcontexts\@empty
 \global\let\blx@sortingtemplatenames\@empty
@@ -8726,7 +8727,7 @@
   \xifinlist{\blx@refcontext@context @\blx@tempe @list}\blx@dlistnames
     {}
     {\listxadd\blx@dlistnames{\blx@refcontext@context @\blx@tempe @list}%
-     \csxappto{blx@dlists}{%
+     \xappto\blx@dlists{%
        \blx@xml@dlist{\blx@refcontext@context}{list}{\blx@tempe}{\blx@xml@dlist@refcontext{\blx@tempc}{\blx@refcontext@sortingnamekeytemplatename}{\blx@refcontext@labelprefix}{\blx@refcontext@uniquenametemplatename}{\blx@refcontext@labelalphanametemplatename}}{\csuse{blx@biblistfilters@\blx@thebiblistfilter}}}}%
   \ifdefvoid\blx@tempa
     {\blx@warn@biblistempty{#2}\endgroup}
@@ -9422,11 +9423,17 @@
   \ifinlist{#1}\blx@nocites
     {}
     {\listgadd\blx@nocites{#1}}%
-  \blx@citation{#1}{#2}}
+  \blx@citation@i{#1}{#2}}
 
 % {<entrykey>}{<message>}
 % Just a wrapper to suppress citation tracking in toc/lof etc.
 \def\blx@citation#1#2{%
+  \ifinlist{#1}\blx@directcites
+    {}
+    {\listgadd\blx@directcites{#1}}%
+  \blx@citation@i{#1}{#2}}
+
+\def\blx@citation@i#1#2{%
   \ifbool{citerequest}
     {\blx@citation@entry{#1}{#2}}
     {}}
@@ -9473,7 +9480,13 @@
   \begingroup
   \blx@xmlsanitizeafter{\def\blx@tempa}{#1}%
   \let\blx@tempb\@empty
-  \ifinlist{#1}\blx@nocites
+  % Only output as \nocited if a key wasn't also directly \cite'd
+  % Since citekey output is sequential as cites are read, the .bcf might contain
+  % duplicate keys with differring nocite attributes if \nocite{X} and \cite{X} both occur
+  % but biber deals with this and priorities \cites
+  \ifboolexpr{test {\ifinlist{#1}\blx@nocites}
+              and
+              not test {\ifinlist{#1}\blx@directcites}}
     {\def\blx@tempb{ nocite="1"}}
     {}%
   % citeall is always order "0" - this makes no real difference as biber
