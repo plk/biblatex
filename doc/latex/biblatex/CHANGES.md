@@ -30,7 +30,10 @@
   `\iffieldequals{#1year}{#2year}` to compare years. The latter can lead to
   undesired results if the years have opposite signs, but are otherwise the
   same.
-  
+- Deprecate `\labelnamepunct` in favour of the context-sensitive
+  `nametitledelim`.
+  For compatibility reasons `\labelnamepunct` still pops up in the code here
+  and there, but `nametitledelim` should be preferred now.
 
 # RELEASE NOTES FOR VERSION 3.11
 - `\printbiblist` now supports `driver` and `biblistfilter` options
