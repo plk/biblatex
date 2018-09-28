@@ -190,6 +190,7 @@ Kristian Kankainen, Benson Muite (Estonian);
 Hannu Väisänen, Janne Kujanpää (Finnish);
 Denis Bitouzé (French);
 Apostolos Syropoulos, Prokopis (Greek);
+Márton Marczell, Bence Ferdinandy (Hungarian);
 Baldur Kristinsson (Icelandic);
 Enrico Gregorio, Andrea Marchitelli (Italian);
 Rihards Skuja (Latvian);
@@ -1198,6 +1199,7 @@ German (new) & Germany        & \opt{ngerman} \\
              & Austria        & \opt{naustrian} \\
              & Switzerland    & \opt{nswissgerman} \\
 Greek        & Greece         & \opt{greek} \\
+Hungarian    & Hungary        & \opt{magyar}, \opt{hungarian} \\
 Icelandic    & Iceland        & \opt{icelandic} \\
 Italian      & Italy          & \opt{italian} \\
 Latvian      & Latvia         & \opt{latvian} \\
@@ -4596,8 +4598,8 @@ This command should be used with \cmd{bibnamedelimd} as a reversed-name separato
 \csitem{bibnamedash}
 The dash to be used as a replacement for recurrent authors or editors in the bibliography. The default is an <em> or an <en> dash, depending on the indentation of the list of references.
 
-\csitem{labelnamepunct}
-The separator printed after the name used for alphabetizing in the bibliography (\bibfield{author} or \bibfield{editor}, if the \bibfield{author} field is undefined). With the default styles, this separator replaces \cmd{newunitpunct} at this location. The default definition is \cmd{newunitpunct}, \ie it is not handled differently from regular unit punctuation. See also \cmd{nametitledelim} \secref{use:fmt:csd}.
+\csitem{labelnamepunct}\DeprecatedMark
+A separator to be printed after the name used for alphabetizing in the bibliography (\bibfield{author} or \bibfield{editor}, if the \bibfield{author} field is undefined) instead of \cmd{newunitpunct}. The default is \cmd{newunitpunct}, \ie it is not handled differently from regular unit punctuation but permits convenient reconfiguration. This punctuation command is deprecated and has been superseded by the context-sensitive \cmd{nametitledelim} (see \secref{use:fmt:csd}). For backwards compatibility reasons, however, \cmd{nametitledelim} still defaults to \cmd{labelnamepunct} in the \texttt{bib} and \texttt{biblist} contexts. Style authors may want to consider replacing \cmd{labelnampunct} with \texttt{\textbackslash printdelim\{nametitledelim\}} and users may want to prefer modifying the context-sensitive \texttt{nametitledelim} with \cmd{DeclareDelimFormat} over redefining \cmd{labelnamepunct}.
 
 \csitem{subtitlepunct}
 The separator printed between the fields \bibfield{title} and \bibfield{subtitle}, \bibfield{booktitle} and \bibfield{booksubtitle}, as well as \bibfield{maintitle} and \bibfield{mainsubtitle}. With the default styles, this separator replaces \cmd{newunitpunct} at this location. The default definition is \cmd{newunitpunct}, \ie it is not handled differently from regular unit punctuation.
@@ -4688,16 +4690,16 @@ Prints date era information when the global option \opt{dateera} is set to <astr
 Similar to \cmd{multicitedelim}, but used by \cmd{textcite} and related commands (\secref{use:cit:cbx}). The default is a comma plus an interword space. The standard styles modify this provisional definition to ensure that the delimiter before the final citation is the localised term <and>, separated by interword spaces. See also \cmd{finalandcomma} and \cmd{finalandsemicolon} in \secref{use:fmt:lng}.
 
 \csitem{nametitledelim}\CSdelimMark
-The delimiter printed between the author\slash editor and the title by author-title and some verbose citation styles. The default definition inside bibliographies is \cmd{labelnamepunct} and is a comma plus an interword space otherwise.
+The delimiter printed between the author\slash editor and the title by author-title and some verbose citation styles and in the bibliography. In author-year bibliography styles this delimiter is placed after the author\slash editor and year and before the title. The default definition inside bibliographies is the now deprecated \cmd{labelnamepunct} and is a comma plus an interword space otherwise.
 
 \csitem{nameyeardelim}\CSdelimMark
-The delimiter printed between the author\slash editor and the year by author-year citation styles. The default definition is an interword space.
+The delimiter printed between the author\slash editor and the year by author-year citation and bibliography styles. The default definition is an interword space.
 
 \csitem{namelabeldelim}\CSdelimMark
 The delimiter printed between the name\slash title and the label by alphabetic and numeric citation styles. The default definition is an interword space.
 
 \csitem{nonameyeardelim}\CSdelimMark
-The delimiter printed between the substitute for the labelname when it does not exist (usually the label or title in standard styles) and the year in author-year citation styles. This is only used when there is no labelname since when the labelname exists, \cmd{nameyeardelim} is used. The default definition is an interword space.
+The delimiter printed between the substitute for the labelname when it does not exist (usually the label or title in standard styles) and the year in author-year citation and bibliography styles. This is only used when there is no labelname since when the labelname exists, \cmd{nameyeardelim} is used. The default definition is an interword space.
 
 \csitem{authortypedelim}\CSdelimMark
 The delimiter printed between the author and the \texttt{authortype}.
@@ -4790,10 +4792,22 @@ The delimiters described in \secref{use:fmt:fmt} are globally defined. That is, 
 Declares the delimiter macros in the comma"=separated list \prm{names} with the replacement test \prm{code}. If the optional comma"=separated list of \prm{contexts} is given, declare the \prm{names} only for those contexts. \prm{names} defined without any \prm{contexts} behave just like the global delimiter definitions which \cmd{newcommand} gives---just a plain macro with a replacement which can be used as \cmd{name}. However, you can also call delimiter macros defined in this way by using \cmd{printdelim}, which is context-aware. The starred version clears all \prm{context} specific declarations for all \prm{names} first.
 
 \cmditem{DeclareDelimAlias}{alias}{delim}
-\cmditem*{DeclareDelimAlias}*[context, \dots]{alias}{delim}
+\cmditem*{DeclareDelimAlias}*[alias context, \dots]{alias}[delim context]{delim}
 
-Declares \prm{alias} to be an alias for the delimiter \prm{delim}. The assigment is valid for all existing contexts of \prm{alias}.
-The starred version assigns the alias for the given \opt{contexts} only---if the optional argument is empty, assigment is for the global/empty context.
+Declares \prm{alias} to be an alias for the delimiter \prm{delim}. The assigment is performed for all existing contexts of the target \prm{delim}.
+The starred version assigns the alias for specific contexts only. The first optional argument \prm{alias context} holds a list of contexts for which the assignment is going to be performed. If it is empty or missing the global/empty context is assumed. The second optional argument \prm{delim context} specifies the context of the target delimiter. This argument may not be a list, it can only hold one context. If it is missing the \prm{alias context} is assumed (if \prm{alias context} is a list, the assignment is performed separately for each list item), if it is empty the global context is used.
+
+\begin{ltxexample}[style=latex]
+\DeclareDelimAlias*[bib,biblist]{finalnamedelim}[]{multinamedelim}
+\end{ltxexample}
+%
+Defines the \opt{bib} and \opt{biblist} contexts of \cmd{finalnamedelim} as aliases of \cmd{multinamedelim} in global context.
+On the other hand
+\begin{ltxexample}[style=latex]
+\DeclareDelimAlias*[bib,biblist]{finalnamedelim}{multinamedelim}
+\end{ltxexample}
+%
+defines \cmd{finalnamedelim} in the context \opt{bib} to be an alias of \cmd{multinamedelim} in the \opt{bib} context and defines \cmd{finalnamedelim} in \opt{biblist} context to be an alias of \cmd{multinamedelim} in \opt{biblist}.
 
 \cmditem{printdelim}[context]{name}
 
@@ -4844,10 +4858,11 @@ For example, the defaults for \cmd{nametitledelim} are:
 
 \begin{ltxexample}[style=latex]
 \DeclareDelimFormat{nametitledelim}{\addcomma\space}
+\DeclareDelimFormat[bib,biblist]{nametitledelim}{\labelnamepunct}
 \DeclareDelimFormat[textcite]{nametitledelim}{\addspace}
 \end{ltxexample}
 %
-This means that \cmd{nametitledelim} is defined globally as <\cmd{addcomma}\cmd{space}> as per the standard delimiter interface. However, in addition, the delimiter can be printed using \cmd{printdelim} which would print the same as \cmd{nametitledelim} apart from inside a \cmd{textcite}, in which it would print \cmd{addspace} which is more suitable for running text. If desired, a context can be forced with the optional argument to \cmd{printdelim}, so
+This means that \cmd{nametitledelim} is defined globally as <\cmd{addcomma}\cmd{space}> as per the standard delimiter interface. However, in addition, the delimiter can be printed using \cmd{printdelim} which would print the same as \cmd{nametitledelim} apart from inside a \cmd{textcite}, in which it would print \cmd{addspace} which is more suitable for running text, and in a bibliography (list) in which it takes the value of \cmd{labelnamepunct} for compatibility reasons. If desired, a context can be forced with the optional argument to \cmd{printdelim}, so
 
 \begin{ltxexample}[style=latex]
 \printdelim[textcite]{nametitledelim}
@@ -5146,6 +5161,12 @@ The Greek localisation module requires \utf support. It will not work with any o
 \label{use:loc:rus}
 
 Like the Greek localisation module, the Russian module also requires \utf support. It will not work with any other encoding.
+
+\subsubsection{Hungarian}
+\label{use:loc:hun}
+
+The Hungarian localisation module needs to redefine certain field formats to obtain the grammatically correct word order. This means that these field formats are overwritten whenever the Hungarian localisation is active, no matter whether they were defined in the preamble or by a custom style. So please be aware that using the Hungarian localisation module may cause the bibliography output to deviate from the format dictated by the loaded style and preamble definitions. Changes to this behaviour need to be made using \cmd{DefineBibliographyExtras}. In particular \cmd{mkpageprefix} is redefined to output the page number as a prefix following Hungarian convention, and all formats of fields involving pages were modified so that page ranges are printed as ordinal ranges. The Hungarian localisation module will print a warning to remind you of these changes whenever it is loaded in a document. The warning tells you how to silence it.
+
 
 \subsection{Usage Notes}
 \label{use:use}
@@ -7362,7 +7383,9 @@ A mapping step. Each step is applied sequentially to every relevant entry where 
 \valitem{notfield}{entryfield}
 \valitem{fieldtarget}{entryfield}
 \valitem{match}{regexp}
+\valitem{matchi}{regexp}
 \valitem{notmatch}{regexp}
+\valitem{notmatchi}{regexp}
 \valitem{replace}{regexp}
 \valitem{fieldset}{entryfield}
 \valitem{fieldvalue}{string}
@@ -7415,7 +7438,7 @@ For all boolean \cmd{step} options, the short form \opt{option} is equivalent to
 \item If \texttt{notfield} is used then only apply the step if the \prm{entryfield} does not exist.
 \item If \texttt{match} is defined but
   \texttt{replace} is not, only apply the step if the \texttt{fieldsource} \prm{entryfield} matches the
-  \texttt{match} regular expression (logic is reversed if you use \texttt{notmatch} instead)\footnote{Regular expressions are full Perl 5.16 regular expressions. This means you may need to deal with special characters, see examples.}. You may use capture parenthesis as usual and refer to these (\$1\ldots\$9) in later \texttt{fieldvalue} specifications. This allows you to pull out parts of some fields and put these parts in other fields.
+  \texttt{match} regular expression (logic is reversed if you use \texttt{notmatch} and case-insensitive if you use the versions ending in <i>)\footnote{Regular expressions are full Perl 5.16 regular expressions. This means you may need to deal with special characters, see examples.}. You may use capture parenthesis as usual and refer to these (\$1\ldots\$9) in later \texttt{fieldvalue} specifications. This allows you to pull out parts of some fields and put these parts in other fields.
 \item Perform a regular expression match and replace on the value of the \texttt{fieldsource} \prm{entryfield} if \texttt{match} and \texttt{replace} are defined.
 \item If \texttt{fieldset} is defined, then its value is \prm{entryfield}
   which will be set to a value specified by further options. If
@@ -8775,7 +8798,7 @@ russian & bgn/pcgn-standard & BGN/PCGN:1947 (Standard Variant), Cyrillic to Lati
 \subsubsection[Bibliography List Filters]{Bibliography List Filters}
 \label{aut:ctm:bibfilt}
 
-When using customisable bibliography lists (See \secref{use:bib:biblist}), usually one wants to return in the \file{.bbl} only those entries which have the particular fields which the bibliography list is summarising. For example, when printing a normal list of shorthands, you want the list returned by \biber in the \file{.bbl} to contain only those entries which have a \bibfield{shorthand} field. This is accomplished by defining a bibliography list filter using the \cmd{DeclareBiblistFilter} command. This differs from the filters defined using \cmd{defbibfilter} (see \secref{use:bib:flt}) since the filters defined by \cmd{defbibfilter} run inside \biblatex after the \file{.bbl} has been generated. In addition, bibliography lists in the \file{.bbl} do not contain entry data, only the citation keys for the entries and so no filtering by \biblatex using \cmd{defbibfilter} is possible for bibliography lists.
+When using customisable bibliography lists (See \secref{use:bib:biblist}), usually one wants to return in the \file{.bbl} only those entries which have the particular fields which the bibliography list is summarising. For example, when printing a normal list of shorthands, you want the list returned by \biber in the \file{.bbl} to contain only those entries which have a \bibfield{shorthand} field. This is accomplished by defining a bibliography list filter using the \cmd{DeclareBiblistFilter} command. This differs from the filters defined using \cmd{defbibfilter} (see \secref{use:bib:flt}) since the filters defined by \cmd{defbibfilter} run inside \biblatex after the \file{.bbl} has been generated.
 
 \begin{ltxsyntax}
 \cmditem{DeclareBiblistFilter}{name}{specification}
@@ -9547,6 +9570,10 @@ Expands to \prm{true} if the entry was inclued in the \file{.bbl} due to being r
 
 Expands to \prm{true} if there is only one work by the \opt{labelname} name in the bibliography, and to \prm{false} otherwise. If \opt{labelname} is not set for an entry, this will always expand to \prm{false}. Note that this feature needs to be enabled explicitly with the package option \opt{singletitle}.
 
+\cmditem{ifnocite}{true}{false}
+
+Expands to \prm{true} if the entry was \emph{only} included in the \file{.bbl} via \cmd{nocite}. That is, returns \prm{false} if an entry was both \cmd{nocite}'d and \cmd{cite}'d.
+
 \cmditem{ifuniquetitle}{true}{false}
 
 Expands to \prm{true} if there is only one work with the title \opt{labeltitle} and to \prm{false} otherwise. If \opt{labeltitle} is not set for an entry, this will always expand to \prm{false}. Note that this feature needs to be enabled explicitly with the package option \opt{uniquetitle}.
@@ -9742,6 +9769,10 @@ Expands to \prm{true} when located in a footnote, and to \prm{false} otherwise. 
 \cntitem{citecounter}
 
 This counter indicates how many times the entry currently being processed is cited in the current reference section. Note that this feature needs to be enabled explicitly with the package option \opt{citecounter}. If the option is set to \texttt{context}, citations in the body text and in footnotes are counted separately. In this case, \cnt{citecounter} will hold the value of the context it is used in.
+
+\cntitem{maxcitecounter}
+
+This counter holds the maximum value of \cnt{citecounter} across all entries in the current reference section. Like \cnt{citecounter} it is only available if the \opt{citecounter} option is enabled and tracks footnotes and text separately if the option is set to \texttt{context}.
 
 \cntitem{uniquename}
 This counter refers to the \bibfield{labelname} list. It is set on a per-name basis. Its value is \texttt{0} if the base parts of the name (by default just the <family> part of the name) are unique, \texttt{1} if adding the other non-base parts of the name (as specified in the uniquename template defined by \cmd{DeclareUniquenameTemplate}) as initials will make it unique, and \texttt{2} if adding the full form of the non-base parts of the name are required to disambiguate the name. This information is required by author-year and author-title citation schemes which add additional parts of the name when citing different authors with the same family name. For example, (given the default \cmd{DeclareUniquenameTemplate} definition) if there is one <John Doe> and one <Edward Doe> in the list of references, this counter will be set to \texttt{1}. If there is one <John Doe> and one <Jane Doe>, the value of the counter will be \texttt{2}. If the option is set to \texttt{init}\slash \texttt{allinit}\slash \texttt{mininit}, the counter will be limited to \texttt{1}. This is useful for citations styles which use initials to disambiguate names but never print the full name in citations. If adding the initials is not sufficient to disambiguate the name, \cnt{uniquename} will also be set to \texttt{0} for that name. This feature needs to be enabled explicitly with the package option \opt{uniquename}. Note that the \cnt{uniquename} counter is local to \cmd{printnames} and that it is only set for the \bibfield{labelname} list and for the name list that \bibfield{labelname} has been derived from (typically \bibfield{author} or \bibfield{editor}). Its value is zero in any other context, i.e., it must be evaluated in the name formatting directives handling name lists. See \secref{aut:cav:amb} for further details and practical examples. This counter can be overridden on a per-namepart basis by consulting the \cmd{namepart<namepart>un} macros during name formatting, see \secref{aut:bbx:drv}.
@@ -11104,6 +11135,7 @@ Other expressions frequently used in citations:
 \item[langfrench] The language <French>.
 \item[langgerman] The language <German>.
 \item[langgreek] The language <Greek>.
+\item[langhungarian] The language <Hungarian>.
 \item[langitalian] The language <Italian>.
 \item[langjapanese] The language <Japanese>.
 \item[langlatin] The language <Latin>.
@@ -11136,6 +11168,7 @@ The following strings are intended for use in phrases like <translated from [the
 \item[fromfrench] The expression <from [the] French>.
 \item[fromgerman] The expression <from [the] German>.
 \item[fromgreek] The expression <from [the] Greek>.
+\item[fromhungarian] The language <from [the] Hungarian>.
 \item[fromitalian] The expression <from [the] Italian>.
 \item[fromjapanese] The expression <from [the] Japanese>.
 \item[fromlatin] The expression <from [the] Latin>.
@@ -11291,8 +11324,8 @@ The punctuation to be printed between the given and family name parts when a nam
 \csitem{bibnamedash}
 The dash to be used as a replacement for recurrent authors or editors in the bibliography. The default is an <em> or an <en> dash, depending on the indentation of the list of references.
 
-\csitem{labelnamepunct}
-The separator to be printed after the name used for alphabetizing in the bibliography (\bibfield{author} or \bibfield{editor}, if the \bibfield{author} field is undefined). Use this separator instead of \cmd{newunitpunct} at this location. The default is \cmd{newunitpunct}, \ie it is not handled differently from regular unit punctuation but permits convenient reconfiguration. See also \cmd{nametitledelim} \secref{use:fmt:csd}.
+\csitem{labelnamepunct}\DeprecatedMark
+A separator to be printed after the name used for alphabetizing in the bibliography (\bibfield{author} or \bibfield{editor}, if the \bibfield{author} field is undefined) instead of \cmd{newunitpunct}. The default is \cmd{newunitpunct}, \ie it is not handled differently from regular unit punctuation but permits convenient reconfiguration. This punctuation command is deprecated and has been superseded by the context-sensitive \cmd{nametitledelim} (see \secref{use:fmt:csd}). For backwards compatibility reasons, however, \cmd{nametitledelim} still defaults to \cmd{labelnamepunct} in the \texttt{bib} and \texttt{biblist} contexts. Style authors may want to consider replacing \cmd{labelnampunct} with \texttt{\textbackslash printdelim\{nametitledelim\}} and users may want to prefer modifying the context-sensitive \texttt{nametitledelim} with \cmd{DeclareDelimFormat} over redefining \cmd{labelnamepunct}.
 
 \csitem{subtitlepunct}
 The separator to be printed between the fields \bibfield{title} and \bibfield{subtitle}, \bibfield{booktitle} and \bibfield{booksubtitle}, as well as \bibfield{maintitle} and \bibfield{mainsubtitle}. Use this separator instead of \cmd{newunitpunct} at this location. The default is \cmd{newunitpunct}, \ie it is not handled differently from regular unit punctuation but permits convenient reconfiguration.
@@ -11340,16 +11373,16 @@ Similar to \cmd{multicitedelim}, but intended for citation styles that <compress
 Similar to \cmd{multicitedelim}, but intended for \cmd{textcite} and related commands (\secref{use:cit:cbx}).
 
 \csitem{nametitledelim}
-The delimiter to be printed between the author\slash editor and the title. This command should be incorporated in the definition of all citation commands of author-title and some verbose citation styles.
+The delimiter to be printed between the author\slash editor and the title. This command should be incorporated in the definition of all citation commands of author-title and some verbose citation styles and in the bibliography drivers---in author-year bibliographies \cs{nametitledelim} may be printed between the author\slash editor-year block and the title.
 
 \csitem{nameyeardelim}
-The delimiter to be printed between the author\slash editor and the year. This command should be incorporated in the definition of all citation commands of author-year citation styles.
+The delimiter to be printed between the author\slash editor and the year. This command should be incorporated in the definition of all citation commands of author-year citation styles and in the bibliography drivers.
 
 \csitem{namelabeldelim}
 The delimiter printed between the name\slash title and the label. This command should be incorporated in the definition of all citation commands of alphabetic and numeric citation styles.
 
 \csitem{nonameyeardelim}
-The delimiter printed between the substitute for the labelname when it does not exist (usually the label or title in standard styles) and the year in author-year citation styles. This is only used when there is no labelname since when the labelname exists, \cmd{nameyeardelim} is used.
+The delimiter printed between the substitute for the labelname when it does not exist (usually the label or title in standard styles) and the year in author-year citation styles and the bibliography. This is only used when there is no labelname since when the labelname exists, \cmd{nameyeardelim} is used.
 
 \csitem{authortypedelim}
 The delimiter printed between the author and the \texttt{authortype}.
@@ -13348,6 +13381,8 @@ This revision history is a list of changes relevant to users of this package. Ch
 
 \begin{changelog}
 \begin{release}{3.12}{2018-??-??}
+\item Added \cmd{ifnocite}\see{aut:aux:tst}
+\item Added case-insensitive versions of matching operators\see{aut:ctm:map}
 \item Added \bibfield{langid}s optional argument to \cmd{DeclareSortTranslit}\see{aut:ctm:srt}
 \item Added \opt{noroman} option\see{use:opt:pre:int}
 \item Changed \bibfield{sortyear} to an integer field\see{bib:fld:spc}
@@ -13358,6 +13393,7 @@ This revision history is a list of changes relevant to users of this package. Ch
 \item Added \cmd{DeprecateFieldFormatWithReplacement} and friends\see{aut:bib:fmt}
 \item Added \cs{ifdateyearsequal}\see{aut:aux:tst}
 \item Added <and higher> sectioning values for \opt{citereset}, \opt{refsection} and \opt{refsegment} options\see{use:opt:pre:gen}
+\item Added Hungarian localisation\see{use:loc:hun}
 \end{release}
 
   \begin{release}{3.11}{2018-02-20}
