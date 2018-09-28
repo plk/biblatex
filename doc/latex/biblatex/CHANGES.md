@@ -30,7 +30,7 @@
   `\iffieldequals{#1year}{#2year}` to compare years. The latter can lead to
   undesired results if the years have opposite signs, but are otherwise the
   same.
-  
+- Allow keywords for dataonly/skipped entries as well.
 
 # RELEASE NOTES FOR VERSION 3.11
 - `\printbiblist` now supports `driver` and `biblistfilter` options
