@@ -3269,12 +3269,15 @@
     {\blx@declaredelimclear}
     {\blx@declaredelim}}
 
-\newrobustcmd*{\blx@declaredelimclear}[3][]{%
-  \ifcsvoid{blx@declaredelimcontexts@#2}
+\def\blx@cleardelim#1{%
+  \ifcsvoid{blx@declaredelimcontexts@#1}
     {}
-    {\def\do##1{\csundef{blx@printdelim@##1@#2}}%
-     \dolistcsloop{blx@declaredelimcontexts@#2}}%
-  \cslet{blx@declaredelimcontexts@#2}\@empty
+    {\def\do##1{\csundef{blx@printdelim@##1@#1}}%
+     \dolistcsloop{blx@declaredelimcontexts@#1}}%
+  \cslet{blx@declaredelimcontexts@#1}\@empty}
+
+\newrobustcmd*{\blx@declaredelimclear}[3][]{%
+  \blx@cleardelim{#2}%
   \ifblank{#1}
     {\blx@declaredelim{#2}{#3}}
     {\blx@declaredelim[#1]{#2}{#3}}}
@@ -3295,32 +3298,64 @@
     \csdef{#1##1}{#4}}%
   \forcsvlist{\do@i}{#3}}
 
-% *[<contextname, ...>]{<alias>}{<delim>}
+% *[<alias context, ...>]{<alias>}[<delim context>]{<delim>}
 \newrobustcmd*{\DeclareDelimAlias}{%
   \@ifstar
-    {\blx@declaredelimalias}
-    {\blx@declaredelimaliasauto}}
+    {\blx@declaredelimalias@expl}
+    {\blx@declaredelimalias@auto}}
 
-\newrobustcmd*{\blx@declaredelimalias}[3][]{%
-  \ifblank{#1}
-    {\blx@declaredelimalias@i{}{#2}{#3}}
-    {\def\do##1{%
-       \blx@declaredelimalias@i{blx@printdelim@##1@}{#2}{#3}}%
-     \docsvlist{#1}}}
-
-\newrobustcmd*{\blx@declaredelimaliasauto}[2]{%
-  \blx@declaredelimalias@i{}{#1}{#2}%
+\newrobustcmd*{\blx@declaredelimalias@auto}[2]{%
+  \blx@cleardelim{#1}%
+  \blx@declaredelimalias@def{}{#1}{}{#2}%
   \ifcsvoid{blx@declaredelimcontexts@#2}
     {}
     {\def\do##1{%
-       \blx@declaredelimalias@i{blx@printdelim@##1@}{#1}{#2}}%
+       \blx@declaredelimalias@def
+         {blx@printdelim@##1@}{#1}{blx@printdelim@##1@}{#2}}%
      \dolistcsloop{blx@declaredelimcontexts@#2}}}
 
-\def\blx@declaredelimalias@i#1#2#3{%
+\def\blx@declaredelimalias@expl{%
+  \@ifnextchar[%]
+    {\blx@declaredelimalias@expl@i}
+    {\blx@declaredelimalias@expl@i[]}}
+
+\def\blx@declaredelimalias@expl@i[#1]#2{%
+  \@ifnextchar[%]
+    {\blx@declaredelimalias@expl@iii{#1}{#2}}
+    {\blx@declaredelimalias@expl@ii{#1}{#2}}}
+
+\def\blx@declaredelimalias@expl@ii#1#2#3{%
+  \ifblank{#1}
+    {\blx@declaredelimalias@def{}{#2}{}{#3}}
+    {\def\do##1{%
+       \blx@declaredelimalias@def
+         {blx@printdelim@##1@}{#2}{blx@printdelim@##1@}{#3}}%
+     \docsvlist{#1}}}
+
+\def\blx@declaredelimalias@expl@iii#1#2[#3]#4{%
+  \ifblank{#1}
+    {\ifblank{#3}
+       {\blx@declaredelimalias@def{}{#2}{}{#4}}
+       {\blx@declaredelimalias@def{}{#2}{blx@printdelim@#3@}{#4}}}
+    {\ifblank{#3}
+       {\def\do##1{%
+          \blx@declaredelimalias@def
+            {blx@printdelim@##1@}{#2}{}{#4}}}
+       {\def\do##1{%
+          \blx@declaredelimalias@def
+            {blx@printdelim@##1@}{#2}{blx@printdelim@#3@}{#4}}}%
+     \docsvlist{#1}}}
+
+\def\blx@declaredelimalias@def#1#2#3#4{%
   \ifcsdef{#1#2}
     {\blx@inf@delimdeclare{#2}{#1}}
     {}%
-  \csdef{#1#2}{\csuse{#1#3}}}
+  \ifblank{#1}
+    {}
+    {\ifinlistcs{#1}{blx@declaredelimcontexts@#2}
+       {}
+       {\listcsadd{blx@declaredelimcontexts@#2}{#1}}}%
+  \csdef{#1#2}{\ifcsundef{#3#4}{\csuse{#4}}{\csuse{#3#4}}}}
 
 \def\blx@delimcontext{none}
 \newcommand*{\printdelim}[2][]{%

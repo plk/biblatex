@@ -30,6 +30,7 @@
   `\iffieldequals{#1year}{#2year}` to compare years. The latter can lead to
   undesired results if the years have opposite signs, but are otherwise the
   same.
+- Add second optional argument to `\DeclareDelimAlias*`.
 - Allow keywords for dataonly/skipped entries as well.
 - Added `maxcitecounter`.
 - Deprecate `\labelnamepunct` in favour of the context-sensitive
