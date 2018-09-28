@@ -30,6 +30,7 @@
   `\iffieldequals{#1year}{#2year}` to compare years. The latter can lead to
   undesired results if the years have opposite signs, but are otherwise the
   same.
+- Added `maxcitecounter`.
 - Deprecate `\labelnamepunct` in favour of the context-sensitive
   `nametitledelim`.
   For compatibility reasons `\labelnamepunct` still pops up in the code here
