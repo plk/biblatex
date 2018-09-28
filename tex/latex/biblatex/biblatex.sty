@@ -489,6 +489,8 @@
 \def\theminitems{\the\c@minitems}
 \newcounter{citecounter}
 \def\thecitecount{\the\c@citecounter}
+\newcounter{maxcitecounter}
+\def\themaxcitecounter{\the\c@maxcitecounter}
 \newcounter{savedcitecounter}
 \def\thecitecount{\the\c@savedcitecounter}
 \newcounter{uniquelist}
@@ -668,6 +670,8 @@
 % Initialise some lists which track changing citations/sortingtemplates
 % etc. between runs
 \global\let\blx@cites\@empty
+\global\let\blx@nocites\@empty
+\global\let\blx@directcites\@empty
 \global\let\blx@refcontexts\@empty
 \global\let\blx@lastrefcontexts\@empty
 \global\let\blx@sortingtemplatenames\@empty
@@ -3574,6 +3578,7 @@
   \def\ifcrossrefsource{\iftoggle{abx@bool@crossrefsource}}%
   \def\ifxrefsource{\iftoggle{abx@bool@xrefsource}}%
   \def\ifsingletitle{\iftoggle{abx@bool@singletitle}}%
+  \def\ifnocite{\iftoggle{abx@bool@nocite}}%
   \def\ifuniquetitle{\iftoggle{abx@bool@uniquetitle}}%
   \def\ifuniquebaretitle{\iftoggle{abx@bool@uniquebaretitle}}%
   \def\ifuniquework{\iftoggle{abx@bool@uniquework}}%
@@ -6341,6 +6346,7 @@
   \do{uniquebaretitle}%
   \do{uniquework}%
   \do{uniqueprimaryauthor}%
+  \do{nocite}%
   \dolistloop\blx@datemetabooleans}
 
 % Date datatype fields
@@ -7010,10 +7016,8 @@
 
 % {<keyword>,...}
 \protected\def\blx@bbl@keyw#1{%
-  \iftoggle{blx@skipbib}
-    {}
-    {\forcsvlist{\blx@addkeyword{\abx@field@entrykey}}{#1}%
-     \blx@bbl@fielddef{keywords}{#1}}}
+  \forcsvlist{\blx@addkeyword{\abx@field@entrykey}}{#1}%
+  \blx@bbl@fielddef{keywords}{#1}}
 
 \def\blx@addkeyword#1#2{%
   \listcsxadd{blx@keyw@\the\c@refsection @\detokenize{#2}}{#1}}
@@ -8725,9 +8729,12 @@
     \ifcsdef{blx@sortingtemplate@#2}
       {#2}
       {\blx@refcontext@sortingtemplatename}}%
-  % locally define this since we want to fetch data from the datalist named
-  % after the list we are printing rather than the data in refcontext list
-  \edef\blx@refcontext@context{\blx@tempc/\blx@refcontext@sortingnamekeytemplatename/\blx@refcontext@labelprefix/\blx@refcontext@uniquenametemplatename/\blx@refcontext@labelalphanametemplatename}%
+    % locally define this since we want to fetch data from the datalist named
+    % after the list we are printing rather than the data in refcontext list
+    % Note that the name must be unique so we prepend "#2:" because the combination of
+    % options might not generate a unique name since sortschemename has a fallback to the
+    % refcontext scheme if there is no sortscheme named after the list
+    \edef\blx@refcontext@context{#2:\blx@tempc/\blx@refcontext@sortingnamekeytemplatename/\blx@refcontext@labelprefix/\blx@refcontext@uniquenametemplatename/\blx@refcontext@labelalphanametemplatename}%
   \xifinlist\blx@tempc\blx@sortingtemplatenames
     {}
     {\listxadd\blx@sortingtemplatenames\blx@tempc}%
@@ -8758,7 +8765,7 @@
   \xifinlist{\blx@refcontext@context @\blx@tempe @list}\blx@dlistnames
     {}
     {\listxadd\blx@dlistnames{\blx@refcontext@context @\blx@tempe @list}%
-     \csxappto{blx@dlists}{%
+     \xappto\blx@dlists{%
        \blx@xml@dlist{\blx@refcontext@context}{list}{\blx@tempe}{\blx@xml@dlist@refcontext{\blx@tempc}{\blx@refcontext@sortingnamekeytemplatename}{\blx@refcontext@labelprefix}{\blx@refcontext@uniquenametemplatename}{\blx@refcontext@labelalphanametemplatename}}{\csuse{blx@biblistfilters@\blx@thebiblistfilter}}}}%
   \ifdefvoid\blx@tempa
     {\blx@warn@biblistempty{#2}\endgroup}
@@ -9071,6 +9078,7 @@
   \endgroup}
 
 \protected\def\endrefsection{%
+  \endrefcontext
   \blx@endrefsection
   \blx@inf@refsec}
 
@@ -9089,7 +9097,7 @@
       {}
       {\expandafter\newcount\csname blx@sectionciteorder@\the\c@refsection\endcsname}%
     \global\advance\csname blx@sectionciteorder@\the\c@refsection\endcsname\@ne
-    \blx@auxwrite\blx@bcfout{}{\blx@xml@citekey{##1}{\expandafter\the\csname blx@sectionciteorder@\the\c@refsection\endcsname}}}%
+    \blx@auxwrite\blx@bcfout{}{\blx@xml@citekey{##1}{}{\expandafter\the\csname blx@sectionciteorder@\the\c@refsection\endcsname}}}%
   \dolistcsloop{blx@keyaliases@\the\c@refsection}%
   \ifnum\c@refsection>\z@
     \blx@auxwrite\blx@bcfout{}{%
@@ -9449,8 +9457,22 @@
   \blx@loccitreset}
 
 % {<entrykey>}{<message>}
+% Wrapper to track cite keys which are \nocited
+\def\blx@nocitation#1#2{%
+  \ifinlist{#1}\blx@nocites
+    {}
+    {\listgadd\blx@nocites{#1}}%
+  \blx@citation@i{#1}{#2}}
+
+% {<entrykey>}{<message>}
 % Just a wrapper to suppress citation tracking in toc/lof etc.
 \def\blx@citation#1#2{%
+  \ifinlist{#1}\blx@directcites
+    {}
+    {\listgadd\blx@directcites{#1}}%
+  \blx@citation@i{#1}{#2}}
+
+\def\blx@citation@i#1#2{%
   \ifbool{citerequest}
     {\blx@citation@entry{#1}{#2}}
     {}}
@@ -9476,6 +9498,12 @@
 \protected\def\abx@aux@segm#1#2#3{%
   \listcsxadd{blx@segm@#1@#2}{\detokenize{#3}}}
 
+\def\blx@nocitation@all{%
+  \ifinlist{*}\blx@nocites
+    {}
+    {\listgadd\blx@nocites{*}}%
+  \blx@citation@all}
+
 \def\blx@citation@all{%
   \ifbool{citerequest}
     {\blx@bibreq{*}%
@@ -9490,11 +9518,21 @@
 \protected\def\blx@bibreq#1{%
   \begingroup
   \blx@xmlsanitizeafter{\def\blx@tempa}{#1}%
+  \let\blx@tempb\@empty
+  % Only output as \nocited if a key wasn't also directly \cite'd
+  % Since citekey output is sequential as cites are read, the .bcf might contain
+  % duplicate keys with differring nocite attributes if \nocite{X} and \cite{X} both occur
+  % but biber deals with this and priorities \cites
+  \ifboolexpr{test {\ifinlist{#1}\blx@nocites}
+              and
+              not test {\ifinlist{#1}\blx@directcites}}
+    {\def\blx@tempb{ nocite="1"}}
+    {}%
   % citeall is always order "0" - this makes no real difference as biber
   % ignores all other citekeys in the section if citeall is present
   \ifstrequal{*}{#1}
-    {\blx@auxwrite\blx@bcfout{}{\blx@xml@citekey{\blx@tempa}{0}}}
-    {\blx@auxwrite\blx@bcfout{}{\blx@xml@citekey{\blx@tempa}{\expandafter\the\csname blx@sectionciteorder@\the\c@refsection\endcsname}}}%
+    {\blx@auxwrite\blx@bcfout{}{\blx@xml@citekey{\blx@tempa}{\blx@tempb}{0}}}
+    {\blx@auxwrite\blx@bcfout{}{\blx@xml@citekey{\blx@tempa}{\blx@tempb}{\expandafter\the\csname blx@sectionciteorder@\the\c@refsection\endcsname}}}%
   \endgroup}
 
 % {<set>}{<key1,key2,key3>}
@@ -9738,10 +9776,35 @@
     {}}
 
 % {<refsection>}{<entrykey>}
+% set maxcitecounter as well, note that we also define a maxcitecounter across
+% all refsections, but that does not have a high-level interface
 \protected\def\blx@aux@count#1#2{%
-  \csnumgdef{blx@count@#1@\detokenize{#2}}{\csuse{blx@count@#1@\detokenize{#2}}+1}}
+  \csnumgdef{blx@count@#1@\detokenize{#2}}{%
+    \csuse{blx@count@#1@\detokenize{#2}}+1}%
+  \ifnumgreater{\csuse{blx@count@#1@\detokenize{#2}}}{%
+      0\csuse{blx@maxcitecounter@#1}}
+    {\csnumgdef{blx@maxcitecounter@#1}{%
+       \csuse{blx@count@#1@\detokenize{#2}}}}
+    {}%
+  \ifnumgreater{\csuse{blx@count@#1@\detokenize{#2}}}{%
+      0\csuse{blx@maxcitecounter}}
+    {\csnumgdef{blx@maxcitecounter}{%
+       \csuse{blx@count@#1@\detokenize{#2}}}}
+    {}}
+
 \protected\def\blx@aux@fncount#1#2{%
-  \csnumgdef{blx@fncount@#1@\detokenize{#2}}{\csuse{blx@fncount@#1@\detokenize{#2}}+1}}
+  \csnumgdef{blx@fncount@#1@\detokenize{#2}}{%
+    \csuse{blx@fncount@#1@\detokenize{#2}}+1}%
+  \ifnumgreater{\csuse{blx@fncount@#1@\detokenize{#2}}}{%
+      0\csuse{blx@maxfncitecounter@#1}}
+    {\csnumgdef{blx@maxfncitecounter@#1}{%
+       \csuse{blx@fncount@#1@\detokenize{#2}}}}
+    {}%
+  \ifnumgreater{\csuse{blx@fncount@#1@\detokenize{#2}}}{%
+      0\csuse{blx@maxfncitecounter}}
+    {\csnumgdef{blx@maxfncitecounter}{%
+       \csuse{blx@fncount@#1@\detokenize{#2}}}}
+    {}}
 
 \let\abx@aux@count\@gobbletwo
 \let\abx@aux@fncount\@gobbletwo
@@ -9752,14 +9815,22 @@
 
 \protected\def\blx@setcitecounter@global{%
   \c@citecounter0%
-  \csuse{blx@count@\the\c@refsection @\abx@field@entrykey}%
+    \csuse{blx@count@\the\c@refsection @\abx@field@entrykey}%
+  \relax
+  \c@maxcitecounter0%
+    \csuse{blx@maxcitecounter@\the\c@refsection}%
   \relax}
 
 \protected\def\blx@setcitecounter@context{%
   \c@citecounter0%
-  \iftoggle{blx@footnote}
-    {\csuse{blx@fncount@\the\c@refsection @\abx@field@entrykey}}
-    {\csuse{blx@count@\the\c@refsection @\abx@field@entrykey}}%
+    \iftoggle{blx@footnote}
+      {\csuse{blx@fncount@\the\c@refsection @\abx@field@entrykey}}
+      {\csuse{blx@count@\the\c@refsection @\abx@field@entrykey}}%
+  \relax
+  \c@maxcitecounter0%
+    \iftoggle{blx@footnote}
+      {\csuse{blx@maxfncitecounter@\the\c@refsection}}
+      {\csuse{blx@maxcitecounter@\the\c@refsection}}%
   \relax}
 
 % cite tracker
@@ -10213,7 +10284,7 @@
     \iftoggle{blx@bibliography}
       {}
       {\ifstrequal{*}{#1}
-        {\blx@citation@all}
+        {\blx@nocitation@all}
         {\blx@xsanitizeafter{\forcsvlist\blx@nocite@do}{#1}}}}%
   \@esphack}
 
@@ -10225,7 +10296,7 @@
       {}
       {\expandafter\newcount\csname blx@sectionciteorder@\the\c@refsection\endcsname}%
   \global\advance\csname blx@sectionciteorder@\the\c@refsection\endcsname\@ne
-  \blx@citation{#1}\blx@msg@cundef}
+  \blx@nocitation{#1}\blx@msg@cundef}
 
 % {<macro>}[<arg1>][<arg2>]{<arg3>}
 % => <macro>{<arg1>}{<arg2>}{<arg3>}
@@ -10580,14 +10651,15 @@
     \blx@citecmdinit
     \noexpand\@ifstar
       {\expandafter\noexpand
-       \csname blx@mcite@#4\endcsname*%
+       \csname blx@macitei@#1\endcsname*%
        \expandafter\noexpand
-       \csname blx@macitei@#1\endcsname}
+       \csname blx@maciteii@#1\endcsname}
       {\expandafter\noexpand
-       \csname blx@mcite@#4\endcsname{}%
+       \csname blx@macitei@#1\endcsname{}%
        \expandafter\noexpand
-       \csname blx@macitei@#1\endcsname}}%
-  \protected\csedef{blx@macitei@#1}##1##2##3{%
+       \csname blx@maciteii@#1\endcsname}}%
+  \csedef{blx@macitei@#1}{\csname blx@mcite@#4\endcsname}%
+  \protected\csedef{blx@maciteii@#1}##1##2##3{%
     \if l#2\noexpand\unspace##3\fi
     \if f#2\noexpand\iftoggle{blx@footnote}{}{\unspace##3}\fi
     ##1{##2}%
@@ -10781,6 +10853,7 @@
     \def\ifuseprefix{\blx@TE{\iftoggle{blx@useprefix}}}%
     \def\ifterseinits{\blx@TE{\iftoggle{blx@terseinits}}}%
     \def\ifsingletitle{\blx@TE{\iftoggle{abx@bool@singletitle}}}%
+    \def\ifnocite{\blx@TE{\iftoggle{abx@bool@nocite}}}%
     \def\ifuniquetitle{\blx@TE{\iftoggle{abx@bool@uniquetitle}}}%
     \def\ifuniquebaretitle{\blx@TE{\iftoggle{abx@bool@uniquebaretitle}}}%
     \def\ifuniquework{\blx@TE{\iftoggle{abx@bool@uniquework}}}%
@@ -11368,8 +11441,8 @@
   ~~</bcf:bibdata>\blx@nl}
 \xdef\blx@xml@datasource#1#2#3#4{%
   ~~~~<bcf:datasource type="#1" datatype="#2"#3>#4</bcf:datasource>\blx@nl}
-\xdef\blx@xml@citekey#1#2{%
-  ~~~~<bcf:citekey order="#2">#1</bcf:citekey>}
+\xdef\blx@xml@citekey#1#2#3{%
+  ~~~~<bcf:citekey order="#3"#2>#1</bcf:citekey>}
 \xdef\blx@xml@citeset#1#2{%
   ~~~~<bcf:citekey type="set" members="#2">#1</bcf:citekey>}
 \xdef\blx@xml@svalue#1#2{%
@@ -11999,8 +12072,12 @@
     {}}
 \define@key{blx@sourcemap@step}{match}{% characters
   \appto\blx@tempf{ map\string_match="#1"}}
+\define@key{blx@sourcemap@step}{matchi}{% characters
+  \appto\blx@tempf{ map\string_matchi="#1"}}
 \define@key{blx@sourcemap@step}{notmatch}{% characters
   \appto\blx@tempf{ map\string_notmatch="#1"}}
+\define@key{blx@sourcemap@step}{notmatchi}{% characters
+  \appto\blx@tempf{ map\string_notmatchi="#1"}}
 \define@key{blx@sourcemap@step}{replace}{% characters
   \eappto\blx@tempf{ map\string_replace="#1"}}
 

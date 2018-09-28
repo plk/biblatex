@@ -31,6 +31,12 @@
   undesired results if the years have opposite signs, but are otherwise the
   same.
 - Add second optional argument to `\DeclareDelimAlias*`.
+- Allow keywords for dataonly/skipped entries as well.
+- Added `maxcitecounter`.
+- Deprecate `\labelnamepunct` in favour of the context-sensitive
+  `nametitledelim`.
+  For compatibility reasons `\labelnamepunct` still pops up in the code here
+  and there, but `nametitledelim` should be preferred now.
 
 # RELEASE NOTES FOR VERSION 3.11
 - `\printbiblist` now supports `driver` and `biblistfilter` options
