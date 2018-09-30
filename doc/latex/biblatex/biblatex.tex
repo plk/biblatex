@@ -3181,10 +3181,10 @@ Here the field name suffix \texttt{+an} is a user-definable\footnote{See \biber'
 <annotationspecs> ::= <annotationspec> [ ";" <annotationspec> ]
 <annotationspec>  ::= [ <itemcount> [ ":" <part> ] ] "=" <annotations>
 <annotations>     ::= <annotation> [ "," <annotation> ]
-<annotation>      ::= (string)
+<annotation>      ::= ["] (string) ["]
 \end{lstlisting}
 %
-That is, one or more specifications separated by semi-colons. Each specification is an equals sign followed by a comma"=separated list of annotation keywords. To annotate a specific item in a list, put the number of the list item before the equals sign (lists start at 1). If you need to annotate a specific part of the list item, give its name after the list item number, preceded by a colon. Name part names are defined in the data model, see \secref{aut:bbx:drv}. Some examples:
+That is, one or more specifications separated by semi-colons. Each specification is an equals sign followed by a comma"=separated list of annotation keywords or a string enclosed in double-quotes (a <literal> annotation, see below). To annotate a specific item in a list, put the number of the list item before the equals sign (lists start at 1). If you need to annotate a specific part of the list item, give its name after the list item number, preceded by a colon. Name part names are defined in the data model, see \secref{aut:bbx:drv}. Some examples:
 
 \begin{lstlisting}[style=bibtex]{}
 AUTHOR      = {Last1, First1 and Last2, First2 and Last3, First3},
@@ -3196,7 +3196,7 @@ LANGUAGE+an = {1=annotation3; 2=annotation4}
 }
 \end{lstlisting}
 %
-To access the annotation information when formatting bibliography data, three macros are provided, corresponding to the three annotation scopes:
+To access the annotation information when formatting bibliography data, macros are provided, corresponding to the three annotation scopes:
 
 \begin{ltxsyntax}
 
@@ -3212,7 +3212,7 @@ Executes \prm{true} if the item \prm{item} in the data field \prm{field} has an 
 
 Executes \prm{true} if the part named \prm{part} in item \prm{item} in the data field \prm{field} has an annotation \prm{annotation} and false otherwise. The two optional arguments \prm{field} and \prm{item} can be inferred as in \cmd{ifitemannotation}. The parameter \prm{part} can never be inferred and is therefore a mandatory argument.
 
-Date fields are special and handled in a context where \cmd{currentfield} is not accessible. Thus there is a fourth command to access annotations for dates.
+Date fields are special and handled in a context where \cmd{currentfield} is not accessible. Thus there is a fourth command to test annotations for dates.
 
 \cmditem{ifdateannotation}{datetype}{annotation}{true}{false}
 
@@ -3241,6 +3241,59 @@ To put the given and family names of name list items annotated as «correspondin
     {\textbf{#1}}
     {#1}}
 \end{lstlisting}
+
+\subsubsection{Literal Annotations}
+
+If the annotation is a string enclosed in double-quotes, the annotation is a <literal> annotation. In this case the annotation can be retrieved and used as a string rather than as meta-information used to determine formatting. This is useful in order to be able to attached specific annotations to data which are to be printed as-is. For example:
+
+\begin{lstlisting}[style=bibtex]{}
+AUTHOR = {{American Educational Research Association} and {American Psychological Association}
+            and {National Council on Measurement in Education}},
+AUTHOR+an = {1:family="AERA"; 2:family="APA"; 3:family="NCME"}
+}
+\end{lstlisting}
+%
+Such annotations are not keys whose presence can be tested for but are rather literal information attached to the data. The values are retrieved by the following macros
+
+\begin{ltxsyntax}
+
+\cmditem{getfieldannotation}[field]
+
+Retrieves any literal annotation for the field \prm{field}. If \prm{field} is not given, the current data field as indicated by \cmd{currentfield}, \cmd{currentlist} or \cmd{currentname} (see \secref{aut:bib:fmt}) is assumed. Of course, this is only possible if these commands are defined, that is, inside formatting directives.
+
+\cmditem{getitemannotation}[field][item]
+
+Retrieves any literal annotation for the item \prm{item} in the field \prm{field}. The optional argument \prm{field} can be inferred if not provided as with \cmd{getfieldannotation}. If \prm{item} is not given, the number of the item currently being processed as given by \cnt{listcount} is used.
+
+\cmditem{getpartannotation}[field][item]{part}
+
+Retrieves any literal annotation for the part \prm{part}. The two optional arguments \prm{field} and \prm{item} can be inferred as in \cmd{getitemannotation}. The parameter \prm{part} can never be inferred and is therefore a mandatory argument.
+
+Date fields are special and handled in a context where \cmd{currentfield} is not accessible. Thus there is a fourth command to access literal annotations for dates.
+
+\cmditem{getdateannotation}{datetype}
+
+Retrieve any literal annotation for the datefield \prm{datetype}. The \prm{datetype} argument is mandatory, because it cannot be inferred in most contexts where \cmd{getdateannotation} will be used.
+
+\end{ltxsyntax}
+%
+So, for example, given the bibliography entry above, we could put the following in the preamble:
+
+\begin{ltxexample}[style=latex]
+\renewcommand*{\mkbibnamefamily}[1]{%
+  #1\space\mkbibparens{\getpartannotation{family}}}
+\end{ltxexample}
+%
+In order to get something like this in the bibliography when formatting names:
+
+\begin{lstlisting}[style=bibtex]{}
+  American Educational Research Association (AERA) and
+  American Psychological Association (APA), and
+  National Council on Measurement in Education (NCME)
+}
+\end{lstlisting}
+%
+Naturally there are semantically more elegant ways of dealing with corporate authors without using the <family> namepart (see \secref{aut:bbx:drv}) but this example demonstrates clearly a use for literal annotations.
 
 \subsection{Bibliography Commands}
 \label{use:bib}
@@ -13378,6 +13431,7 @@ This revision history is a list of changes relevant to users of this package. Ch
 
 \begin{changelog}
 \begin{release}{3.12}{2018-??-??}
+\item Added literal annotation functionality\see{use:annote}
 \item Added \cmd{ifnocite}\see{aut:aux:tst}
 \item Added case-insensitive versions of matching operators\see{aut:ctm:map}
 \item Added \bibfield{langid}s optional argument to \cmd{DeclareSortTranslit}\see{aut:ctm:srt}
