@@ -1,0 +1,76 @@
+% This test should not be needed since biblatex.sty already checks
+% if LuaTeX or XeTeX is used.
+% Currently Unicode-aware engines are only XeTeX and LuaTeX,
+% both of which define \Umathcode.
+\ifx\Umathcode\undefined
+  \expandafter\endinput
+\fi
+
+\begingroup
+\openin\blx@bcfin=UnicodeData.txt %
+\ifeof\blx@bcfin
+\else
+  \let\blx@setazcodes\@empty
+  \def\Lu{Lu}
+  \def\storedpar{\par}
+  \def\blx@tempa#1;#2;#3;#4\relax{%
+    \def\temp{#3}%
+    \ifx\temp\Lu
+      \xdef\blx@setazcodes{%
+        \blx@setazcodes
+        \sfcode"#1=\@m
+      }
+    \fi
+  }
+  \loop\unless\ifeof\blx@bcfin
+    \read\blx@bcfin to \blx@tempb
+    \unless\ifx\blx@tempb\storedpar
+      \expandafter\blx@tempa\blx@tempb\relax
+    \fi
+  \repeat
+\fi
+\closein\blx@bcfin
+\endgroup
+
+\appto\blx@setfrcodes{%
+  % … should probably have dot spacefactor, but pdfLaTeX
+  % makes it a period, so we have this here for consistency
+  \sfcode`\…=\blx@sf@period
+}
+
+\DeclarePrefChars*{’}
+\DeclareRangeChars*{–—}
+
+\def\blx@normrange@range#1\bibrangedash#2\bibrangedash#3&{%
+  \ifblank{#3}
+    {\blx@normrange@endash#1––&}
+    {\ifblank{#2}
+       {\blx@range@out@value{#1\bibrangedash}}
+       {\ifblank{#1}
+          {\blx@range@out@value{\bibrangedash#2}}
+          {\blx@range@process{#1}{#2}}}}}
+
+\def\blx@normrange@endash#1–#2–#3&{%
+  \ifblank{#3}
+    {\blx@normrange@hyphen#1--&}
+    {\ifblank{#2}
+       {\blx@range@out@value{#1\bibrangedash}}
+       {\ifblank{#1}
+          {\blx@range@out@value{\bibrangedash#2}}
+          {\blx@range@process{#1}{#2}}}}}
+
+\def\blx@firstpage@range#1\bibrangedash#2\bibrangedash#3&{%
+  \ifblank{#3}
+    {\blx@firstpage@endash#1––&}
+    {\ifblank{#1}
+       {\blx@range@out@value{\bibrangedash#2}}
+       {\blx@range@out@value{#1}}}}
+
+\def\blx@firstpage@endash#1–#2–#3&{%
+  \ifblank{#3}
+    {\blx@firstpage@hyphen#1--&}
+    {\ifblank{#1}
+       {\blx@range@out@value{\bibrangedash#2}}
+       {\blx@range@out@value{#1}}}}
+
+\endinput

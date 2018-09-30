@@ -17,59 +17,84 @@
        {Valid values are 'maximum', 'compact', 'basic', 'minimum',\MessageBreak
         'true' (=compact), and 'false'.}}}
 
-\providebibmacro*{date+extrayear}{}
+\providebibmacro*{date+extradate}{}
+\providebibmacro*{date+extrayear}{%
+  \blx@warning{bibmacro 'date+extrayear' is deprecated.\MessageBreak
+    Please use 'date+extradate'.\MessageBreak
+    Using 'date+extradate' instead}%
+  \usebibmacro{date+extradate}}
 
 \def\bbx@opt@mergedate@true{\bbx@opt@mergedate@compact}
 
 % merge date/issue with date label
 \def\bbx@opt@mergedate@maximum{%
-  \renewbibmacro*{date+extrayear}{%
+  \renewbibmacro*{date+extradate}{%
     \iffieldundef{labelyear}
+      {}
+      {\printtext[parens]{%
+         \iflabeldateisdate
+           {\printfield{issue}%
+            \setunit*{\addspace}%
+            \printdateextra}
+           {\printlabeldateextra}}}}%
+  \renewbibmacro*{date}{%
+    \iflabeldateisdate
+      {}
+      {\printdate}}%
+  \renewbibmacro*{issue+date}{%
+    \iflabeldateisdate
       {}
       {\printtext[parens]{%
          \printfield{issue}%
          \setunit*{\addspace}%
-         \iffieldsequal{year}{labelyear}
-           {\printlabeldateextra}%
-           {\printfield{labelyear}%
-            \printfield{extrayear}}}}}%
-  \renewbibmacro*{date}{}%
-  \renewbibmacro*{issue+date}{}}
+         \printdate}}}}
 
 % merge date with date label
 \def\bbx@opt@mergedate@compact{%
-  \renewbibmacro*{date+extrayear}{%
+  \renewbibmacro*{date+extradate}{%
     \iffieldundef{labelyear}
       {}
       {\printtext[parens]{%
-         \iffieldsequal{year}{labelyear}
-           {\printlabeldateextra}%
-           {\printfield{labelyear}%
-            \printfield{extrayear}}}}}%
-  \renewbibmacro*{date}{}%
-  \renewbibmacro*{issue+date}{%
-    \iffieldundef{issue}
+         \iflabeldateisdate
+           {\printdateextra}
+           {\printlabeldateextra}}}}%
+  \renewbibmacro*{date}{%
+    \iflabeldateisdate
       {}
-      {\printtext[parens]{\printfield{issue}}}%
+      {\printdate}}%
+  \renewbibmacro*{issue+date}{%
+    \ifboolexpr{not test {\iffieldundef{issue}}
+                or not test {\iflabeldateisdate}}
+      {\printtext[parens]{%
+         \printfield{issue}%
+         \setunit*{\addspace}%
+         \iflabeldateisdate
+           {}
+           {\printdate}}}
+      {}%
     \newunit}}
 
 % merge year-only date with date label
 \def\bbx@opt@mergedate@basic{%
-  \renewbibmacro*{date+extrayear}{%
+  \renewbibmacro*{date+extradate}{%
     \iffieldundef{labelyear}
       {}
-      {\printtext[parens]{%
-         \printfield{labelyear}%
-         \printfield{extrayear}}}}%
+      {\printtext[parens]{\printlabeldateextra}}}%
   \renewbibmacro*{date}{%
-    \iffieldundef{month}
+    \ifboolexpr{
+      test {\iflabeldateisdate}
+      and
+      not test {\ifdateshavedifferentprecision{label}{}}
+    }
       {}
       {\printdate}}%
   \renewbibmacro*{issue+date}{%
     \ifboolexpr{
-      test {\iffieldundef{issue}}
+      test {\iflabeldateisdate}
       and
-      test {\iffieldundef{month}}
+      not test {\ifdateshavedifferentprecision{label}{}}
+      and
+      test {\iffieldundef{issue}}
     }
       {}
       {\printtext[parens]{%
@@ -80,27 +105,29 @@
 
 % merge year-only date with year-only date label
 \def\bbx@opt@mergedate@minimum{%
-  \renewbibmacro*{date+extrayear}{%
+  \renewbibmacro*{date+extradate}{%
     \iffieldundef{labelyear}
       {}
-      {\printtext[parens]{%
-         \printfield{labelyear}%
-         \printfield{extrayear}}}}%
+      {\printtext[parens]{\printlabeldateextra}}}%
   \renewbibmacro*{date}{%
     \ifboolexpr{
-      test {\iffieldundef{month}}
+      test {\iflabeldateisdate}
       and
-      test {\iffieldundef{extrayear}}
+      not test {\ifdateshavedifferentprecision{label}{}}
+      and
+      test {\iffieldundef{extradate}}
     }
       {}
       {\printdate}}%
   \renewbibmacro*{issue+date}{%
     \ifboolexpr{
+      test {\iflabeldateisdate}
+      and
+      not test {\ifdateshavedifferentprecision{label}{}}
+      and
+      test {\iffieldundef{extradate}}
+      and
       test {\iffieldundef{issue}}
-      and
-      test {\iffieldundef{month}}
-      and
-      test {\iffieldundef{extrayear}}
     }
       {}
       {\printtext[parens]{%
@@ -111,21 +138,18 @@
 
 % don't merge date/issue with date label
 \def\bbx@opt@mergedate@false{%
-  \renewbibmacro*{date+extrayear}{%
+  \renewbibmacro*{date+extradate}{%
     \iffieldundef{labelyear}
       {}
-      {\printtext[parens]{%
-         \printfield{labelyear}%
-         \printfield{extrayear}}}}%
+      {\printtext[parens]{\printlabeldateextra}}}%
   \renewbibmacro*{date}{\printdate}%
   \renewbibmacro*{issue+date}{%
     \printtext[parens]{%
       \printfield{issue}%
       \setunit*{\addspace}%
-      \printdate}%
+      \usebibmacro{date}}%
     \newunit}}
 
-% n.b. the default labeldate=year overrides merging of months and days
 \ExecuteBibliographyOptions{labeldateparts,sorting=nyt,pagetracker,mergedate}
 
 \DeclareFieldFormat{shorthandwidth}{#1}
@@ -189,7 +213,7 @@
         \printnames{author}%
         \iffieldundef{authortype}
           {\setunit{\printdelim{nameyeardelim}}}
-          {\setunit{\addcomma\space}}}%
+          {\setunit{\printdelim{authortypedelim}}}}%
      \iffieldundef{authortype}
        {}
        {\usebibmacro{authorstrg}%
@@ -197,7 +221,7 @@
     {\global\undef\bbx@lasthash
      \usebibmacro{labeltitle}%
      \setunit*{\printdelim{nonameyeardelim}}}%
-  \usebibmacro{date+extrayear}}
+  \usebibmacro{date+extradate}}
 
 \renewbibmacro*{editor}{%
   \usebibmacro{bbx:editor}{editorstrg}}
@@ -212,7 +236,7 @@
     {\usebibmacro{bbx:dashcheck}
        {\bibnamedash}
        {\printnames{editor}%
-        \setunit{\addcomma\space}%
+        \setunit{\printdelim{editortypedelim}}%
         \usebibmacro{bbx:savehash}}%
      \usebibmacro{#1}%
      \clearname{editor}%
@@ -220,7 +244,7 @@
     {\global\undef\bbx@lasthash
      \usebibmacro{labeltitle}%
      \setunit*{\printdelim{nonameyeardelim}}}%
-  \usebibmacro{date+extrayear}}
+  \usebibmacro{date+extradate}}
 
 \renewbibmacro*{translator}{%
   \usebibmacro{bbx:translator}{translatorstrg}}
@@ -235,15 +259,15 @@
     {\usebibmacro{bbx:dashcheck}
        {\bibnamedash}
        {\printnames{translator}%
-        \setunit{\addcomma\space}%
+        \setunit{\printdelim{translatortypedelim}}%
         \usebibmacro{bbx:savehash}}%
-     \usebibmacro{translator+othersstrg}%
+     \usebibmacro{#1}%
      \clearname{translator}%
      \setunit{\printdelim{nameyeardelim}}}%
     {\global\undef\bbx@lasthash
      \usebibmacro{labeltitle}%
      \setunit*{\printdelim{nonameyeardelim}}}%
-  \usebibmacro{date+extrayear}}
+  \usebibmacro{date+extradate}}
 
 \newbibmacro*{bbx:dashcheck}[2]{%
   \ifboolexpr{

@@ -25,7 +25,7 @@
            \setunit{\printdelim{nonameyeardelim}}}
           {\printnames{labelname}%
            \setunit{\printdelim{nameyeardelim}}}%
-        \usebibmacro{cite:labelyear+extrayear}}}
+        \usebibmacro{cite:labeldate+extradate}}}
     {\usebibmacro{cite:shorthand}}}
 
 \newbibmacro*{citeyear}{%
@@ -35,7 +35,7 @@
        {\usebibmacro{cite:ibid}}
        {\iffieldundef{labelyear}
           {\usebibmacro{cite:label}}
-          {\usebibmacro{cite:labelyear+extrayear}}}}
+          {\usebibmacro{cite:labeldate+extradate}}}}
     {\usebibmacro{cite:shorthand}}}
 
 \newbibmacro*{textcite}{%
@@ -49,7 +49,7 @@
         \ifnumequal{\value{citecount}}{1}
           {\usebibmacro{prenote}}
           {}%
-        \usebibmacro{cite:labelyear+extrayear}}
+        \usebibmacro{cite:labeldate+extradate}}
        {\usebibmacro{cite:shorthand}}}
     {\printnames{labelname}%
      \setunit{%
@@ -63,7 +63,7 @@
           {\usebibmacro{cite:ibid}}
           {\iffieldundef{labelyear}
              {\usebibmacro{cite:label}}
-             {\usebibmacro{cite:labelyear+extrayear}}}}
+             {\usebibmacro{cite:labeldate+extradate}}}}
        {\usebibmacro{cite:shorthand}}}}
 
 \newbibmacro*{cite:shorthand}{%
@@ -80,38 +80,16 @@
     {\printtext[bibhyperref]{\printfield[citetitle]{labeltitle}}}
     {\printtext[bibhyperref]{\printfield{label}}}}
 
-% Inside \printtext, argumentless macros also need '%' afterwards
-% otherwise the newlines are spaces
-\newbibmacro*{cite:labelyear+extrayear}{%
+\newbibmacro*{cite:labeldate+extradate}{%
   \iffieldundef{labelyear}
     {}
-    {\printtext[bibhyperref]{%
-     \ifdefstring\blx@dateformat@labeldate{edtf}
-       {}
-       {\datecircaprint}%
-     \dateeraprintpre{labelyear}%
-     \mkyearzeros{\thefield{labelyear}}%
-     \printfield{extrayear}%
-     \iffieldsequal{labeldateera}{labelenddateera}{}
-       {\dateeraprint{labelyear}}%
-     \dateuncertainprint%
-     \ifdefstring\blx@dateformat@labeldate{edtf}
-       {\datecircaprintedtf}
-       {}%
-     \iffieldundef{labelendyear}
-       {}
-       {\iffieldsequal{labelyear}{labelendyear}{}
-        {\ifdefstring\blx@dateformat@labeldate{edtf}
-          {\slash}% strict EDTF
-          {\bibdaterangesep
-           \enddatecircaprint}%
-         \dateeraprintpre{labelendyear}%
-         \mkyearzeros{\thefield{labelendyear}}%
-         \enddateuncertainprint
-         \ifdefstring\blx@dateformat@labeldate{edtf}
-           {\enddatecircaprintedtf}
-           {}%
-         \dateeraprint{labelendyear}}}}}}
+    {\printtext[bibhyperref]{\printlabeldateextra}}}
+
+\newbibmacro{cite:labelyear+extrayear}{%
+  \blx@warning{bibmacro 'cite:labelyear+extrayear' is deprecated.\MessageBreak
+    Please use 'cite:labeldate+extradate'.\MessageBreak
+    Using 'cite:labeldate+extradate' instead}%
+  \usebibmacro{cite:labeldate+extradate}}
 
 \newbibmacro*{cite:postnote}{%
   \ifbool{cbx:loccit}

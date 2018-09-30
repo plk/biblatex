@@ -668,6 +668,10 @@
   \newunit\newblock
   \printfield{howpublished}%
   \newunit\newblock
+  \printfield{type}%
+  \newunit\newblock
+  \usebibmacro{event+venue+date}%
+  \newunit\newblock
   \printfield{note}%
   \newunit\newblock
   \usebibmacro{location+date}%
@@ -719,10 +723,10 @@
     {\iffieldundef{maintitle}
        {}
        {\usebibmacro{maintitle}%
-	\newunit\newblock
-	\iffieldundef{volume}
-	  {}
-	  {\printfield{volume}%
+        \newunit\newblock
+        \iffieldundef{volume}
+          {}
+          {\printfield{volume}%
            \printfield{part}%
            \setunit{\addcolon\space}}}}%
   \usebibmacro{title}%
@@ -771,11 +775,7 @@
     {\newunit
      \printfield{series}%
      \setunit{\addspace}}%
-  \printfield{volume}%
-  \setunit*{\adddot}%
-  \printfield{number}%
-  \setunit{\addcomma\space}%
-  \printfield{eid}%
+  \usebibmacro{volume+number+eid}%
   \setunit{\addspace}%
   \usebibmacro{issue+date}%
   \setunit{\addcolon\space}%
@@ -784,11 +784,9 @@
 
 \newbibmacro*{issue+date}{%
   \printtext[parens]{%
-    \iffieldundef{issue}
-      {\usebibmacro{date}}
-      {\printfield{issue}%
-       \setunit*{\addspace}%
-       \usebibmacro{date}}}%
+    \printfield{issue}%
+    \setunit*{\addspace}%
+    \usebibmacro{date}}%
   \newunit}
 
 \newbibmacro*{event+venue+date}{%
@@ -801,7 +799,7 @@
     test {\iffieldundef{eventyear}}
   }
     {}
-    {\setunit*{\addspace}%
+    {\setunit{\addspace}%
      \printtext[parens]{%
        \printfield{venue}%
        \setunit*{\addcomma\space}%
@@ -898,7 +896,10 @@
 \newbibmacro*{related}{%
   \ifboolexpr{ test {\iffieldundef{related}} or test {\ifrelatedloop} }
     {}
-    {\usebibmacro{begrelated}%
+    {\ifcsundef{begrelateddelim\strfield{relatedtype}}
+       {\printunit{\begrelateddelim}}
+       {\printunit{\csuse{begrelateddelim\strfield{relatedtype}}}}%
+     \usebibmacro{begrelated}%
      \def\bbx@tempa{}%
      \setcounter{bbx:relatedtotal}{0}%
      \def\do##1{%
@@ -918,7 +919,9 @@
         \def\do{%
           \stepcounter{bbx:relatedcount}%
           \ifnumgreater{\value{bbx:relatedcount}}{1}
-            {\printtext{\relateddelim}}
+            {\ifcsundef{relateddelim\strfield{relatedtype}}
+              {\printunit{\relateddelim}}
+              {\printunit{\csuse{relateddelim\strfield{relatedtype}}}}}
             {}}%
         \ifbibmacroundef{related:\strfield{relatedtype}}
           {\appto{\do}{\usebibmacro{related:default}}}

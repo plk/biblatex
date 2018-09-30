@@ -19,7 +19,8 @@
 \def\do#1{%
   \csdef{mkbibname#1}##1{##1}%
   \define@key{blx@opt@namepart}{#1}{\csdef{namepart#1}{##1}}%
-  \define@key{blx@opt@namepart}{#1i}{\csdef{namepart#1i}{##1}}}
+  \define@key{blx@opt@namepart}{#1i}{\csdef{namepart#1i}{##1}}%
+  \define@key{blx@opt@namepart}{#1un}{\csdef{namepart#1un}{##1}}}
 \expandafter\docsvlist\expandafter{\blx@datamodel@constant@nameparts}
 
 % legacy aliases
@@ -32,63 +33,66 @@
   \ifdefempty\mkbibnamelast
     {\let\@mkbibnamelastsaved\mkbibnamefamily}% not redefined by user
     {\blx@warning@noline{%
-       Attempt to redefine deprecated \string\mkbibnamelast\space, please
-       use \string\mkbibnamefamily\space instead. Using
-       \string\mkbibnamefamily}%
+       Attempt to redefine deprecated '\string\mkbibnamelast'.\MessageBreak
+       Please use '\string\mkbibnamefamily' instead.\MessageBreak
+       Using '\string\mkbibnamefamily'}%
      \let\@mkbibnamelastsaved\mkbibnamelast
      \let\mkbibnamefamily\@mkbibnamelastsaved}%
   % Now redefine it in case it's used
   \def\mkbibnamelast{%
     \blx@warning@noline{%
-      \string\mkbibnamelast\space is deprecated, please use
-      \string\mkbibnamefamily. Using \string\mkbibnamefamily}%
+      '\string\mkbibnamelast' is deprecated.\MessageBreak
+       Please use '\string\mkbibnamefamily'.\MessageBreak
+       Using '\string\mkbibnamefamily'}%
     \@mkbibnamelastsaved}
 
   \ifdefempty\mkbibnamefirst
     {\let\@mkbibnamefirstsaved\mkbibnamegiven}% not redefined by user
     {\blx@warning@noline{%
-       Attempt to redefine deprecated \string\mkbibnamefirst\space, please
-       use \string\mkbibnamegiven\space instead. Using
-       \string\mkbibnamegiven}%
+       Attempt to redefine deprecated '\string\mkbibnamefirst'.\MessageBreak
+       Please use '\string\mkbibnamegiven' instead.\MessageBreak
+       Using '\string\mkbibnamegiven'}%
      \let\@mkbibnamefirstsaved\mkbibnamefirst
      \let\mkbibnamegiven\@mkbibnamefirstsaved}%
   % Now redefine it in case it's used
   \def\mkbibnamefirst{%
     \blx@warning@noline{%
-      \string\mkbibnamefirst\space is deprecated, please use
-      \string\mkbibnamegiven. Using \string\mkbibnamegiven}%
+      '\string\mkbibnamefirst' is deprecated.\MessageBreak
+       Please use '\string\mkbibnamegiven'.\MessageBreak
+       Using '\string\mkbibnamegiven'}%
     \@mkbibnamefirstsaved}
 
   \ifdefempty\mkbibnameaffix
     {\let\@mkbibnameaffixsaved\mkbibnamesuffix}% not redefined by user
     {\blx@warning@noline{%
-       Attempt to redefine deprecated \string\mkbibnameaffix\space, please
-       use \string\mkbibnamesuffix\space instead. Using
-       \string\mkbibnamesuffix}%
+       Attempt to redefine deprecated '\string\mkbibnameaffix'.\MessageBreak
+       Please use '\string\mkbibnamesuffix' instead.\MessageBreak
+       Using '\string\mkbibnamesuffix'}%
      \let\@mkbibnameaffixsaved\mkbibnameaffix
      \let\mkbibnamesuffix\@mkbibnameaffixsaved}%
   % Now redefine it in case it's used
   \def\mkbibnameaffix{%
     \blx@warning@noline{%
-      \string\mkbibnameaffix\space is deprecated, please use
-      \string\mkbibnamesuffix. Using \string\mkbibnamesuffix}%
+      '\string\mkbibnameaffix' is deprecated.\MessageBreak
+       Please use '\string\mkbibnamesuffix'.\MessageBreak
+       Using \string\mkbibnamesuffix}%
     \@mkbibnameaffixsaved}}
 
 \newcommand*{\bibellipsis}{[\textellipsis\unkern]\midsentence}
 
 % Delimiters used in citations, bibliography and bibliography lists
-\newcommand*{\multinamedelim}{\addcomma\space}
-\newcommand*{\finalnamedelim}{%
+\DeclareDelimFormat{multinamedelim}{\addcomma\space}
+\DeclareDelimFormat{finalnamedelim}{%
   \ifnumgreater{\value{liststop}}{2}{\finalandcomma}{}%
   \addspace\bibstring{and}\space}
-\newcommand*{\revsdnamedelim}{}
-\newcommand*{\andothersdelim}{\addspace}
+\DeclareDelimFormat{revsdnamedelim}{}
+\DeclareDelimFormat{andothersdelim}{\addspace}
 
-\newcommand*{\multilistdelim}{\addcomma\space}
-\newcommand*{\finallistdelim}{%
+\DeclareDelimFormat{multilistdelim}{\addcomma\space}
+\DeclareDelimFormat{finallistdelim}{%
   \ifnumgreater{\value{liststop}}{2}{\finalandcomma}{}%
   \addspace\bibstring{and}\space}
-\newcommand*{\andmoredelim}{\addspace}
+\DeclareDelimFormat{andmoredelim}{\addspace}
 
 \newcommand*{\multicitedelim}{\addsemicolon\space}
 \newcommand*{\compcitedelim}{\addcomma\space}
@@ -105,21 +109,26 @@
     {\iftextcitepunct{\addsemicolon}{\addcomma}}%
   \space}
 
+
 % context-sensitive delimiters
-% retain compatibility with \labelnamepunct
+% retain compatibility with \labelnamepunct et al.
+% The seemingly redundant definitions are needed because
+% hard-coded punctuation was replaced by context-sensitive
+% delimiters, changes to here need to be made explicitly
+% to avoid unwanted effects of redefining the global delimiter.
+\DeclareDelimFormat{authortypedelim}{\addcomma\space}
+\DeclareDelimFormat{editortypedelim}{\addcomma\space}
+\DeclareDelimFormat{translatortypedelim}{\addcomma\space}
 \DeclareDelimFormat{namelabeldelim}{\addspace}
 \DeclareDelimFormat{nametitledelim}{\addcomma\space}
-\DeclareDelimFormat[bib]{nametitledelim}{\labelnamepunct}
-\DeclareDelimFormat[biblist]{nametitledelim}{\labelnamepunct}
+\DeclareDelimFormat[bib,biblist]{nametitledelim}{\labelnamepunct}
 \DeclareDelimFormat[textcite]{nametitledelim}{\addspace}
 \DeclareDelimFormat{nameyeardelim}{\addspace}
 \DeclareDelimFormat[textcite]{nameyeardelim}{\addspace}
-\DeclareDelimFormat[bib]{nameyeardelim}{\addspace}
-\DeclareDelimFormat[biblist]{nameyeardelim}{\addspace}
+\DeclareDelimFormat[bib,biblist]{nameyeardelim}{\addspace}
 \DeclareDelimFormat{nonameyeardelim}{\addspace}
 \DeclareDelimFormat[textcite]{nonameyeardelim}{\addspace}
-\DeclareDelimFormat[bib]{nonameyeardelim}{\addspace}
-\DeclareDelimFormat[biblist]{nonameyeardelim}{\addspace}
+\DeclareDelimFormat[bib,biblist]{nonameyeardelim}{\addspace}
 \DeclareDelimFormat{dateeradelim}{\addspace}
 \DeclareDelimFormat{datecircadelim}{\addspace}
 
@@ -168,6 +177,11 @@
          {\textemdash}}}}
 \newcommand*{\relatedpunct}{\addspace}
 \newcommand*{\relateddelim}{\adddot\par\nobreak}
+\newcommand*{\begrelateddelim}{\newunitpunct}
+\newcommand*{\begrelateddelimmultivolume}{\newunitpunct\par\nobreak}
+% Examples of use, uncommenting these would break backwards compatibility
+%\newcommand*{\begrelateddelimorigpubin}{\addspace}
+%\newcommand*{\begrelateddelimorigpubas}{\addspace}
 \newcommand{\mkrelatedstring}{\mainlang}
 
 % Used for indexing
@@ -394,20 +408,15 @@
 \DeclareFieldFormat
   [suppbook,suppcollection,suppperiodical]
   {citetitle}{#1}
-% labelyear can be a localisation string to allow for "no date" etc.
+% label{end}year can be a localisation string to allow for "no date" etc.
 \DeclareFieldFormat{labelyear}{% = the '1995' part in 'Jones 1995a'
-  \ifbibstring{#1}{\bibstring{#1}}{#1}}
-% If labeldatesource is a defined field, they 
-% Don't check labelyear directly as it is already processed into a range with markers
-% and so is never nums due to unexpandable parts of labelyear determination
-\DeclareFieldFormat{extrayear}{%
-  \iffieldundef{\thefield{labeldatesource}}
-    {\iffieldnums{\thefield{labeldatesource}year}
-      {\mknumalph{#1}}
-      {\mkbibparens{\mknumalph{#1}}}}
-    {\iffieldnums{\thefield{labeldatesource}}
-      {\mknumalph{#1}}
-      {\mkbibparens{\mknumalph{#1}}}}}%
+  \ifbibstring{#1}{\bibstring{#1}}{\mkyearzeros{#1}}}
+\DeclareFieldFormat{labelendyear}{% = the '1995' part in 'Jones 1995a'
+  \ifbibstring{#1}{\bibstring{#1}}{\mkyearzeros{#1}}}
+\DeclareFieldFormat{extradate}{%
+  \iffieldnums{labelyear}
+    {\mknumalph{#1}}
+    {\mkbibparens{\mknumalph{#1}}}}
 \DeclareFieldFormat{labelalpha}{#1}%
 \DeclareFieldFormat{extraalpha}{\mknumalph{#1}}%
 \DeclareFieldFormat{shorthand}{#1\isdot}
@@ -415,9 +424,9 @@
   \ifcapital{\MakeCapital{#1}}{#1}\isdot}
 % citation commands
 \DeclareFieldFormat{prenote}{#1\isdot}
-\DeclareFieldFormat{postnote}{\mkpageprefix[pagination]{#1}}
+\DeclareFieldFormat{postnote}{\mkpageprefix[pagination][\mknormrange]{#1}}
 \DeclareFieldFormat{volcitevolume}{\bibstring{volume}\ppspace#1}
-\DeclareFieldFormat{volcitepages}{\mkpageprefix[pagination]{#1}}
+\DeclareFieldFormat{volcitepages}{\mkpageprefix[pagination][\mknormrange]{#1}}
 \DeclareFieldFormat{volcitenote}{\mkvolcitenote#1}
 \newrobustcmd*{\mkvolcitenote}[2]{%
   \printtext[volcitevolume]{#1}%
@@ -425,7 +434,7 @@
 
 % multicite commands
 \DeclareFieldFormat{multiprenote}{#1\isdot}
-\DeclareFieldFormat{multipostnote}{\mkpageprefix[pagination]{#1}}
+\DeclareFieldFormat{multipostnote}{\mkpageprefix[pagination][\mknormrange]{#1}}
 
 % Used by \citeurl
 
@@ -436,7 +445,7 @@
 \DeclareFieldFormat{doi}{%
   \mkbibacro{DOI}\addcolon\space
   \ifhyperref
-    {\href{http://dx.doi.org/#1}{\nolinkurl{#1}}}
+    {\href{https://doi.org/#1}{\nolinkurl{#1}}}
     {\nolinkurl{#1}}}
 \DeclareFieldFormat{edition}{%
   \ifinteger{#1}
@@ -462,12 +471,12 @@
 \DeclareFieldFormat{eprint:arxiv}{%
   arXiv\addcolon\space
   \ifhyperref
-    {\href{http://arxiv.org/\abx@arxivpath/#1}{%
+    {\href{https://arxiv.org/\abx@arxivpath/#1}{%
        \nolinkurl{#1}%
        \iffieldundef{eprintclass}
          {}
          {\addspace\texttt{\mkbibbrackets{\thefield{eprintclass}}}}}}
-    {\nolinkurl{#1}
+    {\nolinkurl{#1}%
      \iffieldundef{eprintclass}
        {}
        {\addspace\texttt{\mkbibbrackets{\thefield{eprintclass}}}}}}
@@ -527,7 +536,7 @@
 \DeclareFieldFormat[article,periodical]{volume}{#1}% volume of a journal
 \DeclareFieldFormat{volumes}{#1~\bibstring{volumes}}
 \DeclareFieldFormat{related}{#1}
-\DeclareFieldFormat{related:multivolume}{\par\nobreak#1}
+\DeclareFieldFormat{related:multivolume}{#1}
 \DeclareFieldFormat{related:origpubin}{\mkbibparens{#1}}
 \DeclareFieldFormat{related:origpubas}{\mkbibparens{#1}}
 \DeclareFieldFormat{relatedstring:default}{#1\printunit{\relatedpunct}}
@@ -585,6 +594,55 @@
        {#1}}%
   \usebibmacro{list:andothers}}
 
+\DeclareListFormat{origlanguage}{%
+  \usebibmacro{list:delim}{%
+    \ifbibstring{#1}
+      {\bibxstring{#1}}
+      {\ifbibstring{lang#1}
+         {\bibxstring{lang#1}}
+         {#1}}}%
+  \ifbibstring{#1}
+    {\bibstring{#1}}
+    {\ifbibstring{lang#1}
+       {\bibstring{lang#1}}
+       {#1}}%
+  \usebibmacro{list:andothers}}
+
+
+\DeclareListFormat{lfromoriglanguage}{%
+  \begingroup
+  \blx@bibstringnormal
+  \usebibmacro{list:delim}{%
+    \ifbibstring{from#1}
+      {\bibxlstring{from#1}}
+      {\ifbibstring{lang#1}
+         {\bibxlstring{lang#1}}
+         {#1}}}%
+  \ifbibstring{from#1}
+    {\bibstring{from#1}}
+    {\ifbibstring{lang#1}
+       {\biblstring{lang#1}}
+       {#1}}%
+ \usebibmacro{list:andothers}%
+ \endgroup}
+
+\DeclareListFormat{sfromoriglanguage}{%
+  \begingroup
+  \blx@bibstringnormal
+  \usebibmacro{list:delim}{%
+    \ifbibstring{from#1}
+      {\bibxsstring{from#1}}
+      {\ifbibstring{lang#1}
+         {\bibxsstring{lang#1}}
+         {#1}}}%
+  \ifbibstring{from#1}
+    {\bibstring{from#1}}
+    {\ifbibstring{lang#1}
+       {\bibsstring{lang#1}}
+       {#1}}%
+ \usebibmacro{list:andothers}%
+ \endgroup}
+
 \DeclareListFormat{location}{%
   \usebibmacro{list:delim}{#1}%
   #1\isdot
@@ -624,13 +682,13 @@
        or
        test \ifmoreitems
      }
-       {\multilistdelim}
+       {\printdelim{multilistdelim}}
        {\lbx@finallistdelim{#1}}}
     {}}
 
 \newbibmacro*{list:plain}{%
   \ifnumgreater{\value{listcount}}{\value{liststart}}
-    {\multilistdelim}
+    {\printdelim{multilistdelim}}
     {}}
 
 \newbibmacro*{list:andothers}{%
@@ -642,7 +700,7 @@
     {\ifnumgreater{\value{liststop}}{1}
        {\finalandcomma}
        {}%
-     \andmoredelim\bibstring{andmore}}
+     \printdelim{andmoredelim}\bibstring{andmore}}
     {}}
 
 \newbibmacro*{pageref:init}{%
@@ -675,7 +733,7 @@
         \numdef\abx@range@diff{\abx@range@diff+1}}
        {\usebibmacro{pageref:dump}%
         \ifnumgreater{\abx@range@last}{-1}
-          {\multilistdelim}
+          {\printdelim{multilistdelim}}
           {}%
         \ifhyperref
           {\hyperlink{page.#1}{#1}}
@@ -683,7 +741,7 @@
      \edef\abx@range@prev{\abx@range@num}}
     {\usebibmacro{pageref:dump}%
      \ifnumgreater{\abx@range@last}{-1}
-       {\multilistdelim}
+       {\printdelim{multilistdelim}}
        {}%
      \ifhyperref
        {\hyperlink{page.#1}{#1}}
@@ -700,7 +758,7 @@
          {\abx@range@hold}%
      \or % three
        \ifnumless{\abx@range@diff}{2}
-         {\multilistdelim}
+         {\printdelim{multilistdelim}}
          {\bibrangedash}%
        \ifhyperref
          {\hyperlink{page.\abx@range@hold}{\abx@range@hold}}
@@ -884,6 +942,7 @@
 
 \DeclareFieldFormat{authortype}{#1}
 \DeclareFieldFormat{editortype}{#1}
+\DeclareFieldFormat{translatortype}{#1}
 
 % Auxiliary macros for name formatting directives
 % ------------------------------------------------------------------
@@ -963,7 +1022,7 @@
        or
        test \ifmorenames
      }
-       {\multinamedelim}
+       {\printdelim{multinamedelim}}
        {\lbx@finalnamedelim{#1}}}
     {}}
 
@@ -977,7 +1036,7 @@
     or
     test {\ifnumequal{\value{liststop}}{2}}
   }
-    {\revsdnamedelim}
+    {\printdelim{revsdnamedelim}}
     {}}
 
 \newbibmacro*{name:andothers}{%
@@ -989,7 +1048,7 @@
     {\ifnumgreater{\value{liststop}}{1}
        {\finalandcomma}
        {}%
-     \andothersdelim\bibstring{andothers}}
+     \printdelim{andothersdelim}\bibstring{andothers}}
     {}}
 
 % ------------------------------------------------------------------
@@ -1211,6 +1270,13 @@
   \literal{nodate}
 }
 
+\DeclareExtradate{%
+  \scope{
+    \field{labelyear}
+    \field{year}
+  }
+}
+
 \DeclareLabeltitle{%
   \field{shorttitle}
   \field{title}
@@ -1229,7 +1295,7 @@
     \field[strwidth=1,strside=left]{labelname}
   }
   \labelelement{
-    \field[strwidth=2,strside=right]{year}    
+    \field[strwidth=2,strside=right]{year}
   }
 }
 
@@ -1256,7 +1322,7 @@
 % SORTING
 % ------------------------------------------------------------------
 
-\DeclareSortingNamekeyScheme{
+\DeclareSortingNamekeyTemplate{
   \keypart{
     \namepart[use=true]{prefix}
   }
@@ -1276,7 +1342,7 @@
 
 \DeclarePresort{mm}
 
-\DeclareSortingScheme{shorthand}{
+\DeclareSortingTemplate{shorthand}{
   \sort[final]{
     \field{sortshorthand}
   }
@@ -1285,17 +1351,17 @@
   }
 }
 
-\DeclareSortingScheme{none}{
+\DeclareSortingTemplate{none}{
   \sort{\citeorder}
 }
 
-\DeclareSortingScheme{debug}{
+\DeclareSortingTemplate{debug}{
   \sort{
     \field{entrykey}
   }
 }
 
-\DeclareSortingScheme{nty}{
+\DeclareSortingTemplate{nty}{
   \sort{
     \field{presort}
   }
@@ -1324,7 +1390,7 @@
   }
 }
 
-\DeclareSortingScheme{nyt}{
+\DeclareSortingTemplate{nyt}{
   \sort{
     \field{presort}
   }
@@ -1353,7 +1419,7 @@
   }
 }
 
-\DeclareSortingScheme{nyvt}{
+\DeclareSortingTemplate{nyvt}{
   \sort{
     \field{presort}
   }
@@ -1382,39 +1448,7 @@
   }
 }
 
-\DeclareSortingScheme{anyt}{
-  \sort{
-    \field{presort}
-  }
-  \sort{
-    \field{labelalpha}
-  }
-  \sort[final]{
-    \field{sortkey}
-  }
-  \sort{
-    \field{sortname}
-    \field{author}
-    \field{editor}
-    \field{translator}
-    \field{sorttitle}
-    \field{title}
-  }
-  \sort{
-    \field{sortyear}
-    \field{year}
-  }
-  \sort{
-    \field{sorttitle}
-    \field{title}
-  }
-  \sort{
-    \field{volume}
-    \literal{0}
-  }
-}
-
-\DeclareSortingScheme{anyvt}{
+\DeclareSortingTemplate{anyt}{
   \sort{
     \field{presort}
   }
@@ -1437,6 +1471,38 @@
     \field{year}
   }
   \sort{
+    \field{sorttitle}
+    \field{title}
+  }
+  \sort{
+    \field{volume}
+    \literal{0}
+  }
+}
+
+\DeclareSortingTemplate{anyvt}{
+  \sort{
+    \field{presort}
+  }
+  \sort{
+    \field{labelalpha}
+  }
+  \sort[final]{
+    \field{sortkey}
+  }
+  \sort{
+    \field{sortname}
+    \field{author}
+    \field{editor}
+    \field{translator}
+    \field{sorttitle}
+    \field{title}
+  }
+  \sort{
+    \field{sortyear}
+    \field{year}
+  }
+  \sort{
     \field{volume}
     \literal{0}
   }
@@ -1446,7 +1512,7 @@
   }
 }
 
-\DeclareSortingScheme{ynt}{
+\DeclareSortingTemplate{ynt}{
   \sort{
     \field{presort}
   }
@@ -1472,7 +1538,7 @@
   }
 }
 
-\DeclareSortingScheme{ydnt}{
+\DeclareSortingTemplate{ydnt}{
   \sort{
     \field{presort}
   }
@@ -1605,18 +1671,18 @@
 
 \newcommand*{\lbx@initnamehook}[1]{}
 \newcommand*{\lbx@inittitlehook}[1]{}
-\newcommand*{\lbx@finalnamedelim}[1]{\finalnamedelim}
-\newcommand*{\lbx@finallistdelim}[1]{\finallistdelim}
+\newcommand*{\lbx@finalnamedelim}[1]{\printdelim{finalnamedelim}}
+\newcommand*{\lbx@finallistdelim}[1]{\printdelim{finallistdelim}}
 
 \newcommand*{\lbx@lfromlang}{%
-  \iffieldundef{origlanguage}
+  \iflistundef{origlanguage}
     {\unspace}
-    {\biblstring{from\thefield{origlanguage}}}}
+    {\printlist[lfromoriglanguage]{origlanguage}}}
 
 \newcommand*{\lbx@sfromlang}{%
-  \iffieldundef{origlanguage}
+  \iflistundef{origlanguage}
     {\unspace}
-    {\bibsstring{from\thefield{origlanguage}}}}
+    {\printlist[sfromoriglanguage]{origlanguage}}}
 
 % ------------------------------------------------------------------
 % MISCELLANEOUS
@@ -1689,27 +1755,29 @@
 
 \defbibheading{none}{}
 
+\def\abx@MakeMarkcase{\MakeUppercase}
+\AtEndPreamble{%
+  \ifcsundef{MakeMarkcase}{}{\def\abx@MakeMarkcase{\MakeMarkcase}}}
+
 \ifcase\abx@classtype\relax % article
   \defbibheading{bibliography}[\refname]{%
     \section*{#1}%
-    \markboth{\MakeUppercase{#1}}{\MakeUppercase{#1}}}
+    \@mkboth{\abx@MakeMarkcase{#1}}{\abx@MakeMarkcase{#1}}}
   \defbibheading{biblist}[\biblistname]{%
     \section*{#1}%
-    \markboth{\MakeUppercase{#1}}{\MakeUppercase{#1}}}
+    \@mkboth{\abx@MakeMarkcase{#1}}{\abx@MakeMarkcase{#1}}}
   \defbibheading{bibintoc}[\refname]{%
     \section*{#1}%
     \addcontentsline{toc}{section}{#1}%
-    \markboth{\MakeUppercase{#1}}{\MakeUppercase{#1}}}
+    \@mkboth{\abx@MakeMarkcase{#1}}{\abx@MakeMarkcase{#1}}}
   \defbibheading{biblistintoc}[\biblistname]{%
     \section*{#1}%
     \addcontentsline{toc}{section}{#1}%
-    \markboth{\MakeUppercase{#1}}{\MakeUppercase{#1}}}
+    \@mkboth{\abx@MakeMarkcase{#1}}{\abx@MakeMarkcase{#1}}}
   \defbibheading{bibnumbered}[\refname]{%
-    \section{#1}%
-    \if@twoside\markright{\MakeUppercase{#1}}\fi}
+    \section{#1}}
   \defbibheading{biblistnumbered}[\biblistname]{%
-    \section{#1}%
-    \if@twoside\markright{\MakeUppercase{#1}}\fi}
+    \section{#1}}
   \defbibheading{subbibliography}[\refname]{%
     \subsection*{#1}}
   \defbibheading{subbibintoc}[\refname]{%
@@ -1721,194 +1789,237 @@
 \or % book/report
   \defbibheading{bibliography}[\bibname]{%
     \chapter*{#1}%
-    \markboth{\MakeUppercase{#1}}{\MakeUppercase{#1}}}
+    \@mkboth{\abx@MakeMarkcase{#1}}{\abx@MakeMarkcase{#1}}}
   \defbibheading{biblist}[\biblistname]{%
     \chapter*{#1}%
-    \markboth{\MakeUppercase{#1}}{\MakeUppercase{#1}}}
+    \@mkboth{\abx@MakeMarkcase{#1}}{\abx@MakeMarkcase{#1}}}
   \defbibheading{bibintoc}[\bibname]{%
     \chapter*{#1}%
     \addcontentsline{toc}{chapter}{#1}%
-    \markboth{\MakeUppercase{#1}}{\MakeUppercase{#1}}}
+    \@mkboth{\abx@MakeMarkcase{#1}}{\abx@MakeMarkcase{#1}}}
   \defbibheading{biblistintoc}[\biblistname]{%
     \chapter*{#1}%
     \addcontentsline{toc}{chapter}{#1}%
-    \markboth{\MakeUppercase{#1}}{\MakeUppercase{#1}}}
+    \@mkboth{\abx@MakeMarkcase{#1}}{\abx@MakeMarkcase{#1}}}
   \defbibheading{bibnumbered}[\bibname]{%
-    \chapter{#1}%
-    \if@twoside\markright{\MakeUppercase{#1}}\fi}
+    \chapter{#1}}
   \defbibheading{biblistnumbered}[\biblistname]{%
-    \chapter{#1}%
-    \if@twoside\markright{\MakeUppercase{#1}}\fi}
+    \chapter{#1}}
   \defbibheading{subbibliography}[\refname]{%
     \section*{#1}%
-    \if@twoside\markright{\MakeUppercase{#1}}\fi}
+    \if@twoside\markright{\abx@MakeMarkcase{#1}}\fi}
   \defbibheading{subbibintoc}[\refname]{%
     \section*{#1}%
     \addcontentsline{toc}{section}{#1}%
-    \if@twoside\markright{\MakeUppercase{#1}}\fi}
+    \if@twoside\markright{\abx@MakeMarkcase{#1}}\fi}
   \defbibheading{subbibnumbered}[\refname]{%
     \section{#1}}
 
 \or % scrartcl
   \defbibheading{bibliography}[\refname]{%
-    \ifkomabibtotocnumbered
-      {\section{#1}}
-      {\ifkomabibtotoc
-         {\addsec{#1}}
-         {\section*{#1}}%
-       \markboth{#1}{#1}}}
+    \ifcsundef{bibliography@heading}
+      {\ifkomabibtotocnumbered
+         {\section{#1}}
+         {\ifkomabibtotoc
+            {\addsec{#1}}
+            {\section*{#1}%
+             \ifcsundef{@mkdouble}
+               {\@mkboth{\abx@MakeMarkcase{#1}}{\abx@MakeMarkcase{#1}}}
+               {\@mkdouble{\abx@MakeMarkcase{#1}}}}}}
+      {\bibliography@heading{#1}}}
   \defbibheading{biblist}[\biblistname]{%
-    \ifkomabibtotocnumbered
-      {\section{#1}}
-      {\ifkomabibtotoc
-         {\addsec{#1}}
-         {\section*{#1}}%
-       \markboth{#1}{#1}}}
+    \ifcsundef{bibliography@heading}
+      {\ifkomabibtotocnumbered
+         {\section{#1}}
+         {\ifkomabibtotoc
+            {\addsec{#1}}
+            {\section*{#1}%
+             \ifcsundef{@mkdouble}
+               {\@mkboth{\abx@MakeMarkcase{#1}}{\abx@MakeMarkcase{#1}}}
+               {\@mkdouble{\abx@MakeMarkcase{#1}}}}}}
+      {\bibliography@heading{#1}}}
   \defbibheading{bibintoc}[\refname]{%
-    \addsec{#1}%
-    \markboth{#1}{#1}}
+    \addsec{#1}}
   \defbibheading{biblistintoc}[\biblistname]{%
-    \addsec{#1}%
-    \markboth{#1}{#1}}
+    \addsec{#1}}
   \defbibheading{bibnumbered}[\refname]{%
-    \section{#1}%
-    \markboth{\sectionmarkformat#1}{\sectionmarkformat#1}}
+    \section{#1}}
   \defbibheading{biblistnumbered}[\biblistname]{%
-    \section{#1}%
-    \markboth{\sectionmarkformat#1}{\sectionmarkformat#1}}
+    \section{#1}}
   \defbibheading{subbibliography}[\refname]{%
-    \subsection*{#1}}
+    \subsection*{#1}%
+    \ifcsundef{@mkright}
+      {\ifx\@mkboth\@gobbletwo\else\markright{\abx@MakeMarkcase{#1}}\fi}
+      {\@mkright{\abx@MakeMarkcase{#1}}}}
   \defbibheading{subbibintoc}[\refname]{%
     \subsection*{#1}%
-    \addcontentsline{toc}{subsection}{#1}}
+    \addcontentsline{toc}{subsection}{#1}%
+    \ifcsundef{@mkright}
+      {\ifx\@mkboth\@gobbletwo\else\markright{\abx@MakeMarkcase{#1}}\fi}
+      {\@mkright{\abx@MakeMarkcase{#1}}}}
   \defbibheading{subbibnumbered}[\refname]{%
     \subsection{#1}}
 
 \or % scrbook/scrreprt
   \defbibheading{bibliography}[\bibname]{%
-    \ifkomabibtotocnumbered
-      {\chapter{#1}}
-      {\ifkomabibtotoc
-         {\addchap{#1}}
-         {\chapter*{#1}}%
-       \markboth{#1}{#1}}}
+    \ifcsundef{bibliography@heading}
+      {\ifkomabibtotocnumbered
+         {\chapter{#1}}
+         {\ifkomabibtotoc
+            {\addchap{#1}}
+            {\chapter*{#1}
+             \ifcsundef{@mkdouble}
+               {\@mkboth{\abx@MakeMarkcase{#1}}{\abx@MakeMarkcase{#1}}}
+               {\@mkdouble{\abx@MakeMarkcase{#1}}}}}}
+      {\bibliography@heading{#1}}}
   \defbibheading{biblist}[\biblistname]{%
-    \ifkomabibtotocnumbered
-      {\chapter{#1}}
-      {\ifkomabibtotoc
-         {\addchap{#1}}
-         {\chapter*{#1}}%
-       \markboth{#1}{#1}}}
+    \ifcsundef{bibliography@heading}
+      {\ifkomabibtotocnumbered
+         {\chapter{#1}}
+         {\ifkomabibtotoc
+            {\addchap{#1}}
+            {\chapter*{#1}
+             \ifcsundef{@mkdouble}
+               {\@mkboth{\abx@MakeMarkcase{#1}}{\abx@MakeMarkcase{#1}}}
+               {\@mkdouble{\abx@MakeMarkcase{#1}}}}}}
+      {\bibliography@heading{#1}}}
   \defbibheading{bibintoc}[\bibname]{%
-    \addchap{#1}%
-    \markboth{#1}{#1}}
+    \addchap{#1}}
   \defbibheading{biblistintoc}[\biblistname]{%
-    \addchap{#1}%
-    \markboth{#1}{#1}}
+    \addchap{#1}}
   \defbibheading{bibnumbered}[\bibname]{%
-    \chapter{#1}%
-    \markboth{\chaptermarkformat#1}{\chaptermarkformat#1}}
+    \chapter{#1}}
   \defbibheading{biblistnumbered}[\biblistname]{%
-    \chapter{#1}%
-    \markboth{\chaptermarkformat#1}{\chaptermarkformat#1}}
+    \chapter{#1}}
   \defbibheading{subbibliography}[\refname]{%
     \section*{#1}%
-    \if@twoside\markright{#1}\fi}
+    \ifcsundef{@mkright}
+      {\ifx\@mkboth\@gobbletwo\else\markright{\abx@MakeMarkcase{#1}}\fi}
+      {\@mkright{\abx@MakeMarkcase{#1}}}}
   \defbibheading{subbibintoc}[\refname]{%
-    \addsec{#1}%
-    \markboth{#1}{#1}}
+    \addsec{#1}}
   \defbibheading{subbibnumbered}[\refname]{%
     \section{#1}}
 
 \or % memoir (article)
-  \ifdef\memUChead{}{\let\memUChead\MakeUppercase}
+  \ifcsundef{memUChead}{}{\def\abx@MakeMarkcase{\memUChead}}%
   \defbibheading{bibliography}[\refname]{%
     \chapter*{#1}%
+    \if@twoside
+      \markboth{\abx@MakeMarkcase{#1}}{\abx@MakeMarkcase{#1}}%
+    \else
+      \markright{\abx@MakeMarkcase{#1}}%
+    \fi
     \ifmemoirbibintoc
       {\phantomsection
        \addcontentsline{toc}{chapter}{#1}}
-      {}%
-    \markboth{\memUChead{#1}}{\memUChead{#1}}}
+      {}}
   \defbibheading{biblist}[\biblistname]{%
     \chapter*{#1}%
+    \if@twoside
+      \markboth{\abx@MakeMarkcase{#1}}{\abx@MakeMarkcase{#1}}%
+    \else
+      \markright{\abx@MakeMarkcase{#1}}%
+    \fi
     \ifmemoirbibintoc
       {\phantomsection
        \addcontentsline{toc}{chapter}{#1}}
-      {}%
-    \markboth{\memUChead{#1}}{\memUChead{#1}}}
+      {}}
   \defbibheading{bibintoc}[\refname]{%
     \chapter*{#1}%
+    \if@twoside
+      \markboth{\abx@MakeMarkcase{#1}}{\abx@MakeMarkcase{#1}}%
+    \else
+      \markright{\abx@MakeMarkcase{#1}}%
+    \fi
     \phantomsection
-    \addcontentsline{toc}{chapter}{#1}%
-    \markboth{\memUChead{#1}}{\memUChead{#1}}}
+    \addcontentsline{toc}{chapter}{#1}}
   \defbibheading{biblistintoc}[\biblistname]{%
     \chapter*{#1}%
+    \if@twoside
+      \markboth{\abx@MakeMarkcase{#1}}{\abx@MakeMarkcase{#1}}%
+    \else
+      \markright{\abx@MakeMarkcase{#1}}%
+    \fi
     \phantomsection
-    \addcontentsline{toc}{chapter}{#1}%
-    \markboth{\memUChead{#1}}{\memUChead{#1}}}
+    \addcontentsline{toc}{chapter}{#1}}
   \defbibheading{bibnumbered}[\refname]{%
     \chapter{#1}}
   \defbibheading{biblistnumbered}[\biblistname]{%
     \chapter{#1}}
   \defbibheading{subbibliography}[\refname]{%
     \section*{#1}%
+    \if@twoside\markright{\abx@MakeMarkcase{#1}}\fi
     \ifmemoirbibintoc
       {\phantomsection
        \addcontentsline{toc}{section}{#1}}
-      {}%
-    \if@twoside\markright{\memUChead{#1}}\fi}
+      {}}
   \defbibheading{subbibintoc}[\refname]{%
     \section*{#1}%
+    \if@twoside\markright{\abx@MakeMarkcase{#1}}\fi
     \phantomsection
-    \addcontentsline{toc}{section}{#1}%
-    \if@twoside\markright{\memUChead{#1}}\fi}
+    \addcontentsline{toc}{section}{#1}}
   \defbibheading{subbibnumbered}[\refname]{%
     \section{#1}}
 
 \or % memoir (book)
-  \ifdef\memUChead{}{\let\memUChead\MakeUppercase}
+  \ifcsundef{memUChead}{}{\def\abx@MakeMarkcase{\memUChead}}%
   \defbibheading{bibliography}[\bibname]{%
     \chapter*{#1}%
+    \if@twoside
+      \markboth{\abx@MakeMarkcase{#1}}{\abx@MakeMarkcase{#1}}%
+    \else
+      \markright{\abx@MakeMarkcase{#1}}%
+    \fi
     \ifmemoirbibintoc
       {\phantomsection
        \addcontentsline{toc}{chapter}{#1}}
-      {}%
-    \markboth{\memUChead{#1}}{\memUChead{#1}}}
+      {}}
   \defbibheading{biblist}[\biblistname]{%
     \chapter*{#1}%
+    \if@twoside
+      \markboth{\abx@MakeMarkcase{#1}}{\abx@MakeMarkcase{#1}}%
+    \else
+      \markright{\abx@MakeMarkcase{#1}}%
+    \fi
     \ifmemoirbibintoc
       {\phantomsection
        \addcontentsline{toc}{chapter}{#1}}
-      {}%
-    \markboth{\memUChead{#1}}{\memUChead{#1}}}
+      {}}
   \defbibheading{bibintoc}[\bibname]{%
     \chapter*{#1}%
+    \if@twoside
+      \markboth{\abx@MakeMarkcase{#1}}{\abx@MakeMarkcase{#1}}%
+    \else
+      \markright{\abx@MakeMarkcase{#1}}%
+    \fi
     \phantomsection
-    \addcontentsline{toc}{chapter}{#1}%
-    \markboth{\memUChead{#1}}{\memUChead{#1}}}
+    \addcontentsline{toc}{chapter}{#1}}
   \defbibheading{biblistintoc}[\biblistname]{%
     \chapter*{#1}%
+    \if@twoside
+      \markboth{\abx@MakeMarkcase{#1}}{\abx@MakeMarkcase{#1}}%
+    \else
+      \markright{\abx@MakeMarkcase{#1}}%
+    \fi
     \phantomsection
-    \addcontentsline{toc}{chapter}{#1}%
-    \markboth{\memUChead{#1}}{\memUChead{#1}}}
+    \addcontentsline{toc}{chapter}{#1}}
   \defbibheading{bibnumbered}[\bibname]{%
-    \chapter{#1}%
-    \if@twoside\markright{\memUChead{#1}}\fi}
+    \chapter{#1}}
   \defbibheading{biblistnumbered}[\biblistname]{%
-    \chapter{#1}%
-    \if@twoside\markright{\memUChead{#1}}\fi}
+    \chapter{#1}}
   \defbibheading{subbibliography}[\refname]{%
     \section*{#1}%
+    \if@twoside\markright{\abx@MakeMarkcase{#1}}\fi
     \ifmemoirbibintoc
       {\phantomsection
        \addcontentsline{toc}{section}{#1}}
-      {}%
-    \if@twoside\markright{\memUChead{#1}}\fi}
+      {}}
   \defbibheading{subbibintoc}[\refname]{%
     \section*{#1}%
+    \if@twoside\markright{\abx@MakeMarkcase{#1}}\fi
     \phantomsection
-    \addcontentsline{toc}{section}{#1}%
-    \if@twoside\markright{\memUChead{#1}}\fi}
+    \addcontentsline{toc}{section}{#1}}
   \defbibheading{subbibnumbered}[\refname]{%
     \section{#1}}
 
@@ -1990,7 +2101,7 @@
   {\boolfalse{citetracker}%
    \boolfalse{pagetracker}%
    \usebibmacro{prenote}}
-  {\printfield{year}\printfield{extrayear}}
+  {\printfield{year}\printfield{extradate}}
   {\multicitedelim}
   {\usebibmacro{postnote}}
 
@@ -2246,7 +2357,7 @@
     {\printnames{author}%
      \iffieldundef{authortype}
        {}
-       {\setunit{\addcomma\space}%
+       {\setunit{\printdelim{authortypedelim}}%
         \usebibmacro{authorstrg}}}
     {}}
 
@@ -2257,7 +2368,7 @@
     not test {\ifnameundef{editor}}
   }
     {\printnames{editor}%
-     \setunit{\addcomma\space}%
+     \setunit{\printdelim{editortypedelim}}%
      \usebibmacro{editorstrg}%
      \clearname{editor}}
     {}}
@@ -2269,7 +2380,7 @@
     not test {\ifnameundef{editor}}
   }
     {\printnames{editor}%
-     \setunit{\addcomma\space}%
+     \setunit{\printdelim{editortypedelim}}%
      \usebibmacro{editor+othersstrg}%
      \clearname{editor}}
     {}}
@@ -2281,7 +2392,7 @@
     not test {\ifnameundef{translator}}
   }
     {\printnames{translator}%
-     \setunit{\addcomma\space}%
+     \setunit{\printdelim{translatortypedelim}}%
      \usebibmacro{translatorstrg}%
      \clearname{translator}}
     {}}
@@ -2293,7 +2404,7 @@
     not test {\ifnameundef{translator}}
   }
     {\printnames{translator}%
-     \setunit{\addcomma\space}%
+     \setunit{\printdelim{translatortypedelim}}%
      \usebibmacro{translator+othersstrg}%
      \clearname{translator}}
     {}}
@@ -2375,13 +2486,14 @@
     {\usebibmacro{editorstrg}}}
 
 \newbibmacro*{translatorstrg}{%
-  \ifboolexpr{
-    test {\ifnumgreater{\value{translator}}{1}}
-    or
-    test {\ifandothers{translator}}
-  }
-    {\bibstring{translators}}
-    {\bibstring{translator}}}
+  \printtext[translatortype]{%
+    \ifboolexpr{
+      test {\ifnumgreater{\value{translator}}{1}}
+      or
+      test {\ifandothers{translator}}
+    }
+      {\bibstring{translators}}
+      {\bibstring{translator}}}}
 
 \newbibmacro*{translator+othersstrg}{%
   \ifboolexpr{
@@ -2408,7 +2520,7 @@
           {\appto\abx@tempa{af}%
            \clearname{afterword}}
           {}}}%
-  \bibstring{\abx@tempa}}
+  \printtext[translatortype]{\bibstring{\abx@tempa}}}
 
 \newbibmacro*{byauthor}{%
   \ifboolexpr{
@@ -2638,7 +2750,11 @@
   \printfield{maintitleaddon}}
 
 \newbibmacro*{journal}{%
-  \iffieldundef{journaltitle}
+  \ifboolexpr{
+    test {\iffieldundef{journaltitle}}
+    and
+    test {\iffieldundef{journalsubtitle}}
+  }
     {}
     {\printtext[journaltitle]{%
        \printfield[titlecase]{journaltitle}%
@@ -2646,7 +2762,11 @@
        \printfield[titlecase]{journalsubtitle}}}}
 
 \newbibmacro*{periodical}{%
-  \iffieldundef{title}
+  \ifboolexpr{
+    test {\iffieldundef{title}}
+    and
+    test {\iffieldundef{subtitle}}
+  }
     {}
     {\printtext[title]{%
        \printfield[titlecase]{title}%
@@ -2654,7 +2774,11 @@
        \printfield[titlecase]{subtitle}}}}
 
 \newbibmacro*{issue}{%
-  \iffieldundef{issuetitle}
+  \ifboolexpr{
+    test {\iffieldundef{issuetitle}}
+    and
+    test {\iffieldundef{issuesubtitle}}
+  }
     {}
     {\printtext[issuetitle]{%
        \printfield[titlecase]{issuetitle}%
@@ -2724,9 +2848,9 @@
             {}}%
        \renewbibmacro*{related:init}{}%
        \DeclareNameAlias{sortname}{default}%
-       \ifbibmacroundef{date+extrayear}
+       \ifbibmacroundef{date+extradate}
          {}
-         {\renewbibmacro*{date+extrayear}{}%
+         {\renewbibmacro*{date+extradate}{}%
           \renewbibmacro*{date}{\printdate}}%
        \renewbibmacro*{pageref}{}}
       {\thefield{entrytype}}}}
@@ -2764,7 +2888,7 @@
       test {\ifnamesequal{author}{savedauthor}}
       or
       test {\ifnameundef{author}}
-    } 
+    }
       {}
       {\usebibmacro{bytypestrg}{author}{author}%
        \setunit{\addspace}%
@@ -2774,7 +2898,7 @@
       test {\ifnamesequal{editor}{savededitor}}
       or
       test {\ifnameundef{editor}}
-    } 
+    }
       {}
       {\usebibmacro{byeditor+others}%
        \newunit\newblock}%

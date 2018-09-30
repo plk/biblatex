@@ -1,5 +1,5 @@
 % Copyright (c) 2006-2011 Philipp Lehman.
-%               2012-2016 Philip Kime, Audrey Boruvka, Joseph Wright
+%               2012-2018 Philip Kime, Audrey Boruvka, Joseph Wright
 %
 % Permission is granted to copy, distribute and/or modify this
 % software under the terms of the LaTeX Project Public License
@@ -159,7 +159,7 @@ ENTRY {
     verbc
   }
   { skipbib skiplos skiplab useauthor useeditor usetranslator useprefix singletitle }
-  { entryoptions labelhash namehash fullhash dateyear dateendyear extrayear labelalpha extraalpha 
+  { entryoptions labelhash namehash fullhash dateyear dateendyear extradate labelalpha extraalpha 
     sortinit label.name label.year sortkey.nosort sortkey.name sortkey.year
     sortkey.title sortkey.alpha sort.year sort.alph warningmsg }
 
@@ -175,7 +175,7 @@ STRINGS  { ctrl.alphaothers ctrl.sortstr
            last.name last.hash last.year last.extra }
 
 FUNCTION {initialize} {
-  "$Revision: 3.3 $"
+  "$Revision: 3.8 $"
   #12 entry.max$ substring$
   #-3 entry.max$ substring$
   "Biblatex version: " swap$ * top$
@@ -1430,22 +1430,21 @@ FUNCTION {output:specials} {
   ctrl:labeldate
   dateyear empty$ not
   and
-    { "labelyear"
-      dateyear
+    { "labelyear" dateyear output:write:field
       dateendyear empty$
         'skip$
         { dateyear dateendyear =
             'skip$
             { dateendyear open.ended =
                 'skip$
-                { "\bibdatedash " * dateendyear * }
+                { "labelendyear" dateendyear output:write:field }
               if$
             }
           if$
         }
       if$
-      output:write:field
-      "extrayear"   extrayear       output:write:field
+      "extradate"   extradate       output:write:field
+      "labeldatesource" "year"      output:write:field
     }
     'skip$
   if$
@@ -1483,6 +1482,7 @@ FUNCTION {output:names} {
 FUNCTION {output:lists} {
   "language"        language        output:write:list
   "organization"    organization    output:write:list
+  "origlanguage"    origlanguage    output:write:list
   "origlocation"    origlocation    output:write:list
   "origpublisher"   origpublisher   output:write:list
   "publisher"       publisher       output:write:list
@@ -1526,7 +1526,6 @@ FUNCTION {output:fields.2} {
   "nameaddon"       nameaddon       output:write:field
   "note"            note            output:write:field
   "number"          number          output:write:field
-  "origlanguage"    origlanguage    output:write:field
   "origtitle"       origtitle       output:write:field
   "pages"           pages           output:write:range
   "pagetotal"       pagetotal       output:write:range
@@ -1888,7 +1887,7 @@ FUNCTION {input:control:options} {
 % This version corresponds to the .bbl version, *not* the biblatex version!
 FUNCTION {input:control:version} {
   input:control:parse
-  "$Revision: 2.8 $"
+  "$Revision: 2.9 $"
   #12 entry.max$ substring$
   #-3 entry.max$ substring$
   'tempstrga :=
@@ -2280,7 +2279,11 @@ FUNCTION {makelabel:ctrl:alpha} {
         { label makelabel:alpha:year * }
       if$
     }
-    { "" }
+    { shorthand empty$
+        { "" }
+        { shorthand }
+      if$
+    }
   if$
 }
 
@@ -2549,10 +2552,10 @@ FUNCTION {labelsort:main:year:iterate} {
       'label.year :=
       label.year last.year =
         { last.extra.num #1 + 'last.extra.num :=
-          last.extra.num int.to.str$ 'extrayear :=
+          last.extra.num int.to.str$ 'extradate :=
         }
         { #1 'last.extra.num :=
-          "" 'extrayear :=
+          "" 'extradate :=
           label.year 'last.year :=
         }
       if$
@@ -2564,10 +2567,10 @@ FUNCTION {labelsort:main:year:iterate} {
 FUNCTION {labelsort:main:year:reverse} {
   ctrl:labeldate
     { last.extra "2" =
-        { "1" 'extrayear := }
+        { "1" 'extradate := }
         'skip$
       if$
-      extrayear 'last.extra :=
+      extradate 'last.extra :=
     }
     'skip$
   if$
@@ -2702,7 +2705,7 @@ SORT
 % This version corresponds to the .bbl version, *not* the biblatex version!
 FUNCTION {output:main:begin} {
   "% $ biblatex auxiliary file $"                               write$ newline$
-  "% $ biblatex bbl format version " "$Revision: 2.8 $"
+  "% $ biblatex bbl format version " "$Revision: 2.9 $"
   #12 entry.max$ substring$ #-3 entry.max$ substring$ * " $" *  write$ newline$
   "% Do not modify the above lines!"                            write$ newline$
   "%"                                                           write$ newline$
@@ -2720,7 +2723,7 @@ FUNCTION {output:main:begin} {
   "  {}"                                                        write$ newline$
   "\endgroup"                                                   write$ newline$
   newline$
-  "\sortlist[entry]{" ctrl.sortstr * "/global/}" *              write$
+  "\datalist[entry]{" ctrl.sortstr * "/global//global/global}" *              write$
 }
 
 FUNCTION {output:main:preamble} {
@@ -2735,7 +2738,7 @@ FUNCTION {output:main:preamble} {
 }
 
 FUNCTION {output:main:end} {
-  "\endsortlist" write$ newline$
+  "\enddatalist" write$ newline$
   "\endinput"    write$ newline$
 }
 

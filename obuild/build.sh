@@ -5,6 +5,8 @@ echo "Usage:
 
 build.sh help
 build.sh install <version> <tds_root>
+build.sh uninstall <tds_root>
+build.sh build <version>
 build.sh builddist|builddocs|build <version>
 build.sh testbibtex [file]|testbiber [file]|test [file]|testoutput 
 build.sh upload <version> [ \"DEV\" ]
@@ -13,9 +15,10 @@ With the \"DEV\" argument, uploads to the SourceForge development
 folder instead of the <version> numbered folder
 
 Examples: 
-obuild/build.sh install 2.2 ~/texmf/
-obuild/build.sh build 2.2
-obuild/build.sh upload 2.2 DEV
+obuild/build.sh install 3.8 ~/texmf/
+obuild/build.sh uninstall ~/texmf/
+obuild/build.sh build 3.8
+obuild/build.sh upload 3.8 DEV
 
 \"build test\" runs all of the example files (in a temp dir) and puts errors in a log:
 
@@ -42,6 +45,12 @@ then
   exit 1
 fi
 
+if [[ "$1" == "uninstall" && -z "$2" ]]
+then
+  usage
+  exit 1
+fi
+
 if [[ "$1" == "install" && ( -z "$2" || -z "$3" ) ]]
 then
   usage
@@ -61,8 +70,22 @@ then
 fi
 
 declare VERSION=$2
-declare VERSIONM=`echo -n "$VERSION" | perl -nE 'say s/^(\d+\.\d+)[a-z]/$1/r'`
-declare DATE=`date '+%Y/%m/%d'`
+declare VERSIONM=$(echo -n "$VERSION" | perl -nE 'say s/^(\d+\.\d+)[a-z]/$1/r')
+declare DATE=$(date '+%Y/%m/%d')
+
+if [[ "$1" == "uninstall" ]]
+then
+  \rm -f $2/biber/bltxml/biblatex/biblatex-examples.bltxml
+  \rm -f $2/bibtex/bib/biblatex/biblatex-examples.bib
+  \rm -f $2/bibtex/bst/biblatex/biblatex.bst
+  \rm -f $2/doc/latex/biblatex/README
+  \rm -f $2/doc/latex/biblatex/CHANGES.md
+  \rm -f $2/doc/latex/biblatex/biblatex.pdf
+  \rm -f $2/doc/latex/biblatex/biblatex.tex
+  \rm -rf $2/doc/latex/biblatex/examples
+  \rm -rf $2/tex/latex/biblatex
+  exit 0
+fi
 
 if [[ "$1" == "upload" ]]
 then
@@ -70,11 +93,11 @@ then
     then
       if [[ "$3" == "DEV" ]]
       then
-        scp obuild/biblatex-$VERSION.*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/development/
-        scp doc/latex/biblatex/CHANGES.org philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/development/
+        scp obuild/biblatex-"$VERSION".*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/development/
+        scp doc/latex/biblatex/CHANGES.md philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/development/
       else
-        scp obuild/biblatex-$VERSION.*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/biblatex-$VERSIONM/
-        scp doc/latex/biblatex/CHANGES.org philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/biblatex-$VERSIONM/
+        scp obuild/biblatex-"$VERSION".*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/biblatex-"$VERSIONM"/
+        scp doc/latex/biblatex/CHANGES.md philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/biblatex-"$VERSIONM"/
       fi
     exit 0
   fi
@@ -83,7 +106,7 @@ fi
 
 if [[ "$1" == "builddist" || "$1" == "build" || "$1" == "install" ]]
 then
-  find . -name \*~ -print | xargs rm >/dev/null 2>&1
+  find . -name \*~ -print0 | xargs -0 rm >/dev/null 2>&1
   # tds
   [[ -e obuild/tds ]] || mkdir obuild/tds
   \rm -rf obuild/tds/*
@@ -91,7 +114,7 @@ then
   cp -r biber obuild/tds/
   mkdir -p obuild/tds/doc/latex/biblatex
   cp doc/latex/biblatex/README obuild/tds/doc/latex/biblatex/
-  cp doc/latex/biblatex/CHANGES.org obuild/tds/doc/latex/biblatex/
+  cp doc/latex/biblatex/CHANGES.md obuild/tds/doc/latex/biblatex/
   cp doc/latex/biblatex/biblatex.pdf obuild/tds/doc/latex/biblatex/ 2>/dev/null
   cp doc/latex/biblatex/biblatex.tex obuild/tds/doc/latex/biblatex/
   cp -r doc/latex/biblatex/examples obuild/tds/doc/latex/biblatex/
@@ -108,7 +131,7 @@ then
   mkdir -p obuild/flat/biblatex/doc/examples
   mkdir -p obuild/flat/biblatex/latex/{cbx,bbx,lbx}
   cp doc/latex/biblatex/README obuild/flat/biblatex/
-  cp doc/latex/biblatex/CHANGES.org obuild/flat/biblatex/
+  cp doc/latex/biblatex/CHANGES.md obuild/flat/biblatex/
   cp bibtex/bib/biblatex/biblatex-examples.bib obuild/flat/biblatex/bibtex/bib/biblatex/  
   cp bibtex/bib/biblatex/biblatex-examples.bib obuild/flat/biblatex/doc/examples/
   cp biber/bltxml/biblatex/biblatex-examples.bltxml obuild/flat/biblatex/biber/bltxml/
@@ -127,8 +150,8 @@ then
   perl -pi -e "s|\\\\abx\\@date\{[^\}]+\}|\\\\abx\\@date\{$DATE\}|;s|\\\\abx\\@version\{[^\}]+\}|\\\\abx\\@version\{$VERSION\}|;" obuild/tds/tex/latex/biblatex/biblatex.sty obuild/flat/biblatex/latex/biblatex.sty
 
   # Can't do in-place on windows (cygwin)
-  find obuild/tds -name \*.bak | xargs \rm -rf
-  find obuild/tds -name auto | xargs \rm -rf
+  find obuild/tds -name \*.bak -print0 | xargs -0 \rm -rf
+  find obuild/tds -name auto -print0 | xargs -0 \rm -rf
 
   echo "Created build trees ..."
 fi
@@ -140,21 +163,9 @@ then
   echo "Installed TDS build tree ..."
 fi
 
-# Update git tag to HEAD of branch
-if [[ "$BIBLATEXDEV" == 'true' ]]
-then
-  if [[ "$1" == "builddist" || "$1" == "build" ]]
-  then
-      git tag -d v$VERSION
-      git push origin :refs/tags/v$VERSION
-      git tag v$VERSION
-      git push --tags
-  fi
-fi
-
 if [[ "$1" == "builddocs" || "$1" == "build" ]]
 then
-  cd doc/latex/biblatex
+  cd doc/latex/biblatex || exit
 
   perl -pi.bak -e 's|DATEMARKER|\\today|;' biblatex.tex
 
@@ -168,8 +179,9 @@ then
 
   cp biblatex.pdf ../../../obuild/tds/doc/
   cp biblatex.pdf ../../../obuild/flat/doc/
-  cd ../../..
+  cd ../../.. || exit
 
+  echo
   echo "Created main documentation ..."
 fi
 
@@ -192,7 +204,7 @@ then
   cp -r doc/latex/biblatex/examples/*.bib obuild/test/examples/
   \rm -f obuild/test/example_errs_biber.txt
   \rm -f obuild/test/example_errs_bibtex.txt
-  cd obuild/test/examples
+  cd obuild/test/examples || exit
 
   # Make the bibtex/biber backend test files
   for f in *.tex
@@ -293,8 +305,14 @@ PDFLaTeX errors/warnings
           declare TEXENGINE=pdflatex
           declare BIBEROPTS='--output_safechars --onlylog'
       else
-          declare TEXENGINE=lualatex
-          declare BIBEROPTS='--onlylog'
+          if [[ "$f" == "93-nameparts-biber.tex" ]] # Needs xelatex
+          then
+             declare TEXENGINE=xelatex
+             declare BIBEROPTS='--onlylog'
+          else
+             declare TEXENGINE=lualatex
+             declare BIBEROPTS='--onlylog'
+          fi
       fi
       echo -n "File (biber): $f ... "
       exec 4>&1 7>&2 # save stdout/stderr
@@ -346,11 +364,11 @@ $TEXENGINE errors/warnings
       fi
     done
   fi
-  cd ../../..
+  cd ../../.. || exit
 fi
 
 if [[ "$1" == "testoutput" ]]
 then
-  cd obuild
+  cd obuild || exit
   ./testfull.pl
 fi
