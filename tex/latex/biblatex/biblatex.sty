@@ -7166,6 +7166,100 @@
   \blx@resolve@annotation@label{\blx@tempd}%
   \ifinlistcs{#5}{abx@annotation@part@\blx@tempd @#2@\blx@tempc @#4}}
 
+% [<field>][<annotationname>]
+\def\blx@imc@hasfieldannotation{%
+  \let\blx@tempa\@empty
+  \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
+  \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
+  \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
+ \@ifnextchar[%]
+    {\blx@imc@hasfieldannotation@i}
+    {\blx@imc@hasfieldannotation@i[\blx@tempa]}}
+
+\def\blx@imc@hasfieldannotation@i[#1]{%
+  \ifstrempty{#1}
+    {\blx@imc@hasfieldannotation@i[\blx@tempa]}
+    {\@ifnextchar[%]
+      {\blx@imc@hasfieldannotation@ii{#1}}
+      {\blx@imc@hasfieldannotation@ii{#1}[default]}}}
+
+\def\blx@imc@hasfieldannotation@ii#1[#2]{%
+  \ifstrempty{#2}
+    {\def\blx@tempb{default}}
+    {\def\blx@tempb{#2}}%
+  \def\blx@tempc{#1}%
+  \blx@resolve@annotation@label{\blx@tempc}%
+  \ifboolexpr { test {\ifcsdef{abx@annotation@field@\blx@tempc @\blx@tempb}}
+                or
+                test {\ifcsdef{abx@annotation@literal@field@\blx@tempc @\blx@tempb}} }}
+
+% [<field>][<annotationname>][<item>]
+\def\blx@imc@hasitemannotation{%
+  \let\blx@tempa\@empty
+  \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
+  \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
+  \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
+   \@ifnextchar[%]
+    {\blx@imc@hasitemannotation@i}
+    {\blx@imc@hasitemannotation@i[\blx@tempa]}}
+
+\def\blx@imc@hasitemannotation@i[#1]{%
+  \ifstrempty{#1}
+    {\blx@imc@hasitemannotation@i[\blx@tempa]}
+    {\@ifnextchar[%]
+      {\blx@imc@hasitemannotation@ii{#1}}
+      {\blx@imc@hasitemannotation@ii{#1}[default]}}}
+
+\def\blx@imc@hasitemannotation@ii#1[#2]{%
+  \ifstrempty{#2}
+    {\def\blx@tempb{default}}
+    {\def\blx@tempb{#2}}%
+  \@ifnextchar[%]
+    {\blx@imc@hasitemannotation@iii{#1}{\blx@tempb}}
+    {\blx@imc@hasitemannotation@iii{#1}{\blx@tempb}[\the\value{listcount}]}}
+
+\def\blx@imc@hasitemannotation@iii#1#2[#3]{%
+  \def\blx@tempc{#1}%
+  \blx@resolve@annotation@label{\blx@tempc}%
+  \ifboolexpr { test {\ifcsdef{abx@annotation@item@\blx@tempc @#2@#3}}
+                or
+                test {\ifcsdef{abx@annotation@literal@item@\blx@tempc @#2@#3}} }}
+
+% [<field>][<annotationname>][<item>]{<part>}
+\def\blx@imc@haspartannotation{%
+  \let\blx@tempa\@empty
+  \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
+  \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
+  \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
+  \@ifnextchar[%]
+    {\blx@imc@haspartannotation@i}
+    {\blx@imc@haspartannotation@i[\blx@tempa]}}
+
+\def\blx@imc@haspartannotation@i[#1]{%
+  \ifstrempty{#1}
+    {\blx@imc@haspartannotation@i[\blx@tempa]}
+    {\@ifnextchar[%]
+      {\blx@imc@haspartannotation@ii{#1}}
+      {\blx@imc@haspartannotation@ii{#1}[default]}}}
+
+\def\blx@imc@haspartannotation@ii#1[#2]{%
+ \ifstrempty{#2}
+   {\def\blx@tempb{default}}
+   {\def\blx@tempb{#2}}%
+  \@ifnextchar[%]
+    {\blx@imc@haspartannotation@iii{#1}{\blx@tempb}}
+    {\blx@imc@haspartannotation@iii{#1}{\blx@tempb}[\the\value{listcount}]}}
+
+\def\blx@imc@haspartannotation@iii#1#2[#3]#4{%
+  \ifstrempty{#3}
+    {\def\blx@tempc{\the\value{listcount}}}
+    {\def\blx@tempc{#3}}%
+  \def\blx@tempd{#1}%
+  \blx@resolve@annotation@label{\blx@tempd}%
+  \ifboolexpr { test {\ifcsdef{abx@annotation@part@\blx@tempd @#2@\blx@tempc @#4}}
+                or
+                test {\ifcsdef{abx@annotation@literal@part@\blx@tempd @#2@\blx@tempc @#4}} }}
+
 % labeldatesource has a slightly different format than other <field>sources
 % that's one reason for a dedicated command, the other being that this command
 % is probably only used in contexts where \currentfield is not defined, so
@@ -7183,6 +7277,20 @@
   \ifinlistcs{#3}{abx@annotation@field@\blx@tempb @\blx@tempa}}
 
 % [<annotationname>]{<datetype>}
+\newcommand*{\blx@imc@hasdateannotation}[2][]{%
+  \ifblank{#1}
+    {\def\blx@tempa{default}}
+    {\def\blx@tempa{#1}}%
+  \def\blx@tempb{#2}%
+  \ifcsundef{abx@field@\blx@tempb source}
+    {}%
+    {\letcs\blx@tempa{abx@field@\blx@tempb source}%
+     \edef\blx@tempb{\blx@tempb date}}%
+  \ifboolexpr { test {\ifcsdef{abx@annotation@field@\blx@tempb @\blx@tempa}}
+                or
+                test {\ifcsdef{abx@annotation@literal@field@\blx@tempb @\blx@tempa}} }}
+
+% [<annotationname>]{<datetype>}
 \newcommand*{\blx@imc@getdateannotation}[2][]{%
   \ifblank{#1}
     {\def\blx@tempa{default}}
@@ -7198,7 +7306,8 @@
 
 \blx@regimcs{\iffieldannotation \ifitemannotation \ifpartannotation
   \ifdateannotation \getfieldannotation \getitemannotation \getpartannotation
-  \getdateannotation}
+  \getdateannotation \hasfieldannotation \hasitemannotation \haspartannotation
+  \hasdateannotation}
 
 % {<fieldname>}
 \def\blx@resolve@annotation@label#1{%
