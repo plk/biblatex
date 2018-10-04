@@ -6987,8 +6987,9 @@
           \docsvlist{#7}}}}
      {}}
 
-% [<field>][<name>]
+% [<field>][<annotationname>]
 \def\blx@imc@getfieldannotation{%
+  \let\blx@tempa\@empty
   \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
   \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
   \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
@@ -7008,8 +7009,9 @@
     {\csuse{abx@annotation@literal@field@\blx@tempb @#2}}
     {}}
 
-% [<field>][<name>][<item>]
+% [<field>][<annotationname>][<item>]
 \def\blx@imc@getitemannotation{%
+  \let\blx@tempa\@empty
   \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
   \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
   \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
@@ -7037,8 +7039,9 @@
     {\csuse{abx@annotation@literal@item@\blx@tempc @#2@#3}}
     {}}
 
-% [<field>][<name>][<item>]{<part>}
+% [<field>][<annotationname>][<item>]{<part>}
 \def\blx@imc@getpartannotation{%
+  \let\blx@tempa\@empty
   \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
   \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
   \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
@@ -7061,26 +7064,40 @@
 
 \def\blx@imc@getpartannotation@iii#1#2[#3]#4{%
   \ifstrempty{#3}
-   {\def\blx@tempc{\the\value{listcount}}}
-   {\def\blx@tempc{#3}}%
-   \def\blx@tempd{#1}%
-   \blx@resolve@annotation@label{\blx@tempd}%
+    {\def\blx@tempc{\the\value{listcount}}}
+    {\def\blx@tempc{#3}}%
+  \def\blx@tempd{#1}%
+  \blx@resolve@annotation@label{\blx@tempd}%
   \ifcsdef{abx@annotation@literal@part@\blx@tempd @#2@\blx@tempc @#4}
     {\csuse{abx@annotation@literal@part@\blx@tempd @#2@\blx@tempc @#4}}
     {}}
 
-% [<field>]{<annotation>}
-\newcommand*{\blx@imc@iffieldannotation}[2][]{%
-  \ifblank{#1}
-    {\ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
-     \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
-     \ifdefvoid\currentname{}{\let\blx@tempa\currentname}}
-    {\def\blx@tempa{#1}}%
-  \blx@resolve@annotation@label{\blx@tempa}%
-  \ifinlistcs{#2}{abx@annotation@field@\blx@tempa}}
+% [<field>][<annotationname>]{<annotation>}
+\def\blx@imc@iffieldannotation{%
+  \let\blx@tempa\@empty
+  \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
+  \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
+  \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
+ \@ifnextchar[%]
+    {\blx@imc@iffieldannotation@i}
+    {\blx@imc@iffieldannotation@i[\blx@tempa]}}
 
-% [<field>][<item>]{<annotation>}
+\def\blx@imc@iffieldannotation@i[#1]{%
+  \@ifnextchar[%]
+    {\blx@imc@iffieldannotation@ii{#1}}
+    {\blx@imc@iffieldannotation@ii{#1}[default]}}
+
+\def\blx@imc@iffieldannotation@ii#1[#2]#3{%
+  \ifstrempty{#2}
+    {\def\blx@tempb{default}}
+    {\def\blx@tempb{#2}}%
+  \def\blx@tempc{#1}%
+  \blx@resolve@annotation@label{\blx@tempc}%
+  \ifinlistcs{#3}{abx@annotation@field@\blx@tempc @\blx@tempb}}
+  
+% [<field>][<annotationname>][<item>]{<annotation>}
 \def\blx@imc@ifitemannotation{%
+  \let\blx@tempa\@empty
   \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
   \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
   \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
@@ -7091,15 +7108,24 @@
 \def\blx@imc@ifitemannotation@i[#1]{%
   \@ifnextchar[%]
     {\blx@imc@ifitemannotation@ii{#1}}
-    {\blx@imc@ifitemannotation@ii{#1}[\the\value{listcount}]}}
+    {\blx@imc@ifitemannotation@ii{#1}[default]}}
 
-\def\blx@imc@ifitemannotation@ii#1[#2]#3{%
-  \def\blx@tempb{#1}%
-  \blx@resolve@annotation@label{\blx@tempb}%
-  \ifinlistcs{#3}{abx@annotation@item@\blx@tempb @#2}}
+\def\blx@imc@ifitemannotation@ii#1[#2]{%
+  \ifstrempty{#2}
+    {\def\blx@tempb{default}}
+    {\def\blx@tempb{#2}}%
+  \@ifnextchar[%]
+    {\blx@imc@ifitemannotation@iii{#1}{\blx@tempb}}
+    {\blx@imc@ifitemannotation@iii{#1}{\blx@tempb}[\the\value{listcount}]}}
 
-% [<field>][<item>]{<part>}{<annotation>}
+\def\blx@imc@ifitemannotation@iii#1#2[#3]#4{%
+  \def\blx@tempc{#1}%
+  \blx@resolve@annotation@label{\blx@tempc}%
+  \ifinlistcs{#4}{abx@annotation@item@\blx@tempc @#2@#3}}
+
+% [<field>][<annotationname>][<item>]{<part>}{<annotation>}
 \def\blx@imc@ifpartannotation{%
+  \let\blx@tempa\@empty
   \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
   \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
   \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
@@ -7110,35 +7136,52 @@
 \def\blx@imc@ifpartannotation@i[#1]{%
   \@ifnextchar[%]
     {\blx@imc@ifpartannotation@ii{#1}}
-    {\blx@imc@ifpartannotation@ii{#1}[\the\value{listcount}]}}
+    {\blx@imc@ifpartannotation@ii{#1}[default]}}
 
-\def\blx@imc@ifpartannotation@ii#1[#2]#3#4{%
-  \def\blx@tempb{#1}%
-  \blx@resolve@annotation@label{\blx@tempb}%
-  \ifinlistcs{#4}{abx@annotation@part@\blx@tempb @#2@#3}}
+\def\blx@imc@ifpartannotation@ii#1[#2]{%
+ \ifstrempty{#2}
+   {\def\blx@tempb{default}}
+   {\def\blx@tempb{#2}}%
+  \@ifnextchar[%]
+    {\blx@imc@ifpartannotation@iii{#1}{\blx@tempb}}
+    {\blx@imc@ifpartannotation@iii{#1}{\blx@tempb}[\the\value{listcount}]}}
+
+\def\blx@imc@ifpartannotation@iii#1#2[#3]#4#5{%
+  \ifstrempty{#3}
+    {\def\blx@tempc{\the\value{listcount}}}
+    {\def\blx@tempc{#3}}%
+  \def\blx@tempd{#1}%
+  \blx@resolve@annotation@label{\blx@tempd}%
+  \ifinlistcs{#5}{abx@annotation@part@\blx@tempd @#2@\blx@tempc @#4}}
 
 % labeldatesource has a slightly different format than other <field>sources
 % that's one reason for a dedicated command, the other being that this command
 % is probably only used in contexts where \currentfield is not defined, so
 % the <datetype> argument is always required
-% {<datetype>}{<annotation>}
-\newcommand*{\blx@imc@ifdateannotation}[2]{%
-  \def\blx@tempa{#1}%
-  \ifcsundef{abx@field@\blx@tempa source}
+% [<annotationname>]{<datetype>}{<annotation>}
+\newcommand*{\blx@imc@ifdateannotation}[2][]{%
+  \ifblank{#1}
+    {\def\blx@tempa{default}}
+    {\def\blx@tempa{#1}}%
+  \def\blx@tempb{#2}%
+  \ifcsundef{abx@field@\blx@tempb source}
     {}%
-    {\letcs\blx@tempa{abx@field@\blx@tempa source}%
-     \edef\blx@tempa{\blx@tempa date}}%
-  \ifinlistcs{#2}{abx@annotation@field@\blx@tempa}}
+    {\letcs\blx@tempa{abx@field@\blx@tempb source}%
+     \edef\blx@tempb{\blx@tempb date}}%
+  \ifinlistcs{#3}{abx@annotation@field@\blx@tempb @\blx@tempa}}
 
-% {<datetype>}
-\newcommand*{\blx@imc@getdateannotation}[1]{%
-  \def\blx@tempa{#1}%
-  \ifcsundef{abx@field@\blx@tempa source}
+% [<annotationname>]{<datetype>}
+\newcommand*{\blx@imc@getdateannotation}[1][]{%
+  \ifblank{#1}
+    {\def\blx@tempa{default}}
+    {\def\blx@tempa{#1}}%
+  \def\blx@tempb{#1}%
+  \ifcsundef{abx@field@\blx@tempb source}
     {}%
-    {\letcs\blx@tempa{abx@field@\blx@tempa source}%
-     \edef\blx@tempa{\blx@tempa date}}%
-  \ifcsdef{abx@annotation@literal@field@\blx@tempa}
-    {\csuse{abx@annotation@literal@field@\blx@tempa}}
+    {\letcs\blx@tempb{abx@field@\blx@tempb source}%
+     \edef\blx@tempb{\blx@tempb date}}%
+  \ifcsdef{abx@annotation@literal@field@\blx@tempb @\blx@tempa}
+    {\csuse{abx@annotation@literal@field@\blx@tempb @\blx@tempa}}
     {}}
 
 \blx@regimcs{\iffieldannotation \ifitemannotation \ifpartannotation

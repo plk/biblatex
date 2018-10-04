@@ -3131,7 +3131,7 @@ Ideally, there should be no formatting information in a bibliography data file, 
 %
 There are several problems with this. Firstly, it will break \bibtex's fragile name parsing routines and probably won't compile at all. Secondly, it is not only mixing up data with markup, it does so in a hard-coded way: this data can't easily be shared and used with other styles. While it is possible to achieve this formatting using \biblatex internals in a style or document, this is a complex and unreliable method which many users will not wish to use.
 
-In order to address these issues, \biblatex has a general data annotation facility which allows you to attach a comma"=separated list of annotations to data fields, items within data field lists (like names) and even parts of specific items such as parts of names (given name, family name etc.). There are macros provided to check for annotations which can be used in formatting directives.
+In order to address these issues, \biblatex has a general data annotation facility which allows you to attach any number of a comma"=separated list of annotations to data fields, items within data field lists (like names) and even parts of specific items such as parts of names (given name, family name etc.). There are macros provided to check for annotations which can be used in formatting directives.
 
 There are three «scopes» for data annotations, in order of increasing specificity:
 
@@ -3143,39 +3143,25 @@ There are three «scopes» for data annotations, in order of increasing specific
 %
 Data annotations are supported for \bibtex and \biblatexml data sources.
 
-Attaching annotations to data is easy in \biblatexml data sources as they are specified by simple XML attributes. Continuing with the example above, we would have:
-
-\begin{lstlisting}[language=xml]
-<bltx:entries xmlns:bltx="http://biblatex-biber.sourceforge.net/biblatexml">
-  <bltx:entry id="test" entrytype="misc">
-    <bltx:names type="author">
-      <bltx:name>
-        <bltx:namepart type="given" initial="F">First1</bltx:namepart>
-        <bltx:namepart type="family" initial="L" annotation="student">Last1</bltx:namepart>
-      </bltx:name>
-      <bltx:name annotation="corresponding">
-        <bltx:namepart type="given" initial="F">First2</bltx:namepart>
-        <bltx:namepart type="family" initial="L">Last2</bltx:namepart>
-      </bltx:name>
-      <bltx:name>
-        <bltx:namepart type="given" initial="F">First3</bltx:namepart>
-        <bltx:namepart type="family" initial="L">Last3</bltx:namepart>
-      </bltx:name>
-    </bltx:names>
-  </bltx:entry>
-</bltx:entries>
-\end{lstlisting}
-%
-Here the annotations are attached in an obvious way to the data items. With \bibtex data sources, the format for annotations is not quite as intuitive:
-
 \begin{lstlisting}[style=bibtex]{}
 @MISC{ann1,
-  AUTHOR    = {Last1, First1 and Last2, First2 and Last3, First3},
-  AUTHOR+an = {1:family=student;2=corresponding},
+  AUTHOR           = {Last1, First1 and Last2, First2 and Last3, First3},
+  AUTHOR+an        = {1:family=student;2=corresponding},
+  TITLE            = {The Title},
+  TITLE+an:default = {=titleannotation},
+  TITLE+an:french  = {="Le titre"},
+  TITLE+an:german  = {="Der Titel"},
 }
 \end{lstlisting}
 %
-Here the field name suffix \texttt{+an} is a user-definable\footnote{See \biber's \opt{--annotation-marker} option.} suffix which marks a data field as an annotation of the unsuffixed field. The format of annotation fields in \bibtex data sources is is as follows:
+Here the field name suffix \texttt{+an} is a user-definable\footnote{See \biber's \opt{--annotation-marker} option.} suffix which marks a data field as an annotation of the unsuffixed field. Multiple annotations can be provided for the same field since all annotations are named. After the annotation marker is the optional named annotation marker \footnote{See \biber's \opt{--named-annotation-marker} option.} and an optional annotation name. The annotation name is <default> if not specified and so in the above example the following two are equivalent:
+
+\begin{lstlisting}[style=bibtex]{}
+TITLE+an         = {=titleannotation},
+TITLE+an:default = {=titleannotation},
+\end{lstlisting}
+%
+The format of annotation fields in \bibtex data sources is is as follows:
 
 \begin{lstlisting}
 <annotationspecs> ::= <annotationspec> [ ";" <annotationspec> ]
@@ -3184,7 +3170,7 @@ Here the field name suffix \texttt{+an} is a user-definable\footnote{See \biber'
 <annotation>      ::= ["] (string) ["]
 \end{lstlisting}
 %
-That is, one or more specifications separated by semi-colons. Each specification is an equals sign followed by a comma"=separated list of annotation keywords or a string enclosed in double-quotes (a <literal> annotation, see below). To annotate a specific item in a list, put the number of the list item before the equals sign (lists start at 1). If you need to annotate a specific part of the list item, give its name after the list item number, preceded by a colon. Name part names are defined in the data model, see \secref{aut:bbx:drv}. Some examples:
+That is, one or more specifications separated by semi-colons. Each specification is an equals sign followed by a comma"=separated list of annotation keywords or a string enclosed in double-quotes (a <literal> annotation, see below). To annotate a specific item in a list, put the number of the list item before the equals sign (lists start at 1). If you need to annotate a specific part of the list item, give its name after the list item number, preceded by a colon. Name part names are defined in the data model, see \secref{aut:bbx:drv}. Some further examples:
 
 \begin{lstlisting}[style=bibtex]{}
 AUTHOR      = {Last1, First1 and Last2, First2 and Last3, First3},
@@ -3196,27 +3182,52 @@ LANGUAGE+an = {1=annotation3; 2=annotation4}
 }
 \end{lstlisting}
 %
+Attaching annotations to data is similar in \biblatexml data sources. Using the example above, we would have:
+
+\begin{lstlisting}[language=xml]
+<bltx:entries xmlns:bltx="http://biblatex-biber.sourceforge.net/biblatexml">
+  <bltx:entry id="test" entrytype="misc">
+    <bltx:names type="author">
+      <bltx:name>
+        <bltx:namepart type="given" initial="F">First1</bltx:namepart>
+        <bltx:namepart type="family" initial="L">Last1</bltx:namepart>
+      </bltx:name>
+      <bltx:name>
+        <bltx:namepart type="given" initial="F">First2</bltx:namepart>
+        <bltx:namepart type="family" initial="L">Last2</bltx:namepart>
+      </bltx:name>
+      <bltx:name>
+        <bltx:namepart type="given" initial="F">First3</bltx:namepart>
+        <bltx:namepart type="family" initial="L">Last3</bltx:namepart>
+      </bltx:name>
+    </bltx:names>
+    </bltx:annotation field="author" item="1" part="family">student</bltx:annotation>
+    </bltx:annotation field="author" item="2">corresponding</bltx:annotation>
+  </bltx:entry>
+</bltx:entries>
+\end{lstlisting}
+%
 To access the annotation information when formatting bibliography data, macros are provided, corresponding to the three annotation scopes:
 
 \begin{ltxsyntax}
 
-\cmditem{iffieldannotation}[field]{annotation}{true}{false}
+\cmditem{iffieldannotation}[field][annotationname]{annotation}{true}{false}
 
-Executes \prm{true} if the data field \prm{field} has an annotation \prm{annotation} and false otherwise. If \prm{field} is not given, the current data field as indicated by \cmd{currentfield}, \cmd{currentlist} or \cmd{currentname} (see \secref{aut:bib:fmt}) is assumed. Of course, this is only possible if these commands are defined, that is, inside formatting directives.
+Executes \prm{true} if the data field \prm{field} has an annotation \prm{annotation} for the annotation called \prm{annotationname} and false otherwise. If \prm{annotatationname} is not given, then the annotation named <default> is assumed (this is the name given to annotations defined without an explicit name). If \prm{field} is not given, the current data field as indicated by \cmd{currentfield}, \cmd{currentlist} or \cmd{currentname} (see \secref{aut:bib:fmt}) is assumed. Of course, this is only possible if these commands are defined, that is, inside formatting directives.
 
-\cmditem{ifitemannotation}[field][item]{annotation}{true}{false}
+\cmditem{ifitemannotation}[field][annotationname][item]{annotation}{true}{false}
 
-Executes \prm{true} if the item \prm{item} in the data field \prm{field} has an annotation \prm{annotation} and false otherwise. The optional argument \prm{field} can be inferred if not provided as with \cmd{iffieldannotation}. If \prm{item} is not given, the number of the item currently being processed as given by \cnt{listcount} is used.
+Executes \prm{true} if the item \prm{item} in the data field \prm{field} has an annotation \prm{annotation} and false otherwise. If \prm{annotatationname} is not given, then the annotation named <default> is assumed (this is the name given to annotations defined without an explicit name). The optional argument \prm{field} can be inferred if not provided as with \cmd{iffieldannotation}. If \prm{item} is not given, the number of the item currently being processed as given by \cnt{listcount} is used.
 
-\cmditem{ifpartannotation}[field][item]{part}{annotation}{true}{false}
+\cmditem{ifpartannotation}[field][annotationname][item]{part}{annotation}{true}{false}
 
-Executes \prm{true} if the part named \prm{part} in item \prm{item} in the data field \prm{field} has an annotation \prm{annotation} and false otherwise. The two optional arguments \prm{field} and \prm{item} can be inferred as in \cmd{ifitemannotation}. The parameter \prm{part} can never be inferred and is therefore a mandatory argument.
+Executes \prm{true} if the part named \prm{part} in item \prm{item} in the data field \prm{field} has an annotation \prm{annotation} and false otherwise. If \prm{annotatationname} is not given, then the annotation named <default> is assumed (this is the name given to annotations defined without an explicit name). The two optional arguments \prm{field} and \prm{item} can be inferred as in \cmd{ifitemannotation}. The parameter \prm{part} can never be inferred and is therefore a mandatory argument.
 
 Date fields are special and handled in a context where \cmd{currentfield} is not accessible. Thus there is a fourth command to test annotations for dates.
 
-\cmditem{ifdateannotation}{datetype}{annotation}{true}{false}
+\cmditem{ifdateannotation}[annotationname]{datetype}{annotation}{true}{false}
 
-Executes \prm{true} if the date field \prm{datetype} has an annotation \prm{annotation} and false otherwise. The \prm{datetype} argument is mandatory, because it cannot be inferred in most contexts where \cmd{ifdateannotation} will be used.
+Executes \prm{true} if the date field \prm{datetype} has an annotation \prm{annotation} and false otherwise. If \prm{annotatationname} is not given, then the annotation named <default> is assumed (this is the name given to annotations defined without an explicit name). The \prm{datetype} argument is mandatory, because it cannot be inferred in most contexts where \cmd{ifdateannotation} will be used.
 
 \end{ltxsyntax}
 %
@@ -3257,23 +3268,23 @@ Such annotations are not keys whose presence can be tested for but are rather li
 
 \begin{ltxsyntax}
 
-\cmditem{getfieldannotation}[field]
+\cmditem{getfieldannotation}[field][annotationname]
 
-Retrieves any literal annotation for the field \prm{field}. If \prm{field} is not given, the current data field as indicated by \cmd{currentfield}, \cmd{currentlist} or \cmd{currentname} (see \secref{aut:bib:fmt}) is assumed. Of course, this is only possible if these commands are defined, that is, inside formatting directives.
+Retrieves any literal annotation for the field \prm{field}. If \prm{annotatationname} is not given, then the annotation named <default> is assumed (this is the name given to annotations defined without an explicit name). If \prm{field} is not given, the current data field as indicated by \cmd{currentfield}, \cmd{currentlist} or \cmd{currentname} (see \secref{aut:bib:fmt}) is assumed. Of course, this is only possible if these commands are defined, that is, inside formatting directives.
 
-\cmditem{getitemannotation}[field][item]
+\cmditem{getitemannotation}[field][annotationname][item]
 
-Retrieves any literal annotation for the item \prm{item} in the field \prm{field}. The optional argument \prm{field} can be inferred if not provided as with \cmd{getfieldannotation}. If \prm{item} is not given, the number of the item currently being processed as given by \cnt{listcount} is used.
+Retrieves any literal annotation for the item \prm{item} in the field \prm{field}. If \prm{annotatationname} is not given, then the annotation named <default> is assumed (this is the name given to annotations defined without an explicit name). The optional argument \prm{field} can be inferred if not provided as with \cmd{getfieldannotation}. If \prm{item} is not given, the number of the item currently being processed as given by \cnt{listcount} is used.
 
-\cmditem{getpartannotation}[field][item]{part}
+\cmditem{getpartannotation}[field][annotationname][item]{part}
 
-Retrieves any literal annotation for the part \prm{part}. The two optional arguments \prm{field} and \prm{item} can be inferred as in \cmd{getitemannotation}. The parameter \prm{part} can never be inferred and is therefore a mandatory argument.
+Retrieves any literal annotation for the part \prm{part}. If \prm{annotatationname} is not given, then the annotation named <default> is assumed (this is the name given to annotations defined without an explicit name). The two optional arguments \prm{field} and \prm{item} can be inferred as in \cmd{getitemannotation}. The parameter \prm{part} can never be inferred and is therefore a mandatory argument.
 
 Date fields are special and handled in a context where \cmd{currentfield} is not accessible. Thus there is a fourth command to access literal annotations for dates.
 
-\cmditem{getdateannotation}{datetype}
+\cmditem{getdateannotation}[annotationname]{datetype}
 
-Retrieve any literal annotation for the datefield \prm{datetype}. The \prm{datetype} argument is mandatory, because it cannot be inferred in most contexts where \cmd{getdateannotation} will be used.
+Retrieve a literal annotation for the datefield \prm{datetype}. If \prm{annotatationname} is not given, then the annotation named <default> is assumed (this is the name given to annotations defined without an explicit name). The \prm{datetype} argument is mandatory, because it cannot be inferred in most contexts where \cmd{getdateannotation} will be used.
 
 \end{ltxsyntax}
 %
@@ -13431,7 +13442,7 @@ This revision history is a list of changes relevant to users of this package. Ch
 
 \begin{changelog}
 \begin{release}{3.12}{2018-??-??}
-\item Added literal annotation functionality\see{use:annote}
+\item Added literal and named annotation functionality\see{use:annote}
 \item Added \cmd{ifnocite}\see{aut:aux:tst}
 \item Added case-insensitive versions of matching operators\see{aut:ctm:map}
 \item Added \bibfield{langid}s optional argument to \cmd{DeclareSortTranslit}\see{aut:ctm:srt}

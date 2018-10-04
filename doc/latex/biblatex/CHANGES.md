@@ -1,4 +1,8 @@
 # RELEASE NOTES FOR VERSION 3.12
+- **INCOMPATIBLE CHANGE** The syntax for defining data annotations in the
+  BibLaTeXML data source format has changed to accommodate named
+  annotations. Annotations are no longer attributes but are fully-fledged
+  elements. It is not expected that this will impact any current users.
 - **INCOMPATIBLE CHANGE** The field/fieldset argument to the `\translit`
   command is now  mandatory to allow for a new optional argument which
   restricts transliteration to entries with particular `langid` fields.
