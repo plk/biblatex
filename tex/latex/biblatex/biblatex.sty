@@ -6954,52 +6954,61 @@
   \catcode\endlinechar=12\relax
   \blx@bbl@verbadd@i}
 
-% {<scope>}{<field>}{<itemcount>}{<part>}{<value>}{<isliteral>}
-\protected\def\blx@bbl@annotationdef#1#2#3#4#5#6{%
+% {<scope>}{<field>}{<name>}{<itemcount>}{<part>}{<isliteral>}{<value>}
+\protected\def\blx@bbl@annotationdef#1#2#3#4#5#6#7{%
   \ifstrequal{#1}{field}
      {\csxappto\blx@bbl@data{%
-        \listadd\noexpand\abx@annotation@defined{field@#2}}%
+        \listadd\noexpand\abx@annotation@defined{field@#2@#3}}%
       \ifstrequal{#6}{1}
         {\csgappto\blx@bbl@data{%
-           \csdef{abx@annotation@literal@field@#2}{#5}}}
+           \csdef{abx@annotation@literal@field@#2@#3}{#7}}}
         {\csxappto\blx@bbl@data{%
-           \def\do####1{\listcsadd{abx@annotation@field@#2}{####1}}%
-           \docsvlist{#5}}}}
+           \def\do####1{\listcsadd{abx@annotation@field@#2@#3}{####1}}%
+           \docsvlist{#7}}}}
      {}%
   \ifstrequal{#1}{item}
      {\csxappto\blx@bbl@data{%
-        \listadd\noexpand\abx@annotation@defined{item@#2@#3}}%
+        \listadd\noexpand\abx@annotation@defined{item@#2@#3@#4}}%
       \ifstrequal{#6}{1}
         {\csgappto\blx@bbl@data{%
-           \csdef{abx@annotation@literal@item@#2@#3}{#5}}}
+           \csdef{abx@annotation@literal@item@#2@#3@#4}{#7}}}
         {\csxappto\blx@bbl@data{%
-           \def\do####1{\listcsadd{abx@annotation@item@#2@#3}{####1}}%
-           \docsvlist{#5}}}}
+           \def\do####1{\listcsadd{abx@annotation@item@#2@#3@#4}{####1}}%
+           \docsvlist{#7}}}}
      {}%
   \ifstrequal{#1}{part}
      {\csxappto\blx@bbl@data{%
-        \listadd\noexpand\abx@annotation@defined{part@#2@#3@#4}}%
+        \listadd\noexpand\abx@annotation@defined{part@#2@#3@#4@#5}}%
       \ifstrequal{#6}{1}
         {\csgappto\blx@bbl@data{%
-           \csdef{abx@annotation@literal@part@#2@#3@#4}{#5}}}
+           \csdef{abx@annotation@literal@part@#2@#3@#4@#5}{#7}}}
         {\csxappto\blx@bbl@data{%
-          \def\do####1{\listcsadd{abx@annotation@part@#2@#3@#4}{####1}}%
-          \docsvlist{#5}}}}
+          \def\do####1{\listcsadd{abx@annotation@part@#2@#3@#4@#5}{####1}}%
+          \docsvlist{#7}}}}
      {}}
 
-% [<field>]
-\newcommand*{\blx@imc@getfieldannotation}[1][]{%
-  \ifblank{#1}
-    {\ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
-     \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
-     \ifdefvoid\currentname{}{\let\blx@tempa\currentname}}
-    {\def\blx@tempa{#1}}%
-  \blx@resolve@annotation@label{\blx@tempa}%
-  \ifcsdef{abx@annotation@literal@field@\blx@tempa}
-    {\csuse{abx@annotation@literal@field@\blx@tempa}}
+% [<field>][<name>]
+\def\blx@imc@getfieldannotation{%
+  \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
+  \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
+  \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
+  \@ifnextchar[%]
+   {\blx@imc@getfieldannotation@i}
+   {\blx@imc@getfieldannotation@i[\blx@tempa]}}
+
+\def\blx@imc@getfieldannotation@i[#1]{%
+  \@ifnextchar[%]
+    {\blx@imc@getfieldannotation@ii{#1}}
+    {\blx@imc@getfieldannotation@ii{#1}[default]}}
+
+\def\blx@imc@getfieldannotation@ii#1[#2]{%
+  \def\blx@tempb{#1}%
+  \blx@resolve@annotation@label{\blx@tempb}%
+  \ifcsdef{abx@annotation@literal@field@\blx@tempb @#2}
+    {\csuse{abx@annotation@literal@field@\blx@tempb @#2}}
     {}}
 
-% [<field>][<item>]
+% [<field>][<name>][<item>]
 \def\blx@imc@getitemannotation{%
   \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
   \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
@@ -7011,16 +7020,24 @@
 \def\blx@imc@getitemannotation@i[#1]{%
   \@ifnextchar[%]
     {\blx@imc@getitemannotation@ii{#1}}
-    {\blx@imc@getitemannotation@ii{#1}[\the\value{listcount}]}}
+    {\blx@imc@getitemannotation@ii{#1}[default]}}
 
 \def\blx@imc@getitemannotation@ii#1[#2]{%
-  \def\blx@tempb{#1}%
-  \blx@resolve@annotation@label{\blx@tempb}%
-  \ifcsdef{abx@annotation@literal@item@\blx@tempb @#2}
-    {\csuse{abx@annotation@literal@item@\blx@tempb @#2}}
+ \ifstrempty{#2}
+   {\def\blx@tempb{default}}
+   {\def\blx@tempb{#2}}%
+  \@ifnextchar[%]
+    {\blx@imc@getitemannotation@iii{#1}{\blx@tempb}}
+    {\blx@imc@getitemannotation@iii{#1}{\blx@tempb}[\the\value{listcount}]}}
+  
+\def\blx@imc@getitemannotation@iii#1#2[#3]{%
+  \def\blx@tempc{#1}%
+  \blx@resolve@annotation@label{\blx@tempc}%
+  \ifcsdef{abx@annotation@literal@item@\blx@tempc @#2@#3}
+    {\csuse{abx@annotation@literal@item@\blx@tempc @#2@#3}}
     {}}
 
-% [<field>][<item>]{<part>}
+% [<field>][<name>][<item>]{<part>}
 \def\blx@imc@getpartannotation{%
   \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
   \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
@@ -7032,13 +7049,24 @@
 \def\blx@imc@getpartannotation@i[#1]{%
   \@ifnextchar[%]
     {\blx@imc@getpartannotation@ii{#1}}
-    {\blx@imc@getpartannotation@ii{#1}[\the\value{listcount}]}}
+    {\blx@imc@getpartannotation@ii{#1}[default]}}
+  
+\def\blx@imc@getpartannotation@ii#1[#2]{%
+ \ifstrempty{#2}
+   {\def\blx@tempb{default}}
+   {\def\blx@tempb{#2}}%
+  \@ifnextchar[%]
+    {\blx@imc@getpartannotation@iii{#1}{\blx@tempb}}
+    {\blx@imc@getpartannotation@iii{#1}{\blx@tempb}[\the\value{listcount}]}}
 
-\def\blx@imc@getpartannotation@ii#1[#2]#3{%
-  \def\blx@tempb{#1}%
-  \blx@resolve@annotation@label{\blx@tempb}%
-  \ifcsdef{abx@annotation@literal@part@\blx@tempb @#2@#3}
-    {\csuse{abx@annotation@literal@part@\blx@tempb @#2@#3}}
+\def\blx@imc@getpartannotation@iii#1#2[#3]#4{%
+  \ifstrempty{#3}
+   {\def\blx@tempc{\the\value{listcount}}}
+   {\def\blx@tempc{#3}}%
+   \def\blx@tempd{#1}%
+   \blx@resolve@annotation@label{\blx@tempd}%
+  \ifcsdef{abx@annotation@literal@part@\blx@tempd @#2@\blx@tempc @#4}
+    {\csuse{abx@annotation@literal@part@\blx@tempd @#2@\blx@tempc @#4}}
     {}}
 
 % [<field>]{<annotation>}
