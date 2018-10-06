@@ -34,7 +34,6 @@
 [\abx@date\space v\abx@version\space programmable bibliographies (PK/MW)]
 
 %% Dependencies
-\RequirePackage{pdftexcmds}
 \RequirePackage{etoolbox}
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
@@ -669,14 +668,12 @@
 \newtoggle{blx@localnumber}
 \newtoggle{blx@refcontext}
 
-% Nice command from etextools which causes too many problems if you load
-% the whole package
-% Don't use it on arbitrary user input as it dies on non-expandable arguments
-\newcommand*{\blx@xifempty}[1]{\blx@xifstrcmp{#1}{}}
-% {string1}{string2}{true}{false}
-\newcommand*{\blx@xifstrcmp}[2]{\csname @%
-  \ifnum\pdf@strcmp{#1}{#2}=0 first\else second\fi
-  oftwo\endcsname}
+\newcommand*{\blx@xifstrequal}[2]{%
+  \begingroup
+  \edef\blx@tempa{%
+    \endgroup
+    \noexpand\ifstrequal{#1}{#2}}%
+  \blx@tempa}
 
 % Special fields which need resolution using the information provided by biber
 \listadd\abx@rfields{labeltitle}
@@ -5755,10 +5752,10 @@
     {\hyphen\blx@seasonmap{\thefield{#2#3season}}}}
 
 \def\blx@seasonmap#1{%
-  \blx@xifstrcmp{#1}{spring}{21}
-    {\blx@xifstrcmp{#1}{summer}{22}
-      {\blx@xifstrcmp{#1}{autumn}{23}
-        {\blx@xifstrcmp{#1}{winter}{24}{}}}}}
+  \blx@xifstrequal{#1}{spring}{21}
+    {\blx@xifstrequal{#1}{summer}{22}
+      {\blx@xifstrequal{#1}{autumn}{23}
+        {\blx@xifstrequal{#1}{winter}{24}{}}}}}
 
 \newrobustcmd*{\blx@isotime}[2]{%
   \blx@imc@forcezerosmdt{\thefield{#1#2hour}}%
@@ -5792,7 +5789,7 @@
 \newrobustcmd*{\bibrangedash}{\textendash}
 \newrobustcmd*{\bibrangessep}{,\space}
 % formatters
-\newrobustcmd*{\mkbibtimezone}[1]{\blx@xifstrcmp{#1}{UTC}{\bibutctimezone}{#1}}
+\newrobustcmd*{\mkbibtimezone}[1]{\blx@xifstrequal{#1}{Z}{\bibutctimezone}{#1}}
 % you should never end up needing the next few definitions
 % but it is safer to do something than just swallow the input
 \newrobustcmd*{\mkbibdatelong}[3]{%
