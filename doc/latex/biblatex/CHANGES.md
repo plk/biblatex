@@ -37,6 +37,9 @@
   `nametitledelim`.
   For compatibility reasons `\labelnamepunct` still pops up in the code here
   and there, but `nametitledelim` should be preferred now.
+- The `xstring` package is not loaded by default any more.
+  Style developers whose styles make use of that package should load it
+  explicitly.
 
 # RELEASE NOTES FOR VERSION 3.11
 - `\printbiblist` now supports `driver` and `biblistfilter` options
