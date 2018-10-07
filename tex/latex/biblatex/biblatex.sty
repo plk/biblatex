@@ -455,6 +455,11 @@
 
 \providecommand{\@gobblefive}[5]{}
 
+% A romanised safe counter to construct refcontext names with instead of literal
+% labelprefix which can be arbitrary characters
+\newcounter{labelprefix@counter}
+\renewcommand{\thelabelprefix@counter}{\Roman{labelprefix@counter}}
+
 % Counter to track nested tabularx environemnts so we don't
 % try to patch the commands more than once below as this undefs some
 % macros and an error is thrown
@@ -8713,7 +8718,7 @@
     {}
     {\listxadd\blx@dlistnames{\blx@refcontext@context @\blx@tempe @entry}%
      \csxappto{blx@dlists}{%
-       \blx@xml@dlist{\blx@refcontext@context}{entry}{\blx@tempe}{\blx@xml@dlist@refcontext{\blx@refcontext@sortingtemplatename}{\blx@refcontext@sortingnamekeytemplatename}{\blx@refcontext@labelprefix}{\blx@refcontext@uniquenametemplatename}{\blx@refcontext@labelalphanametemplatename}}{}}}%
+       \blx@xml@dlist{\blx@refcontext@context}{entry}{\blx@tempe}{\blx@xml@dlist@refcontext{\blx@refcontext@sortingtemplatename}{\blx@refcontext@sortingnamekeytemplatename}{\blx@refcontext@labelprefix@real}{\blx@refcontext@uniquenametemplatename}{\blx@refcontext@labelalphanametemplatename}}{}}}%
   \ifdefvoid\blx@tempa
     {\blx@warn@bibempty\endgroup}
     {\blx@bibliography\blx@tempa}}
@@ -9157,7 +9162,7 @@
     {}
     {\listxadd\blx@dlistnames{\blx@refcontext@context @\blx@tempe @list}%
      \xappto\blx@dlists{%
-       \blx@xml@dlist{\blx@refcontext@context}{list}{\blx@tempe}{\blx@xml@dlist@refcontext{\blx@tempc}{\blx@refcontext@sortingnamekeytemplatename}{\blx@refcontext@labelprefix}{\blx@refcontext@uniquenametemplatename}{\blx@refcontext@labelalphanametemplatename}}{\csuse{blx@biblistfilters@\blx@thebiblistfilter}}}}%
+       \blx@xml@dlist{\blx@refcontext@context}{list}{\blx@tempe}{\blx@xml@dlist@refcontext{\blx@tempc}{\blx@refcontext@sortingnamekeytemplatename}{\blx@refcontext@labelprefix@real}{\blx@refcontext@uniquenametemplatename}{\blx@refcontext@labelalphanametemplatename}}{\csuse{blx@biblistfilters@\blx@thebiblistfilter}}}}%
   \ifdefvoid\blx@tempa
     {\blx@warn@biblistempty{#2}\endgroup}
     {\blx@biblist\blx@tempa}}
@@ -9296,6 +9301,7 @@
 \protected\def\endrefcontext{%
   \togglefalse{blx@refcontext}%
   \global\let\blx@refcontext@labelprefix\@empty
+  \global\let\blx@refcontext@labelprefix@real\@empty
   \xdef\blx@refcontext@sortingtemplatename{\blx@sorting}%
   \gdef\blx@refcontext@sortingnamekeytemplatename{global}%
   \gdef\blx@refcontext@uniquenametemplatename{global}%
@@ -9312,8 +9318,29 @@
 \define@key{blx@refcontext}{sortingnamekeytemplatename}{\gdef\blx@refcontext@sortingnamekeytemplatename{#1}}
 \define@key{blx@refcontext}{uniquenametemplatename}{\gdef\blx@refcontext@uniquenametemplatename{#1}}
 \define@key{blx@refcontext}{labelalphanametemplatename}{\gdef\blx@refcontext@labelalphanametemplatename{#1}}
+
+% labelprefix map of characters to roman numeral index
+\def\abx@labelprefixmap#1#2#3{%
+  \csgdef{abx@labelprefixmap@#1@#2}{#3}}
+
+% labelprefix cannot be used as is because it is used to construct the internal
+% refcontext name which is referenced/expanded a lot all over the place. So,
+% we use a roman numeral index instead as this is safe in macro names. The map of the
+% labelprefix to roman index must be saved across runs in the .aux, naturally
 \define@key{blx@refcontext}{labelprefix}{%
-  \gdef\blx@refcontext@labelprefix{#1}%
+  \let\blx@tempa\thelabelprefix@counter
+  % Don't increment if we are overriding labelprefix via local options
+  \let\blx@labelprefix@incr\addtocounter
+  \ifdefempty\blx@refcontext@labelprefix
+    {}
+    {\let\blx@labelprefix@incr\@gobbletwo}%
+  % Value comes form .aux
+  \ifcsdef{abx@labelprefixmap@\the\c@refsection @#1}
+    {\letcs\blx@tempa{abx@labelprefixmap@\the\c@refsection @#1}}
+    {\blx@labelprefix@incr{labelprefix@counter}{1}}%
+  \blx@auxwrite\@mainaux{}{\string\abx@labelprefixmap{\the\c@refsection}{#1}{\blx@tempa}}%
+  \gdef\blx@refcontext@labelprefix{\blx@tempa}%
+  \gdef\blx@refcontext@labelprefix@real{#1}%
   \iftoggle{blx@defernumbers}
     {}%
     {\iftoggle{blx@labelnumber}
@@ -9383,7 +9410,13 @@
 
 \define@key{blx@assignrefcontext}{sorting}{\def\blx@tempa{#1}}
 \define@key{blx@assignrefcontext}{sortingnamekeytemplatename}{\def\blx@tempb{#1}}
-\define@key{blx@assignrefcontext}{labelprefix}{\def\blx@tempc{#1}}
+%\define@key{blx@assignrefcontext}{labelprefix}{\def\blx@tempc{#1}}
+\define@key{blx@assignrefcontext}{labelprefix}{%
+  % Value must come from .aux after counter is assigned
+  \let\blx@tempc\@empty
+  \ifcsdef{abx@labelprefixmap@\the\c@refsection @#1}
+    {\letcs\blx@tempc{abx@labelprefixmap@\the\c@refsection @#1}}
+    {}}
 \define@key{blx@assignrefcontext}{uniquenametemplatename}{\def\blx@tempd{#1}}
 \define@key{blx@assignrefcontext}{labelalphanametemplatename}{\def\blx@tempe{#1}}
 
@@ -9475,6 +9508,7 @@
 
 \def\blx@endrefsection{%
   \blx@endrefsegment
+  \global\c@labelprefix@counter\z@
   % make sure we always output aliases to the .bcf otherwise after their
   % first resolution by biber, they will be invisible to subsequent biber
   % runs since biblatex will resolve the \keyalias{} macro to the main
@@ -13287,6 +13321,7 @@
   \listxadd\blx@sortingtemplatenames\blx@sorting
   \def\blx@refcontext@sortingnamekeytemplatename{global}%
   \let\blx@refcontext@labelprefix\@empty
+  \let\blx@refcontext@labelprefix@real\@empty
   \def\blx@refcontext@uniquenametemplatename{global}%
   \def\blx@refcontext@labelalphanametemplatename{global}%
   \xdef\blx@refcontext@context{\blx@refcontext@sortingtemplatename/\blx@refcontext@sortingnamekeytemplatename/\blx@refcontext@labelprefix/\blx@refcontext@uniquenametemplatename/\blx@refcontext@labelalphanametemplatename}%
