@@ -455,6 +455,14 @@
 
 \providecommand{\@gobblefive}[5]{}
 
+\def\blx@ensuredocument{%
+  \ifx\@onlypreamble\@notprerr
+    \expandafter\@firstofone
+  \else
+    \expandafter\AtBeginDocument
+  \fi
+}
+
 % A romanised safe counter to construct refcontext names with instead of literal
 % labelprefix which can be arbitrary characters
 \newcounter{labelprefix@counter}
@@ -7050,7 +7058,7 @@
   \@ifnextchar[%]
     {\blx@imc@getitemannotation@iii{#1}{\blx@tempb}}
     {\blx@imc@getitemannotation@iii{#1}{\blx@tempb}[\the\value{listcount}]}}
-  
+
 \def\blx@imc@getitemannotation@iii#1#2[#3]{%
   \def\blx@tempc{#1}%
   \blx@resolve@annotation@label{\blx@tempc}%
@@ -7074,7 +7082,7 @@
     {\@ifnextchar[%]
       {\blx@imc@getpartannotation@ii{#1}}
       {\blx@imc@getpartannotation@ii{#1}[default]}}}
-  
+
 \def\blx@imc@getpartannotation@ii#1[#2]{%
  \ifstrempty{#2}
    {\def\blx@tempb{default}}
@@ -7092,7 +7100,7 @@
   \ifcsdef{abx@annotation@literal@part@\blx@tempd @#2@\blx@tempc @#4}
     {\csuse{abx@annotation@literal@part@\blx@tempd @#2@\blx@tempc @#4}}
     {}}
-  
+
 % [<field>][<annotationname>]{<annotation>}
 \def\blx@imc@iffieldannotation{%
   \let\blx@tempa\@empty
@@ -7117,7 +7125,7 @@
   \def\blx@tempc{#1}%
   \blx@resolve@annotation@label{\blx@tempc}%
   \ifinlistcs{#3}{abx@annotation@field@\blx@tempc @\blx@tempb}}
-  
+
 % [<field>][<annotationname>][<item>]{<annotation>}
 \def\blx@imc@ifitemannotation{%
   \let\blx@tempa\@empty
@@ -9356,16 +9364,18 @@
     {\blx@assignrefcontextkeyws[]}}
 
 \def\blx@assignrefcontextkeyws[#1][#2]#3{%
-  \edef\blx@tempa{\blx@sorting}%
-  \def\blx@tempb{global}%
-  \let\blx@tempc\@empty%
-  \def\blx@tempd{global}%
-  \def\blx@tempe{global}%
-  \setkeys{blx@assignrefcontext}{#2}%
-  \def\do##1{%
-    \listxadd\blx@assignedrefcontextkeywlist{##1}%
-    \csxdef{blx@assignedrefcontextkeyws#1@\the\c@refsection @##1}{\blx@tempa/\blx@tempb/\blx@tempc/\blx@tempd/\blx@tempe}}
-  \docsvlist{#3}}
+  \blx@ensuredocument{%
+    \edef\blx@tempa{\blx@sorting}%
+    \def\blx@tempb{global}%
+    \let\blx@tempc\@empty%
+    \def\blx@tempd{global}%
+    \def\blx@tempe{global}%
+    \setkeys{blx@assignrefcontext}{#2}%
+    \def\do##1{%
+      \listxadd\blx@assignedrefcontextkeywlist{##1}%
+      \csxdef{blx@assignedrefcontextkeyws#1@\the\c@refsection @##1}%
+        {\blx@tempa/\blx@tempb/\blx@tempc/\blx@tempd/\blx@tempe}}%
+    \docsvlist{#3}}}
 
 % [refcontext keys]{<category1>,<category2>,...}
 \newcommand*{\assignrefcontextcats}{%
@@ -9374,16 +9384,18 @@
     {\blx@assignrefcontextcats[]}}
 
 \def\blx@assignrefcontextcats[#1][#2]#3{%
-  \edef\blx@tempa{\blx@sorting}%
-  \def\blx@tempb{global}%
-  \let\blx@tempc\@empty%
-  \def\blx@tempd{global}%
-  \def\blx@tempe{global}%
-  \setkeys{blx@assignrefcontext}{#2}%
-  \def\do##1{%
-    \listxadd\blx@assignedrefcontextcatlist{##1}%
-    \csxdef{blx@assignedrefcontextcats#1@\the\c@refsection @##1}{\blx@tempa/\blx@tempb/\blx@tempc/\blx@tempd/\blx@tempe}}
-  \docsvlist{#3}}
+  \blx@ensuredocument{%
+    \edef\blx@tempa{\blx@sorting}%
+    \def\blx@tempb{global}%
+    \let\blx@tempc\@empty%
+    \def\blx@tempd{global}%
+    \def\blx@tempe{global}%
+    \setkeys{blx@assignrefcontext}{#2}%
+    \def\do##1{%
+      \listxadd\blx@assignedrefcontextcatlist{##1}%
+      \csxdef{blx@assignedrefcontextcats#1@\the\c@refsection @##1}%
+        {\blx@tempa/\blx@tempb/\blx@tempc/\blx@tempd/\blx@tempe}}%
+    \docsvlist{#3}}}
 
 % [refcontext keys]{<entrykey1>,<entrykey2>,...}
 \newcommand*{\assignrefcontextentries}{%
@@ -9392,15 +9404,17 @@
     {\blx@assignrefcontextentries[]}}
 
 \def\blx@assignrefcontextentries[#1][#2]#3{%
-  \edef\blx@tempa{\blx@sorting}%
-  \def\blx@tempb{global}%
-  \let\blx@tempc\@empty%
-  \def\blx@tempd{global}%
-  \def\blx@tempe{global}%
-  \setkeys{blx@assignrefcontext}{#2}%
-  \def\do##1{%
-    \csxdef{blx@assignedrefcontextkeys#1@\the\c@refsection @##1}{\blx@tempa/\blx@tempb/\blx@tempc/\blx@tempd/\blx@tempe}}%
-  \docsvlist{#3}}
+  \blx@ensuredocument{%
+    \edef\blx@tempa{\blx@sorting}%
+    \def\blx@tempb{global}%
+    \let\blx@tempc\@empty%
+    \def\blx@tempd{global}%
+    \def\blx@tempe{global}%
+    \setkeys{blx@assignrefcontext}{#2}%
+    \def\do##1{%
+      \csxdef{blx@assignedrefcontextkeys#1@\the\c@refsection @##1}%
+        {\blx@tempa/\blx@tempb/\blx@tempc/\blx@tempd/\blx@tempe}}%
+    \docsvlist{#3}}}
 
 % Meta option to set all name template options
 \define@key{blx@assignrefcontext}{nametemplates}{%
