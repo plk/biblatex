@@ -515,19 +515,6 @@
 
 \providecommand{\@gobblefive}[5]{}
 
-\def\blx@ensuredocument{%
-  \ifx\@onlypreamble\@notprerr
-    \expandafter\@firstofone
-  \else
-    \expandafter\AtBeginDocument
-  \fi
-}
-
-% A romanised safe counter to construct refcontext names with instead of literal
-% labelprefix which can be arbitrary characters
-\newcounter{labelprefix@counter}
-\renewcommand{\thelabelprefix@counter}{\Roman{labelprefix@counter}}
-
 % Counter to track nested tabularx environemnts so we don't
 % try to patch the commands more than once below as this undefs some
 % macros and an error is thrown
@@ -8112,7 +8099,7 @@
 % {<refcontext>}
 % Get the saved information on which refcontexts were mentioned last run
 \protected\def\abx@aux@refcontext#1{%
-  \listgadd\blx@lastrefcontexts{#1}}
+  \listxadd\blx@lastrefcontexts{\detokenize{#1}}}
 
 % {<sortingtemplatename>}
 % Get the saved information on which shorthand sorting templates were mentioned last run
@@ -9008,6 +8995,17 @@
 
 \let\blx@bibcheck\relax
 
+\def\blx@edef@refcontext#1{%
+  \edef\blx@refcontext@context{#1}%
+  \expandafter\edef\expandafter\blx@refcontext@context\expandafter{%
+    \expandafter\detokenize\expandafter{\blx@refcontext@context}}}
+
+\def\blx@xdef@refcontext#1{%
+  \edef\blx@refcontext@context{#1}%
+  \expandafter\xdef\expandafter\blx@refcontext@context\expandafter{%
+    \expandafter\detokenize\expandafter{\blx@refcontext@context}}}
+
+
 % This sets and saves to the .aux the default refcontext for an entry. The
 % default refcontext for an entry is the refcontext of the last
 % bibliography in the refsection in which it is actually printed. This
@@ -9025,7 +9023,7 @@
 % <refsection><key><refcontext>
 \def\abx@aux@defaultrefcontext#1#2#3{%
   \global\boolfalse{refcontextdefaults}%
-  \csxdef{blx@assignedrefcontextbib@#1@#2}{#3}}
+  \csxdef{blx@assignedrefcontextbib@#1@#2}{\detokenize{#3}}}
 \def\abx@aux@refcontextdefaultsdone{%
   \global\boolfalse{refcontextdefaults}}
 
@@ -9171,7 +9169,7 @@
     % Note that the name must be unique so we prepend "#2:" because the combination of
     % options might not generate a unique name since sortschemename has a fallback to the
     % refcontext scheme if there is no sortscheme named after the list
-    \edef\blx@refcontext@context{#2:\blx@tempc/\blx@refcontext@sortingnamekeytemplatename/\blx@refcontext@labelprefix/\blx@refcontext@uniquenametemplatename/\blx@refcontext@labelalphanametemplatename}%
+    \blx@edef@refcontext{#2:\blx@tempc/\blx@refcontext@sortingnamekeytemplatename/\blx@refcontext@labelprefix/\blx@refcontext@uniquenametemplatename/\blx@refcontext@labelalphanametemplatename}%
   \xifinlist\blx@tempc\blx@sortingtemplatenames
     {}
     {\listxadd\blx@sortingtemplatenames\blx@tempc}%
@@ -9319,7 +9317,7 @@
      \xifinlist\blx@refcontext@sortingtemplatename\blx@sortingtemplatenames
        {}
        {\listxadd\blx@sortingtemplatenames\blx@refcontext@sortingtemplatename}%
-     \xdef\blx@refcontext@context{\blx@refcontext@sortingtemplatename/\blx@refcontext@sortingnamekeytemplatename/\blx@refcontext@labelprefix/\blx@refcontext@uniquenametemplatename/\blx@refcontext@labelalphanametemplatename}%
+     \blx@xdef@refcontext{\blx@refcontext@sortingtemplatename/\blx@refcontext@sortingnamekeytemplatename/\blx@refcontext@labelprefix/\blx@refcontext@uniquenametemplatename/\blx@refcontext@labelalphanametemplatename}%
      % Add the refcontext to the list of refcontexts so we can compare on next run
      \xifinlist\blx@refcontext@context\blx@refcontexts
        {}
@@ -9347,7 +9345,7 @@
   \gdef\blx@refcontext@sortingnamekeytemplatename{global}%
   \gdef\blx@refcontext@uniquenametemplatename{global}%
   \gdef\blx@refcontext@labelalphanametemplatename{global}%
-  \xdef\blx@refcontext@context{\blx@refcontext@sortingtemplatename/\blx@refcontext@sortingnamekeytemplatename//\blx@refcontext@uniquenametemplatename/\blx@refcontext@labelalphanametemplatename}}
+  \blx@xdef@refcontext{\blx@refcontext@sortingtemplatename/\blx@refcontext@sortingnamekeytemplatename//\blx@refcontext@uniquenametemplatename/\blx@refcontext@labelalphanametemplatename}}
 
 % Meta option to set all name template options
 \define@key{blx@refcontext}{nametemplates}{%
@@ -9360,27 +9358,14 @@
 \define@key{blx@refcontext}{uniquenametemplatename}{\gdef\blx@refcontext@uniquenametemplatename{#1}}
 \define@key{blx@refcontext}{labelalphanametemplatename}{\gdef\blx@refcontext@labelalphanametemplatename{#1}}
 
-% labelprefix map of characters to roman numeral index
-\def\abx@labelprefixmap#1#2#3{%
-  \csgdef{abx@labelprefixmap@#1@#2}{#3}}
-
 % labelprefix cannot be used as is because it is used to construct the internal
 % refcontext name which is referenced/expanded a lot all over the place. So,
-% we use a roman numeral index instead as this is safe in macro names. The map of the
-% labelprefix to roman index must be saved across runs in the .aux, naturally
+% we hash the given input and use the safe hash as internal name.
+% But that is not enough since the MD5 hash function expands the argument all
+% the way and so unexpandable content like \dag breaks.
+% Unexpandable content should be protected with \detokenize.
 \define@key{blx@refcontext}{labelprefix}{%
-  \let\blx@tempa\thelabelprefix@counter
-  % Don't increment if we are overriding labelprefix via local options
-  \let\blx@labelprefix@incr\addtocounter
-  \ifdefempty\blx@refcontext@labelprefix
-    {}
-    {\let\blx@labelprefix@incr\@gobbletwo}%
-  % Value comes form .aux
-  \ifcsdef{abx@labelprefixmap@\the\c@refsection @#1}
-    {\letcs\blx@tempa{abx@labelprefixmap@\the\c@refsection @#1}}
-    {\blx@labelprefix@incr{labelprefix@counter}{1}}%
-  \blx@auxwrite\@mainaux{}{\string\abx@labelprefixmap{\the\c@refsection}{#1}{\blx@tempa}}%
-  \gdef\blx@refcontext@labelprefix{\blx@tempa}%
+  \xdef\blx@refcontext@labelprefix{\pdf@mdfivesum{#1}}%
   \gdef\blx@refcontext@labelprefix@real{#1}%
   \iftoggle{blx@defernumbers}
     {}%
@@ -9397,18 +9382,17 @@
     {\blx@assignrefcontextkeyws[]}}
 
 \def\blx@assignrefcontextkeyws[#1][#2]#3{%
-  \blx@ensuredocument{%
-    \edef\blx@tempa{\blx@sorting}%
-    \def\blx@tempb{global}%
-    \let\blx@tempc\@empty%
-    \def\blx@tempd{global}%
-    \def\blx@tempe{global}%
-    \setkeys{blx@assignrefcontext}{#2}%
-    \def\do##1{%
-      \listxadd\blx@assignedrefcontextkeywlist{##1}%
-      \csxdef{blx@assignedrefcontextkeyws#1@\the\c@refsection @##1}%
-        {\blx@tempa/\blx@tempb/\blx@tempc/\blx@tempd/\blx@tempe}}%
-    \docsvlist{#3}}}
+  \edef\blx@tempa{\blx@sorting}%
+  \def\blx@tempb{global}%
+  \let\blx@tempc\@empty%
+  \def\blx@tempd{global}%
+  \def\blx@tempe{global}%
+  \setkeys{blx@assignrefcontext}{#2}%
+  \def\do##1{%
+    \listxadd\blx@assignedrefcontextkeywlist{##1}%
+    \csxdef{blx@assignedrefcontextkeyws#1@\the\c@refsection @##1}%
+      {\blx@tempa/\blx@tempb/\blx@tempc/\blx@tempd/\blx@tempe}}%
+  \docsvlist{#3}}
 
 % [refcontext keys]{<category1>,<category2>,...}
 \newcommand*{\assignrefcontextcats}{%
@@ -9417,18 +9401,17 @@
     {\blx@assignrefcontextcats[]}}
 
 \def\blx@assignrefcontextcats[#1][#2]#3{%
-  \blx@ensuredocument{%
-    \edef\blx@tempa{\blx@sorting}%
-    \def\blx@tempb{global}%
-    \let\blx@tempc\@empty%
-    \def\blx@tempd{global}%
-    \def\blx@tempe{global}%
-    \setkeys{blx@assignrefcontext}{#2}%
-    \def\do##1{%
-      \listxadd\blx@assignedrefcontextcatlist{##1}%
-      \csxdef{blx@assignedrefcontextcats#1@\the\c@refsection @##1}%
-        {\blx@tempa/\blx@tempb/\blx@tempc/\blx@tempd/\blx@tempe}}%
-    \docsvlist{#3}}}
+  \edef\blx@tempa{\blx@sorting}%
+  \def\blx@tempb{global}%
+  \let\blx@tempc\@empty%
+  \def\blx@tempd{global}%
+  \def\blx@tempe{global}%
+  \setkeys{blx@assignrefcontext}{#2}%
+  \def\do##1{%
+    \listxadd\blx@assignedrefcontextcatlist{##1}%
+    \csxdef{blx@assignedrefcontextcats#1@\the\c@refsection @##1}%
+      {\blx@tempa/\blx@tempb/\blx@tempc/\blx@tempd/\blx@tempe}}%
+  \docsvlist{#3}}
 
 % [refcontext keys]{<entrykey1>,<entrykey2>,...}
 \newcommand*{\assignrefcontextentries}{%
@@ -9437,17 +9420,16 @@
     {\blx@assignrefcontextentries[]}}
 
 \def\blx@assignrefcontextentries[#1][#2]#3{%
-  \blx@ensuredocument{%
-    \edef\blx@tempa{\blx@sorting}%
-    \def\blx@tempb{global}%
-    \let\blx@tempc\@empty%
-    \def\blx@tempd{global}%
-    \def\blx@tempe{global}%
-    \setkeys{blx@assignrefcontext}{#2}%
-    \def\do##1{%
-      \csxdef{blx@assignedrefcontextkeys#1@\the\c@refsection @##1}%
-        {\blx@tempa/\blx@tempb/\blx@tempc/\blx@tempd/\blx@tempe}}%
-    \docsvlist{#3}}}
+  \edef\blx@tempa{\blx@sorting}%
+  \def\blx@tempb{global}%
+  \let\blx@tempc\@empty%
+  \def\blx@tempd{global}%
+  \def\blx@tempe{global}%
+  \setkeys{blx@assignrefcontext}{#2}%
+  \def\do##1{%
+    \csxdef{blx@assignedrefcontextkeys#1@\the\c@refsection @##1}%
+      {\blx@tempa/\blx@tempb/\blx@tempc/\blx@tempd/\blx@tempe}}%
+  \docsvlist{#3}}
 
 % Meta option to set all name template options
 \define@key{blx@assignrefcontext}{nametemplates}{%
@@ -9459,11 +9441,7 @@
 \define@key{blx@assignrefcontext}{sortingnamekeytemplatename}{\def\blx@tempb{#1}}
 %\define@key{blx@assignrefcontext}{labelprefix}{\def\blx@tempc{#1}}
 \define@key{blx@assignrefcontext}{labelprefix}{%
-  % Value must come from .aux after counter is assigned
-  \let\blx@tempc\@empty
-  \ifcsdef{abx@labelprefixmap@\the\c@refsection @#1}
-    {\letcs\blx@tempc{abx@labelprefixmap@\the\c@refsection @#1}}
-    {}}
+  \edef\blx@tempc{\pdf@mdfivesum{#1}}}
 \define@key{blx@assignrefcontext}{uniquenametemplatename}{\def\blx@tempd{#1}}
 \define@key{blx@assignrefcontext}{labelalphanametemplatename}{\def\blx@tempe{#1}}
 
@@ -9555,7 +9533,6 @@
 
 \def\blx@endrefsection{%
   \blx@endrefsegment
-  \global\c@labelprefix@counter\z@
   % make sure we always output aliases to the .bcf otherwise after their
   % first resolution by biber, they will be invisible to subsequent biber
   % runs since biblatex will resolve the \keyalias{} macro to the main
@@ -10132,7 +10109,7 @@
   % refcontext defined
   \ifcsdef{blx@assignedrefcontextbib@\the\c@refsection @#1}
     {\letcs\blx@refcontext@context{blx@assignedrefcontextbib@\the\c@refsection @#1}}
-    {\edef\blx@refcontext@context{\blx@sorting/global//global/global}}%
+    {\blx@edef@refcontext{\blx@sorting/global//global/global}}%
   % assignment via keyword list
   \ifdef\blx@assignedrefcontextkeywlist
     {\def\do##1{%
@@ -13376,7 +13353,7 @@
   \let\blx@refcontext@labelprefix@real\@empty
   \def\blx@refcontext@uniquenametemplatename{global}%
   \def\blx@refcontext@labelalphanametemplatename{global}%
-  \xdef\blx@refcontext@context{\blx@refcontext@sortingtemplatename/\blx@refcontext@sortingnamekeytemplatename/\blx@refcontext@labelprefix/\blx@refcontext@uniquenametemplatename/\blx@refcontext@labelalphanametemplatename}%
+  \blx@xdef@refcontext{\blx@refcontext@sortingtemplatename/\blx@refcontext@sortingnamekeytemplatename/\blx@refcontext@labelprefix/\blx@refcontext@uniquenametemplatename/\blx@refcontext@labelalphanametemplatename}%
   \listxadd\blx@refcontexts\blx@refcontext@context}
 
 \DeclareBibliographyOption[boolean]{sortcase}[true]{%
