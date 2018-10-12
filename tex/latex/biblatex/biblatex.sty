@@ -10935,18 +10935,52 @@
     {\blx@defcitecmd@ii{#2#1}}}
 
 \long\def\blx@defcitecmd@ii#1{%
-  \protected\csedef{blx@cite@#1}{\blxciteicmd{#1}}%
-  \blx@defcitecmd@iv{#1}}
+  \csundef{blx@defcite@wrapper@#1}%
+  \blx@defcitecmd@iv{#1}%
+  \blx@defcitecmd@v{#1}}
 
 \long\def\blx@defcitecmd@iii#1[#2]{%
-  \protected\long\csedef{blx@cite@#1}##1##2##3##4{%
-    \begingroup
-    \blx@citeinit
-    \unexpanded{#2}{\blxciteicmd{#1}{##1}{##2}{##3}{}}%
-    ##4\endgroup}%
-  \blx@defcitecmd@iv{#1}}
+  \csdef{blx@defcite@wrapper@#1}{#2}%
+  \blx@defcitecmd@iv{#1}%
+  \blx@defcitecmd@v{#1}}
 
-\long\def\blx@defcitecmd@iv#1#2#3#4#5{%
+\long\def\blx@defcitecmd@iv#1{%
+  \protected\long\csedef{blx@cite@#1}##1##2##3##4{%
+    \ifboolexpe{test {\ifcsundef{blx@defcite@wrapper@#1}}
+                and
+                (test {\ifcsundef{blx@citepunct@#1}}
+                 or
+                 test {\ifcsequal{blx@citepunct@#1}{blx@citepunctid@pos@c}})}
+      {}
+      {\begingroup
+       \blx@citeinit}%
+    \ifcsequal{blx@citepunct@#1}{blx@citepunctid@pos@l}
+      {\noexpand\unspace##4}
+      {}%
+    \ifcsequal{blx@citepunct@#1}{blx@citepunctid@pos@f}
+      {\noexpand\iftoggle{blx@footnote}{}{\unspace##4}}
+      {}%
+    \ifcsundef{blx@defcite@wrapper@#1}
+      {\blxciteicmd{#1}{##1}{##2}{##3}{%
+         \ifcsundef{blx@citepunct@#1}{##4}{}%
+         \ifcsequal{blx@citepunct@#1}{blx@citepunctid@pos@c}{##4}{}}}
+      {\csexpandonce{blx@defcite@wrapper@#1}{%
+         \blxciteicmd{#1}{##1}{##2}{##3}{%
+           \ifcsequal{blx@citepunct@#1}{blx@citepunctid@pos@c}{##4}{}}}%
+       \ifcsundef{blx@citepunct@#1}{##4}{}}%
+    \ifcsequal{blx@citepunct@#1}{blx@citepunctid@pos@r}{##4}{}%
+    \ifcsequal{blx@citepunct@#1}{blx@citepunctid@pos@f}
+      {\noexpand\iftoggle{blx@footnote}{##4}{}}
+      {}%
+    \ifboolexpe{test {\ifcsundef{blx@defcite@wrapper@#1}}
+                and
+                (test {\ifcsundef{blx@citepunct@#1}}
+                 or
+                 test {\ifcsequal{blx@citepunct@#1}{blx@citepunctid@pos@c}})}
+      {}
+      {\endgroup}}}
+
+\long\def\blx@defcitecmd@v#1#2#3#4#5{%
   \protected\long\csdef{blx@citei@#1}##1##2##3##4{%
     \ifblank{##1}
       {}
@@ -11191,6 +11225,36 @@
     {\let\blx@thecheckpunct\blx@nocheckpunct}
     {\let\blx@thecheckpunct\blx@checkpunct
      \def\blx@autopunct{#1}}}
+
+% {<command>}{<pos marker>}
+% pos markers are:
+%   l: move punctuation before the command (i.e. left of it)
+%   r: leave punctuation after the command (i.e. to the right)
+%   f: like l in normal text, like r in footnotes
+%   c: pass on to the cite command,
+%      the punctuation will eventually end up as field 'postpunct'
+%   d: discard the punctuation
+%   o (or any other value): restores the old standard behaviour
+%      r for wrapped citation commands,
+%      c for unwrapped ones
+\newrobustcmd*{\DeclareCitePunctuationPosition}[2]{%
+  \begingroup
+  \escapechar\m@ne
+  \edef\blx@tempa{\endgroup
+    \noexpand\blx@defcitepunctpos@i{\string#1}{#2}}%
+  \blx@tempa}
+
+\def\blx@citepunctid@pos@l{l}
+\def\blx@citepunctid@pos@r{r}
+\def\blx@citepunctid@pos@f{f}
+\def\blx@citepunctid@pos@c{c}
+\def\blx@citepunctid@pos@d{d}
+
+\def\blx@defcitepunctpos@i#1#2{%
+  \ifcsundef{blx@citepunctid@pos@#2}
+    {\csundef{blx@citepunct@#1}}
+    {\csletcs{blx@citepunct@#1}{blx@citepunctid@pos@#2}}%
+  \blx@defcitecmd@iv{#1}}
 
 \AfterEndPreamble{% babel
   \begingroup
