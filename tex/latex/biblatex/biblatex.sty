@@ -99,7 +99,94 @@
 \catcode`\^=7
 \def\blx@nl{^^J}
 
+\protected\def\blx@safe@actives{%
+  \let\blx@if@safe@actives\if@safe@actives
+  \let\if@safe@actives\iftrue}
+
+\protected\def\blx@rest@actives{%
+  \let\if@safe@actives\blx@if@safe@actives}
+
+%% Early errors and warnings
+\protected\def\blx@error#1#2{%
+  \begingroup
+  \blx@safe@actives
+  \PackageError{biblatex}{#1}{#2.}%
+  \endgroup}
+
+\protected\def\blx@warning@noline#1{%
+  \begingroup
+  \blx@safe@actives
+  \PackageWarningNoLine{biblatex}{#1}%
+  \endgroup}
+\let\blx@warning\blx@warning@noline
+\AtEndOfPackage{%
+  \protected\def\blx@warning#1{%
+    \begingroup
+    \blx@safe@actives
+    \PackageWarning{biblatex}{#1}%
+    \endgroup}}
+
 %% Compatibility
+\def\blx@packageincompatibility{%
+  \def\do##1{%
+    \@ifpackageloaded{##1}
+      {\ifcsundef{blx@pkgloaded@##1}
+         {\global\cslet{blx@pkgloaded@##1}\@empty
+          \blx@error
+            {Incompatible package '##1'}
+            {The '##1' package and biblatex are incompatible}}
+         {}}
+      {}}%
+  \docsvlist{%
+    amsrefs,apacite,babelbib,backref,bibtopic,bibunits,chapterbib,
+    cite,citeref,drftcite,footbib,inlinebib,jurabib,mcite,mciteplus,
+    mlbib,multibbl,multibib,natbib,opcit,overcite,splitbib,ucs}%
+  % etextools is special, it gets an option to demote the error to a warning
+  % remind people to restore \forlistloop
+  \ifcsdef{blx@noerroretextools}
+    {\@ifpackageloaded{etextools}
+       {\ifcsundef{blx@pkgloaded@etextools}
+          {\global\cslet{blx@pkgloaded@etextools}\@empty
+           \blx@warning@noline{%
+             Incompatible package 'etextools' loaded,\MessageBreak
+             no error is thrown because you defined\MessageBreak
+             '\string\blx@noerroretextools'.\MessageBreak
+             'etextools' redefines '\string\forlistloop', you must\MessageBreak
+             restore the definition from 'etoolbox'\MessageBreak
+             before you load biblatex}}
+          {}}
+       {}}
+    {\@ifpackageloaded{etextools}
+       {\ifcsundef{blx@pkgloaded@etextools}
+          {\global\cslet{blx@pkgloaded@etextools}\@empty
+           \blx@error
+             {Incompatible package 'etextools'}
+             {The 'etextools' package and biblatex are
+              incompatible.\MessageBreak
+              If you must load 'etextools' at all costs, define the command%
+              \MessageBreak '\string\blx@noerroretextools'}}
+          {}}
+       {}}}
+
+% Call this right here, almost immediately after loading to give sensible
+% errors for incompatibilities that arise at loading-time.
+% The macro is called again a second time in \AtEndPreamble when all packages
+% should be loaded.
+% This still can't catch all cases, \usepackage{biblatex}\usepackage{natbib}
+% still gives a weird error.
+\blx@packageincompatibility
+
+% people should not be abusing noerroretextools, so warn if it is not needed
+\def\blx@packageincompatibility@endpreambleonly{%
+  \ifcsdef{blx@noerroretextools}
+    {\@ifpackageloaded{etextools}
+       {}
+       {\blx@warning@noline{%
+          You defined '\string\blx@noerroretextools',\MessageBreak
+          but 'etextools' is not loaded.\MessageBreak
+          Please do not define '\string\blx@noerroretextools'\MessageBreak
+          unless you really need it}}}
+    {}}
 
 \begingroup
 \catcode`\#=12
@@ -122,35 +209,8 @@
 \endgroup
 
 \AtEndPreamble{%
-  \def\do#1{%
-    \@ifpackageloaded{#1}
-      {\blx@error
-         {Incompatible package '#1'}
-         {The '#1' package and biblatex are incompatible}}
-      {}}%
-  \docsvlist{%
-    amsrefs,apacite,babelbib,backref,bibtopic,bibunits,chapterbib,
-    cite,citeref,drftcite,footbib,inlinebib,jurabib,mcite,mciteplus,
-    mlbib,multibbl,multibib,natbib,opcit,overcite,splitbib,ucs}%
-  \iftoggle{blx@noerroretextools}
-    {\@ifpackageloaded{etextools}
-       {\blx@warning@noline{%
-          Incompatible package 'etextools' loaded,\MessageBreak
-          no error is thrown because you set\MessageBreak
-          'noerroretextools=true'.\MessageBreak
-          'etextools' redefines '\string\forlistloop', you will\MessageBreak
-          need to restore the definition from 'etoolbox'}}
-       {\blx@warning@noline{%
-          You set 'noerroretextools=true',\MessageBreak
-          but 'etextools' is not loaded.\MessageBreak
-          Please do not set 'noerroretextools' to 'true'\MessageBreak
-          unless you really need it}}}
-    {\@ifpackageloaded{etextools}
-       {\blx@error
-          {Incompatible package 'etextools'}
-          {The 'etextools' package and biblatex are incompatible.\MessageBreak
-           If you must load 'etextools' at all costs, set 'noerroretextools=true'}}
-       {}}%
+  \blx@packageincompatibility
+  \blx@packageincompatibility@endpreambleonly
   \def\blx@langstrings{}%
   % Set up sortlocale defaults and default language if babel/polyglossia is not loaded
   \ifdefstring\blx@sortlocale{auto}
@@ -793,13 +853,6 @@
     {}}
 
 %% Auxiliary commands
-\protected\def\blx@safe@actives{%
-  \let\blx@if@safe@actives\if@safe@actives
-  \let\if@safe@actives\iftrue}
-
-\protected\def\blx@rest@actives{%
-  \let\if@safe@actives\blx@if@safe@actives}
-
 \protected\def\blx@regimc#1{%
   \xappto\blx@blxinit{%
     \let\noexpand#1\expandafter\noexpand\csname
@@ -1013,27 +1066,7 @@
   )
 }}
 
-%% User feedback
-
-\protected\def\blx@error#1#2{%
-  \begingroup
-  \blx@safe@actives
-  \PackageError{biblatex}{#1}{#2.}%
-  \endgroup}
-
-\protected\def\blx@warning@noline#1{%
-  \begingroup
-  \blx@safe@actives
-  \PackageWarningNoLine{biblatex}{#1}%
-  \endgroup}
-\let\blx@warning\blx@warning@noline
-\AtEndOfPackage{%
-  \protected\def\blx@warning#1{%
-    \begingroup
-    \blx@safe@actives
-    \PackageWarning{biblatex}{#1}%
-    \endgroup}}
-
+%% More user feedback
 \protected\def\blx@warning@entry#1{%
   \ifdef\abx@field@entrykey
     {\blx@warning{#1\MessageBreak at entry '\abx@field@entrykey'}}
@@ -13266,9 +13299,14 @@
 \define@key{blx@opt@ldt}{mcite}[true]{%
   \settoggle{blx@mcite}{#1}}
 
-\newtoggle{blx@noerroretextools}
 \define@key{blx@opt@ldt}{noerroretextools}[true]{%
-  \settoggle{blx@noerroretextools}{#1}}
+  \blx@warning@noline{%
+    The option 'noerroretextools' is deprecated.\MessageBreak
+    Define the control sequence '\string\blx@noerroretextools'\MessageBreak
+    before loading biblatex instead}%
+  \ifstrequal{#1}{true}
+    {\global\cslet{blx@noerroretextools}\@empty}
+    {\csgundef{blx@noerroretextools}}}
 
 % load-time and preamble
 
