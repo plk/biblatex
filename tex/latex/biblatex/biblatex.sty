@@ -441,7 +441,14 @@
        {}%
      \@ifpackagelater{csquotes}{2010/06/09}
        {}
-       {\newcommand*{\@quotereset}{}\newcount\@quotereset}}
+       {\newcommand*{\@quotereset}{}\newcount\@quotereset}%
+     \newcommand*{\blx@initoquote}{\initoquote}%
+     \newcommand*{\blx@textooquote}{\textooquote}%
+     \newcommand*{\blx@textcoquote}{\textcoquote}%
+     \newcommand*{\blx@initiquote}{\initiquote}%
+     \newcommand*{\blx@textoiquote}{\textoiquote}%
+     \newcommand*{\blx@textciquote}{\textciquote}%
+     \newcommand*{\blx@enquote}{\enquote}}
     {\@ifpackageloaded{babel}
        {\blx@warning@noline{%
           'babel/polyglossia' detected but 'csquotes' missing.\MessageBreak
@@ -453,26 +460,27 @@
      \newcount\@quotereset
      \newcommand*{\@setquotesfcodes}{}%
      \let\@setquotesfcodes\relax
-     \newrobustcmd*{\initoquote}{\@quotelevel\@ne}%
-     \newrobustcmd*{\initiquote}{\@quotelevel\tw@}%
-     \newrobustcmd*{\textooquote}{``}%
-     \newrobustcmd*{\textcoquote}{''}%
-     \newrobustcmd*{\textoiquote}{`\relax}% block ligs
-     \newrobustcmd*{\textciquote}{'\relax}% block ligs
-     \newrobustcmd*{\enquote}{\@ifstar\blx@enquote@ii\blx@enquote}%
-     \def\blx@enquote{%
+     \newrobustcmd*{\blx@initoquote}{\@quotelevel\@ne}%
+     \newrobustcmd*{\blx@initiquote}{\@quotelevel\tw@}%
+     \newrobustcmd*{\blx@textooquote}{``}%
+     \newrobustcmd*{\blx@textcoquote}{''}%
+     \newrobustcmd*{\blx@textoiquote}{`\relax}% block ligs
+     \newrobustcmd*{\blx@textciquote}{'\relax}% block ligs
+     \newrobustcmd*{\blx@enquote}
+       {\@ifstar\blx@enquote@iii\blx@enquote@i}%
+     \def\blx@enquote@i{%
        \ifnum\@quotelevel>\z@
-         \expandafter\blx@enquote@ii
+         \expandafter\blx@enquote@iii
        \else
-         \expandafter\blx@enquote@i
+         \expandafter\blx@enquote@ii
        \fi}%
-     \long\def\blx@enquote@i#1{%
-       \begingroup\initoquote
-       \textooquote#1\textcoquote
-       \endgroup}%
      \long\def\blx@enquote@ii#1{%
-       \begingroup\initiquote
-       \textoiquote#1\textciquote
+       \begingroup\blx@initoquote
+       \blx@textooquote#1\blx@textcoquote
+       \endgroup}%
+     \long\def\blx@enquote@iii#1{%
+       \begingroup\blx@initiquote
+       \blx@textoiquote#1\blx@textciquote
        \endgroup}%
      \appto\blx@setsfcodes{%
        \sfcode`\`=\z@
@@ -11340,9 +11348,9 @@
   \blx@tempa}
 
 %% Auxiliary macros
-\newrobustcmd*{\mkbibquote}{\enquote}
+\newrobustcmd*{\mkbibquote}{\blx@enquote}
 \protected\def\blx@imc@mkbibquote{%
-  \blx@ifuspunct\blx@usquote\enquote}
+  \blx@ifuspunct\blx@usquote\blx@enquote}
 
 \def\blx@usquote{%
   \ifnum\@quotelevel>\z@
@@ -11353,26 +11361,26 @@
 
 \long\def\blx@usoquote#1{%
   \begingroup
-  \initoquote
-  \textooquote#1%
+  \blx@initoquote
+  \blx@textooquote#1%
   \futurelet\@let@token\blx@usoquote@i}
 
 \def\blx@usoquote@i{%
   \blx@usqcheck
     {\ifx\blx@postpunct\@empty\else\blx@dopostpunct\fi
-     \textcoquote\endgroup}
-    {\blx@setpostpunct\textcoquote\endgroup}}
+     \blx@textcoquote\endgroup}
+    {\blx@setpostpunct\blx@textcoquote\endgroup}}
 
 \long\def\blx@usiquote#1{%
   \begingroup
-  \initiquote
-  \textoiquote#1%
+  \blx@initiquote
+  \blx@textoiquote#1%
   \futurelet\@let@token\blx@usiquote@i}
 
 \def\blx@usiquote@i{%
   \blx@usqcheck
-    {\textciquote\endgroup}
-    {\blx@setpostpunct\textciquote\endgroup}}
+    {\blx@textciquote\endgroup}
+    {\blx@setpostpunct\blx@textciquote\endgroup}}
 
 \long\def\blx@usqcheck#1#2{%
   \def\blx@tempa{#1}%

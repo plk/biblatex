@@ -75,7 +75,28 @@
   each different value. No backwards compatibility issues are expected,
   but style authors are encouraged to test the changes and see if the new
   macro could be useful for their styles.
+- For a long time `biblatex` has defined `\enquote` if `csquotes` was not
+  loaded. This behaviour was not documented, the official command intended
+  for quotation marks was always `\mkbibquote`. Because `biblatex` should not
+  (re)define user-level commands that are not primarily associated with
+  citations or the bibliography, from this release on `\enquote` is not defined
+  any more, instead the internal command `\blx@enquote` is defined and used.
+  The same holds for `\initoquote`, `\initiquote`, `\textooquote`,
+  `\textcoquote`, `\textoiquote`, `\textciquote`.
+  `biblatex` still defines the internal commands `\@quotelevel`, `\@quotereset`
+  and `\@setquotesfcodes` if `csquotes` is not loaded.
 
+  Users are encouraged to use `csquotes` for proper quotation marks, but can
+  get back the old behaviour with
+  ```
+  \makeatletter
+  \providerobustcmd*{\enquote}{\blx@enquote}
+  \makeatother
+  ```
+  or
+  ```
+  \newrobustcmd*{\enquote}{\mkbibquote}
+  ```
 
 # RELEASE NOTES FOR VERSION 3.11
 - `\printbiblist` now supports `driver` and `biblistfilter` options
