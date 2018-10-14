@@ -62,6 +62,19 @@
   `nametitledelim`.
   For compatibility reasons `\labelnamepunct` still pops up in the code here
   and there, but `nametitledelim` should be preferred now.
+- `authoryear.bbx` now has a macro `bbx:ifmergeddate` that can be used to
+  check whether the date has been printed at the beginning of an entry
+  and can thus be suppressed later in the `date` and `issue+date` macros.
+  The macro works like a test and expands to the `<true>` branch if the date
+  has been merged and can be suppressed, it expands to `<false>` if the date
+  has not been merged. In practice `\printdate` should then be issued
+  if and only if the test yields false.
+
+  This change means that the definition of the `date` macro can be the same for
+  all mergedate settings and that only `bbx:ifmergeddate` is redefined for
+  each different value. No backwards compatibility issues are expected,
+  but style authors are encouraged to test the changes and see if the new
+  macro could be useful for their styles.
 
 
 # RELEASE NOTES FOR VERSION 3.11
