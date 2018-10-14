@@ -51,6 +51,10 @@
   `\iffieldequals{#1year}{#2year}` to compare years. The latter can lead to
   undesired results if the years have opposite signs, but are otherwise the
   same.
+- New values `part+`, `chapter+`, `section+` and `subsection+` for 'section'-
+  valued options `refsection`, `refsegment` and `citereset`. These options
+  are then executed at not only the specified level of sectioning, but also
+  all higher levels.
 - Add second optional argument to `\DeclareDelimAlias*`.
 - Allow keywords for dataonly/skipped entries as well.
 - Added `maxcitecounter`.

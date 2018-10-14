@@ -14323,81 +14323,96 @@
 \DeclareBibliographyOption[boolean]{locallabelwidth}[true]{%
   \blx@key@locallabelwidth{#1}}
 
+%{<switch>}{<patch>}{<pre>}{<post>}
+\def\blx@patchsection@switch#1#2#3#4{%
+  \AtEndPreamble{%
+    #3%
+    \ifcase#1
+    \or % 1: part
+      \blx@refpatch@part{#2}%
+    \or % 2: chapter
+      \blx@refpatch@chapter{#2}%
+    \or % 3: section
+      \blx@refpatch@sect{section}{#2}{1}%
+    \or % 4: subsection
+      \blx@refpatch@sect{subsection}{#2}{2}%
+    \or % 5: chapter+ = part, chapter
+      \blx@refpatch@part{#2}%
+      \blx@refpatch@chapter{#2}%
+    \or % 6: section+ = part, chapter, section
+      \blx@refpatch@part{#2}%
+      \ifundef\chapter
+        {}
+        {\blx@refpatch@chapter{#2}}%
+      \blx@refpatch@sect{section}{#2}{1}%
+    \or % 7: subsection+ = part, chapter, section, subsection
+      \blx@refpatch@part{#2}%
+      \ifundef\chapter
+        {}
+        {\blx@refpatch@chapter{#2}}%
+      \blx@refpatch@sect{section}{#2}{1}%
+      \blx@refpatch@sect{subsection}{#2}{2}%
+    \fi
+    #4%
+  }%
+}
+
 \DeclareBibliographyOption[string]{refsection}{%
   \ifcsdef{blx@opt@refsection@#1}
     {\letcs\blx@refsecreset@level{blx@opt@refsection@#1}}
     {\blx@err@invopt{refsection=#1}{}}}
-\def\blx@opt@refsection@none{0}
-\def\blx@opt@refsection@part{1}
-\def\blx@opt@refsection@chapter{2}
-\def\blx@opt@refsection@section{3}
-\def\blx@opt@refsection@subsection{4}
+\csdef{blx@opt@refsection@none}{0}
+\csdef{blx@opt@refsection@part}{1}
+\csdef{blx@opt@refsection@chapter}{2}
+\csdef{blx@opt@refsection@section}{3}
+\csdef{blx@opt@refsection@subsection}{4}
+\csdef{blx@opt@refsection@chapter+}{5}
+\csdef{blx@opt@refsection@section+}{6}
+\csdef{blx@opt@refsection@subsection+}{7}
 
-\AtEndPreamble{%
-  \ifcase\blx@refsecreset@level
-  \or % 1
-    \blx@refpatch@part\newrefsection
-  \or % 2
-    \blx@refpatch@chapter\newrefsection
-  \or % 3
-    \blx@refpatch@sect{section}{\newrefsection}{1}%
-  \or % 4
-    \blx@refpatch@sect{subsection}{\newrefsection}{2}%
-  \fi}
+\blx@patchsection@switch{\blx@refsecreset@level}{\newrefsection}{}{}
 
 \DeclareBibliographyOption[string]{refsegment}{%
   \ifcsdef{blx@opt@refsegment@#1}
     {\letcs\blx@refsegreset@level{blx@opt@refsegment@#1}}
     {\blx@err@invopt{refsegment=#1}{}}}
-\def\blx@opt@refsegment@none{0}
-\def\blx@opt@refsegment@part{1}
-\def\blx@opt@refsegment@chapter{2}
-\def\blx@opt@refsegment@section{3}
-\def\blx@opt@refsegment@subsection{4}
+\csdef{blx@opt@refsegment@none}{0}
+\csdef{blx@opt@refsegment@part}{1}
+\csdef{blx@opt@refsegment@chapter}{2}
+\csdef{blx@opt@refsegment@section}{3}
+\csdef{blx@opt@refsegment@subsection}{4}
+\csdef{blx@opt@refsegment@chapter+}{5}
+\csdef{blx@opt@refsegment@section+}{6}
+\csdef{blx@opt@refsegment@subsection+}{7}
 
-\AtEndPreamble{%
-  \ifnumgreater\blx@refsegreset@level\z@
-    {\ifnumgreater\blx@refsegreset@level\blx@refsecreset@level
-       {}
-       {\blx@err@confopt
-          {refsegment/refsection}
-          {The 'refsegment' option must point to a
-           lower-level\MessageBreak document division
-           than 'refsection'}%
-        \def\blx@refsegreset@level{0}}}
-    {}%
-  \ifcase\blx@refsegreset@level
-  \or % 1
-    \blx@refpatch@part\newrefsegment
-  \or % 2
-    \blx@refpatch@chapter\newrefsegment
-  \or % 3
-    \blx@refpatch@sect{section}{\newrefsegment}{1}%
-  \or % 4
-    \blx@refpatch@sect{subsection}{\newrefsegment}{2}%
-  \fi}
+\blx@patchsection@switch{\blx@refsegreset@level}
+  {\newrefsegment}
+  {\ifnumgreater\blx@refsegreset@level\z@
+     {\ifnumgreater\blx@refsegreset@level\blx@refsecreset@level
+        {}
+        {\blx@err@confopt
+           {refsegment/refsection}
+           {The 'refsegment' option must point to a
+            lower-level\MessageBreak document division
+            than 'refsection'}%
+         \def\blx@refsegreset@level{0}}}
+     {}}
+  {}
 
 \DeclareBibliographyOption[string]{citereset}{%
   \ifcsdef{blx@opt@citereset@#1}
     {\letcs\blx@citereset@level{blx@opt@citereset@#1}}
     {\blx@err@invopt{citereset=#1}{}}}
-\def\blx@opt@citereset@none{0}
-\def\blx@opt@citereset@part{1}
-\def\blx@opt@citereset@chapter{2}
-\def\blx@opt@citereset@section{3}
-\def\blx@opt@citereset@subsection{4}
+\csdef{blx@opt@citereset@none}{0}
+\csdef{blx@opt@citereset@part}{1}
+\csdef{blx@opt@citereset@chapter}{2}
+\csdef{blx@opt@citereset@section}{3}
+\csdef{blx@opt@citereset@subsection}{4}
+\csdef{blx@opt@citereset@chapter+}{5}
+\csdef{blx@opt@citereset@section+}{6}
+\csdef{blx@opt@citereset@subsection+}{7}
 
-\AtEndPreamble{%
-  \ifcase\blx@citereset@level
-  \or % 1
-    \blx@refpatch@part{\citereset\blx@inf@creset}%
-  \or % 2
-    \blx@refpatch@chapter{\citereset\blx@inf@creset}%
-  \or % 3
-    \blx@refpatch@sect{section}{\citereset\blx@inf@creset}{1}%
-  \or % 4
-    \blx@refpatch@sect{subsection}{\citereset\blx@inf@creset}{2}%
-  \fi}
+\blx@patchsection@switch{\blx@citereset@level}{\citereset\blx@inf@creset}{}{}
 
 \DeclareBibliographyOption[boolean]{bibwarn}[true]{%
   \ifstrequal{#1}{true}
