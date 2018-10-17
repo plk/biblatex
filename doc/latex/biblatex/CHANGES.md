@@ -97,6 +97,11 @@
   ```
   \newrobustcmd*{\enquote}{\mkbibquote}
   ```
+- Add new list wrapper and name wrapper formats (`\DeclareListWrapperFormat`,
+  `\DeclareNameWrapperFormat`) to style a (name) lists in its entirety.
+  This is useful because name and lists formats normally style only one
+  particular item of the list. The wrapper format can be used to easily format
+  the entire list in italics, for example.
 
 # RELEASE NOTES FOR VERSION 3.11
 - `\printbiblist` now supports `driver` and `biblistfilter` options

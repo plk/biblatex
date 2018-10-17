@@ -3964,6 +3964,24 @@
     {\blx@defformat\blx@defplainformat{fid}*}
     {\blx@defformat\blx@defplainformat{fid}{}}}
 
+\newrobustcmd*{\DeclareNameWrapperFormat}{%
+  \@ifstar
+    {\blx@defformat\blx@defnameformat{nwd}*}
+    {\blx@defformat\blx@defnameformat{nwd}{}}}
+\newrobustcmd*{\DeclareIndexNameWrapperFormat}{%
+  \@ifstar
+    {\blx@defformat\blx@defnameformat{nxd}*}
+    {\blx@defformat\blx@defnameformat{nxd}{}}}
+
+\newrobustcmd*{\DeclareListWrapperFormat}{%
+  \@ifstar
+    {\blx@defformat\blx@defplainformat{lwd}*}
+    {\blx@defformat\blx@defplainformat{lwd}{}}}
+\newrobustcmd*{\DeclareIndexListWrapperFormat}{%
+  \@ifstar
+    {\blx@defformat\blx@defplainformat{lxd}*}
+    {\blx@defformat\blx@defplainformat{lxd}{}}}
+
 % {<macro>}{<class>}{<*>}
 \def\blx@defformat#1#2#3{%
   \@ifnextchar[%]
@@ -4049,15 +4067,21 @@
 \newrobustcmd*{\savefieldformat}[2][*]{\blx@save{abx@ffd@#1@#2}}
 \newrobustcmd*{\savelistformat}[2][*]{\blx@save{abx@lfd@#1@#2}}
 \newrobustcmd*{\savenameformat}[2][*]{\blx@save{abx@nfd@#1@#2}}
+\newrobustcmd*{\savelistwrapperformat}[2][*]{\blx@save{abx@lwd@#1@#2}}
+\newrobustcmd*{\savenamewrapperformat}[2][*]{\blx@save{abx@nwd@#1@#2}}
 
 \newrobustcmd*{\restorefieldformat}[2][*]{\blx@restore{abx@ffd@#1@#2}}
 \newrobustcmd*{\restorelistformat}[2][*]{\blx@restore{abx@lfd@#1@#2}}
 \newrobustcmd*{\restorenameformat}[2][*]{\blx@restore{abx@nfd@#1@#2}}
+\newrobustcmd*{\restorelistwrapperformat}[2][*]{\blx@restore{abx@lwd@#1@#2}}
+\newrobustcmd*{\restorenamewrapperformat}[2][*]{\blx@restore{abx@nwd@#1@#2}}
 
 % [<entrytype>]{<name>}{<true>}{<false>}
 \newrobustcmd*{\iffieldformatundef}[2][*]{\ifcsundef{abx@ffd@#1@#2}}
 \newrobustcmd*{\iflistformatundef}[2][*]{\ifcsundef{abx@lfd@#1@#2}}
 \newrobustcmd*{\ifnameformatundef}[2][*]{\ifcsundef{abx@nfd@#1@#2}}
+\newrobustcmd*{\iflistwrapperformatundef}[2][*]{\ifcsundef{abx@lwd@#1@#2}}
+\newrobustcmd*{\ifnamewrapperformatundef}[2][*]{\ifcsundef{abx@nwd@#1@#2}}
 
 % [<entrytype>]{<alias>}[<entrytype>]{<name>}
 \newrobustcmd*{\DeclareNameAlias}{\blx@defalias{nfd}}
@@ -4068,6 +4092,12 @@
 
 \newrobustcmd*{\DeclareFieldAlias}{\blx@defalias{ffd}}
 \newrobustcmd*{\DeclareIndexFieldAlias}{\blx@defalias{fid}}
+
+\newrobustcmd*{\DeclareNameWrapperAlias}{\blx@defalias{nwd}}
+\newrobustcmd*{\DeclareIndexNameWrapperAlias}{\blx@defalias{nxd}}
+
+\newrobustcmd*{\DeclareListWrapperAlias}{\blx@defalias{lwd}}
+\newrobustcmd*{\DeclareIndexListWrapperAlias}{\blx@defalias{lxd}}
 
 % #1: internal type signature, #2: type text for warning
 %      #3         #4         #5          #6
@@ -4108,6 +4138,16 @@
   \blx@deprecateformat{ffd}{Field format}}
 \newrobustcmd*{\DeprecateIndexFieldFormatWithReplacement}{%
   \blx@deprecateformat{fid}{Index field format}}
+
+\newrobustcmd*{\DeprecateNameWrapperFormatWithReplacement}{%
+  \blx@deprecateformat{nwd}{Name wrapper format}}
+\newrobustcmd*{\DeprecateIndexNameWrapperFormatWithReplacement}{%
+  \blx@deprecateformat{nxd}{Index name wrapper format}}
+
+\newrobustcmd*{\DeprecateListWrapperFormatWithReplacement}{%
+  \blx@deprecateformat{lwd}{List wrapper format}}
+\newrobustcmd*{\DeprecateIndexListWrapperFormatWithReplacement}{%
+  \blx@deprecateformat{lxd}{Index list wrapper format}}
 
 % [<format>]{<text>}
 \newrobustcmd{\blx@imc@printtext}[2][]{%
@@ -4185,13 +4225,16 @@
 \def\blx@printnames#1#2#3#4{%
   \blx@imc@ifnameundef{#4}
     {\blx@nounit}
-    {\blx@getformat\blx@theformat{nfd}{#1}{#4}%
-     \ifdefvoid\blx@theformat
+    {\blx@getformat\blx@thewrapperformat{nwd}{#1}{#4}%
+     \ifdefvoid\blx@thewrapperformat
        {\blx@nounit}
-       {\blx@begunit
-        \blx@namesetup{#2}{#3}{#4}%
-        \expandafter\blx@nameparser\blx@thedata{}&%
-        \blx@endunit}}}
+       {\blx@getformat\blx@theformat{nfd}{#1}{#4}%
+        \ifdefvoid\blx@theformat
+          {\blx@nounit}
+          {\blx@begunit
+           \blx@namesetup{#2}{#3}{#4}%
+           \blx@thewrapperformat{\expandafter\blx@nameparser\blx@thedata{}&}%
+           \blx@endunit}}}}
 
 \def\blx@namesetup#1#2#3{%
   \def\currentname{#3}%
@@ -4272,14 +4315,17 @@
 \def\blx@indexnames#1#2#3#4{%
   \blx@imc@ifnameundef{#4}
     {}
-    {\blx@getformat\blx@theformat{nid}{#1}{#4}%
-     \ifdefvoid\blx@theformat
+    {\blx@getformat\blx@thewrapperformat{nxd}{#1}{#4}%
+     \ifdefvoid\blx@thewrapperformat
        {}
-       {\begingroup
-        \blx@namesetup{#2}{#3}{#4}%
-        \blx@indexnamesetup
-        \expandafter\blx@nameparser\blx@thedata{}&%
-        \endgroup}}}
+       {\blx@getformat\blx@theformat{nid}{#1}{#4}%
+        \ifdefvoid\blx@theformat
+          {}
+          {\begingroup
+           \blx@namesetup{#2}{#3}{#4}%
+           \blx@indexnamesetup
+           \expandafter\blx@nameparser\blx@thedata{}&%
+           \endgroup}}}}
 
 \def\blx@indexnamesetup{%
   \let\bibinitperiod\bibindexinitperiod
@@ -4328,13 +4374,16 @@
 \def\blx@printlist#1#2#3#4{%
   \blx@imc@iflistundef{#4}
     {\blx@nounit}
-    {\blx@getformat\blx@theformat{lfd}{#1}{#4}%
-     \ifdefvoid\blx@theformat
+    {\blx@getformat\blx@thewrapperformat{lwd}{#1}{#4}%
+     \ifdefvoid\blx@thewrapperformat
        {\blx@nounit}
-       {\blx@begunit
-        \blx@listsetup{#2}{#3}{#4}%
-        \expandafter\blx@listparser\blx@thedata{}&%
-        \blx@endunit}}}
+       {\blx@getformat\blx@theformat{lfd}{#1}{#4}%
+        \ifdefvoid\blx@theformat
+          {\blx@nounit}
+          {\blx@begunit
+           \blx@listsetup{#2}{#3}{#4}%
+           \blx@thewrapperformat{\expandafter\blx@listparser\blx@thedata{}&}%
+           \blx@endunit}}}}
 
 \def\blx@listsetup#1#2#3{%
   \def\currentlist{#3}%
@@ -4371,13 +4420,16 @@
 \def\blx@indexlist#1#2#3#4{%
   \blx@imc@iflistundef{#4}
     {}
-    {\blx@getformat\blx@theformat{lid}{#1}{#4}%
-     \ifdefvoid\blx@theformat
+    {\blx@getformat\blx@thewrapperformat{lxd}{#1}{#4}%
+     \ifdefvoid\blx@thewrapperformat
        {}
-       {\begingroup
-        \blx@listsetup{#2}{#3}{#4}%
-        \expandafter\blx@listparser\blx@thedata{}&%
-        \endgroup}}}
+       {\blx@getformat\blx@theformat{lid}{#1}{#4}%
+        \ifdefvoid\blx@theformat
+          {}
+          {\begingroup
+           \blx@listsetup{#2}{#3}{#4}%
+           \expandafter\blx@listparser\blx@thedata{}&%
+           \endgroup}}}}
 
 % {<item1>}{<item2>}{...}
 \long\def\blx@listparser#1{%
