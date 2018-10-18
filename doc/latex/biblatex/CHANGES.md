@@ -62,11 +62,9 @@
   `nametitledelim`.
   For compatibility reasons `\labelnamepunct` still pops up in the code here
   and there, but `nametitledelim` should be preferred now.
-<<<<<<< HEAD
 - The `xstring` package is not loaded by default any more.
   Style developers whose styles make use of that package should load it
   explicitly.
-=======
 - `authoryear.bbx` now has a macro `bbx:ifmergeddate` that can be used to
   check whether the date has been printed at the beginning of an entry
   and can thus be suppressed later in the `date` and `issue+date` macros.
@@ -121,7 +119,6 @@
 
   As before the labelprefix value is fully expanded before use. If its contents
   are unexpandable you need to avoid expansion with `\detokenize`.
->>>>>>> dev
 
 # RELEASE NOTES FOR VERSION 3.11
 - `\printbiblist` now supports `driver` and `biblistfilter` options
