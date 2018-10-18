@@ -105,6 +105,17 @@
 - `\DeclareCitePunctuationPosition` can be used to configure the punctuation
   position for citation commands similar to the optional `position` argument
   of `\DeclareAutoCiteCommand`.
+- If the `\pdfmdfivesum` primitive is available (via `pdftexcmds`'
+  `\pdf@mdfivesum`) the `labelprefix` value is hashed for internal use, making
+  it safer for construction of macro names and the like. If you don't like
+  that you can turn off the behaviour by redefining `\blx@mdfivesum`. The
+  fallback in case `\pdf@mdfivesum` is unavailable is
+  ```
+  \let\blx@mdfivesum\@firstofone
+  ```
+
+  As before the labelprefix value is fully expanded before use. If its contents
+  are unexpandable you need to avoid expansion with `\detokenize`.
 
 # RELEASE NOTES FOR VERSION 3.11
 - `\printbiblist` now supports `driver` and `biblistfilter` options
