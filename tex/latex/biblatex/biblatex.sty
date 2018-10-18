@@ -89,7 +89,94 @@
 \catcode`\^=7
 \def\blx@nl{^^J}
 
+\protected\def\blx@safe@actives{%
+  \let\blx@if@safe@actives\if@safe@actives
+  \let\if@safe@actives\iftrue}
+
+\protected\def\blx@rest@actives{%
+  \let\if@safe@actives\blx@if@safe@actives}
+
+%% Early errors and warnings
+\protected\def\blx@error#1#2{%
+  \begingroup
+  \blx@safe@actives
+  \PackageError{biblatex}{#1}{#2.}%
+  \endgroup}
+
+\protected\def\blx@warning@noline#1{%
+  \begingroup
+  \blx@safe@actives
+  \PackageWarningNoLine{biblatex}{#1}%
+  \endgroup}
+\let\blx@warning\blx@warning@noline
+\AtEndOfPackage{%
+  \protected\def\blx@warning#1{%
+    \begingroup
+    \blx@safe@actives
+    \PackageWarning{biblatex}{#1}%
+    \endgroup}}
+
 %% Compatibility
+\def\blx@packageincompatibility{%
+  \def\do##1{%
+    \@ifpackageloaded{##1}
+      {\ifcsundef{blx@pkgloaded@##1}
+         {\global\cslet{blx@pkgloaded@##1}\@empty
+          \blx@error
+            {Incompatible package '##1'}
+            {The '##1' package and biblatex are incompatible}}
+         {}}
+      {}}%
+  \docsvlist{%
+    amsrefs,apacite,babelbib,backref,bibtopic,bibunits,chapterbib,
+    cite,citeref,drftcite,footbib,inlinebib,jurabib,mcite,mciteplus,
+    mlbib,multibbl,multibib,natbib,opcit,overcite,splitbib,ucs}%
+  % etextools is special, it gets an option to demote the error to a warning
+  % remind people to restore \forlistloop
+  \ifcsdef{blx@noerroretextools}
+    {\@ifpackageloaded{etextools}
+       {\ifcsundef{blx@pkgloaded@etextools}
+          {\global\cslet{blx@pkgloaded@etextools}\@empty
+           \blx@warning@noline{%
+             Incompatible package 'etextools' loaded,\MessageBreak
+             no error is thrown because you defined\MessageBreak
+             '\string\blx@noerroretextools'.\MessageBreak
+             'etextools' redefines '\string\forlistloop', you must\MessageBreak
+             restore the definition from 'etoolbox'\MessageBreak
+             before you load biblatex}}
+          {}}
+       {}}
+    {\@ifpackageloaded{etextools}
+       {\ifcsundef{blx@pkgloaded@etextools}
+          {\global\cslet{blx@pkgloaded@etextools}\@empty
+           \blx@error
+             {Incompatible package 'etextools'}
+             {The 'etextools' package and biblatex are
+              incompatible.\MessageBreak
+              If you must load 'etextools' at all costs, define the command%
+              \MessageBreak '\string\blx@noerroretextools'}}
+          {}}
+       {}}}
+
+% Call this right here, almost immediately after loading to give sensible
+% errors for incompatibilities that arise at loading-time.
+% The macro is called again a second time in \AtEndPreamble when all packages
+% should be loaded.
+% This still can't catch all cases, \usepackage{biblatex}\usepackage{natbib}
+% still gives a weird error.
+\blx@packageincompatibility
+
+% people should not be abusing noerroretextools, so warn if it is not needed
+\def\blx@packageincompatibility@endpreambleonly{%
+  \ifcsdef{blx@noerroretextools}
+    {\@ifpackageloaded{etextools}
+       {}
+       {\blx@warning@noline{%
+          You defined '\string\blx@noerroretextools',\MessageBreak
+          but 'etextools' is not loaded.\MessageBreak
+          Please do not define '\string\blx@noerroretextools'\MessageBreak
+          unless you really need it}}}
+    {}}
 
 \begingroup
 \catcode`\#=12
@@ -112,35 +199,8 @@
 \endgroup
 
 \AtEndPreamble{%
-  \def\do#1{%
-    \@ifpackageloaded{#1}
-      {\blx@error
-         {Incompatible package '#1'}
-         {The '#1' package and biblatex are incompatible}}
-      {}}%
-  \docsvlist{%
-    amsrefs,apacite,babelbib,backref,bibtopic,bibunits,chapterbib,
-    cite,citeref,drftcite,footbib,inlinebib,jurabib,mcite,mciteplus,
-    mlbib,multibbl,multibib,natbib,opcit,overcite,splitbib,ucs}%
-  \iftoggle{blx@noerroretextools}
-    {\@ifpackageloaded{etextools}
-       {\blx@warning@noline{%
-          Incompatible package 'etextools' loaded,\MessageBreak
-          no error is thrown because you set\MessageBreak
-          'noerroretextools=true'.\MessageBreak
-          'etextools' redefines '\string\forlistloop', you will\MessageBreak
-          need to restore the definition from 'etoolbox'}}
-       {\blx@warning@noline{%
-          You set 'noerroretextools=true',\MessageBreak
-          but 'etextools' is not loaded.\MessageBreak
-          Please do not set 'noerroretextools' to 'true'\MessageBreak
-          unless you really need it}}}
-    {\@ifpackageloaded{etextools}
-       {\blx@error
-          {Incompatible package 'etextools'}
-          {The 'etextools' package and biblatex are incompatible.\MessageBreak
-           If you must load 'etextools' at all costs, set 'noerroretextools=true'}}
-       {}}%
+  \blx@packageincompatibility
+  \blx@packageincompatibility@endpreambleonly
   \def\blx@langstrings{}%
   % Set up sortlocale defaults and default language if babel/polyglossia is not loaded
   \ifdefstring\blx@sortlocale{auto}
@@ -160,9 +220,9 @@
      \expandafter\docsvlist\expandafter{\xpg@loaded}%
      \expandafter\docsvlist\expandafter{\xpg@vloaded}%
      \ifboolexpr{
-      not test {\iftoggle{blx@autolangbib}}
+      not togl {blx@autolangbib}
       and
-      not test {\iftoggle{blx@autolangcite}}}
+      not togl {blx@autolangcite}}
        {\blx@mknoautolang}
        {\blx@mkautolangpoly}}
     {\@ifpackageloaded{babel}
@@ -170,9 +230,9 @@
        \def\do#1{\blx@langsetup{#1}}%
        \expandafter\docsvlist\expandafter{\bbl@loaded}%
        \ifboolexpr{
-        not test {\iftoggle{blx@autolangbib}}
+        not togl {blx@autolangbib}
         and
-        not test {\iftoggle{blx@autolangcite}}}
+        not togl {blx@autolangcite}}
          {\blx@mknoautolang}
          {\blx@mkautolangbabel}}
       {\blx@mknoautolang}}%
@@ -371,7 +431,14 @@
        {}%
      \@ifpackagelater{csquotes}{2010/06/09}
        {}
-       {\newcommand*{\@quotereset}{}\newcount\@quotereset}}
+       {\newcommand*{\@quotereset}{}\newcount\@quotereset}%
+     \newcommand*{\blx@initoquote}{\initoquote}%
+     \newcommand*{\blx@textooquote}{\textooquote}%
+     \newcommand*{\blx@textcoquote}{\textcoquote}%
+     \newcommand*{\blx@initiquote}{\initiquote}%
+     \newcommand*{\blx@textoiquote}{\textoiquote}%
+     \newcommand*{\blx@textciquote}{\textciquote}%
+     \newcommand*{\blx@enquote}{\enquote}}
     {\@ifpackageloaded{babel}
        {\blx@warning@noline{%
           'babel/polyglossia' detected but 'csquotes' missing.\MessageBreak
@@ -383,26 +450,27 @@
      \newcount\@quotereset
      \newcommand*{\@setquotesfcodes}{}%
      \let\@setquotesfcodes\relax
-     \newrobustcmd*{\initoquote}{\@quotelevel\@ne}%
-     \newrobustcmd*{\initiquote}{\@quotelevel\tw@}%
-     \newrobustcmd*{\textooquote}{``}%
-     \newrobustcmd*{\textcoquote}{''}%
-     \newrobustcmd*{\textoiquote}{`\relax}% block ligs
-     \newrobustcmd*{\textciquote}{'\relax}% block ligs
-     \newrobustcmd*{\enquote}{\@ifstar\blx@enquote@ii\blx@enquote}%
-     \def\blx@enquote{%
+     \newrobustcmd*{\blx@initoquote}{\@quotelevel\@ne}%
+     \newrobustcmd*{\blx@initiquote}{\@quotelevel\tw@}%
+     \newrobustcmd*{\blx@textooquote}{``}%
+     \newrobustcmd*{\blx@textcoquote}{''}%
+     \newrobustcmd*{\blx@textoiquote}{`\relax}% block ligs
+     \newrobustcmd*{\blx@textciquote}{'\relax}% block ligs
+     \newrobustcmd*{\blx@enquote}
+       {\@ifstar\blx@enquote@iii\blx@enquote@i}%
+     \def\blx@enquote@i{%
        \ifnum\@quotelevel>\z@
-         \expandafter\blx@enquote@ii
+         \expandafter\blx@enquote@iii
        \else
-         \expandafter\blx@enquote@i
+         \expandafter\blx@enquote@ii
        \fi}%
-     \long\def\blx@enquote@i#1{%
-       \begingroup\initoquote
-       \textooquote#1\textcoquote
-       \endgroup}%
      \long\def\blx@enquote@ii#1{%
-       \begingroup\initiquote
-       \textoiquote#1\textciquote
+       \begingroup\blx@initoquote
+       \blx@textooquote#1\blx@textcoquote
+       \endgroup}%
+     \long\def\blx@enquote@iii#1{%
+       \begingroup\blx@initiquote
+       \blx@textoiquote#1\blx@textciquote
        \endgroup}%
      \appto\blx@setsfcodes{%
        \sfcode`\`=\z@
@@ -440,6 +508,15 @@
 \let\NAT@parse\@empty
 % trick showkeys into believing we're havard
 \let\HAR@checkdef\@empty
+
+\providecommand{\@gobblefive}[5]{}
+
+\ifundef\pdf@mdfivesum
+  {\let\blx@mdfivesum\@firstofone
+   \blx@warning@noline{Command '\string\pdf@mdfivesum' undefined.\MessageBreak
+     'labelprefix' may not be able to accept all input}}
+  {\let\blx@mdfivesum\pdf@mdfivesum}
+
 
 % xstring replacements
 
@@ -495,7 +572,6 @@
   \edef#3{#3}}
 
 %% Allocation
-\providecommand{\@gobblefive}[5]{}
 
 % Counter to track nested tabularx environemnts so we don't
 % try to patch the commands more than once below as this undefs some
@@ -573,6 +649,8 @@
 \newcount\blx@parenlevel@text
 \newcount\blx@parenlevel@foot
 \expandafter\newcount\csname blx@sectionciteorder@0\endcsname
+\newcount\blx@entrysetcounter
+
 
 \def\blx@uniquename{0}
 \def\blx@uniquelist{0}
@@ -820,13 +898,6 @@
     {}}
 
 %% Auxiliary commands
-\protected\def\blx@safe@actives{%
-  \let\blx@if@safe@actives\if@safe@actives
-  \let\if@safe@actives\iftrue}
-
-\protected\def\blx@rest@actives{%
-  \let\if@safe@actives\blx@if@safe@actives}
-
 \protected\def\blx@regimc#1{%
   \xappto\blx@blxinit{%
     \let\noexpand#1\expandafter\noexpand\csname
@@ -1040,27 +1111,7 @@
   )
 }}
 
-%% User feedback
-
-\protected\def\blx@error#1#2{%
-  \begingroup
-  \blx@safe@actives
-  \PackageError{biblatex}{#1}{#2.}%
-  \endgroup}
-
-\protected\def\blx@warning@noline#1{%
-  \begingroup
-  \blx@safe@actives
-  \PackageWarningNoLine{biblatex}{#1}%
-  \endgroup}
-\let\blx@warning\blx@warning@noline
-\AtEndOfPackage{%
-  \protected\def\blx@warning#1{%
-    \begingroup
-    \blx@safe@actives
-    \PackageWarning{biblatex}{#1}%
-    \endgroup}}
-
+%% More user feedback
 \protected\def\blx@warning@entry#1{%
   \ifdef\abx@field@entrykey
     {\blx@warning{#1\MessageBreak at entry '\abx@field@entrykey'}}
@@ -3955,6 +4006,24 @@
     {\blx@defformat\blx@defplainformat{fid}*}
     {\blx@defformat\blx@defplainformat{fid}{}}}
 
+\newrobustcmd*{\DeclareNameWrapperFormat}{%
+  \@ifstar
+    {\blx@defformat\blx@defnameformat{nwd}*}
+    {\blx@defformat\blx@defnameformat{nwd}{}}}
+\newrobustcmd*{\DeclareIndexNameWrapperFormat}{%
+  \@ifstar
+    {\blx@defformat\blx@defnameformat{nxd}*}
+    {\blx@defformat\blx@defnameformat{nxd}{}}}
+
+\newrobustcmd*{\DeclareListWrapperFormat}{%
+  \@ifstar
+    {\blx@defformat\blx@defplainformat{lwd}*}
+    {\blx@defformat\blx@defplainformat{lwd}{}}}
+\newrobustcmd*{\DeclareIndexListWrapperFormat}{%
+  \@ifstar
+    {\blx@defformat\blx@defplainformat{lxd}*}
+    {\blx@defformat\blx@defplainformat{lxd}{}}}
+
 % {<macro>}{<class>}{<*>}
 \def\blx@defformat#1#2#3{%
   \@ifnextchar[%]
@@ -4040,15 +4109,21 @@
 \newrobustcmd*{\savefieldformat}[2][*]{\blx@save{abx@ffd@#1@#2}}
 \newrobustcmd*{\savelistformat}[2][*]{\blx@save{abx@lfd@#1@#2}}
 \newrobustcmd*{\savenameformat}[2][*]{\blx@save{abx@nfd@#1@#2}}
+\newrobustcmd*{\savelistwrapperformat}[2][*]{\blx@save{abx@lwd@#1@#2}}
+\newrobustcmd*{\savenamewrapperformat}[2][*]{\blx@save{abx@nwd@#1@#2}}
 
 \newrobustcmd*{\restorefieldformat}[2][*]{\blx@restore{abx@ffd@#1@#2}}
 \newrobustcmd*{\restorelistformat}[2][*]{\blx@restore{abx@lfd@#1@#2}}
 \newrobustcmd*{\restorenameformat}[2][*]{\blx@restore{abx@nfd@#1@#2}}
+\newrobustcmd*{\restorelistwrapperformat}[2][*]{\blx@restore{abx@lwd@#1@#2}}
+\newrobustcmd*{\restorenamewrapperformat}[2][*]{\blx@restore{abx@nwd@#1@#2}}
 
 % [<entrytype>]{<name>}{<true>}{<false>}
 \newrobustcmd*{\iffieldformatundef}[2][*]{\ifcsundef{abx@ffd@#1@#2}}
 \newrobustcmd*{\iflistformatundef}[2][*]{\ifcsundef{abx@lfd@#1@#2}}
 \newrobustcmd*{\ifnameformatundef}[2][*]{\ifcsundef{abx@nfd@#1@#2}}
+\newrobustcmd*{\iflistwrapperformatundef}[2][*]{\ifcsundef{abx@lwd@#1@#2}}
+\newrobustcmd*{\ifnamewrapperformatundef}[2][*]{\ifcsundef{abx@nwd@#1@#2}}
 
 % [<entrytype>]{<alias>}[<entrytype>]{<name>}
 \newrobustcmd*{\DeclareNameAlias}{\blx@defalias{nfd}}
@@ -4059,6 +4134,12 @@
 
 \newrobustcmd*{\DeclareFieldAlias}{\blx@defalias{ffd}}
 \newrobustcmd*{\DeclareIndexFieldAlias}{\blx@defalias{fid}}
+
+\newrobustcmd*{\DeclareNameWrapperAlias}{\blx@defalias{nwd}}
+\newrobustcmd*{\DeclareIndexNameWrapperAlias}{\blx@defalias{nxd}}
+
+\newrobustcmd*{\DeclareListWrapperAlias}{\blx@defalias{lwd}}
+\newrobustcmd*{\DeclareIndexListWrapperAlias}{\blx@defalias{lxd}}
 
 % #1: internal type signature, #2: type text for warning
 %      #3         #4         #5          #6
@@ -4099,6 +4180,16 @@
   \blx@deprecateformat{ffd}{Field format}}
 \newrobustcmd*{\DeprecateIndexFieldFormatWithReplacement}{%
   \blx@deprecateformat{fid}{Index field format}}
+
+\newrobustcmd*{\DeprecateNameWrapperFormatWithReplacement}{%
+  \blx@deprecateformat{nwd}{Name wrapper format}}
+\newrobustcmd*{\DeprecateIndexNameWrapperFormatWithReplacement}{%
+  \blx@deprecateformat{nxd}{Index name wrapper format}}
+
+\newrobustcmd*{\DeprecateListWrapperFormatWithReplacement}{%
+  \blx@deprecateformat{lwd}{List wrapper format}}
+\newrobustcmd*{\DeprecateIndexListWrapperFormatWithReplacement}{%
+  \blx@deprecateformat{lxd}{Index list wrapper format}}
 
 % [<format>]{<text>}
 \newrobustcmd{\blx@imc@printtext}[2][]{%
@@ -4176,13 +4267,16 @@
 \def\blx@printnames#1#2#3#4{%
   \blx@imc@ifnameundef{#4}
     {\blx@nounit}
-    {\blx@getformat\blx@theformat{nfd}{#1}{#4}%
-     \ifdefvoid\blx@theformat
+    {\blx@getformat\blx@thewrapperformat{nwd}{#1}{#4}%
+     \ifdefvoid\blx@thewrapperformat
        {\blx@nounit}
-       {\blx@begunit
-        \blx@namesetup{#2}{#3}{#4}%
-        \expandafter\blx@nameparser\blx@thedata{}&%
-        \blx@endunit}}}
+       {\blx@getformat\blx@theformat{nfd}{#1}{#4}%
+        \ifdefvoid\blx@theformat
+          {\blx@nounit}
+          {\blx@begunit
+           \blx@namesetup{#2}{#3}{#4}%
+           \blx@thewrapperformat{\expandafter\blx@nameparser\blx@thedata{}&}%
+           \blx@endunit}}}}
 
 \def\blx@namesetup#1#2#3{%
   \def\currentname{#3}%
@@ -4263,14 +4357,17 @@
 \def\blx@indexnames#1#2#3#4{%
   \blx@imc@ifnameundef{#4}
     {}
-    {\blx@getformat\blx@theformat{nid}{#1}{#4}%
-     \ifdefvoid\blx@theformat
+    {\blx@getformat\blx@thewrapperformat{nxd}{#1}{#4}%
+     \ifdefvoid\blx@thewrapperformat
        {}
-       {\begingroup
-        \blx@namesetup{#2}{#3}{#4}%
-        \blx@indexnamesetup
-        \expandafter\blx@nameparser\blx@thedata{}&%
-        \endgroup}}}
+       {\blx@getformat\blx@theformat{nid}{#1}{#4}%
+        \ifdefvoid\blx@theformat
+          {}
+          {\begingroup
+           \blx@namesetup{#2}{#3}{#4}%
+           \blx@indexnamesetup
+           \expandafter\blx@nameparser\blx@thedata{}&%
+           \endgroup}}}}
 
 \def\blx@indexnamesetup{%
   \let\bibinitperiod\bibindexinitperiod
@@ -4319,13 +4416,16 @@
 \def\blx@printlist#1#2#3#4{%
   \blx@imc@iflistundef{#4}
     {\blx@nounit}
-    {\blx@getformat\blx@theformat{lfd}{#1}{#4}%
-     \ifdefvoid\blx@theformat
+    {\blx@getformat\blx@thewrapperformat{lwd}{#1}{#4}%
+     \ifdefvoid\blx@thewrapperformat
        {\blx@nounit}
-       {\blx@begunit
-        \blx@listsetup{#2}{#3}{#4}%
-        \expandafter\blx@listparser\blx@thedata{}&%
-        \blx@endunit}}}
+       {\blx@getformat\blx@theformat{lfd}{#1}{#4}%
+        \ifdefvoid\blx@theformat
+          {\blx@nounit}
+          {\blx@begunit
+           \blx@listsetup{#2}{#3}{#4}%
+           \blx@thewrapperformat{\expandafter\blx@listparser\blx@thedata{}&}%
+           \blx@endunit}}}}
 
 \def\blx@listsetup#1#2#3{%
   \def\currentlist{#3}%
@@ -4362,13 +4462,16 @@
 \def\blx@indexlist#1#2#3#4{%
   \blx@imc@iflistundef{#4}
     {}
-    {\blx@getformat\blx@theformat{lid}{#1}{#4}%
-     \ifdefvoid\blx@theformat
+    {\blx@getformat\blx@thewrapperformat{lxd}{#1}{#4}%
+     \ifdefvoid\blx@thewrapperformat
        {}
-       {\begingroup
-        \blx@listsetup{#2}{#3}{#4}%
-        \expandafter\blx@listparser\blx@thedata{}&%
-        \endgroup}}}
+       {\blx@getformat\blx@theformat{lid}{#1}{#4}%
+        \ifdefvoid\blx@theformat
+          {}
+          {\begingroup
+           \blx@listsetup{#2}{#3}{#4}%
+           \expandafter\blx@listparser\blx@thedata{}&%
+           \endgroup}}}}
 
 % {<item1>}{<item2>}{...}
 \long\def\blx@listparser#1{%
@@ -4426,7 +4529,8 @@
      \blx@getdata{#1}%
      \blx@setoptions@type\abx@field@entrytype
      \blx@setoptions@entry
-     \def\abx@field@entrysetcount{1}%
+     \global\blx@entrysetcounter\@ne
+     \edef\abx@field@entrysetcount{\the\blx@entrysetcounter}%
      \blx@execute
      \blx@beglangbib
      \blx@begunit
@@ -4445,9 +4549,10 @@
     {\begingroup
      \blx@resetdata
      \blx@getdata{#1}%
-     \blx@entrysetcount
      \blx@setoptions@type\abx@field@entrytype
      \blx@setoptions@entry
+     \global\advance\blx@entrysetcounter\@ne
+     \edef\abx@field@entrysetcount{\the\blx@entrysetcounter}%
      \addtocounter{instcount}\@ne
      \blx@execute
      \blx@beglangbib
@@ -7004,53 +7109,66 @@
   \catcode\endlinechar=12\relax
   \blx@bbl@verbadd@i}
 
-% {<scope>}{<field>}{<itemcount>}{<part>}{<value>}{<isliteral>}
-\protected\def\blx@bbl@annotationdef#1#2#3#4#5#6{%
+% {<scope>}{<field>}{<name>}{<itemcount>}{<part>}{<isliteral>}{<value>}
+\protected\def\blx@bbl@annotationdef#1#2#3#4#5#6#7{%
   \ifstrequal{#1}{field}
      {\csxappto\blx@bbl@data{%
-        \listadd\noexpand\abx@annotation@defined{field@#2}}%
+        \listadd\noexpand\abx@annotation@defined{field@#2@#3}}%
       \ifstrequal{#6}{1}
         {\csgappto\blx@bbl@data{%
-           \csdef{abx@annotation@literal@field@#2}{#5}}}
+           \csdef{abx@annotation@literal@field@#2@#3}{#7}}}
         {\csxappto\blx@bbl@data{%
-           \def\do####1{\listcsadd{abx@annotation@field@#2}{####1}}%
-           \docsvlist{#5}}}}
+           \def\do####1{\listcsadd{abx@annotation@field@#2@#3}{####1}}%
+           \docsvlist{#7}}}}
      {}%
   \ifstrequal{#1}{item}
      {\csxappto\blx@bbl@data{%
-        \listadd\noexpand\abx@annotation@defined{item@#2@#3}}%
+        \listadd\noexpand\abx@annotation@defined{item@#2@#3@#4}}%
       \ifstrequal{#6}{1}
         {\csgappto\blx@bbl@data{%
-           \csdef{abx@annotation@literal@item@#2@#3}{#5}}}
+           \csdef{abx@annotation@literal@item@#2@#3@#4}{#7}}}
         {\csxappto\blx@bbl@data{%
-           \def\do####1{\listcsadd{abx@annotation@item@#2@#3}{####1}}%
-           \docsvlist{#5}}}}
+           \def\do####1{\listcsadd{abx@annotation@item@#2@#3@#4}{####1}}%
+           \docsvlist{#7}}}}
      {}%
   \ifstrequal{#1}{part}
      {\csxappto\blx@bbl@data{%
-        \listadd\noexpand\abx@annotation@defined{part@#2@#3@#4}}%
+        \listadd\noexpand\abx@annotation@defined{part@#2@#3@#4@#5}}%
       \ifstrequal{#6}{1}
         {\csgappto\blx@bbl@data{%
-           \csdef{abx@annotation@literal@part@#2@#3@#4}{#5}}}
+           \csdef{abx@annotation@literal@part@#2@#3@#4@#5}{#7}}}
         {\csxappto\blx@bbl@data{%
-          \def\do####1{\listcsadd{abx@annotation@part@#2@#3@#4}{####1}}%
-          \docsvlist{#5}}}}
+          \def\do####1{\listcsadd{abx@annotation@part@#2@#3@#4@#5}{####1}}%
+          \docsvlist{#7}}}}
      {}}
 
-% [<field>]
-\newcommand*{\blx@imc@getfieldannotation}[1][]{%
-  \ifblank{#1}
-    {\ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
-     \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
-     \ifdefvoid\currentname{}{\let\blx@tempa\currentname}}
-    {\def\blx@tempa{#1}}%
-  \blx@resolve@annotation@label{\blx@tempa}%
-  \ifcsdef{abx@annotation@literal@field@\blx@tempa}
-    {\csuse{abx@annotation@literal@field@\blx@tempa}}
+% [<field>][<annotationname>]
+\def\blx@imc@getfieldannotation{%
+  \let\blx@tempa\@empty
+  \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
+  \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
+  \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
+  \@ifnextchar[%]
+   {\blx@imc@getfieldannotation@i}
+   {\blx@imc@getfieldannotation@i[\blx@tempa]}}
+
+\def\blx@imc@getfieldannotation@i[#1]{%
+ \ifstrempty{#1}
+   {\blx@imc@getfieldannotation@i[\blx@tempa]}
+   {\@ifnextchar[%]
+      {\blx@imc@getfieldannotation@ii{#1}}
+      {\blx@imc@getfieldannotation@ii{#1}[default]}}}
+
+\def\blx@imc@getfieldannotation@ii#1[#2]{%
+  \def\blx@tempb{#1}%
+  \blx@resolve@annotation@label{\blx@tempb}%
+  \ifcsdef{abx@annotation@literal@field@\blx@tempb @#2}
+    {\csuse{abx@annotation@literal@field@\blx@tempb @#2}}
     {}}
 
-% [<field>][<item>]
+% [<field>][<annotationname>][<item>]
 \def\blx@imc@getitemannotation{%
+  \let\blx@tempa\@empty
   \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
   \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
   \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
@@ -7059,19 +7177,30 @@
    {\blx@imc@getitemannotation@i[\blx@tempa]}}
 
 \def\blx@imc@getitemannotation@i[#1]{%
-  \@ifnextchar[%]
-    {\blx@imc@getitemannotation@ii{#1}}
-    {\blx@imc@getitemannotation@ii{#1}[\the\value{listcount}]}}
+  \ifstrempty{#1}
+    {\blx@imc@getitemannotation@i[\blx@tempa]}
+    {\@ifnextchar[%]
+      {\blx@imc@getitemannotation@ii{#1}}
+      {\blx@imc@getitemannotation@ii{#1}[default]}}}
 
 \def\blx@imc@getitemannotation@ii#1[#2]{%
-  \def\blx@tempb{#1}%
-  \blx@resolve@annotation@label{\blx@tempb}%
-  \ifcsdef{abx@annotation@literal@item@\blx@tempb @#2}
-    {\csuse{abx@annotation@literal@item@\blx@tempb @#2}}
+  \ifstrempty{#2}
+    {\def\blx@tempb{default}}
+    {\def\blx@tempb{#2}}%
+  \@ifnextchar[%]
+    {\blx@imc@getitemannotation@iii{#1}{\blx@tempb}}
+    {\blx@imc@getitemannotation@iii{#1}{\blx@tempb}[\the\value{listcount}]}}
+
+\def\blx@imc@getitemannotation@iii#1#2[#3]{%
+  \def\blx@tempc{#1}%
+  \blx@resolve@annotation@label{\blx@tempc}%
+  \ifcsdef{abx@annotation@literal@item@\blx@tempc @#2@#3}
+    {\csuse{abx@annotation@literal@item@\blx@tempc @#2@#3}}
     {}}
 
-% [<field>][<item>]{<part>}
+% [<field>][<annotationname>][<item>]{<part>}
 \def\blx@imc@getpartannotation{%
+  \let\blx@tempa\@empty
   \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
   \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
   \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
@@ -7080,29 +7209,58 @@
     {\blx@imc@getpartannotation@i[\blx@tempa]}}
 
 \def\blx@imc@getpartannotation@i[#1]{%
-  \@ifnextchar[%]
-    {\blx@imc@getpartannotation@ii{#1}}
-    {\blx@imc@getpartannotation@ii{#1}[\the\value{listcount}]}}
+  \ifstrempty{#1}
+    {\blx@imc@getpartannotation@i[\blx@tempa]}
+    {\@ifnextchar[%]
+      {\blx@imc@getpartannotation@ii{#1}}
+      {\blx@imc@getpartannotation@ii{#1}[default]}}}
 
-\def\blx@imc@getpartannotation@ii#1[#2]#3{%
-  \def\blx@tempb{#1}%
-  \blx@resolve@annotation@label{\blx@tempb}%
-  \ifcsdef{abx@annotation@literal@part@\blx@tempb @#2@#3}
-    {\csuse{abx@annotation@literal@part@\blx@tempb @#2@#3}}
+\def\blx@imc@getpartannotation@ii#1[#2]{%
+ \ifstrempty{#2}
+   {\def\blx@tempb{default}}
+   {\def\blx@tempb{#2}}%
+  \@ifnextchar[%]
+    {\blx@imc@getpartannotation@iii{#1}{\blx@tempb}}
+    {\blx@imc@getpartannotation@iii{#1}{\blx@tempb}[\the\value{listcount}]}}
+
+\def\blx@imc@getpartannotation@iii#1#2[#3]#4{%
+  \ifstrempty{#3}
+    {\def\blx@tempc{\the\value{listcount}}}
+    {\def\blx@tempc{#3}}%
+  \def\blx@tempd{#1}%
+  \blx@resolve@annotation@label{\blx@tempd}%
+  \ifcsdef{abx@annotation@literal@part@\blx@tempd @#2@\blx@tempc @#4}
+    {\csuse{abx@annotation@literal@part@\blx@tempd @#2@\blx@tempc @#4}}
     {}}
 
-% [<field>]{<annotation>}
-\newcommand*{\blx@imc@iffieldannotation}[2][]{%
-  \ifblank{#1}
-    {\ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
-     \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
-     \ifdefvoid\currentname{}{\let\blx@tempa\currentname}}
-    {\def\blx@tempa{#1}}%
-  \blx@resolve@annotation@label{\blx@tempa}%
-  \ifinlistcs{#2}{abx@annotation@field@\blx@tempa}}
+% [<field>][<annotationname>]{<annotation>}
+\def\blx@imc@iffieldannotation{%
+  \let\blx@tempa\@empty
+  \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
+  \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
+  \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
+ \@ifnextchar[%]
+    {\blx@imc@iffieldannotation@i}
+    {\blx@imc@iffieldannotation@i[\blx@tempa]}}
 
-% [<field>][<item>]{<annotation>}
+\def\blx@imc@iffieldannotation@i[#1]{%
+  \ifstrempty{#1}
+    {\blx@imc@iffieldannotation@i[\blx@tempa]}
+    {\@ifnextchar[%]
+      {\blx@imc@iffieldannotation@ii{#1}}
+      {\blx@imc@iffieldannotation@ii{#1}[default]}}}
+
+\def\blx@imc@iffieldannotation@ii#1[#2]#3{%
+  \ifstrempty{#2}
+    {\def\blx@tempb{default}}
+    {\def\blx@tempb{#2}}%
+  \def\blx@tempc{#1}%
+  \blx@resolve@annotation@label{\blx@tempc}%
+  \ifinlistcs{#3}{abx@annotation@field@\blx@tempc @\blx@tempb}}
+
+% [<field>][<annotationname>][<item>]{<annotation>}
 \def\blx@imc@ifitemannotation{%
+  \let\blx@tempa\@empty
   \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
   \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
   \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
@@ -7111,17 +7269,28 @@
     {\blx@imc@ifitemannotation@i[\blx@tempa]}}
 
 \def\blx@imc@ifitemannotation@i[#1]{%
+  \ifstrempty{#1}
+    {\blx@imc@ifitemannotation@i[\blx@tempa]}
+    {\@ifnextchar[%]
+      {\blx@imc@ifitemannotation@ii{#1}}
+      {\blx@imc@ifitemannotation@ii{#1}[default]}}}
+
+\def\blx@imc@ifitemannotation@ii#1[#2]{%
+  \ifstrempty{#2}
+    {\def\blx@tempb{default}}
+    {\def\blx@tempb{#2}}%
   \@ifnextchar[%]
-    {\blx@imc@ifitemannotation@ii{#1}}
-    {\blx@imc@ifitemannotation@ii{#1}[\the\value{listcount}]}}
+    {\blx@imc@ifitemannotation@iii{#1}{\blx@tempb}}
+    {\blx@imc@ifitemannotation@iii{#1}{\blx@tempb}[\the\value{listcount}]}}
 
-\def\blx@imc@ifitemannotation@ii#1[#2]#3{%
-  \def\blx@tempb{#1}%
-  \blx@resolve@annotation@label{\blx@tempb}%
-  \ifinlistcs{#3}{abx@annotation@item@\blx@tempb @#2}}
+\def\blx@imc@ifitemannotation@iii#1#2[#3]#4{%
+  \def\blx@tempc{#1}%
+  \blx@resolve@annotation@label{\blx@tempc}%
+  \ifinlistcs{#4}{abx@annotation@item@\blx@tempc @#2@#3}}
 
-% [<field>][<item>]{<part>}{<annotation>}
+% [<field>][<annotationname>][<item>]{<part>}{<annotation>}
 \def\blx@imc@ifpartannotation{%
+  \let\blx@tempa\@empty
   \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
   \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
   \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
@@ -7130,42 +7299,164 @@
     {\blx@imc@ifpartannotation@i[\blx@tempa]}}
 
 \def\blx@imc@ifpartannotation@i[#1]{%
-  \@ifnextchar[%]
-    {\blx@imc@ifpartannotation@ii{#1}}
-    {\blx@imc@ifpartannotation@ii{#1}[\the\value{listcount}]}}
+  \ifstrempty{#1}
+    {\blx@imc@ifpartannotation@i[\blx@tempa]}
+    {\@ifnextchar[%]
+      {\blx@imc@ifpartannotation@ii{#1}}
+      {\blx@imc@ifpartannotation@ii{#1}[default]}}}
 
-\def\blx@imc@ifpartannotation@ii#1[#2]#3#4{%
-  \def\blx@tempb{#1}%
-  \blx@resolve@annotation@label{\blx@tempb}%
-  \ifinlistcs{#4}{abx@annotation@part@\blx@tempb @#2@#3}}
+\def\blx@imc@ifpartannotation@ii#1[#2]{%
+ \ifstrempty{#2}
+   {\def\blx@tempb{default}}
+   {\def\blx@tempb{#2}}%
+  \@ifnextchar[%]
+    {\blx@imc@ifpartannotation@iii{#1}{\blx@tempb}}
+    {\blx@imc@ifpartannotation@iii{#1}{\blx@tempb}[\the\value{listcount}]}}
+
+\def\blx@imc@ifpartannotation@iii#1#2[#3]#4#5{%
+  \ifstrempty{#3}
+    {\def\blx@tempc{\the\value{listcount}}}
+    {\def\blx@tempc{#3}}%
+  \def\blx@tempd{#1}%
+  \blx@resolve@annotation@label{\blx@tempd}%
+  \ifinlistcs{#5}{abx@annotation@part@\blx@tempd @#2@\blx@tempc @#4}}
+
+% [<field>][<annotationname>]
+\def\blx@imc@hasfieldannotation{%
+  \let\blx@tempa\@empty
+  \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
+  \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
+  \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
+ \@ifnextchar[%]
+    {\blx@imc@hasfieldannotation@i}
+    {\blx@imc@hasfieldannotation@i[\blx@tempa]}}
+
+\def\blx@imc@hasfieldannotation@i[#1]{%
+  \ifstrempty{#1}
+    {\blx@imc@hasfieldannotation@i[\blx@tempa]}
+    {\@ifnextchar[%]
+      {\blx@imc@hasfieldannotation@ii{#1}}
+      {\blx@imc@hasfieldannotation@ii{#1}[default]}}}
+
+\def\blx@imc@hasfieldannotation@ii#1[#2]{%
+  \ifstrempty{#2}
+    {\def\blx@tempb{default}}
+    {\def\blx@tempb{#2}}%
+  \def\blx@tempc{#1}%
+  \blx@resolve@annotation@label{\blx@tempc}%
+  \ifcsdef{abx@annotation@literal@field@\blx@tempc @\blx@tempb}}
+
+% [<field>][<annotationname>][<item>]
+\def\blx@imc@hasitemannotation{%
+  \let\blx@tempa\@empty
+  \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
+  \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
+  \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
+   \@ifnextchar[%]
+    {\blx@imc@hasitemannotation@i}
+    {\blx@imc@hasitemannotation@i[\blx@tempa]}}
+
+\def\blx@imc@hasitemannotation@i[#1]{%
+  \ifstrempty{#1}
+    {\blx@imc@hasitemannotation@i[\blx@tempa]}
+    {\@ifnextchar[%]
+      {\blx@imc@hasitemannotation@ii{#1}}
+      {\blx@imc@hasitemannotation@ii{#1}[default]}}}
+
+\def\blx@imc@hasitemannotation@ii#1[#2]{%
+  \ifstrempty{#2}
+    {\def\blx@tempb{default}}
+    {\def\blx@tempb{#2}}%
+  \@ifnextchar[%]
+    {\blx@imc@hasitemannotation@iii{#1}{\blx@tempb}}
+    {\blx@imc@hasitemannotation@iii{#1}{\blx@tempb}[\the\value{listcount}]}}
+
+\def\blx@imc@hasitemannotation@iii#1#2[#3]{%
+  \def\blx@tempc{#1}%
+  \blx@resolve@annotation@label{\blx@tempc}%
+  \ifcsdef{abx@annotation@literal@item@\blx@tempc @#2@#3}}
+
+% [<field>][<annotationname>][<item>]{<part>}
+\def\blx@imc@haspartannotation{%
+  \let\blx@tempa\@empty
+  \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
+  \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
+  \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
+  \@ifnextchar[%]
+    {\blx@imc@haspartannotation@i}
+    {\blx@imc@haspartannotation@i[\blx@tempa]}}
+
+\def\blx@imc@haspartannotation@i[#1]{%
+  \ifstrempty{#1}
+    {\blx@imc@haspartannotation@i[\blx@tempa]}
+    {\@ifnextchar[%]
+      {\blx@imc@haspartannotation@ii{#1}}
+      {\blx@imc@haspartannotation@ii{#1}[default]}}}
+
+\def\blx@imc@haspartannotation@ii#1[#2]{%
+ \ifstrempty{#2}
+   {\def\blx@tempb{default}}
+   {\def\blx@tempb{#2}}%
+  \@ifnextchar[%]
+    {\blx@imc@haspartannotation@iii{#1}{\blx@tempb}}
+    {\blx@imc@haspartannotation@iii{#1}{\blx@tempb}[\the\value{listcount}]}}
+
+\def\blx@imc@haspartannotation@iii#1#2[#3]#4{%
+  \ifstrempty{#3}
+    {\def\blx@tempc{\the\value{listcount}}}
+    {\def\blx@tempc{#3}}%
+  \def\blx@tempd{#1}%
+  \blx@resolve@annotation@label{\blx@tempd}%
+  \ifcsdef{abx@annotation@literal@part@\blx@tempd @#2@\blx@tempc @#4}}
 
 % labeldatesource has a slightly different format than other <field>sources
 % that's one reason for a dedicated command, the other being that this command
 % is probably only used in contexts where \currentfield is not defined, so
 % the <datetype> argument is always required
-% {<datetype>}{<annotation>}
-\newcommand*{\blx@imc@ifdateannotation}[2]{%
-  \def\blx@tempa{#1}%
-  \ifcsundef{abx@field@\blx@tempa source}
+% [<annotationname>]{<datetype>}{<annotation>}
+\newcommand*{\blx@imc@ifdateannotation}[3][]{%
+  \ifblank{#1}
+    {\def\blx@tempa{default}}
+    {\def\blx@tempa{#1}}%
+  \def\blx@tempb{#2}%
+  \ifcsundef{abx@field@\blx@tempb source}
     {}%
-    {\letcs\blx@tempa{abx@field@\blx@tempa source}%
-     \edef\blx@tempa{\blx@tempa date}}%
-  \ifinlistcs{#2}{abx@annotation@field@\blx@tempa}}
+    {\letcs\blx@tempa{abx@field@\blx@tempb source}%
+     \edef\blx@tempb{\blx@tempb date}}%
+  \ifinlistcs{#3}{abx@annotation@field@\blx@tempb @\blx@tempa}}
 
-% {<datetype>}
-\newcommand*{\blx@imc@getdateannotation}[1]{%
-  \def\blx@tempa{#1}%
-  \ifcsundef{abx@field@\blx@tempa source}
+% [<annotationname>]{<datetype>}
+\newcommand*{\blx@imc@hasdateannotation}[2][]{%
+  \ifblank{#1}
+    {\def\blx@tempa{default}}
+    {\def\blx@tempa{#1}}%
+  \def\blx@tempb{#2}%
+  \ifcsundef{abx@field@\blx@tempb source}
     {}%
-    {\letcs\blx@tempa{abx@field@\blx@tempa source}%
-     \edef\blx@tempa{\blx@tempa date}}%
-  \ifcsdef{abx@annotation@literal@field@\blx@tempa}
-    {\csuse{abx@annotation@literal@field@\blx@tempa}}
+    {\letcs\blx@tempa{abx@field@\blx@tempb source}%
+     \edef\blx@tempb{\blx@tempb date}}%
+  \ifboolexpr { test {\ifcsdef{abx@annotation@field@\blx@tempb @\blx@tempa}}
+                or
+                test {\ifcsdef{abx@annotation@literal@field@\blx@tempb @\blx@tempa}} }}
+
+% [<annotationname>]{<datetype>}
+\newcommand*{\blx@imc@getdateannotation}[2][]{%
+  \ifblank{#1}
+    {\def\blx@tempa{default}}
+    {\def\blx@tempa{#1}}%
+  \def\blx@tempb{#1}%
+  \ifcsundef{abx@field@\blx@tempb source}
+    {}%
+    {\letcs\blx@tempb{abx@field@\blx@tempb source}%
+     \edef\blx@tempb{\blx@tempb date}}%
+  \ifcsdef{abx@annotation@literal@field@\blx@tempb @\blx@tempa}
+    {\csuse{abx@annotation@literal@field@\blx@tempb @\blx@tempa}}
     {}}
 
 \blx@regimcs{\iffieldannotation \ifitemannotation \ifpartannotation
   \ifdateannotation \getfieldannotation \getitemannotation \getpartannotation
-  \getdateannotation}
+  \getdateannotation \hasfieldannotation \hasitemannotation \haspartannotation
+  \hasdateannotation}
 
 % {<fieldname>}
 \def\blx@resolve@annotation@label#1{%
@@ -7920,7 +8211,7 @@
 % {<refcontext>}
 % Get the saved information on which refcontexts were mentioned last run
 \protected\def\abx@aux@refcontext#1{%
-  \listgadd\blx@lastrefcontexts{#1}}
+  \listxadd\blx@lastrefcontexts{\detokenize{#1}}}
 
 % {<sortingtemplatename>}
 % Get the saved information on which shorthand sorting templates were mentioned last run
@@ -8567,7 +8858,7 @@
     {}
     {\listxadd\blx@dlistnames{\blx@refcontext@context @\blx@tempe @entry}%
      \csxappto{blx@dlists}{%
-       \blx@xml@dlist{\blx@refcontext@context}{entry}{\blx@tempe}{\blx@xml@dlist@refcontext{\blx@refcontext@sortingtemplatename}{\blx@refcontext@sortingnamekeytemplatename}{\blx@refcontext@labelprefix}{\blx@refcontext@uniquenametemplatename}{\blx@refcontext@labelalphanametemplatename}}{}}}%
+       \blx@xml@dlist{\blx@refcontext@context}{entry}{\blx@tempe}{\blx@xml@dlist@refcontext{\blx@refcontext@sortingtemplatename}{\blx@refcontext@sortingnamekeytemplatename}{\blx@refcontext@labelprefix@real}{\blx@refcontext@uniquenametemplatename}{\blx@refcontext@labelalphanametemplatename}}{}}}%
   \ifdefvoid\blx@tempa
     {\blx@warn@bibempty\endgroup}
     {\blx@bibliography\blx@tempa}}
@@ -8816,6 +9107,17 @@
 
 \let\blx@bibcheck\relax
 
+\def\blx@edef@refcontext#1{%
+  \edef\blx@refcontext@context{#1}%
+  \expandafter\edef\expandafter\blx@refcontext@context\expandafter{%
+    \expandafter\detokenize\expandafter{\blx@refcontext@context}}}
+
+\def\blx@xdef@refcontext#1{%
+  \edef\blx@refcontext@context{#1}%
+  \expandafter\xdef\expandafter\blx@refcontext@context\expandafter{%
+    \expandafter\detokenize\expandafter{\blx@refcontext@context}}}
+
+
 % This sets and saves to the .aux the default refcontext for an entry. The
 % default refcontext for an entry is the refcontext of the last
 % bibliography in the refsection in which it is actually printed. This
@@ -8833,7 +9135,7 @@
 % <refsection><key><refcontext>
 \def\abx@aux@defaultrefcontext#1#2#3{%
   \global\boolfalse{refcontextdefaults}%
-  \csxdef{blx@assignedrefcontextbib@#1@#2}{#3}}
+  \csxdef{blx@assignedrefcontextbib@#1@#2}{\detokenize{#3}}}
 \def\abx@aux@refcontextdefaultsdone{%
   \global\boolfalse{refcontextdefaults}}
 
@@ -8979,7 +9281,7 @@
     % Note that the name must be unique so we prepend "#2:" because the combination of
     % options might not generate a unique name since sortschemename has a fallback to the
     % refcontext scheme if there is no sortscheme named after the list
-    \edef\blx@refcontext@context{#2:\blx@tempc/\blx@refcontext@sortingnamekeytemplatename/\blx@refcontext@labelprefix/\blx@refcontext@uniquenametemplatename/\blx@refcontext@labelalphanametemplatename}%
+    \blx@edef@refcontext{#2:\blx@tempc/\blx@refcontext@sortingnamekeytemplatename/\blx@refcontext@labelprefix/\blx@refcontext@uniquenametemplatename/\blx@refcontext@labelalphanametemplatename}%
   \xifinlist\blx@tempc\blx@sortingtemplatenames
     {}
     {\listxadd\blx@sortingtemplatenames\blx@tempc}%
@@ -9011,7 +9313,7 @@
     {}
     {\listxadd\blx@dlistnames{\blx@refcontext@context @\blx@tempe @list}%
      \xappto\blx@dlists{%
-       \blx@xml@dlist{\blx@refcontext@context}{list}{\blx@tempe}{\blx@xml@dlist@refcontext{\blx@tempc}{\blx@refcontext@sortingnamekeytemplatename}{\blx@refcontext@labelprefix}{\blx@refcontext@uniquenametemplatename}{\blx@refcontext@labelalphanametemplatename}}{\csuse{blx@biblistfilters@\blx@thebiblistfilter}}}}%
+       \blx@xml@dlist{\blx@refcontext@context}{list}{\blx@tempe}{\blx@xml@dlist@refcontext{\blx@tempc}{\blx@refcontext@sortingnamekeytemplatename}{\blx@refcontext@labelprefix@real}{\blx@refcontext@uniquenametemplatename}{\blx@refcontext@labelalphanametemplatename}}{\csuse{blx@biblistfilters@\blx@thebiblistfilter}}}}%
   \ifdefvoid\blx@tempa
     {\blx@warn@biblistempty{#2}\endgroup}
     {\blx@biblist\blx@tempa}}
@@ -9127,7 +9429,7 @@
      \xifinlist\blx@refcontext@sortingtemplatename\blx@sortingtemplatenames
        {}
        {\listxadd\blx@sortingtemplatenames\blx@refcontext@sortingtemplatename}%
-     \xdef\blx@refcontext@context{\blx@refcontext@sortingtemplatename/\blx@refcontext@sortingnamekeytemplatename/\blx@refcontext@labelprefix/\blx@refcontext@uniquenametemplatename/\blx@refcontext@labelalphanametemplatename}%
+     \blx@xdef@refcontext{\blx@refcontext@sortingtemplatename/\blx@refcontext@sortingnamekeytemplatename/\blx@refcontext@labelprefix/\blx@refcontext@uniquenametemplatename/\blx@refcontext@labelalphanametemplatename}%
      % Add the refcontext to the list of refcontexts so we can compare on next run
      \xifinlist\blx@refcontext@context\blx@refcontexts
        {}
@@ -9150,11 +9452,12 @@
 \protected\def\endrefcontext{%
   \togglefalse{blx@refcontext}%
   \global\let\blx@refcontext@labelprefix\@empty
+  \global\let\blx@refcontext@labelprefix@real\@empty
   \xdef\blx@refcontext@sortingtemplatename{\blx@sorting}%
   \gdef\blx@refcontext@sortingnamekeytemplatename{global}%
   \gdef\blx@refcontext@uniquenametemplatename{global}%
   \gdef\blx@refcontext@labelalphanametemplatename{global}%
-  \xdef\blx@refcontext@context{\blx@refcontext@sortingtemplatename/\blx@refcontext@sortingnamekeytemplatename//\blx@refcontext@uniquenametemplatename/\blx@refcontext@labelalphanametemplatename}}
+  \blx@xdef@refcontext{\blx@refcontext@sortingtemplatename/\blx@refcontext@sortingnamekeytemplatename//\blx@refcontext@uniquenametemplatename/\blx@refcontext@labelalphanametemplatename}}
 
 % Meta option to set all name template options
 \define@key{blx@refcontext}{nametemplates}{%
@@ -9166,8 +9469,16 @@
 \define@key{blx@refcontext}{sortingnamekeytemplatename}{\gdef\blx@refcontext@sortingnamekeytemplatename{#1}}
 \define@key{blx@refcontext}{uniquenametemplatename}{\gdef\blx@refcontext@uniquenametemplatename{#1}}
 \define@key{blx@refcontext}{labelalphanametemplatename}{\gdef\blx@refcontext@labelalphanametemplatename{#1}}
+
+% labelprefix cannot be used as is because it is used to construct the internal
+% refcontext name which is referenced/expanded a lot all over the place. So,
+% we hash the given input and use the safe hash as internal name.
+% But that is not enough since the MD5 hash function expands the argument all
+% the way and so unexpandable content like \dag breaks.
+% Unexpandable content should be protected with \detokenize.
 \define@key{blx@refcontext}{labelprefix}{%
-  \gdef\blx@refcontext@labelprefix{#1}%
+  \xdef\blx@refcontext@labelprefix{\blx@mdfivesum{#1}}%
+  \gdef\blx@refcontext@labelprefix@real{#1}%
   \iftoggle{blx@defernumbers}
     {}%
     {\iftoggle{blx@labelnumber}
@@ -9191,7 +9502,8 @@
   \setkeys{blx@assignrefcontext}{#2}%
   \def\do##1{%
     \listxadd\blx@assignedrefcontextkeywlist{##1}%
-    \csxdef{blx@assignedrefcontextkeyws#1@\the\c@refsection @##1}{\blx@tempa/\blx@tempb/\blx@tempc/\blx@tempd/\blx@tempe}}
+    \csxdef{blx@assignedrefcontextkeyws#1@\the\c@refsection @##1}%
+      {\blx@tempa/\blx@tempb/\blx@tempc/\blx@tempd/\blx@tempe}}%
   \docsvlist{#3}}
 
 % [refcontext keys]{<category1>,<category2>,...}
@@ -9209,7 +9521,8 @@
   \setkeys{blx@assignrefcontext}{#2}%
   \def\do##1{%
     \listxadd\blx@assignedrefcontextcatlist{##1}%
-    \csxdef{blx@assignedrefcontextcats#1@\the\c@refsection @##1}{\blx@tempa/\blx@tempb/\blx@tempc/\blx@tempd/\blx@tempe}}
+    \csxdef{blx@assignedrefcontextcats#1@\the\c@refsection @##1}%
+      {\blx@tempa/\blx@tempb/\blx@tempc/\blx@tempd/\blx@tempe}}%
   \docsvlist{#3}}
 
 % [refcontext keys]{<entrykey1>,<entrykey2>,...}
@@ -9226,7 +9539,8 @@
   \def\blx@tempe{global}%
   \setkeys{blx@assignrefcontext}{#2}%
   \def\do##1{%
-    \csxdef{blx@assignedrefcontextkeys#1@\the\c@refsection @##1}{\blx@tempa/\blx@tempb/\blx@tempc/\blx@tempd/\blx@tempe}}%
+    \csxdef{blx@assignedrefcontextkeys#1@\the\c@refsection @##1}%
+      {\blx@tempa/\blx@tempb/\blx@tempc/\blx@tempd/\blx@tempe}}%
   \docsvlist{#3}}
 
 % Meta option to set all name template options
@@ -9237,7 +9551,8 @@
 
 \define@key{blx@assignrefcontext}{sorting}{\def\blx@tempa{#1}}
 \define@key{blx@assignrefcontext}{sortingnamekeytemplatename}{\def\blx@tempb{#1}}
-\define@key{blx@assignrefcontext}{labelprefix}{\def\blx@tempc{#1}}
+\define@key{blx@assignrefcontext}{labelprefix}{%
+  \edef\blx@tempc{\blx@mdfivesum{#1}}}
 \define@key{blx@assignrefcontext}{uniquenametemplatename}{\def\blx@tempd{#1}}
 \define@key{blx@assignrefcontext}{labelalphanametemplatename}{\def\blx@tempe{#1}}
 
@@ -9905,7 +10220,7 @@
   % refcontext defined
   \ifcsdef{blx@assignedrefcontextbib@\the\c@refsection @#1}
     {\letcs\blx@refcontext@context{blx@assignedrefcontextbib@\the\c@refsection @#1}}
-    {\edef\blx@refcontext@context{\blx@sorting/global//global/global}}%
+    {\blx@edef@refcontext{\blx@sorting/global//global/global}}%
   % assignment via keyword list
   \ifdef\blx@assignedrefcontextkeywlist
     {\def\do##1{%
@@ -10662,18 +10977,52 @@
     {\blx@defcitecmd@ii{#2#1}}}
 
 \long\def\blx@defcitecmd@ii#1{%
-  \protected\csedef{blx@cite@#1}{\blxciteicmd{#1}}%
-  \blx@defcitecmd@iv{#1}}
+  \csundef{blx@defcite@wrapper@#1}%
+  \blx@defcitecmd@iv{#1}%
+  \blx@defcitecmd@v{#1}}
 
 \long\def\blx@defcitecmd@iii#1[#2]{%
-  \protected\long\csedef{blx@cite@#1}##1##2##3##4{%
-    \begingroup
-    \blx@citeinit
-    \unexpanded{#2}{\blxciteicmd{#1}{##1}{##2}{##3}{}}%
-    ##4\endgroup}%
-  \blx@defcitecmd@iv{#1}}
+  \csdef{blx@defcite@wrapper@#1}{#2}%
+  \blx@defcitecmd@iv{#1}%
+  \blx@defcitecmd@v{#1}}
 
-\long\def\blx@defcitecmd@iv#1#2#3#4#5{%
+\long\def\blx@defcitecmd@iv#1{%
+  \protected\long\csedef{blx@cite@#1}##1##2##3##4{%
+    \ifboolexpe{test {\ifcsundef{blx@defcite@wrapper@#1}}
+                and
+                (test {\ifcsundef{blx@citepunct@#1}}
+                 or
+                 test {\ifcsequal{blx@citepunct@#1}{blx@citepunctid@pos@c}})}
+      {}
+      {\begingroup
+       \blx@citeinit}%
+    \ifcsequal{blx@citepunct@#1}{blx@citepunctid@pos@l}
+      {\noexpand\unspace##4}
+      {}%
+    \ifcsequal{blx@citepunct@#1}{blx@citepunctid@pos@f}
+      {\noexpand\iftoggle{blx@footnote}{}{\unspace##4}}
+      {}%
+    \ifcsundef{blx@defcite@wrapper@#1}
+      {\blxciteicmd{#1}{##1}{##2}{##3}{%
+         \ifcsundef{blx@citepunct@#1}{##4}{}%
+         \ifcsequal{blx@citepunct@#1}{blx@citepunctid@pos@c}{##4}{}}}
+      {\csexpandonce{blx@defcite@wrapper@#1}{%
+         \blxciteicmd{#1}{##1}{##2}{##3}{%
+           \ifcsequal{blx@citepunct@#1}{blx@citepunctid@pos@c}{##4}{}}}%
+       \ifcsundef{blx@citepunct@#1}{##4}{}}%
+    \ifcsequal{blx@citepunct@#1}{blx@citepunctid@pos@r}{##4}{}%
+    \ifcsequal{blx@citepunct@#1}{blx@citepunctid@pos@f}
+      {\noexpand\iftoggle{blx@footnote}{##4}{}}
+      {}%
+    \ifboolexpe{test {\ifcsundef{blx@defcite@wrapper@#1}}
+                and
+                (test {\ifcsundef{blx@citepunct@#1}}
+                 or
+                 test {\ifcsequal{blx@citepunct@#1}{blx@citepunctid@pos@c}})}
+      {}
+      {\endgroup}}}
+
+\long\def\blx@defcitecmd@v#1#2#3#4#5{%
   \protected\long\csdef{blx@citei@#1}##1##2##3##4{%
     \ifblank{##1}
       {}
@@ -10919,6 +11268,36 @@
     {\let\blx@thecheckpunct\blx@checkpunct
      \def\blx@autopunct{#1}}}
 
+% {<command>}{<pos marker>}
+% pos markers are:
+%   l: move punctuation before the command (i.e. left of it)
+%   r: leave punctuation after the command (i.e. to the right)
+%   f: like l in normal text, like r in footnotes
+%   c: pass on to the cite command,
+%      the punctuation will eventually end up as field 'postpunct'
+%   d: discard the punctuation
+%   o (or any other value): restores the old standard behaviour
+%      r for wrapped citation commands,
+%      c for unwrapped ones
+\newrobustcmd*{\DeclareCitePunctuationPosition}[2]{%
+  \begingroup
+  \escapechar\m@ne
+  \edef\blx@tempa{\endgroup
+    \noexpand\blx@defcitepunctpos@i{\string#1}{#2}}%
+  \blx@tempa}
+
+\def\blx@citepunctid@pos@l{l}
+\def\blx@citepunctid@pos@r{r}
+\def\blx@citepunctid@pos@f{f}
+\def\blx@citepunctid@pos@c{c}
+\def\blx@citepunctid@pos@d{d}
+
+\def\blx@defcitepunctpos@i#1#2{%
+  \ifcsundef{blx@citepunctid@pos@#2}
+    {\csundef{blx@citepunct@#1}}
+    {\csletcs{blx@citepunct@#1}{blx@citepunctid@pos@#2}}%
+  \blx@defcitecmd@iv{#1}}
+
 \AfterEndPreamble{% babel
   \begingroup
   \makeatletter
@@ -11131,9 +11510,9 @@
   \blx@tempa}
 
 %% Auxiliary macros
-\newrobustcmd*{\mkbibquote}{\enquote}
+\newrobustcmd*{\mkbibquote}{\blx@enquote}
 \protected\def\blx@imc@mkbibquote{%
-  \blx@ifuspunct\blx@usquote\enquote}
+  \blx@ifuspunct\blx@usquote\blx@enquote}
 
 \def\blx@usquote{%
   \ifnum\@quotelevel>\z@
@@ -11144,26 +11523,26 @@
 
 \long\def\blx@usoquote#1{%
   \begingroup
-  \initoquote
-  \textooquote#1%
+  \blx@initoquote
+  \blx@textooquote#1%
   \futurelet\@let@token\blx@usoquote@i}
 
 \def\blx@usoquote@i{%
   \blx@usqcheck
     {\ifx\blx@postpunct\@empty\else\blx@dopostpunct\fi
-     \textcoquote\endgroup}
-    {\blx@setpostpunct\textcoquote\endgroup}}
+     \blx@textcoquote\endgroup}
+    {\blx@setpostpunct\blx@textcoquote\endgroup}}
 
 \long\def\blx@usiquote#1{%
   \begingroup
-  \initiquote
-  \textoiquote#1%
+  \blx@initiquote
+  \blx@textoiquote#1%
   \futurelet\@let@token\blx@usiquote@i}
 
 \def\blx@usiquote@i{%
   \blx@usqcheck
-    {\textciquote\endgroup}
-    {\blx@setpostpunct\textciquote\endgroup}}
+    {\blx@textciquote\endgroup}
+    {\blx@setpostpunct\blx@textciquote\endgroup}}
 
 \long\def\blx@usqcheck#1#2{%
   \def\blx@tempa{#1}%
@@ -13072,9 +13451,14 @@
 \define@key{blx@opt@ldt}{mcite}[true]{%
   \settoggle{blx@mcite}{#1}}
 
-\newtoggle{blx@noerroretextools}
 \define@key{blx@opt@ldt}{noerroretextools}[true]{%
-  \settoggle{blx@noerroretextools}{#1}}
+  \blx@warning@noline{%
+    The option 'noerroretextools' is deprecated.\MessageBreak
+    Define the control sequence '\string\blx@noerroretextools'\MessageBreak
+    before loading biblatex instead}%
+  \ifstrequal{#1}{true}
+    {\global\cslet{blx@noerroretextools}\@empty}
+    {\csgundef{blx@noerroretextools}}}
 
 % load-time and preamble
 
@@ -13141,9 +13525,10 @@
   \listxadd\blx@sortingtemplatenames\blx@sorting
   \def\blx@refcontext@sortingnamekeytemplatename{global}%
   \let\blx@refcontext@labelprefix\@empty
+  \let\blx@refcontext@labelprefix@real\@empty
   \def\blx@refcontext@uniquenametemplatename{global}%
   \def\blx@refcontext@labelalphanametemplatename{global}%
-  \xdef\blx@refcontext@context{\blx@refcontext@sortingtemplatename/\blx@refcontext@sortingnamekeytemplatename/\blx@refcontext@labelprefix/\blx@refcontext@uniquenametemplatename/\blx@refcontext@labelalphanametemplatename}%
+  \blx@xdef@refcontext{\blx@refcontext@sortingtemplatename/\blx@refcontext@sortingnamekeytemplatename/\blx@refcontext@labelprefix/\blx@refcontext@uniquenametemplatename/\blx@refcontext@labelalphanametemplatename}%
   \listxadd\blx@refcontexts\blx@refcontext@context}
 
 \DeclareBibliographyOption[boolean]{sortcase}[true]{%
@@ -14108,81 +14493,96 @@
 \DeclareBibliographyOption[boolean]{locallabelwidth}[true]{%
   \blx@key@locallabelwidth{#1}}
 
+%{<switch>}{<patch>}{<pre>}{<post>}
+\def\blx@patchsection@switch#1#2#3#4{%
+  \AtEndPreamble{%
+    #3%
+    \ifcase#1
+    \or % 1: part
+      \blx@refpatch@part{#2}%
+    \or % 2: chapter
+      \blx@refpatch@chapter{#2}%
+    \or % 3: section
+      \blx@refpatch@sect{section}{#2}{1}%
+    \or % 4: subsection
+      \blx@refpatch@sect{subsection}{#2}{2}%
+    \or % 5: chapter+ = part, chapter
+      \blx@refpatch@part{#2}%
+      \blx@refpatch@chapter{#2}%
+    \or % 6: section+ = part, chapter, section
+      \blx@refpatch@part{#2}%
+      \ifundef\chapter
+        {}
+        {\blx@refpatch@chapter{#2}}%
+      \blx@refpatch@sect{section}{#2}{1}%
+    \or % 7: subsection+ = part, chapter, section, subsection
+      \blx@refpatch@part{#2}%
+      \ifundef\chapter
+        {}
+        {\blx@refpatch@chapter{#2}}%
+      \blx@refpatch@sect{section}{#2}{1}%
+      \blx@refpatch@sect{subsection}{#2}{2}%
+    \fi
+    #4%
+  }%
+}
+
 \DeclareBibliographyOption[string]{refsection}{%
   \ifcsdef{blx@opt@refsection@#1}
     {\letcs\blx@refsecreset@level{blx@opt@refsection@#1}}
     {\blx@err@invopt{refsection=#1}{}}}
-\def\blx@opt@refsection@none{0}
-\def\blx@opt@refsection@part{1}
-\def\blx@opt@refsection@chapter{2}
-\def\blx@opt@refsection@section{3}
-\def\blx@opt@refsection@subsection{4}
+\csdef{blx@opt@refsection@none}{0}
+\csdef{blx@opt@refsection@part}{1}
+\csdef{blx@opt@refsection@chapter}{2}
+\csdef{blx@opt@refsection@section}{3}
+\csdef{blx@opt@refsection@subsection}{4}
+\csdef{blx@opt@refsection@chapter+}{5}
+\csdef{blx@opt@refsection@section+}{6}
+\csdef{blx@opt@refsection@subsection+}{7}
 
-\AtEndPreamble{%
-  \ifcase\blx@refsecreset@level
-  \or % 1
-    \blx@refpatch@part\newrefsection
-  \or % 2
-    \blx@refpatch@chapter\newrefsection
-  \or % 3
-    \blx@refpatch@sect{section}{\newrefsection}{1}%
-  \or % 4
-    \blx@refpatch@sect{subsection}{\newrefsection}{2}%
-  \fi}
+\blx@patchsection@switch{\blx@refsecreset@level}{\newrefsection}{}{}
 
 \DeclareBibliographyOption[string]{refsegment}{%
   \ifcsdef{blx@opt@refsegment@#1}
     {\letcs\blx@refsegreset@level{blx@opt@refsegment@#1}}
     {\blx@err@invopt{refsegment=#1}{}}}
-\def\blx@opt@refsegment@none{0}
-\def\blx@opt@refsegment@part{1}
-\def\blx@opt@refsegment@chapter{2}
-\def\blx@opt@refsegment@section{3}
-\def\blx@opt@refsegment@subsection{4}
+\csdef{blx@opt@refsegment@none}{0}
+\csdef{blx@opt@refsegment@part}{1}
+\csdef{blx@opt@refsegment@chapter}{2}
+\csdef{blx@opt@refsegment@section}{3}
+\csdef{blx@opt@refsegment@subsection}{4}
+\csdef{blx@opt@refsegment@chapter+}{5}
+\csdef{blx@opt@refsegment@section+}{6}
+\csdef{blx@opt@refsegment@subsection+}{7}
 
-\AtEndPreamble{%
-  \ifnumgreater\blx@refsegreset@level\z@
-    {\ifnumgreater\blx@refsegreset@level\blx@refsecreset@level
-       {}
-       {\blx@err@confopt
-          {refsegment/refsection}
-          {The 'refsegment' option must point to a
-           lower-level\MessageBreak document division
-           than 'refsection'}%
-        \def\blx@refsegreset@level{0}}}
-    {}%
-  \ifcase\blx@refsegreset@level
-  \or % 1
-    \blx@refpatch@part\newrefsegment
-  \or % 2
-    \blx@refpatch@chapter\newrefsegment
-  \or % 3
-    \blx@refpatch@sect{section}{\newrefsegment}{1}%
-  \or % 4
-    \blx@refpatch@sect{subsection}{\newrefsegment}{2}%
-  \fi}
+\blx@patchsection@switch{\blx@refsegreset@level}
+  {\newrefsegment}
+  {\ifnumgreater\blx@refsegreset@level\z@
+     {\ifnumgreater\blx@refsegreset@level\blx@refsecreset@level
+        {}
+        {\blx@err@confopt
+           {refsegment/refsection}
+           {The 'refsegment' option must point to a
+            lower-level\MessageBreak document division
+            than 'refsection'}%
+         \def\blx@refsegreset@level{0}}}
+     {}}
+  {}
 
 \DeclareBibliographyOption[string]{citereset}{%
   \ifcsdef{blx@opt@citereset@#1}
     {\letcs\blx@citereset@level{blx@opt@citereset@#1}}
     {\blx@err@invopt{citereset=#1}{}}}
-\def\blx@opt@citereset@none{0}
-\def\blx@opt@citereset@part{1}
-\def\blx@opt@citereset@chapter{2}
-\def\blx@opt@citereset@section{3}
-\def\blx@opt@citereset@subsection{4}
+\csdef{blx@opt@citereset@none}{0}
+\csdef{blx@opt@citereset@part}{1}
+\csdef{blx@opt@citereset@chapter}{2}
+\csdef{blx@opt@citereset@section}{3}
+\csdef{blx@opt@citereset@subsection}{4}
+\csdef{blx@opt@citereset@chapter+}{5}
+\csdef{blx@opt@citereset@section+}{6}
+\csdef{blx@opt@citereset@subsection+}{7}
 
-\AtEndPreamble{%
-  \ifcase\blx@citereset@level
-  \or % 1
-    \blx@refpatch@part{\citereset\blx@inf@creset}%
-  \or % 2
-    \blx@refpatch@chapter{\citereset\blx@inf@creset}%
-  \or % 3
-    \blx@refpatch@sect{section}{\citereset\blx@inf@creset}{1}%
-  \or % 4
-    \blx@refpatch@sect{subsection}{\citereset\blx@inf@creset}{2}%
-  \fi}
+\blx@patchsection@switch{\blx@citereset@level}{\citereset\blx@inf@creset}{}{}
 
 \DeclareBibliographyOption[boolean]{bibwarn}[true]{%
   \ifstrequal{#1}{true}

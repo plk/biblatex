@@ -1,0 +1,53 @@
+%
+% This file demonstrates the data annotation feature
+%
+\documentclass[a4paper]{article}
+\usepackage{fontspec}
+\usepackage[american]{babel}
+\usepackage{csquotes}
+\usepackage{filecontents}
+\begin{filecontents}{\jobname.bib}
+@MISC{ann1,
+  AUTHOR           = {Last1, First1 and Last2, First2 and Last3, First3},
+  AUTHOR+an        = {1:family=student;2=corresponding},
+  TITLE            = {The Title},
+  TITLE+an:default = {=titleannotation},
+  TITLE+an:french  = {="Le titre"},
+  TITLE+an:german  = {="Der Titel"}
+}
+\end{filecontents}
+\usepackage[backend=biber]{biblatex}
+\addbibresource{\jobname.bib}
+
+\renewcommand*{\mkbibnamefamily}[1]{%
+  \ifitemannotation{corresponding}
+    {\textbf{#1}}
+    {#1}%
+  \ifpartannotation{family}{student}
+    {\textsuperscript{*}}
+    {}}
+
+% Default for numeric style so we are overriding the active format for titles
+\DeclareFieldFormat{titlecase}{
+  \iffieldannotation{titleannotation}{\textsc{#1}}{#1}%
+  \hasfieldannotation[][french]{\mkbibparens{\getfieldannotation[][french]}}{}%
+  \hasfieldannotation[][german]{\mkbibparens{\getfieldannotation[][german]}}{}}
+
+\begin{document}
+The annotation feature allows the user to attache metadata, either in the
+form of strings to be tested for in formatting commands, or in the form of
+strings to be printed as-is. This example demonstrates all aspects of the
+annotation feature:
+
+\begin{itemize}
+\item Metadata attaching to fields, items in a list or parts of an item in
+  a list (e.g. name parts)
+\item Literal annotations where the annotation is a string to be printed
+  rather than used as a metadata test for other formatting.
+\item Multiple named annotations for the same data field.
+\item The ``default'' name for annotations with no explicit name.
+\end{itemize}
+
+\cite{ann1}
+\printbibliography
+\end{document}

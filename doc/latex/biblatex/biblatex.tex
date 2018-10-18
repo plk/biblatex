@@ -336,9 +336,9 @@ The \sty{ucs} package provides support for \utf encoded input. Either use \sty{i
 The \sty{etextools} package provides enhancements to list macros defined by \sty{etoolbox} and a few other tools for command definitions.
 The package redefines list handling macros in a way incompatible with \biblatex.
 
-If you must load the \sty{etextools} package at all costs, use the load-time option \opt{noerroretextools}.
-With \kvopt{noerroretextools}{true} no error will be issued if \sty{etextools} is loaded, that message is degraded to a warning instead.
-In that case you need to make sure that \cmd{forlistloop} has its original \sty{etoolbox} definition when \biblatex\ is loaded.
+If you must load the \sty{etextools} package at all costs, define the control sequence \cs{blx@noerroretextools} before you load \biblatex.
+If \cs{blx@noerroretextools} is defined, no error will be issued if \sty{etextools} is loaded, the message is degraded to a warning instead.
+In that case you need to make sure that all redefined macros used by \biblatex\ (currently only \cmd{forlistloop}) have their original \sty{etoolbox} definitions when \biblatex\ is loaded.
 
 \end{marglist}
 
@@ -348,7 +348,7 @@ In that case you need to make sure that \cmd{forlistloop} has its original \sty{
 \biber\ versions are closely coupled with \biblatex\ versions. You
 need to have the right combination of the two. \biber\ will throw a fatal error
 during processing if it encounters information which comes from a
-\biblatex\ version which is incompatible. \tabref{tab:int:pre:bibercompat} shows a
+\biblatex\ version which is incompatible. \Tabref{tab:int:pre:bibercompat} shows a
 compatibility matrix for the recent versions.
 
 \begin{table}
@@ -2224,7 +2224,7 @@ This feature requires support by the selected citation style. All standard style
 
 This option controls whether external files requested by way of the \cmd{printfile} command are loaded. See also \secref{use:use:prf} and \cmd{printfile} in \secref{aut:bib:dat}. Note that this feature is disabled by default for performance reasons.
 
-\optitem[none]{refsection}{\opt{none}, \opt{part}, \opt{chapter}, \opt{section}, \opt{subsection}}
+\optitem[none]{refsection}{\opt{none}, \opt{part}, \opt{chapter}, \opt{chapter+}, \opt{section}, \opt{section+}, \opt{subsection}, \opt{subsection+}}
 
 This option automatically starts a new reference section at a document division such as a chapter or a section. This is equivalent to the \cmd{newrefsection} command, see \secref{use:bib:sec} for details. The following choice of document divisions is available:
 
@@ -2232,17 +2232,20 @@ This option automatically starts a new reference section at a document division 
 \item[none] Disable this feature.
 \item[part] Start a reference section at every \cmd{part} command.
 \item[chapter] Start a reference section at every \cmd{chapter} command.
+\item[chapter+] Start a reference section at every \cmd{chapter} and every higher level of sectioning, i.e. \cmd{part}.
 \item[section] Start a reference section at every \cmd{section} command.
+\item[section+] Start a reference section at every \cmd{section} and every higher level of sectioning, i.e. \cmd{part} and \cmd{chapter} (if available).
 \item[subsection] Start a reference section at every \cmd{subsection} command.
+\item[subsection+] Start a reference section at every \cmd{subsection} and every higher level of sectioning, i.e. \cmd{part}, \cmd{chapter} (if available) and \cmd{section}.
 \end{valuelist}
 %
 The starred versions of these commands will not start a new reference section.
 
-\optitem[none]{refsegment}{\opt{none}, \opt{part}, \opt{chapter}, \opt{section}, \opt{subsection}}
+\optitem[none]{refsegment}{\opt{none}, \opt{part}, \opt{chapter}, \opt{chapter+}, \opt{section}, \opt{section+}, \opt{subsection}, \opt{subsection+}}
 
 Similar to the \opt{refsection} option but starts a new reference segment. This is equivalent to the \cmd{newrefsegment} command, see \secref{use:bib:seg} for details. When using both options, note that you can only apply this option to a lower"=level document division than the one \opt{refsection} is applied to and that nested reference segments will be local to the enclosing reference section.
 
-\optitem[none]{citereset}{\opt{none}, \opt{part}, \opt{chapter}, \opt{section}, \opt{subsection}}
+\optitem[none]{citereset}{\opt{none}, \opt{part}, \opt{chapter}, \opt{chapter+}, \opt{section}, \opt{section+}, \opt{subsection}, \opt{subsection+}}
 
 This option automatically executes the \cmd{citereset} command from \secref{use:cit:msc} at a document division such as a chapter or a section. The following choice of document divisions is available:
 
@@ -3131,7 +3134,7 @@ Ideally, there should be no formatting information in a bibliography data file, 
 %
 There are several problems with this. Firstly, it will break \bibtex's fragile name parsing routines and probably won't compile at all. Secondly, it is not only mixing up data with markup, it does so in a hard-coded way: this data can't easily be shared and used with other styles. While it is possible to achieve this formatting using \biblatex internals in a style or document, this is a complex and unreliable method which many users will not wish to use.
 
-In order to address these issues, \biblatex has a general data annotation facility which allows you to attach a comma"=separated list of annotations to data fields, items within data field lists (like names) and even parts of specific items such as parts of names (given name, family name etc.). There are macros provided to check for annotations which can be used in formatting directives.
+In order to address these issues, \biblatex has a general data annotation facility which allows you to attach any number of a comma"=separated list of annotations to data fields, items within data field lists (like names) and even parts of specific items such as parts of names (given name, family name etc.). There are macros provided to check for annotations which can be used in formatting directives.
 
 There are three «scopes» for data annotations, in order of increasing specificity:
 
@@ -3143,39 +3146,25 @@ There are three «scopes» for data annotations, in order of increasing specific
 %
 Data annotations are supported for \bibtex and \biblatexml data sources.
 
-Attaching annotations to data is easy in \biblatexml data sources as they are specified by simple XML attributes. Continuing with the example above, we would have:
-
-\begin{lstlisting}[language=xml]
-<bltx:entries xmlns:bltx="http://biblatex-biber.sourceforge.net/biblatexml">
-  <bltx:entry id="test" entrytype="misc">
-    <bltx:names type="author">
-      <bltx:name>
-        <bltx:namepart type="given" initial="F">First1</bltx:namepart>
-        <bltx:namepart type="family" initial="L" annotation="student">Last1</bltx:namepart>
-      </bltx:name>
-      <bltx:name annotation="corresponding">
-        <bltx:namepart type="given" initial="F">First2</bltx:namepart>
-        <bltx:namepart type="family" initial="L">Last2</bltx:namepart>
-      </bltx:name>
-      <bltx:name>
-        <bltx:namepart type="given" initial="F">First3</bltx:namepart>
-        <bltx:namepart type="family" initial="L">Last3</bltx:namepart>
-      </bltx:name>
-    </bltx:names>
-  </bltx:entry>
-</bltx:entries>
-\end{lstlisting}
-%
-Here the annotations are attached in an obvious way to the data items. With \bibtex data sources, the format for annotations is not quite as intuitive:
-
 \begin{lstlisting}[style=bibtex]{}
 @MISC{ann1,
-  AUTHOR    = {Last1, First1 and Last2, First2 and Last3, First3},
-  AUTHOR+an = {1:family=student;2=corresponding},
+  AUTHOR           = {Last1, First1 and Last2, First2 and Last3, First3},
+  AUTHOR+an        = {1:family=student;2=corresponding},
+  TITLE            = {The Title},
+  TITLE+an:default = {=titleannotation},
+  TITLE+an:french  = {="Le titre"},
+  TITLE+an:german  = {="Der Titel"},
 }
 \end{lstlisting}
 %
-Here the field name suffix \texttt{+an} is a user-definable\footnote{See \biber's \opt{--annotation-marker} option.} suffix which marks a data field as an annotation of the unsuffixed field. The format of annotation fields in \bibtex data sources is is as follows:
+Here the field name suffix \texttt{+an} is a user-definable\footnote{See \biber's \opt{--annotation-marker} option.} suffix which marks a data field as an annotation of the unsuffixed field. Multiple annotations can be provided for the same field since all annotations are named. After the annotation marker is the optional named annotation marker \footnote{See \biber's \opt{--named-annotation-marker} option.} and an optional annotation name. The annotation name is <default> if not specified and so in the above example the following two are equivalent:
+
+\begin{lstlisting}[style=bibtex]{}
+TITLE+an         = {=titleannotation},
+TITLE+an:default = {=titleannotation},
+\end{lstlisting}
+%
+The format of annotation fields in \bibtex data sources is is as follows:
 
 \begin{lstlisting}
 <annotationspecs> ::= <annotationspec> [ ";" <annotationspec> ]
@@ -3184,7 +3173,7 @@ Here the field name suffix \texttt{+an} is a user-definable\footnote{See \biber'
 <annotation>      ::= ["] (string) ["]
 \end{lstlisting}
 %
-That is, one or more specifications separated by semi-colons. Each specification is an equals sign followed by a comma"=separated list of annotation keywords or a string enclosed in double-quotes (a <literal> annotation, see below). To annotate a specific item in a list, put the number of the list item before the equals sign (lists start at 1). If you need to annotate a specific part of the list item, give its name after the list item number, preceded by a colon. Name part names are defined in the data model, see \secref{aut:bbx:drv}. Some examples:
+That is, one or more specifications separated by semi-colons. Each specification is an equals sign followed by a comma"=separated list of annotation keywords or a string enclosed in double-quotes (a <literal> annotation, see below). To annotate a specific item in a list, put the number of the list item before the equals sign (lists start at 1). If you need to annotate a specific part of the list item, give its name after the list item number, preceded by a colon. Name part names are defined in the data model, see \secref{aut:bbx:drv}. Some further examples:
 
 \begin{lstlisting}[style=bibtex]{}
 AUTHOR      = {Last1, First1 and Last2, First2 and Last3, First3},
@@ -3196,27 +3185,70 @@ LANGUAGE+an = {1=annotation3; 2=annotation4}
 }
 \end{lstlisting}
 %
+Attaching annotations to data is similar in \biblatexml data sources. Using the example above, we would have:
+
+\begin{lstlisting}[language=xml]
+<bltx:entries xmlns:bltx="http://biblatex-biber.sourceforge.net/biblatexml">
+  <bltx:entry id="test" entrytype="misc">
+    <bltx:names type="author">
+      <bltx:name>
+        <bltx:namepart type="given" initial="F">First1</bltx:namepart>
+        <bltx:namepart type="family" initial="L">Last1</bltx:namepart>
+      </bltx:name>
+      <bltx:name>
+        <bltx:namepart type="given" initial="F">First2</bltx:namepart>
+        <bltx:namepart type="family" initial="L">Last2</bltx:namepart>
+      </bltx:name>
+      <bltx:name>
+        <bltx:namepart type="given" initial="F">First3</bltx:namepart>
+        <bltx:namepart type="family" initial="L">Last3</bltx:namepart>
+      </bltx:name>
+    </bltx:names>
+    </bltx:annotation field="author" item="1" part="family">student</bltx:annotation>
+    </bltx:annotation field="author" item="2">corresponding</bltx:annotation>
+  </bltx:entry>
+</bltx:entries>
+\end{lstlisting}
+%
 To access the annotation information when formatting bibliography data, macros are provided, corresponding to the three annotation scopes:
 
 \begin{ltxsyntax}
 
-\cmditem{iffieldannotation}[field]{annotation}{true}{false}
+\cmditem{iffieldannotation}[field][annotationname]{annotation}{true}{false}
 
-Executes \prm{true} if the data field \prm{field} has an annotation \prm{annotation} and false otherwise. If \prm{field} is not given, the current data field as indicated by \cmd{currentfield}, \cmd{currentlist} or \cmd{currentname} (see \secref{aut:bib:fmt}) is assumed. Of course, this is only possible if these commands are defined, that is, inside formatting directives.
+Executes \prm{true} if the data field \prm{field} has an annotation \prm{annotation} for the annotation called \prm{annotationname} and false otherwise. If \prm{annotatationname} is not given, then the annotation named <default> is assumed (this is the name given to annotations defined without an explicit name). If \prm{field} is not given, the current data field as indicated by \cmd{currentfield}, \cmd{currentlist} or \cmd{currentname} (see \secref{aut:bib:fmt}) is assumed. Of course, this is only possible if these commands are defined, that is, inside formatting directives.
 
-\cmditem{ifitemannotation}[field][item]{annotation}{true}{false}
+\cmditem{ifitemannotation}[field][annotationname][item]{annotation}{true}{false}
 
-Executes \prm{true} if the item \prm{item} in the data field \prm{field} has an annotation \prm{annotation} and false otherwise. The optional argument \prm{field} can be inferred if not provided as with \cmd{iffieldannotation}. If \prm{item} is not given, the number of the item currently being processed as given by \cnt{listcount} is used.
+Executes \prm{true} if the item \prm{item} in the data field \prm{field} has an annotation \prm{annotation} and false otherwise. If \prm{annotatationname} is not given, then the annotation named <default> is assumed (this is the name given to annotations defined without an explicit name). The optional argument \prm{field} can be inferred if not provided as with \cmd{iffieldannotation}. If \prm{item} is not given, the number of the item currently being processed as given by \cnt{listcount} is used.
 
-\cmditem{ifpartannotation}[field][item]{part}{annotation}{true}{false}
+\cmditem{ifpartannotation}[field][annotationname][item]{part}{annotation}{true}{false}
 
-Executes \prm{true} if the part named \prm{part} in item \prm{item} in the data field \prm{field} has an annotation \prm{annotation} and false otherwise. The two optional arguments \prm{field} and \prm{item} can be inferred as in \cmd{ifitemannotation}. The parameter \prm{part} can never be inferred and is therefore a mandatory argument.
+Executes \prm{true} if the part named \prm{part} in item \prm{item} in the data field \prm{field} has an annotation \prm{annotation} and false otherwise. If \prm{annotatationname} is not given, then the annotation named <default> is assumed (this is the name given to annotations defined without an explicit name). The two optional arguments \prm{field} and \prm{item} can be inferred as in \cmd{ifitemannotation}. The parameter \prm{part} can never be inferred and is therefore a mandatory argument.
 
 Date fields are special and handled in a context where \cmd{currentfield} is not accessible. Thus there is a fourth command to test annotations for dates.
 
-\cmditem{ifdateannotation}{datetype}{annotation}{true}{false}
+\cmditem{ifdateannotation}[annotationname]{datetype}{annotation}{true}{false}
 
-Executes \prm{true} if the date field \prm{datetype} has an annotation \prm{annotation} and false otherwise. The \prm{datetype} argument is mandatory, because it cannot be inferred in most contexts where \cmd{ifdateannotation} will be used.
+Executes \prm{true} if the date field \prm{datetype} has an annotation \prm{annotation} and false otherwise. If \prm{annotatationname} is not given, then the annotation named <default> is assumed (this is the name given to annotations defined without an explicit name). The \prm{datetype} argument is mandatory, because it cannot be inferred in most contexts where \cmd{ifdateannotation} will be used.
+
+\cmditem{hasfieldannotation}[field][annotationname]{true}{false}
+
+Executes \prm{true} if the data field \prm{field} has a literal annotation \prm{annotationname} defined and false otherwise. If \prm{annotatationname} is not given, then the annotation named <default> is assumed (this is the name given to annotations defined without an explicit name). If \prm{field} is not given, the current data field as indicated by \cmd{currentfield}, \cmd{currentlist} or \cmd{currentname} (see \secref{aut:bib:fmt}) is assumed. Of course, this is only possible if these commands are defined, that is, inside formatting directives.
+
+\cmditem{hasitemannotation}[field][annotationname][item]{true}{false}
+
+Executes \prm{true} if the item \prm{item} in the data field \prm{field} has a literal annotation \prm{annotationname} defined and false otherwise. If \prm{annotatationname} is not given, then the annotation named <default> is assumed (this is the name given to annotations defined without an explicit name). The optional argument \prm{field} can be inferred if not provided as with \cmd{iffieldannotation}. If \prm{item} is not given, the number of the item currently being processed as given by \cnt{listcount} is used.
+
+\cmditem{haspartannotation}[field][annotationname][item]{part}{true}{false}
+
+Executes \prm{true} if the part named \prm{part} in the item \prm{item} in the data field \prm{field} has a literal annotation \prm{annotationname} defined and false otherwise. If \prm{annotatationname} is not given, then the annotation named <default> is assumed (this is the name given to annotations defined without an explicit name). The two optional arguments \prm{field} and \prm{item} can be inferred as in \cmd{ifitemannotation}. The parameter \prm{part} can never be inferred and is therefore a mandatory argument.
+
+Date fields are special and handled in a context where \cmd{currentfield} is not accessible. Thus there is a fourth command to test the existence of annotations for dates.
+
+\cmditem{hasdateannotation}[annotationname]{datetype}{true}{false}
+
+Executes \prm{true} if the date field \prm{datetype} has any annotation \prm{annotationname} defined and false otherwise. If \prm{annotatationname} is not given, then the annotation named <default> is assumed (this is the name given to annotations defined without an explicit name). The \prm{datetype} argument is mandatory, because it cannot be inferred in most contexts where \cmd{ifdateannotation} will be used.
 
 \end{ltxsyntax}
 %
@@ -3257,23 +3289,23 @@ Such annotations are not keys whose presence can be tested for but are rather li
 
 \begin{ltxsyntax}
 
-\cmditem{getfieldannotation}[field]
+\cmditem{getfieldannotation}[field][annotationname]
 
-Retrieves any literal annotation for the field \prm{field}. If \prm{field} is not given, the current data field as indicated by \cmd{currentfield}, \cmd{currentlist} or \cmd{currentname} (see \secref{aut:bib:fmt}) is assumed. Of course, this is only possible if these commands are defined, that is, inside formatting directives.
+Retrieves any literal annotation for the field \prm{field}. If \prm{annotatationname} is not given, then the annotation named <default> is assumed (this is the name given to annotations defined without an explicit name). If \prm{field} is not given, the current data field as indicated by \cmd{currentfield}, \cmd{currentlist} or \cmd{currentname} (see \secref{aut:bib:fmt}) is assumed. Of course, this is only possible if these commands are defined, that is, inside formatting directives.
 
-\cmditem{getitemannotation}[field][item]
+\cmditem{getitemannotation}[field][annotationname][item]
 
-Retrieves any literal annotation for the item \prm{item} in the field \prm{field}. The optional argument \prm{field} can be inferred if not provided as with \cmd{getfieldannotation}. If \prm{item} is not given, the number of the item currently being processed as given by \cnt{listcount} is used.
+Retrieves any literal annotation for the item \prm{item} in the field \prm{field}. If \prm{annotatationname} is not given, then the annotation named <default> is assumed (this is the name given to annotations defined without an explicit name). The optional argument \prm{field} can be inferred if not provided as with \cmd{getfieldannotation}. If \prm{item} is not given, the number of the item currently being processed as given by \cnt{listcount} is used.
 
-\cmditem{getpartannotation}[field][item]{part}
+\cmditem{getpartannotation}[field][annotationname][item]{part}
 
-Retrieves any literal annotation for the part \prm{part}. The two optional arguments \prm{field} and \prm{item} can be inferred as in \cmd{getitemannotation}. The parameter \prm{part} can never be inferred and is therefore a mandatory argument.
+Retrieves any literal annotation for the part \prm{part}. If \prm{annotatationname} is not given, then the annotation named <default> is assumed (this is the name given to annotations defined without an explicit name). The two optional arguments \prm{field} and \prm{item} can be inferred as in \cmd{getitemannotation}. The parameter \prm{part} can never be inferred and is therefore a mandatory argument.
 
 Date fields are special and handled in a context where \cmd{currentfield} is not accessible. Thus there is a fourth command to access literal annotations for dates.
 
-\cmditem{getdateannotation}{datetype}
+\cmditem{getdateannotation}[annotationname]{datetype}
 
-Retrieve any literal annotation for the datefield \prm{datetype}. The \prm{datetype} argument is mandatory, because it cannot be inferred in most contexts where \cmd{getdateannotation} will be used.
+Retrieve a literal annotation for the datefield \prm{datetype}. If \prm{annotatationname} is not given, then the annotation named <default> is assumed (this is the name given to annotations defined without an explicit name). The \prm{datetype} argument is mandatory, because it cannot be inferred in most contexts where \cmd{getdateannotation} will be used.
 
 \end{ltxsyntax}
 %
@@ -3920,7 +3952,7 @@ A convenience meta-option which sets \opt{sortingnamekeytemplate}, \opt{uniquena
 
 \valitem{labelprefix}{string}
 
-This option applies to numerical citation\slash bibliography styles only and requires that the \opt{defernumbers} option from \secref{use:opt:pre:gen} be enabled globally. Setting this option will implicitly enable \opt{resetnumbers} for the any \cmd{printbibliography} in the scope of the context (unless overridden by a user-specified value for \opt{resetnumbers}). The option assigns the \prm{string} as a prefix to all entries in the reference context. For example, if the \prm{string} is \texttt{A}, the numerical labels printed will be \texttt{[A1]}, \texttt{[A2]}, \texttt{[A3]}, etc. This is useful for subdivided numerical bibliographies where each subbibliography uses a different prefix. The \prm{string} is available to styles in the \bibfield{labelprefix} field of all affected entries. See \secref{aut:bbx:fld:lab} for details.
+This option applies to numerical citation\slash bibliography styles only and requires that the \opt{defernumbers} option from \secref{use:opt:pre:gen} be enabled globally. Setting this option will implicitly enable \opt{resetnumbers} for the any \cmd{printbibliography} in the scope of the context (unless overridden by a user-specified value for \opt{resetnumbers}). The option assigns the \prm{string} as a prefix to all entries in the reference context. For example, if the \prm{string} is \texttt{A}, the numerical labels printed will be \texttt{[A1]}, \texttt{[A2]}, \texttt{[A3]}, etc. This is useful for subdivided numerical bibliographies where each subbibliography uses a different prefix. The \prm{string} is available to styles in the \bibfield{labelprefix} field of all affected entries. Note that the \prm{string} is fully expanded, which means that you can use context-dependent macros like \cmd{thechapter}, but not unexpandable commands such as \cmd{dag}. If you need to pass unexpandable code to \prm{string}, protect it from expansion with \cmd{detokenize}. See \secref{aut:bbx:fld:lab} for details.
 
 \end{optionlist*}
 %
@@ -6951,6 +6983,20 @@ A definition provided in the document preamble can be subsequently adopted with 
 \ExecuteBibliographyOptions{autocite=<<name>>}
 \end{ltxexample}
 
+\cmditem{DeclareCitePunctuationPosition}{command}{position}
+
+Set up the cite command \prm{command} to move punctuation marks after the citation like \cmd{autocite}. The \prm{position} argument can take the values \opt{r}, \opt{l}, \opt{f}, \opt{c}, \opt{o} and \opt{d}.
+If an unknown \prm{position} identifier is used, it defaults to \opt{o}.
+\begin{valuelist}
+\item[r] The punctuation mark is not moved and remains to the right of the citation.
+\item[l] The punctuation mark is moved to the left of the citation and thus appears before it.
+\item[f] Like \opt{r} in footnotes and like \opt{l} otherwise.
+\item[c] Pass the punctuation on to the internal implementation of the citation commands. It will then be executed within the \prm{wrapper} command if given.
+\item[o] Retain the default set-up of \opt{c} for citation defined commands without \prm{wrapper} command and \opt{l} for citation commands defined with a \prm{wrapper} command.
+\item[d] Drop the explicit punctuation mark. It will only be available as the field \bibfield{postpunct}.
+\end{valuelist}
+%
+This command can not be used for \cmd{autocite}, to configure \cmd{autocite} use the optional \prm{position} argument for \cmd{DeclareAutoCiteCommand}.
 \end{ltxsyntax}
 
 \subsubsection{Special Fields}
@@ -7178,6 +7224,16 @@ The value of the datamodel <nameparts> constant (see \secref{aut:bbx:drv}) creat
 %
 If a certain part of a name is not available, the corresponding macro will be empty, hence you may use, for example, the \sty{etoolbox} tests like \cmd{ifdefvoid} to check for the individual parts of a name. The name of the name list currently being processed is available to the \prm{code} as \cmd{currentname}. Note that the formatting directive also handles the punctuation to be inserted between separate names and between the individual parts of a name. You need to check whether you are in the middle of or at the end of the list, \ie whether \cnt{listcount} is smaller than or equal to \cnt{liststop}. See also \secref{use:cav:nam}. The starred variant of this command is similar to the regular version, except that all type-specific formats are cleared. \emph{Do not put any whitespace between the arguments to this macro as the definitions are quite complex and you will get unexpected results}.
 
+\cmditem{DeclareListWrapperFormat}[entrytype, \dots]{format}{code}
+\cmditem*{DeclareListWrapperFormat}*{format}{code}
+
+Defines the list wrapper format \prm{format}. This formatting directive is arbitrary \prm{code} to be executed once for the entire list processed by \cmd{printlist}. The name of the literal list currently being processed is available to the \prm{code} as \cmd{currentlist}. If an \prm{entrytype} is specified, the format is specific to that type. The \prm{entrytype} argument may be a comma"=separated list of values. The starred variant of this command is similar to the regular version, except that all type-specific formats are cleared.
+
+\cmditem{DeclareNameWrapperFormat}[entrytype, \dots]{format}{code}
+\cmditem*{DeclareNameWrapperFormat}*{format}{code}
+
+Defines the list wrapper format \prm{format}. This formatting directive is arbitrary \prm{code} to be executed once for the entire name list processed by \cmd{printnames}. The name of the literal list currently being processed is available to the \prm{code} as \cmd{currentname}. If an \prm{entrytype} is specified, the format is specific to that type. The \prm{entrytype} argument may be a comma"=separated list of values. The starred variant of this command is similar to the regular version, except that all type-specific formats are cleared.
+
 \cmditem{DeclareIndexFieldFormat}[entrytype, \dots]{format}{code}
 \cmditem*{DeclareIndexFieldFormat}*{format}{code}
 
@@ -7193,6 +7249,17 @@ Defines the literal list format \prm{format}. This formatting directive is arbit
 
 Defines the name list format \prm{format}. This formatting directive is arbitrary \prm{code} to be executed for every name in a list processed by \cmd{indexnames}. The name of the name list currently being processed is available to the \prm{code} as \cmd{currentname}. If an \prm{entrytype} is specified, the format is specific to that type. The \prm{entrytype} argument may be a comma"=separated list of values. The parts of the name will be passed to the \prm{code} as separate arguments. This command is very similar to \cmd{DeclareNameFormat} except that the data handled by the \prm{code} is not intended to be printed but written to the index. Note that \cmd{indexnames} will execute the \prm{code} as is, \ie the \prm{code} must include \cmd{index} or a similar command. The starred variant of this command is similar to the regular version, except that all type-specific formats are cleared.
 
+\cmditem{DeclareIndexListWrapperFormat}[entrytype, \dots]{format}{code}
+\cmditem*{DeclareIndexListWrapperFormat}*{format}{code}
+
+Similar to \cmd{DeclareIndexListFormat} but for the list format used for indices.
+
+
+\cmditem{DeclareIndexNameWrapperFormat}[entrytype, \dots]{format}{code}
+\cmditem*{DeclareIndexNameWrapperFormat}*{format}{code}
+
+Similar to \cmd{DeclareIndexNameFormat} but for the name list format used for indices.
+
 \cmditem{DeclareFieldAlias}[entry type]{alias}[format entry type]{format}
 
 Declares \prm{alias} to be an alias for the field format \prm{format}. If an \prm{entrytype} is specified, the alias is specific to that type. The \prm{format entry type} is the entry type of the backend format. This is only required when declaring an alias for a type"=specific formatting directive.
@@ -7204,6 +7271,14 @@ Declares \prm{alias} to be an alias for the literal list format \prm{format}. If
 \cmditem{DeclareNameAlias}[entry type]{alias}[format entry type]{format}
 
 Declares \prm{alias} to be an alias for the name list format \prm{format}. If an \prm{entrytype} is specified, the alias is specific to that type. The \prm{format entry type} is the entry type of the backend format. This is only required when declaring an alias for a type"=specific formatting directive.
+
+\cmditem{DeclareListWrapperAlias}[entry type]{alias}[format entry type]{format}
+
+Declares \prm{alias} to be an alias for the outer list format \prm{format}. If an \prm{entrytype} is specified, the alias is specific to that type. The \prm{format entry type} is the entry type of the backend format. This is only required when declaring an alias for a type"=specific formatting directive.
+
+\cmditem{DeclareNameWrapperAlias}[entry type]{alias}[format entry type]{format}
+
+Declares \prm{alias} to be an alias for the outer name list format \prm{format}. If an \prm{entrytype} is specified, the alias is specific to that type. The \prm{format entry type} is the entry type of the backend format. This is only required when declaring an alias for a type"=specific formatting directive.
 
 \cmditem{DeclareIndexFieldAlias}[entry type]{alias}[format entry type]{format}
 
@@ -7217,6 +7292,14 @@ Declares \prm{alias} to be an alias for the literal list format \prm{format}. If
 
 Declares \prm{alias} to be an alias for the name list format \prm{format}. If an \prm{entrytype} is specified, the alias is specific to that type. The \prm{format entry type} is the entry type of the backend format. This is only required when declaring an alias for a type"=specific formatting directive.
 
+\cmditem{DeclareIndexListWrapperAlias}[entrytype, \dots]{format}{code}
+
+Similar to \cmd{DeclareIndexListFormat} but for the list format used for indices.
+
+\cmditem{DeclareIndexNameWrapperAlias}[entrytype, \dots]{format}{code}
+
+Similar to \cmd{DeclareIndexNameFormat} but for the name list format used for indices.
+
 \cmditem{DeprecateFieldFormatWithReplacement}[entry type]{alias}[format entry type]{format}
 
 Declares \prm{alias} to be an alias for the name list format \prm{format} and issue a deprecation warning. If an \prm{entrytype} is specified, the alias is specific to that type. The \prm{format entry type} is the entry type of the backend format. This is only required when declaring an alias for a type"=specific formatting directive.
@@ -7229,6 +7312,14 @@ Similar to \cmd{DeprecateFieldFormatWithReplacement} but for list formats.
 
 Similar to \cmd{DeprecateFieldFormatWithReplacement} but for name formats.
 
+\cmditem{DeprecateListWrapperFormatWithReplacement}[entry type]{alias}[format entry type]{format}
+
+Similar to \cmd{DeprecateFieldFormatWithReplacement} but for outer list formats.
+
+\cmditem{DeprecateNameWrapperFormatWithReplacement}[entry type]{alias}[format entry type]{format}
+
+Similar to \cmd{DeprecateFieldFormatWithReplacement} but for outer name formats.
+
 \cmditem{DeprecateIndexFieldFormatWithReplacement}[entry type]{alias}[format entry type]{format}
 
 Similar to \cmd{DeprecateFieldFormatWithReplacement} but for index field formats.
@@ -7238,6 +7329,14 @@ Similar to \cmd{DeprecateFieldFormatWithReplacement} but for index field formats
 Similar to \cmd{DeprecateFieldFormatWithReplacement} but for index list formats.
 
 \cmditem{DeprecateIndexNameFormatWithReplacement}[entry type]{alias}[format entry type]{format}
+
+Similar to \cmd{DeprecateFieldFormatWithReplacement} but for index name formats.
+
+\cmditem{DeprecateIndexListWrapperFormatWithReplacement}[entry type]{alias}[format entry type]{format}
+
+Similar to \cmd{DeprecateFieldFormatWithReplacement} but for index list formats.
+
+\cmditem{DeprecateIndexNameWrapperFormatWithReplacement}[entry type]{alias}[format entry type]{format}
 
 Similar to \cmd{DeprecateFieldFormatWithReplacement} but for index name formats.
 
@@ -7485,7 +7584,9 @@ For all boolean \cmd{step} options, the short form \opt{option} is equivalent to
 \item Change the \texttt{fieldsource} \prm{entryfield} to
   \texttt{fieldtarget}, if defined. If
   \texttt{final} is \texttt{true} then if there is no \texttt{fieldsource} \prm{entryfield} in the entry, processing of the parent \cmd{map} immediately terminates.
-\item If \texttt{notfield} is used then only apply the step if the \prm{entryfield} does not exist.
+\item If \texttt{notfield} is true only if the \prm{entryfield} does not
+  exist. Usually used with \texttt{final} so that if an entry does contain
+  \prm{entryfield}, the map terminates.
 \item If \texttt{match} is defined but
   \texttt{replace} is not, only apply the step if the \texttt{fieldsource} \prm{entryfield} matches the
   \texttt{match} regular expression (logic is reversed if you use \texttt{notmatch} and case-insensitive if you use the versions ending in <i>)\footnote{Regular expressions are full Perl 5.16 regular expressions. This means you may need to deal with special characters, see examples.}. You may use capture parenthesis as usual and refer to these (\$1\ldots\$9) in later \texttt{fieldvalue} specifications. This allows you to pull out parts of some fields and put these parts in other fields.
@@ -7515,6 +7616,8 @@ For all boolean \cmd{step} options, the short form \opt{option} is equivalent to
 pseudo-field \bibfield{entrykey} for \texttt{fieldsource}
 which is the citation key of the entry. With \biblatexml\ the \bibfield{entrykey} is a normal attribute and can be reference like any other attribute. Naturally, this <field> cannot
 be changed (used as \texttt{fieldset}, \texttt{fieldtarget} or changed using \texttt{replace}).
+
+Macros used in \cmd{step} are expanded. Unexpandable contents should be protected with \cmd{detokenize}, regular expressions can be escaped using the dedicated \cmd{regexp} command (see the examples below).
 
 \begin{ltxsyntax}
 
@@ -9939,6 +10042,16 @@ These commands save and restore the formatting directive \prm{format}, as define
 
 These commands save and restore the formatting directive \prm{format}, as defined with \cmd{DeclareNameFormat}. Both commands work within a local scope. They are mainly provided for use in localisation files.
 
+\cmditem{savelistwrapperformat}[entry type]{format}
+\cmditem{restorelistwrapperformat}[entry type]{format}
+
+These commands save and restore the formatting directive \prm{format}, as defined with \cmd{DeclareListWrapperFormat}. Both commands work within a local scope. They are mainly provided for use in localisation files.
+
+\cmditem{savenamewrapperformat}[entry type]{format}
+\cmditem{restorenamewrapperformat}[entry type]{format}
+
+These commands save and restore the formatting directive \prm{format}, as defined with \cmd{DeclareNameWrapperFormat}. Both commands work within a local scope. They are mainly provided for use in localisation files.
+
 \cmditem{ifbibmacroundef}{name}{true}{false}
 
 Expands to \prm{true} if the bibliography macro \prm{name} is undefined, and to \prm{false} otherwise.
@@ -9946,6 +10059,8 @@ Expands to \prm{true} if the bibliography macro \prm{name} is undefined, and to 
 \cmditem{iffieldformatundef}[entry type]{name}{true}{false}
 \cmditem{iflistformatundef}[entry type]{name}{true}{false}
 \cmditem{ifnameformatundef}[entry type]{name}{true}{false}
+\cmditem{iflistwrapperformatundef}[entry type]{name}{true}{false}
+\cmditem{ifnamewrapperformatundef}[entry type]{name}{true}{false}
 
 Expands to \prm{true} if the formatting directive \prm{format} is undefined, and to \prm{false}
 otherwise.
@@ -13165,7 +13280,7 @@ A name list field is contained in the \bibfield{names} element with the mandator
 
 \begin{itemize}
   \item The optional \bibfield{morenames} attribute performs the same task as the \bibtex\ datasource format <and others> string at the end of a name.
-  \item Note that optional \opt{useprefix} option can be specified can be specified at the level of a name list or an individual name in the name list. This is impossible with \bibtex\ datasources.
+  \item Note that optional \opt{useprefix} option can be specified at the level of a name list or an individual name in the name list. This is impossible with \bibtex\ datasources.
   \item Individual names may have an optional \bibfield{gender} attribute which must be one of those defined in the datamodel <gender> constant list. This is currently not used by standard styles but is available in \biblatex name formats if necessary.
   \item A name list is composed of one or more \bibfield{name} elements.
   \item Each name is composed of name parts of a \bibfield{type} defined by the data model <nameparts> constant.
@@ -13431,7 +13546,7 @@ This revision history is a list of changes relevant to users of this package. Ch
 
 \begin{changelog}
 \begin{release}{3.12}{2018-??-??}
-\item Added literal annotation functionality\see{use:annote}
+\item Added literal and named annotation functionality\see{use:annote}
 \item Added \cmd{ifnocite}\see{aut:aux:tst}
 \item Added case-insensitive versions of matching operators\see{aut:ctm:map}
 \item Added \bibfield{langid}s optional argument to \cmd{DeclareSortTranslit}\see{aut:ctm:srt}
@@ -13440,13 +13555,17 @@ This revision history is a list of changes relevant to users of this package. Ch
 \item Added \bibfield{extraname}\see{aut:bbx:fld:lab}
 \item Added \opt{bibencoding} option to \cmd{addbibresource}\see{use:bib:res}
 \item Changed type of \bibfield{number} from integer to literal \see{bib:fld:dat}
+\item Removed \opt{noerroretextools} option\see{int:pre:inc}
 \item Added \opt{maxsortnames} and \opt{minsortnames}\see{use:opt:pre:gen}
 \item Added \cmd{DeprecateFieldFormatWithReplacement} and friends\see{aut:bib:fmt}
+\item Added list and name wrappers\see{aut:bib:fmt}
 \item Added \cs{ifdateyearsequal}\see{aut:aux:tst}
+\item Added <and higher> sectioning values for \opt{citereset}, \opt{refsection} and \opt{refsegment} options\see{use:opt:pre:gen}
 \item Added Hungarian localisation\see{use:loc:hun}
+\item Added \cmd{DeclareCitePunctuationPosition}\see{aut:cbx:cbx}
 \end{release}
 
-  \begin{release}{3.11}{2018-02-20}
+\begin{release}{3.11}{2018-02-20}
 \item Added \opt{entrynocite} option to sourcemapping\see{aut:ctm:map}
 \item Added \opt{driver} and \opt{biblistfilter} options to \cmd{printbiblist}\see{use:bib:biblist}
 \item Added \cmd{mknormrange}\see{aut:aux:msc}

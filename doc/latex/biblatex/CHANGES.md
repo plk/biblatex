@@ -1,4 +1,8 @@
 # RELEASE NOTES FOR VERSION 3.12
+- **INCOMPATIBLE CHANGE** The syntax for defining data annotations in the
+  BibLaTeXML data source format has changed to accommodate named
+  annotations. Annotations are no longer attributes but are fully-fledged
+  elements. It is not expected that this will impact any current users.
 - **INCOMPATIBLE CHANGE** The field/fieldset argument to the `\translit`
   command is now  mandatory to allow for a new optional argument which
   restricts transliteration to entries with particular `langid` fields.
@@ -21,6 +25,23 @@
   consider using a custom data model to turn `number` back into an integer type
   field, since sorting integers as literals has performance implications and
   might lead to undesired sorting such as "1", "10", "2".
+- **INCOMPATIBLE CHANGE** Removed the 'semi-hidden' option `noerroretextools`.
+  If you want to load `noerroretextools` now, you need to define the macro
+  `\blx@noerroretextools` instead. This can for example be done with
+  ```
+  \usepackage{etoolbox}
+  \cslet{blx@noerroretextools}\empty
+  \usepackage{biblatex}
+  ```
+  or
+  ```
+  \makeatletter
+  \let\blx@noerroretextools\@empty
+  \makeatother
+  \usepackage{biblatex}
+  ```
+  You still need to make sure that all macros used by `biblatex` are restored
+  to their `etoolbox` definitions before loading `biblatex`.
 - New macro `\abx@missing@entry` to style missing entrykeys in citations.
 - Added field format deprecation macros `\DeprecateFieldFormatWithReplacement`
   and friends.
@@ -30,6 +51,10 @@
   `\iffieldequals{#1year}{#2year}` to compare years. The latter can lead to
   undesired results if the years have opposite signs, but are otherwise the
   same.
+- New values `part+`, `chapter+`, `section+` and `subsection+` for 'section'-
+  valued options `refsection`, `refsegment` and `citereset`. These options
+  are then executed at not only the specified level of sectioning, but also
+  all higher levels.
 - Add second optional argument to `\DeclareDelimAlias*`.
 - Allow keywords for dataonly/skipped entries as well.
 - Added `maxcitecounter`.
@@ -37,9 +62,66 @@
   `nametitledelim`.
   For compatibility reasons `\labelnamepunct` still pops up in the code here
   and there, but `nametitledelim` should be preferred now.
+<<<<<<< HEAD
 - The `xstring` package is not loaded by default any more.
   Style developers whose styles make use of that package should load it
   explicitly.
+=======
+- `authoryear.bbx` now has a macro `bbx:ifmergeddate` that can be used to
+  check whether the date has been printed at the beginning of an entry
+  and can thus be suppressed later in the `date` and `issue+date` macros.
+  The macro works like a test and expands to the `<true>` branch if the date
+  has been merged and can be suppressed, it expands to `<false>` if the date
+  has not been merged. In practice `\printdate` should then be issued
+  if and only if the test yields false.
+
+  This change means that the definition of the `date` macro can be the same for
+  all mergedate settings and that only `bbx:ifmergeddate` is redefined for
+  each different value. No backwards compatibility issues are expected,
+  but style authors are encouraged to test the changes and see if the new
+  macro could be useful for their styles.
+- For a long time `biblatex` has defined `\enquote` if `csquotes` was not
+  loaded. This behaviour was not documented, the official command intended
+  for quotation marks was always `\mkbibquote`. Because `biblatex` should not
+  (re)define user-level commands that are not primarily associated with
+  citations or the bibliography, from this release on `\enquote` is not defined
+  any more, instead the internal command `\blx@enquote` is defined and used.
+  The same holds for `\initoquote`, `\initiquote`, `\textooquote`,
+  `\textcoquote`, `\textoiquote`, `\textciquote`.
+  `biblatex` still defines the internal commands `\@quotelevel`, `\@quotereset`
+  and `\@setquotesfcodes` if `csquotes` is not loaded.
+
+  Users are encouraged to use `csquotes` for proper quotation marks, but can
+  get back the old behaviour with
+  ```
+  \makeatletter
+  \providerobustcmd*{\enquote}{\blx@enquote}
+  \makeatother
+  ```
+  or
+  ```
+  \newrobustcmd*{\enquote}{\mkbibquote}
+  ```
+- Add new list wrapper and name wrapper formats (`\DeclareListWrapperFormat`,
+  `\DeclareNameWrapperFormat`) to style a (name) lists in its entirety.
+  This is useful because name and lists formats normally style only one
+  particular item of the list. The wrapper format can be used to easily format
+  the entire list in italics, for example.
+- `\DeclareCitePunctuationPosition` can be used to configure the punctuation
+  position for citation commands similar to the optional `position` argument
+  of `\DeclareAutoCiteCommand`.
+- If the `\pdfmdfivesum` primitive is available (via `pdftexcmds`'
+  `\pdf@mdfivesum`) the `labelprefix` value is hashed for internal use, making
+  it safer for construction of macro names and the like. If you don't like
+  that you can turn off the behaviour by redefining `\blx@mdfivesum`. The
+  fallback in case `\pdf@mdfivesum` is unavailable is
+  ```
+  \let\blx@mdfivesum\@firstofone
+  ```
+
+  As before the labelprefix value is fully expanded before use. If its contents
+  are unexpandable you need to avoid expansion with `\detokenize`.
+>>>>>>> dev
 
 # RELEASE NOTES FOR VERSION 3.11
 - `\printbiblist` now supports `driver` and `biblistfilter` options
