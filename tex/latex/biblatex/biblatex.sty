@@ -34,14 +34,13 @@
 [\abx@date\space v\abx@version\space programmable bibliographies (PK/MW)]
 
 %% Dependencies
-\RequirePackage{pdftexcmds}
+\RequirePackage{pdftexcmds}[2018/01/30]
 \RequirePackage{etoolbox}
 \RequirePackage{keyval}
 \RequirePackage{kvoptions}
 \RequirePackage{logreq}
 \RequirePackage{ifthen}
 \RequirePackage{url}
-\RequirePackage{xstring}
 %\RequirePackage{trace}
 
 \@ifpackagelater{etoolbox}{2010/11/29}
@@ -50,15 +49,6 @@
      {Outdated 'etoolbox' package}
      {Upgrade to etoolbox v2.1 (2010/11/29) or later.\MessageBreak
       I found: '\csuse{ver@etoolbox.sty}'.\MessageBreak
-      This is a fatal error. I'm aborting now}%
-   \endinput}
-
-\@ifpackagelater{xstring}{2013/10/13}
-  {}
-  {\PackageError{biblatex}
-     {Outdated 'xstring' package}
-     {Upgrade to xstring v1.7c (2013/10/13) or later.\MessageBreak
-      I found: '\csuse{xstringversion}'.\MessageBreak
       This is a fatal error. I'm aborting now}%
    \endinput}
 
@@ -519,7 +509,7 @@
 % trick showkeys into believing we're havard
 \let\HAR@checkdef\@empty
 
-%% Allocation
+\providecommand{\@gobblefive}[5]{}
 
 \ifundef\pdf@mdfivesum
   {\let\blx@mdfivesum\@firstofone
@@ -527,7 +517,61 @@
      'labelprefix' may not be able to accept all input}}
   {\let\blx@mdfivesum\pdf@mdfivesum}
 
-\providecommand{\@gobblefive}[5]{}
+
+% xstring replacements
+
+% reverse a given string
+% idea by egreg (https://tex.stackexchange.com/users/4427/egreg)
+% from https://tex.stackexchange.com/q/36034/
+% relicensed under LPPL according to
+% https://tex.meta.stackexchange.com/a/3333/
+\def\blx@revstr#1{%
+  \ifblank{#1}
+    {}
+    {\blx@revstr@l #1\blx@revstr@b@i\blx@revstr@b@ii}}
+
+\def\blx@revstr@l#1#2\blx@revstr@b@i#3\blx@revstr@b@ii{%
+  \ifblank{#2}
+    {#1#3}
+    {\blx@revstr@l#2\blx@revstr@b@i#1#3\blx@revstr@b@ii}}
+
+% these tests are inspired by Stephan v. Bechtolsheim's TUGboat article
+% https://www.tug.org/TUGboat/tb09-1/tb20bechtolsheim.pdf
+% but we need to test for start and end and not for generic substring
+% start is easy, delimited arguments help there
+\protected\def\blx@ifstrstartswith#1#2{%
+  \def\blx@ifstrstartswith@i ##1#2##2&{%
+    \ifblank{##1}}%
+  \blx@ifstrstartswith@i #1#2&}
+
+% end is harder, so we reverse everything and apply the start test
+\protected\def\blx@ifstrendswith#1#2{%
+  \begingroup
+  \edef\blx@tempa{\endgroup
+    \noexpand\blx@ifstrstartswith{\blx@revstr{#1}}{\blx@revstr{#2}}}%
+  \blx@tempa}
+
+% not expandable, so write the result to the macro given in #3
+% {<string>}{<strip>}{<result>}
+% <result> will contain the bit of <string>
+% after the first occurrence of <strip>
+\protected\def\blx@stripfromstartinto#1#2#3{%
+  \def\blx@stripfromstart@i ##1#2##2&{%
+    \def#3{##2}}%
+  \blx@stripfromstart@i #1&}
+
+% {<string>}{<strip>}{<result>}
+% <result> will contain the bit of <string>
+% before the last occurence of <strip>
+\protected\def\blx@stripfromendinto#1#2#3{%
+  \begingroup
+  \edef\blx@tempa{\endgroup
+    \noexpand\blx@stripfromstartinto{\blx@revstr{#1}}{\blx@revstr{#2}}}%
+  \blx@tempa{#3}%
+  \edef#3{\noexpand\blx@revstr{#3}}%
+  \edef#3{#3}}
+
+%% Allocation
 
 % Counter to track nested tabularx environemnts so we don't
 % try to patch the commands more than once below as this undefs some
@@ -703,14 +747,12 @@
 \newtoggle{blx@localnumber}
 \newtoggle{blx@refcontext}
 
-% Nice command from etextools which causes too many problems if you load
-% the whole package
-% Don't use it on arbitrary user input as it dies on non-expandable arguments
-\newcommand*{\blx@xifempty}[1]{\blx@xifstrcmp{#1}{}}
-% {string1}{string2}{true}{false}
-\newcommand*{\blx@xifstrcmp}[2]{\csname @%
-  \ifnum\pdf@strcmp{#1}{#2}=0 first\else second\fi
-  oftwo\endcsname}
+\newcommand*{\blx@xifstrequal}[2]{%
+  \begingroup
+  \edef\blx@tempa{%
+    \endgroup
+    \noexpand\ifstrequal{#1}{#2}}%
+  \blx@tempa}
 
 % Special fields which need resolution using the information provided by biber
 \listadd\abx@rfields{labeltitle}
@@ -5821,10 +5863,10 @@
     {\hyphen\blx@seasonmap{\thefield{#2#3season}}}}
 
 \def\blx@seasonmap#1{%
-  \blx@xifstrcmp{#1}{spring}{21}
-    {\blx@xifstrcmp{#1}{summer}{22}
-      {\blx@xifstrcmp{#1}{autumn}{23}
-        {\blx@xifstrcmp{#1}{winter}{24}{}}}}}
+  \blx@xifstrequal{#1}{spring}{21}
+    {\blx@xifstrequal{#1}{summer}{22}
+      {\blx@xifstrequal{#1}{autumn}{23}
+        {\blx@xifstrequal{#1}{winter}{24}{}}}}}
 
 \newrobustcmd*{\blx@isotime}[2]{%
   \blx@imc@forcezerosmdt{\thefield{#1#2hour}}%
@@ -5858,7 +5900,7 @@
 \newrobustcmd*{\bibrangedash}{\textendash}
 \newrobustcmd*{\bibrangessep}{,\space}
 % formatters
-\newrobustcmd*{\mkbibtimezone}[1]{\blx@xifstrcmp{#1}{UTC}{\bibutctimezone}{#1}}
+\newrobustcmd*{\mkbibtimezone}[1]{\blx@xifstrequal{#1}{Z}{\bibutctimezone}{#1}}
 % you should never end up needing the next few definitions
 % but it is safer to do something than just swallow the input
 \newrobustcmd*{\mkbibdatelong}[3]{%
@@ -6362,7 +6404,7 @@
 
 % '', event, url, orig etc.
 \def\do#1{%
-  \StrCut{#1}{date}\blx@datetype\blx@tempnull
+  \blx@stripfromendinto{#1}{date}\blx@datetype
   \listxadd\blx@datetypes{\blx@datetype}}
 \abx@dodates
 % main date field has an empty prefix (''date) which can't be added to a list
@@ -6473,7 +6515,7 @@
 
 % Sanity check on date field names - they *must* end in 'date' to make things easier/possible later
 \def\do#1{%
-  \IfEndWith{#1}{date}
+  \blx@ifstrendswith{#1}{date}
     {}
     {\blx@error
        {Invalid date field name '#1'}
@@ -6652,10 +6694,10 @@
         \iffieldnum{#1}
           {\begingroup
            \let\blx@tempa\@empty
-           \IfEndWith{#1}{endyear}
-             {\StrCut{#1}{endyear}\blx@datetype\blx@tempnull
+           \blx@ifstrendswith{#1}{endyear}
+             {\blx@stripfromendinto{#1}{endyear}\blx@datetype
               \def\blx@tempa{end}}
-             {\StrCut{#1}{year}\blx@datetype\blx@tempnull}%
+             {\blx@stripfromendinto{#1}{year}\blx@datetype}%
            \csuse{if\blx@datetype\blx@tempa dateera}{bce}
              {\ifnumless{0-\thefield{#1}}{0}
                {\printtext{\csuse{bibdateera\blx@tempa prefix}}}
@@ -6667,10 +6709,10 @@
         \iffieldnum{#1}
           {\begingroup
            \let\blx@tempa\@empty
-           \IfEndWith{#1}{endyear}
-             {\StrCut{#1}{endyear}\blx@datetype\blx@tempnull
+           \blx@ifstrendswith{#1}{endyear}
+             {\blx@stripfromendinto{#1}{endyear}\blx@datetype
               \def\blx@tempa{end}}
-             {\StrCut{#1}{year}\blx@datetype\blx@tempnull}%
+             {\blx@stripfromendinto{#1}{year}\blx@datetype}%
            \csuse{if\blx@datetype\blx@tempa dateera}{bce}
              {\ifnum\numexpr0-\thefield{#1}\relax<\blx@dateeraauto
                 % \midsentence is to suppress automatic capitalisation
@@ -14717,7 +14759,7 @@
     {}%
     \def\do#1{%
       \ifcsstring{blx@dateformat@#1}{iso}
-        {\StrCut{#1}{date}\blx@datetype\blx@tempnull
+        {\blx@stripfromendinto{#1}{date}\blx@datetype
          \ifdefstring\blx@dateera{astronomical}{}
            {\blx@warn@conflopt{%
               '#1=iso' requires 'dateera=astronomical'.\MessageBreak
