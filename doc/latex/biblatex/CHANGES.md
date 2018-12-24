@@ -43,6 +43,13 @@
   If you need full `labelprefix` support, please consider switching to Biber.
 - Add `\thefirstlistitem`, `\strfirstlistitem` and `\usefirstlistitem` to
   grab and use the first item of a field.
+- Add `\isdot` to the format for `journaltitle` so that `.`s at the end of the
+  `journal(title)` field are automatically treated as abbreviation dots and not
+  sentence-ending periods. To restore the old behaviour add
+  ```
+  \DeclareFieldFormat{journaltitle}{\mkbibemph{#1}}
+  ```
+  to the preamble.
 
 # RELEASE NOTES FOR VERSION 3.12
 - **INCOMPATIBLE CHANGE** The syntax for defining data annotations in the
