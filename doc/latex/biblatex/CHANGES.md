@@ -34,6 +34,13 @@
 - Add `\AtVolcite` hook to initialise `\volcite` commands.
 - Add `multiprenotedelim` and `multipostnotedelim` and make all
  `(pre|post)notedelim`-like commands context sensitive.
+- Add rudimentary support for `labelprefix` with BibTeX backend.
+  Biber implements `labelprefix` via `refcontext`s, but BibTeX does not
+  actually support `refcontext`s. The user interface is retained, but BibTeX's
+  "`refcontext`s" support only the emulation of `labelprefix` and nothing more.
+  There might be subtle differences between Biber's and BibTeX's
+  `labelprefix` behaviour, but it should be better than nothing.
+  If you need full `labelprefix` support, please consider switching to Biber.
 
 # RELEASE NOTES FOR VERSION 3.12
 - **INCOMPATIBLE CHANGE** The syntax for defining data annotations in the

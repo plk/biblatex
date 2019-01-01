@@ -510,6 +510,7 @@
 \let\HAR@checkdef\@empty
 
 \providecommand{\@gobblefive}[5]{}
+\providecommand{\@gobblethree}[3]{}
 
 % etoolbox helpers
 
@@ -9212,6 +9213,10 @@
   \csxdef{blx@assignedrefcontextbib@#1@#2}{\detokenize{#3}}}
 \def\abx@aux@refcontextdefaultsdone{%
   \global\boolfalse{refcontextdefaults}}
+% \abx@aux@defaultlabelprefix is a dummy only used by BibTeX to implement a
+% simple labelprefix not based on full refcontexts, which BibTeX does not
+% support.
+\let\abx@aux@defaultlabelprefix\@gobblethree
 
 \AtEndDocument{%
   % write the .aux to say we don't need to re-run to consume refcontext defaults
@@ -9499,7 +9504,9 @@
      % Set refcontext from named refcontext, if given
      \ifblank{#2}
        {}
-       {\edef\z{\noexpand\setkeys{blx@refcontext}{\csuse{blx@refcontext@name@#2}}}\z}%
+       {\edef\z{%
+          \noexpand\setkeys{blx@refcontext}{\csuse{blx@refcontext@name@#2}}}%
+        \z}%
      % Override with explicit refcontext keyvals, if given
      \setkeys{blx@refcontext}{#1}%
      % Add the sortingtemplate to the list of sortingtemplates so we can track
