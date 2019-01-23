@@ -511,6 +511,28 @@
 
 \providecommand{\@gobblefive}[5]{}
 
+% etoolbox helpers
+
+% \ifinlist{<item>}{<list>} is not a good idea
+% for printable stuff according to the etoolbox docs
+% for \ifinlist (p. 31)
+\newrobustcmd{\blx@ifprintableinlist}[2]{%
+  \begingroup
+    \def\blx@tempa{\endgroup
+      \@secondoftwo}%
+    \renewcommand*{\do}[1]{%
+      \ifstrequal{##1}{#1}
+        {\def\blx@tempa{\endgroup
+           \@firstoftwo}%
+         \listbreak}
+        {}}%
+    \dolistloop{#2}%
+  \expandafter\blx@tempa}
+
+\newrobustcmd{\blx@ifprintableinlistcs}[2]{%
+  \expandafter\blx@ifprintableinlistcs@i\csname #2\endcsname{#1}}
+\long\def\blx@ifprintableinlistcs@i#1#2{\blx@ifprintableinlist{#2}{#1}}
+
 \ifundef\pdf@mdfivesum
   {\let\blx@mdfivesum\@firstofone
    \blx@warning@noline{Command '\string\pdf@mdfivesum' undefined.\MessageBreak
@@ -8372,7 +8394,7 @@
     \advance\blx@tempcnta\@ne}%
   \dolistcsloop{blx@pref@\the\c@refsection @#1}%
   \edef\blx@tempa{\endgroup\noexpand\blx@bbl@listdef
-    {pageref}{\the\blx@tempcnta}{\blx@tempa}}%
+    {pageref}{\the\blx@tempcnta}{\expandonce{\blx@tempa}}}%
   \blx@tempa}
 
 %% Data input
@@ -10778,7 +10800,7 @@
     {\global\cslet{blx@pref@#3@\detokenize{#2}}\@empty
      \expandafter\blx@onlypreamble\csname blx@pref@#3@\detokenize{#2}\endcsname}
     {}%
-  \ifinlistcs{#4}{blx@pref@#3@\detokenize{#2}}
+  \blx@ifprintableinlistcs{#4}{blx@pref@#3@\detokenize{#2}}
     {}
     {\listcsgadd{blx@pref@#3@\detokenize{#2}}{#4}}%
   \blx@addpagesum{#1}{#5}}
