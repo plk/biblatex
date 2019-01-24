@@ -413,6 +413,8 @@ This section gives an overview of the entry types supported by the default \bibl
 
 The lists below indicate the fields supported by each entry type. Note that the mapping of fields to an entry type is ultimately at the discretion of the bibliography style. The lists below therefore serve two purposes. They indicate the fields supported by the standard styles which come with this package and they also serve as a model for custom styles. Note that the <required> fields are not strictly required in all cases, see \secref{bib:use:key} for details. The fields marked as <optional> are optional in a technical sense. Bibliographical formatting rules usually require more than just the <required> fields. The default data model defined a few constraints for the format of date fields, ISBNs and some special fields like \bibfield{gender} but the constraints are only used if validating against the data model with \biber's \opt{--validate-datamodel} option. Generic fields like \bibfield{abstract} and \bibfield{annotation} or \bibfield{label} and \bibfield{shorthand} are not included in the lists below because they are independent of the entry type. The special fields discussed in \secref{bib:fld:spc}, which are also independent of the entry type, are not included in the lists either. See the default data model specification in the file \file{blx-dm.def} which comes with \biblatex for a complete specification.
 
+The <alias> relation referred to in this subsection is the <soft alias> defined with \cmd{DeclareBibliographyAlias}. That means that the alias will use the same bibliography driver as the type it is aliased to, but that its type-specific formatting is still handled independently of the aliased type.
+
 \begin{typelist}
 
 \typeitem{article}
@@ -593,7 +595,7 @@ Custom types for special bibliography styles. The standard styles defined no bib
 \subsubsection{Type Aliases}
 \label{bib:typ:als}
 
-The entry types listed in this section are provided for backwards compatibility with traditional \bibtex styles. These aliases are resolved by the backend as the data is processed. Bibliography styles will see the entry type the alias points to, not the alias name.
+The entry types listed in this section are provided for backwards compatibility with traditional \bibtex styles. These aliases are resolved by the backend as the data is processed. Bibliography styles will see the entry type the alias points to, not the alias name. This <hard alias> is unlike the <soft alias> relation in the previous subsection. The relevant mappings for the \opt{bibtex} driver can be found in~\secref{apx:maps:bibtex}.
 
 \begin{typelist}
 
@@ -6095,6 +6097,8 @@ Defines a bibliography driver. A <driver> is a macro which handles a specific en
 \cmditem{DeclareBibliographyAlias}{alias}{entrytype}
 
 If a bibliography driver covers more than one entry type, this command may be used to define an alias where \prm{entrytype} is the name of a defined driver. This command is optional. The \prm{alias} argument may also be an asterisk. In this case, the \prm{entrytype} driver serves as a fallback which is used if no specific driver for an entry has been defined.
+
+Note that an alias declared with \cmd{DeclareBibliographyAlias} only <reroutes> the bibliography driver from \prm{alias} to \prm{entrytype}. Type-specific formatting directives still operate with the old \prm{alias} name. \cmd{DeclareBibliographyAlias} thus provides only a <soft> alias. If a complete alias is desired so that \prm{alias} and \prm{entrytype} are completely indistinguishable and use the same type-specific formatting, an approach with source mapping would be more appropriate (cf.~the mappings for \secref{bib:typ:als} in \secref{apx:maps:bibtex}, this would give a <hard> alias).
 
 \cmditem{DeclareBibliographyOption}[datatype]{key}[value]{code}
 
@@ -12960,7 +12964,7 @@ In order to minimize the risk of name clashes, \latex packages typically prefix 
 
 These are the driver default source mappings.
 
-\subsection{\opt{bibtex}}
+\subsection{\opt{bibtex}}\label{apx:maps:bibtex}
 The \opt{bibtex} driver is of course the most comprehensive and mature of the \biblatex/\biber supported data formats. These source mapping defaults are how the aliases from sections \secref{bib:typ:als} and \secref{bib:fld:als} are implemented.
 
 \begin{ltxexample}
@@ -13608,7 +13612,6 @@ This revision history is a list of changes relevant to users of this package. Ch
 \item Added \opt{uniqueliststrength}\see{use:opt:pre:int}
 \end{release}
 
-\begin{changelog}
 \begin{release}{3.12}{2018-10-30}
 \item Added literal and named annotation functionality\see{use:annote}
 \item Added \cmd{ifnocite}\see{aut:aux:tst}
