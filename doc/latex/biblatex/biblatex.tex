@@ -2726,6 +2726,17 @@ Whether or not to update the \cnt{uniquelist} counter, see \secref{aut:aux:tst} 
 %
 Note that the \opt{uniquelist} option will also affect the \cmd{ifsingletitle} test and the \bibfield{extradate} and \bibfield{extraname} fields. See \secref{aut:cav:amb} for further details and practical examples.
 
+\optitem[strong]{uniqueliststrength}{\opt{strong}, \opt{weak}}
+
+When generating the counters for \bibfield{extraname} and \bibfield{extradate}, by default \biber will take account of name list truncation due to the \opt{uniquelist} settings (and any explicit <and others> in the data source). This can be weakened to ignore name truncations when generating the \bibfield{extraname} and \bibfield{extradate} counters. The possible choices are:
+
+\begin{valuelist}
+\item[strong] Take account of name list truncation when generating \bibfield{extraname} and \bibfield{extradate}.
+\item[weak] Ignore name list truncation when generating \bibfield{extraname} and \bibfield{extradate}.
+\end{valuelist}
+%
+Note that the \opt{uniqueliststrength} option will also affect the \bibfield{extradate} and \bibfield{extraname} fields. See \secref{aut:cav:amb} for further details and practical examples.
+
 \end{optionlist}
 
 \begin{table}
@@ -12539,6 +12550,48 @@ Vogel et al. 2001
 %
 In the last citation, \kvopt{uniquelist}{minyear} does not override \opt{maxnames}\slash \opt{minnames} as the citation does not need disambiguating from the other two because the year is different.
 
+With \kvopt{uniqueliststrength}{weak}, it is possible to further disambiguate name lists which would otherwise be treated as unique due to their truncations being unique but which nevertheless might appear confusing. Consider:
+
+\begin{lstlisting}{}
+Jones 1972
+Jones/and others 1972
+Smith 2000
+Smith/Vogel/Beast/Tremble 2000
+\end{lstlisting}
+%
+With \kvopt{maxnames}{3}, \kvopt{minnames}{1}, \kvopt{uniqueliststrength}{strong}, we would get:
+
+\begin{lstlisting}{}
+  Jones 1972
+  Jones et al 1972
+  Smith 2000
+  Smith et al 2000
+\end{lstlisting}
+%
+Whereas with \kvopt{maxnames}{3}, \kvopt{minnames}{1}, \kvopt{uniqueliststrength}{weak}, we would get:
+
+\begin{lstlisting}{}
+  Jones 1972a
+  Jones et al 1972b
+  Smith 2000a
+  Smith et al 2000b
+\end{lstlisting}
+
+If desired, this could be further simplified with:
+
+\begin{ltxexample}
+  \DefineBibliographyStrings{english}{andothers={}}
+\end{ltxexample}
+%
+To obtain:
+
+\begin{lstlisting}{}
+  Jones 1972a
+  Jones 1972b
+  Smith 2000a
+  Smith 2000b
+\end{lstlisting}
+
 \subsubsection{Trackers in Floats and \acr{TOC}/\acr{LOT}/\acr{LOF}}
 \label{aut:cav:flt}
 
@@ -13552,6 +13605,7 @@ This revision history is a list of changes relevant to users of this package. Ch
 \begin{changelog}
 \begin{release}{3.13}{2019}
 \item Enhanced \cmd{addbibresource} with globbing\see{use:bib:res}
+\item Added \opt{uniqueliststrength}\see{use:opt:pre:int}
 \end{release}
 
 \begin{changelog}
