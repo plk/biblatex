@@ -28,10 +28,7 @@
 }
 \KOMAoptions{numbers=noenddot}
 \addtokomafont{title}{\sffamily}
-\addtokomafont{paragraph}{\spotcolor}
-\addtokomafont{section}{\spotcolor}
-\addtokomafont{subsection}{\spotcolor}
-\addtokomafont{subsubsection}{\spotcolor}
+\addtokomafont{disposition}{\spotcolor}
 \addtokomafont{descriptionlabel}{\spotcolor}
 \setkomafont{caption}{\bfseries\sffamily\spotcolor}
 \setkomafont{captionlabel}{\bfseries\sffamily\spotcolor}
@@ -39,14 +36,21 @@
 \pretocmd{\bibfield}{\sloppy}{}{}
 \pretocmd{\bibtype}{\sloppy}{}{}
 \makeatletter
-\patchcmd{\paragraph}
-  {3.25ex \@plus1ex \@minus.2ex}{-3.25ex\@plus -1ex \@minus -.2ex}{}{}
-\patchcmd{\paragraph}{-1em}{1.5ex \@plus .2ex}{}{}
+\RedeclareSectionCommand[%
+  beforeskip=-3.25ex\@plus -1ex \@minus -.2ex,%
+  afterskip=1.5ex \@plus .2ex,%
+]{paragraph}
+\RedeclareSectionCommand[%
+  beforeskip=-3.25ex\@plus -1ex \@minus -.2ex,%
+  indent=\z@,%
+]{subparagraph}
 \makeatother
 
 \MakeAutoQuote{«}{»}
 \MakeAutoQuote*{<}{>}
 \MakeShortVerb{\|}
+
+\newcommand*{\allowbreakhere}{\discretionary{}{}{}}
 
 \newcommand*{\biber}{\sty{biber}\xspace}
 \newcommand*{\biblatex}{\sty{biblatex}\xspace}
@@ -135,6 +139,17 @@
 \newrobustcmd*{\CSdelimMark}{%
   \leavevmode\marginpar{\CSdelim}}
 
+
+\newcommand*{\seestyleexample}[1]{%
+  \leavevmode
+  \marginpar{%
+    \raggedright
+    \footnotesize
+    Style example:\\
+    \href{file:examples/#1.pdf}{local},
+    \href{http://mirrors.ctan.org/macros/latex/contrib/biblatex/doc/examples/#1.pdf}
+    {online}.}%
+  \ignorespaces}
 
 % following snippet is based on code by Michael Ummels (TeX Stack Exchange)
 % <http://tex.stackexchange.com/a/13073/8305>
@@ -2035,10 +2050,6 @@ This option corresponds to \biber's \opt{--sortupper} command-line option. If en
 
 This option sets the global sorting locale. Every sorting template inherits this locale if none is specified using the \prm{locale} option to \cmd{printbibliography}. Setting this to \opt{auto} requests that it be set to the \sty{babel}/\sty{polyglossia} main document language identifier, if these packages are used and \texttt{en\_US} otherwise. \biber will map \sty{babel}/\sty{polyglossia} language identifiers into sensible locale identifiers (see the \biber documentation). You can therefore specify either a normal locale identifier like \texttt{de\_DE\_phonebook}, \texttt{es\_ES} or one of the supported \sty{babel}/\sty{polyglossia} language identifiers if the mapping \biber makes of this is fine for you.
 
-\boolitem[true]{related}
-
-Whether or not to use information from related entries or not. See \secref{use:rel}.
-
 \boolitem[false]{sortcites}
 
 Whether or not to sort citations if multiple entry keys are passed to a citation command. If this option is enabled, citations are sorted according to the current bibliography context sorting template (see \secref{use:bib:context}). This feature works with all citation styles.
@@ -2490,7 +2501,7 @@ As \opt{mincrossrefs} but for \bibfield{xref} fields.
 \paragraph{Style-specific}
 \label{use:opt:pre:bbx}
 
-The following options are provided by the standard styles (as opposed to the core package). Technically, they are preamble options like those in \secref{use:opt:pre:gen}.
+The following options are provided by all standard bibliography styles (as opposed to the core package). Technically, they are preamble options like those in \secref{use:opt:pre:gen}.
 
 \begin{optionlist}
 
@@ -2510,7 +2521,99 @@ This option controls whether the field \bibfield{doi} is printed.
 
 This option controls whether \bibfield{eprint} information is printed.
 
+\boolitem[true]{related}
+
+Whether to use information from related entries or not. See \secref{use:rel}.
+
 \end{optionlist}
+
+\subparagraph{\texttt{alphabetic}/\texttt{numeric}} Additionally, styles of the \texttt{alphabetic} and \texttt{numeric} family support the \opt{subentry} option.
+
+\begin{optionlist}
+
+\boolitem[false]{subentry}
+
+This option affects the handling of citations to set members and the display of sets in the bibliography. If the option is enabled, citations to individual set members feature an additional letter that identifies the member, that letter is also printed in the bibliography. If the option is disabled, a citation to the member of a set will display just as a citation to the entire set and there will be no additional letters in the bibliography entries enumerating the members.
+
+Suppose \texttt{key1} and \texttt{key2} are members of the set \texttt{set1}. With \opt{subentry} set to \texttt{true} in a numeric style a citation to \texttt{key1} will show as <[1a]> and a citation to \texttt{key2} as <[1b]>, while the entire set \texttt{set1} will be cited as <[1]>. Furthermore <(a)> and <(b)> will be added in front of the entry data for the set members in the bibliography entry for the set. With \opt{subentry} set to \texttt{false} citations to all three keys will show as <[1]>, no additional letter will be printed in the bibliography.
+
+\end{optionlist}
+
+\subparagraph{\texttt{authortitle}/\texttt{authoryear}} All bibliography styles of the \texttt{authoryear} and \texttt{authortitle} family as well as all bibliography styles of the \texttt{verbose} family---whose bibliography styles are based on \texttt{authortitle}---support the option \opt{dashed}.
+
+\begin{optionlist}
+
+\boolitem[true]{dashed}
+
+This option controls whether recurrent the same author\slash editor list in the bibliography are replaced by a dash (\cmd{bibnamdeash}, see \secref{use:fmt:fmt}). If the option is enabled, subsequent mentions of the same name list at the beginning of an entry are replaced by a dash provided the entry is not the first on the current page. If the option is disabled, name lists are never replaced by a dash.
+
+\end{optionlist}
+
+\subparagraph{\texttt{authoryear}} Bibliography styles of the \texttt{authoryear} family provide the option \opt{mergedate}
+
+\begin{optionlist}
+
+\optitem[true]{mergedate}{\opt{false}, \opt{minimum}, \opt{basic}, \opt{compact}, \opt{maximum}, \opt{true}}
+
+This option controls whether and how the date specification in the entry is merged with the date label shown directly after the author\slash editor list.
+
+\begin{valuelist}
+\item[false] Strictly separate the date specification shown in the entry (styled with \opt{date}) from the date label (styled with \opt{labeldate}). The date will always be shown twice.
+\item[minimum] Omit the date specification whenever it coincides \emph{exactly}---including \bibfield{extradate} information---with the output of the date label.
+\item[basic] Similar to \opt{minimum}, but the date specification will also be omitted if it differs from the date label only by the absence of the \bibfield{extradate} letter.
+\item[compact] Merges all date specifications with the date label. The date format of that merged date label is controlled by \opt{date}, not \opt{labeldate}, even if it is printed in the position of the date label. The \bibfield{issue} field is not merged.
+\item[maximum] Like \opt{compact}, but if present the \bibfield{issue} field will also be moved into the date label at the beginning of the entry.
+\item[true] An alias for \opt{compact}.
+\end{valuelist}
+
+More in-depth examples of this option can be found in the style examples.
+\end{optionlist}
+
+\subparagraph{<ibid> styles} Citation styles with <ibid.> function, namely \texttt{authortitle-ibid}, \texttt{author\allowbreakhere title-icomp}, \texttt{author\allowbreakhere year-ibid}, \texttt{authoryear-icomp}, \texttt{ver\allowbreakhere bose-ibid}, \texttt{verbose-inote}, \texttt{verbose-trad1}, \texttt{verbose-trad2} and \texttt{verbose-trad3} provide the \opt{ibidpage} option.
+
+\begin{optionlist}
+
+\boolitem[false]{ibidpage}
+
+Whether \emph{ibidem} without page reference means <same work> or <same work + same page>. If set to \texttt{true} a page range postnote will be suppressed in an \emph{ibidem} citation if the last citation was to the same page range. With \texttt{ibidpage=false} the postnote is not omitted. Citations to different page ranges than the previous always produce the page ranges with either setting.
+
+\end{optionlist}
+
+\subparagraph{\texttt{verbose}} All citation styles of the \texttt{verbose} family provide the option \opt{citepages}.
+
+\begin{optionlist}
+
+\optitem[permit]{citepages}{\opt{permit}, \opt{suppress}, \opt{omit}, \opt{separate}}
+
+This option controls the output of the \bibfield{page}\slash\bibfield{pagetotal} field in the full citation in combination with a postnote containing a page range. The option can be used to suppress references to two page ranges in full citations like the following
+
+\begin{quote}
+Author. \enquote{Title.} In: \emph{Book,} pp.\,100--150, p.\,125.
+\end{quote}
+
+Here <p.\,125> is the \bibfield{postnote} argument and <pp.\,100--150> is the value of the \bibfield{pages} field.
+
+\begin{valuelist}
+\item[permit] Allow duplication of page specifications, i.e.\ print both \bibfield{page}\slash\bibfield{pagetotal} and \bibfield{postnote}.
+\item[suppress] Unconditionally suppress the \bibfield{pages}\slash \bibfield{pagetotal} fields in citations, regardless of the \bibfield{postnote}.
+\item[omit] Suppress the \bibfield{pages}\slash \bibfield{pagetotal} if the \bibfield{postnote} contains a page range. They are still printed if there is no \bibfield{postnote} or if the \bibfield{postnote} is not a number or range.
+\item[separate] Separate the \bibfield{pages}\slash \bibfield{pagetotal} from the \bibfield{postnote} if the latter contains a page range. The string \texttt{thiscite} is added to separate the two page ranges.
+\end{valuelist}
+
+\end{optionlist}
+
+\subparagraph{\texttt{verbose-trad}} The citation styles of the \texttt{verbose-trad} family support the option \opt{strict}.
+
+\begin{optionlist}
+
+\boolitem[false]{strict}
+
+This option allows to restrict the use of the scholarly abbreviations <ibid.> and <op.~cit.> to avoid ambiguities. If the option is set to \texttt{true} these terms will only be used if the relevant work was cited in the same or previous footnote.
+
+\end{optionlist}
+
+\subparagraph{\texttt{reading}} The \texttt{reading} style supports a number of additional options, but these are not of general interest and can be found in the style example.
+
 
 \paragraph{Internal}
 \label{use:opt:pre:int}
@@ -2930,7 +3033,7 @@ This command may also be used in the configuration file to modify the default se
 \subsection{Standard Styles}
 \label{use:xbx}
 
-This section provides a short description of all bibliography and citation styles which come with the \biblatex package. If you want to write your own styles, see \secref{aut}.
+This section provides a short description of all bibliography and citation styles which come with the \biblatex package. Each style is further illustrated in a style example which is linked in the right margin. The local link may not be available if this document does not reside in the expected folder structure. If you want to write your own styles, see \secref{aut}.
 
 \subsubsection{Citation Styles}
 \label{use:xbx:cbx}
@@ -2939,76 +3042,76 @@ The citation styles which come with this package implement several common citati
 
 \begin{marglist}
 
-\item[numeric]
+\item[numeric]\seestyleexample{30-style-numeric-biber}
 This style implements a numeric citation scheme similar to the standard bibliographic facilities of \latex. It should be employed in conjunction with a numeric bibliography style which prints the corresponding labels in the bibliography. It is intended for in-text citations. The style will set the following package options at load time: \kvopt{autocite}{inline}, \kvopt{labelnumber}{true}. This style also provides an additional preamble option called \opt{subentry} which affects the handling of entry sets. If this option is disabled, citations referring to a member of a set will point to the entire set. If it is enabled, the style supports citations like «[5c]» which point to a subentry in a set (the third one in this example). See the style example for details.
 
-\item[numeric-comp]
+\item[numeric-comp]\seestyleexample{31-style-numeric-comp-biber}
 A compact variant of the \texttt{numeric} style which prints a list of more than two consecutive numbers as a range. This style is similar to the \sty{cite} package and the \opt{sort\&compress} option of the \sty{natbib} package in numerical mode. For example, instead of «[8, 3, 1, 7, 2]» this style would print «[1--3, 7, 8]». It is intended for in-text citations. The style will set the following package options at load time: \kvopt{autocite}{inline}, \kvopt{sortcites}{true}, \kvopt{labelnumber}{true}. It also provides the \opt{subentry} option.
 
-\item[numeric-verb]
+\item[numeric-verb]\seestyleexample{32-style-numeric-verb-biber}
 A verbose variant of the \texttt{numeric} style. The difference affects the handling of a list of citations and is only apparent when multiple entry keys are passed to a single citation command. For example, instead of «[2, 5, 6]» this style would print «[2]; [5]; [6]». It is intended for in-text citations. The style will set the following package options at load time: \kvopt{autocite}{inline}, \kvopt{labelnumber}{true}. It also provides the \opt{subentry} option.
 
-\item[alphabetic]
+\item[alphabetic]\seestyleexample{40-style-alphabetic-biber}
 This style implements an alphabetic citation scheme similar to the \path{alpha.bst} style of traditional \bibtex. The alphabetic labels resemble a compact author"=year style to some extent, but the way they are employed is similar to a numeric citation scheme. For example, instead of «Jones 1995» this style would use the label «[Jon95]». «Jones and Williams 1986» would be rendered as «[JW86]». This style should be employed in conjunction with an alphabetic bibliography style which prints the corresponding labels in the bibliography. It is intended for in-text citations. The style will set the following package options at load time: \kvopt{autocite}{inline}, \kvopt{labelalpha}{true}. This style also provides an additional preamble option called \opt{subentry} which affects the handling of entry sets. If this option is disabled, citations referring to a member of a set will point to the entire set. If it is enabled, the style supports citations like «[SGW(c)]» which point to a subentry in a set (the third one in this example). See the style example for details.
 
-\item[alphabetic-verb]
+\item[alphabetic-verb]\seestyleexample{41-style-alphabetic-verb-biber}
 A verbose variant of the \texttt{alphabetic} style. The difference affects the handling of a list of citations and is only apparent when multiple entry keys are passed to a single citation command. For example, instead of «[Doe92; Doe95; Jon98]» this style would print «[Doe92]; [Doe95]; [Jon98]». It is intended for in-text citations. The style will set the following package options at load time: \kvopt{autocite}{inline}, \kvopt{labelalpha}{true}. It also provides the subentry option.
 
-\item[authoryear]
+\item[authoryear]\seestyleexample{50-style-authoryear-biber}
 This style implements an author"=year citation scheme. If the bibliography contains two or more works by the same author which were all published in the same year, a letter is appended to the year. For example, this style would print citations such as «Doe 1995a; Doe 1995b; Jones 1998». This style should be employed in conjunction with an author"=year bibliography style which prints the corresponding labels in the bibliography. It is primarily intended for in-text citations, but it could also be used with citations given in footnotes. The style will set the following package options at load time: \kvopt{autocite}{inline}, \kvopt{labeldateparts}{true}, \kvopt{uniquename}{full}, \kvopt{uniquelist}{true}.
 
-\item[authoryear-comp]
+\item[authoryear-comp]\seestyleexample{52-style-authoryear-comp-biber}
 A compact variant of the \texttt{authoryear} style which prints the author only once if subsequent references passed to a single citation command share the same author. If they share the same year as well, the year is also printed only once. For example, instead of «Doe 1995b; Doe 1992; Jones 1998; Doe 1995a» this style would print «Doe 1992, 1995a,b; Jones 1998». It is primarily intended for in-text citations, but it could also be used with citations given in footnotes. The style will set the following package options at load time: \kvopt{autocite}{inline}, \kvopt{sortcites}{true}, \kvopt{labeldateparts}{true}, \kvopt{uniquename}{full}, \kvopt{uniquelist}{true}.
 
-\item[authoryear-ibid]
+\item[authoryear-ibid]\seestyleexample{51-style-authoryear-ibid-biber}
 A variant of the \texttt{authoryear} style which replaces repeated citations by the abbreviation \emph{ibidem} unless the citation is the first one on the current page or double-page spread, or the \emph{ibidem} would be ambiguous in the sense of the package option \kvopt{ibidtracker}{constrict}. The style will set the following package options at load time: \kvopt{autocite}{inline}, \kvopt{labeldateparts}{true}, \kvopt{uniquename}{full}, \kvopt{uniquelist}{true}, \kvopt{ibidtracker}{constrict}, \kvopt{pagetracker}{true}. This style also provides an additional preamble option called \opt{ibidpage}. See the style example for details.
 
-\item[authoryear-icomp]
+\item[authoryear-icomp]\seestyleexample{53-style-authoryear-icomp-biber}
 A style combining \texttt{authoryear-comp} and \texttt{authoryear-ibid}. The style will set the following package options at load time: \kvopt{autocite}{inline}, \kvopt{labeldateparts}{true}, \kvopt{uniquename}{full}, \kvopt{uniquelist}{true}, \kvopt{ibidtracker}{constrict}, \kvopt{pagetracker}{true}, \kvopt{sortcites}{true}. This style also provides an additional preamble option called \opt{ibidpage}. See the style example for details.
 
-\item[authortitle]
+\item[authortitle]\seestyleexample{60-style-authortitle-biber}
 This style implements a simple author"=title citation scheme. It will make use of the \bibfield{shorttitle} field, if available. It is intended for citations given in footnotes. The style will set the following package options at load time: \kvopt{autocite}{footnote}, \kvopt{uniquename}{full}, \kvopt{uniquelist}{true}.
 
-\item[authortitle-comp]
+\item[authortitle-comp]\seestyleexample{62-style-authortitle-comp-biber}
 A compact variant of the \texttt{authortitle} style which prints the author only once if subsequent references passed to a single citation command share the same author. For example, instead of «Doe, \emph{First title}; Doe, \emph{Second title}» this style would print «Doe, \emph{First title}, \emph{Second title}». It is intended for citations given in footnotes. The style will set the following package options at load time: \kvopt{autocite}{footnote}, \kvopt{sortcites}{true}, \kvopt{uniquename}{full}, \kvopt{uniquelist}{true}.
 
-\item[authortitle-ibid]
+\item[authortitle-ibid]\seestyleexample{61-style-authortitle-ibid-biber}
 A variant of the \texttt{authortitle} style which replaces repeated citations by the abbreviation \emph{ibidem} unless the citation is the first one on the current page or double-page spread, or the \emph{ibidem} would be ambiguous in the sense of the package option \kvopt{ibidtracker}{constrict}. It is intended for citations given in footnotes. The style will set the following package options at load time: \kvopt{autocite}{footnote}, \kvopt{uniquename}{full}, \kvopt{uniquelist}{true}, \kvopt{ibidtracker}{constrict}, \kvopt{pagetracker}{true}. This style also provides an additional preamble option called \opt{ibidpage}. See the style example for details.
 
-\item[authortitle-icomp]
+\item[authortitle-icomp]\seestyleexample{63-style-authortitle-icomp-biber}
 A style combining the features of \texttt{authortitle-comp} and \texttt{authortitle-ibid}. The style will set the following package options at load time: \kvopt{autocite}{footnote}, \kvopt{uniquename}{full}, \kvopt{uniquelist}{true}, \kvopt{ibidtracker}{constrict}, \kvopt{pagetracker}{true}, \kvopt{sortcites}{true}. This style also provides an additional preamble option called \opt{ibidpage}. See the style example for details.
 
-\item[authortitle-terse]
+\item[authortitle-terse]\seestyleexample{64-style-authortitle-terse-biber}
 A terse variant of the \texttt{authortitle} style which only prints the title if the bibliography contains more than one work by the respective author\slash editor. This style will make use of the \bibfield{shorttitle} field, if available. It is suitable for in-text citations as well as citations given in footnotes. The style will set the following package options at load time: \kvopt{autocite}{inline}, \kvopt{singletitle}{true}, \kvopt{uniquename}{full}, \kvopt{uniquelist}{true}.
 
-\item[authortitle-tcomp]
+\item[authortitle-tcomp]\seestyleexample{65-style-authortitle-tcomp-biber}
 A style combining the features of \texttt{authortitle-comp} and \texttt{authortitle-terse}. This style will make use of the \bibfield{shorttitle} field, if available. It is suitable for in-text citations as well as citations given in footnotes. The style will set the following package options at load time: \kvopt{autocite}{inline}, \kvopt{sortcites}{true}, \kvopt{singletitle}{true}, \kvopt{uniquename}{full}, \kvopt{uniquelist}{true}.
 
-\item[authortitle-ticomp]
+\item[authortitle-ticomp]\seestyleexample{66-style-authortitle-ticomp-biber}
 A style combining the features of \texttt{authortitle-icomp} and \texttt{authortitle-terse}. In other words: a variant of the \texttt{authortitle-tcomp} style with an \emph{ibidem} feature. This style is suitable for in-text citations as well as citations given in footnotes. It will set the following package options at load time: \kvopt{autocite}{inline}, \kvopt{ibidtracker}{constrict}, \kvopt{pagetracker}{true}, \kvopt{sortcites}{true}, \kvopt{singletitle}{true}, \kvopt{uniquename}{full}, \kvopt{uniquelist}{true}. This style also provides an additional preamble option called \opt{ibidpage}. See the style example for details.
 
-\item[verbose]
+\item[verbose]\seestyleexample{70-style-verbose-biber}
 A verbose citation style which prints a full citation similar to a bibliography entry when an entry is cited for the first time, and a short citation afterwards. If available, the \bibfield{shorttitle} field is used in all short citations. If the \bibfield{shorthand} field is defined, the shorthand is introduced on the first citation and used as the short citation thereafter. This style may be used without a list of references and shorthands since all bibliographic data is provided on the first citation. It is intended for citations given in footnotes. The style will set the following package options at load time: \kvopt{autocite}{footnote}, \kvopt{citetracker}{context}. This style also provides an additional preamble option called \opt{citepages}. See the style example for details.
 
-\item[verbose-ibid]
+\item[verbose-ibid]\seestyleexample{71-style-verbose-ibid-biber}
 A variant of the \texttt{verbose} style which replaces repeated citations by the abbreviation \emph{ibidem} unless the citation is the first one on the current page or double-page spread, or the \emph{ibidem} would be ambiguous in the sense of \kvopt{ibidtracker}{strict}. This style is intended for citations given in footnotes. The style will set the following package options at load time: \kvopt{autocite}{footnote}, \kvopt{citetracker}{context}, \kvopt{ibidtracker}{constrict}, \kvopt{pagetracker}{true}. This style also provides additional preamble options called \opt{ibidpage} and \opt{citepages}. See the style example for details.
 
-\item[verbose-note]
+\item[verbose-note]\seestyleexample{72-style-verbose-note-biber}
 This style is similar to the \texttt{verbose} style in that it prints a full citation similar to a bibliography entry when an entry is cited for the first time, and a short citation afterwards. In contrast to the \texttt{verbose} style, the short citation is a pointer to the footnote with the full citation. If the bibliography contains more than one work by the respective author\slash editor, the pointer also includes the title. If available, the \bibfield{shorttitle} field is used in all short citations. If the \bibfield{shorthand} field is defined, it is handled as with the \texttt{verbose} style. This style may be used without a list of references and shorthands since all bibliographic data is provided on the first citation. It is exclusively intended for citations given in footnotes. The style will set the following package options at load time: \kvopt{autocite}{footnote}, \kvopt{citetracker}{context}, \kvopt{singletitle}{true}. This style also provides additional preamble options called \opt{pageref} and \opt{citepages}. See the style example for details.
 
-\item[verbose-inote]
+\item[verbose-inote]\seestyleexample{73-style-verbose-inote-biber}
 A variant of the \texttt{verbose"=note} style which replaces repeated citations by the abbreviation \emph{ibidem} unless the citation is the first one on the current page or double-page spread, or the \emph{ibidem} would be ambiguous in the sense of \kvopt{ibidtracker}{strict}. This style is exclusively intended for citations given in footnotes. It will set the following package options at load time: \kvopt{autocite}{footnote}, \kvopt{citetracker}{context}, \kvopt{ibidtracker}{constrict}, \kvopt{singletitle}{true}, \kvopt{pagetracker}{true}. This style also provides additional preamble options called \opt{ibidpage}, \opt{pageref}, and \opt{citepages}. See the style example for details.
 
-\item[verbose-trad1]
+\item[verbose-trad1]\seestyleexample{74-style-verbose-trad1-biber}
 This style implements a traditional citation scheme. It is similar to the \texttt{verbose} style in that it prints a full citation similar to a bibliography entry when an item is cited for the first time, and a short citation afterwards. Apart from that, it uses the scholarly abbreviations \emph{ibidem}, \emph{idem}, \emph{op.~cit.}, and \emph{loc.~cit.} to replace recurrent authors, titles, and page numbers in repeated citations in a special way. If the \bibfield{shorthand} field is defined, the shorthand is introduced on the first citation and used as the short citation thereafter. This style may be used without a list of references and shorthands since all bibliographic data is provided on the first citation. It is intended for citations given in footnotes. The style will set the following package options at load time: \kvopt{autocite}{footnote}, \kvopt{citetracker}{context}, \kvopt{ibidtracker}{constrict}, \kvopt{idemtracker}{constrict}, \kvopt{opcittracker}{context}, \kvopt{loccittracker}{context}. This style also provides additional preamble options called \opt{ibidpage}, \opt{strict}, and \opt{citepages}. See the style example for details.
 
-\item[verbose-trad2]
+\item[verbose-trad2]\seestyleexample{75-style-verbose-trad2-biber}
 Another traditional citation scheme. It is also similar to the \texttt{verbose} style but uses scholarly abbreviations like \emph{ibidem} and \emph{idem} in repeated citations. In contrast to the \texttt{verbose-trad1} style, the logic of the \emph{op.~cit.} abbreviations is different in this style and \emph{loc.~cit.} is not used at all. It is in fact more similar to \texttt{verbose-ibid} and \texttt{verbose-inote} than to \texttt{verbose-trad1}. The style will set the following package options at load time: \kvopt{autocite}{footnote}, \kvopt{citetracker}{context}, \kvopt{ibidtracker}{constrict}, \kvopt{idemtracker}{constrict}. This style also provides additional preamble options called \opt{ibidpage}, \opt{strict}, and \opt{citepages}. See the style example for details.
 
-\item[verbose-trad3]
+\item[verbose-trad3]\seestyleexample{76-style-verbose-trad3-biber}
 Yet another traditional citation scheme. It is similar to the \texttt{verbose-trad2} style but uses the scholarly abbreviations \emph{ibidem} and \emph{op.~cit.} in a slightly different way. The style will set the following package options at load time: \kvopt{autocite}{footnote}, \kvopt{citetracker}{context}, \kvopt{ibidtracker}{constrict}, \kvopt{loccittracker}{constrict}. This style also provides additional preamble options called \opt{strict} and \opt{citepages}. See the style example for details.
 
-\item[reading]
+\item[reading]\seestyleexample{80-style-reading-biber}
 A citation style which goes with the bibliography style by the same name. It simply loads the \texttt{authortitle} style.
 
 \end{marglist}
@@ -3017,10 +3120,10 @@ The following citation styles are special purpose styles. They are not intended 
 
 \begin{marglist}
 
-\item[draft]
+\item[draft]\seestyleexample{81-style-draft-biber}
 A draft style which uses the entry keys in citations. The style will set the following package options at load time: \kvopt{autocite}{plain}.
 
-\item[debug]
+\item[debug]\seestyleexample{82-style-debug-biber}
 This style prints the entry key rather than some kind of label. It is intended for debugging only and will set the following package options at load time: \kvopt{autocite}{plain}.
 
 \end{marglist}
@@ -3032,22 +3135,22 @@ All bibliography styles which come with this package use the same basic format f
 
 \begin{marglist}
 
-\item[numeric]
+\item[numeric]\seestyleexample{30-style-numeric-biber}
 This style prints a numeric label similar to the standard bibliographic facilities of \latex. It is intended for use in conjunction with a numeric citation style. Note that the \bibfield{shorthand} field overrides the default label. The style will set the following package options at load time: \kvopt{labelnumber}{true}. This style also provides an additional preamble option called \opt{subentry} which affects the formatting of entry sets. If this option is enabled, all members of a set are marked with a letter which may be used in citations referring to a set member rather than the entire set. See the style example for details.
 
-\item[alphabetic]
+\item[alphabetic]\seestyleexample{40-style-alphabetic-biber}
 This style prints an alphabetic label similar to the \path{alpha.bst} style of traditional \bibtex. It is intended for use in conjunction with an alphabetic citation style. Note that the \bibfield{shorthand} field overrides the default label. The style will set the following package options at load time: \kvopt{labelalpha}{true}, \kvopt{sorting}{anyt}.
 
-\item[authoryear]
+\item[authoryear]\seestyleexample{50-style-authoryear-biber}
 This style differs from the other styles in that the publication date is not printed towards the end of the entry but rather after the author\slash editor. It is intended for use in conjunction with an author"=year citation style. Recurring author and editor names are replaced by a dash unless the entry is the first one on the current page or double-page spread. This style provides an additional preamble option called \opt{dashed} which controls this feature. It also provided a preamble option called \opt{mergedate}. See the style example for details. The style will set the following package options at load time: \kvopt{labeldateparts}{true}, \kvopt{sorting}{nyt}, \kvopt{pagetracker}{true}, \kvopt{mergedate}{true}.
 
-\item[authortitle]
+\item[authortitle]\seestyleexample{60-style-authortitle-biber}
 This style does not print any label at all. It is intended for use in conjunction with an author"=title citation style. Recurring author and editor names are replaced by a dash unless the entry is the first one on the current page or double-page spread. This style also provides an additional preamble option called \opt{dashed} which controls this feature. See the style example for details. The style will set the following package options at load time: \kvopt{pagetracker}{true}.
 
-\item[verbose]
+\item[verbose]\seestyleexample{70-style-verbose-biber}
 This style is similar to the \texttt{authortitle} style. It also provides an additional preamble option called \opt{dashed}. See the style example for details. The style will set the following package options at load time: \kvopt{pagetracker}{true}.
 
-\item[reading]
+\item[reading]\seestyleexample{80-style-reading-biber}
 This special bibliography style is designed for personal reading lists, annotated bibliographies, and similar applications. It optionally includes the fields \bibfield{annotation}, \bibfield{abstract}, \bibfield{library}, and \bibfield{file} in the bibliography. If desired, it also adds various kinds of short headers to the bibliography. This style also provides the additional preamble options \opt{entryhead}, \opt{entrykey}, \opt{annotation}, \opt{abstract}, \opt{library}, and \opt{file} which control whether or not the corresponding items are printed in the bibliography. See the style example for details. See also \secref{use:use:prf}. The style will set the following package options at load time: \kvopt{loadfiles}{true}, \kvopt{entryhead}{true}, \kvopt{entrykey}{true}, \kvopt{annotation}{true}, \kvopt{abstract}{true}, \kvopt{library}{true}, \kvopt{file}{true}.
 
 \end{marglist}
@@ -3056,10 +3159,10 @@ The following bibliography styles are special purpose styles. They are not inten
 
 \begin{marglist}
 
-\item[draft]
+\item[draft]\seestyleexample{81-style-draft-biber}
 This draft style includes the entry keys in the bibliography. The bibliography will be sorted by entry key. The style will set the following package options at load time: \kvopt{sorting}{debug}.
 
-\item[debug]
+\item[debug]\seestyleexample{82-style-debug-biber}
 This style prints all bibliographic data in tabular format. It is intended for debugging only and will set the following package options at load time: \kvopt{sorting}{debug}.
 
 \end{marglist}
