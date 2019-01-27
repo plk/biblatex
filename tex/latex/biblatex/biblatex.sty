@@ -673,9 +673,9 @@
 \expandafter\newcount\csname blx@sectionciteorder@0\endcsname
 \newcount\blx@entrysetcounter
 
-\def\blx@uniquename{0}
-\def\blx@uniquelist{0}
-\def\blx@uniqueliststrength{0}
+\def\blx@uniquename{false}
+\def\blx@uniquelist{false}
+\def\blx@namestrunchandling{default}
 \def\blx@maxbibnames{0}
 \def\blx@minbibnames{0}
 \def\blx@maxcitenames{0}
@@ -742,7 +742,6 @@
 \newtoggle{blx@labeltitle}
 \newtoggle{blx@labeltitleyear}
 \newtoggle{blx@labeldateparts}
-\newtoggle{blx@minsortnamesstrict}
 \newtoggle{blx@natbib}
 \newtoggle{blx@noroman}
 \newtoggle{blx@mcite}
@@ -12141,15 +12140,14 @@
     \blx@xml@svalue{minbibnames}{\blx@minbibnames}%
     \blx@xml@svalue{mincitenames}{\blx@mincitenames}%
     \blx@xml@svalue{minsortnames}{\blx@minsortnames}%
-    \blx@xml@toggle{minsortnamesstrict}%
     \blx@xml@svalue{minitems}{\blx@minitems}%
+    \blx@xml@svalue{namestrunchandling}{\blx@namestrunchandling}%
     \blx@xml@toggle{singletitle}%
     \blx@xml@svalue{sortalphaothers}{\sortalphaothers}%
     \blx@xml@svalue{sortlocale}{\blx@sortlocale}%
     \blx@xml@svalue{sortingtemplatename}{\blx@sorting}%
     \blx@xml@toggle{sortsets}%
     \blx@xml@svalue{uniquelist}{\blx@uniquelist}%
-    \blx@xml@svalue{uniqueliststrength}{\blx@uniqueliststrength}%
     \blx@xml@svalue{uniquename}{\blx@uniquename}%
     \blx@xml@toggle{uniqueprimaryauthor}%
     \blx@xml@toggle{uniquetitle}%
@@ -13592,9 +13590,6 @@
 \DeclareEntryOption[integer]{minnames}{%
   \c@minnames#1\relax}
 
-\DeclareBibliographyOption[boolean]{minsortnamesstrict}[false]{%
-  \settoggle{blx@minsortnamesstrict}{#1}}
-
 \DeclareBibliographyOption[integer]{maxbibnames}{%
   \numdef\blx@maxbibnames{#1}%
   \numdef\blx@maxsortnames{#1}}
@@ -14461,16 +14456,18 @@
   \ifcsdef{blx@opt@uniquelist@#1}
     {\letcs\blx@uniquelist{blx@opt@uniquelist@#1}}
     {\blx@err@invopt{uniquelist=#1}{}}}
-\def\blx@opt@uniquelist@false{0}
-\def\blx@opt@uniquelist@true{1}
-\def\blx@opt@uniquelist@minyear{2}
+\def\blx@opt@uniquelist@false{false}
+\def\blx@opt@uniquelist@true{true}
+\def\blx@opt@uniquelist@minyear{minyear}
 
-\DeclareBibliographyOption[string]{uniqueliststrength}[strong]{%
-  \ifcsdef{blx@opt@uniqueliststrength@#1}
-    {\letcs\blx@uniqueliststrength{blx@opt@uniqueliststrength@#1}}
-    {\blx@err@invopt{uniqueliststrength=#1}{}}}
-\def\blx@opt@uniqueliststrength@strong{0}
-\def\blx@opt@uniqueliststrength@weak{1}
+\DeclareBibliographyOption[string]{namestrunchandling}[default]{%
+  \ifcsdef{blx@opt@namestrunchandling@#1}
+    {\letcs\blx@namestrunchandling{blx@opt@namestrunchandling@#1}}
+    {\blx@err@invopt{namestrunchandling=#1}{}}}
+\def\blx@opt@namestrunchandling@default{default}
+\def\blx@opt@namestrunchandling@nohash{nohash}
+\def\blx@opt@namestrunchandling@nosort{nosort}
+\def\blx@opt@namestrunchandling@nohashnosort{nohashnosort}
 
 \DeclareBibliographyOption[string]{uniquename}[true]{%
   \ifcsdef{blx@opt@uniquename@#1}
@@ -14484,14 +14481,14 @@
   \ifcsdef{blx@opt@uniquename@#1}
     {\letcs\blx@uniquename{blx@opt@uniquename@#1}}
     {\blx@err@invopt{uniquename=#1}{}}}
-\def\blx@opt@uniquename@false{0}
-\def\blx@opt@uniquename@init{1}
-\def\blx@opt@uniquename@true{2}
-\def\blx@opt@uniquename@full{2}
-\def\blx@opt@uniquename@allinit{3}
-\def\blx@opt@uniquename@allfull{4}
-\def\blx@opt@uniquename@mininit{5}
-\def\blx@opt@uniquename@minfull{6}
+\def\blx@opt@uniquename@false{false}
+\def\blx@opt@uniquename@init{init}
+\def\blx@opt@uniquename@true{full}
+\def\blx@opt@uniquename@full{full}
+\def\blx@opt@uniquename@allinit{allinit}
+\def\blx@opt@uniquename@allfull{allfull}
+\def\blx@opt@uniquename@mininit{mininit}
+\def\blx@opt@uniquename@minfull{minfull}
 
 \DeclareBibliographyOption[boolean]{noroman}[true]{%
   \settoggle{blx@noroman}{#1}}
@@ -14763,19 +14760,19 @@
   \def\do#1{\iftoggle{abx@bool@#1inits}{\toggletrue{abx@bool@xinits}}{}}
   \abx@donameparts
   \iftoggle{abx@bool@xinits}
-    {\ifnumequal\blx@uniquename\blx@opt@uniquename@full
+    {\ifdefstrequal\blx@uniquename\blx@opt@uniquename@full
        {\blx@warn@conflopt{%
           '<namepart>inits' conflicts with 'uniquename=full'.\MessageBreak
           Setting 'uniquename=init'}%
         \setkeys{blx@opt@pre}{uniquename=init}}
        {}%
-     \ifnumequal\blx@uniquename\blx@opt@uniquename@allfull
+     \ifdefstrequal\blx@uniquename\blx@opt@uniquename@allfull
        {\blx@warn@conflopt{%
           '<namepart>inits' conflicts with 'uniquename=allfull'.\MessageBreak
           Setting 'uniquename=allinit}%
         \setkeys{blx@opt@pre}{uniquename=allinit}}
        {}%
-     \ifnumequal\blx@uniquename\blx@opt@uniquename@minfull
+     \ifdefstrequal\blx@uniquename\blx@opt@uniquename@minfull
        {\blx@warn@conflopt{%
           '<namepart>inits' conflicts with 'uniquename=minfull'.\MessageBreak
           Setting 'uniquename=mininit}%

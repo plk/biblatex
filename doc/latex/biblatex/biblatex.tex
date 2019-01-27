@@ -2091,17 +2091,6 @@ Similar to \opt{maxnames} but affects only the names visible to sorting. Since t
 
 Similar to \opt{minnames} but affects only the names visible to sorting. Since this defaults to \prm{minbibnames}, you should set this after \opt{minbibnames} if \opt{minbibnames} is explicitly set.
 
-\boolitem[false]{minsortnamesstrict}
-
-If this option is enabled, the visible list of names (which is the \opt{minsortnames} value) used to determine sorting will ignore any truncation. This means that the name lists:
-
-\begin{lstlisting}{}
-Jones, Smith
-Jones, Smith et al
-\end{lstlisting}
-%
-will sort exactly the same. The default setting of this option always sorts in the order shown in the example, that is, by default, truncated names lists always sort after any name lists identical to the point of truncation.
-
 \intitem[3]{maxitems}
 
 Similar to \opt{maxnames}, but affecting all literal lists (\bibfield{publisher}, \bibfield{location}, etc.).
@@ -2842,16 +2831,62 @@ Whether or not to update the \cnt{uniquelist} counter, see \secref{aut:aux:tst} 
 %
 Note that the \opt{uniquelist} option will also affect the \cmd{ifsingletitle} test and the \bibfield{extradate} and \bibfield{extraname} fields. See \secref{aut:cav:amb} for further details and practical examples.
 
-\optitem[strong]{uniqueliststrength}{\opt{strong}, \opt{weak}}
+\optitem[default]{namestrunchandling}{\opt{default}, \opt{nohash}, \opt{nosort}, \opt{nohashnosort}}
 
-When generating the counters for \bibfield{extraname} and \bibfield{extradate}, by default \biber will take account of name list truncation due to the \opt{uniquelist} settings (and any explicit <and others> in the data source). This can be weakened to ignore name truncations when generating the \bibfield{extraname} and \bibfield{extradate} counters. The possible choices are:
+By default, name lists which are truncated with <et al>--either explicitly by <and others> in the data source or the \opt{uniquelist} and \opt{min/maxnames} options--result in different name list hashes (and therefore different \opt{extraname} and \opt{extradate} values) and different sorting. This option allows this behaviour to be tuned. \opt{nohash} makes \biber ignore <et al> truncations for the purposes of generating name list hashes. Consider:
 
-\begin{valuelist}
-\item[strong] Take account of name list truncation when generating \bibfield{extraname} and \bibfield{extradate}.
-\item[weak] Ignore name list truncation when generating \bibfield{extraname} and \bibfield{extradate}.
-\end{valuelist}
+\begin{lstlisting}{}
+Jones 1972
+Jones/and others 1972
+Smith 2000
+Smith/Vogel/Beast/Tremble 2000
+\end{lstlisting}
 %
-Note that the \opt{uniqueliststrength} option will also affect the \bibfield{extradate} and \bibfield{extraname} fields. See \secref{aut:cav:amb} for further details and practical examples.
+With \kvopt{maxnames}{3}, \kvopt{minnames}{1}, \kvopt{namestrunchandling}{default}, the result would be:
+
+\begin{lstlisting}{}
+  Jones 1972
+  Jones et al 1972
+  Smith 2000
+  Smith et al 2000
+\end{lstlisting}
+%
+Whereas with \kvopt{maxnames}{3}, \kvopt{minnames}{1}, \kvopt{namestrunchandling}{nohash}, the result would be:
+
+\begin{lstlisting}{}
+  Jones 1972a
+  Jones et al 1972b
+  Smith 2000a
+  Smith et al 2000b
+\end{lstlisting}
+
+If desired, this could be further simplified with:
+
+\begin{ltxexample}
+  \DefineBibliographyStrings{english}{andothers={}}
+\end{ltxexample}
+%
+To obtain:
+
+\begin{lstlisting}{}
+  Jones 1972a
+  Jones 1972b
+  Smith 2000a
+  Smith 2000b
+\end{lstlisting}
+%
+The option \opt{nosort} has a related effect on sorting--the visible list of names (which is the \opt{minsortnames} value) used to determine sorting will ignore any truncation. This means that with \kvopt{namestrunchandling}{nosort}, the name lists:
+
+\begin{lstlisting}{}
+Jones, Smith
+Jones, Smith et al
+\end{lstlisting}
+%
+will sort exactly the same. The default setting of \opt{namestrunchandling} always sorts in the order shown in the example, that is, by default, truncated names lists always sort after any name lists identical to the point of truncation.
+
+\kvopt{namestrunchandling}{nohashnosort} combines the effect of \opt{nohash} and \opt{nosort}.
+
+Note that the \opt{namestrunchandling} option will affect the \bibfield{extradate} and \bibfield{extraname} fields.
 
 \end{optionlist}
 
@@ -12755,48 +12790,6 @@ Vogel et al. 2001
 %
 In the last citation, \kvopt{uniquelist}{minyear} does not override \opt{maxnames}\slash \opt{minnames} as the citation does not need disambiguating from the other two because the year is different.
 
-With \kvopt{uniqueliststrength}{weak}, it is possible to further disambiguate name lists which would otherwise be treated as unique due to their truncations being unique but which nevertheless might appear confusing. Consider:
-
-\begin{lstlisting}{}
-Jones 1972
-Jones/and others 1972
-Smith 2000
-Smith/Vogel/Beast/Tremble 2000
-\end{lstlisting}
-%
-With \kvopt{maxnames}{3}, \kvopt{minnames}{1}, \kvopt{uniqueliststrength}{strong}, we would get:
-
-\begin{lstlisting}{}
-  Jones 1972
-  Jones et al 1972
-  Smith 2000
-  Smith et al 2000
-\end{lstlisting}
-%
-Whereas with \kvopt{maxnames}{3}, \kvopt{minnames}{1}, \kvopt{uniqueliststrength}{weak}, we would get:
-
-\begin{lstlisting}{}
-  Jones 1972a
-  Jones et al 1972b
-  Smith 2000a
-  Smith et al 2000b
-\end{lstlisting}
-
-If desired, this could be further simplified with:
-
-\begin{ltxexample}
-  \DefineBibliographyStrings{english}{andothers={}}
-\end{ltxexample}
-%
-To obtain:
-
-\begin{lstlisting}{}
-  Jones 1972a
-  Jones 1972b
-  Smith 2000a
-  Smith 2000b
-\end{lstlisting}
-
 \subsubsection{Trackers in Floats and \acr{TOC}/\acr{LOT}/\acr{LOF}}
 \label{aut:cav:flt}
 
@@ -13756,11 +13749,11 @@ minalphanames	&\+&\+&\_&\+&\+&\_&\_\\
 minbibnames	&\+&\+&\_&\+&\+&\_&\_\\
 mincitenames	&\+&\+&\_&\+&\+&\_&\_\\
 minsortnames	&\+&\+&\_&\+&\+&\_&\_\\
-minsortnamesstrict	&\+&\_&\_&\+&\_&\_&\_\\
 mincrossrefs	&\+&\+&\_&\_&\_&\_&\_\\
 minxrefs	&\+&\+&\_&\_&\_&\_&\_\\
 minitems	&\+&\+&\_&\+&\+&\_&\_\\
 minnames	&\+&\+&\_&\+&\+&\_&\_\\
+namestrunchandling	&\+&\_&\_&\_&\_&\_&\_\\
 nametemplates &\_&\_&\+&\_&\+&\+&\+\\
 natbib		&\+&\_&\_&\_&\_&\_&\_\\
 noinherit		&\_&\_&\_&\_&\+&\_&\_\\
@@ -13791,7 +13784,6 @@ texencoding	&\+&\+&\_&\_&\_&\_&\_\\
 timezeros	&\+&\+&\_&\_&\_&\_&\_\\
 timezones	&\+&\+&\_&\_&\_&\_&\_\\
 uniquelist	&\+&\+&\_&\+&\+&\_&\_\\
-uniqueliststrength	&\+&\_&\_&\_&\_&\_&\_\\
 uniquename	&\+&\+&\_&\+&\+&\_&\_\\
 uniquenametemplatename	&\_&\_&\+&\_&\+&\+&\+\\
 uniquetitle	&\+&\+&\_&\+&\_&\_&\_\\
@@ -13811,10 +13803,8 @@ This revision history is a list of changes relevant to users of this package. Ch
 
 \begin{changelog}
 \begin{release}{3.13}{2019}
-\item Added \opt{minsortnamesstrict}\see{use:opt:pre:gen}
-\item Added \opt{uniqueliststrength}\see{use:opt:pre:int}
+\item Added \opt{namestrunchandling}\see{use:opt:pre:int}
 \item Enhanced \cmd{addbibresource} with globbing\see{use:bib:res}
-\item Added \opt{uniqueliststrength}\see{use:opt:pre:int}
 \end{release}
 
 \begin{release}{3.12}{2018-10-30}
