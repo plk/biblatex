@@ -675,7 +675,6 @@
 
 \def\blx@uniquename{false}
 \def\blx@uniquelist{false}
-\def\blx@namestrunchandling{default}
 \def\blx@maxbibnames{0}
 \def\blx@minbibnames{0}
 \def\blx@maxcitenames{0}
@@ -744,6 +743,8 @@
 \newtoggle{blx@labeldateparts}
 \newtoggle{blx@natbib}
 \newtoggle{blx@noroman}
+\newtoggle{blx@nohashothers}
+\newtoggle{blx@nosortothers}
 \newtoggle{blx@mcite}
 \newtoggle{blx@loadfiles}
 \newtoggle{blx@singletitle}
@@ -6459,6 +6460,10 @@
 \blx@collectopts{string}{blx@namelistopts}{labelalphanametemplatename}% for passing to bcf
 \blx@collectopts{string}{blx@nameopts}{labelalphanametemplatename}% for passing to the .bcf
 
+% nohashothers and nosortothers namelist scope
+\blx@collectopts{string}{blx@namelistopts}{nohashothers}% for passing to bcf
+\blx@collectopts{string}{blx@namelistopts}{nosortothers}% for passing to bcf
+
 % Misc globalopts
 \blx@collectopts{xml}{blx@globalopts}{datamodel}% for passing to the .bcf
 \blx@collectopts{string}{blx@globalopts}{controlversion}% for passing to the .bcf
@@ -12141,7 +12146,8 @@
     \blx@xml@svalue{mincitenames}{\blx@mincitenames}%
     \blx@xml@svalue{minsortnames}{\blx@minsortnames}%
     \blx@xml@svalue{minitems}{\blx@minitems}%
-    \blx@xml@svalue{namestrunchandling}{\blx@namestrunchandling}%
+    \blx@xml@toggle{nohashothers}%
+    \blx@xml@toggle{nosortothers}%
     \blx@xml@toggle{singletitle}%
     \blx@xml@svalue{sortalphaothers}{\sortalphaothers}%
     \blx@xml@svalue{sortlocale}{\blx@sortlocale}%
@@ -12187,6 +12193,8 @@
     \blx@xml@svalue{mincitenames}{\blx@mincitenames@type}%
     \blx@xml@svalue{minsortnames}{\blx@minsortnames@type}%
     \blx@xml@svalue{minitems}{\blx@minitems@type}%
+    \blx@xml@toggle{nohashothers}%
+    \blx@xml@toggle{nosortothers}%
     \blx@xml@toggle{singletitle}%
     \blx@xml@toggle{skipbib}%
     \blx@xml@toggle{skiplab}%
@@ -14460,14 +14468,19 @@
 \def\blx@opt@uniquelist@true{true}
 \def\blx@opt@uniquelist@minyear{minyear}
 
-\DeclareBibliographyOption[string]{namestrunchandling}[default]{%
-  \ifcsdef{blx@opt@namestrunchandling@#1}
-    {\letcs\blx@namestrunchandling{blx@opt@namestrunchandling@#1}}
-    {\blx@err@invopt{namestrunchandling=#1}{}}}
-\def\blx@opt@namestrunchandling@default{default}
-\def\blx@opt@namestrunchandling@nohash{nohash}
-\def\blx@opt@namestrunchandling@nosort{nosort}
-\def\blx@opt@namestrunchandling@nohashnosort{nohashnosort}
+\DeclareBibliographyOption[boolean]{nohashothers}[false]{%
+  \settoggle{blx@nohashothers}{#1}}
+\DeclareTypeOption[boolean]{nohashothers}[false]{%
+  \settoggle{blx@nohashothers}{#1}}
+\DeclareEntryOption[boolean]{nohashothers}[false]{%
+  \settoggle{blx@nohashothers}{#1}}
+
+\DeclareBibliographyOption[boolean]{nosortothers}[false]{%
+  \settoggle{blx@nosortothers}{#1}}
+\DeclareTypeOption[boolean]{nosortothers}[false]{%
+  \settoggle{blx@nosortothers}{#1}}
+\DeclareEntryOption[boolean]{nosortothers}[false]{%
+  \settoggle{blx@nosortothers}{#1}}
 
 \DeclareBibliographyOption[string]{uniquename}[true]{%
   \ifcsdef{blx@opt@uniquename@#1}
