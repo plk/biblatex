@@ -2831,9 +2831,9 @@ Whether or not to update the \cnt{uniquelist} counter, see \secref{aut:aux:tst} 
 %
 Note that the \opt{uniquelist} option will also affect the \cmd{ifsingletitle} test and the \bibfield{extradate} and \bibfield{extraname} fields. See \secref{aut:cav:amb} for further details and practical examples.
 
-\optitem[default]{namestrunchandling}{\opt{default}, \opt{nohash}, \opt{nosort}, \opt{nohashnosort}}
+\boolitem[false]{nohashothers}
 
-By default, name lists which are truncated with <et al>--either explicitly by <and others> in the data source or the \opt{uniquelist} and \opt{min/maxnames} options--result in different name list hashes (and therefore different \opt{extraname} and \opt{extradate} values) and different sorting. This option allows this behaviour to be tuned. \opt{nohash} makes \biber ignore <et al> truncations for the purposes of generating name list hashes. Consider:
+By default, name lists which are truncated with <et al>--either explicitly by <and others> in the data source or the \opt{uniquelist} and \opt{min/maxnames} options--result in different name list hashes (and therefore different \opt{extraname} and \opt{extradate} values) and different sorting. This option allows this behaviour to be tuned. When set to \prm{true}, \biber ignores <et al> truncations for the purposes of generating name list hashes. Consider:
 
 \begin{lstlisting}{}
 Jones 1972
@@ -2842,7 +2842,7 @@ Smith 2000
 Smith/Vogel/Beast/Tremble 2000
 \end{lstlisting}
 %
-With \kvopt{maxnames}{3}, \kvopt{minnames}{1}, \kvopt{namestrunchandling}{default}, the result would be:
+With \kvopt{maxnames}{3}, \kvopt{minnames}{1}, \kvopt{nohashothers}{false}, the result would be:
 
 \begin{lstlisting}{}
   Jones 1972
@@ -2851,7 +2851,7 @@ With \kvopt{maxnames}{3}, \kvopt{minnames}{1}, \kvopt{namestrunchandling}{defaul
   Smith et al 2000
 \end{lstlisting}
 %
-Whereas with \kvopt{maxnames}{3}, \kvopt{minnames}{1}, \kvopt{namestrunchandling}{nohash}, the result would be:
+Whereas with \kvopt{maxnames}{3}, \kvopt{minnames}{1}, \kvopt{nohashothers}{true}, the result would be:
 
 \begin{lstlisting}{}
   Jones 1972a
@@ -2875,18 +2875,18 @@ To obtain:
   Smith 2000b
 \end{lstlisting}
 %
-The option \opt{nosort} has a related effect on sorting--the visible list of names (which is the \opt{minsortnames} value) used to determine sorting will ignore any truncation. This means that with \kvopt{namestrunchandling}{nosort}, the name lists:
+Note that the \opt{nohashothers} option will affect the \bibfield{extradate} and \bibfield{extraname} fields.
+
+\boolitem[false]{nosortothers}
+
+The option  has a related to effect to \opt{nohashothers} but applies to sorting--the visible list of names (which is the \opt{minsortnames} value) used to determine sorting will ignore any truncation. This means that with \kvopt{nosortothers}{true}, the name lists:
 
 \begin{lstlisting}{}
 Jones, Smith
 Jones, Smith et al
 \end{lstlisting}
 %
-will sort exactly the same. The default setting of \opt{namestrunchandling} always sorts in the order shown in the example, that is, by default, truncated names lists always sort after any name lists identical to the point of truncation.
-
-\kvopt{namestrunchandling}{nohashnosort} combines the effect of \opt{nohash} and \opt{nosort}.
-
-Note that the \opt{namestrunchandling} option will affect the \bibfield{extradate} and \bibfield{extraname} fields.
+will sort exactly the same. The default setting of \opt{nosortothers} always sorts in the order shown in the example, that is, by default, truncated names lists always sort after any name lists identical to the point of truncation.
 
 \end{optionlist}
 
@@ -13753,9 +13753,10 @@ mincrossrefs	&\+&\+&\_&\_&\_&\_&\_\\
 minxrefs	&\+&\+&\_&\_&\_&\_&\_\\
 minitems	&\+&\+&\_&\+&\+&\_&\_\\
 minnames	&\+&\+&\_&\+&\+&\_&\_\\
-namestrunchandling	&\+&\_&\_&\_&\_&\_&\_\\
 nametemplates &\_&\_&\+&\_&\+&\+&\+\\
 natbib		&\+&\_&\_&\_&\_&\_&\_\\
+nohashothers	&\+&\+&\_&\+&\+&\+&\_\\
+nosortothers	&\+&\+&\_&\+&\+&\+&\_\\
 noinherit		&\_&\_&\_&\_&\+&\_&\_\\
 notetype	&\+&\+&\_&\_&\_&\_&\_\\
 opcittracker	&\+&\+&\_&\_&\_&\_&\_\\
@@ -13803,7 +13804,7 @@ This revision history is a list of changes relevant to users of this package. Ch
 
 \begin{changelog}
 \begin{release}{3.13}{2019}
-\item Added \opt{namestrunchandling}\see{use:opt:pre:int}
+\item Added \opt{nohashothers} and \opt{nosortothers}\see{use:opt:pre:int}
 \item Enhanced \cmd{addbibresource} with globbing\see{use:bib:res}
 \end{release}
 
