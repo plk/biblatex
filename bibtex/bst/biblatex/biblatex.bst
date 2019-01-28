@@ -170,7 +170,7 @@ ENTRY {
 INTEGERS { ctrl.debug ctrl.bibtex8 ctrl.maxline ctrl.sorting ctrl.cssort
            ctrl.maxcitenames ctrl.mincitenames
            ctrl.maxsortnames ctrl.minsortnames
-           ctrl.hashconsideretal ctrl.sortconsideretal
+           ctrl.nohashothers ctrl.nosortothers
            ctrl.maxalphanames ctrl.minalphanames
            ctrl.useauthor ctrl.useeditor ctrl.usetranslator
            ctrl.useprefix ctrl.labelalpha ctrl.singletitle
@@ -200,8 +200,8 @@ FUNCTION {initialize} {
    #1   'ctrl.mincitenames :=
   #99   'ctrl.maxsortnames :=
    #1   'ctrl.minsortnames :=
-   #1   'ctrl.hashconsideretal :=
-   #1   'ctrl.sortconsideretal :=
+   #0   'ctrl.nohashothers :=
+   #0   'ctrl.nosortothers :=
    #1   'ctrl.minalphanames :=
    #3   'ctrl.maxalphanames :=
   #79   'ctrl.maxline :=
@@ -575,7 +575,7 @@ FUNCTION {shortname:hash} {
   templist andothers
   tempctrb #0 >
   or
-  ctrl.hashconsideretal
+  ctrl.nohashothers not
   and
     { "+" * }
     'skip$
@@ -953,7 +953,7 @@ FUNCTION {sortkey:name:format} {
   templist andothers
   tempctrb #0 >
   or
-  ctrl.sortconsideretal
+  ctrl.nosortothers not
   and
     { delimiter.2 * "zzzz" * }
     'skip$
@@ -1949,8 +1949,8 @@ FUNCTION {input:control} {
           input:control:options 'ctrl.mincitenames :=
           input:control:options 'ctrl.maxsortnames :=
           input:control:options 'ctrl.minsortnames :=
-          input:control:options 'ctrl.hashconsideretal :=
-          input:control:options 'ctrl.sortconsideretal :=
+          input:control:options 'ctrl.nohashothers :=
+          input:control:options 'ctrl.nosortothers :=
           input:control:options 'ctrl.maxalphanames :=
           input:control:options 'ctrl.minalphanames :=
           input:control:options 'ctrl.maxline :=
@@ -2177,7 +2177,7 @@ FUNCTION {makelabel:name:format} {
   templist andothers
   tempctrb #0 >
   or
-  ctrl.hashconsideretal
+  ctrl.nohashothers not
   and
     { delimiter.2 * "zzzz" * }
     'skip$
@@ -2279,7 +2279,7 @@ FUNCTION {makelabel:hash:format} {
   templist andothers
   tempctrb #0 >
   or
-  ctrl.hashconsideretal
+  ctrl.nohashothers not
   and
     { "+" * }
     'skip$
@@ -2307,7 +2307,7 @@ FUNCTION {makelabel:hash:format:full} {
     }
   while$
   templist andothers
-  ctrl.hashconsideretal
+  ctrl.nohashothers not
   and
     { "+" * }
     'skip$
