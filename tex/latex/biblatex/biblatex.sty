@@ -4348,8 +4348,7 @@
 % some are used by biber only and are not needed by biblatex after biber has finished
 % generating the .bbl
 % Per-namelist options
-\define@key{blx@opt@namelist}{uniquelist}{\c@uniquelist#1\relax}
-\define@key{blx@opt@namelist}{useprefix}{\settoggle{blx@useprefix}{#1}}
+\define@key{blx@opt@namelist}{uniquelist}{\c@uniquelist#1\relax}% this uniquelist is the counter, not the option!
 \define@key{blx@opt@namelist}{sortingnamekeytemplatename}{\def\blx@refcontext@sortingnamekeytemplatename{#1}}
 \define@key{blx@opt@namelist}{uniquenametemplatename}{\def\blx@refcontext@uniquenametemplatename{#1}}
 \define@key{blx@opt@namelist}{labelalphanametemplatename}{\def\blx@refcontext@labelalphanametemplatename{#1}}
@@ -4358,7 +4357,6 @@
 \define@key{blx@opt@name}{uniquename}{\c@uniquename#1\relax}
 \define@key{blx@opt@name}{uniquepart}{\def\abx@field@uniquepart{#1}}
 \define@key{blx@opt@name}{hash}{\edef\abx@field@hash{\detokenize{#1}}}
-\define@key{blx@opt@name}{useprefix}{\settoggle{blx@useprefix}{#1}}
 \define@key{blx@opt@name}{sortingnamekeytemplatename}{\def\blx@refcontext@sortingnamekeytemplatename{#1}}
 \define@key{blx@opt@name}{uniquenametemplatename}{\def\blx@refcontext@uniquenametemplatename{#1}}
 \define@key{blx@opt@name}{labelalphanametemplatename}{\def\blx@refcontext@labelalphanametemplatename{#1}}
@@ -6439,10 +6437,6 @@
 % per-entry inheritance blocking option for biber
 \blx@collectopts{string}{blx@entryopts}{noinherit}
 
-% useprefix namelist/name scope
-\blx@collectopts{boolean}{blx@namelistopts}{useprefix}% for passing to bcf
-\blx@collectopts{boolean}{blx@nameopts}{useprefix}% for passing to the .bcf
-
 % nametemplates meta-option entry/namelist/name scope
 \blx@collectopts{string}{blx@entryopts}{nametemplates}
 \blx@collectopts{string}{blx@namelistopts}{nametemplates}% for passing to bcf
@@ -6475,23 +6469,29 @@
 \blx@collectopts{string}{blx@globalopts}{sortalphaothers}% for passing to the .bcf
 \blx@collectopts{string}{blx@typeopts}{sortalphaothers}% for passing to the .bcf
 
-% The Declare*Option macros are for options which need to be visible
-% to biblatex. For options which only biber needs to see, they can be
-% passed to the .bcf directly using \blx@collectopts
-% [<datatype>]{<key>}[<value>]{<code>}
-\newrobustcmd*{\DeclareBibliographyOption}[2][]{%
-  \ifblank{#1}
-    {\def\blx@tempa{boolean}}
-    {\ifcsundef{blx@globalopts@#1}
-       {\blx@warn@badoptdt{#1}%
-        \def\blx@tempa{boolean}}
-       {\def\blx@tempa{#1}}}%
-  \expandafter\blx@collectopts\expandafter{\blx@tempa}{blx@globalopts}{#2}%
-  \@ifnextchar[%]
-    {\blx@defbibopt{#2}}
-    {\blx@defbibopt{#2}[]}}
 
-\long\def\blx@defbibopt#1[#2]#3{%
+
+% {<option scope>}[<datatype>]{<key>}[<value>]{<code>}
+\protected\def\blx@declareopt#1{%
+  \@ifnextchar[%]
+    {\blx@declareopt@i#1}
+    {\blx@declareopt@i#1[]}}
+
+\def\blx@declareopt@i#1[#2]#3{%
+  \begingroup
+  \ifblank{#2}
+    {\def\blx@tempa{boolean}}
+    {\ifcsundef{blx@#1opts@#2}
+       {\blx@warn@badoptdt{#2}%
+        \def\blx@tempa{boolean}}
+       {\def\blx@tempa{#2}}}%
+  \expandafter\blx@collectopts\expandafter{\blx@tempa}{blx@#1opts}{#3}%
+  \endgroup
+  \@ifnextchar[%]
+    {\csuse{blx@def#1opt}{#3}}
+    {\csuse{blx@def#1opt}{#3}[]}}
+
+\long\def\blx@defglobalopt#1[#2]#3{%
   \ifcsundef{KV@blx@opt@ldt@#1}
     {\ifcsundef{KV@blx@opt@pre@#1}
        {\ifblank{#2}
@@ -6500,45 +6500,62 @@
        {\blx@err@optdef{#1}}}
     {\blx@err@optdef{#1}}}
 
-% [<datatype>]{<key>}[<value>]{<code>}
-\newrobustcmd*{\DeclareTypeOption}[2][]{%
+\long\def\blx@deftypeentryopt#1#2[#3]#4{%
+  \ifcsundef{KV@blx@opt@#1@#2}
+    {\ifblank{#3}
+       {\define@key{blx@opt@#1}{#2}{#4}}
+       {\define@key{blx@opt@#1}{#2}[#3]{#4}}}
+    {\blx@err@optdef{#2}}}
+
+\def\blx@deftypeopt{\blx@deftypeentryopt{typ}}
+\def\blx@defentryopt{\blx@deftypeentryopt{ent}}
+\def\blx@defnameopt{\blx@deftypeentryopt{name}}
+\def\blx@defnamelistopt{\blx@deftypeentryopt{namelist}}
+
+% The Declare*Option macros are for options which need to be visible
+% to biblatex. For options which only biber needs to see, they can be
+% passed to the .bcf directly using \blx@collectopts
+% [<datatype>]{<key>}[<default value>]{<code>}
+\newcommand*{\DeclareBibliographyOption}{\blx@declareopt{global}}
+\newcommand*{\DeclareTypeOption}{\blx@declareopt{type}}
+\newcommand*{\DeclareEntryOption}{\blx@declareopt{entry}}
+
+% we'll assume that \blx@optscopes is non-empty from now on
+\newcommand*{\blx@optscopes}{}
+\forcsvlist{\listadd\blx@optscopes}{global,type,entry}
+
+\long\def\blx@defoptallscopes@i#1[#2]#3#4{%
+  \csuse{blx@def#4opt}{#1}[#2]{#3}}
+
+\long\def\blx@defoptallscopes#1[#2]#3{%
+  \forlistloop{\blx@defoptallscopes@i{#1}[#2]{#3}}{\blx@optscopes}}
+
+% {<option scopes>}[<datatype>]{<key>}[<default value>]{<code>}
+\newrobustcmd*{\DeclareBiblatexOption}[1]{%
+  \let\blx@optscopes\@empty
+  \forcsvlist{\listadd\blx@optscopes}{#1}%
+  \blx@DeclareBiblatexOption@i}
+
+\newrobustcmd*{\blx@DeclareBiblatexOption@i}[2][]{%
+  \begingroup
   \ifblank{#1}
     {\def\blx@tempa{boolean}}
-    {\ifcsundef{blx@typeopts@#1}
+    {\let\blx@tempb\@secondoftwo
+     \def\do##1{%
+       \ifcsundef{blx@##1opts@#1}
+         {\let\blx@tempb\@firstoftwo\listbreak}
+         {}}%
+     \blx@tempb
        {\blx@warn@badoptdt{#1}%
         \def\blx@tempa{boolean}}
        {\def\blx@tempa{#1}}}%
-    \expandafter\blx@collectopts\expandafter{\blx@tempa}{blx@typeopts}{#2}%
+  \def\do##1{%
+    \expandafter\blx@collectopts\expandafter{\blx@tempa}{blx@##1opts}{#2}}%
+  \dolistloop{\blx@optscopes}%
+  \endgroup
   \@ifnextchar[%]
-    {\blx@deftypeopt{#2}}
-    {\blx@deftypeopt{#2}[]}}
-
-\long\def\blx@deftypeopt#1[#2]#3{%
-  \ifcsundef{KV@blx@opt@typ@#1}
-    {\ifblank{#2}
-       {\define@key{blx@opt@typ}{#1}{#3}}
-       {\define@key{blx@opt@typ}{#1}[#2]{#3}}}
-    {\blx@err@optdef{#1}}}
-
-% [<datatype>]{<key>}[<value>]{<code>}
-\newrobustcmd*{\DeclareEntryOption}[2][]{%
-  \ifblank{#1}
-    {\def\blx@tempa{boolean}}
-    {\ifcsundef{blx@entryopts@#1}
-       {\blx@warn@badoptdt{#1}%
-        \def\blx@tempa{boolean}}
-       {\def\blx@tempa{#1}}}%
-    \expandafter\blx@collectopts\expandafter{\blx@tempa}{blx@entryopts}{#2}%
-  \@ifnextchar[%]
-    {\blx@defentryopt{#2}}
-    {\blx@defentryopt{#2}[]}}
-
- \long\def\blx@defentryopt#1[#2]#3{%
-  \ifcsundef{KV@blx@opt@ent@#1}
-    {\ifblank{#2}
-       {\define@key{blx@opt@ent}{#1}{#3}}
-       {\define@key{blx@opt@ent}{#1}[#2]{#3}}}
-    {\blx@err@optdef{#1}}}
+    {\blx@defoptallscopes{#2}}
+    {\blx@defoptallscopes{#2}[]}}
 
 % Sanity check on date field names - they *must* end in 'date' to make things easier/possible later
 \def\do#1{%
@@ -6839,7 +6856,7 @@
     \csdef{if#1inits}{\iftoggle{abx@bool@#1inits}}%
     \appto\blx@TE@hook{%
       \csdef{if#1inits}{\blx@TE{\iftoggle{abx@bool@#1inits}}}}}%
-  \DeclareBibliographyOption[boolean]{#1inits}[true]{%
+  \DeclareBiblatexOption{global,type,entry,namelist,name}[boolean]{#1inits}[true]{%
     \settoggle{abx@bool@#1inits}{##1}}}
 \abx@donameparts
 
@@ -13747,7 +13764,7 @@
      #3=#4}
     {}}
 
-\DeclareBibliographyOption[boolean]{terseinits}[true]{%
+\DeclareBiblatexOption{global,type,entry,namelist,name}[boolean]{terseinits}[true]{%
   \ifstrequal{#1}{true}
     {\toggletrue{blx@terseinits}
      \renewrobustcmd*{\bibinitperiod}{}
@@ -13758,12 +13775,12 @@
      \renewrobustcmd*{\bibinitdelim}{\addnbspace}
      \renewrobustcmd*{\bibinithyphendelim}{\adddot\mbox{-}}}}
 
-\DeclareBibliographyOption[boolean]{abbreviate}[true]{%
+\DeclareBiblatexOption{global,type,entry}[boolean]{abbreviate}[true]{%
   \ifstrequal{#1}{true}
     {\def\abx@str{abx@sstr}}
     {\def\abx@str{abx@lstr}}}
 
-\DeclareBibliographyOption[boolean]{dateabbrev}[true]{%
+\DeclareBiblatexOption{global,type,entry}[boolean]{dateabbrev}[true]{%
   \ifstrequal{#1}{true}
     {\let\abx@bibmonth\blx@imc@bibsstring
      \let\abx@bibseason\blx@imc@bibsstring}
@@ -13805,7 +13822,7 @@
       {Language '#1' not supported}
       {Failed to find a matching '#1.lbx' file}}}}
 
-\DeclareBibliographyOption[boolean]{clearlang}[true]{%
+\DeclareBiblatexOption{global,type,entry}[boolean]{clearlang}[true]{%
   \settoggle{blx@clearlang}{#1}}
 
 \DeclareBibliographyOption[string]{autolang}{%
@@ -13839,11 +13856,7 @@
   \def\blx@hook@initlang{\@quotereset\@ne}%
   \def\blx@hook@endlang{\blx@postpunct}}
 
-\DeclareBibliographyOption[boolean]{indexing}[true]{%
-  \blx@opt@index{#1}}
-\DeclareTypeOption[boolean]{indexing}[true]{%
-  \blx@opt@index{#1}}
-\DeclareEntryOption[boolean]{indexing}[true]{%
+\DeclareBiblatexOption{global,type,entry}[string]{indexing}[true]{%
   \blx@opt@index{#1}}
 \def\blx@opt@index#1{%
   \ifcsdef{blx@opt@index@#1}
@@ -13873,7 +13886,7 @@
 \DeclareBibliographyOption[boolean]{sortsets}[true]{%
   \settoggle{blx@sortsets}{#1}}
 
-\DeclareBibliographyOption[boolean]{hyperref}[true]{%
+\DeclareBibliographyOption[string]{hyperref}[true]{%
   \ifcsdef{blx@opt@hyperref@#1}
     {\letcs\blx@hyperref{blx@opt@hyperref@#1}}
     {\blx@err@invopt{hyperref=#1}{}}}
@@ -13969,7 +13982,7 @@
   \def\newblockpunct{%
     \unspace\penalty-9\relax\space}}
 
-\DeclareBibliographyOption[boolean]{pagetracker}[true]{%
+\DeclareBibliographyOption[string]{pagetracker}[true]{%
   \ifcsdef{blx@opt@pagetracker@#1}
     {\csuse{blx@opt@pagetracker@#1}}
     {\blx@err@invopt{pagetracker=#1}{}}}
@@ -14002,7 +14015,7 @@
     \blx@opt@pagetracker@page
   \fi}
 
-\DeclareBibliographyOption[boolean]{citecounter}[true]{%
+\DeclareBibliographyOption[string]{citecounter}[true]{%
   \ifcsdef{blx@opt@citecounter@#1}
     {\csuse{blx@opt@citecounter@#1}}
     {\blx@err@invopt{citecounter=#1}{}}}
@@ -14024,7 +14037,7 @@
   \let\abx@aux@count\@gobbletwo
   \let\abx@aux@fncount\@gobbletwo}
 
-\DeclareBibliographyOption[boolean]{citetracker}[true]{%
+\DeclareBiblatexOption{global,type,entry}[string]{citetracker}[true]{%
   \ifcsdef{blx@opt@citetracker@#1}
     {\csuse{blx@opt@citetracker@#1}}
     {\blx@err@invopt{citetracker=#1}{}}}
@@ -14055,7 +14068,7 @@
     \blx@ifcitesingle{\blx@citetracker@context}{}}%
   \booltrue{citetracker}}
 
-\DeclareBibliographyOption[boolean]{ibidtracker}[true]{%
+\DeclareBiblatexOption{global,type,entry}[string]{ibidtracker}[true]{%
   \ifcsdef{blx@opt@ibidtracker@#1}
     {\csuse{blx@opt@ibidtracker@#1}}
     {\blx@err@invopt{ibidtracker=#1}{}}}
@@ -14084,7 +14097,7 @@
   \let\blx@ibidreset\blx@ibidreset@context
   \booltrue{citetracker}}
 
-\DeclareBibliographyOption[boolean]{idemtracker}[true]{%
+\DeclareBiblatexOption{global,type,entry}[string]{idemtracker}[true]{%
   \ifcsdef{blx@opt@idemtracker@#1}
     {\csuse{blx@opt@idemtracker@#1}}
     {\blx@err@invopt{idemtracker=#1}{}}}
@@ -14113,7 +14126,7 @@
   \let\blx@idemreset\blx@idemreset@context
   \booltrue{citetracker}}
 
-\DeclareBibliographyOption[boolean]{opcittracker}[true]{%
+\DeclareBiblatexOption{global,type,entry}[string]{opcittracker}[true]{%
   \ifcsdef{blx@opt@opcittracker@#1}
     {\csuse{blx@opt@opcittracker@#1}}
     {\blx@err@invopt{opcittracker=#1}{}}}
@@ -14142,7 +14155,7 @@
   \let\blx@opcitreset\blx@opcitreset@context
   \booltrue{citetracker}}
 
-\DeclareBibliographyOption[boolean]{loccittracker}[true]{%
+\DeclareBiblatexOption{global,type,entry}[string]{loccittracker}[true]{%
   \ifcsdef{blx@opt@loccittracker@#1}
     {\csuse{blx@opt@loccittracker@#1}}
     {\blx@err@invopt{loccittracker=#1}{}}}
@@ -14441,35 +14454,19 @@
 \DeclareTypeOption[boolean]{labelnumber}[true]{%
   \settoggle{blx@labelnumber}{#1}}
 
-\DeclareBibliographyOption[boolean]{labelalpha}[true]{%
-  \settoggle{blx@labelalpha}{#1}}
-\DeclareTypeOption[boolean]{labelalpha}[true]{%
+\DeclareBiblatexOption{global,type}[boolean]{labelalpha}[true]{%
   \settoggle{blx@labelalpha}{#1}}
 
-\DeclareBibliographyOption[boolean]{labeltitle}[true]{%
-  \settoggle{blx@labeltitle}{#1}}
-\DeclareTypeOption[boolean]{labeltitle}[true]{%
+\DeclareBiblatexOption{global,type}[boolean]{labeltitle}[true]{%
   \settoggle{blx@labeltitle}{#1}}
 
-\DeclareBibliographyOption[boolean]{labeltitleyear}[true]{%
-  \settoggle{blx@labeltitleyear}{#1}}
-\DeclareTypeOption[boolean]{labeltitleyear}[true]{%
+\DeclareBiblatexOption{global,type}[boolean]{labeltitleyear}[true]{%
   \settoggle{blx@labeltitleyear}{#1}}
 
-\DeclareBibliographyOption[boolean]{labeldateparts}[true]{%
-  \settoggle{blx@labeldateparts}{#1}}
-\DeclareTypeOption[boolean]{labeldateparts}[true]{%
+\DeclareBiblatexOption{global,type}[boolean]{labeldateparts}[true]{%
   \settoggle{blx@labeldateparts}{#1}}
 
-\DeclareBibliographyOption[string]{uniquelist}[true]{%
-  \ifcsdef{blx@opt@uniquelist@#1}
-    {\letcs\blx@uniquelist{blx@opt@uniquelist@#1}}
-    {\blx@err@invopt{uniquelist=#1}{}}}
-\DeclareTypeOption[string]{uniquelist}[true]{%
-  \ifcsdef{blx@opt@uniquelist@#1}
-    {\letcs\blx@uniquelist{blx@opt@uniquelist@#1}}
-    {\blx@err@invopt{uniquelist=#1}{}}}
-\DeclareEntryOption[string]{uniquelist}[true]{%
+\DeclareBiblatexOption{global,type,entry}[string]{uniquelist}[true]{%
   \ifcsdef{blx@opt@uniquelist@#1}
     {\letcs\blx@uniquelist{blx@opt@uniquelist@#1}}
     {\blx@err@invopt{uniquelist=#1}{}}}
@@ -14477,29 +14474,13 @@
 \def\blx@opt@uniquelist@true{true}
 \def\blx@opt@uniquelist@minyear{minyear}
 
-\DeclareBibliographyOption[boolean]{nohashothers}[true]{%
-  \settoggle{blx@nohashothers}{#1}}
-\DeclareTypeOption[boolean]{nohashothers}[false]{%
-  \settoggle{blx@nohashothers}{#1}}
-\DeclareEntryOption[boolean]{nohashothers}[false]{%
+\DeclareBiblatexOption{global,type,entry}[boolean]{nohashothers}[true]{%
   \settoggle{blx@nohashothers}{#1}}
 
-\DeclareBibliographyOption[boolean]{nosortothers}[true]{%
-  \settoggle{blx@nosortothers}{#1}}
-\DeclareTypeOption[boolean]{nosortothers}[false]{%
-  \settoggle{blx@nosortothers}{#1}}
-\DeclareEntryOption[boolean]{nosortothers}[false]{%
+\DeclareBiblatexOption{global,type,entry}[boolean]{nosortothers}[true]{%
   \settoggle{blx@nosortothers}{#1}}
 
-\DeclareBibliographyOption[string]{uniquename}[true]{%
-  \ifcsdef{blx@opt@uniquename@#1}
-    {\letcs\blx@uniquename{blx@opt@uniquename@#1}}
-    {\blx@err@invopt{uniquename=#1}{}}}
-\DeclareTypeOption[string]{uniquename}[true]{%
-  \ifcsdef{blx@opt@uniquename@#1}
-    {\letcs\blx@uniquename{blx@opt@uniquename@#1}}
-    {\blx@err@invopt{uniquename=#1}{}}}
-\DeclareEntryOption[string]{uniquename}[true]{%
+\DeclareBiblatexOption{global,type,entry}[string]{uniquename}[true]{%
   \ifcsdef{blx@opt@uniquename@#1}
     {\letcs\blx@uniquename{blx@opt@uniquename@#1}}
     {\blx@err@invopt{uniquename=#1}{}}}
@@ -14512,31 +14493,19 @@
 \def\blx@opt@uniquename@mininit{mininit}
 \def\blx@opt@uniquename@minfull{minfull}
 
-\DeclareBibliographyOption[boolean]{noroman}[true]{%
-  \settoggle{blx@noroman}{#1}}
-\DeclareTypeOption[boolean]{noroman}[true]{%
-  \settoggle{blx@noroman}{#1}}
-\DeclareEntryOption[boolean]{noroman}[true]{%
+\DeclareBiblatexOption{global,type,entry}[boolean]{noroman}[true]{%
   \settoggle{blx@noroman}{#1}}
 
-\DeclareBibliographyOption[boolean]{singletitle}[true]{%
-  \settoggle{blx@singletitle}{#1}}
-\DeclareTypeOption[boolean]{singletitle}[true]{%
+\DeclareBiblatexOption{global,type}[boolean]{singletitle}[true]{%
   \settoggle{blx@singletitle}{#1}}
 
-\DeclareBibliographyOption[boolean]{uniquetitle}[true]{%
-  \settoggle{blx@uniquetitle}{#1}}
-\DeclareTypeOption[boolean]{uniquetitle}[true]{%
+\DeclareBiblatexOption{global,type}[boolean]{uniquetitle}[true]{%
   \settoggle{blx@uniquetitle}{#1}}
 
-\DeclareBibliographyOption[boolean]{uniquebaretitle}[true]{%
-  \settoggle{blx@uniquebaretitle}{#1}}
-\DeclareTypeOption[boolean]{uniquebaretitle}[true]{%
+\DeclareBiblatexOption{global,type}[boolean]{uniquebaretitle}[true]{%
   \settoggle{blx@uniquebaretitle}{#1}}
 
-\DeclareBibliographyOption[boolean]{uniquework}[true]{%
-  \settoggle{blx@uniquework}{#1}}
-\DeclareTypeOption[boolean]{uniquework}[true]{%
+\DeclareBiblatexOption{global,type}[boolean]{uniquework}[true]{%
   \settoggle{blx@uniquework}{#1}}
 
 \DeclareBibliographyOption[boolean]{uniqueprimaryauthor}[true]{%
@@ -14652,42 +14621,24 @@
 
 % Name field options
 \def\do#1{%
-  \DeclareBibliographyOption[boolean]{use#1}[true]{%
-    \settoggle{blx@use#1}{##1}}
-  \DeclareTypeOption[boolean]{use#1}[true]{%
-    \settoggle{blx@use#1}{##1}}
-  \DeclareEntryOption[boolean]{use#1}[true]{%
+  \DeclareBiblatexOption{global,type,entry}[boolean]{use#1}[true]{%
     \settoggle{blx@use#1}{##1}}}
 \abx@donames
 
 % Entry options
-\DeclareBibliographyOption[boolean]{useprefix}[true]{%
-  \settoggle{blx@useprefix}{#1}}
-\DeclareTypeOption[boolean]{useprefix}[true]{%
-  \settoggle{blx@useprefix}{#1}}
-\DeclareEntryOption[boolean]{useprefix}[true]{%
+\DeclareBiblatexOption{global,type,entry,namelist,name}[boolean]{useprefix}[true]{%
   \settoggle{blx@useprefix}{#1}}
 
-\DeclareTypeOption[boolean]{skipbib}[true]{%
-  \settoggle{blx@skipbib}{#1}}
-\DeclareEntryOption[boolean]{skipbib}[true]{%
+\DeclareBiblatexOption{type,entry}[boolean]{skipbib}[true]{%
   \settoggle{blx@skipbib}{#1}}
 
-\DeclareTypeOption[boolean]{skipbiblist}[true]{%
-  \settoggle{blx@skipbiblist}{#1}}
-\DeclareEntryOption[boolean]{skipbiblist}[true]{%
+\DeclareBiblatexOption{type,entry}[boolean]{skipbiblist}[true]{%
   \settoggle{blx@skipbiblist}{#1}}
 
-\DeclareTypeOption[boolean]{skiplab}[true]{%
-  \settoggle{blx@skiplab}{#1}}
-\DeclareEntryOption[boolean]{skiplab}[true]{%
+\DeclareBiblatexOption{type,entry}[boolean]{skiplab}[true]{%
   \settoggle{blx@skiplab}{#1}}
 
-\DeclareTypeOption[boolean]{dataonly}[true]{%
-  \settoggle{blx@skipbib}{#1}%
-  \settoggle{blx@skipbiblist}{#1}%
-  \settoggle{blx@skiplab}{#1}}
-\DeclareEntryOption[boolean]{dataonly}[true]{%
+\DeclareBiblatexOption{type,entry}[boolean]{dataonly}[true]{%
   \settoggle{blx@skipbib}{#1}%
   \settoggle{blx@skipbiblist}{#1}%
   \settoggle{blx@skiplab}{#1}}

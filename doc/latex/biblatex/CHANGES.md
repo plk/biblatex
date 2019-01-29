@@ -1,3 +1,25 @@
+# RELEASE NOTES FOR VERSION 3.13
+- Add `\DeclareBiblatexOption` as a convenient interface to declare the same
+  option in different scopes. This should help avoid code duplication.
+  For example
+  ```
+  \DeclareBibliographyOption[boolean]{noroman}[true]{%
+    \settoggle{blx@noroman}{#1}}
+  \DeclareTypeOption[boolean]{noroman}[true]{%
+    \settoggle{blx@noroman}{#1}}
+  \DeclareEntryOption[boolean]{noroman}[true]{%
+    \settoggle{blx@noroman}{#1}}
+  ```
+  can be replaced with
+  ```
+  \DeclareBiblatexOption{global,type,entry}[boolean]{noroman}[true]{%
+    \settoggle{blx@noroman}{#1}}
+  ```
+- Following the introduction of `\DeclareBiblatexOption` extend the scope
+  of a few options (`abbreviate`, `citetracker`, `clearlang`, `dateabbrev`,
+  `<namepart>inits`, `ibidtracker`, `idemtracker`, `loccittracker`,
+  `opcittracker`, `terseinits`).
+
 # RELEASE NOTES FOR VERSION 3.12
 - **INCOMPATIBLE CHANGE** The syntax for defining data annotations in the
   BibLaTeXML data source format has changed to accommodate named
