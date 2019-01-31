@@ -27,6 +27,8 @@
   `loccittracker`, `opcittracker`, `singletitle`, `skipbib`, `skipbiblist`,
   `skipbiblab` `terseinits`, `uniquelist`, `uniquename`, `uniquetitle`,
   `uniquebaretitle`, `uniquework`, `uniqueprimaryauthor`).
+- Add `\ifvolcite` test to check if the current citation is in a `\volcite`
+  context.
 
 # RELEASE NOTES FOR VERSION 3.12
 - **INCOMPATIBLE CHANGE** The syntax for defining data annotations in the

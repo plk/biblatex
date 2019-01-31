@@ -748,6 +748,7 @@
 \newtoggle{blx@skipbiblist}
 \newtoggle{blx@skiplab}
 \newtoggle{blx@citation}
+\newtoggle{blx@volcite}
 \newtoggle{blx@bibliography}
 \newtoggle{blx@citeindex}
 \newtoggle{blx@bibindex}
@@ -3675,6 +3676,7 @@
 \appto\blx@blxinit{%
   \def\ifnatbibmode{\iftoggle{blx@natbib}}%
   \def\ifcitation{\iftoggle{blx@citation}}%
+  \def\ifvolcite{\iftoggle{blx@volcite}}%
   \def\ifbibliography{\iftoggle{blx@bibliography}}%
   \def\ifciteindex{\iftoggle{blx@citeindex}}%
   \def\ifbibindex{\iftoggle{blx@bibindex}}%
@@ -11556,6 +11558,7 @@
     \def\iffieldbibstring#1{\blx@TE{\blx@imc@iffieldbibstring{#1}}}%
     \def\ifnatbibmode{\blx@TE{\iftoggle{blx@natbib}}}%
     \def\ifcitation{\blx@TE{\iftoggle{blx@citation}}}%
+    \def\ifvolcite{\blx@TE{\iftoggle{blx@volcite}}}%
     \def\ifbibliography{\blx@TE{\iftoggle{blx@bibliography}}}%
     \def\ifciteindex{\blx@TE{\iftoggle{blx@citeindex}}}%
     \def\ifbibindex{\blx@TE{\iftoggle{blx@bibindex}}}%
@@ -11895,7 +11898,9 @@
 % {<macro>}[<pre>]{<vol>}[<post>] => <macro>{<pre>}{{<vol>}{<post>}}
 
 \newrobustcmd*{\volcitecmd}{%
-  \AtNextCite{\DeclareFieldAlias{postnote}{volcitenote}}%
+  \AtNextCite{%
+    \toggletrue{blx@volcite}%
+    \DeclareFieldAlias{postnote}{volcitenote}}%
   \begingroup\let\blx@citeargs\blx@volciteargs}
 
 \protected\def\blx@volciteargs#1{%
@@ -11913,7 +11918,9 @@
   \blx@citeargs@iii{#1{#2}{{#3}{#4}}}}
 
 \newrobustcmd*{\multivolcitecmd}{%
-  \AtNextCite{\DeclareFieldAlias{postnote}{volcitenote}}%
+  \AtNextCite{%
+    \toggletrue{blx@volcite}%
+    \DeclareFieldAlias{postnote}{volcitenote}}%
   \def\blx@hook@mcite@before{%
     \global\undef\blx@hook@mcite@before
     \let\blx@citeargs\blx@volmciteargs}}
