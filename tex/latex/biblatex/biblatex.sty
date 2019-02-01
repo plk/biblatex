@@ -11903,7 +11903,7 @@
 \newrobustcmd*{\volcitecmd}{%
   \AtNextCite{%
     \toggletrue{blx@volcite}%
-    \DeclareFieldAlias{postnote}{volcitenote}}%
+    \csuse{blx@hook@volcite}}%
   \begingroup\let\blx@citeargs\blx@volciteargs}
 
 \protected\def\blx@volciteargs#1{%
@@ -11923,7 +11923,7 @@
 \newrobustcmd*{\multivolcitecmd}{%
   \AtNextCite{%
     \toggletrue{blx@volcite}%
-    \DeclareFieldAlias{postnote}{volcitenote}}%
+    \csuse{blx@hook@volcite}}%
   \def\blx@hook@mcite@before{%
     \global\undef\blx@hook@mcite@before
     \let\blx@citeargs\blx@volmciteargs}}
@@ -11938,6 +11938,18 @@
   \ifblank{#2}
     {}
     {\def\abx@field@volcitepages{#2}}}
+
+\newrobustcmd*{\AtVolcite}{%
+  \@ifstar
+    {\global\undef\blx@hook@volcite
+     \gappto\blx@hook@volcite}
+    {\gappto\blx@hook@volcite}}
+\@onlypreamble\AtVolcite
+\def\blx@imc@UseVolciteHook{\csuse{blx@hook@volcite}}
+\blx@regimcs{\UseVolciteHook}
+
+\AtVolcite{%
+  \DeclareFieldAlias{postnote}{volcitenote}}
 
 %% Control file
 
