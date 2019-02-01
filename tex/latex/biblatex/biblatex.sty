@@ -27,7 +27,7 @@
 % This is not updated by build script as the bbl version
 % does not necessarily change with the package version.
 % This is used when checking the .bbl
-\def\blx@bblversion{3.0}
+\def\blx@bblversion{3.1}
 
 \NeedsTeXFormat{LaTeX2e}[2005/12/01]
 \ProvidesPackage{biblatex}
@@ -742,19 +742,11 @@
 \newtoggle{blx@labeltitleyear}
 \newtoggle{blx@labeldateparts}
 \newtoggle{blx@natbib}
-\newtoggle{blx@noroman}
-\newtoggle{blx@nohashothers}
-\newtoggle{blx@nosortothers}
 \newtoggle{blx@mcite}
 \newtoggle{blx@loadfiles}
-\newtoggle{blx@singletitle}
 \newtoggle{blx@sortsets}
 \newtoggle{blx@crossrefsource}
 \newtoggle{blx@xrefsource}
-\newtoggle{blx@uniqueprimaryauthor}
-\newtoggle{blx@uniquetitle}
-\newtoggle{blx@uniquebaretitle}
-\newtoggle{blx@uniquework}
 \newtoggle{blx@terseinits}
 \newtoggle{blx@useprefix}
 \newtoggle{blx@addset}
@@ -769,6 +761,14 @@
 \newtoggle{blx@bibindex}
 \newtoggle{blx@localnumber}
 \newtoggle{blx@refcontext}
+\newtoggle{blx@noroman}
+\newtoggle{blx@nohashothers}
+\newtoggle{blx@nosortothers}
+\newtoggle{blx@singletitle}
+\newtoggle{blx@uniquebaretitle}
+\newtoggle{blx@uniqueprimaryauthor}
+\newtoggle{blx@uniquetitle}
+\newtoggle{blx@uniquework}
 
 \newcommand*{\blx@xifstrequal}[2]{%
   \begingroup
@@ -4348,14 +4348,14 @@
 % some are used by biber only and are not needed by biblatex after biber has finished
 % generating the .bbl
 % Per-namelist options
-\define@key{blx@opt@namelist}{uniquelist}{\c@uniquelist#1\relax}
+\define@key{blx@opt@namelist}{ul}{\c@uniquelist#1\relax}
 \define@key{blx@opt@namelist}{useprefix}{\settoggle{blx@useprefix}{#1}}
 \define@key{blx@opt@namelist}{sortingnamekeytemplatename}{\def\blx@refcontext@sortingnamekeytemplatename{#1}}
 \define@key{blx@opt@namelist}{uniquenametemplatename}{\def\blx@refcontext@uniquenametemplatename{#1}}
 \define@key{blx@opt@namelist}{labelalphanametemplatename}{\def\blx@refcontext@labelalphanametemplatename{#1}}
 
 % Per-name options
-\define@key{blx@opt@name}{uniquename}{\c@uniquename#1\relax}
+\define@key{blx@opt@name}{un}{\c@uniquename#1\relax}
 \define@key{blx@opt@name}{uniquepart}{\def\abx@field@uniquepart{#1}}
 \define@key{blx@opt@name}{hash}{\edef\abx@field@hash{\detokenize{#1}}}
 \define@key{blx@opt@name}{useprefix}{\settoggle{blx@useprefix}{#1}}
@@ -6443,6 +6443,10 @@
 \blx@collectopts{boolean}{blx@namelistopts}{useprefix}% for passing to bcf
 \blx@collectopts{boolean}{blx@nameopts}{useprefix}% for passing to the .bcf
 
+% max/minsortnames option entry scope
+\blx@collectopts{integer}{blx@entryopts}{maxsortnames}
+\blx@collectopts{integer}{blx@entryopts}{minsortnames}
+
 % nametemplates meta-option entry/namelist/name scope
 \blx@collectopts{string}{blx@entryopts}{nametemplates}
 \blx@collectopts{string}{blx@namelistopts}{nametemplates}% for passing to bcf
@@ -6467,9 +6471,31 @@
 \blx@collectopts{string}{blx@namelistopts}{labelalphanametemplatename}% for passing to bcf
 \blx@collectopts{string}{blx@nameopts}{labelalphanametemplatename}% for passing to the .bcf
 
-% nohashothers and nosortothers namelist scope
+% noroman
+\blx@collectopts{boolean}{blx@entryopts}{noroman}% for passing to bcf
+
+% nohashothers
+\blx@collectopts{boolean}{blx@entryopts}{nohashothers}% for passing to bcf
 \blx@collectopts{boolean}{blx@namelistopts}{nohashothers}% for passing to bcf
+
+% nosortothers
+\blx@collectopts{boolean}{blx@entryopts}{nosortothers}% for passing to bcf
 \blx@collectopts{boolean}{blx@namelistopts}{nosortothers}% for passing to bcf
+
+% singletitle
+\blx@collectopts{boolean}{blx@entryopts}{singletitle}% for passing to bcf
+
+% uniquebaretitle
+\blx@collectopts{boolean}{blx@entryopts}{uniquebaretitle}% for passing to bcf
+
+% uniqueprimaryauthor
+\blx@collectopts{boolean}{blx@entryopts}{uniqueprimaryauthor}% for passing to bcf
+
+% uniquetitle
+\blx@collectopts{boolean}{blx@entryopts}{uniquetitle}% for passing to bcf
+
+% uniquework
+\blx@collectopts{boolean}{blx@entryopts}{uniquework}% for passing to bcf
 
 % Misc globalopts
 \blx@collectopts{xml}{blx@globalopts}{datamodel}% for passing to the .bcf
@@ -13675,8 +13701,6 @@
   \numdef\blx@maxsortnames@type{#1}}
 \DeclareTypeOption[integer]{minsortnames}{%
   \numdef\blx@minsortnames@type{#1}}
-\DeclareEntryOption[integer]{maxsortnames}{}
-\DeclareEntryOption[integer]{minsortnames}{}
 
 \appto\blx@checkoptions@global{%
   \blx@maxmin@num{maxbibnames}{minbibnames}\blx@maxbibnames\blx@minbibnames
@@ -13782,6 +13806,46 @@
 
 \DeclareBibliographyOption[string]{sortlocale}{%
   \edef\blx@sortlocale{\detokenize{#1}}}
+
+\DeclareBibliographyOption[boolean]{noroman}[true]{%
+  \settoggle{blx@noroman}{#1}}
+\DeclareTypeOption[boolean]{noroman}[false]{%
+  \settoggle{blx@noroman}{#1}}
+
+\DeclareBibliographyOption[boolean]{nohashothers}[true]{%
+  \settoggle{blx@nohashothers}{#1}}
+\DeclareTypeOption[boolean]{nohashothers}[false]{%
+  \settoggle{blx@nohashothers}{#1}}
+
+\DeclareBibliographyOption[boolean]{nosortothers}[true]{%
+  \settoggle{blx@nosortothers}{#1}}
+\DeclareTypeOption[boolean]{nosortothers}[false]{%
+  \settoggle{blx@nosortothers}{#1}}
+
+\DeclareBibliographyOption[boolean]{singletitle}[true]{%
+  \settoggle{blx@singletitle}{#1}}
+\DeclareTypeOption[boolean]{singletitle}[false]{%
+  \settoggle{blx@singletitle}{#1}}
+
+\DeclareBibliographyOption[boolean]{uniquebaretitle}[true]{%
+  \settoggle{blx@uniquebaretitle}{#1}}
+\DeclareTypeOption[boolean]{uniquebaretitle}[false]{%
+  \settoggle{blx@uniquebaretitle}{#1}}
+
+\DeclareBibliographyOption[boolean]{uniqueprimaryauthor}[true]{%
+  \settoggle{blx@uniqueprimaryauthor}{#1}}
+\DeclareTypeOption[boolean]{uniqueprimaryauthor}[false]{%
+  \settoggle{blx@uniqueprimaryauthor}{#1}}
+
+\DeclareBibliographyOption[boolean]{uniquetitle}[true]{%
+  \settoggle{blx@uniquetitle}{#1}}
+\DeclareTypeOption[boolean]{uniquetitle}[false]{%
+  \settoggle{blx@uniquetitle}{#1}}
+
+\DeclareBibliographyOption[boolean]{uniquework}[true]{%
+  \settoggle{blx@uniquework}{#1}}
+\DeclareTypeOption[boolean]{uniquework}[false]{%
+  \settoggle{blx@uniquework}{#1}}
 
 \DeclareBibliographyOption[string]{language}{%
   \togglefalse{blx@autolangbib}%
@@ -14497,20 +14561,6 @@
 \def\blx@opt@uniquelist@true{true}
 \def\blx@opt@uniquelist@minyear{minyear}
 
-\DeclareBibliographyOption[boolean]{nohashothers}[true]{%
-  \settoggle{blx@nohashothers}{#1}}
-\DeclareTypeOption[boolean]{nohashothers}[false]{%
-  \settoggle{blx@nohashothers}{#1}}
-\DeclareEntryOption[boolean]{nohashothers}[false]{%
-  \settoggle{blx@nohashothers}{#1}}
-
-\DeclareBibliographyOption[boolean]{nosortothers}[true]{%
-  \settoggle{blx@nosortothers}{#1}}
-\DeclareTypeOption[boolean]{nosortothers}[false]{%
-  \settoggle{blx@nosortothers}{#1}}
-\DeclareEntryOption[boolean]{nosortothers}[false]{%
-  \settoggle{blx@nosortothers}{#1}}
-
 \DeclareBibliographyOption[string]{uniquename}[true]{%
   \ifcsdef{blx@opt@uniquename@#1}
     {\letcs\blx@uniquename{blx@opt@uniquename@#1}}
@@ -14531,48 +14581,6 @@
 \def\blx@opt@uniquename@allfull{allfull}
 \def\blx@opt@uniquename@mininit{mininit}
 \def\blx@opt@uniquename@minfull{minfull}
-
-\DeclareBibliographyOption[boolean]{noroman}[true]{%
-  \settoggle{blx@noroman}{#1}}
-\DeclareTypeOption[boolean]{noroman}[true]{%
-  \settoggle{blx@noroman}{#1}}
-\DeclareEntryOption[boolean]{noroman}[true]{%
-  \settoggle{blx@noroman}{#1}}
-
-\DeclareBibliographyOption[boolean]{singletitle}[true]{%
-  \settoggle{blx@singletitle}{#1}}
-\DeclareTypeOption[boolean]{singletitle}[true]{%
-  \settoggle{blx@singletitle}{#1}}
-\DeclareEntryOption[boolean]{singletitle}[true]{%
-  \settoggle{blx@singletitle}{#1}}
-
-\DeclareBibliographyOption[boolean]{uniquetitle}[true]{%
-  \settoggle{blx@uniquetitle}{#1}}
-\DeclareTypeOption[boolean]{uniquetitle}[true]{%
-  \settoggle{blx@uniquetitle}{#1}}
-\DeclareEntryOption[boolean]{uniquetitle}[true]{%
-  \settoggle{blx@uniquetitle}{#1}}
-
-\DeclareBibliographyOption[boolean]{uniquebaretitle}[true]{%
-  \settoggle{blx@uniquebaretitle}{#1}}
-\DeclareTypeOption[boolean]{uniquebaretitle}[true]{%
-  \settoggle{blx@uniquebaretitle}{#1}}
-\DeclareEntryOption[boolean]{uniquebaretitle}[true]{%
-  \settoggle{blx@uniquebaretitle}{#1}}
-
-\DeclareBibliographyOption[boolean]{uniquework}[true]{%
-  \settoggle{blx@uniquework}{#1}}
-\DeclareTypeOption[boolean]{uniquework}[true]{%
-  \settoggle{blx@uniquework}{#1}}
-\DeclareEntryOption[boolean]{uniquework}[true]{%
-  \settoggle{blx@uniquework}{#1}}
-
-\DeclareBibliographyOption[boolean]{uniqueprimaryauthor}[true]{%
-  \settoggle{blx@uniqueprimaryauthor}{#1}}
-\DeclareTypeOption[boolean]{uniqueprimaryauthor}[true]{%
-  \settoggle{blx@uniqueprimaryauthor}{#1}}
-\DeclareEntryOption[boolean]{uniqueprimaryauthor}[true]{%
-  \settoggle{blx@uniqueprimaryauthor}{#1}}
 
 \DeclareBibliographyOption[boolean]{defernumbers}[true]{%
   \settoggle{blx@defernumbers}{#1}%
