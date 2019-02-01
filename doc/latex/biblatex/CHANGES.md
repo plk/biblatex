@@ -16,9 +16,12 @@
     \settoggle{blx@noroman}{#1}}
   ```
 - Following the introduction of `\DeclareBiblatexOption` extend the scope
-  of a few options (`abbreviate`, `citetracker`, `clearlang`, `dateabbrev`,
-  `<namepart>inits`, `ibidtracker`, `idemtracker`, `loccittracker`,
-  `opcittracker`, `terseinits`).
+  of a few options (`abbreviate`, `citetracker`, `clearlang`, `dataonly`,
+  `dateabbrev`, `<namepart>inits`, `ibidtracker`, `idemtracker`, `labelalpha`,
+  `labelnumber`, `labeltitle`, `labeltitleyear`, `labeldateparts`,
+  `loccittracker`, `opcittracker`, `singletitle`, `skipbib`, `skipbiblist`,
+  `skipbiblab` `terseinits`, `uniquelist`, `uniquename`, `uniquetitle`,
+  `uniquebaretitle`, `uniquework`, `uniqueprimaryauthor`).
 
 # RELEASE NOTES FOR VERSION 3.12
 - **INCOMPATIBLE CHANGE** The syntax for defining data annotations in the
