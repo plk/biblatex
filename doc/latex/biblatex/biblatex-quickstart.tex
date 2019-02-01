@@ -59,6 +59,9 @@
 \MakeAutoQuote*{<}{>}
 \MakeShortVerb{\|}
 
+\newrobustcmd*{\msecpref}[1]{%
+  \leavevmode\marginpar{\msecref{#1}}}
+
 \newcommand*{\msecref}[1]{B\zref{#1}}
 
 \titlepage{%
@@ -118,9 +121,12 @@
 \label{int}
 \biblatex is a bibliography system for \latex users. It surpasses the facilities provided by \bibtex and provides a very large feature set which can be somewhat overwhelming to the new user. This quick start guide aims to demonstrate the basic setup of \biblatex along with a selection of «how to» guides for common things which users typically need to do.
 
+In what follows, references to the main \biblatex documentation are given
+as <B$<$ref$>$>.
+
 \biblatex tracks the citations made in a document and the options set to control how the citations are managed. It passes these to a backend processor \biber\footnote{At time of writing, \biblatex supports two backend processors, \biber and legacy \bibtex. New users, who are the focus audience for this guide, should use \biber.} which performs some tasks and then writes out a sorted representation of the bibliography data. \biblatex then uses this information on subsequent runs of \latex to format and print a bibliography. You can see the general workflow in figure \ref{fig1}.
 
-See the appendix \secref{apx:hist} for some history about how \biblatex started, and how it differs from \bibtex. References to the main \biblatex documentation file are formatted as follows below: \msecref{int}.
+See the appendix \secref{apx:hist} for some history about how \biblatex started, and how it differs from \bibtex.
 
 \section{Getting Started}
 
@@ -169,12 +175,11 @@ latex test.tex
 %
 Many people will be using \latex editing applications which hide these commands from the user anyway and which will be activated by keyboard shortcuts or menu items.
 
-One thing that \biblatex is good at is \emph{localisation}, that is, knowing what to do when  switching between languages. If using a language other than basic English, loading \sty{inputenc} (\texttt{pdflatex}) or \sty{fontspec} (\texttt{xelatex} or \texttt{lualatex}) is recommended and then one or other of the \sty{babel} or \sty{polyglossia} packages for multi-language support. \biblatex knows how to connect with \sty{babel} and \sty{polyglossia} and can use their facilities for switching language handling and even font scripts dynamically in the bibliography and in citations. For example if writing in French, using \texttt{lualatex} as the engine and \sty{polyglossia} as the language support package, the basic document would look like this:
+One thing that \biblatex is good at is \emph{localisation}, that is, knowing what to do when  switching between languages. If using a language other than basic English, loading \sty{inputenc} (\texttt{pdflatex}) or \sty{fontspec} (\texttt{xelatex} or \texttt{lualatex}) is recommended and then one or other of the \sty{babel} or \sty{polyglossia} packages for multi-language support. \biblatex knows how to connect with \sty{babel} and \sty{polyglossia} and can use their facilities for switching language handling and even font scripts dynamically in the bibliography and in citations. For example if writing in French, using \texttt{lualatex} as the engine and \sty{babel} as the language support package, the basic document would look like this:
 
 \begin{ltxexample}[style=latex]{}
 \documentclass{article}
-\usepackage{polyglossia}
-\setdefaultlanguage{french}
+\usepackage[french]{babel}
 \usepackage{fontspec}
 \usepackage{biblatex}
 \addbibresource{refs.bib}
@@ -197,8 +202,7 @@ with \texttt{xelatex} or \texttt{lualatex} might look like this:
 
 \begin{ltxexample}[style=latex]{}
 \documentclass{article}
-\usepackage{polyglossia}
-\setdefaultlanguage{english}
+\usepackage[english]{babel}
 \usepackage{fontspec}
 \usepackage{biblatex}
 \usepackage{csquotes}
@@ -217,8 +221,7 @@ Or with \texttt{pdflatex}, like this:
 
 \begin{ltxexample}[style=latex]{}
 \documentclass{article}
-\usepackage{polyglossia}
-\setdefaultlanguage{english}
+\usepackage[english]{babel}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{biblatex}
@@ -235,7 +238,7 @@ in \cite{work1} and also in \cite{work2}.
 %
 See \msecref{int:pre} for details about required, recommended or incompatible packages. \biblatex comes with many example files which are placed in the \path{doc/latex/biblatex/examples} subdirectory of the \file{texmf} tree. These are annotated and very useful for learning how to do various things.
 
-\section{Changing Things \ldots}
+\section{Basics}
 
 The \biblatex package options are detailed in the \biblatex manual (\msecref{use}).
 
@@ -296,12 +299,106 @@ The general layout of the bibliography is controlled by a «bibliography environ
 %
 Bibliographies may be filtered and split so that, for example, it is possible to have separate bibliographies for books vs articles, primary vs secondary sources etc. The filtering can be done using various criteria and complex custom filters can be defined (\msecref{use:bib:flt}). There are several interfaces for bibliography filtering, depending on the use-case. See \msecref{use:use:mlt} for examples.
 
+\section{Delving Deeper}
 
+\biblatex has a \emph{lot} of options and is extremely customisable. The
+reference documentation for \biblatex is 300 pages which seems daunting for
+a new user but in fact, the plethora of options has developed to
+accommodate a very diverse array of requirements, most of which any one
+individual user will never need to use. So, the rest of this guide is
+structured as a list of useful tasks and options with pointers to the main
+documentation where you will find comprehensive documentation and examples.
+In most \TeX distributions, you can type \cmd{texdoc biblatex} at a command
+prompt to view the main \biblatex PDF manual.
+
+Please note that \biber has its own PDF documentation which
+is useful if you need to know about \biber specific things like the format
+of the XML-based \biber configuration file. With most \TeX distributions,
+you should be able to type \cmd{texdoc biber} at a command prompt to view
+the \biber manual. Running \cmd{biber --help} from the command line is the
+best source of information about the options which \biber supports.
+
+In what follows, \biber is presupposed as the backend processor as
+explained above. 
+\subsection{How do I ...?}
+
+\subsubsection{Use multiple bibliography data sources?\msecpref{use:bib:res}}
+
+Bibliographic data can be kept in any number of files (commonly,
+\file{.bib} files) and as many as you like can be used:
+
+\begin{ltxexample}[style=latex]{}
+  \addbibresource{file1.bib}
+  \addbibresource{file2.bib}
+  \addbibresource{file3.bib}
+\end{ltxexample}
+
+File patterns can be used too\footnote{These are full BSD-style file glob
+  patterns.}:
+
+\begin{ltxexample}[style=latex]{}
+  \addbibresource{file*.bib}
+  \addbibresource{file?.bib}
+  \addbibresource{file{1,2,3}.bib}
+\end{ltxexample}
+  
+\subsubsection{Use remote data sources?\msecpref{use:bib:res}}
+
+Remote datasources can be fetched via HTTP(S) or FTP(S):
+
+\begin{ltxexample}[style=latex]{}
+  \addbibresource[location=remote]{http://www.citeulike.org/bibtex/group/9517}
+\end{ltxexample}
+
+\subsubsection{Manipulate the bibliographic data without changing the
+  source files?\msecpref{aut:ctm:map}}
+
+It is possible to change the data in almost arbitrary ways as it is read,
+without modifying the data files. This is useful, for example for data
+normalisation and also in situations where you do not control the data
+files. This is done by <source mapping> which \biber applies as it reads
+the data files. Source maps are defined with the \cmd{DeclareSourcemap}
+macro. Here is a simple example--suppose that the data source file
+\file{file1.bib} had \bibtype{article} entries with large or badly
+formatted \bibfield{abstract} fields, you could remove these as the data is
+read like this:
+
+\begin{ltxexample}[style=latex]{}
+\DeclareSourcemap{
+  \maps[datatype=bibtex]{
+    \map{
+      \perdatasource{<<file1.bib>>}
+      \pertype{<<article>>}
+      \step[fieldset=<<abstract>>, null]
+    }
+  }
+}
+
+\end{ltxexample}
+
+
+\subsubsection{Sort the bibliography correctly for a particular language?\msecpref{bib:cav:enc}}
+
+Sorting can be tailored to specific languages\footnote{Actually, <locales>
+  but \biber maps babel/polyglossia language names to locale names
+  automatically} easily when using \sty{babel} or \sty{polyglossia} with
+the option:
+
+\begin{ltxexample}[style=latex]{}
+  \usepackage[sortlocale=auto]{biblatex}
+\end{ltxexample}
+%
+The sorting locale can also be specified explicitly and with more
+granularity than this global setting example.\msecpref{aut:ctm:srt}
 
 % \begin{lstlisting}[style=bibtex]{}
 % \end{lstlisting}
 
+% \begin{ltxexample}[style=latex]{}
+% \end{ltxexample}
 
+
+\newpage
 \appendix
 \section*{Appendix}
 \addcontentsline{toc}{section}{Appendix}
