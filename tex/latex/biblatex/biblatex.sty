@@ -4348,20 +4348,32 @@
 % some are used by biber only and are not needed by biblatex after biber has finished
 % generating the .bbl
 % Per-namelist options
-\define@key{blx@opt@namelist}{ul}{\c@uniquelist#1\relax}
+\define@key{blx@opt@namelist}{ul}{\c@uniquelist#1\relax}% NOT A BIBLATEX OPTION, BIBER CALCULATED
 \define@key{blx@opt@namelist}{useprefix}{\settoggle{blx@useprefix}{#1}}
 \define@key{blx@opt@namelist}{sortingnamekeytemplatename}{\def\blx@refcontext@sortingnamekeytemplatename{#1}}
 \define@key{blx@opt@namelist}{uniquenametemplatename}{\def\blx@refcontext@uniquenametemplatename{#1}}
 \define@key{blx@opt@namelist}{labelalphanametemplatename}{\def\blx@refcontext@labelalphanametemplatename{#1}}
+% and these namelist options need to be passed back to the .bbl by biber
+\csgdef{blx@bcf@backendout@namelist@useprefix}{1}%
+\csgdef{blx@bcf@backendout@namelist@sortingnamekeytemplatename}{1}%
+\csgdef{blx@bcf@backendout@namelist@uniquenametemplatename}{1}%
+\csgdef{blx@bcf@backendout@namelist@labelalphanametemplatename}{1}%
 
 % Per-name options
-\define@key{blx@opt@name}{un}{\c@uniquename#1\relax}
-\define@key{blx@opt@name}{uniquepart}{\def\abx@field@uniquepart{#1}}
-\define@key{blx@opt@name}{hash}{\edef\abx@field@hash{\detokenize{#1}}}
+\define@key{blx@opt@name}{un}{\c@uniquename#1\relax}% NOT A BIBLATEX OPTION, BIBER CALCULATED
+\define@key{blx@opt@name}{uniquepart}{\def\abx@field@uniquepart{#1}}% NOT A BIBLATEX OPTION, BIBER CALCULATED
+\define@key{blx@opt@name}{hash}{\edef\abx@field@hash{\detokenize{#1}}}% NOT A BIBLATEX OPTION, BIBER CALCULATED
 \define@key{blx@opt@name}{useprefix}{\settoggle{blx@useprefix}{#1}}
 \define@key{blx@opt@name}{sortingnamekeytemplatename}{\def\blx@refcontext@sortingnamekeytemplatename{#1}}
 \define@key{blx@opt@name}{uniquenametemplatename}{\def\blx@refcontext@uniquenametemplatename{#1}}
 \define@key{blx@opt@name}{labelalphanametemplatename}{\def\blx@refcontext@labelalphanametemplatename{#1}}
+% and these name options need to be passed back to the .bbl by biber
+\csgdef{blx@bcf@backendout@name@useprefix}{1}%
+\csgdef{blx@bcf@backendout@name@sortingnamekeytemplatename}{1}%
+\csgdef{blx@bcf@backendout@name@uniquenametemplatename}{1}%
+\csgdef{blx@bcf@backendout@name@labelalphanametemplatename}{1}%
+
+
 
 \newrobustcmd*{\bibinitperiod}{\adddot}
 \newrobustcmd*{\bibinitdelim}{\addnbspace}
@@ -6439,9 +6451,22 @@
 % per-entry inheritance blocking option for biber
 \blx@collectopts{string}{blx@entryopts}{noinherit}
 
+% dataonly entry scope opt
+\blx@collectopts{boolean}{blx@entryopts}{dataonly}
+% Tell biber via .bcf what to set when it finds this option
+\gdef\blx@bcf@backendin@entry@dataonly{skipbib=true,skipbiblist=true,skiplab=true,uniquename=false,uniquelist=false}%
+
 % useprefix namelist/name scope
 \blx@collectopts{boolean}{blx@namelistopts}{useprefix}% for passing to bcf
 \blx@collectopts{boolean}{blx@nameopts}{useprefix}% for passing to the .bcf
+
+% max/minnames option entry scope
+\blx@collectopts{integer}{blx@entryopts}{maxnames}
+\blx@collectopts{integer}{blx@entryopts}{minnames}
+% Tell biber via .bcf what to set when it finds this option
+\gdef\blx@bcf@backendin@entry@maxnames{maxcitenames,maxbibnames,maxsortnames}%
+% Tell biber via .bcf what to set when it finds this option
+\gdef\blx@bcf@backendin@entry@minnames{mincitenames,minbibnames,minsortnames}%
 
 % max/minsortnames option entry scope
 \blx@collectopts{integer}{blx@entryopts}{maxsortnames}
@@ -6451,6 +6476,10 @@
 \blx@collectopts{string}{blx@entryopts}{nametemplates}
 \blx@collectopts{string}{blx@namelistopts}{nametemplates}% for passing to bcf
 \blx@collectopts{string}{blx@nameopts}{nametemplates}% for passing to the .bcf
+% Tell biber via .bcf what to set when it finds this option
+\gdef\blx@bcf@backendin@entry@nametemplates{sortingnamekeytemplatename,uniquenametemplatename,labelalphanametemplatename}%
+\gdef\blx@bcf@backendin@namelist@nametemplates{sortingnamekeytemplatename,uniquenametemplatename,labelalphanametemplatename}%
+\gdef\blx@bcf@backendin@name@nametemplates{sortingnamekeytemplatename,uniquenametemplatename,labelalphanametemplatename}%
 
 % sortingnamekeytemplate namelist/name scope
 \blx@collectopts{string}{blx@namelistopts}{sortingnamekeytemplatename}% for passing to bcf
@@ -6541,7 +6570,7 @@
        {\blx@warn@badoptdt{#1}%
         \def\blx@tempa{boolean}}
        {\def\blx@tempa{#1}}}%
-    \expandafter\blx@collectopts\expandafter{\blx@tempa}{blx@typeopts}{#2}%
+  \expandafter\blx@collectopts\expandafter{\blx@tempa}{blx@typeopts}{#2}%
   \@ifnextchar[%]
     {\blx@deftypeopt{#2}}
     {\blx@deftypeopt{#2}[]}}
@@ -6561,7 +6590,8 @@
        {\blx@warn@badoptdt{#1}%
         \def\blx@tempa{boolean}}
        {\def\blx@tempa{#1}}}%
-    \expandafter\blx@collectopts\expandafter{\blx@tempa}{blx@entryopts}{#2}%
+  \expandafter\blx@collectopts\expandafter{\blx@tempa}{blx@entryopts}{#2}%
+  \csgdef{blx@bcf@backendout@entry@#2}{1}% We want biber to output this ENTRY option to the .bbl
   \@ifnextchar[%]
     {\blx@defentryopt{#2}}
     {\blx@defentryopt{#2}[]}}
@@ -6579,7 +6609,7 @@
     {}
     {\blx@error
        {Invalid date field name '#1'}
-       {Date fields in the datemodel must end in the string 'date' but '#1' doesn't}}}
+       {Date fields in the datamodel must end in the string 'date' but '#1' doesn't}}}
 \abx@dodates
 
 % date meta-information option fallbacks
@@ -12155,8 +12185,14 @@
   ~~<bcf:optionscope type="#1">\blx@nl
   #2%
   ~~</bcf:optionscope>\blx@nl}
-\xdef\blx@xml@option@scope#1#2{%
+\xdef\blx@xml@option@scope#1#2{% GLOBAL/TYPE scope
   ~~~~<bcf:option datatype="#1">#2</bcf:option>\blx@nl}
+\xdef\blx@xml@option@entryscope#1#2{% ENTRY scope
+  ~~~~<bcf:option datatype="#1"\noexpand\ifcsdef{blx@bcf@backendout@entry@#2}{ backendout="1"}{}\noexpand\ifcsdef{blx@bcf@backendin@entry@#2}{ backendin="\noexpand\csuse{blx@bcf@backendin@entry@#2}"}{}>#2</bcf:option>\blx@nl}
+\xdef\blx@xml@option@namelistscope#1#2{% NAMELIST scope
+  ~~~~<bcf:option datatype="#1"\noexpand\ifcsdef{blx@bcf@backendout@namelist@#2}{ backendout="1"}{}\noexpand\ifcsdef{blx@bcf@backendin@namelist@#2}{ backendin="\noexpand\csuse{blx@bcf@backendin@namelist@#2}"}{}>#2</bcf:option>\blx@nl}
+\xdef\blx@xml@option@namescope#1#2{% NAME scope
+  ~~~~<bcf:option datatype="#1"\noexpand\ifcsdef{blx@bcf@backendout@name@#2}{ backendout="1"}{}\noexpand\ifcsdef{blx@bcf@backendin@name@#2}{ backendin="\noexpand\csuse{blx@bcf@backendin@name@#2}"}{}>#2</bcf:option>\blx@nl}
 \endgroup
 
 \def\blx@bcf@options@global{%
@@ -12311,21 +12347,21 @@
   % ENTRY
   \def\do##1{%
     \begingroup
-    \def\do####1{\xappto\blx@bcf@options@scope@entry{\blx@xml@option@scope{##1}{####1}}}%
+    \def\do####1{\xappto\blx@bcf@options@scope@entry{\blx@xml@option@entryscope{##1}{####1}}}%
     \dolistcsloop{blx@entryopts@##1}%
     \endgroup}%
   \dolistloop\blx@entryopts@datatypes
   % NAMELIST
   \def\do##1{%
     \begingroup
-    \def\do####1{\xappto\blx@bcf@options@scope@namelist{\blx@xml@option@scope{##1}{####1}}}%
+    \def\do####1{\xappto\blx@bcf@options@scope@namelist{\blx@xml@option@namelistscope{##1}{####1}}}%
     \dolistcsloop{blx@namelistopts@##1}%
     \endgroup}%
   \dolistloop\blx@entryopts@datatypes
   % NAME
   \def\do##1{%
     \begingroup
-    \def\do####1{\xappto\blx@bcf@options@scope@name{\blx@xml@option@scope{##1}{####1}}}%
+    \def\do####1{\xappto\blx@bcf@options@scope@name{\blx@xml@option@namescope{##1}{####1}}}%
     \dolistcsloop{blx@nameopts@##1}%
     \endgroup}%
   \dolistloop\blx@entryopts@datatypes
@@ -14730,10 +14766,6 @@
   \settoggle{blx@skipbiblist}{#1}%
   \settoggle{blx@skiplab}{#1}}
 \DeclareTypeOption[boolean]{dataonly}[true]{%
-  \settoggle{blx@skipbib}{#1}%
-  \settoggle{blx@skipbiblist}{#1}%
-  \settoggle{blx@skiplab}{#1}}
-\DeclareEntryOption[boolean]{dataonly}[true]{%
   \settoggle{blx@skipbib}{#1}%
   \settoggle{blx@skipbiblist}{#1}%
   \settoggle{blx@skiplab}{#1}}
