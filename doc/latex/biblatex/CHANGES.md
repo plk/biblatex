@@ -1,7 +1,33 @@
 # RELEASE NOTES FOR VERSION 3.13
 - **INCOMPATIBLE CHANGE** Any custom per-entry options in datasources must
   be defined with `\DeclareEntryOption` in order for biber to recognise
-  them and pass them out in the .bbl.
+  them and pass them out in the `.bbl`.
+  This should not adversely affect any code using the documented
+  `\Decalare...Option` interface, so should be uncritical for most users.
+- Add `\DeclareBiblatexOption` as a convenient interface to declare the same
+  option in different scopes. This should help avoid code duplication.
+  For example
+  ```
+  \DeclareBibliographyOption[boolean]{noroman}[true]{%
+    \settoggle{blx@noroman}{#1}}
+  \DeclareTypeOption[boolean]{noroman}[true]{%
+    \settoggle{blx@noroman}{#1}}
+  \DeclareEntryOption[boolean]{noroman}[true]{%
+    \settoggle{blx@noroman}{#1}}
+  ```
+  can be replaced with
+  ```
+  \DeclareBiblatexOption{global,type,entry}[boolean]{noroman}[true]{%
+    \settoggle{blx@noroman}{#1}}
+  ```
+- Following the introduction of `\DeclareBiblatexOption` extend the scope
+  of a few options (`abbreviate`, `citetracker`, `clearlang`, `dataonly`,
+  `dateabbrev`, `<namepart>inits`, `ibidtracker`, `idemtracker`, `labelalpha`,
+  `labelnumber`, `labeltitle`, `labeltitleyear`, `labeldateparts`,
+  `loccittracker`, `opcittracker`, `singletitle`, `skipbib`, `skipbiblist`,
+  `skipbiblab` `terseinits`, `uniquelist`, `uniquename`, `uniquetitle`,
+  `uniquebaretitle`, `uniquework`, `uniqueprimaryauthor`).
+
 # RELEASE NOTES FOR VERSION 3.12
 - **INCOMPATIBLE CHANGE** The syntax for defining data annotations in the
   BibLaTeXML data source format has changed to accommodate named
