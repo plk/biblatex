@@ -2,6 +2,8 @@
 - **INCOMPATIBLE CHANGE** Any custom per-entry options in datasources must
   be defined with `\DeclareEntryOption` in order for biber to recognise
   them and pass them out in the `.bbl`.
+  This should not adversely affect any code using the documented
+  `\Decalare...Option` interface, so should be uncritical for most users.
 - Add `\DeclareBiblatexOption` as a convenient interface to declare the same
   option in different scopes. This should help avoid code duplication.
   For example
