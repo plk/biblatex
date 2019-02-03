@@ -4336,6 +4336,8 @@
   \def\blx@thedata{#2}}
 
 % Biber-calculated info passed back to biblatex as an option in the .bbl
+% unlike stuff defined with \DeclareBiblatexOption and
+% \blx@DeclareBackendOption these are not 'real' options
 \define@key{blx@opt@namelist}{ul}{\c@uniquelist#1\relax}
 
 \define@key{blx@opt@name}{un}{\c@uniquename#1\relax}
@@ -6507,8 +6509,10 @@
     {\blx@defblxopt@loopscopes{#2}}
     {\blx@defblxopt@loopscopes{#2}[]}}
 
+% this macro is internal for now because options declared with it need
+% support on the backend side and are not useful for document or style authors
 % {<option scopes>}[<datatype>]{<key>}
-\newrobustcmd*{\DeclareBackendOption}[1]{%
+\newrobustcmd*{\blx@DeclareBackendOption}[1]{%
   \let\blx@optscopes\@empty
   \forcsvlist{\listadd\blx@optscopes}{#1}%
   \blx@DeclareBackendOption@i}
@@ -6533,12 +6537,12 @@
   \endgroup}
 
 % per-entry inheritance blocking option for biber
-\DeclareBackendOption{entry}[string]{noinherit}
+\blx@DeclareBackendOption{entry}[string]{noinherit}
 
 
 % nametemplates meta-option entry/namelist/name scope
-\DeclareBackendOption{entry,namelist,name}[string]{nametemplates}
-% Tell biber via .bcf what to set when it finds this option
+% this meta option is resolved by Biber
+\blx@DeclareBackendOption{entry,namelist,name}[string]{nametemplates}
 \gdef\blx@bcf@backendin@entry@nametemplates{sortingnamekeytemplatename,%
   uniquenametemplatename,labelalphanametemplatename}%
 \gdef\blx@bcf@backendin@namelist@nametemplates{sortingnamekeytemplatename,%
@@ -6547,13 +6551,13 @@
   uniquenametemplatename,labelalphanametemplatename}%
 
 % Misc globalopts
-\DeclareBackendOption{global}[xml]{datamodel}
+\blx@DeclareBackendOption{global}[xml]{datamodel}
 \blx@collectopts{string}{blx@globalopts}{controlversion}
 
 \newcommand*{\labelalphaothers}{+}
 \newcommand*{\sortalphaothers}{\labelalphaothers}
-\DeclareBackendOption{global,type}[string]{alphaothers}
-\DeclareBackendOption{global,type}[string]{sortalphaothers}
+\blx@DeclareBackendOption{global,type}[string]{alphaothers}
+\blx@DeclareBackendOption{global,type}[string]{sortalphaothers}
 
 % date, eventdate, urldate etc.
 \def\abx@dodates{\dolistloop\blx@datamodel@dates}
@@ -6876,7 +6880,7 @@
 
 \def\do#1{%
   % Define use<name> options scope for biber
-  \DeclareBackendOption{global,type,entry}[boolean]{use#1}%
+  \blx@DeclareBackendOption{global,type,entry}[boolean]{use#1}%
   % Define name toggles
   \newtoggle{blx@use#1}\toggletrue{blx@use#1}%
   % Define tests
@@ -12820,7 +12824,7 @@
     {\listxadd\blx@lantemplatespecs\blx@lantname}%
   \endgroup}
 \@onlypreamble\DeclareLabelalphaNameTemplate
-\DeclareBackendOption{global}[xml]{labelalphanametemplate}
+\blx@DeclareBackendOption{global}[xml]{labelalphanametemplate}
 \DeclareBiblatexOption{entry,namelist,name}[string]{labelalphanametemplatename}{%
   \def\blx@refcontext@labelalphanametemplatename{#1}}
 
@@ -12863,7 +12867,7 @@
      {\blx@latem{#2}{global}}
      {\forcsvlist{\blx@latem{#2}}{#1}}}
 \@onlypreamble\DeclareLabelalphaTemplate
-\DeclareBackendOption{global,type}[xml]{labelalphatemplate}
+\blx@DeclareBackendOption{global,type}[xml]{labelalphatemplate}
 
 \def\blx@latem#1#2{%
   \begingroup
@@ -13023,7 +13027,7 @@
 \def\blx@inherit@ii#1#2{%
   \eappto\blx@tempa{\blx@xml@inherit@type{#1}{#2}{}}}
 
-\DeclareBackendOption{global}[xml]{inheritance}
+\blx@DeclareBackendOption{global}[xml]{inheritance}
 
 % [<options>]{<source>}{<target>}
 \newcommand*{\blx@inherit@field}[3][]{%
@@ -13107,7 +13111,7 @@
     {\listxadd\blx@translits\blx@tempa}%
   \endgroup}
 \@onlypreamble\DeclareSortTranslit
-\DeclareBackendOption{global,type}[xml]{translit}
+\blx@DeclareBackendOption{global,type}[xml]{translit}
 
 \newcommand*{\blx@translit@setup}[4][]{%
   \eappto\blx@tempb{%
@@ -13131,7 +13135,7 @@
     {\listxadd\blx@untemplatespecs\blx@untname}%
   \endgroup}
 \@onlypreamble\DeclareUniquenameTemplate
-\DeclareBackendOption{global}[xml]{uniquenametemplate}
+\blx@DeclareBackendOption{global}[xml]{uniquenametemplate}
 \DeclareBiblatexOption{entry,namelist,name}[string]{uniquenametemplatename}{%
   \def\blx@refcontext@uniquenametemplatename{#1}}
 
@@ -13176,7 +13180,7 @@
     {\listxadd\blx@sortingnamekeytemplates\blx@snkname}%
   \endgroup}
 \@onlypreamble\DeclareSortingNamekeyTemplate
-\DeclareBackendOption{global}[xml]{sortingnamekeytemplate}
+\blx@DeclareBackendOption{global}[xml]{sortingnamekeytemplate}
 \DeclareBiblatexOption{entry,namelist,name}[string]{sortingnamekeytemplatename}{%
   \def\blx@refcontext@sortingnamekeytemplatename{#1}}
 
@@ -13249,7 +13253,7 @@
   \global\cslet{blx@sortingtemplate@#2}\blx@tempa
   \endgroup}
 \@onlypreamble\DeclareSortingTemplate
-\DeclareBackendOption{global}[xml]{sortingtemplate}
+\blx@DeclareBackendOption{global}[xml]{sortingtemplate}
 
 \define@key{blx@sortdef@sorting}{locale}{% locale name
   \def\blx@templ{#1}}
@@ -13328,7 +13332,7 @@
        {\forcsvlist\blx@undefpresort{#1}}}%
   \endgroup}
 \@onlypreamble\DeclarePresort
-\DeclareBackendOption{global,type,entry}[string]{presort}
+\blx@DeclareBackendOption{global,type,entry}[string]{presort}
 
 \def\blx@defpresort#1#2{%
   \csxdef{blx@bcf@presort@#2}{\blx@xml@presort{#2}{#1}}}
@@ -13338,7 +13342,7 @@
 % {<entrytype,...>}{<field,...>}
 \newrobustcmd*{\DeclareSortExclusion}[2]{%
   \forcsvlist{\blx@sortexclude{#2}}{#1}}
-\DeclareBackendOption{global}[xml]{sortexclusion}
+\blx@DeclareBackendOption{type}[xml]{sortexclusion}
 
 % {<field>}{<entrytype>}
 \def\blx@sortexclude#1#2{%
@@ -13357,7 +13361,7 @@
 % {<entrytype,...>}{<field,...>}
 \newrobustcmd*{\DeclareSortInclusion}[2]{%
   \forcsvlist{\blx@sortinclude{#2}}{#1}}
-\DeclareBackendOption{global}[xml]{sortinclusion}
+\blx@DeclareBackendOption{type}[xml]{sortinclusion}
 
 % {<field>}{<entrytype>}
 \def\blx@sortinclude#1#2{%
@@ -13382,7 +13386,7 @@
   \global\let\blx@bcf@extradatespec\blx@tempa
   \endgroup}
 \@onlypreamble\DeclareExtradate
-\DeclareBackendOption{global}[xml]{extradatespec}
+\blx@DeclareBackendOption{global}[xml]{extradatespec}
 
 \newrobustcmd*{\blx@extradate@scope}[1]{%
   \let\blx@tempb\@empty
@@ -13410,7 +13414,7 @@
   #2%
   \endgroup}
 \@onlypreamble\DeclareLabelname
-\DeclareBackendOption{global,type}[xml]{labelnamespec}
+\blx@DeclareBackendOption{global,type}[xml]{labelnamespec}
 
 \newrobustcmd*{\DeclareLabeltitle}[2][]{%
   \begingroup
@@ -13425,7 +13429,7 @@
   #2%
   \endgroup}
 \@onlypreamble\DeclareLabeltitle
-\DeclareBackendOption{global,type}[xml]{labeltitlespec}
+\blx@DeclareBackendOption{global,type}[xml]{labeltitlespec}
 
 \newrobustcmd*{\DeclareLabeldate}[2][]{%
   \begingroup
@@ -13441,7 +13445,7 @@
   #2%
   \endgroup}
 \@onlypreamble\DeclareLabeldate
-\DeclareBackendOption{global,type}[xml]{labeldatespec}
+\blx@DeclareBackendOption{global,type}[xml]{labeldatespec}
 
 \newcommand*{\blx@ordered@field}[2][]{%
   \let\blx@tempc\@empty
@@ -13606,7 +13610,7 @@
 \define@key{blx@opt@pre}{sorting}{%
   \def\blx@sorting{#1}%
   \def\blx@refcontext@sortingtemplatename{#1}}
-\DeclareBackendOption{global}[string]{sortingtemplatename}
+\blx@DeclareBackendOption{global}[string]{sortingtemplatename}
 
 \AtEndPreamble{%
   \ifcsdef{blx@sortingtemplate@\blx@sorting}
@@ -13644,12 +13648,10 @@
   \numdef\blx@minbibnames{#1}%
   \numdef\blx@minsortnames{#1}%
   \c@minnames#1\relax}
-
-\DeclareBackendOption{entry}[integer]{maxnames}
-\DeclareBackendOption{entry}[integer]{minnames}
-% Tell biber via .bcf what to set when it finds this option
+% the per-entry option is resolved by Biber directly
+\blx@DeclareBackendOption{entry}[integer]{maxnames}
+\blx@DeclareBackendOption{entry}[integer]{minnames}
 \gdef\blx@bcf@backendin@entry@maxnames{maxcitenames,maxbibnames,maxsortnames}%
-% Tell biber via .bcf what to set when it finds this option
 \gdef\blx@bcf@backendin@entry@minnames{mincitenames,minbibnames,minsortnames}%
 
 
@@ -14455,15 +14457,15 @@
 \def\blx@opt@uniquelist@true{true}
 \def\blx@opt@uniquelist@minyear{minyear}
 
-\DeclareBackendOption{entry,namelist}[string]{uniquelist}
+\blx@DeclareBackendOption{entry,namelist}[string]{uniquelist}
 
 \DeclareBiblatexOption{global,type}[boolean]{nohashothers}[true]{%
   \settoggle{blx@nohashothers}{#1}}
-\DeclareBackendOption{entry,namelist}[boolean]{nohashothers}
+\blx@DeclareBackendOption{entry,namelist}[boolean]{nohashothers}
 
 \DeclareBiblatexOption{global,type}[boolean]{nosortothers}[true]{%
   \settoggle{blx@nosortothers}{#1}}
-\DeclareBackendOption{entry,namelist}[boolean]{nosortothers}
+\blx@DeclareBackendOption{entry,namelist}[boolean]{nosortothers}
 
 \DeclareBiblatexOption{global,type}[string]{uniquename}[true]{%
   \ifcsdef{blx@opt@uniquename@#1}
@@ -14478,31 +14480,31 @@
 \def\blx@opt@uniquename@mininit{mininit}
 \def\blx@opt@uniquename@minfull{minfull}
 
-\DeclareBackendOption{entry,namelist,name}[string]{uniquename}
+\blx@DeclareBackendOption{entry,namelist,name}[string]{uniquename}
 
 \DeclareBiblatexOption{global,type}[boolean]{noroman}[true]{%
   \settoggle{blx@noroman}{#1}}
-\DeclareBackendOption{entry}[boolean]{noroman}
+\blx@DeclareBackendOption{entry}[boolean]{noroman}
 
 \DeclareBiblatexOption{global,type}[boolean]{singletitle}[true]{%
   \settoggle{blx@singletitle}{#1}}
-\DeclareBackendOption{entry}[boolean]{singletitle}
+\blx@DeclareBackendOption{entry}[boolean]{singletitle}
 
 \DeclareBiblatexOption{global,type}[boolean]{uniquetitle}[true]{%
   \settoggle{blx@uniquetitle}{#1}}
-\DeclareBackendOption{entry}[boolean]{uniquetitle}
+\blx@DeclareBackendOption{entry}[boolean]{uniquetitle}
 
 \DeclareBiblatexOption{global,type}[boolean]{uniquebaretitle}[true]{%
   \settoggle{blx@uniquebaretitle}{#1}}
-\DeclareBackendOption{entry}[boolean]{uniquebaretitle}
+\blx@DeclareBackendOption{entry}[boolean]{uniquebaretitle}
 
 \DeclareBiblatexOption{global,type}[boolean]{uniquework}[true]{%
   \settoggle{blx@uniquework}{#1}}
-\DeclareBackendOption{entry}[boolean]{uniquework}
+\blx@DeclareBackendOption{entry}[boolean]{uniquework}
 
 \DeclareBiblatexOption{global,type}[boolean]{uniqueprimaryauthor}[true]{%
   \settoggle{blx@uniqueprimaryauthor}{#1}}
-\DeclareBackendOption{entry}[boolean]{uniqueprimaryauthor}
+\blx@DeclareBackendOption{entry}[boolean]{uniqueprimaryauthor}
 
 
 \DeclareBibliographyOption[boolean]{defernumbers}[true]{%
@@ -14636,8 +14638,8 @@
   \settoggle{blx@skipbib}{#1}%
   \settoggle{blx@skipbiblist}{#1}%
   \settoggle{blx@skiplab}{#1}}
-\DeclareBackendOption{entry}[boolean]{dataonly}
-% Tell biber via .bcf what to set when it finds this option
+% the entry option is resolved by Biber
+\blx@DeclareBackendOption{entry}[boolean]{dataonly}
 \gdef\blx@bcf@backendin@entry@dataonly{uniquename=false,uniquelist=false,%
   skipbib=true,skipbiblist=true,skiplab=true}
 
