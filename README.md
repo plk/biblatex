@@ -1,5 +1,9 @@
 # Turkish LBX file for biblatex
 
+This README.md file have to be converted to the original before merging into `dev`.
+
+This repo is only for the Turkish lbx file. For the actual biblatex repo, please go to original upstream: `plk/biblatex`.
+
 Feature branch to work on: `feature/turkish-lbx`
 
 * This repo is forked from the `plk/biblatex` repo for the the Turkish lbx file.
