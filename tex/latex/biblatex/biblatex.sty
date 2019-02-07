@@ -748,6 +748,7 @@
 \newtoggle{blx@skipbiblist}
 \newtoggle{blx@skiplab}
 \newtoggle{blx@citation}
+\newtoggle{blx@volcite}
 \newtoggle{blx@bibliography}
 \newtoggle{blx@citeindex}
 \newtoggle{blx@bibindex}
@@ -3675,6 +3676,7 @@
 \appto\blx@blxinit{%
   \def\ifnatbibmode{\iftoggle{blx@natbib}}%
   \def\ifcitation{\iftoggle{blx@citation}}%
+  \def\ifvolcite{\iftoggle{blx@volcite}}%
   \def\ifbibliography{\iftoggle{blx@bibliography}}%
   \def\ifciteindex{\iftoggle{blx@citeindex}}%
   \def\ifbibindex{\iftoggle{blx@bibindex}}%
@@ -11115,7 +11117,10 @@
       {\def\abx@field@prenote{##1}}%
     \ifblank{##2}
       {\let\blx@thenotecheck\relax}
-      {\def\abx@field@postnote{##2}}%
+      {\def\abx@field@postnote{##2}%
+       \iftoggle{blx@volcite}
+         {\blx@defvolcitepostnote##2}
+         {}}%
     \def\blx@precode{\delimcontext{#1}#2}%
     \def\blx@loopcode{#3}%
     \def\blx@dlimcode{#4}%
@@ -11556,6 +11561,7 @@
     \def\iffieldbibstring#1{\blx@TE{\blx@imc@iffieldbibstring{#1}}}%
     \def\ifnatbibmode{\blx@TE{\iftoggle{blx@natbib}}}%
     \def\ifcitation{\blx@TE{\iftoggle{blx@citation}}}%
+    \def\ifvolcite{\blx@TE{\iftoggle{blx@volcite}}}%
     \def\ifbibliography{\blx@TE{\iftoggle{blx@bibliography}}}%
     \def\ifciteindex{\blx@TE{\iftoggle{blx@citeindex}}}%
     \def\ifbibindex{\blx@TE{\iftoggle{blx@bibindex}}}%
@@ -11895,7 +11901,9 @@
 % {<macro>}[<pre>]{<vol>}[<post>] => <macro>{<pre>}{{<vol>}{<post>}}
 
 \newrobustcmd*{\volcitecmd}{%
-  \AtNextCite{\DeclareFieldAlias{postnote}{volcitenote}}%
+  \AtNextCite{%
+    \toggletrue{blx@volcite}%
+    \csuse{blx@hook@volcite}}%
   \begingroup\let\blx@citeargs\blx@volciteargs}
 
 \protected\def\blx@volciteargs#1{%
@@ -11913,7 +11921,9 @@
   \blx@citeargs@iii{#1{#2}{{#3}{#4}}}}
 
 \newrobustcmd*{\multivolcitecmd}{%
-  \AtNextCite{\DeclareFieldAlias{postnote}{volcitenote}}%
+  \AtNextCite{%
+    \toggletrue{blx@volcite}%
+    \csuse{blx@hook@volcite}}%
   \def\blx@hook@mcite@before{%
     \global\undef\blx@hook@mcite@before
     \let\blx@citeargs\blx@volmciteargs}}
@@ -11922,6 +11932,24 @@
   \@ifnextchar[%]
     {\blx@volciteargs@i{#1}}
     {\blx@volciteargs@i{#1}[]}}
+
+\long\def\blx@defvolcitepostnote#1#2{%
+  \def\abx@field@volcitevolume{#1}%
+  \ifblank{#2}
+    {}
+    {\def\abx@field@volcitepages{#2}}}
+
+\newrobustcmd*{\AtVolcite}{%
+  \@ifstar
+    {\global\undef\blx@hook@volcite
+     \gappto\blx@hook@volcite}
+    {\gappto\blx@hook@volcite}}
+\@onlypreamble\AtVolcite
+\def\blx@imc@UseVolciteHook{\csuse{blx@hook@volcite}}
+\blx@regimcs{\UseVolciteHook}
+
+\AtVolcite{%
+  \DeclareFieldAlias{postnote}{volcitenote}}
 
 %% Control file
 

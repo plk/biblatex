@@ -27,6 +27,13 @@
   `loccittracker`, `opcittracker`, `singletitle`, `skipbib`, `skipbiblist`,
   `skipbiblab` `terseinits`, `uniquelist`, `uniquename`, `uniquetitle`,
   `uniquebaretitle`, `uniquework`, `uniqueprimaryauthor`).
+- Add `\ifvolcite` test to check if the current citation is in a `\volcite`
+  context.
+- Add the special fields `volcitevolume` and `volcitepages` for finer control
+  over the `\volcite` postnote.
+- Add `\AtVolcite` hook to initialise `\volcite` commands.
+- Add `multiprenotedelim` and `multipostnotedelim` and make all
+ `(pre|post)notedelim`-like commands context sensitive.
 
 # RELEASE NOTES FOR VERSION 3.12
 - **INCOMPATIBLE CHANGE** The syntax for defining data annotations in the
