@@ -10379,7 +10379,16 @@ Macros in titles must also be protected with braces
 title = {The {\TeX book}},
 \end{lstlisting}
 %
-Due to its complex implementation this command can not accept arbitrary input, it only safely operates on raw text or field data. In the standard styles the \texttt{title} and other \texttt{title}-like field formats do not work together with \cmd{MakeSentenceCase} because of their argument structure, so the standard styles offer a dedicated \texttt{titlecase} field format to apply this command. To enable sentence casing in standard styles for languages that support it you would use:
+Unlike \bibtex's built-in case changing function \texttt{change.case\$} \biblatex's \cmd{MakeSentenceCase} is implemented in \latex, it may therefore behave differently in certain situations and is more fragile.
+Currently \cmd{MakeSentenceCase} behaves as follows.
+\begin{itemize}\setlength{\labelsep}{1em}
+  \item The first letter of its argument is capitalised with \cmd{MakeUppercase}. This is different from \bibtex's \texttt{change.case\$}, which does not touch the first letter of its argument. Note that a pair of braces that starts with a control sequence will be treated as one character for capitalisation purposes. This means that the entire argument of a command protected with a single pair of braces is capitalised.
+  \item Expandable commands are expanded before the case change, which means that the case change applies to the replacement text. Unexpandable commands are not touched. \bibtex does not interpret macros and therefore passes commands through unchanged (this does not necessarily apply to the \emph{arguments} of those commands).
+  \item Text wrapped in one or more pairs of braces is protected from case change unless it starts with a control sequence. This is the same behaviour as with \bibtex. Note that the braces could either be explicit groups or argument delimiters.
+  \item Text in a single pair of braces that starts with a control sequence is not protected and will be subject to case changes. Note that this need not apply to braces that are argument delimiters, in fact the implementation of \cmd{MakeSentenceCase} may in some cases produce an error or otherwise undesirable output if the argument of a command starts with a control sequence. \bibtex's case change function does not differentiate between argument delimiters and brace groups and always subjects text at brace level~1 to case change if it starts with a control sequence.
+\end{itemize}
+%
+Due to its complex implementation this command can not accept arbitrary input, it only safely operates on raw text or field data. In the standard styles the \bibfield{title} and other \bibfield{title}-like field formats do not work together with \cmd{MakeSentenceCase} because of their argument structure, so the standard styles offer a dedicated \texttt{titlecase} field format to apply this command. To enable sentence casing in standard styles for languages that support it you would use:
 \begin{ltxexample}
 \DeclareFieldFormat{titlecase}{<<\MakeSentenceCase*{#1}>>}
 \end{ltxexample}
