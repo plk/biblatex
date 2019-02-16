@@ -41,6 +41,8 @@
   There might be subtle differences between Biber's and BibTeX's
   `labelprefix` behaviour, but it should be better than nothing.
   If you need full `labelprefix` support, please consider switching to Biber.
+- Add `\thefirstlistitem`, `\strfirstlistitem` and `\usefirstlistitem` to
+  grab and use the first item of a field.
 
 # RELEASE NOTES FOR VERSION 3.12
 - **INCOMPATIBLE CHANGE** The syntax for defining data annotations in the
