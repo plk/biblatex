@@ -27,6 +27,11 @@
   `loccittracker`, `opcittracker`, `singletitle`, `skipbib`, `skipbiblist`,
   `skipbiblab` `terseinits`, `uniquelist`, `uniquename`, `uniquetitle`,
   `uniquebaretitle`, `uniquework`, `uniqueprimaryauthor`).
+- Furthermore, the standard style options `doi`, `eprint`, `isbn`, `url`,
+  `related` are now available also on a per-type and per-entry level.
+  The same holds for `mergedate`, `subentry` and the options of `reading.bbx`.
+  This change has the potential to clash with custom styles that already define
+  the standard options at these scopes.
 - Add `\ifvolcite` test to check if the current citation is in a `\volcite`
   context.
 - Add the special fields `volcitevolume` and `volcitepages` for finer control
