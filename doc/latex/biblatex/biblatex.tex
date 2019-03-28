@@ -2285,11 +2285,12 @@ This option automatically executes the \cmd{citereset} command from \secref{use:
 \item[none] Disable this feature.
 \item[part] Perform a reset at every \cmd{part} command.
 \item[chapter] Perform a reset at every \cmd{chapter} command.
+\item[chapter+] Perform a reset at every \cmd{chapter} and \cmd{part} command.
 \item[section] Perform a reset at every \cmd{section} command.
+\item[section+] Perform a reset at every \cmd{section}, \prm{chapter} (if supported by the class) and \cmd{part} command.
 \item[subsection] Perform a reset at every \cmd{subsection} command.
+\item[subsection+] Perform a reset at every \cmd{subsection}, \cmd{section}, \prm{chapter} (if supported by the class) and \cmd{part} command.
 \end{valuelist}
-%
-The starred versions of these commands will not trigger a reset.
 
 \boolitem[true]{abbreviate}
 
@@ -6518,9 +6519,15 @@ but would additionally have the field \bibfield{dateunspecified} set to <yearinc
 
 The entry key of an item in the \file{bib} file. This is the string used by \biblatex and the backend to identify an entry in the \file{bib} file.
 
-\fielditem{childentrykey}{string}\DeprecatedMark
+Note that the set of characters allowed and usable in the string for \bibfield{entrykey} depends on the backend (\biber, \bibtex) as well as the \latex engine (\pdflatex, \lualatex, \xelatex).
+Generally, ASCII-letters (\texttt{a-z}, \texttt{A-Z}) and numbers (\texttt{0-9}) are safe, so are the punctuation characters full stop (\texttt{.}) and solidus (\texttt{/}). The punctuation characters \texttt{-\_:;!?} are also safe even if they are made active by \sty{babel}/\sty{polyglossia}. If a Unicode engine is used, non-ASCII characters are also acceptable.
+Curly braces (\texttt{\{\}}), commas, spaces, backslashes (\texttt{\textbackslash}), hashes (\texttt{\#}), percent characters (\texttt{\%}) and tildes (\texttt{\textasciitilde}) are always forbidden. \biber additionally forbids round brackets (\texttt{()}), quotation marks (\texttt{\textquotedbl}, \texttt{\textquotesingle}), and the equals sign (\texttt{=}).
+The \bibfield{entrykey} is case sensitive, but it is not recommended to exploit that fact too much by introducing two different entries whose key differs only in capitalisation (\eg\ \texttt{sigfridsson} and \texttt{Sigfridsson}).
+For full portability it is advisable to stick to a scheme of lowercase (and if so desired uppercase) ASCII-letters, numbers and a small set of acceptable punctuation characters, say \texttt{.:-}.
 
-This field is no longer necessary or recommended. For backwards
+\fielditem{childentrykey}{string}
+
+This field is no longer necessary or recommended.\DeprecatedMark For backwards
 compatibility, it is merely a copy of the \bibfield{entrykey} field in any
 set children.
 
@@ -6567,9 +6574,9 @@ Normally holds the prefix coming before <date> of the date field name chosen by 
 
 The entry type (\bibtype{book}, \bibtype{inbook}, etc.), given in lowercase letters.
 
-\fielditem{childentrytype}{string}\DeprecatedMark
+\fielditem{childentrytype}{string}
 
-This field is no longer necessary or recommended. For backwards
+This field is no longer necessary or recommended.\DeprecatedMark For backwards
 compatibility, it is merely a copy of the \bibfield{entrytype} field in any
 set children.
 
@@ -10387,7 +10394,27 @@ Currently \cmd{MakeSentenceCase} behaves as follows.
   \item Text wrapped in one or more pairs of braces is protected from case change unless it starts with a control sequence. This is the same behaviour as with \bibtex. Note that the braces could either be explicit groups or argument delimiters.
   \item Text in a single pair of braces that starts with a control sequence is not protected and will be subject to case changes. Note that this need not apply to braces that are argument delimiters, in fact the implementation of \cmd{MakeSentenceCase} may in some cases produce an error or otherwise undesirable output if the argument of a command starts with a control sequence. \bibtex's case change function does not differentiate between argument delimiters and brace groups and always subjects text at brace level~1 to case change if it starts with a control sequence.
 \end{itemize}
-%
+
+For most intents and purposes the following rules should give a sensible result.
+\begin{itemize}\setlength{\labelsep}{1em}
+  \item Protect all words whose case should not be changed by wrapping them in one pair of braces.
+  \item If words are already in the braced argument of a command such as \cmd{mkbibquote} or \cmd{emph}, they are automatically protected.
+  \begin{itemize}
+    \item To \emph{undo} this protection wrap the command in braces again.
+    \item It is not possible to selectively re-apply protection if it has been undone with an additional pair of braces. If a more fine-grained control is needed, work-arounds like splitting the argument could be tried.
+  \end{itemize}
+  \item While it is possible to protect words from case change at the beginning of a field with a pair of braces, it is not possible to undo the case protection that a command automatically implies by wrapping it in braces in that position. In that case work-arounds are necessary.
+\end{itemize}
+
+
+\begin{lstlisting}[style=bibtex]{}
+title   = {The Story of {HMS} \emph{Erebus} in {\emph{Really}} Strong Wind},
+\end{lstlisting}
+would be converted to sentence case by \cmd{MakeSentenceCase} as
+\begin{quote}
+The story of HMS \emph{Erebus} in {\emph{really}} strong wind
+\end{quote}
+
 Due to its complex implementation this command can not accept arbitrary input, it only safely operates on raw text or field data. In the standard styles the \bibfield{title} and other \bibfield{title}-like field formats do not work together with \cmd{MakeSentenceCase} because of their argument structure, so the standard styles offer a dedicated \texttt{titlecase} field format to apply this command. To enable sentence casing in standard styles for languages that support it you would use:
 \begin{ltxexample}
 \DeclareFieldFormat{titlecase}{<<\MakeSentenceCase*{#1}>>}
