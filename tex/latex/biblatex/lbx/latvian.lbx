@@ -1,6 +1,20 @@
 \ProvidesFile{latvian.lbx}
 [\abx@lbxid]
 
+\ifundef{\lbx@lv@loadinfo}
+  {\blx@warning@noline{%
+     Latvian localisation module for biblatex loaded.\MessageBreak
+     This module changes more definitions than usual.\MessageBreak
+     Please refer to the documentation for hints and\MessageBreak
+     check the output carefully, especially with non-\MessageBreak
+     standard styles or customisations to field formats.\MessageBreak
+     This warning can be disabled by calling\MessageBreak
+     '\string\BiblatexLatvianWarningOff'\MessageBreak
+     after 'biblatex' has been loaded, but before\MessageBreak
+     the localisation is loaded for the first time}%
+   \global\let\lbx@lv@loadinfo\@empty}
+  {}
+
 \DeclareRedundantLanguages{latvian}{latvian}
 
 \NewBibliographyString{%
@@ -123,6 +137,65 @@
     \expandafter\lbx@lv@makewhendate@i
     \expandafter{\lbx@lv@whendate@formats}}%
   %\lbx@lv@makewhendate{eventdate}%
+  \protected\def\lbx@lv@mkdottednormrange#1{%
+    \ifpages{#1}
+      {\mknormrange*[\@firstofone][\mkbibordinal]{#1}}
+      {#1}}%
+  % this redefines \mkpageprefix to put the page number as suffix
+  \savecommand\blx@mkpageprefix
+  \protected\long\def\blx@mkpageprefix#1[#2]#3{%
+    \blx@mkpageprefix@i[#2]{#3}%
+    \ifnumeral{#3}
+      {\ppspace\bibstring{#1}}
+      {\ifnumerals{#3}
+         {\ppspace\bibstring{#1s}}
+         {\def\pno{\bibstring{#1}}%
+          \def\ppno{\bibstring{#1s}}}}}%
+  % NOTE: a few field formats are redefined here, this overrides
+  % corresponding style and preamble definitions.
+  % If you want to overwrite the changes made here, use
+  % \DefineBibliographyExtras{magyar}{...}
+  % Do not forget to make these changes undone with
+  % \UndefineBibliographyExtras{magyar}{...}
+  % to avoid them spilling out later.
+  \savefieldformat{pages}%
+  \DeclareFieldFormat{pages}{%
+    \mkpageprefix[bookpagination][\lbx@lv@mkdottednormrange]{#1}}%
+  \savefieldformat{postnote}%
+  \DeclareFieldFormat{postnote}{%
+    \mkpageprefix[bookpagination][\lbx@lv@mkdottednormrange]{#1}}%
+  \savefieldformat{volcitepages}%
+  \DeclareFieldFormat{volcitepages}{%
+    \mkpageprefix[pagination][\lbx@lv@mkdottednormrange]{#1}}%
+  \savefieldformat{multipostnote}%
+  \DeclareFieldFormat{multipostnote}{%
+    \mkpageprefix[pagination][\lbx@lv@mkdottednormrange]{#1}}%
+  \savefieldformat{chapter}%
+  \DeclareFieldFormat{chapter}{%
+    \ifnumerals{#1}{\mkbibordinal{#1}}{#1}
+    \addnbspace
+    \bibstring{chapter}}%
+  \savefieldformat{volume}%
+  \DeclareFieldFormat{volume}{%
+    \ifnumerals{#1}{\mkbibordinal{#1}}{#1}
+    \addnbspace
+    \bibstring{volume}}%
+  \savefieldformat{part}%
+  \DeclareFieldFormat{part}{%
+    \addcomma\space% <- this is *really* bad, don't try this at home
+    % In general leading or trailing punctuation in field formats should be
+    % avoided and should instead be dealt with in the appropriate bibmacros.
+    % The part field is special because its standard definition is '.#1'.
+    % Additionally, \printfield{part} is called all over the place, so we
+    % can't simply redefine a macro here.
+    \ifnumerals{#1}{\mkbibordinal{#1}}{#1}%
+    \addnbspace
+    \bibstring{part}}%
+  \savefieldformat{version}%
+  \DeclareFieldFormat{version}{%
+    \ifnumerals{#1}{\mkbibordinal{#1}}{#1}
+    \addnbspace
+    \bibstring{version}}%
 }
 
 \UndeclareBibliographyExtras{%
@@ -138,6 +211,16 @@
   %\lbx@lv@restorewhendate{eventdate}%
   \restorecommand\mkdaterangecomp
   \restorecommand\mkdaterangecompextra
+  \restorecommand\mknormrange
+  \restorecommand\blx@mkpageprefix
+  \restorefieldformat{pages}%
+  \restorefieldformat{postnote}%
+  \restorefieldformat{volcitepages}%
+  \restorefieldformat{multipostnote}%
+  \restorefieldformat{chapter}%
+  \restorefieldformat{volume}%
+  \restorefieldformat{part}%
+  \restorefieldformat{version}%
 }
 
 \DeclareBibliographyStrings{%
