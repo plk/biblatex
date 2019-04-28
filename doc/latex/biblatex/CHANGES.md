@@ -50,6 +50,11 @@
   \DeclareFieldFormat{journaltitle}{\mkbibemph{#1}}
   ```
   to the preamble.
+- Add second optional item post processing argument to `\mkcomprange`,
+  `\mknormrange` and `\mkfirstpage`. It can be used to post process
+  every number item in the formatted range separately. It can for
+  example turn cardinal ranges into ordinal ranges (this is done in
+  the Latvian localisation module).
 
 # RELEASE NOTES FOR VERSION 3.12
 - **INCOMPATIBLE CHANGE** The syntax for defining data annotations in the
