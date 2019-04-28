@@ -60,6 +60,13 @@
   every number item in the formatted range separately. It can for
   example turn cardinal ranges into ordinal ranges (this is done in
   the Latvian localisation module).
+- Add further customisation options for strings typeset with `url`'s `\url`
+  command (mainly URLs and DOIs). It is now possible to add a bit of
+  stretchable space after characters with `biburlnumskip`, `biburlucskip`
+  and `biburlucskip`. The previously hard-coded (stretacheble) space
+  `\biburlbigskip` as well as the penalties `biburlbigbreakpenalty` and
+  `biburlbreakpenalty` are also configurable now.
+
 
 # RELEASE NOTES FOR VERSION 3.12
 - **INCOMPATIBLE CHANGE** The syntax for defining data annotations in the
