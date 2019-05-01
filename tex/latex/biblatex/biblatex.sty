@@ -9833,6 +9833,33 @@
   }%
 }
 
+%% Patching all the different document classes and their sectioning
+%% commands is ... messy at best
+%% For now we do the big three: (1) Standard classes, (2) KOMA-Script
+%% and (3) memoir.
+%%
+%% Timing of the patch can be tricky.
+%% Ideally we want the code to be executed when all counters have
+%% been increased so the labels attach to the right thing, but
+%% at the same time we want the code to be executed before the heading
+%% is typeset so it already applies to the text in the heading.
+%% Bonus points for actually executing the code on the correct page.
+
+%% memoir has hooks for section headings that we can use here
+%% see 18.25 'Heading Hooks' of the manual (v3.7h, 2018/12/12)
+%% they are in a good position, when the counters have been
+%% increased but heading text not yet typeset.
+%% The manual suggests this hooks have been around since 2005 or so,
+%% so we take them for granted.
+
+%% Newer versions of KOMA-Script (>=3.27) (will) have a hook system
+%% that we can use for that purpose as well.
+%% This is fairly new, so we need to have a fallback for older versions.
+
+%% The standard classes are tricky. They have no good hooks and just
+%% for sections at least \pretocmd-ing executes the code before
+%% counters are increased, so the labels attach to the wrong thing.
+
 %% Test for correct KOMA patch method
 % KOMA 3.27 has \AddtoDoHook
 \newcommand*{\blx@ifkoma@AddtoDoHook}{%
@@ -9844,12 +9871,20 @@
   \ifboolexpr{not test {\ifcsundef{KOMAClassName}}
               and not test {\ifcsundef{startsection@secnumdepth}}}}
 
+\newcommand*{\blx@ifmemoir}{\@ifclassloaded{memoir}}
+
 % Note that \ExecuteDoHook always feeds an argument to the code, here that is
 % going to be an empty group, which we explicitly gobble to avoid trouble.
 \def\blx@refpatch@koma@AddtoDoHook#1#2{%
   \AddtoDoHook{heading/begingroup/#1}{#2\@gobble}}
 
 % \part
+\def\blx@refpatch@part@memoir#1{%
+  \apptocmd\mempartinfo{#1}
+    {}{\blx@err@patch{\string\mempartinfo}}%
+  \apptocmd\mempartstarinfo{#1}
+    {}{\blx@err@patch{\string\mempartstarinfo}}}
+
 \def\blx@refpatch@part@std#1{%
   \toggletrue{blx@tempa}%
   \def\do##1{%
@@ -9870,9 +9905,17 @@
     {\blx@err@nodocdiv{part}}
     {\blx@ifkoma@AddtoDoHook
        {\blx@refpatch@koma@AddtoDoHook{part}{#1}}
-       {\blx@refpatch@part@std{#1}}}}
+       {\blx@ifmemoir
+          {\blx@refpatch@part@memoir{#1}}
+          {\blx@refpatch@part@std{#1}}}}}
 
 % \chapter
+\def\blx@refpatch@chapter@memoir#1{%
+  \apptocmd\memchapinfo{#1}
+    {}{\blx@err@patch{\string\memchapinfo}}%
+  \apptocmd\memchapstarinfo{#1}
+    {}{\blx@err@patch{\string\memchapstarinfo}}}
+
 \def\blx@refpatch@chapter@std#1{%
   \pretocmd\@makechapterhead{#1}
     {}
@@ -9886,7 +9929,9 @@
     {\blx@err@nodocdiv{chapter}}
     {\blx@ifkoma@AddtoDoHook
        {\blx@refpatch@koma@AddtoDoHook{chapter}{#1}}
-       {\blx@refpatch@chapter@std{#1}}}}
+       {\blx@ifmemoir
+          {\blx@refpatch@chapter@memoir{#1}}
+          {\blx@refpatch@chapter@std{#1}}}}}
 
 % \section, \subsection
 % {<section csname>}{<precode>}{<section level number>}
@@ -9897,7 +9942,9 @@
        {\blx@refpatch@koma@AddtoDoHook{#1}{#2}}
        {\blx@ifkoma@startsection
           {\blx@refpatch@sect@koma@startsection{#2}{#3}}
-          {\blx@refpatch@sect@std{#2}{#3}}}}}
+          {\blx@ifmemoir
+             {\blx@refpatch@sect@memoir{#1}{#2}}
+             {\blx@refpatch@sect@std{#2}{#3}}}}}}
 
 % KOMA >= 3.26 defines \startsection@secnumdepth to check the sectioning level,
 % so we can now use \At@startsection.
@@ -9905,6 +9952,17 @@
 % intermezzo.
 \def\blx@refpatch@sect@koma@startsection#1#2{%
   \At@startsection{\ifnumequal{\startsection@secnumdepth}{#2}{#1}{}}}
+
+\edef\blx@refpatch@sect@memoir#1#2{%
+  \apptocmd\noexpand\memsecinfo
+    {\noexpand\blx@refpatch@sect@memoir@i{\string#1}{#1}{#2}}
+    {}{\noexpand\blx@err@patch{\string\memsecinfo}}%
+  \apptocmd\noexpand\memsecstarinfo
+    {\noexpand\blx@refpatch@sect@memoir@i{\string#1}{#1}{#2}}
+    {}{\noexpand\blx@err@patch{\string\memsecstarinfo}}}
+
+\def\blx@refpatch@sect@memoir@i#1#2#3{%
+  \ifstrequal{#1}{#2}{#3}{}}
 
 \edef\blx@refpatch@sect@std#1#2{%
   \def\noexpand\do##1{%
