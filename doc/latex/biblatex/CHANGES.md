@@ -66,6 +66,12 @@
   and `biburlucskip`. The previously hard-coded (stretacheble) space
   `\biburlbigskip` as well as the penalties `biburlbigbreakpenalty` and
   `biburlbreakpenalty` are also configurable now.
+- `\nohyphenation` and `\textnohyphenation` now rely on a (fake)
+  language without hyphenation patterns instead of `\lefthyphenmin`,
+  which means that the command can now be used anywhere in a paragraph,
+  see also https://texfaq.org/FAQ-hyphoff.
+  Note that switching languages with `babel` *within* those commands
+  removes the hyphenation protection.
 
 
 # RELEASE NOTES FOR VERSION 3.12
