@@ -7438,7 +7438,7 @@ This command is intended for use in bibliography drivers handling \bibtype{set} 
 
 \cmditem{DeclareFieldInputHandler}{field}{code}
 
-This command can be used to define a data input handler for \prm{field} when it is read from the \file{.bbl}. Within the \prm{code}, the macro \cmd{NewValue} contains the value of the field. For example, to ignore the \bibfield{volumes} field when it appears, you could do
+This command can be used to define a data input handler for \prm{field} when it is read from the \file{.bbl}. The \prm{code} is passed one argument (\lstinline{#1}), which contains the input field value, it should then redefine the command \cmd{NewValue}, which holds the desired output field value. For example, to ignore the \bibfield{volumes} field when it appears, you could do
 
 \begin{ltxexample}
 \DeclareFieldInputHandler{volumes}{\def\NewValue{}}
@@ -7446,15 +7446,23 @@ This command can be used to define a data input handler for \prm{field} when it 
 %
 Generally, you would want to use \cmd{DeclareSourcemap} (see \secref{aut:ctm:map}) to remove and modify fields but this alternative method may be useful in some circumstances when the emphasis is on appearance rather than data since the \prm{code} can be arbitraty \tex.
 
+In general, \cmd{DeclareFieldInputHandler} should not be used to apply formatting to a field, since that should happen with \cmd{DeclareFieldFormat}, so the following is just a toy example that shows how \cmd{DeclareFieldInputHandler} works.
+
+\begin{ltxexample}
+\DeclareFieldInputHandler{volumes}{\def\NewValue{\textbf{#1}}}
+\end{ltxexample}
+
 \cmditem{DeclareListInputHandler}{list}{code}
 
 As \cmd{DeclareFieldInputHandler} but for lists. Within the \prm{code}, the macro \cmd{NewValue}
 contains the value of the list and \cmd{NewCount} contains the number of items in the list.
+Note that \cmd{NewValue} as well as the single argument to \prm{code} contain the internal representation of the list.
 
 \cmditem{DeclareNameInputHandler}{name}{code}
 
 As \cmd{DeclareFieldInputHandler} but for names. Within the \prm{code}, the macro \cmd{NewValue}
 contains the value of the name, \cmd{NewCount} contains the number of individual names in the name and \cmd{NewOption} contains any per-name options passed in the \file{.bbl}.
+Note that \cmd{NewValue} as well as the single argument to \prm{code} contain the internal representation of the name list.
 
 \end{ltxsyntax}
 
