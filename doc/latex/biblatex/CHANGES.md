@@ -66,6 +66,8 @@
   and `biburlucskip`. The previously hard-coded (stretacheble) space
   `\biburlbigskip` as well as the penalties `biburlbigbreakpenalty` and
   `biburlbreakpenalty` are also configurable now.
+- Add `\DeclarePrintbibliographyDefaults` to set default values for some
+  option keys to `\printbibliography` and friends.
 
 
 # RELEASE NOTES FOR VERSION 3.12
