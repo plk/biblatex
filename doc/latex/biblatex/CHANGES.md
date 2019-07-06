@@ -68,6 +68,9 @@
   `biburlbreakpenalty` are also configurable now.
 - Add `\DeclarePrintbibliographyDefaults` to set default values for some
   option keys to `\printbibliography` and friends.
+- `\nocite` is now enabled in the bibliography (previously it was
+  deactivated in the bibliography).
+  Please report any issues that this may cause.
 
 
 # RELEASE NOTES FOR VERSION 3.12
