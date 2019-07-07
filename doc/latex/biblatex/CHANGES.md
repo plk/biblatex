@@ -71,6 +71,11 @@
 - `\nocite` is now enabled in the bibliography (previously it was
   deactivated in the bibliography).
   Please report any issues that this may cause.
+- The internals macros `\abx@aux@cite`, `\abx@aux@refcontext`
+  and `\abx@aux@biblist` are now called every time an entry is cite
+  (and appears in a bibliography or biblist, respectively).
+  This helps to avoid unwanted side-effects when writing to aux files
+  is disabled.
 
 
 # RELEASE NOTES FOR VERSION 3.12
