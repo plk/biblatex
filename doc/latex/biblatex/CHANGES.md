@@ -76,6 +76,12 @@
   (and appears in a bibliography or biblist, respectively).
   This helps to avoid unwanted side-effects when writing to aux files
   is disabled.
+- `\nohyphenation` and `\textnohyphenation` now rely on a (fake)
+  language without hyphenation patterns instead of `\lefthyphenmin`,
+  which means that the command can now be used anywhere in a paragraph,
+  see also <https://texfaq.org/FAQ-hyphoff>.
+  Note that switching languages with `babel` *within* those commands
+  removes the hyphenation protection.
 
 
 # RELEASE NOTES FOR VERSION 3.12
