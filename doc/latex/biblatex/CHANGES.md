@@ -32,6 +32,9 @@
   The same holds for `mergedate`, `subentry` and the options of `reading.bbx`.
   This change has the potential to clash with custom styles that already define
   the standard options at these scopes.
+- Promote `@software` to regular entry type and define `@dataset`.
+  Both types still use the driver for `@misc`, but will not issue a
+  warning when used.
 - Add `\ifvolcite` test to check if the current citation is in a `\volcite`
   context.
 - Add the special fields `volcitevolume` and `volcitepages` for finer control
