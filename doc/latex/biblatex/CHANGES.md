@@ -32,6 +32,9 @@
   The same holds for `mergedate`, `subentry` and the options of `reading.bbx`.
   This change has the potential to clash with custom styles that already define
   the standard options at these scopes.
+- Promote `@software` to regular entry type and define `@dataset`.
+  Both types still use the driver for `@misc`, but will not issue a
+  warning when used.
 - Add `\ifvolcite` test to check if the current citation is in a `\volcite`
   context.
 - Add the special fields `volcitevolume` and `volcitepages` for finer control
@@ -68,6 +71,20 @@
   `biburlbreakpenalty` are also configurable now.
 - Add `\DeclarePrintbibliographyDefaults` to set default values for some
   option keys to `\printbibliography` and friends.
+- `\nocite` is now enabled in the bibliography (previously it was
+  deactivated in the bibliography).
+  Please report any issues that this may cause.
+- The internals macros `\abx@aux@cite`, `\abx@aux@refcontext`
+  and `\abx@aux@biblist` are now called every time an entry is cite
+  (and appears in a bibliography or biblist, respectively).
+  This helps to avoid unwanted side-effects when writing to aux files
+  is disabled.
+- `\nohyphenation` and `\textnohyphenation` now rely on a (fake)
+  language without hyphenation patterns instead of `\lefthyphenmin`,
+  which means that the command can now be used anywhere in a paragraph,
+  see also <https://texfaq.org/FAQ-hyphoff>.
+  Note that switching languages with `babel` *within* those commands
+  removes the hyphenation protection.
 
 
 # RELEASE NOTES FOR VERSION 3.12

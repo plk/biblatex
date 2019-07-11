@@ -2019,8 +2019,13 @@
 \providerobustcmd*{\allowhyphens}{%
   \nobreak\hskip\z@skip}
 
+% Idea from Peter Wilson's hyphenat package
+% https://ctan.org/pkg/hyphenat
+% also https://texfaq.org/FAQ-hyphoff
+\newlanguage\blx@langwohyphens
+
 \providerobustcmd*{\nohyphenation}{%
-  \lefthyphenmin\@m}
+  \language\blx@langwohyphens}
 
 \providerobustcmd*{\textnohyphenation}[1]{%
   \bgroup\nohyphenation#1\egroup}
@@ -8460,17 +8465,23 @@
 % {<entrykey>}
 % Get the saved information on which citations were mentioned last run
 \protected\def\abx@aux@cite#1{%
-  \listxadd\blx@lastcites{\detokenize{#1}}}
+  \xifinlist{\detokenize{#1}}\blx@lastcites
+    {}
+    {\listxadd\blx@lastcites{\detokenize{#1}}}}
 
 % {<refcontext>}
 % Get the saved information on which refcontexts were mentioned last run
 \protected\def\abx@aux@refcontext#1{%
-  \listxadd\blx@lastrefcontexts{\detokenize{#1}}}
+  \xifinlist{\detokenize{#1}}\blx@lastrefcontexts
+    {}
+    {\listxadd\blx@lastrefcontexts{\detokenize{#1}}}}
 
 % {<sortingtemplatename>}
 % Get the saved information on which shorthand sorting templates were mentioned last run
 \protected\def\abx@aux@biblist#1{%
-  \listgadd\blx@lastbiblists{#1}}
+  \ifinlist{#1}\blx@lastbiblists
+    {}
+    {\listgadd\blx@lastbiblists{#1}}}
 
 % Here we mustn't change the checksum if we used localnumbers from the
 % .aux file as this means that deferred numbering is
@@ -9590,8 +9601,8 @@
   % so we can compare on next run
   \xifinlist\blx@tempc\blx@biblists
     {}
-    {\listxadd\blx@biblists\blx@tempc
-     \blx@auxwrite\@mainaux{}{\string\abx@aux@biblist{\blx@tempc}}}%
+    {\listxadd\blx@biblists\blx@tempc}%
+  \blx@auxwrite\@mainaux{}{\string\abx@aux@biblist{\blx@tempc}}%
   \setkeys{blx@biblist1}{#1}% Set section only, if present ...
   \blx@rest@actives
   \ifcsvoid{blx@dlist@list@\blx@tempe @\blx@refcontext@context}
@@ -9737,8 +9748,8 @@
      % Add the refcontext to the list of refcontexts so we can compare on next run
      \xifinlist\blx@refcontext@context\blx@refcontexts
        {}
-       {\listxadd\blx@refcontexts\blx@refcontext@context
-        \blx@auxwrite\@mainaux{}{\string\abx@aux@refcontext{\blx@refcontext@context}}}%
+       {\listxadd\blx@refcontexts\blx@refcontext@context}%
+     \blx@auxwrite\@mainaux{}{\string\abx@aux@refcontext{\blx@refcontext@context}}%
      \ifcsundef{blx@sortingtemplate@\blx@refcontext@sortingtemplatename}
        {\blx@err@invopt{sorting=\blx@refcontext@sortingtemplatename}{}}
        {}%
@@ -10350,12 +10361,14 @@
   \blx@bibreq{#1}%
   \ifinlist{#1}\blx@cites
     {}
-    {\listgadd{\blx@cites}{#1}%
-     \blx@auxwrite\@mainaux{}{\string\abx@aux@cite{#1}}}%
+    {\listgadd{\blx@cites}{#1}}%
+  \blx@auxwrite\@mainaux{}{\string\abx@aux@cite{#1}}%
   \ifinlistcs{#1}{blx@segm@\the\c@refsection @\the\c@refsegment}
     {}
     {\listcsgadd{blx@segm@\the\c@refsection @\the\c@refsegment}{#1}}%
-  \blx@auxwrite\@mainaux{}{\string\abx@aux@segm{\the\c@refsection}{\the\c@refsegment}{\detokenize{#1}}}%
+  \blx@auxwrite\@mainaux{}{\string\abx@aux@segm{\the\c@refsection}%
+                                               {\the\c@refsegment}%
+                                               {\detokenize{#1}}}%
   \blx@ifdata{#1}
     {}
     {\ifcsdef{blx@miss@\the\c@refsection}
@@ -10365,7 +10378,9 @@
        {\blx@logreq@active{#2{#1}}}}}
 
 \protected\def\abx@aux@segm#1#2#3{%
-  \listcsxadd{blx@segm@#1@#2}{\detokenize{#3}}}
+  \xifinlistcs{\detokenize{#3}}{blx@segm@#1@#2}
+    {}
+    {\listcsxadd{blx@segm@#1@#2}{\detokenize{#3}}}}
 
 \def\blx@nocitation@all{%
   \ifinlist{*}\blx@nocites
@@ -14024,6 +14039,8 @@
 \DeclareBibliographyOption[string]{language}{%
   \togglefalse{blx@autolangbib}%
   \togglefalse{blx@autolangcite}%
+  \undef\blx@languagename
+  \undef\blx@forcelanguagename
   \ifboolexpr{
     test {\ifstrequal{#1}{auto}}
     or
