@@ -111,6 +111,10 @@ ENTRY {
     pubstate
     reprinttitle
     holder
+    fileddate
+    publisheddate
+    granteddate
+    expireddate
     publisher
     school
     series
@@ -1629,6 +1633,27 @@ FUNCTION {output:dates.2} {
   "urlendday"     swap$ output:write:field
   "urlendmonth"   swap$ output:write:field
   "urlendyear"    swap$ output:write:year
+  "fileddate" fileddate split.date
+  "filedday"        swap$ output:write:field
+  "filedmonth"      swap$ output:write:field
+  "filedyear"       swap$ output:write:field
+  "filedendday"     swap$ output:write:field
+  "filedendmonth"   swap$ output:write:field
+  "filedendyear"    swap$ output:write:year
+  "granteddate" granteddate split.date
+  "grantedday"        swap$ output:write:field
+  "grantedmonth"      swap$ output:write:field
+  "grantedyear"       swap$ output:write:field
+  "grantedendday"     swap$ output:write:field
+  "grantedendmonth"   swap$ output:write:field
+  "grantedendyear"    swap$ output:write:year
+  "expireddate" expireddate split.date
+  "expiredday"        swap$ output:write:field
+  "expiredmonth"      swap$ output:write:field
+  "expiredyear"       swap$ output:write:field
+  "expiredendday"     swap$ output:write:field
+  "expiredendmonth"   swap$ output:write:field
+  "expiredendyear"    swap$ output:write:year
 }
 
 FUNCTION {output:user} {
