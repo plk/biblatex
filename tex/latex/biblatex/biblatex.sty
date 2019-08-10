@@ -5715,6 +5715,29 @@
   \iftoggle{blx@seconds}{}
     {\blx@imc@clearfield{#1#2second}}}
 
+\newcommand*{\blx@if@printtime}[2]{%
+  \ifboolexpr{%
+    togl {blx@#1dateusetime}
+    and
+    not test {\iffieldundef{#1#2hour}}}}
+
+\newcommand*{\blx@if@printanytimes}[1]{%
+  \ifboolexpr{
+       togl {blx@#1dateusetime}
+    and
+    (   not test {\iffieldundef{#1hour}}
+     or not test {\iffieldundef{#1endhour}})}}
+
+% {<datetype>}{'' | end}
+\newrobustcmd*{\blx@printtime}[2]{%
+  \blx@if@printtime{#1}{#2}
+    {\blx@timepre{#1}{#2}%
+     \printtext{\bibdatetimesep}%
+     \printtext[#1time]{%
+       \csuse{mkbibtime\csuse{blx@timeformat@#1time}}
+         {#1#2hour}{#1#2minute}{#1#2second}{#1#2timezone}}}
+    {}}
+
 % {<short|long>}{<datetype>}
 \newrobustcmd*{\mkdaterangefull}[2]{%
   \begingroup
@@ -5742,42 +5765,6 @@
                  {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}%
                   % Optionally print the time after the date
                   \blx@printtime{#2}{end}}
-                 {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}%
-               \enddateuncertainprint
-               \dateeraprint{#2endyear}}}}}%
-  \endgroup}
-
-\newrobustcmd*{\mkdaterangetrunc}[2]{%
-  \begingroup
-    \blx@metadateinfo{#2}%
-    \iffieldundef{#2year}
-      {\blx@nounit}
-      {\printtext[#2date]{%
-         \datecircaprint
-         % Such a season component can only come from an ISO8601 season which replaces
-         % a normal month so if it exists, we know that a normal date print is ruled out
-         \iffieldundef{#2season}
-           {\ifdateyearsequal{#2}{#2end}
-              {\iffieldsequal{#2month}{#2endmonth}
-                 {\csuse{mkbibdate#1}{}{}{#2day}}
-                 {\csuse{mkbibdate#1}{}{#2month}{#2day}}}
-              {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
-               \iffieldsequal{#2dateera}{#2enddateera}{}
-                 {\dateeraprint{#2year}}}}
-           {\ifdateyearsequal{#2}{#2end}
-             {\csuse{mkbibseasondate#1}{}{#2season}}
-             {\csuse{mkbibseasondate#1}{#2year}{#2season}%
-              \iffieldsequal{#2dateera}{#2enddateera}{}
-                {\dateeraprint{#2year}}}}%
-         \dateuncertainprint
-         \iffieldundef{#2endyear}
-           {}
-           {\iffieldequalstr{#2endyear}{}
-              {\mbox{\bibdaterangesep}}
-              {\bibdaterangesep
-               \enddatecircaprint
-               \iffieldundef{#2endseason}
-                 {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}
                  {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}%
                \enddateuncertainprint
                \dateeraprint{#2endyear}}}}}%
@@ -5817,7 +5804,53 @@
                  \dateeraprint{#2endyear}}}}}%
   \endgroup}
 
+\newrobustcmd*{\mkdaterangetrunc}[2]{%
+  \blx@if@printanytimes{#2}
+    {\mkdaterangefull{#1}{#2}}
+    {\mkdaterangetrunc@i{#1}{#2}}}
+
+\newrobustcmd*{\mkdaterangetrunc@i}[2]{%
+  \begingroup
+    \blx@metadateinfo{#2}%
+    \iffieldundef{#2year}
+      {\blx@nounit}
+      {\printtext[#2date]{%
+         \datecircaprint
+         % Such a season component can only come from an ISO8601 season which replaces
+         % a normal month so if it exists, we know that a normal date print is ruled out
+         \iffieldundef{#2season}
+           {\ifdateyearsequal{#2}{#2end}
+              {\iffieldsequal{#2month}{#2endmonth}
+                 {\csuse{mkbibdate#1}{}{}{#2day}}
+                 {\csuse{mkbibdate#1}{}{#2month}{#2day}}}
+              {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
+               \iffieldsequal{#2dateera}{#2enddateera}{}
+                 {\dateeraprint{#2year}}}}
+           {\ifdateyearsequal{#2}{#2end}
+             {\csuse{mkbibseasondate#1}{}{#2season}}
+             {\csuse{mkbibseasondate#1}{#2year}{#2season}%
+              \iffieldsequal{#2dateera}{#2enddateera}{}
+                {\dateeraprint{#2year}}}}%
+         \dateuncertainprint
+         \iffieldundef{#2endyear}
+           {}
+           {\iffieldequalstr{#2endyear}{}
+              {\mbox{\bibdaterangesep}}
+              {\bibdaterangesep
+               \enddatecircaprint
+               \iffieldundef{#2endseason}
+                 {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}
+                 {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}%
+               \enddateuncertainprint
+               \dateeraprint{#2endyear}}}}}%
+  \endgroup}
+
 \newrobustcmd*{\mkdaterangetruncextra}[2]{%
+  \blx@if@printanytimes{#2}
+    {\mkdaterangefullextra{#1}{#2}}
+    {\mkdaterangetruncextra@i{#1}{#2}}}
+
+\newrobustcmd*{\mkdaterangetruncextra@i}[2]{%
   \begingroup
     \blx@metadateinfo{#2}%
     \iffieldundef{#2year}
@@ -5967,17 +6000,6 @@
     {\blx@imc@clearfield{#1endyear}}
     {}%
   \mkdaterangefullextra{short}{#1}}
-
-% {<datetype>}{'' | end}
-\newrobustcmd*{\blx@printtime}[2]{%
-  \ifboolexpr{%
-    togl {blx@#1dateusetime}
-    and
-    not test {\iffieldundef{#1#2hour}}}
-    {\blx@timepre{#1}{#2}%
-     \printtext{\bibdatetimesep}%
-     \printtext[#1time]{\csuse{mkbibtime\csuse{blx@timeformat@#1time}}{#1#2hour}{#1#2minute}{#1#2second}{#1#2timezone}}}
-    {}}
 
 \newrobustcmd*{\mkdaterangeiso}[1]{%
   \begingroup
