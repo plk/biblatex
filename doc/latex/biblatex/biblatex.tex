@@ -531,7 +531,7 @@ A fallback type for entries which do not fit into any other category. Use the fi
 
 An online resource. \bibfield{author}, \bibfield{editor}, and \bibfield{year} are omissible in terms of \secref{bib:use:key}. This entry type is intended for sources such as web sites which are intrinsically online resources. Note that all entry types support the \bibfield{url} field. For example, when adding an article from an online journal, it may be preferable to use the \bibtype{article} type and its \bibfield{url} field.
 
-\reqitem{author/editor, title, year/date, eprint/url}
+\reqitem{author/editor, title, year/date, doi/eprint/url}
 \optitem{subtitle, titleaddon, language, version, note, organization, month, addendum, pubstate, eprintclass, eprinttype, urldate}
 
 \typeitem{patent}
@@ -4640,6 +4640,14 @@ In the \prm{postnote} argument to a citation command, this command indicates a r
 
 Similar to \cmd{psq} but indicates an open-ended page range. See \secref{use:cav:pag} for further details and usage instructions. The suffix printed is the localisation string \texttt{sequentes}, see \secref{aut:lng:key}. This command is only available locally in citations and the bibliography.
 
+\cmditem{pnfmt}{text}
+
+This command formats is argument \prm{text} in the same format as \bibfield{postnote}. The command can be used to format a page range while adding additional text in the postnote argument of a cite command.
+
+\begin{ltxexample}
+\autocite[\pnfmt{378-381, 383} and more]{sigfridsson}
+\end{ltxexample}
+
 \cmditem{RN}{integer}
 
 This command prints an integer as an uppercase Roman numeral. The formatting applied to the numeral may be modified by redefining the macro \cmd{RNfont}.
@@ -5029,6 +5037,18 @@ For backwards compatibility with the legacy \bibtex name parts, the following ar
 \mkbibnamefirst
 \mkbibnameaffix
 \end{ltxexample}
+
+\csitem{mkbibcompletenamefamily}{text}
+This command, which takes one argument, is used to format the complete name in \texttt{family} format order.
+
+\csitem{mkbibcompletenamefamilygiven}{text}
+This command, which takes one argument, is used to format the complete name in \texttt{family-given} format order.
+
+\csitem{mkbibcompletenamegivenfamily}{text}
+This command, which takes one argument, is used to format the complete name in \texttt{given-family} format order.
+
+\cmditem{mkbibcompletename}{text}
+The initial value of all default formatting hooks \cmd{mkbibcompletename<formatorder>}.
 
 \csitem{datecircadelim}\CSdelimMark
 When formatting dates with the global option \opt{datecirca} enabled, the delimiter printed after any localised <circa> term. Defaults to interword space.
@@ -11955,17 +11975,29 @@ The delimiter to be printed after the \prm{multiprenote} argument of a citation 
 \csitem{multipostnotedelim}\CSdelimMark
 The delimiter to be printed before the \prm{multipostnote} argument of a citation command.
 
-\cmditem{mkbibnamefamily}{text}
-Formatting hook for the family name, to be used in all formatting directives for name lists.
+\cmditem{mkbibname<namepart>}{text}
+Formatting hook for the name part <namepart>, to be used in all formatting directives for name lists. The default datamodel defines the name parts <family>, <given>, <prefix> and <suffix> and therefore the following macros are automatically defined:
 
-\cmditem{mkbibnamegiven}{text}
-Similar to \cmd{mkbibnamefamily}, but intended for the given name.
+\begin{ltxexample}
+\mkbibnamefamily
+\mkbibnamegiven
+\mkbibnameprefix
+\mkbibnamesuffix
+\end{ltxexample}
 
-\cmditem{mkbibnameprefix}{text}
-Similar to \cmd{mkbibnamefamily}, but intended for the name prefix.
+\cmditem{mkbibcompletename<formatorder>}{text}
+Formatting hook for the complete name in format order <formatorder>. The default styles use the name format orders <family>, <family-given> and <given-family>, therefore the following macros are automatically defined:
 
-\cmditem{mkbibnamesuffix}{text}
-Similar to \cmd{mkbibnamefamily}, but intended for the name suffix.
+\begin{ltxexample}
+\mkbibcompletenamefamily
+\mkbibcompletenamefamilygiven
+\mkbibcompletenamegivenfamily
+\end{ltxexample}
+%
+These formatting hooks should enclose the complete name in the bibliography macro \cmd{name:<formatorder>}. Initially all hooks expand to \cmd{mkbibcompletename}.
+
+\cmditem{mkbibcompletename}{text}
+The initial value of all default formatting hooks \cmd{mkbibcompletename<formatorder>}.
 
 \csitem{datecircadelim}\CSdelimMark
 When formatting dates with the global option \opt{datecirca} enabled, the delimiter printed after any localised <circa> term. Defaults to interword space.
@@ -14027,6 +14059,8 @@ This revision history is a list of changes relevant to users of this package. Ch
 \item Added special fields \bibfield{volcitevolume} and \bibfield{volcitepages}%
   \see{aut:cbx:fld}
 \item Added \cmd{AtVolcite} hook\see{aut:fmt:hok}
+\item Added \cmd{pnfmt} \see{use:cit:msc}
+\item Added \cmd{mkbibcompletename} and \cmd{mkbibcompletename<formatorder>}\see{use:fmt:fmt}
 \item Made \cmd{postnotedelim} and friends context sensitive\see{use:fmt:fmt}
 \item Added \cmd{multipostnotedelim} and \cmd{multiprenotedelim}\see{use:fmt:fmt}
 \item Added \cmd{thefirstlistitem} and friends\see{aut:aux:dat}
@@ -14034,6 +14068,7 @@ This revision history is a list of changes relevant to users of this package. Ch
 \item Added \len{biburlbigskip} and friends\see{use:fmt:len}
 \item Added \cnt{biburlbigbreakpenalty} and \cnt{biburlbreakpenalty} and friends\see{use:fmt:len}
 \item Added \cmd{DeclarePrintbibliographyDefaults}\see{use:bib:bib}
+\item Added \bibfield{doi} to \bibtype{online}\see{bib:typ:blx}
 \end{release}
 
 \begin{release}{3.12}{2018-10-30}
