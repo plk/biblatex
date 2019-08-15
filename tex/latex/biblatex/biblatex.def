@@ -991,64 +991,92 @@
 % Auxiliary macros for name formatting directives
 % ------------------------------------------------------------------
 
+\newcommand{\mkbibcompletename}[1]{#1}
+
+\newcommand{\mkbibcompletenamefamily}{\mkbibcompletename}
+
 \newbibmacro*{name:family}[4]{%
   \ifuseprefix
     {\usebibmacro{name:delim}{#3#1}%
      \usebibmacro{name:hook}{#3#1}%
-     \ifdefvoid{#3}
-       {}
-       {\ifcapital
-          {\mkbibnameprefix{\MakeCapital{#3}}\isdot}
-          {\mkbibnameprefix{#3}\isdot}%
-        \ifprefchar{}{\bibnamedelimc}}}
+     \mkbibcompletenamefamily{%
+       \ifdefvoid{#3}
+         {}
+         {\ifcapital
+            {\mkbibnameprefix{\MakeCapital{#3}}\isdot}
+            {\mkbibnameprefix{#3}\isdot}%
+          \ifprefchar{}{\bibnamedelimc}}%
+       \mkbibnamefamily{#1}\isdot}}
     {\usebibmacro{name:delim}{#1}%
-     \usebibmacro{name:hook}{#1}}%
-  \mkbibnamefamily{#1}\isdot}%
+     \usebibmacro{name:hook}{#1}%
+     \mkbibcompletenamefamily{%
+       \mkbibnamefamily{#1}\isdot}}}%
 \newbibmacro*{name:last}[4]{% legacy alias
   \blx@warning@noline{%
     'name:last' is deprecated, please use 'name:family'}%
   \usebibmacro{name:family}{#1}{#2}{#3}{#4}}
 
+\newcommand{\mkbibcompletenamegivenfamily}{\mkbibcompletename}
+
 \newbibmacro*{name:given-family}[4]{%
   \usebibmacro{name:delim}{#2#3#1}%
   \usebibmacro{name:hook}{#2#3#1}%
-  \ifdefvoid{#2}{}{\mkbibnamegiven{#2}\isdot\bibnamedelimd}%
-  \ifdefvoid{#3}{}{%
-    \mkbibnameprefix{#3}\isdot
-    \ifprefchar
+  \mkbibcompletenamegivenfamily{%
+    \ifdefvoid{#2}
       {}
-      {\ifuseprefix{\bibnamedelimc}{\bibnamedelimd}}}%
-  \mkbibnamefamily{#1}\isdot
-  \ifdefvoid{#4}{}{\bibnamedelimd\mkbibnamesuffix{#4}\isdot}}
+      {\mkbibnamegiven{#2}\isdot\bibnamedelimd}%
+    \ifdefvoid{#3}
+      {}
+      {\mkbibnameprefix{#3}\isdot
+       \ifprefchar
+         {}
+         {\ifuseprefix{\bibnamedelimc}{\bibnamedelimd}}}%
+    \mkbibnamefamily{#1}\isdot
+    \ifdefvoid{#4}{}{\bibnamedelimd\mkbibnamesuffix{#4}\isdot}}}
 \newbibmacro*{name:first-last}[4]{% legacy alias
   \blx@warning@noline{%
     'name:first-last' is deprecated, please use 'name:given-family'}%
   \usebibmacro{name:given-family}{#1}{#2}{#3}{#4}}
 
+\newcommand{\mkbibcompletenamefamilygiven}{\mkbibcompletename}
+
 \newbibmacro*{name:family-given}[4]{%
   \ifuseprefix
     {\usebibmacro{name:delim}{#3#1}%
      \usebibmacro{name:hook}{#3#1}%
-     \ifdefvoid{#3}{}{%
-       \ifcapital
-         {\mkbibnameprefix{\MakeCapital{#3}}\isdot}
-         {\mkbibnameprefix{#3}\isdot}%
-       \ifprefchar{}{\bibnamedelimc}}%
-     \mkbibnamefamily{#1}\isdot
-     \ifdefvoid{#4}{}{\bibnamedelimd\mkbibnamesuffix{#4}\isdot}%
-     \ifdefvoid{#2}{}{\revsdnamepunct\bibnamedelimd\mkbibnamegiven{#2}\isdot}}
+     \mkbibcompletenamefamilygiven{%
+       \ifdefvoid{#3}
+         {}
+         {\ifcapital
+            {\mkbibnameprefix{\MakeCapital{#3}}\isdot}
+            {\mkbibnameprefix{#3}\isdot}%
+          \ifprefchar{}{\bibnamedelimc}}%
+       \mkbibnamefamily{#1}\isdot
+       \ifdefvoid{#4}
+         {}
+         {\bibnamedelimd\mkbibnamesuffix{#4}\isdot}%
+       \ifdefvoid{#2}
+         {}
+         {\revsdnamepunct\bibnamedelimd\mkbibnamegiven{#2}\isdot}}}
     {\usebibmacro{name:delim}{#1}%
      \usebibmacro{name:hook}{#1}%
-     \mkbibnamefamily{#1}\isdot
-     \ifdefvoid{#4}{}{\bibnamedelimd\mkbibnamesuffix{#4}\isdot}%
-     \ifboolexpe{%
-       test {\ifdefvoid{#2}}
-       and
-       test {\ifdefvoid{#3}}}
-       {}
-       {\revsdnamepunct}%
-     \ifdefvoid{#2}{}{\bibnamedelimd\mkbibnamegiven{#2}\isdot}%
-     \ifdefvoid{#3}{}{\bibnamedelimd\mkbibnameprefix{#3}\isdot}}}
+     \mkbibcompletenamefamilygiven{%
+       \mkbibnamefamily{#1}\isdot
+       \ifdefvoid{#4}
+         {}
+         {\bibnamedelimd\mkbibnamesuffix{#4}\isdot}%
+       \ifboolexpe{%
+         test {\ifdefvoid{#2}}
+         and
+         test {\ifdefvoid{#3}}}
+         {}
+         {\revsdnamepunct}%
+       \ifdefvoid{#2}
+         {}
+         {\bibnamedelimd\mkbibnamegiven{#2}\isdot}%
+       \ifdefvoid{#3}
+         {}
+         {\bibnamedelimd\mkbibnameprefix{#3}\isdot}}}}
 \newbibmacro*{name:last-first}[4]{% legacy alias
   \blx@warning@noline{%
     'name:last-first' is deprecated, please use 'name:family-given'}%

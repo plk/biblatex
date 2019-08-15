@@ -40,6 +40,11 @@
 - Add the special fields `volcitevolume` and `volcitepages` for finer control
   over the `\volcite` postnote.
 - Add `\AtVolcite` hook to initialise `\volcite` commands.
+- Add `\mkbibcompletename` as well as `\mkbibcompletename<formatorder>`
+  to format complete names.
+  The commands are analogous to `\mkbibname<namepart>` but apply to
+  the entire name printed in format order `<formatorder>`.
+  By default the predefined macros all expand to `\mkbibcompletename`.
 - Add `multiprenotedelim` and `multipostnotedelim` and make all
  `(pre|post)notedelim`-like commands context sensitive.
 - Add rudimentary support for `labelprefix` with BibTeX backend.
