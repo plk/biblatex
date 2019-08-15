@@ -85,6 +85,14 @@
   see also <https://texfaq.org/FAQ-hyphoff>.
   Note that switching languages with `babel` *within* those commands
   removes the hyphenation protection.
+- Allow `doi` field for `@online` entries. This field was previously
+  not printed in the `@online` driver. In case DOIs appear where
+  they should not appear the output of earlier versions can be
+  recreated with
+  ```
+  \ExecuteBibliographyOptions[online]{doi=false}
+  ```
+  since the `doi` option is now available on a per-type level.
 
 
 # RELEASE NOTES FOR VERSION 3.12
