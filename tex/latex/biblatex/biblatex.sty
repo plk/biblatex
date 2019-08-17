@@ -10054,64 +10054,185 @@
 % we are prepending to the commands so that the resets happen before
 % the part title is typeset otherwise \cites in there could be "ibid"
 % which makes no sense
+
+% option switch
+%{<option level counter>}{<patch>}{<pre>}{<post>}
+\def\blx@patchsection@switch#1#2#3#4{%
+  \AtEndPreamble{%
+    #3%
+    \ifcase#1
+    \or % 1: part
+      \blx@refpatch@part{#2}%
+    \or % 2: chapter
+      \blx@refpatch@chapter{#2}%
+    \or % 3: section
+      \blx@refpatch@sect{section}{#2}{1}%
+    \or % 4: subsection
+      \blx@refpatch@sect{subsection}{#2}{2}%
+    \or % 5: chapter+ = part, chapter
+      \blx@refpatch@part{#2}%
+      \blx@refpatch@chapter{#2}%
+    \or % 6: section+ = part, chapter, section
+      \blx@refpatch@part{#2}%
+      \ifundef\chapter
+        {}
+        {\blx@refpatch@chapter{#2}}%
+      \blx@refpatch@sect{section}{#2}{1}%
+    \or % 7: subsection+ = part, chapter, section, subsection
+      \blx@refpatch@part{#2}%
+      \ifundef\chapter
+        {}
+        {\blx@refpatch@chapter{#2}}%
+      \blx@refpatch@sect{section}{#2}{1}%
+      \blx@refpatch@sect{subsection}{#2}{2}%
+    \fi
+    #4%
+  }%
+}
+
+%% Patching all the different document classes and their sectioning
+%% commands is ... messy at best
+%% For now we do the big three: (1) Standard classes, (2) KOMA-Script
+%% and (3) memoir.
+%%
+%% Timing of the patch can be tricky.
+%% Ideally we want the code to be executed when all counters have
+%% been increased so the labels attach to the right thing, but
+%% at the same time we want the code to be executed before the heading
+%% is typeset so it already applies to the text in the heading.
+%% Bonus points for actually executing the code on the correct page.
+
+%% memoir has hooks for section headings that we can use here
+%% see 18.25 'Heading Hooks' of the manual (v3.7h, 2018/12/12)
+%% they are in a good position, when the counters have been
+%% increased but heading text not yet typeset.
+%% The manual suggests this hooks have been around since 2005 or so,
+%% so we take them for granted.
+
+%% Newer versions of KOMA-Script (>=3.27) (will) have a hook system
+%% that we can use for that purpose as well.
+%% This is fairly new, so we need to have a fallback for older versions.
+
+%% The standard classes are tricky. They have no good hooks and just
+%% for sections at least \pretocmd-ing executes the code before
+%% counters are increased, so the labels attach to the wrong thing.
+
+%% Test for correct KOMA patch method
+% KOMA 3.27 has \AddtoDoHook
+\newcommand*{\blx@ifkoma@AddtoDoHook}{%
+  \ifboolexpr{not test {\ifcsundef{KOMAClassName}}
+              and not test {\ifcsundef{AddtoDoHook}}}}
+
+% KOMA 3.26 has \startsection@secnumdepth for some testing
+\newcommand*{\blx@ifkoma@startsection}{%
+  \ifboolexpr{not test {\ifcsundef{KOMAClassName}}
+              and not test {\ifcsundef{startsection@secnumdepth}}}}
+
+\newcommand*{\blx@ifmemoir}{\@ifclassloaded{memoir}}
+
+% Note that \ExecuteDoHook always feeds an argument to the code, here that is
+% going to be an empty group, which we explicitly gobble to avoid trouble.
+\def\blx@refpatch@koma@AddtoDoHook#1#2{%
+  \AddtoDoHook{heading/begingroup/#1}{#2\@gobble}}
+
+% \part
+\def\blx@refpatch@part@memoir#1{%
+  \apptocmd\mempartinfo{#1}
+    {}{\blx@err@patch{\string\mempartinfo}}%
+  \apptocmd\mempartstarinfo{#1}
+    {}{\blx@err@patch{\string\mempartstarinfo}}}
+
+\def\blx@refpatch@part@std#1{%
+  \toggletrue{blx@tempa}%
+  \def\do##1{%
+    \pretocmd##1{#1}
+      {\togglefalse{blx@tempa}\listbreak}
+      {}}%
+  \docsvlist{%
+    \H@old@part,%    hyperref
+    \NR@part,%       nameref
+    \@part}%         latex/koma-script/memoir
+  \iftoggle{blx@tempa}
+    {\blx@err@patch{\string\@part}}
+    {}%
+  \let\do\noexpand}
+
 \def\blx@refpatch@part#1{%
-    \ifundef\part
-      {\blx@err@nodocdiv{part}}
-      {\toggletrue{blx@tempa}%
-       \def\do##1{%
-         \pretocmd##1{#1}
-           {\togglefalse{blx@tempa}\listbreak}
-           {}}%
-       \docsvlist{%
-         \H@old@part,%    hyperref
-         \NR@part,%       nameref
-         \@part}%         latex/koma-script/memoir
-       \iftoggle{blx@tempa}
-         {\blx@err@patch{\string\@part}}
-         {}%
-       \let\do\noexpand}}
+  \ifundef\part
+    {\blx@err@nodocdiv{part}}
+    {\blx@ifkoma@AddtoDoHook
+       {\blx@refpatch@koma@AddtoDoHook{part}{#1}}
+       {\blx@ifmemoir
+          {\blx@refpatch@part@memoir{#1}}
+          {\blx@refpatch@part@std{#1}}}}}
+
+% \chapter
+\def\blx@refpatch@chapter@memoir#1{%
+  \apptocmd\memchapinfo{#1}
+    {}{\blx@err@patch{\string\memchapinfo}}%
+  \apptocmd\memchapstarinfo{#1}
+    {}{\blx@err@patch{\string\memchapstarinfo}}}
+
+\def\blx@refpatch@chapter@std#1{%
+  \pretocmd\@makechapterhead{#1}
+    {}
+    {\blx@err@patch{\string\@makechapterhead}}
+  \pretocmd\@makeschapterhead{#1}
+    {}
+    {\blx@err@patch{\string\@makeschapterhead}}}
 
 \def\blx@refpatch@chapter#1{%
   \ifundef\chapter
     {\blx@err@nodocdiv{chapter}}
-    {% the \ifcsundef{KOMAClassName} should be redundant, but you never know
-     \ifboolexpr{test {\ifcsundef{KOMAClassName}}
-                 or test {\ifcsundef{startsection@secnumdepth}}}
-       {\pretocmd\@makechapterhead{#1}
-          {}
-          {\blx@err@patch{\string\@makechapterhead}}
-        \pretocmd\@makeschapterhead{#1}
-          {}
-          {\blx@err@patch{\string\@makeschapterhead}}}
-       {% <- new KOMA >= 3.26 defines \startsection@secnumdepth
-        \At@startsection{\ifnumequal{\startsection@secnumdepth}{0}{#1}{}}}}}
+    {\blx@ifkoma@AddtoDoHook
+       {\blx@refpatch@koma@AddtoDoHook{chapter}{#1}}
+       {\blx@ifmemoir
+          {\blx@refpatch@chapter@memoir{#1}}
+          {\blx@refpatch@chapter@std{#1}}}}}
 
-\def\blx@refpatch@sect#1{%
+% \section, \subsection
+% {<section csname>}{<precode>}{<section level number>}
+\def\blx@refpatch@sect#1#2#3{%
   \ifcsundef{#1}
     {\blx@err@nodocdiv{#1}\@gobbletwo}
-    {% the \ifcsundef{KOMAClassName} should be redundant, but you never know
-     \ifboolexpr{test {\ifcsundef{KOMAClassName}}
-                 or test {\ifcsundef{startsection@secnumdepth}}}
-       {\blx@refpatch@sect@i}
-       {\blx@refpatch@sect@koma}}}
+    {\blx@ifkoma@AddtoDoHook
+       {\blx@refpatch@koma@AddtoDoHook{#1}{#2}}
+       {\blx@ifkoma@startsection
+          {\blx@refpatch@sect@koma@startsection{#2}{#3}}
+          {\blx@ifmemoir
+             {\blx@refpatch@sect@memoir{#1}{#2}}
+             {\blx@refpatch@sect@std{#2}{#3}}}}}}
 
 % KOMA >= 3.26 defines \startsection@secnumdepth to check the sectioning level,
-% so we can now use \At@startsection
-\def\blx@refpatch@sect@koma#1#2{%
+% so we can now use \At@startsection.
+% Starting from 3.27 we use AddtoDoHook, so this is a short-lived
+% intermezzo.
+\def\blx@refpatch@sect@koma@startsection#1#2{%
   \At@startsection{\ifnumequal{\startsection@secnumdepth}{#2}{#1}{}}}
 
-\edef\blx@refpatch@sect@i#1#2{%
+\edef\blx@refpatch@sect@memoir#1#2{%
+  \apptocmd\noexpand\memsecinfo
+    {\noexpand\blx@refpatch@sect@memoir@i{\string#1}{#1}{#2}}
+    {}{\noexpand\blx@err@patch{\string\memsecinfo}}%
+  \apptocmd\noexpand\memsecstarinfo
+    {\noexpand\blx@refpatch@sect@memoir@i{\string#1}{#1}{#2}}
+    {}{\noexpand\blx@err@patch{\string\memsecstarinfo}}}
+
+\def\blx@refpatch@sect@memoir@i#1#2#3{%
+  \ifstrequal{#1}{#2}{#3}{}}
+
+\edef\blx@refpatch@sect@std#1#2{%
   \def\noexpand\do##1{%
     \pretocmd##1%
-      {\noexpand\blx@refpatch@sect@ii{#1}{#2}{\string#2}}
+      {\noexpand\blx@refpatch@sect@std@i{#1}{#2}{\string#2}}
       {\togglefalse{blx@tempa}\noexpand\listbreak}
       {}}%
-  \noexpand\blx@refpatch@sect@iii}
+  \noexpand\blx@refpatch@sect@std@ii}
 
-\def\blx@refpatch@sect@ii#1#2#3{%
+\def\blx@refpatch@sect@std@i#1#2#3{%
   \ifnumequal{#2}{#3}{#1}{}}
 
-\def\blx@refpatch@sect@iii{%
+\def\blx@refpatch@sect@std@ii{%
   \toggletrue{blx@tempa}%
   \docsvlist{%       order does matter:
     \H@old@sectm@m,% memoir+hyperref (what a mess...)
@@ -14807,39 +14928,6 @@
 \DeclareBibliographyOption[boolean]{locallabelwidth}[true]{%
   \blx@key@locallabelwidth{\abx@locallabelwidth}{#1}}
 
-%{<switch>}{<patch>}{<pre>}{<post>}
-\def\blx@patchsection@switch#1#2#3#4{%
-  \AtEndPreamble{%
-    #3%
-    \ifcase#1
-    \or % 1: part
-      \blx@refpatch@part{#2}%
-    \or % 2: chapter
-      \blx@refpatch@chapter{#2}%
-    \or % 3: section
-      \blx@refpatch@sect{section}{#2}{1}%
-    \or % 4: subsection
-      \blx@refpatch@sect{subsection}{#2}{2}%
-    \or % 5: chapter+ = part, chapter
-      \blx@refpatch@part{#2}%
-      \blx@refpatch@chapter{#2}%
-    \or % 6: section+ = part, chapter, section
-      \blx@refpatch@part{#2}%
-      \ifundef\chapter
-        {}
-        {\blx@refpatch@chapter{#2}}%
-      \blx@refpatch@sect{section}{#2}{1}%
-    \or % 7: subsection+ = part, chapter, section, subsection
-      \blx@refpatch@part{#2}%
-      \ifundef\chapter
-        {}
-        {\blx@refpatch@chapter{#2}}%
-      \blx@refpatch@sect{section}{#2}{1}%
-      \blx@refpatch@sect{subsection}{#2}{2}%
-    \fi
-    #4%
-  }%
-}
 
 \DeclareBibliographyOption[string]{refsection}{%
   \ifcsdef{blx@opt@refsection@#1}
