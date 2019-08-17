@@ -33,8 +33,8 @@
   This change has the potential to clash with custom styles that already define
   the standard options at these scopes.
 - Promote `@software` to regular entry type and define `@dataset`.
-  Both types still use the driver for `@misc`, but will not issue a
-  warning when used.
+  `@software` is aliased to the `@misc` driver,
+  `@dataset` has a dedicated driver.
 - Add `\ifvolcite` test to check if the current citation is in a `\volcite`
   context.
 - Add the special fields `volcitevolume` and `volcitepages` for finer control
