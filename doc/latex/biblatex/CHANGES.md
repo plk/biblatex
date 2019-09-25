@@ -1,10 +1,14 @@
+# RELEASE NOTES FOR VERSION 3.14
+- biber from version 2.14 has extended, granular XDATA functionality to
+  allow referencing from and to parts of fields. This makes XDATA entries into
+  more general data sharing containers.
 # RELEASE NOTES FOR VERSION 3.13
 - **INCOMPATIBLE CHANGE** Any custom per-entry options in datasources must
   be defined with `\DeclareEntryOption` in order for biber to recognise
   them and pass them out in the `.bbl`.
   This should not adversely affect any code using the documented
   `\Decalare...Option` interface, so should be uncritical for most users.
-- Add `\DeclareBiblatexOption` as a convenient interface to declare the same
+- Added `\DeclareBiblatexOption` as a convenient interface to declare the same
   option in different scopes. This should help avoid code duplication.
   For example
   ```

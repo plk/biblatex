@@ -5819,7 +5819,7 @@ Dynamic entry sets in the document body are local to the enclosing \env{refsecti
 \subsubsection[Data Containers]{Data Containers}
 \label{use:use:xdat}
 
-The \bibtype{xdata} entry type serves as a data container holding one or more fields. These fields may be inherited by other entries using the \bibfield{xdata} field. \bibtype{xdata} entries may not be cited or added to the bibliography, they only serve as a data source for other entries. This data inheritance mechanism is useful for fixed field combinations such as \bibfield{publisher}\slash \bibfield{location} and for other frequently used data:
+The \bibtype{xdata} entry type serves as a data container holding one or more fields. Data in \bibtype{xdata} entries may be referenced and used by other entries. \bibtype{xdata} entries may not be cited or added to the bibliography, they only serve as a data source for other entries (including other \bibtype{xdata} entries). This data inheritance mechanism is useful for fixed field combinations such as \bibfield{publisher}\slash \bibfield{location} and for other frequently used data:
 
 \begin{lstlisting}[style=bibtex]{}
 <<@XData>>{<<hup>>,
@@ -5853,6 +5853,63 @@ Using a separated list of keys in its \bibfield{xdata} field, an entry may inher
   xdata	     = {macmillan},
 }
 \end{lstlisting}
+%
+More granular \bibtype{xdata} entry data may be referenced. It is not necessary to reference only entire fields. For example:
+
+\begin{lstlisting}[style=bibtex]{}
+@XData{someauthors,
+  author     = {John Smith and Brian Brown}
+}
+@XData{somelocations,
+  location   = {Location1 and Location2}
+}
+@XData{somenotes,
+  note   = {A note}
+}
+@Book{...,
+  author     = {Alan Drudge and xdata=someauthors-author-2},
+  editor     = {xdata=someauthors-author},
+  location   = {xdata=somelocations-location-1 and Location3},
+  note       = {xdata=somenotes-note}
+}
+\end{lstlisting}
+%
+The format of granular \bibtype{xdata} references are as follows:
+
+\begin{namesample}
+\item~\delim{x}{1}data\delim{=}{2}\delim{$<$}{3}key$>$\delim{-}{4}\delim{$<$}{5}field$>$\delim{-}{6}\delim{$<$}{7}index$>$
+\end{namesample}
+
+\begin{enumerate}
+  \item The value of the \biber option \opt{--xdatamarker} (by default '\texttt{xdata}')
+  \item The value of the \biber option \opt{--xnamesep} (by default '\texttt{=}')
+  \item A valid entry key of an \bibtype{xdata} entry
+  \item The value of the \biber option \opt{--xdatasep} (by default '\texttt{-}')
+  \item A valid entry field in the source \bibtype {xdata} entry
+  \item (Optional) The value of the \biber option \opt{--xdatasep} (by default '\texttt{-}')
+  \item (Optional) A valid 1-based index into a list/name field in the source \bibtype {xdata} entry
+\end{enumerate}
+%
+There are \opt{--output-*} variants of the above options for \biber tool mode output so that these separators and markers can be programatically changed. Taking the example above, this \bibtype{book} would resolve to:
+
+\begin{lstlisting}[style=bibtex]{}
+@Book{...,
+  author     = {Alan Drudge and Brian Brown},
+  editor     = {John Smith},
+  location   = {Location1 and Location3},
+  note       = {A note}
+}
+\end{lstlisting}
+%
+Things to note with granular \bibtype{xdata} references:
+
+\begin{itemize}
+  \item References must be made only to \bibtype{xdata} fields. An warning will be generated otherwise and the reference will not be resolved
+  \item References must be made only to \bibtype{xdata} fields of the same type (list/name and datatype) as the referencing field. An warning will be generated otherwise and the reference will not be resolved
+  \item References to fields of datatype 'date' are not possible. References to legacy \bibfield{year} and \bibfield{month} fields are possible
+  \item References to missing entries, fields or list/name indices will generate a warning and the reference will not be resolved
+  \item If an index is missing for a reference to a list/name field, 1 is assumed
+\end{itemize}
 %
 See also \secref{bib:typ:blx,bib:fld:spc}.
 
@@ -14082,6 +14139,7 @@ This revision history is a list of changes relevant to users of this package. Ch
 \begin{changelog}
 \begin{release}{3.14}{2019}
 \item Added new mapping verbs for citation sources\see{aut:ctm:map}
+\item Added documentation for new \biber granular \bibtype{xdata} functionality\see{use:use:xdat}
 \end{release}
 \begin{release}{3.13a}{2019-08-31}
 \item Bugfix release
