@@ -201,69 +201,6 @@
 \AtEndPreamble{%
   \blx@packageincompatibility
   \blx@packageincompatibility@endpreambleonly
-  \def\blx@langstrings{}%
-  % Set up sortlocale defaults and default language if babel/polyglossia is not loaded
-  \ifdefstring\blx@sortlocale{auto}
-    {\ifdef\bbl@main@language% babel or polyglossia is loaded
-      {\edef\blx@sortlocale{\bbl@main@language}}
-      {\def\blx@sortlocale{english}}}
-    {}%
-  \@ifpackageloaded{polyglossia}
-    {% polyglossia support is not great when it comes to language variants,
-     % so we better warn about it.
-     \ifundef\blx@nowarnpolyglossia
-       {\blx@warning@noline{%
-          Package 'polyglossia' detected.\MessageBreak
-          Please note that biblatex's polyglossia\MessageBreak
-          interface has some rough edges.\MessageBreak
-          Language variants are not picked up correctly.\MessageBreak
-          You can disable this warning by defining the macro\MessageBreak
-          '\string\blx@nowarnpolyglossia' in the preamble}}
-       {}%
-     % This is required for languages which are never explicitly selected
-     % This check because \xpg@loaded is not defined in polyglossia <= v1.42.0
-     \ifundef\xpg@loaded
-       {\let\xpg@loaded\@empty
-        \let\xpg@vloaded\@empty
-        \blx@warning@noline{Upgrade package 'polyglossia' to > v1.42.0 recommended}}
-       {}%
-     \def\do#1{\blx@langsetup{#1}}%
-     \expandafter\docsvlist\expandafter{\xpg@loaded}%
-     \expandafter\docsvlist\expandafter{\xpg@vloaded}%
-     \ifboolexpr{
-      not togl {blx@autolangbib}
-      and
-      not togl {blx@autolangcite}}
-       {\blx@mknoautolang}
-       {\blx@mkautolangpoly}}
-    {\@ifpackageloaded{babel}
-      {% This is required for languages which are never explicitly selected
-       \def\do#1{\blx@langsetup{#1}}%
-       \expandafter\docsvlist\expandafter{\bbl@loaded}%
-       \ifboolexpr{
-        not togl {blx@autolangbib}
-        and
-        not togl {blx@autolangcite}}
-         {\blx@mknoautolang}
-         {\blx@mkautolangbabel}}
-      {\blx@mknoautolang}}%
-  % These already have defaults set to basically do nothing
-  % so if the toggles are true, we need to define again since
-  % mkautolang* redefines \blx@beglang
-  % In turn, \blx@beglang defines \blx@endlang and so \blx@beglangcite and
-  % \blx@endlangcite need redefining inside \blx@beglang after \blx@endlang
-  % has been defined.
-  \iftoggle{blx@autolangbib}
-    {\let\blx@beglangbib\blx@beglang}
-    {}%
-  \iftoggle{blx@autolangcite}
-    {\let\blx@beglangcite\blx@beglang}
-    {}%
-  \csuse{abx@extras@\blx@languagename}%
-  \csuse{abx@strings@\blx@languagename}%
-  \undef\blx@mkautolangbabel
-  \undef\blx@mkautolangpoly
-  \undef\blx@mknoautolang
   \ifnum\blx@hyperref=\thr@@
   \else
     \ifnum\blx@hyperref=\z@
@@ -487,6 +424,70 @@
        \sfcode`\`=\z@
        \sfcode`\'=\z@}}%
   \let\do\noexpand}
+
+% polyglossia makes heavy use of \AtBeginDocument, so we need to use
+% it too to get in later than polyglossia's setup.
+% This means that load-order is relevant, boo ...
+\AtBeginDocument{%
+  \def\blx@langstrings{}%
+  \@ifpackageloaded{polyglossia}
+    {% This is required for languages which are never explicitly selected
+     % This check because \xpg@bloaded is not defined in
+     % polyglossia <= v1.44.0
+     \ifundef\xpg@bloaded
+       {\ifundef\xpg@loaded
+          {\let\xpg@bloaded\@empty}
+          {\let\xpg@bloaded\xpg@loaded}%
+        \blx@warning@noline{%
+          'polyglossia' >= v1.45 required.\MessageBreak
+          Please update polyglossia to version v1.45 or above}}
+       {}%
+     \def\do#1{\blx@langsetup{#1}}%
+     \expandafter\docsvlist\expandafter{\xpg@bloaded}%
+     \ifboolexpr{
+      not togl {blx@autolangbib}
+      and
+      not togl {blx@autolangcite}}
+       {\blx@mknoautolang}
+       {\blx@mkautolangpoly}%
+    }
+    {\@ifpackageloaded{babel}
+      {% This is required for languages which are never explicitly selected
+       \def\do#1{\blx@langsetup{#1}}%
+       \expandafter\docsvlist\expandafter{\bbl@loaded}%
+       \ifboolexpr{
+        not togl {blx@autolangbib}
+        and
+        not togl {blx@autolangcite}}
+         {\blx@mknoautolang}
+         {\blx@mkautolangbabel}}
+      {\blx@mknoautolang}}%
+  % These already have defaults set to basically do nothing
+  % so if the toggles are true, we need to define again since
+  % mkautolang* redefines \blx@beglang
+  % In turn, \blx@beglang defines \blx@endlang and so \blx@beglangcite and
+  % \blx@endlangcite need redefining inside \blx@beglang after \blx@endlang
+  % has been defined.
+  \iftoggle{blx@autolangbib}
+    {\let\blx@beglangbib\blx@beglang}
+    {}%
+  \iftoggle{blx@autolangcite}
+    {\let\blx@beglangcite\blx@beglang}
+    {}%
+  \csuse{abx@extras@\blx@languagename}%
+  \csuse{abx@strings@\blx@languagename}%
+  \undef\blx@mkautolangbabel
+  \undef\blx@mkautolangpoly
+  \undef\blx@mknoautolang
+  % pick up the main document language as sortlocale if
+  % auto-detection is desired
+  \ifdefstring\blx@sortlocale{auto}
+    {\ifdef\blx@main@language% babel or polyglossia is loaded
+       {\edef\blx@sortlocale{\blx@main@language}}
+       {\def\blx@sortlocale{english}}}
+     {}%
+}
+
 
 \begingroup
 \@makeother\#
@@ -3994,8 +3995,8 @@
       {\xifinlist\abx@field@langid\blx@cmksc@lang
          {\blx@mksc@ii}
          {\@firstofone}}
-      {\ifdef\bbl@main@language
-        {\xifinlist\bbl@main@language\blx@cmksc@lang
+      {\ifdef\blx@main@language
+        {\xifinlist\blx@main@language\blx@cmksc@lang
           {\blx@mksc@ii}
           {\@firstofone}}
         {\xifinlist\blx@languagename\blx@cmksc@lang
@@ -6364,7 +6365,7 @@
     {\blx@error
       {No default 'babel' language defined}
       {You must define a default language for 'babel'}}
-    {}%
+    {\let\blx@main@language\bbl@main@language}%
   \pretocmd\select@language{\blx@langsetup{#1}}
     {\ifdef\blx@thelangenv
        {\def\blx@beglang{%
@@ -6399,20 +6400,22 @@
             {}}}
        {}%
      \def\blx@langstrings{}%
-     \def\blx@imc@mainlang{\select@language{\bbl@main@language}}%
-     \blx@langsetup\bbl@main@language}
+     \def\blx@imc@mainlang{\select@language{\blx@main@language}}%
+     \blx@langsetup\blx@main@language}
     {\blx@err@patch{'babel' package}%
      \blx@mknoautolang}}
 
 \gdef\blx@mkautolangpoly{%
-  \ifundef\bbl@main@language
-    {\blx@error
-      {No default 'polyglossia' language defined}
-      {You must define a default language for 'polyglossia'}}
-    {}%
+  \ifundef\mainbabelname
+    {\ifundef\bbl@main@language
+       {\blx@error
+          {No default 'polyglossia' language defined}
+          {You must define a default language for 'polyglossia'}}
+       {\let\blx@main@language\bbl@main@language}}
+    {\let\blx@main@language\mainbabelname}%
   \edef\blx@saved@underscore@catcode{\the\catcode`\_}%
   \catcode`\_=11% polyglossia uses "_" as a letter
-  \pretocmd\select@language{\blx@langsetup{#1}}
+  \pretocmd\select@language{\blx@langsetup{\babelname}}
     {\ifdef\blx@thelangenv
        {\def\blx@beglang{%
           \blx@clearlang
@@ -6463,12 +6466,12 @@
        \csuse{abx@extras@\languagename}%
        \csuse{abx@strings@\languagename}}%
      \def\blx@imc@mainlang{%
-       \select@language{\bbl@main@language}%
+       \select@language{\blx@main@language}%
        % These lines are equal to \blx@maplang
        \blx@resetpunct
-       \csuse{abx@extras@\bbl@main@language}%
-       \csuse{abx@strings@\bbl@main@language}}%
-     \blx@langsetup\bbl@main@language}
+       \csuse{abx@extras@\blx@main@language}%
+       \csuse{abx@strings@\blx@main@language}}%
+     \blx@langsetup\blx@main@language}
     {\blx@err@patch{'polyglossia' package}%
      \blx@mknoautolang}%
   \catcode`\_=\blx@saved@underscore@catcode\relax}
