@@ -428,12 +428,17 @@
 % no longer needed, keep for backwards compatibility
 \let\blx@langstrings\relax
 
+\def\blx@ifhyphenationundef#1{\ifcsundef{l@#1}}
+
 % polyglossia makes heavy use of \AtBeginDocument, so we need to use
 % it too to get in later than polyglossia's setup.
 % This means that load-order is relevant, boo ...
 \AtBeginDocument{%
   \@ifpackageloaded{polyglossia}
-    {% This is required for languages which are never explicitly selected
+    {\ifundef\xpg@ifdefined
+       {}
+       {\def\blx@ifhyphenationundef#1#2#3{\xpg@ifdefined{#1}{#3}{#2}}}%
+     % This is required for languages which are never explicitly selected
      % This check because \xpg@bloaded is not defined in
      % polyglossia <= v1.44.0
      \ifundef\xpg@bloaded
@@ -5451,14 +5456,14 @@
 
 % {<language>}{<exceptions>}
 \newrobustcmd*{\DefineHyphenationExceptions}[2]{%
-  \ifcsundef{l@#1}
+  \blx@ifhyphenationundef{#1}
     {\blx@warn@nohyph{#1}}
     {}%
   \csgappto{blx@hook@hyph@#1}{\blx@hyphexcept{#1}{#2}}}
 \@onlypreamble\DefineHyphenationExceptions
 
 \def\blx@hyphexcept#1#2{%
-  \ifcsundef{l@#1}
+  \blx@ifhyphenationundef{#1}
     {\blx@warn@nohyph{#1}}
     {\begingroup
      \language\csname l@#1\endcsname\relax
@@ -6364,7 +6369,7 @@
 \let\blx@hook@initlang\@empty
 \let\blx@imc@mainlang\@empty
 \def\blx@hyphenreset{%
-  \ifcsundef{l@\blx@languagename}
+  \blx@ifhyphenationundef{\blx@languagename}
     {}
     {\language\csname l@\blx@languagename\endcsname\relax}%
   \ifcsundef{\blx@languagename hyphenmins}
@@ -6399,7 +6404,7 @@
                {\let\abx@field@langid\blx@forcelanguagename}
                {}%
              \let\blx@languagename\abx@field@langid% track global language
-             \ifcsundef{l@\abx@field@langid}
+             \blx@ifhyphenationundef{\abx@field@langid}
                {\blx@warn@nohyph{\abx@field@langid}}
                {\blx@hook@initlang
                 \def\blx@endlang{%
@@ -6436,18 +6441,18 @@
        {\def\blx@beglang{%
           \blx@clearlang
           \begingroup
-         % Need to override all entries, regardless of if there is a langid
-         % if language=<language> option is given
-         \ifboolexpr { test {\ifdef\abx@field@langid }
-                       or
-                       test {\ifdef\blx@forcelanguagename} }
+          % Need to override all entries, regardless of if there is a
+          % langid if language=<language> option is given
+          \ifboolexpr { test {\ifdef\abx@field@langid }
+                        or
+                        test {\ifdef\blx@forcelanguagename} }
             % override local langid if we forced it with
             % language=<language> option
             {\ifdef\blx@forcelanguagename
                {\let\abx@field@langid\blx@forcelanguagename}
                {}%
              \let\blx@languagename\abx@field@langid% track global language
-             \ifcsundef{l@\abx@field@langid}
+             \blx@ifhyphenationundef{\abx@field@langid}
                {\blx@warn@nohyph{\abx@field@langid}}
                {\blx@hook@initlang
                 \def\blx@endlang{%
