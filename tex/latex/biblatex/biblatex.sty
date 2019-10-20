@@ -425,11 +425,13 @@
        \sfcode`\'=\z@}}%
   \let\do\noexpand}
 
+% no longer needed, keep for backwards compatibility
+\let\blx@langstrings\relax
+
 % polyglossia makes heavy use of \AtBeginDocument, so we need to use
 % it too to get in later than polyglossia's setup.
 % This means that load-order is relevant, boo ...
 \AtBeginDocument{%
-  \def\blx@langstrings{}%
   \@ifpackageloaded{polyglossia}
     {% This is required for languages which are never explicitly selected
      % This check because \xpg@bloaded is not defined in
@@ -442,6 +444,7 @@
           'polyglossia' >= v1.45 required.\MessageBreak
           Please update polyglossia to version v1.45 or above}}
        {}%
+     \global\let\blx@maplang\blx@maplang@polyglossia
      \def\do#1{\blx@langsetup{#1}}%
      \expandafter\docsvlist\expandafter{\xpg@bloaded}%
      \ifboolexpr{
@@ -451,17 +454,18 @@
        {\blx@mknoautolang}
        {\blx@mkautolangpoly}%
     }
-    {\@ifpackageloaded{babel}
-      {% This is required for languages which are never explicitly selected
-       \def\do#1{\blx@langsetup{#1}}%
-       \expandafter\docsvlist\expandafter{\bbl@loaded}%
-       \ifboolexpr{
-        not togl {blx@autolangbib}
-        and
-        not togl {blx@autolangcite}}
-         {\blx@mknoautolang}
-         {\blx@mkautolangbabel}}
-      {\blx@mknoautolang}}%
+    {\global\let\blx@maplang\blx@maplang@babel
+     \@ifpackageloaded{babel}
+       {% This is required for languages which are never explicitly selected
+        \def\do#1{\blx@langsetup{#1}}%
+        \expandafter\docsvlist\expandafter{\bbl@loaded}%
+        \ifboolexpr{
+          not togl {blx@autolangbib}
+          and
+          not togl {blx@autolangcite}}
+          {\blx@mknoautolang}
+          {\blx@mkautolangbabel}}
+       {\blx@mknoautolang}}%
   % These already have defaults set to basically do nothing
   % so if the toggles are true, we need to define again since
   % mkautolang* redefines \blx@beglang
@@ -6327,12 +6331,25 @@
 \def\currentlang{\blx@languagename}
 
 % {<language>}{<strings>}
-\def\blx@maplang#1#2{%
+\def\blx@maplang@babel#1#2{%
   \csgappto{extras#1}{%
     \blx@resetpunct
     \csuse{abx@extras@#2}%
     \csuse{abx@strings@#2}}%
   \csgappto{noextras#1}{%
+    \blx@resetpunct
+    \csuse{abx@noextras@#2}}}
+
+\def\blx@maplang@polyglossia#1#2{%
+  \csgappto{blockextras@bbl@#1}{%
+    \blx@resetpunct
+    \csuse{abx@extras@#2}%
+    \csuse{abx@strings@#2}}%
+  \csgappto{inlinextras@bbl@#1}{%
+    \blx@resetpunct
+    \csuse{abx@extras@#2}%
+    \csuse{abx@strings@#2}}%
+  \csgappto{noextras@bbl@#1}{%
     \blx@resetpunct
     \csuse{abx@noextras@#2}}}
 
@@ -6399,7 +6416,6 @@
                 \expandafter{\abx@field@langid}}}
             {}}}
        {}%
-     \def\blx@langstrings{}%
      \def\blx@imc@mainlang{\select@language{\blx@main@language}}%
      \blx@langsetup\blx@main@language}
     {\blx@err@patch{'babel' package}%
@@ -6460,17 +6476,7 @@
                    \csuse{abx@strings@\abx@field@langid}}}}
             {}}}
        {}%
-     % polyglossia needs this - it doesn't get the
-     % strings automatically set for some reason
-     \def\blx@langstrings{%
-       \csuse{abx@extras@\languagename}%
-       \csuse{abx@strings@\languagename}}%
-     \def\blx@imc@mainlang{%
-       \select@language{\blx@main@language}%
-       % These lines are equal to \blx@maplang
-       \blx@resetpunct
-       \csuse{abx@extras@\blx@main@language}%
-       \csuse{abx@strings@\blx@main@language}}%
+     \def\blx@imc@mainlang{\select@language{\blx@main@language}}%
      \blx@langsetup\blx@main@language}
     {\blx@err@patch{'polyglossia' package}%
      \blx@mknoautolang}%
@@ -9129,7 +9135,6 @@
   \blx@safe@actives
   \setkeys{blx@bhd}{#1}%
   \blx@rest@actives
-  \blx@langstrings
   \blx@bibheading\blx@theheading\blx@thetitle
   \endgroup}
 
@@ -9319,7 +9324,6 @@
 
 % {<entrykey>,...}
 \def\blx@bibliography#1{%
-  \blx@langstrings
   \blx@bibheading\blx@theheading\blx@thetitle
   \blx@bibnote\blx@theprenote
   \begingroup
@@ -9669,7 +9673,6 @@
   \else
     \@restonecolfalse
   \fi
-  \blx@langstrings
   \blx@bibheading\blx@theheading\blx@thetitle
   \blx@bibnote\blx@theprenote
   \begingroup
@@ -11410,7 +11413,6 @@
     {}
     {\toggletrue{blx@citation}}%
   \blx@blxinit
-  \blx@langstrings
   \citesetup
   \blx@setsfcodes
   \blx@postpunct@agroup
