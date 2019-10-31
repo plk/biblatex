@@ -2,6 +2,11 @@
 - biber from version 2.14 has extended, granular XDATA functionality to
   allow referencing from and to parts of fields. This makes XDATA entries into
   more general data sharing containers.
+- `biblatex` now interfaces with `polyglossia` much better and can deal
+  with language variants.
+  Note that `polyglossia` v1.45 (2019/10/27) is required for this
+  to work properly, it is strongly recommended to update `polyglossia`
+  to this or a later (current) version.
 # RELEASE NOTES FOR VERSION 3.13
 - **INCOMPATIBLE CHANGE** Any custom per-entry options in datasources must
   be defined with `\DeclareEntryOption` in order for biber to recognise
