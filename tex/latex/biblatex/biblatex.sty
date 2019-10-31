@@ -52,21 +52,6 @@
       This is a fatal error. I'm aborting now}%
    \endinput}
 
-% polyglossia pretends to be babel, so we need to make sure
-% we are definitely talking to babel here.
-\AtEndPreamble{%
-  \@ifpackageloaded{polyglossia}
-    {}
-    {\@ifpackageloaded{babel}
-       {\@ifpackagelater{babel}{2016/04/23}
-          {}
-          {\PackageError{biblatex}
-             {Outdated 'babel' package}
-             {Upgrade to babel 3.9r (2016/04/23) or later.\MessageBreak
-              I found: '\csuse{ver@babel.sty}'.\MessageBreak
-              This is a fatal error. I'm aborting now}%
-            \endinput}}
-       {}}}
 
 %% Category codes
 
@@ -117,6 +102,9 @@
     \endgroup}}
 
 %% Compatibility
+% this hook is executed once at the beginning of loading the package
+% just a few lines down
+% and again later in an \AtEndPreamble hook
 \def\blx@packageincompatibility{%
   \def\do##1{%
     \@ifpackageloaded{##1}
@@ -166,8 +154,15 @@
 % still gives a weird error.
 \blx@packageincompatibility
 
-% people should not be abusing noerroretextools, so warn if it is not needed
+% this part is only executed now
+\@ifpackageloaded{polyglossia}
+  {\global\cslet{blx@pkgloaded@polyglossia}\@empty}
+  {}
+
+% this part is deferred to \AtEndPreamble
 \def\blx@packageincompatibility@endpreambleonly{%
+  % people should not be abusing noerroretextools,
+  % so warn if it is not needed
   \ifcsdef{blx@noerroretextools}
     {\@ifpackageloaded{etextools}
        {}
@@ -176,7 +171,34 @@
           but 'etextools' is not loaded.\MessageBreak
           Please do not define '\string\blx@noerroretextools'\MessageBreak
           unless you really need it}}}
-    {}}
+    {}%
+  % polyglossia pretends to be babel, so the nested structure helps
+  % to make sure that babel really is babel
+  \@ifpackageloaded{polyglossia}
+    {\ifcsundef{blx@pkgloaded@polyglossia}
+       {\blx@error
+         {'polyglossia' loaded after biblatex}
+         {'polyglossia' must be loaded before biblatex}}
+       {}%
+     \@ifpackagelater{polyglossia}{2019/10/27}
+       {}
+       {\blx@warning@noline
+          {biblatex works best with 'polyglossia' 1.45\MessageBreak
+           or above.\MessageBreak
+           Please update 'polyglossia' to v1.45 (2019/10/27)\MessageBreak
+           or later.\MessageBreak
+           Variant detection will not work properly with\MessageBreak
+           older versions}}}
+    {\@ifpackageloaded{babel}
+       {\@ifpackagelater{babel}{2016/04/23}
+          {}
+          {\blx@error
+             {Outdated 'babel' package}
+             {Upgrade to babel 3.9r (2016/04/23) or later.\MessageBreak
+              I found: '\csuse{ver@babel.sty}'.\MessageBreak
+              This is a fatal error. I'm aborting now}%
+            \endinput}}
+       {}}}
 
 \begingroup
 \catcode`\#=12
@@ -439,15 +461,11 @@
        {}
        {\def\blx@ifhyphenationundef#1#2#3{\xpg@ifdefined{#1}{#3}{#2}}}%
      % This is required for languages which are never explicitly selected
-     % This check because \xpg@bloaded is not defined in
-     % polyglossia <= v1.44.0
+     % \xpg@bloaded is not defined in polyglossia < v1.45
      \ifundef\xpg@bloaded
        {\ifundef\xpg@loaded
           {\let\xpg@bloaded\@empty}
-          {\let\xpg@bloaded\xpg@loaded}%
-        \blx@warning@noline{%
-          'polyglossia' >= v1.45 required.\MessageBreak
-          Please update polyglossia to version v1.45 or above}}
+          {\let\xpg@bloaded\xpg@loaded}}
        {}%
      \global\let\blx@maplang\blx@maplang@polyglossia
      \def\do#1{\blx@langsetup{#1}}%
