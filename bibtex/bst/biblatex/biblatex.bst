@@ -1127,11 +1127,15 @@ FUNCTION {output:indent:subfield:keyval} {
   if$
 }
 
+FUNCTION {output:write:field:maybeempty} {
+  swap$ "\field" swap$ wrap:braces *
+  swap$ wrap:braces * output:indent:field
+}
+
 FUNCTION {output:write:field} {
   duplicate$ empty$
     { pop$ pop$ }
-    { swap$ "\field" swap$ wrap:braces *
-      swap$ wrap:braces * output:indent:field }
+    { output:write:field:maybeempty }
   if$
 }
 
@@ -1471,7 +1475,7 @@ FUNCTION {output:specials} {
         }
       if$
       "extradate"   extradate       output:write:field
-      "labeldatesource" "year"      output:write:field
+      "labeldatesource" ""          output:write:field:maybeempty
     }
     'skip$
   if$
