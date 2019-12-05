@@ -26,6 +26,12 @@
   ~~~~<bcf:fields>\blx@nl
   #1%
   ~~~~</bcf:fields>\blx@nl}
+\xdef\blx@xml@datamodel@multiscript@entryfields#1{%
+  ~~~~<bcf:multiscriptfields>\blx@nl
+  #1%
+  ~~~~</bcf:multiscriptfields>\blx@nl}
+\xdef\blx@xml@datamodel@multiscript@entryfields@field#1{%
+  ~~~~~~<bcf:field>#1</bcf:field>\blx@nl}
 \xdef\blx@xml@datamodel@field#1#2{%
   ~~~~~~<bcf:field#1>#2</bcf:field>\blx@nl}
 \xdef\blx@xml@datamodel@entryfields#1{%
@@ -82,6 +88,9 @@
 
 \newrobustcmd*{\ResetDatamodelEntryfields}{%
   \global\let\blx@bcf@datamodel@entryfields\@empty}
+
+\newrobustcmd*{\ResetDatamodelMultiscriptEntryfields}{%
+  \global\let\blx@bcf@datamodel@multiscript@entryfields\@empty}
 
 \newrobustcmd*{\ResetDatamodelConstraints}{%
   \global\let\blx@bcf@datamodel@constraints\@empty}
@@ -224,7 +233,7 @@
        \ifinlistcs{##1}{blx@datamodel@fields}
          {}
          {\listcsgadd{blx@datamodel@fields}{##1}}%
-       \StrCut{##1}{date}\blx@datetype\blx@tempnull
+       \blx@stripfromendinto{##1}{date}\blx@datetype
        % dateparts which are ok to be null (by default *endyear)
        \def\do####1{%
          \let\blx@tempa\@empty% reset setkeys buffer due to loop calls
@@ -289,6 +298,15 @@
 
 \define@key{blx@datamodel@constant}{type}{%
   \def\blx@tempa{#1}}
+
+\newrobustcmd*{\DeclareDatamodelMultiscriptEntryfields}[1]{%
+  \begingroup
+  \let\blx@tempa\@empty  
+  \def\do##1{%
+    \eappto\blx@tempa{\blx@xml@datamodel@multiscript@entryfields@field{##1}}}%
+  \docsvlist{#1}%
+  \xappto\blx@bcf@datamodel@multiscript@entryfields{\blx@xml@datamodel@multiscript@entryfields{\blx@tempa}}%
+  \endgroup}
 
 \newrobustcmd*{\DeclareDatamodelEntryfields}[2][]{%
   \begingroup
@@ -390,6 +408,7 @@
 \DeclareDatamodelConstant[type=list]{gender}{sf,sm,sn,pf,pm,pn,pp}
 \DeclareDatamodelConstant[type=list]{nameparts}{family,given,prefix,suffix}
 \DeclareDatamodelConstant[type=list]{optiondatatypes}{boolean,integer,string,xml}
+\DeclareDatamodelConstant[type=list]{multiscriptforms}{default,transliteration,transcription,translation}
 
 \DeclareDatamodelEntrytypes{
   article,
@@ -407,6 +426,7 @@
   customd,
   custome,
   customf,
+  dataset,
   inbook,
   incollection,
   inproceedings,
@@ -445,7 +465,7 @@
 \DeclareDatamodelEntrytypes[skipout]{xdata}
 
 \DeclareDatamodelFields[type=field, datatype=integer]{
-  number,
+  sortyear,
   volume,
   volumes}
 
@@ -488,6 +508,7 @@
   maintitleaddon,
   nameaddon,
   note,
+  number,
   origtitle,
   pagetotal,
   part,
@@ -515,7 +536,6 @@
   shorttitle}
 
 \DeclareDatamodelFields[type=field, datatype=literal, skipout]{
-  sortyear,
   sorttitle,
   sortshorthand,
   sortkey,
@@ -716,8 +736,7 @@
   year}
 
 \DeclareDatamodelEntryfields[set]{
-  entryset,
-  crossref}
+  entryset}
 
 \DeclareDatamodelEntryfields[article]{
   addendum,
@@ -1035,6 +1054,30 @@
   volume,
   volumes}
 
+\DeclareDatamodelEntryfields[dataset]{
+  addendum,
+  author,
+  doi,
+  edition,
+  editor,
+  editortype,
+  eprint,
+  eprintclass,
+  eprinttype,
+  language,
+  location,
+  note,
+  number,
+  organization,
+  publisher,
+  pubstate,
+  series,
+  subtitle,
+  title,
+  titleaddon,
+  type,
+  version}
+
 \DeclareDatamodelEntryfields[manual]{
   addendum,
   author,
@@ -1063,7 +1106,7 @@
   type,
   version}
 
-\DeclareDatamodelEntryfields[misc]{
+\DeclareDatamodelEntryfields[misc,software]{
   addendum,
   author,
   doi,
@@ -1087,8 +1130,12 @@
 \DeclareDatamodelEntryfields[online]{
   addendum,
   author,
+  doi,
   editor,
   editortype,
+  eprint,
+  eprintclass,
+  eprinttype,
   language,
   note,
   organization,
@@ -1362,6 +1409,60 @@
   type,
   venue}
 
+\DeclareDatamodelMultiscriptEntryfields{
+  abstract,
+  addendum,
+  afterword,
+  annotator,
+  author,
+  bookauthor,
+  booksubtitle,
+  booktitle,
+  booktitleaddon,
+  chapter,
+  commentator,
+  editor,
+  editora,
+  editorb,
+  editorc,
+  foreword,
+  holder,
+  institution,
+  introduction,
+  issuesubtitle,
+  issuetitle,
+  journalsubtitle,
+  journaltitle,
+  location,
+  mainsubtitle,
+  maintitle,
+  maintitleaddon,
+  nameaddon,
+  note,
+  organization,
+  origlanguage,
+  origlocation,
+  origpublisher,
+  origtitle,
+  part,
+  publisher,
+  relatedstring,
+  series,
+  shortauthor,
+  shorteditor,
+  shorthand,
+  shortjournal,
+  shortseries,
+  shorttitle,
+  sortname,
+  sortshorthand,
+  sorttitle,
+  subtitle,
+  title,
+  titleaddon,
+  translator,
+  venue}
+
 \DeclareDatamodelConstraints[
   article,
   book,
@@ -1399,7 +1500,6 @@
 \DeclareDatamodelConstraints[set]{
   \constraint[type=mandatory]{
     \constraintfield{entryset}
-    \constraintfield{crossref}
   }
 }
 
@@ -1452,13 +1552,19 @@
   }
 }
 
+\DeclareDatamodelConstraints[dataset]{
+  \constraint[type=mandatory]{
+    \constraintfield{title}
+  }
+}
+
 \DeclareDatamodelConstraints[manual]{
   \constraint[type=mandatory]{
     \constraintfield{title}
   }
 }
 
-\DeclareDatamodelConstraints[misc]{
+\DeclareDatamodelConstraints[misc,software]{
   \constraint[type=mandatory]{
     \constraintfield{title}
   }
@@ -1467,7 +1573,11 @@
 \DeclareDatamodelConstraints[online]{
   \constraint[type=mandatory]{
     \constraintfield{title}
-    \constraintfield{url}
+    \constraintfieldsor{
+      \constraintfield{url}
+      \constraintfield{doi}
+      \constraintfield{eprint}
+    }
   }
 }
 

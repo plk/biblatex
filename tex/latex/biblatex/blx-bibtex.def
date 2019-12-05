@@ -53,31 +53,30 @@
      \string\citation{biblatex-control}}}
 
 \def\blx@sig@bib{@Comment{$ biblatex control file $}}
-\edef\blx@ver@bib{@Comment{$ biblatex version \blx@bblversion\space $}}
+\edef\blx@ver@bib{%
+  @Comment{$ biblatex bcf format version \blx@bcfversion\space $}}
 
 \let\blx@sig@aux\blx@sig@bbl
 \let\blx@ver@aux\blx@ver@bbl
 
-\edef\blx@msg@aux{%
-  \blx@sig@aux\blx@nl
-  \blx@ver@aux\blx@nl
+\edef\blx@msg@text{%
   \@percentchar\space Do not modify this file!\blx@nl
   \@percentchar\blx@nl
   \@percentchar\space This is an auxiliary file
   used by the 'biblatex' package.\blx@nl
   \@percentchar\space This file may safely be deleted.
   It will be recreated as\blx@nl
-  \@percentchar\space required.\blx@nl
+  \@percentchar\space required.\blx@nl}
+
+\edef\blx@msg@aux{%
+  \blx@sig@aux\blx@nl
+  \blx@ver@aux\blx@nl
+  \blx@msg@text
   \@percentchar\blx@nl\string\relax\blx@nl}
 \edef\blx@msg@bib{%
   \blx@sig@bib\blx@nl
   \blx@ver@bib\blx@nl
-  Do not modify this file!\blx@nl\blx@nl
-  This is an auxiliary file used
-  by the 'biblatex' package.\blx@nl
-  This file may safely be deleted.
-  It will be recreated as\blx@nl
-  required.\blx@nl\blx@nl}
+  \blx@msg@text\blx@nl}
 
 % User feedback
 
@@ -375,7 +374,7 @@
   \ifcsdef{blx@setp@\the\c@refsection @#1}
     {\blx@citation@set{#1}}
     {\blx@citation@entry{#1}}}
-  
+
 \def\blx@citation@xref#1{%
   \begingroup
   \edef\blx@tempa{blx@refp@\the\c@refsection @%
@@ -396,13 +395,122 @@
       \csname blx@refc@\the\c@refsection @#1\endcsname}\blx@msg@cundef
   \fi}
 
+% refcontexts are out, but we can try to save labelprefix
+
+% Luckily all refcontext names use \blx@refcontext@labelprefix, so if we
+% don't modify that macro, we don't actually change the refcontext.
+% Remember that \blx@refcontext@labelprefix contains a hash of the labelprefix
+% and that \blx@refcontext@labelprefix@real contains the value.
+% Effectively we always stay in \blx@sorting/global/global//global/global,
+% and additionally carry around the labelprefix value
+% in \blx@refcontext@labelprefix@real and pass it to the aux file.
+% There are differences to the result obtained with Biber,
+% but it should be good enough for very simple applications.
+\define@key{blx@refcontext}{labelprefix}{%
+  \xdef\blx@refcontext@labelprefix@real{#1}%
+  \iftoggle{blx@defernumbers}
+    {}%
+    {\iftoggle{blx@labelnumber}
+       {\blx@warning{%
+          Option 'labelprefix' requires global\MessageBreak
+          'defernumbers=true'}}
+       {}}%
+  \ifundef{\blx@bibtexwarn@labelprefix@used}
+    {\blx@warning@noline{%
+       The option 'labelprefix' is limited\MessageBreak
+       when used with BibTeX.\MessageBreak
+       Consider using Biber instead}%
+     \global\let\blx@bibtexwarn@labelprefix@used\@empty}
+    {}}
+
+\def\blx@warn@bibtexrefcontext#1{%
+  \blx@warning{%
+    The refcontext option\MessageBreak
+    '#1'\MessageBreak
+    is not supported by the BibTeX backend.\MessageBreak
+    Consider switching to Biber instead.\MessageBreak
+    The option will be ignored}}
+
+\def\blx@bibtexrefcontext@disable#1{%
+  \define@key{blx@refcontext}{#1}{%
+    \blx@warn@bibtexrefcontext{#1}}}
+
+\forcsvlist{\blx@bibtexrefcontext@disable}{%
+  nametemplates,sorting,sortingnamekeytemplatename,uniquenametemplatename,
+  labelalphanametemplatename}
+
+\def\blx@assignrefcontext@disable#1{%
+  \blx@warning{%
+    BibTeX does not support refcontext assignments with\MessageBreak
+    '\string\assignrefcontext#1'.\MessageBreak
+    Consider using Biber instead.\MessageBreak
+    Ignoring the refconext assignment}}
+
+\def\blx@assignrefcontextkeyws[#1][#2]#3{%
+  \blx@assignrefcontext@disable{keyws}}
+\def\blx@assignrefcontextcats[#1][#2]#3{%
+  \blx@assignrefcontext@disable{cats}}
+\def\blx@assignrefcontextentries[#1][#2]#3{%
+  \blx@assignrefcontext@disable{entries}}
+
+\apptocmd{\blx@setdefaultrefcontext}
+  {\csxdef{blx@assignedlabelprefix@\the\c@refsection @#1}{%
+     \blx@refcontext@labelprefix@real}}
+  {}
+  {\blx@error
+     {Failed to patch '\string\blx@setdefaultrefcontext'}
+     {Patching '\string\blx@setdefaultrefcontext' failed for some reason.
+      \MessageBreak
+      Please report this bug}}
+
+\def\abx@aux@defaultlabelprefix#1#2#3{%
+  \csgdef{blx@assignedlabelprefix@#1@#2}{#3}}
+
+\apptocmd{\blx@bbl@entry}
+  {\ifcsundef{blx@assignedlabelprefix@\the\c@refsection @\thefield{entrykey}}
+     {}
+     {\blx@bbl@addfield{labelprefix}{%
+        \csuse{blx@assignedlabelprefix@\the\c@refsection
+          @\thefield{entrykey}}}}}
+  {}
+  {\blx@error
+     {Failed to patch '\string\blx@bbl@entry'}
+     {Patching '\string\blx@bbl@entry' failed for some reason.
+      \MessageBreak
+      Please report this bug}}
+
+\AtEndDocument{%
+  % always add default labelprefix declarations to .aux
+  \iftoggle{blx@bbldone}
+    {\def\do#1{%
+       \begingroup
+       \def\do##1{%
+         \blx@auxwrite\@mainaux{}{\string\abx@aux@defaultlabelprefix{#1}{##1}{%
+           \csuse{blx@assignedlabelprefix@#1@##1}}}}%
+       \dolistcsloop{blx@defaultrefcontexts@#1}%
+       \endgroup}
+     \dolistloop\blx@allrefsections}
+    {}}
+
+
+% Translate sorting schemes to BibTeX form
+\def\blx@sorting@none{0}
+\def\blx@sorting@nty{1}
+\def\blx@sorting@nyt{2}
+\def\blx@sorting@nyvt{3}
+\def\blx@sorting@anyt{12}
+\def\blx@sorting@anyvt{13}
+\def\blx@sorting@ynt{21}
+\def\blx@sorting@ydnt{22}
+\def\blx@sorting@debug{99}
+
 % Control file
 
 \edef\blx@ctrl{%
   \blx@msg@bib
   @Control\string{biblatex-control,\blx@nl
   \space\space options = \string{%
-    \blx@bblversion:%
+    \blx@bcfversion:%
     \noexpand\iftoggle{blx@debug}{1}{0}:%
     \noexpand\iftoggle{blx@bibtex8}{1}{0}:%
     \noexpand\iftoggle{blx@sortcase}{1}{0}:%
@@ -416,29 +524,27 @@
     \noexpand\csuse{blx@sorting@\noexpand\blx@sorting}:%
     \noexpand\blx@maxcitenames:%
     \noexpand\blx@mincitenames:%
+    \noexpand\blx@maxsortnames:%
+    \noexpand\blx@minsortnames:%
+    \noexpand\iftoggle{blx@nohashothers}{1}{0}:%
+    \noexpand\iftoggle{blx@nosortothers}{1}{0}:%
+    \noexpand\blx@maxalphanames:%
+    \noexpand\blx@minalphanames:%
     \noexpand\blx@maxline:%
     \noexpand\detokenize\noexpand\expandafter{\noexpand\labelalphaothers}:%
+    \noexpand\detokenize\noexpand\expandafter{\noexpand\blx@sortalphaothers}:%
     \noexpand\detokenize\noexpand\expandafter{\noexpand\blx@sorting}%
   \string},\blx@nl
   \string}%
 }
 
 \def\blx@ctrlwrite{%
+  % \sortalphaothers should only contain safe characters,
+  % so we should be able to \edef it
+  \edef\blx@sortalphaothers{\sortalphaothers}%
   \immediate\openout\blx@write\blx@ctrlfile\blxauxsuffix.bib\relax
   \blx@auxwrite\blx@write{}{\blx@ctrl}%
   \immediate\closeout\blx@write}
-
-% Translate sorting schemes to BibTeX form
-
-\def\blx@sorting@none{0}
-\def\blx@sorting@nty{1}
-\def\blx@sorting@nyt{2}
-\def\blx@sorting@nyvt{3}
-\def\blx@sorting@anyt{12}
-\def\blx@sorting@anyvt{13}
-\def\blx@sorting@ynt{21}
-\def\blx@sorting@ydnt{22}
-\def\blx@sorting@debug{99}
 
 % Disable some interfaces
 

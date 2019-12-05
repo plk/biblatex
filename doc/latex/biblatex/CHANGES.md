@@ -1,3 +1,236 @@
+# RELEASE NOTES FOR VERSION 3.14
+- biber from version 2.14 has extended, granular XDATA functionality to
+  allow referencing from and to parts of fields. This makes XDATA entries into
+  more general data sharing containers.
+- `biblatex` now interfaces with `polyglossia` much better and can deal
+  with language variants.
+  Note that `polyglossia` v1.45 (2019/10/27) is required for this
+  to work properly, it is strongly recommended to update `polyglossia`
+  to this or a later (current) version.
+# RELEASE NOTES FOR VERSION 3.13
+- **INCOMPATIBLE CHANGE** Any custom per-entry options in datasources must
+  be defined with `\DeclareEntryOption` in order for biber to recognise
+  them and pass them out in the `.bbl`.
+  This should not adversely affect any code using the documented
+  `\Decalare...Option` interface, so should be uncritical for most users.
+- Added `\DeclareBiblatexOption` as a convenient interface to declare the same
+  option in different scopes. This should help avoid code duplication.
+  For example
+  ```
+  \DeclareBibliographyOption[boolean]{noroman}[true]{%
+    \settoggle{blx@noroman}{#1}}
+  \DeclareTypeOption[boolean]{noroman}[true]{%
+    \settoggle{blx@noroman}{#1}}
+  \DeclareEntryOption[boolean]{noroman}[true]{%
+    \settoggle{blx@noroman}{#1}}
+  ```
+  can be replaced with
+  ```
+  \DeclareBiblatexOption{global,type,entry}[boolean]{noroman}[true]{%
+    \settoggle{blx@noroman}{#1}}
+  ```
+- Following the introduction of `\DeclareBiblatexOption` extend the scope
+  of a few options (`abbreviate`, `citetracker`, `clearlang`, `dataonly`,
+  `dateabbrev`, `<namepart>inits`, `ibidtracker`, `idemtracker`, `labelalpha`,
+  `labelnumber`, `labeltitle`, `labeltitleyear`, `labeldateparts`,
+  `loccittracker`, `opcittracker`, `singletitle`, `skipbib`, `skipbiblist`,
+  `skipbiblab` `terseinits`, `uniquelist`, `uniquename`, `uniquetitle`,
+  `uniquebaretitle`, `uniquework`, `uniqueprimaryauthor`).
+- Furthermore, the standard style options `doi`, `eprint`, `isbn`, `url`,
+  `related` are now available also on a per-type and per-entry level.
+  The same holds for `mergedate`, `subentry` and the options of `reading.bbx`.
+  This change has the potential to clash with custom styles that already define
+  the standard options at these scopes.
+- Promote `@software` to regular entry type and define `@dataset`.
+  `@software` is aliased to the `@misc` driver,
+  `@dataset` has a dedicated driver.
+- Add `\ifvolcite` test to check if the current citation is in a `\volcite`
+  context.
+- Add the special fields `volcitevolume` and `volcitepages` for finer control
+  over the `\volcite` postnote.
+- Add `\AtVolcite` hook to initialise `\volcite` commands.
+- Add `\mkbibcompletename` as well as `\mkbibcompletename<formatorder>`
+  to format complete names.
+  The commands are analogous to `\mkbibname<namepart>` but apply to
+  the entire name printed in format order `<formatorder>`.
+  By default the predefined macros all expand to `\mkbibcompletename`.
+- Add `multiprenotedelim` and `multipostnotedelim` and make all
+ `(pre|post)notedelim`-like commands context sensitive.
+- Add rudimentary support for `labelprefix` with BibTeX backend.
+  Biber implements `labelprefix` via `refcontext`s, but BibTeX does not
+  actually support `refcontext`s. The user interface is retained, but BibTeX's
+  "`refcontext`s" support only the emulation of `labelprefix` and nothing more.
+  There might be subtle differences between Biber's and BibTeX's
+  `labelprefix` behaviour, but it should be better than nothing.
+  If you need full `labelprefix` support, please consider switching to Biber.
+- Add `\thefirstlistitem`, `\strfirstlistitem` and `\usefirstlistitem` to
+  grab and use the first item of a field.
+- Add `\isdot` to the format for `journaltitle` so that `.`s at the end of the
+  `journal(title)` field are automatically treated as abbreviation dots and not
+  sentence-ending periods. To restore the old behaviour add
+  ```
+  \DeclareFieldFormat{journaltitle}{\mkbibemph{#1}}
+  ```
+  to the preamble.
+- Add second optional item post processing argument to `\mkcomprange`,
+  `\mknormrange` and `\mkfirstpage`. It can be used to post process
+  every number item in the formatted range separately. It can for
+  example turn cardinal ranges into ordinal ranges (this is done in
+  the Latvian localisation module).
+- Add further customisation options for strings typeset with `url`'s `\url`
+  command (mainly URLs and DOIs). It is now possible to add a bit of
+  stretchable space after characters with `biburlnumskip`, `biburlucskip`
+  and `biburlucskip`. The previously hard-coded (stretacheble) space
+  `\biburlbigskip` as well as the penalties `biburlbigbreakpenalty` and
+  `biburlbreakpenalty` are also configurable now.
+- Add `\DeclarePrintbibliographyDefaults` to set default values for some
+  option keys to `\printbibliography` and friends.
+- `\nocite` is now enabled in the bibliography (previously it was
+  deactivated in the bibliography).
+  Please report any issues that this may cause.
+- The internals macros `\abx@aux@cite`, `\abx@aux@refcontext`
+  and `\abx@aux@biblist` are now called every time an entry is cite
+  (and appears in a bibliography or biblist, respectively).
+  This helps to avoid unwanted side-effects when writing to aux files
+  is disabled.
+- `\nohyphenation` and `\textnohyphenation` now rely on a (fake)
+  language without hyphenation patterns instead of `\lefthyphenmin`,
+  which means that the command can now be used anywhere in a paragraph,
+  see also <https://texfaq.org/FAQ-hyphoff>.
+  Note that switching languages with `babel` *within* those commands
+  removes the hyphenation protection.
+- Allow `doi` field for `@online` entries. This field was previously
+  not printed in the `@online` driver. In case DOIs appear where
+  they should not appear the output of earlier versions can be
+  recreated with
+  ```
+  \ExecuteBibliographyOptions[online]{doi=false}
+  ```
+  since the `doi` option is now available on a per-type level.
+
+
+# RELEASE NOTES FOR VERSION 3.12
+- **INCOMPATIBLE CHANGE** The syntax for defining data annotations in the
+  BibLaTeXML data source format has changed to accommodate named
+  annotations. Annotations are no longer attributes but are fully-fledged
+  elements. It is not expected that this will impact any current users.
+- **INCOMPATIBLE CHANGE** The field/fieldset argument to the `\translit`
+  command is now  mandatory to allow for a new optional argument which
+  restricts transliteration to entries with particular `langid` fields.
+- The field `sortyear` is an integer field now and not a literal. This is
+  because the `sortX` fields should be the same datatype as the `X` field
+  as sorting depends on this. This fixes an issue where years were not
+  sorted properly as integers. `sortyear` was sometimes used to tune date
+  sorting as in "1984-1", "1984-2" etc. for multi-volume collections with
+  the same year. However, this is really an abuse of the sorting template
+  system since this should be done by having a semantically more granular
+  sorting item to differentiate below the year level (typically, `volume`
+  does this for multi-volume works and this is already part of all default
+  sorting templates). The example .bib that comes with biblatex has been
+  changed to remove such `sortyear` abuses and the sorting is not impacted
+  as they examples using this already have either `volume` or `sorttitle`
+  which made this abuse of `sortyear` unnecessary anyway.
+- The field `number` is a literal field now and not an integer. This allows for
+  a wider range of possible input such as "S1", "Suppl. 1", "1-3".
+  If you want to sort by `number` and only have integers in there, you should
+  consider using a custom data model to turn `number` back into an integer type
+  field, since sorting integers as literals has performance implications and
+  might lead to undesired sorting such as "1", "10", "2".
+- **INCOMPATIBLE CHANGE** Removed the 'semi-hidden' option `noerroretextools`.
+  If you want to load `noerroretextools` now, you need to define the macro
+  `\blx@noerroretextools` instead. This can for example be done with
+  ```
+  \usepackage{etoolbox}
+  \cslet{blx@noerroretextools}\empty
+  \usepackage{biblatex}
+  ```
+  or
+  ```
+  \makeatletter
+  \let\blx@noerroretextools\@empty
+  \makeatother
+  \usepackage{biblatex}
+  ```
+  You still need to make sure that all macros used by `biblatex` are restored
+  to their `etoolbox` definitions before loading `biblatex`.
+- New macro `\abx@missing@entry` to style missing entrykeys in citations.
+- Added field format deprecation macros `\DeprecateFieldFormatWithReplacement`
+  and friends.
+- Add `\ifdateyearsequal` to check if two dates have the same year and era
+  date part. Since `year`s are always non-negative integers and the 'sign' is
+  stored as the `era`, you should use `\ifdateyearsequal` instead of a simple
+  `\iffieldequals{#1year}{#2year}` to compare years. The latter can lead to
+  undesired results if the years have opposite signs, but are otherwise the
+  same.
+- New values `part+`, `chapter+`, `section+` and `subsection+` for 'section'-
+  valued options `refsection`, `refsegment` and `citereset`. These options
+  are then executed at not only the specified level of sectioning, but also
+  all higher levels.
+- Add second optional argument to `\DeclareDelimAlias*`.
+- Allow keywords for dataonly/skipped entries as well.
+- Added `maxcitecounter`.
+- Deprecate `\labelnamepunct` in favour of the context-sensitive
+  `nametitledelim`.
+  For compatibility reasons `\labelnamepunct` still pops up in the code here
+  and there, but `nametitledelim` should be preferred now.
+- The `xstring` package is not loaded by default any more.
+  Style developers whose styles make use of that package should load it
+  explicitly.
+- `authoryear.bbx` now has a macro `bbx:ifmergeddate` that can be used to
+  check whether the date has been printed at the beginning of an entry
+  and can thus be suppressed later in the `date` and `issue+date` macros.
+  The macro works like a test and expands to the `<true>` branch if the date
+  has been merged and can be suppressed, it expands to `<false>` if the date
+  has not been merged. In practice `\printdate` should then be issued
+  if and only if the test yields false.
+
+  This change means that the definition of the `date` macro can be the same for
+  all mergedate settings and that only `bbx:ifmergeddate` is redefined for
+  each different value. No backwards compatibility issues are expected,
+  but style authors are encouraged to test the changes and see if the new
+  macro could be useful for their styles.
+- For a long time `biblatex` has defined `\enquote` if `csquotes` was not
+  loaded. This behaviour was not documented, the official command intended
+  for quotation marks was always `\mkbibquote`. Because `biblatex` should not
+  (re)define user-level commands that are not primarily associated with
+  citations or the bibliography, from this release on `\enquote` is not defined
+  any more, instead the internal command `\blx@enquote` is defined and used.
+  The same holds for `\initoquote`, `\initiquote`, `\textooquote`,
+  `\textcoquote`, `\textoiquote`, `\textciquote`.
+  `biblatex` still defines the internal commands `\@quotelevel`, `\@quotereset`
+  and `\@setquotesfcodes` if `csquotes` is not loaded.
+
+  Users are encouraged to use `csquotes` for proper quotation marks, but can
+  get back the old behaviour with
+  ```
+  \makeatletter
+  \providerobustcmd*{\enquote}{\blx@enquote}
+  \makeatother
+  ```
+  or
+  ```
+  \newrobustcmd*{\enquote}{\mkbibquote}
+  ```
+- Add new list wrapper and name wrapper formats (`\DeclareListWrapperFormat`,
+  `\DeclareNameWrapperFormat`) to style a (name) lists in its entirety.
+  This is useful because name and lists formats normally style only one
+  particular item of the list. The wrapper format can be used to easily format
+  the entire list in italics, for example.
+- `\DeclareCitePunctuationPosition` can be used to configure the punctuation
+  position for citation commands similar to the optional `position` argument
+  of `\DeclareAutoCiteCommand`.
+- If the `\pdfmdfivesum` primitive is available (via `pdftexcmds`'
+  `\pdf@mdfivesum`) the `labelprefix` value is hashed for internal use, making
+  it safer for construction of macro names and the like. If you don't like
+  that you can turn off the behaviour by redefining `\blx@mdfivesum`. The
+  fallback in case `\pdf@mdfivesum` is unavailable is
+  ```
+  \let\blx@mdfivesum\@firstofone
+  ```
+
+  As before the labelprefix value is fully expanded before use. If its contents
+  are unexpandable you need to avoid expansion with `\detokenize`.
+
 # RELEASE NOTES FOR VERSION 3.11
 - `\printbiblist` now supports `driver` and `biblistfilter` options
   to change the defaults set by the biblistname.

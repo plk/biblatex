@@ -1,0 +1,733 @@
+\ProvidesFile{magyar.lbx}
+[\abx@lbxid]
+
+\ifundef{\lbx@hu@loadinfo}
+  {\blx@warning@noline{%
+     Hungarian localisation module for biblatex loaded.\MessageBreak
+     This module changes more definitions than usual.\MessageBreak
+     Please refer to the documentation for hints and\MessageBreak
+     check the output carefully, especially with non-\MessageBreak
+     standard styles or customisations to field formats.\MessageBreak
+     This warning can be disabled by calling\MessageBreak
+     '\string\BiblatexHungarianWarningOff'\MessageBreak
+     after 'biblatex' has been loaded, but before\MessageBreak
+     the localisation is loaded for the first time}%
+   \global\let\lbx@hu@loadinfo\@empty}
+  {}
+
+\DeclareRedundantLanguages{magyar}{magyar,hungarian}
+
+\DeclareBibliographyExtras{%
+  \DeclareCapitalPunctuation{.!?}%
+  \protected\def\bibrangedash{%
+    \textendash\penalty\hyphenpenalty}% breakable dash
+  \savecommand\bibdaterangesep
+  \protected\def\bibdaterangesep{\space\textendash\space}%
+  \let\finalandcomma=\empty
+  \let\finalandsemicolon=\empty
+  \protected\def\mkbibordinal#1{\stripzeros{#1}\adddot}%
+  \protected\def\mkbibmascord{\mkbibordinal}%
+  \protected\def\mkbibfemord{\mkbibordinal}%
+  \protected\def\mkbibneutord{\mkbibordinal}%
+  \let\lbx@hu@dayrange\@secondoftwo
+  \protected\def\mkbibdatelong#1#2#3{%
+    \iffieldundef{#1}
+      {}
+      {\iffieldbibstring{#1}
+         {\bibstring{\thefield{#1}}}
+         {\dateeraprintpre{#1}%
+          \iffieldundef{#2}{\thefield{#1}}
+          {\mkbibordinal{\thefield{#1}}}}%
+       \iffieldundef{#2}{}{\nobreakspace}}%
+    \iffieldundef{#2}
+      {}
+      {\mkbibmonth{\thefield{#2}}%
+       \iffieldundef{#3}{}{\nobreakspace}}%
+    \iffieldundef{#3}
+      {}
+      {\lbx@hu@dayrange{\thefield{#3}}{\mkbibordinal{\thefield{#3}}}}%
+  }%
+  \protected\def\mkbibdateshort#1#2#3{%
+    \iffieldundef{#1}
+      {}
+      {\iffieldbibstring{#1}
+         {\bibstring{\thefield{#1}}}
+         {\dateeraprintpre{#1}%
+          \iffieldundef{#2}{\thefield{#1}}
+          {\mkbibordinal{\thefield{#1}}}}%
+       \iffieldundef{#2}{}{\nobreakspace}}%
+    \iffieldundef{#2}
+      {}
+      {\mkmonthzeros{\thefield{#2}}\adddot
+       \iffieldundef{#3}{}{\nobreakspace}}%
+    \iffieldundef{#3}
+      {}
+      {\mkdayzeros{\thefield{#3}}\lbx@hu@dayrange{}{\adddot}}%
+  }%
+  \let\mkbibseasondatelong\mkbibseasondateshort
+  \savecommand\mkdaterangecomp
+  \savecommand\mkdaterangecompextra
+  \savecommand\mkdaterangeterse
+  \savecommand\mkdaterangeterseextra
+  \protected\def\mkdaterangecomp{%
+    \lbx@hu@mkdaterangetrunc{long}}%
+  \protected\def\mkdaterangeterse{%
+    \lbx@hu@mkdaterangetrunc{short}}%
+  \protected\def\mkdaterangecompextra{%
+    \lbx@hu@mkdaterangetruncextra{long}}%
+  \protected\def\mkdaterangeterseextra{%
+    \lbx@hu@mkdaterangetruncextra{short}}%
+\expandafter\protected\expandafter\def\csname mkbibtime24h\endcsname#1#2#3#4{%
+      \iffieldundef{#1}{}
+        {\printtext{\mktimezeros{\thefield{#1}}}\setunit{\bibtimesep}}%
+      \iffieldundef{#2}{}
+        {\printtext{\mktimezeros{\thefield{#2}}}\setunit{\bibtimesep}}%
+      \iffieldundef{#3}{}
+        {\printtext{\mktimezeros{\thefield{#3}}}}%
+      \setunit{}%
+      \iffieldundef{#4}{}
+        {\bibtimezonesep
+         \mkbibtimezone{\thefield{#4}}}}%
+  \csletcs{mkbibtime12h}{mkbibtime24h}%
+  \protected\def\mkbibseasondateshort#1#2{%
+    \dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}%
+    \iffieldundef{#1}{}{\adddot\space}
+    \mkbibseason{\thefield{#2}}%
+  }%
+  \let\mkbibseasondatelong\mkbibseasondateshort
+  \savecommand\lbx@lfromlang
+  \savecommand\lbx@sfromlang
+  \def\lbx@lfromlang{%
+    \iflistundef{origlanguage}
+      {}
+      {\printlist[lfromoriglanguage]{origlanguage}\space}}%
+  \def\lbx@sfromlang{%
+    \iflistundef{origlanguage}
+      {}
+      {\printlist[sfromoriglanguage]{origlanguage}\space}}%
+  % Page numbers and ranges
+  % convenient shorthand for page range normalisation
+  \protected\def\lbx@hu@mkdottednormrange{\mknormrange*[\mkbibordinal]}%
+  % this redefines \mkpageprefix to put the page number as suffix
+  \savecommand\blx@mkpageprefix
+  \protected\long\def\blx@mkpageprefix#1[#2]#3{%
+    \blx@mkpageprefix@i[#2]{#3}%
+    \ifnumeral{#3}
+      {\ppspace\bibstring{#1}}
+      {\ifnumerals{#3}
+         {\ppspace\bibstring{#1s}}
+         {\def\pno{\bibstring{#1}}%
+          \def\ppno{\bibstring{#1s}}}}}%
+  % NOTE: a few field formats are redefined here, this overrides
+  % corresponding style and preamble definitions.
+  % If you want to overwrite the changes made here, use
+  % \DefineBibliographyExtras{magyar}{...}
+  % Do not forget to make these changes undone with
+  % \UndefineBibliographyExtras{magyar}{...}
+  % to avoid them spilling out later.
+  \savefieldformat{pages}%
+  \DeclareFieldFormat{pages}{%
+    \mkpageprefix[bookpagination][\lbx@hu@mkdottednormrange]{#1}}%
+  \savefieldformat{postnote}%
+  \DeclareFieldFormat{postnote}{%
+    \mkpageprefix[pagination][\lbx@hu@mkdottednormrange]{#1}}%
+  \savefieldformat{volcitepages}%
+  \DeclareFieldFormat{volcitepages}{%
+    \mkpageprefix[pagination][\lbx@hu@mkdottednormrange]{#1}}%
+  \savefieldformat{multipostnote}%
+  \DeclareFieldFormat{multipostnote}{%
+    \mkpageprefix[pagination][\lbx@hu@mkdottednormrange]{#1}}%
+  \savefieldformat{chapter}%
+  \DeclareFieldFormat{chapter}{%
+    \ifnumerals{#1}{\mkbibordinal{#1}}{#1}
+    \addnbspace
+    \bibstring{chapter}}%
+  \savefieldformat{volume}%
+  \DeclareFieldFormat{volume}{%
+    \ifnumerals{#1}{\mkbibordinal{#1}}{#1}
+    \addnbspace
+    \bibstring{volume}}%
+  \savefieldformat{part}%
+  \DeclareFieldFormat{part}{%
+    \addcomma\space% <- this is *really* bad, don't try this at home
+    % In general leading or trailing punctuation in field formats should be
+    % avoided and should instead be dealt with in the appropriate bibmacros.
+    % The part field is special because its standard definition is '.#1'.
+    % Additionally, \printfield{part} is called all over the place, so we
+    % can't simply redefine a macro here.
+    \ifnumerals{#1}{\mkbibordinal{#1}}{#1}%
+    \addnbspace
+    \bibstring{part}}%
+  \savefieldformat{version}%
+  \DeclareFieldFormat{version}{%
+    \ifnumerals{#1}{\mkbibordinal{#1}}{#1}
+    \addnbspace
+    \bibstring{version}}%
+}
+
+
+\UndeclareBibliographyExtras{%
+  \restorecommand\bibdaterangesep
+  \restorecommand\mkdaterangecomp
+  \restorecommand\mkdaterangecompextra
+  \restorecommand\mkdaterangeterse
+  \restorecommand\mkdaterangeterseextra
+  \restorecommand\lbx@lfromlang
+  \restorecommand\lbx@sfromlang
+  \restorecommand\mknormrange
+  \restorecommand\blx@mkpageprefix
+  \restorefieldformat{pages}%
+  \restorefieldformat{postnote}%
+  \restorefieldformat{volcitepages}%
+  \restorefieldformat{multipostnote}%
+  \restorefieldformat{chapter}%
+  \restorefieldformat{volume}%
+  \restorefieldformat{part}%
+  \restorefieldformat{version}%
+}
+
+\DeclareBibliographyStrings{%
+  bibliography     = {{Irodalomjegyz\'ek}{Irodalom}},
+  references       = {{Hivatkoz\'asok}{Hivatkoz\'asok}},
+  shorthands       = {{R\"ovid\'it\'esek jegyz\'eke}{R\"ovid\'it\'esek}},
+  editor           = {{szerkeszt\H{o}}{szerk\adddot}},
+  editors          = {{szerkeszt\H{o}k}{szerk\adddot}},
+  compiler         = {{\"ossze\'all\'it\'o}{\"ossze\'all\adddot}},
+  compilers        = {{\"ossze\'all\'it\'ok}{\"ossze\'all\adddot}},
+  redactor         = {{sajt\'o al\'a rendez\H{o}}{kiad\adddot}},
+  redactors        = {{sajt\'o al\'a rendez\H{o}k}{kiad\adddot}},
+  reviser          = {{korrektor}{korr\adddot}},
+  revisers         = {{korrektorok}{korr\adddot}},
+  founder          = {{alap\'it\'o}{alap\adddot}},
+  founders         = {{alap\'it\'ok}{alap\adddot}},
+  %continuator      = {{}{}},% FIXME missing
+  %continuators     = {{}{}},% FIXME missing
+  collaborator     = {{k\"ozrem\H{u}k\"od\H{o}}{km\adddot}},
+  collaborators    = {{k\"ozrem\H{u}k\"od\H{o}k}{km\adddot}},
+  translator       = {{ford\'it\'o}{ford\adddot}},
+  translators      = {{ford\'it\'ok}{ford\adddot}},
+  commentator      = {{komment\'ator}{komm\adddot}},
+  commentators     = {{komment\'atorok}{komm\adddot}},
+  annotator        = {{jegyzetek \'ir\'oja}{jegyz\adddot}},
+  annotators       = {{jegyzetek \'ir\'oi}{jegyz\adddot}},
+  commentary       = {{komment\'ar}{komm\adddot}},
+  annotations      = {{jegyzetek}{jegyz\adddot}},
+  introduction     = {{bevezet\'es}{bev\adddot}},
+  foreword         = {{el\H{o}sz\'o}{el\H{o}sz\'o}},
+  afterword        = {{ut\'osz\'o}{ut\'osz\'o}},
+  editortr         = {{szerkeszt\H{o} \'es ford\'it\'o}%
+                      {szerk\adddotspace \'es ford\adddot}},
+  editorstr        = {{szerkeszt\H{o}k \'es ford\'it\'ok}%
+                      {szerk\adddotspace \'es ford\adddot}},,
+  editorco         = {{szerkeszt\H{o} \'es komment\'ar}%
+                      {szerk\adddotspace \'es komm\adddot}},
+  editorsco        = {{szerkeszt\H{o} \'es komment\'ar}%
+                      {szerk\adddotspace \'es komm\adddot}},
+  editoran         = {{szerkeszt\H{o} \'es jegyzet}%
+                      {szerk\adddotspace \'es jegyz\adddot}},
+  editorsan        = {{szerkeszt\H{o} \'es jegyzet}%
+                      {szerk\adddotspace \'es jegyz\adddot}},
+  editorin         = {{szerkeszt\H{o} \'es bevezet\H{o}}%
+                      {szerk\adddotspace \'es bev\adddot}},
+  editorsin        = {{szerkeszt\H{o}k \'es bevezet\H{o}}%
+                      {szerk\adddotspace \'es bev\adddot}},
+  editorfo         = {{szerkeszt\H{o} \'es el\H{o}sz\'o}%
+                      {szerk\adddotspace \'es el\H{o}sz\'o}},
+  editorsfo        = {{szerkeszt\H{o}k \'es el\H{o}sz\'o}%
+                      {szerk\adddotspace \'es el\H{o}sz\'o}},
+  editoraf         = {{szerkeszt\H{o} \'es ut\'osz\'o}
+                      {szerk\adddotspace \'es ut\'osz\'o}},
+  editorsaf        = {{szerkeszt\H{o}k \'es ut\'osz\'o}%
+                      {szerk\adddotspace \'es ut\'osz\'o}},
+  editortrco       = {{szerkeszt\H{o}, ford\'it\'o \'es komment\'ar}%
+                      {szerk\adddot, ford\adddotspace \'es komm\adddot}},
+  editorstrco      = {{szerkeszt\H{o}, ford\'it\'o \'es komment\'ar}%
+                      {szerk\adddot, ford\adddotspace \'es komm\adddot}},
+  editortran       = {{szerkeszt\H{o}, ford\'it\'o \'es jegyzet}%
+                      {szerk\adddot, ford\adddotspace \'es jegyz\adddot}},
+  editorstran      = {{szerkeszt\H{o}, ford\'it\'o \'es jegyzet}%
+                      {szerk\adddot, ford\adddotspace \'es jegyz\adddot}},
+  editortrin       = {{szerkeszt\H{o}, ford\'it\'o \'es bevezet\H{o}}%
+                      {szerk\adddot, ford\adddotspace \'es bev\adddot}},
+  editorstrin      = {{szerkeszt\H{o}, ford\'it\'o \'es bevezet\H{o}}%
+                      {szerk\adddot, ford\adddotspace \'es bev\adddot}},
+  editortrfo       = {{szerkeszt\H{o}, ford\'it\'o \'es el\H{o}sz\'o}%
+                      {szerk\adddot, ford\adddotspace \'es el\H{o}sz\'o}},
+  editorstrfo      = {{szerkeszt\H{o}, ford\'it\'o \'es el\H{o}sz\'o}%
+                      {szerk\adddot, ford\adddotspace \'es el\H{o}sz\'o}},
+  editortraf       = {{szerkeszt\H{o}, ford\'it\'o \'es ut\'osz\'o}%
+                      {szerk\adddot, ford\adddotspace \'es ut\'osz\'o}},
+  editorstraf      = {{szerkeszt\H{o}, ford\'it\'o \'es ut\'osz\'o}%
+                      {szerk\adddot, ford\adddotspace \'es ut\'osz\'o}},
+  editorcoin       = {{szerkeszt\H{o}, komment\'ar \'es bevezet\H{o}}%
+                      {szerk\adddot, komm\adddotspace \'es bev\adddot}},
+  editorscoin      = {{szerkeszt\H{o}, komment\'ar \'es bevezet\H{o}}%
+                      {szerk\adddot, komm\adddotspace \'es bev\adddot}},
+  editorcofo       = {{szerkeszt\H{o}, komment\'ar \'es el\H{o}sz\'o}%
+                      {szerk\adddot, komm\adddotspace \'es el\H{o}sz\'o}},
+  editorscofo      = {{szerkeszt\H{o}, komment\'ar \'es el\H{o}sz\'o}%
+                      {szerk\adddot, komm\adddotspace \'es el\H{o}sz\'o}},
+  editorcoaf       = {{szerkeszt\H{o}, komment\'ar \'es ut\'osz\'o}%
+                      {szerk\adddot, komm\adddotspace \'es ut\'osz\'o}},
+  editorscoaf      = {{szerkeszt\H{o}, komment\'ar \'es ut\'osz\'o}%
+                      {szerk\adddot, komm\adddotspace \'es ut\'osz\'o}},
+  editoranin       = {{szerkeszt\H{o}, jegyzetek \'es bevezet\H{o}}%
+                      {szerk\adddot, jegyz\adddotspace \'es bev\adddot}},
+  editorsanin      = {{szerkeszt\H{o}, jegyzetek \'es bevezet\H{o}}%
+                      {szerk\adddot, jegyz\adddotspace \'es bev\adddot}},
+  editoranfo       = {{szerkeszt\H{o}, jegyzetek \'es el\H{o}sz\'o}%
+                      {szerk\adddot, jegyz\adddotspace \'es el\H{o}sz\'o}},
+  editorsanfo      = {{szerkeszt\H{o}, jegyzetek \'es el\H{o}sz\'o}%
+                      {szerk\adddot, jegyz\adddotspace \'es el\H{o}sz\'o}},
+  editoranaf       = {{szerkeszt\H{o}, jegyzetek \'es ut\'osz\'o}%
+                      {szerk\adddot, jegyz\adddotspace \'es ut\'osz\'o}},
+  editorsanaf      = {{szerkeszt\H{o}, jegyzetek \'es ut\'osz\'o}%
+                      {szerk\adddot, jegyz\adddotspace \'es ut\'osz\'o}},
+  editortrcoin     = {{szerkeszt\H{o}, ford\'it\'o, komment\'ar \'es bevezet\H{o}}%
+                      {szerk\adddot, ford\adddot, komm\adddotspace \'es bev\adddot}},
+  editorstrcoin    = {{szerkeszt\H{o}, ford\'it\'o, komment\'ar \'es bevezet\H{o}}%
+                      {szerk\adddot, ford\adddot, komm\adddotspace \'es bev\adddot}},
+  editortrcofo     = {{szerkeszt\H{o}, ford\'it\'o, komment\'ar \'es el\H{o}sz\'o}%
+                      {szerk\adddot, ford\adddot, komm\adddotspace \'es el\H{o}sz\'o}},
+  editorstrcofo    = {{szerkeszt\H{o}, ford\'it\'o, komment\'ar \'es el\H{o}sz\'o}%
+                      {szerk\adddot, ford\adddot, komm\adddotspace \'es el\H{o}sz\'o}},
+  editortrcoaf     = {{szerkeszt\H{o}, ford\'it\'o, komment\'ar \'es ut\'osz\'o}%
+                      {szerk\adddot, ford\adddot, komm\adddotspace \'es ut\'osz\'o}},
+  editorstrcoaf    = {{szerkeszt\H{o}, ford\'it\'o, komment\'ar \'es ut\'osz\'o}%
+                      {szerk\adddot, ford\adddot, komm\adddotspace \'es ut\'osz\'o}},
+  editortranin     = {{szerkeszt\H{o}, ford\'it\'o, jegyzetek \'es bevezet\H{o}}%
+                      {szerk\adddot, ford\adddot, jegyz\adddotspace \'es bev\adddot}},
+  editorstranin    = {{szerkeszt\H{o}, ford\'it\'o, jegyzetek \'es bevezet\H{o}}%
+                      {szerk\adddot, ford\adddot, jegyz\adddotspace \'es bev\adddot}},
+  editortranfo     = {{szerkeszt\H{o}, ford\'it\'o, jegyzetek \'es el\H{o}sz\'o}%
+                      {szerk\adddot, ford\adddot, jegyz\adddotspace \'es el\H{o}sz\'o}},
+  editorstranfo    = {{szerkeszt\H{o}, ford\'it\'o, jegyzetek \'es el\H{o}sz\'o}%
+                      {szerk\adddot, ford\adddot, jegyz\adddotspace \'es el\H{o}sz\'o}},
+  editortranaf     = {{szerkeszt\H{o}, ford\'it\'o, jegyzetek \'es ut\'osz\'o}%
+                      {szerk\adddot, ford\adddot, jegyz\adddotspace \'es ut\'osz\'o}},
+  editorstranaf    = {{szerkeszt\H{o}, ford\'it\'o, jegyzetek \'es ut\'osz\'o}%
+                      {szerk\adddot, ford\adddot, jegyz\adddotspace \'es ut\'osz\'o}},
+  translatorco     = {{ford\'it\'o \'es komment\'ar}%
+                      {ford\adddotspace \'es komm\adddot}},
+  translatorsco    = {{ford\'it\'o \'es komment\'ar}%
+                      {ford\adddotspace \'es komm\adddot}},
+  translatoran     = {{ford\'it\'o \'es jegyzetek}%
+                      {ford\adddotspace \'es jegyz\adddot}},
+  translatorsan    = {{ford\'it\'o \'es jegyzetek}%
+                      {ford\adddotspace \'es jegyz\adddot}},
+  translatorin     = {{ford\'it\'o \'es bevezet\H{o}}%
+                      {ford\adddotspace \'es bev\adddot}},
+  translatorsin    = {{ford\'it\'o \'es bevezet\H{o}}%
+                      {ford\adddotspace \'es bev\adddot}},
+  translatorfo     = {{ford\'it\'o \'es el\H{o}sz\'o}%
+                      {ford\adddotspace \'es el\H{o}sz\'o}},
+  translatorsfo    = {{ford\'it\'o \'es el\H{o}sz\'o}%
+                      {ford\adddotspace \'es el\H{o}sz\'o}},
+  translatoraf     = {{ford\'it\'o \'es ut\'osz\'o}%
+                      {ford\adddotspace \'es ut\'osz\'o}},
+  translatorsaf    = {{ford\'it\'o \'es ut\'osz\'o}%
+                      {ford\adddotspace \'es ut\'osz\'o}},
+  translatorcoin   = {{ford\'it\'o, komment\'ar \'es bevezet\H{o}}%
+                      {ford\adddot, komm\adddotspace \'es bev\adddot}},
+  translatorscoin  = {{ford\'it\'o, komment\'ar \'es bevezet\H{o}}%
+                      {ford\adddot, komm\adddotspace \'es bev\adddot}},
+  translatorcofo   = {{ford\'it\'o, komment\'ar \'es el\H{o}sz\'o}%
+                      {ford\adddot, komm\adddotspace \'es el\H{o}sz\'o}},
+  translatorscofo  = {{ford\'it\'o, komment\'ar \'es el\H{o}sz\'o}%
+                      {ford\adddot, komm\adddotspace \'es el\H{o}sz\'o}},
+  translatorcoaf   = {{ford\'it\'o, komment\'ar \'es ut\'osz\'o}%
+                      {ford\adddot, komm\adddotspace \'es ut\'osz\'o}},
+  translatorscoaf  = {{ford\'it\'o, komment\'ar \'es ut\'osz\'o}%
+                      {ford\adddot, komm\adddotspace \'es ut\'osz\'o}},
+  translatoranin   = {{ford\'it\'o, jegyzetek \'es bevezet\H{o}}%
+                      {ford\adddot, jegyz\adddotspace \'es bev\adddot}},
+  translatorsanin  = {{ford\'it\'o, jegyzetek \'es bevezet\H{o}}%
+                      {ford\adddot, jegyz\adddotspace \'es bev\adddot}},
+  translatoranfo   = {{ford\'it\'o, jegyzetek \'es el\H{o}sz\'o}%
+                      {ford\adddot, jegyz\adddotspace \'es el\H{o}sz\'o}},
+  translatorsanfo  = {{ford\'it\'o, jegyzetek \'es el\H{o}sz\'o}%
+                      {ford\adddot, jegyz\adddotspace \'es el\H{o}sz\'o}},
+  translatoranaf   = {{ford\'it\'o, jegyzetek \'es ut\'osz\'o}%
+                      {ford\adddot, jegyz\adddotspace \'es ut\'osz\'o}},
+  translatorsanaf  = {{ford\'it\'o, jegyzetek \'es ut\'osz\'o}%
+                      {ford\adddot, jegyz\adddotspace \'es ut\'osz\'o}},
+  organizer        = {{szervez\H{o}}{szerv\adddot}},
+  organizers       = {{szervez\H{o}k}{szerv\adddot}},
+  byorganizer      = {{szervezte}{szerv\adddot}},
+  byauthor         = {{\'irta}{\'irta}},
+  byeditor         = {{szerkesztette}{szerk\adddot}},
+  bycompiler       = {{\"ossze\'all\'itotta}{\"ossze\'all\adddot}},
+  byredactor       = {{sajt\'o al\'a rendezte}{kiad\adddot}},
+  byreviser        = {{jav\'itotta}{jav\adddot}},
+  byreviewer       = {{b\'ir\'alta}{b\'ir\adddot}},
+  byfounder        = {{alap\'itotta}{alap\adddot}},
+% bycontinuator    = {{}{}},% FIXME missing
+  bycollaborator   = {{k\"ozrem\H{u}k\"od\"ott}{km\adddot}},
+  bytranslator     = {{\lbx@lfromlang ford\'itotta}{\lbx@sfromlang ford\adddot}},
+  bycommentator    = {{komment\'alta}{komm\adddot}},
+  byannotator      = {{jegyzetekkel ell\'atta}{jegyz\adddot}},
+  withcommentator  = {{komment\'arral ell\'atta}{komm\adddot}},
+  withannotator    = {{jegyzetekkel ell\'atta}{jegyz\adddot}},
+  withintroduction = {{bevezet\H{o}vel ell\'atta}{bev\adddot}},
+  withforeword     = {{el\H{o}sz\'oval ell\'atta}{el\H{o}sz\'o:}},
+  withafterword    = {{ut\'osz\'oval ell\'atta}{ut\'osz\'o:}},
+  byeditortr       = {{szerkesztette \'es \lbx@lfromlang ford\'itotta}%
+                      {szerk\adddotspace \'es \lbx@sfromlang ford\adddot}},
+  byeditorco       = {{szerkesztette \'es komment\'alta}%
+                      {szerk\adddotspace \'es komm\adddot}},
+  byeditoran       = {{szerkesztette \'es jegyzetekkel ell\'atta}%
+                      {szerk\adddotspace \'es jegyz\adddot}},
+  byeditorin       = {{szerkesztette \'es bevezet\H{o}vel ell\'atta}%
+                      {szerk\adddotspace \'es jegyz\adddot}},
+  byeditorfo       = {{szerkesztette \'es el\H{o}sz\'oval ell\'atta}%
+                      {szerk\adddotspace \'es el\H{o}sz\'o}},
+  byeditoraf       = {{szerkesztette \'es ut\'osz\'oval ell\'atta}%
+                      {szerk\adddotspace \'es ut\'osz\'o}},
+  byeditortrco     = {{szerkesztette, \lbx@lfromlang ford\'itotta \'es komment\'alta}%
+                      {szerk\adddot, \lbx@sfromlang ford\adddotspace \'es komm\adddot}},
+  byeditortran     = {{szerkesztette, \lbx@lfromlang ford\'itotta \'es jegyzetekkel ell\'atta}%
+                      {szerk\adddot, \lbx@sfromlang ford\adddotspace \'es jegyz\adddot}},
+  byeditortrin     = {{szerkesztette, \lbx@lfromlang ford\'itotta \'es bevezet\H{o}vel ell\'atta}%
+                      {szerk\adddot, \lbx@sfromlang ford\adddotspace \'es bev\adddot}},
+  byeditortrfo     = {{szerkesztette, \lbx@lfromlang ford\'itotta \'es el\H{o}sz\'oval ell\'atta}%
+                      {szerk\adddot, \lbx@sfromlang ford\adddotspace \'es el\H{o}sz\'o}},
+  byeditortraf     = {{szerkesztette, \lbx@lfromlang ford\'itotta \'es ut\'osz\'oval ell\'atta}%
+                      {szerk\adddot, \lbx@sfromlang ford\adddotspace \'es ut\'osz\'o}},
+  byeditorcoin     = {{szerkesztette, komment\'alta \'es bevezet\H{o}vel ell\'atta}%
+                      {szerk\adddot, komm\adddotspace \'es bev\adddot}},
+  byeditorcofo     = {{szerkesztette, komment\'alta \'es el\H{o}sz\'oval ell\'atta}%
+                      {szerk\adddot, komm\adddotspace \'es el\H{o}sz\'o}},
+  byeditorcoaf     = {{szerkesztette, komment\'alta \'es ut\'osz\'oval ell\'atta}%
+                      {szerk\adddot, komm\adddotspace \'es ut\'osz\'o}},
+  byeditoranin     = {{szerkesztette, jegyzetekkel \'es bevezet\H{o}vel ell\'atta}%
+                      {szerk\adddot, jegyz\adddotspace \'es bev\adddot}},
+  byeditoranfo     = {{szerkesztette, jegyzetekkel \'es el\H{o}sz\'oval ell\'atta}%
+                      {szerk\adddot, jegyz\adddotspace \'es el\H{o}sz\'o}},
+  byeditoranaf     = {{szerkesztette, jegyzetekkel \'es ut\'osz\'oval ell\'atta}%
+                      {szerk\adddot, jegyz\adddotspace \'es ut\'osz\'o}},
+  byeditortrcoin   = {{szerkesztette, \lbx@lfromlang ford\'itotta, komment\'alta \'es bevezet\H{o}vel ell\'atta}%
+                      {szerk\adddot, \lbx@sfromlang ford\adddot, komm\adddotspace \'es bev\adddot}},
+  byeditortrcofo   = {{szerkesztette, \lbx@lfromlang ford\'itotta, komment\'alta \'es el\H{o}sz\'oval ell\'atta}%
+                      {szerk\adddot, \lbx@sfromlang ford\adddot, komm\adddotspace \'es el\H{o}sz\'o}},
+  byeditortrcoaf   = {{szerkesztette, \lbx@lfromlang ford\'itotta, komment\'alta \'es ut\'osz\'oval ell\'atta}%
+                      {szerk\adddot, \lbx@sfromlang ford\adddot, komm\adddotspace \'es ut\'osz\'o}},
+  byeditortranin   = {{szerkesztette, \lbx@lfromlang ford\'itotta, jegyzetekkel \'es bevezet\H{o}vel ell\'atta}%
+                      {szerk\adddot, \lbx@sfromlang ford\adddot, jegyz\adddotspace \'es bev\adddot}},
+  byeditortranfo   = {{szerkesztette, \lbx@lfromlang ford\'itotta, jegyzetekkel \'es el\H{o}sz\'oval ell\'atta}%
+                      {szerk\adddot, \lbx@sfromlang ford\adddot, jegyz\adddotspace \'es el\H{o}sz\'o}},
+  byeditortranaf   = {{szerkesztette, \lbx@lfromlang ford\'itotta, jegyzetekkel \'es ut\'osz\'oval ell\'atta}%
+                      {szerk\adddot, \lbx@sfromlang ford\adddot, jegyz\adddotspace \'es ut\'osz\'o}},
+  bytranslatorco   = {{\lbx@lfromlang ford\'itotta \'es komment\'alta}%
+                      {\lbx@sfromlang ford\adddotspace \'es komm\adddot}},
+  bytranslatoran   = {{\lbx@lfromlang ford\'itotta \'es jegyzetekkel ell\'atta}%
+                      {\lbx@sfromlang ford\adddotspace \'es jegyz\adddot}},
+  bytranslatorin   = {{\lbx@lfromlang ford\'itotta \'es bevezet\H{o}vel ell\'atta}%
+                      {\lbx@sfromlang ford\adddotspace \'es bev\adddot}},
+  bytranslatorfo   = {{\lbx@lfromlang ford\'itotta \'es el\H{o}sz\'oval ell\'atta}%
+                      {\lbx@sfromlang ford\adddotspace \'es el\H{o}sz\'o}},
+  bytranslatoraf   = {{\lbx@lfromlang ford\'itotta \'es ut\'osz\'oval ell\'atta}%
+                      {\lbx@sfromlang ford\adddotspace \'es ut\'osz\'o}},
+  bytranslatorcoin = {{\lbx@lfromlang ford\'itotta, komment\'alta \'es bevezet\H{o}vel ell\'atta}%
+                      {\lbx@sfromlang ford\adddot, komm\adddotspace \'es bev\adddot}},
+  bytranslatorcofo = {{\lbx@lfromlang ford\'itotta, komment\'alta \'es el\H{o}sz\'oval ell\'atta}%
+                      {\lbx@sfromlang ford\adddot, komm\adddotspace \'es el\H{o}sz\'o}},
+  bytranslatorcoaf = {{\lbx@lfromlang ford\'itotta, komment\'alta \'es ut\'osz\'oval ell\'atta}%
+                      {\lbx@sfromlang ford\adddot, komm\adddotspace \'es ut\'osz\'o}},
+  bytranslatoranin = {{\lbx@lfromlang ford\'itotta, jegyzetekkel \'es bevezet\H{o}vel ell\'atta}%
+                      {\lbx@sfromlang ford\adddot, jegyz\adddotspace \'es bev\adddot}},
+  bytranslatoranfo = {{\lbx@lfromlang ford\'itotta, jegyzetekkel \'es el\H{o}sz\'oval ell\'atta}%
+                      {\lbx@sfromlang ford\adddot, jegyz\adddotspace \'es el\H{o}sz\'o}},
+  bytranslatoranaf = {{\lbx@lfromlang ford\'itotta, jegyzetekkel \'es ut\'osz\'oval ell\'atta}%
+                      {\lbx@sfromlang ford\adddot, jegyz\adddotspace \'es ut\'osz\'o}},
+  and              = {{\'es}{\'es}},
+  andothers        = {{\'es m\'asok}{\'es tsai\adddot}},
+  andmore          = {{et\addabbrvspace al\adddot}{et\addabbrvspace al\adddot}},
+  volume           = {{k\"otet}{k\"ot\adddot}},
+  volumes          = {{k\"otetek}{k\"ot\adddot}},
+  involumes        = {{}{}},
+  jourvol          = {{\'evfolyam}{\'evf\adddot}},
+  jourser          = {{sorozat}{sor\adddot}},
+  book             = {{k\"onyv}{k\"onyv}},
+  part             = {{r\'esz}{r\'esz}},
+  issue            = {{sz\'am}{sz\adddot}},
+  newseries        = {{\'uj sorozat}{\'uj sor\adddot}},
+  oldseries        = {{r\'egi sorozat}{r\'egi sor\adddot}},
+  edition          = {{kiad\'as}{kiad\adddot}},
+  reprint          = {{ut\'annyom\'as}{ut\'anny\adddot}},
+  reprintof        = {{ut\'annyom\'asa}{ut\'anny\adddot}},% FIXME swap word order
+  reprintas        = {{ut\'annyom\'as c\'ime}{ut\'anny\adddotspace c\'ime}},
+% reprintfrom      = {{}{}},% FIXME need example
+  translationof    = {{ford\'it\'asa}{ford\adddot}},% FIXME swap word order
+  translationas    = {{ford\'it\'as c\'ime}{ford\adddotspace c\'ime}},
+% translationfrom  = {{}{}},% FIXME need example
+  reviewof         = {{recenzi\'oja}{rec\adddot}},% FIXME swap word order
+  origpubas        = {{eredeti c\'ime}{ered\adddotspace c\'im}},
+  origpubin        = {{eredeti kiad\'as}{ered\adddotspace kiad\adddotspace}},
+% astitle          = {{}{}},% FIXME need example
+% bypublisher      = {{\addcomma}{\addcomma}},% FIXME: this is a cludge that can not be guaranteed to work in most situations, so it stays commented out
+  nodate           = {{\'ev n\'elk\"ul}{\'e\adddotspace n\adddot}},
+  page             = {{oldal}{old\adddot}},
+  pages            = {{oldal}{old\adddot}},
+  column           = {{has\'ab}{has\adddot}},
+  columns          = {{has\'ab}{has\adddot}},
+  line             = {{sor}{sor}},
+  lines            = {{sor}{sor}},
+  verse            = {{versszak}{vsz\adddot}},
+  verses           = {{versszak}{vsz\adddot}},
+  section          = {{paragrafus}{\S}},
+  sections         = {{paragrafus}{\S\S}},
+  paragraph        = {{bekezd\'es}{bek\adddot}},
+  paragraphs       = {{bekezd\'es}{bek\adddot}},
+  pagetotal        = {{oldal}{old\adddot}},
+  pagetotals       = {{oldal}{old\adddot}},
+  columntotal      = {{has\'ab}{has\adddot}},
+  columntotals     = {{has\'ab}{has\adddot}},
+  linetotal        = {{sor}{sor}},
+  linetotals       = {{sor}{sor}},
+  versetotal       = {{versszak}{vsz\adddot}},
+  versetotals      = {{versszak}{vsz\adddot}},
+  sectiontotal     = {{paragrafus}{\S}},
+  sectiontotals    = {{paragrafus}{\S}},
+  paragraphtotal   = {{bekezd\'es}{bek\adddot}},
+  paragraphtotals  = {{bekezd\'es}{bek\adddot}},
+  in               = {{}{}},
+% inseries         = {{}{}},% FIXME need example
+% ofseries         = {{}{}},% FIXME need example
+  number           = {{sz\'am}{sz\adddot}},
+  chapter          = {{fejezet}{fej\adddot}},
+  bathesis         = {{szakdolgozat}{szakd\adddot}},
+  mathesis         = {{diplomaterv}{dipl\adddot}},
+  phdthesis        = {{disszert\'aci\'o}{dissz\adddot}},
+  candthesis       = {{disszert\'aci\'o}{dissz\adddot}},
+  resreport        = {{kutat\'asi jelent\'es}{kut\adddotspace jel\adddot}},
+  techreport       = {{technikai jelent\'es}{techn\adddotspace jel\adddot}},
+  software         = {{szoftver}{szoftver}},
+  datacd           = {{CD-ROM}{CD-ROM}},
+  audiocd          = {{audio CD}{CD}},
+  version          = {{verzi\'o}{verzi\'o}},
+  url              = {{c\'im}{c\'im}},
+  urlfrom          = {{el\'erhet\H{o}}{el\'erh\adddot}},
+  urlseen          = {{el\'er\'es d\'atuma}{el\'er\'es d\'atuma}},
+  inpreparation    = {{el\H{o}k\'esz\'it\'es alatt}{el\H{o}k\adddotspace alatt}},
+  submitted        = {{bek\"uld\"ott}{bek\"uld\"ott}},
+  forthcoming      = {{elfogadott}{elfogadott}},
+  inpress          = {{nyomd\'aban}{nyomd\adddot}},
+  prepublished     = {{preprint}{preprint}},
+  citedas          = {{tov\'abbiakban}{tov\'abbiakban}},
+  thiscite         = {{itt}{itt}},
+  seenote          = {{l\'asd}{ld\adddot}},
+  quotedin         = {{id\'ezte}{id\'ezte}},
+  idem             = {{ugyan\H{o}}{u\H{o}}},
+  idemsf           = {{ugyan\H{o}}{u\H{o}}},
+  idemsm           = {{ugyan\H{o}}{u\H{o}}},
+  idemsn           = {{ugyan\H{o}}{u\H{o}}},
+  idempf           = {{ugyan\H{o}k}{u\H{o}k}},
+  idempm           = {{ugyan\H{o}k}{u\H{o}k}},
+  idempn           = {{ugyan\H{o}k}{u\H{o}k}},
+  idempp           = {{ugyan\H{o}k}{u\H{o}k}},
+  ibidem           = {{ugyanitt}{uitt}},
+  opcit            = {{id\'ezett m\H{u}}{i\adddotspace m\adddot}},
+  loccit           = {{id\'ezett hely}{i\adddotspace h\adddot}},
+  confer           = {{v\"o\adddot}{v\"o\adddot}},
+  sequens          = {{sk\adddot}{sk\adddot}},
+  sequentes        = {{skk\adddot}{skk\adddot}},
+  passim           = {{passim}{pass\adddot}},
+  see              = {{l\'asd}{ld\adddot}},
+  seealso          = {{l\'asd m\'eg}{ld\adddotspace m\'eg}},
+  backrefpage      = {{hivatkoz\'asi oldal}{hiv\adddotspace old\adddot}},
+  backrefpages     = {{hivatkoz\'asi oldalak}{hiv\adddotspace old\adddot}},
+  january          = {{janu\'ar}{jan\adddot}},
+  february         = {{febru\'ar}{febr\adddot}},
+  march            = {{m\'arcius}{m\'arc\adddot}},
+  april            = {{\'aprilis}{\'apr\adddot}},
+  may              = {{m\'ajus}{m\'aj\adddot}},
+  june             = {{j\'unius}{j\'un\adddot}},
+  july             = {{j\'ulius}{j\'ul\adddot}},
+  august           = {{augusztus}{aug\adddot}},
+  september        = {{szeptember}{szept\adddot}},
+  october          = {{okt\'ober}{okt\adddot}},
+  november         = {{november}{nov\adddot}},
+  december         = {{december}{dec\adddot}},
+  langamerican     = {{angol}{angol}},
+  langbrazilian    = {{brazil}{brazil}},
+  langbulgarian    = {{bolg\'ar}{bolg\'ar}},
+  langcatalan      = {{katal\'an}{katal\'an}},
+  langcroatian     = {{horv\'at}{horv\'at}},
+  langczech        = {{cseh}{cseh}},
+  langdanish       = {{d\'an}{d\'an}},
+  langdutch        = {{holland}{holland}},
+  langenglish      = {{angol}{angol}},
+  langestonian     = {{\'eszt}{\'eszt}},
+  langfinnish      = {{finn}{finn}},
+  langfrench       = {{francia}{francia}},
+  langgalician     = {{gal\'iciai}{gal\'iciai}},
+  langgerman       = {{n\'emet}{n\'emet}},
+  langgreek        = {{g\"or\"og}{g\"or\"og}},
+  langhungarian    = {{magyar}{magyar}},
+  langitalian      = {{olasz}{olasz}},
+  langjapanese     = {{jap\'an}{jap\'an}},
+  langlatin        = {{latin}{latin}},
+  langlatvian      = {{lett}{lett}},
+  langnorwegian    = {{norv\'eg}{norv\'eg}},
+  langpolish       = {{lengyel}{lengyel}},
+  langportuguese   = {{portug\'al}{portug\'al}},
+  langrussian      = {{orosz}{orosz}},
+  langslovak       = {{szlov\'ak}{szlov\'ak}},
+  langslovene      = {{szlov\'en}{szlov\'en}},
+  langspanish      = {{spanyol}{spanyol}},
+  langswedish      = {{sv\'ed}{sv\'ed}},
+  langukrainian    = {{ukr\'an}{ukr\'an}},
+  fromamerican     = {{angolb\'ol}{angolb\'ol}},
+  frombrazilian    = {{brazilb\'ol}{brazilb\'ol}},
+  frombulgarian    = {{brazilb\'ol}{brazilb\'ol}},
+  fromcatalan      = {{katal\'anb\'ol}{katal\'anb\'ol}},
+  fromcroatian     = {{horv\'atb\'ol}{horv\'atb\'ol}},
+  fromczech        = {{csehb\H{o}l}{csehb\H{o}l}},
+  fromdanish       = {{d\'anb\'ol}{d\'anb\'ol}},
+  fromdutch        = {{hollandb\'ol}{hollandb\'ol}},
+  fromenglish      = {{angolb\'ol}{angolb\'ol}},
+  fromestonian     = {{\'esztb\H{o}l}{\'esztb\H{o}l}},
+  fromfinnish      = {{finnb\H{o}l}{finnb\H{o}l}},
+  fromfrench       = {{franci\'ab\'ol}{franci\'ab\'ol}},
+  fromgalician     = {{gal\'iciaib\'ol}{gal\'iciaib\'ol}},
+  fromgerman       = {{n\'emetb\H{o}l}{n\'emetb\H{o}l}},
+  fromgreek        = {{g\"or\"ogb\H{o}l}{g\"or\"ogb\H{o}l}},
+  fromhungarian    = {{magyarb\'ol}{magyarb\'ol}},
+  fromitalian      = {{olaszb\'ol}{olaszb\'ol}},
+  fromjapanese     = {{jap\'anb\'ol}{jap\'anb\'ol}},
+  fromlatin        = {{latinb\'ol}{latinb\'ol}},
+  fromlatvian      = {{lettb\H{o}l}{lettb\H{o}l}},
+  fromnorwegian    = {{norv\'egb\'ol}{norv\'egb\'ol}},
+  frompolish       = {{lengyelb\H{o}l}{lengyelb\H{o}l}},
+  fromportuguese   = {{portug\'alb\'ol}{portug\'alb\'ol}},
+  fromrussian      = {{oroszb\'ol}{oroszb\'ol}},
+  fromslovak       = {{szlov\'akb\'ol}{szlov\'akb\'ol}},
+  fromslovene      = {{szlov\'enb\'ol}{szlov\'enb\'ol}},
+  fromspanish      = {{spanyolb\'ol}{spanyolb\'ol}},
+  fromswedish      = {{sv\'edb\H{o}l}{sv\'edb\H{o}l}},
+  fromukrainian    = {{ukr\'anb\'ol}{ukr\'anb\'ol}},
+  countryde        = {{N\'emetorsz\'ag}{DE}},
+  countryep        = {{Eur\'opai Uni\'o}{EP}},
+  countryeu        = {{Eur\'opai Uni\'o}{EU}},
+  countryfr        = {{Franciaorsz\'ag}{FR}},
+  countryuk        = {{Egyes\"ult Kir\'alys\'ag}{GB}},
+  countryus        = {{Amerikai Egyes\"ult \'Allamok}{US}},
+  patent           = {{szabadalom}{szabadalom}},
+  patentde         = {{n\'emet szabadalom}{n\'em\adddotspace szabadalom}},
+  patenteu         = {{eur\'opai szabadalom}{eur\adddotspace szabadalom}},
+  patentfr         = {{francia szabadalom}{fr\adddotspace szabadalom}},
+  patentuk         = {{brit szabadalom}{brit szabadalom}},
+  patentus         = {{amerikai szabadalom}{USA szabadalom}},
+  patreq           = {{szabadalmi k\'erelem}{szabad\adddotspace k\'erelem}},
+  patreqde         = {{n\'emet szabadalmi k\'erelem}{n\'em\adddotspace szabad\adddotspace k\'erelem}},
+  patreqeu         = {{eur\'opai szabadalmi k\'erelem}{eur\adddotspace szabad\adddotspace k\'erelem}},
+  patreqfr         = {{francia szabadalmi k\'erelem}{fr\adddotspace szabad\adddotspace k\'erelem}},
+  patrequk         = {{brit szabadalmi k\'erelem}{brit szabad\adddotspace k\'erelem}},
+  patrequs         = {{amerikai szabadalmi k\'erelem}{amerikai szabad\adddotspace k\'erelem}},
+  file             = {{f\'ajl}{f\'ajl}},
+  library          = {{k\"onyvt\'ar}{k\"onyvt\'ar}},
+  abstract         = {{kivonat}{kivonat}},
+  annotation       = {{jegyzet}{jegyzet}},
+  commonera        = {{id\H{o}sz\'am\'it\'asunk szerint}{i\adddotspace sz\adddot}},
+  beforecommonera  = {{id\H{o}sz\'am\'it\'asunk el\H{o}tt}{i\adddotspace e\adddot}},
+  annodomini       = {{Krisztus ut\'an}{Kr\adddotspace u\adddot}},
+  beforechrist     = {{Krisztus el\H{o}tt}{Kr\adddotspace e\adddot}},
+  circa            = {{k\"or\"ulbel\"ul}{kb\adddot}},
+  spring           = {{tavasz}{tavasz}},
+  summer           = {{ny\'ar}{ny\'ar}},
+  autumn           = {{\H{o}sz}{\H{o}sz}},
+  winter           = {{t\'el}{t\'el}},
+  am               = {{d\'elel\H{o}tt}{de\adddot}},
+  pm               = {{d\'elut\'an}{du\adddot}},
+}
+
+\protected\gdef\lbx@hu@dayrange@i#1{%
+  \ifboolexpr{not test {\iffieldundef{#1endyear}}
+              and test {\iffieldsequal{#1year}{#1endyear}}
+              and test {\iffieldsequal{#1month}{#1endmonth}}
+              and (test {\iffieldundef{#1hour}}
+                   or not togl {blx@#1dateusetime})}}
+
+\protected\gdef\lbx@hu@mkdaterangetrunc#1#2{%
+  \blx@if@printanytimes{#2}
+    {\mkdaterangefull{#1}{#2}}
+    {\lbx@hu@mkdaterangetrunc@i{#1}{#2}}}
+
+\protected\gdef\lbx@hu@mkdaterangetrunc@i#1#2{%
+  \begingroup
+    \blx@metadateinfo{#2}%
+    \edef\lbx@hu@dayrange{\lbx@hu@dayrange@i{#2}}%
+    \iffieldundef{#2year}
+      {}
+      {\printtext[#2date]{%
+         \datecircaprint
+         \iffieldundef{#2season}
+           {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
+            \blx@printtime{#2}{}}%
+           {\csuse{mkbibseasondate#1}{#2year}{#2season}}%
+         \dateeraprint{#2year}%
+         \dateuncertainprint
+         \iffieldundef{#2endyear}
+           {}
+           {\iffieldequalstr{#2endyear}{}
+              {\mbox{\bibdaterangesep}}
+              {\lbx@hu@dayrange{\bibrangedash}{\bibdaterangesep}%
+               \let\lbx@hu@dayrange\@secondoftwo
+               \enddatecircaprint
+               \iffieldundef{#2season}
+                 {\iffieldsequal{#2year}{#2endyear}
+                   {\iffieldsequal{#2month}{#2endmonth}
+                      {\csuse{mkbibdate#1}{}{}{#2endday}}
+                      {\csuse{mkbibdate#1}{}{#2endmonth}{#2endday}}}
+                   {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}%
+                  \blx@printtime{#2}{end}}
+                 {\iffieldsequal{#2year}{#2endyear}
+                    {\csuse{mkbibseasondate#1}{}{#2endseason}}
+                    {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}}%
+               \enddateuncertainprint
+               \dateeraprint{#2endyear}}}}}%
+  \endgroup}
+
+\protected\gdef\lbx@hu@mkdaterangetruncextra#1#2{%
+  \blx@if@printanytimes{#2}
+    {\mkdaterangefullextra{#1}{#2}}
+    {\lbx@hu@mkdaterangetruncextra@i{#1}{#2}}}
+
+\protected\gdef\lbx@hu@mkdaterangetruncextra@i#1#2{%
+  \begingroup
+    \blx@metadateinfo{#2}%
+    \edef\lbx@hu@dayrange{\lbx@hu@dayrange@i{#2}}%
+    \iffieldundef{#2year}
+      {}
+      {\printtext[#2date]{%
+         \datecircaprint
+         \iffieldundef{#2season}
+           {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
+            \blx@printtime{#2}{}}%
+           {\csuse{mkbibseasondate#1}{#2year}{#2season}}%
+         \dateeraprint{#2year}%
+         \dateuncertainprint
+         \iffieldundef{#2endyear}
+           {\printfield{extradate}}
+           {\iffieldequalstr{#2endyear}{}
+              {\printfield{extradate}%
+               \mbox{\bibdaterangesep}}
+              {\lbx@hu@dayrange{\bibrangedash}{\bibdaterangesep}%
+               \let\lbx@hu@dayrange\@secondoftwo
+               \enddatecircaprint
+               \iffieldundef{#2season}
+                 {\iffieldsequal{#2year}{#2endyear}
+                   {\iffieldsequal{#2month}{#2endmonth}
+                      {\csuse{mkbibdate#1}{}{}{#2endday}}
+                      {\csuse{mkbibdate#1}{}{#2endmonth}{#2endday}}}
+                   {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}%
+                  \blx@printtime{#2}{end}}
+                 {\iffieldsequal{#2year}{#2endyear}
+                    {\csuse{mkbibseasondate#1}{}{#2endseason}}
+                    {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}}%
+               \printfield{extradate}%
+               \enddateuncertainprint
+               \dateeraprint{#2endyear}}}}}%
+  \endgroup}
+
+\endinput

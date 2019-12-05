@@ -7,15 +7,15 @@
 \newtoggle{bbx:eprint}
 \newtoggle{bbx:related}
 
-\DeclareBibliographyOption[boolean]{isbn}[true]{%
+\DeclareBiblatexOption{global,type,entry}[boolean]{isbn}[true]{%
   \settoggle{bbx:isbn}{#1}}
-\DeclareBibliographyOption[boolean]{url}[true]{%
+\DeclareBiblatexOption{global,type,entry}[boolean]{url}[true]{%
   \settoggle{bbx:url}{#1}}
-\DeclareBibliographyOption[boolean]{doi}[true]{%
+\DeclareBiblatexOption{global,type,entry}[boolean]{doi}[true]{%
   \settoggle{bbx:doi}{#1}}
-\DeclareBibliographyOption[boolean]{eprint}[true]{%
+\DeclareBiblatexOption{global,type,entry}[boolean]{eprint}[true]{%
   \settoggle{bbx:eprint}{#1}}
-\DeclareBibliographyOption[boolean]{related}[true]{%
+\DeclareBiblatexOption{global,type,entry}[boolean]{related}[true]{%
   \settoggle{bbx:related}{#1}}
 
 \ExecuteBibliographyOptions{isbn,url,doi,eprint,related}
@@ -343,6 +343,45 @@
     {}%
   \usebibmacro{finentry}}
 
+\DeclareBibliographyDriver{dataset}{%
+  \usebibmacro{bibindex}%
+  \usebibmacro{begentry}%
+  \usebibmacro{author/editor+others/translator+others}%
+  \setunit{\printdelim{nametitledelim}}\newblock
+  \usebibmacro{title}%
+  \newunit
+  \printlist{language}%
+  \newunit\newblock
+  \usebibmacro{byauthor}%
+  \newunit\newblock
+  \usebibmacro{byeditor+others}%
+  \newunit\newblock
+  \printfield{type}%
+  \newunit
+  \printfield{edition}%
+  \newunit
+  \printfield{version}%
+  \newunit\newblock
+  \usebibmacro{series+number}%
+  \newunit\newblock
+  \printfield{note}%
+  \newunit\newblock
+  \printlist{organization}%
+  \newunit
+  \usebibmacro{publisher+location+date}%
+  \newunit\newblock
+  \usebibmacro{doi+eprint+url}%
+  \newunit\newblock
+  \usebibmacro{addendum+pubstate}%
+  \setunit{\bibpagerefpunct}\newblock
+  \usebibmacro{pageref}%
+  \newunit\newblock
+  \iftoggle{bbx:related}
+    {\usebibmacro{related:init}%
+     \usebibmacro{related}}
+    {}%
+  \usebibmacro{finentry}}
+
 \DeclareBibliographyDriver{manual}{%
   \usebibmacro{bibindex}%
   \usebibmacro{begentry}%
@@ -445,6 +484,10 @@
   \printlist{organization}%
   \newunit\newblock
   \usebibmacro{date}%
+  \newunit\newblock
+  \iftoggle{bbx:doi}
+    {\printfield{doi}}
+    {}%
   \newunit\newblock
   \iftoggle{bbx:eprint}
     {\usebibmacro{eprint}}
@@ -713,6 +756,7 @@
 \DeclareBibliographyAlias{inreference}{incollection}
 \DeclareBibliographyAlias{suppperiodical}{article}
 \DeclareBibliographyAlias{review}{article}
+\DeclareBibliographyAlias{software}{misc}
 \DeclareBibliographyAlias{*}{misc}
 
 \newbibmacro*{maintitle+title}{%
@@ -921,7 +965,11 @@
           \ifnumgreater{\value{bbx:relatedcount}}{1}
             {\ifcsundef{relateddelim\strfield{relatedtype}}
               {\printunit{\relateddelim}}
-              {\printunit{\csuse{relateddelim\strfield{relatedtype}}}}}
+              {\expandafter\expandafter\expandafter\expandafter\expandafter
+               \expandafter\expandafter\printunit
+               \expandafter\expandafter\expandafter\expandafter\expandafter
+               \expandafter\expandafter{%
+                 \csuse{relateddelim\strfield{relatedtype}}}}}
             {}}%
         \ifbibmacroundef{related:\strfield{relatedtype}}
           {\appto{\do}{\usebibmacro{related:default}}}
