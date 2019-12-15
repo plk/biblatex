@@ -36,6 +36,26 @@
   ```
   \ExecuteBibliographyOptions[online,unpublished]{eprint=false}
   ```
+- Added `eid` to more entry types.
+  To avoid issues with backwards compatibility of widely used bibmacros,
+  the bibmacro `chapter+pages` was redefined from
+  ```
+  \newbibmacro*{chapter+pages}{%
+    \printfield{chapter}%
+    \setunit{\bibpagespunct}%
+    \printfield{pages}%
+    \newunit}
+  ```
+  to
+  ```
+  \newbibmacro*{chapter+pages}{%
+    \printfield{chapter}%
+    \setunit{\addcomma\space}%
+    \printfield{eid}%
+    \setunit{\bibpagespunct}%
+    \printfield{pages}%
+    \newunit}
+  ```
 - Added options `backreffloats` and `trackfloats` to enable/disable
   citation tracking and back references in floats.
   Note that citation tracking in floats can lead to undesirable
