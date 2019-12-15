@@ -1,3 +1,27 @@
+# RELEASE NOTES FOR VERSION 3.15
+- Fixed a long-standing issue with `\intitlepunct`.
+  The old definition
+  ```
+  \newbibmacro*{in:}{%
+    \printtext{%
+      \bibstring{in}\intitlepunct}}
+  ```
+  would print `\intitlepunct` directly and not via the punctuation
+  buffer. Since the `\add...` punctuation macros guard against
+  undesired double punctuation, this would usually not show as an
+  issue (except in edge cases https://tex.stackexchange.com/q/175730/,
+  https://github.com/plk/biblatex/issues/943).
+  The new definition uses the punctuation tracker to print
+  `\intitlepunct`.
+  ```
+  \newbibmacro*{in:}{%
+    \bibstring{in}%
+    \printunit{\intitlepunct}}
+  ```
+  `\printunit` is needed instead of `\setunit` to stop subsequent
+  `\setunit`s from overriding `\intitlepunct` in case of missing
+  fields.
+
 # RELEASE NOTES FOR VERSION 3.14
 - biber from version 2.14 has extended, granular XDATA functionality to
   allow referencing from and to parts of fields. This makes XDATA entries into
@@ -7,6 +31,7 @@
   Note that `polyglossia` v1.45 (2019/10/27) is required for this
   to work properly, it is strongly recommended to update `polyglossia`
   to this or a later (current) version.
+
 # RELEASE NOTES FOR VERSION 3.13
 - **INCOMPATIBLE CHANGE** Any custom per-entry options in datasources must
   be defined with `\DeclareEntryOption` in order for biber to recognise
