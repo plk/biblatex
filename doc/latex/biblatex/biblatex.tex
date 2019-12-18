@@ -1,6 +1,7 @@
 \documentclass{ltxdockit}[2011/03/25]
 \usepackage{btxdockit}
 \usepackage{fontspec}
+\newfontfamily{\quickch}{MS PGothic}
 \usepackage{hyperref}
 \usepackage{zref-xr}
 
@@ -2050,6 +2051,14 @@ The following options may be used in the optional argument to \cmd{usepackage} a
 
 \begin{optionlist}
 
+\valitem[default]{msform}{form}
+
+The default multiscript field alternate <form>. Must be one of the forms declared in <multiscriptforms> constant. This controls the default <form> selected by \biber and also the default <form> selected by citations. Can be overridden on a per-refcontext basis. See \ref{use:multiscript}.
+
+\valitem[en-us]{mslang}{bcp47tag}
+
+The default multiscript field alternate <language> as a BCP47 tag. This controls the default <language> selected by \biber and also the default <language> selected by citations. Can be overridden on a per-refcontext basis. See \ref{use:multiscript}.
+
 \optitem[nty]{sorting}{\opt{nty}, \opt{nyt}, \opt{nyvt}, \opt{anyt}, \opt{anyvt}, \opt{ynt}, \opt{ydnt}, \opt{none}, \opt{debug}, \prm{name}}
 
 The sorting order of the bibliography. Unless stated otherwise, the entries are sorted in ascending order. The following choices are available by default:
@@ -4063,6 +4072,8 @@ References in a bibliography are cited and printed in a <context>. The context d
  \item A string prefix for citation schemes which use alphabetic or numeric labels
  \item A template for calculating name uniqueness information
  \item A template for constructing alphabetic labels for names
+ \item A multiscript default <form>
+ \item A multiscript default <language> 
 \end{itemize}
 %
 The purpose of bibliography contexts is twofold. Firstly, they are used to set options which influence a printed bibliography and secondly to influence the data printed by citation commands.
@@ -4150,6 +4161,14 @@ In cases where the user has entries which occur in multiple bibliographies in di
 Declares a named reference context with name \prm{name}. The \prm{key=value} options define the context attributes. All context attributes are optional and default to the global settings if absent. The valid options are:
 
 \begin{optionlist*}
+
+\valitem[default]{msform}{form}
+
+The default multiscript field alternate <form>. Must be one of the forms declared in <multiscriptforms> constant. This controls the default <form> selected by \biber and also the default <form> selected by citations. Can be overridden on a per-refcontext basis. See \ref{use:multiscript}.
+
+\valitem[en-us]{mslang}{bcp47tag}
+
+The default multiscript field alternate <language> as a BCP47 tag. This controls the default <language> selected by \biber and also the default <language> selected by citations. Can be overridden on a per-refcontext basis. See \ref{use:multiscript}.
 
 \valitem{sorting}{name}
 
@@ -6238,6 +6257,85 @@ Key limitations of the \bibtex backend are:
   \verb|bibtex8| is strongly recommended to minimize the likelihood of
   an issue here)
 \end{itemize}
+
+\subsection{Multiscript Support}
+\label{use:multiscript}
+
+\biblatex and \biber allow the user to specify <alternates> for fields designated as <multiscript> in the bibliography data. The <alternates> are simply alternative <form> and <language> combinations of the same field data. The <form> of an alternate field value is one of the vales of the <multiscriptforms> constant, the default for which is:
+
+\begin{ltxexample}
+\DeclareDatamodelConstant[type=list]{multiscriptforms}{default,transliteration,transcription,translation}
+\end{ltxexample}
+%
+The <language> of an alternate field value is a standard IETF BCP47\footnote{https://tools.ietf.org/html/bcp47} language tag which specifies a language code along with optional subtags specifying dialects etc. In most cases, these are obvious and well-known tags such as <en> for English, <en-us> for US-english, <fr> for French, <de> for German etc.
+
+Bibliographic entry fields which support multiscript alternates are specified in the datamodel using \cmd{DeclareDatamodelMultiscriptEntryfields}. The default includes most name, list and literal fields in the standard datamodel. Multiscript enabled fields always have a <form> and <language> associated with them which default to the global \opt{msform} and \opt{mslang} options respectively. These global defaults can be overriden on a per-refcontext basis by the \opt{msform} and \opt{mslang} options to the refcontext macros.
+
+The \biblatex options:
+
+\begin{itemize}
+  \item \cmd{DeclareLabelname}
+  \item \cmd{DeclareLabeltitle}
+  \item \cmd{DeclareSortingTemplate}
+  \item \cmd{DeclareLabelalphaTemplate}
+\end{itemize}
+%
+are multiscript aware and allow the selection of specific field alternates by use of the \opt{form} and \opt{lang} options. For example, declaring the \opt{labelname} template like this:
+
+\begin{ltxexample}
+\DeclareLabelname{%
+  \field[form=transliteration,lang=ru-Cyrl]{author}
+  \field{author}
+}
+\end{ltxexample}
+%
+Would set the \opt{labelname} to a Russian Cyrillic alternate of the \bibfield{author} field, if found, before trying the default alternate <form> and <language> alternate of the \bibfield{author} field.
+
+Here is an example of the \biber multiscript support syntax for \file{.bib} datasources:
+{\footnotesize
+\begin{lstlisting}[style=bibtex,escapeinside={(*@}{@*)}]{}
+@ARTICLE{mstest,
+  AUTHOR = {Bill Smith and Пушкин, Александр and (*@\quickch{徐冰}@*)},
+  AUTHOR+an:langtags = {2=ru-Cyrl;3=zh-Hant},
+  AUTHOR_transliteration_ru-Latn = {Bill Smith and Pushkin, Aleksandr and Xu, Bing},
+  AUTHOR_transliteration_ru-Latn+an:langtags = {1=en-US;3=zh-Latn},
+  AUTHOR_transliteration_ru-Grek = {Bill Smith and Πούσκιν, Ἀλεξάντρ and Ξού, Μπίνγκ},
+  AUTHOR_transliteration_ru-Grek+an:langtags = {1=en-US;3=zh-Grek},
+  LOCATION = {locationa and Standortb},
+  LOCATION+an:langtags = {2=de},
+  LOCATION_translation_fr = {emplacementa and Standortb},
+  LOCATION_translation_fr+an:langtags = {2=de},
+  TITLE = {Title},
+  TITLE_translation_fr = {Titre},
+  DATE = {1995}
+}
+\end{lstlisting}
+}
+%
+This example demonstrates the multiscript field alternate syntax where the
+<form> and <language> follow the field name, separated by a (customisable)
+separator (the default is an underscore). Notice that there are alternates
+for the \bibfield{author}, \bibfield{location} and \bibfield{title} fields.
+
+It is also possible to override the <language> of an alternate on a
+per-item basis using the \biber data annotation feature (see
+\ref{use:annote}). Multiscript support reserves the \bibfield{langtags}
+named annotation for this purpose. These annotations are available via the
+interfaces described in \ref{use:annote}. As a convenience in name formats,
+the \bibfield{mslang} field holds any per-item <language> annotation tag as
+a per-name setting.
+
+The standard \bibfield{langid} field plays a special role in multiscript support as it can be a per-entry override for the default alternate <language> for all fields in the entry when the \biber option \opt{msstrict} is used. For example:
+
+\begin{lstlisting}[style=bibtex]{}
+@ARTICLE{mstest,
+  LANGID = {ru-Cyrl},
+  AUTHOR = {Bill Smith and Пушкин, Александр},
+  AUTHOR+an:langtags = {1=en-US},
+}
+\end{lstlisting}
+%
+The name <Пушкин, Александр> will be processed by \biber with the <language> \opt{ru-Cyrl} due to the \bibfield{langid} field which overrides the global \opt{mslang} setting of \biblatex which is passed to \biber. This only happens if the \biber \opt{msstrict} option is used however, because \opt{langid} is quite common in \file{.bib} datasources and this would potentially cause backwards compatibility issues, the \biber option is not enabled by default. The compatibility problems are due to the default settings of the multiscript aware macros noted above which only look for default alternates and override the alternate <language> default in entries by use of \bibfield{langid} would result in many fields being ignored for \bibfield{labelname} setting and sorting etc. For full multiscript-aware use, it is of course recommended to use \biber with \opt{msstrict} and make sure the settings for multiscript aware macros in \biblatex are set accordingly to pick up field alternates that you need.
 
 \section{Author Guide}
 \label{aut}
@@ -8476,6 +8574,10 @@ The field can be used as a label in a bibliography or bibliography list. Specify
 
 Declares that the comma"=separated list of \prm{fields} is valid for the comma"=separated list of \prm{entrytypes}. If \prm{entrytypes} is not given, the fields are valid for all entrytypes. As usual in \tex csv lists, make sure each element is immediately followed by a comma or the closing brace---no extraneous whitespace.
 
+\cmditem{DeclareDatamodelMultiscriptEntryfields}{fields}
+
+Declares that the comma"=separated list of \prm{fields} are valid multiscript enabled fields. See \ref{use:multiscript}. As usual in \tex csv lists, make sure each element is immediately followed by a comma or the closing brace---no extraneous whitespace.
+
 \cmditem{DeclareDatamodelConstraints}[entrytypes]{specification}
 
 If a comma"=separated list of \prm{entrytypes} is given, the constraints apply only to those entrytypes. The \prm{specification} is an undelimited list of \cmd{constraint} directives which specify a constraint. Spaces, tabs, and line endings may be used freely to visually arrange the \prm{specification}. Blank lines are not permissible.
@@ -8560,6 +8662,10 @@ Clear all data model field information.
 
 Clear all data model fields for entrytypes information.
 
+\cmditem{ResetDatamodelMultiscriptEntryfields}
+
+Clear all data model multiscript fields information.
+
 \cmditem{ResetDatamodelConstraints}
 
 Clear all data model fields Constraints information.
@@ -8642,9 +8748,17 @@ Specifies the elements used to build the label. The \prm{elements} are an undeli
 
 \cmditem{field}[options]{field}
 
-If \prm{field} is non-empty, use it as the current label \cmd{labelelement}, subject to the options below. Useful values for \prm{field} are typically the name list type fields, date fields, and title fields. You may also use the `citekey' or `entrykey` pseudo-fields to specify the citation/entry key as part of the label. Name list fields are treated specially and when a name list field is specified, the template defined with \cmd{DeclareLabelalphaNameTemplate} is used to extract parts from the name which then returns the string that the \cmd{field} option uses.
+If \prm{field} is non-empty, use it as the current label \cmd{labelelement}, subject to the options below. Useful values for \prm{field} are typically the name list type fields, date fields, and title fields. You may also use the `citekey' or `entrykey` pseudo-fields to specify the citation/entry key as part of the label. Name list fields are treated specially and when a name list field is specified, the template defined with \cmd{DeclareLabelalphaNameTemplate} is used to extract parts from the name which then returns the string that the \cmd{field} option uses. Non-name list fields are treated specially in that the result of the labelpart for the field is the concatenation of applying the template to each item in the list.
 
 \begin{optionlist*}
+
+\valitem[0]{form}{string}
+
+The multiscript form of the \prm{field}. Must be one of the <multiscriptforms> constants declared with \cmd{DeclareDatamodelConstant}. See \ref{use:multiscript}. Defaults to the global \opt{msform} option.
+
+\valitem[0]{lang}{bcp47tag}
+
+The multiscript BCP47 language tag of the \prm{field}. Defaults to the global \opt{mslang} option.
 
 \boolitem[false]{final}
 
@@ -9064,6 +9178,14 @@ Whether or not to sort in <uppercase before lowercase> (\texttt{true}) or <lower
 The \cmd{field} element adds a \prm{field} to the sorting specification. If the \prm{field} is undefined, the element is skipped. The \cmd{field} command supports the following optional arguments:
 
 \begin{optionlist*}
+
+\valitem[0]{form}{string}
+
+The multiscript form of the \prm{field}. Must be one of the <multiscriptforms> constants declared with \cmd{DeclareDatamodelConstant}. See \ref{use:multiscript}. Defaults to the global \opt{msform} option.
+
+\valitem[0]{lang}{bcp47tag}
+
+The multiscript BCP47 language tag of the \prm{field}. Defaults to the global \opt{mslang} option.
 
 \choitem[left]{padside}{left, right}
 
@@ -9497,6 +9619,18 @@ Defines the fields to consider when generating the \bibfield{labelname} field (s
 %
 The \bibfield{labelname} field may be customized globally or on a per-type basis. If the optional \prm{entrytype} argument is given, the specification applies to the respective entry type. If not, it is applied globally. The \prm{entrytype} argument may be a comma"=separated list of values. This command may only be used in the preamble.
 
+\begin{optionlist*}
+
+\valitem[0]{form}{string}
+
+The multiscript form of the \prm{field}. Must be one of the <multiscriptforms> constants declared with \cmd{DeclareDatamodelConstant}. See \ref{use:multiscript}. Defaults to the global \opt{msform} option.
+
+\valitem[0]{lang}{bcp47tag}
+
+The multiscript BCP47 language tag of the \prm{field}. Defaults to the global \opt{mslang} option.
+
+\end{optionlist*}
+
 \cmditem{DeclareLabeldate}[entrytype, \dots]{specification}
 
 Defines the date components to consider when generating \bibfield{labelyear}, \bibfield{labelmonth}, \bibfield{labelday}, \bibfield{labelendyear}, \bibfield{labelendmonth} and \bibfield{labelendday} fields (see \secref{aut:bbx:fld:lab}). The \prm{specification} is an ordered list of \cmd{field} or \cmd{literal} commands. The items are checked in the order listed and the first item which is available will be used to popluate the mentioned fields. Note that the \cmd{field} items do not have to be datetype <date> in the data model so that you can create pseudo-year labels by, for example, using a \bibfield{pubstate} field contents, if available, as the year label by defining \cmd{DeclareLabeldate} suitably. Note also that a \cmd{literal} command will always be used when found and so this should always be the last thing in the list. If the value of a \cmd{literal} command is a valid localisation string, then this will be resolved in the current language, otherwise the value is used as a literal string as-is. This is the default definition:
@@ -9643,12 +9777,24 @@ Defines the fields to consider when generating the \bibfield{labeltitle} field (
 %
 The \bibfield{labeltitle} field may be customized globally or on a per-type basis. If the optional \prm{entrytype} argument is given, the specification applies to the respective entry type. If not, it is applied globally. The \prm{entrytype} argument may be a comma"=separated list of values. This command may only be used in the preamble.
 
+\begin{optionlist*}
+
+\valitem[0]{form}{string}
+
+The multiscript form of the \prm{field}. Must be one of the <multiscriptforms> constants declared with \cmd{DeclareDatamodelConstant}. See \ref{use:multiscript}. Defaults to the global \opt{msform} option.
+
+\valitem[0]{lang}{bcp47tag}
+
+The multiscript BCP47 language tag of the \prm{field}. Defaults to the global \opt{mslang} option.
+
+\end{optionlist*}
+
 \end{ltxsyntax}
 
 \subsubsection{Data Inheritance (\bibfield{crossref})}
 \label{aut:ctm:ref}
 
-\biber features a highly customizable cross-referencing mechanism with flexible data inheritance rules. This sections deals with the configuration interface. See \apxref{apx:ref} for the default configuration. A note on terminology: the \emph{child} or \emph{target} is the entry with the \bibfield{crossref} field, the \emph{parent} or \emph{source} is the entry the \bibfield{crossref} field points to. The child inherits data from the parent.
+\biber features a highly customizable cross-referencing mechanism with flexible data inheritance rules. This sections deals with the configuration interface. See \apxref{apx:ref} for the default configuration. A note on terminology: the \emph{child} or \emph{target} is the entry with the \bibfield{crossref} field, the \emph{parent} or \emph{source} is the entry the \bibfield{crossref} field points to. The child inherits data from the parent. For multiscript enabled fields (\ref{use:multiscript}), all alternates of the field are inherited.
 
 \begin{ltxsyntax}
 
@@ -10362,6 +10508,14 @@ This counter refers to the \bibfield{labelname} list. It is set on a per-name ba
 
 \cntitem{uniquelist}
 This counter refers to the \bibfield{labelname} list. It is set on a per-field basis. Its value indicates the number of names required to disambiguate the name list if automatic \cnt{maxnames}\slash \cnt{minnames} truncation would lead to ambiguous citations. For example, if there is one work by <Doe\slash Smith\slash Johnson> and another one by <Doe\slash Edwards\slash Williams>, setting \kvopt{maxnames}{1} would lead to <Doe et al.> in both cases. In this case, \cnt{uniquelist} would be set to \texttt{2} on the \bibfield{labelname} lists of both entries because at least the first two names are required to disambiguate them. Note that the \cnt{uniquelist} counter is local to \cmd{printnames} and that it is only set for the \bibfield{labelname} list and to the name list \bibfield{labelname} has been derived from (typically \bibfield{author} or \bibfield{editor}). Its value is zero in any other context. If available, the \cnt{uniquelist} value will be used automatically by \cmd{printnames} when processing the name list, \ie it will automatically override \cnt{maxnames}\slash \cnt{minnames}. This feature needs to be enabled explicitly with the package option \opt{uniquelist}. See \secref{aut:cav:amb} for further details and practical examples.
+
+\cmditem{uniquepart}{namepart}
+
+A field containing one of the valid values for the <nameparts> constant defined with \cmd{DeclareDatamodelConstant}. This is defined on a per-name basis when the package \opt{uniquename} option is not false. It contains the name of the namepart component declared by \cmd{DeclareUniquenameTemplate} which determined the setting of the \opt{uniquename} counter.
+
+\cmditem{mslang}{bcp47tag}
+
+A field set on a per-name basis containing the BCP47 language tag for the name.
 
 \cntitem{parenlevel}
 
@@ -14138,6 +14292,10 @@ use$<$name$>$                     &\+&\+&\_&\+&\+&\_&\_\\
 This revision history is a list of changes relevant to users of this package. Changes of a more technical nature which do not affect the user interface or the behavior of the package are not included in the list. More technical details are to be found in the \file{CHANGES.md} file. The numbers on the right indicate the relevant section of this manual.
 
 \begin{changelog}
+\begin{release}{4.0}{2020}
+\item Multiscript support\see{use:multiscript}
+\end{release}
+
 \begin{release}{3.14}{2019-12-01}
 \item Added new mapping verbs for citation sources\see{aut:ctm:map}
 \item Added documentation for new \biber granular \bibtype{xdata} functionality\see{use:use:xdat}
