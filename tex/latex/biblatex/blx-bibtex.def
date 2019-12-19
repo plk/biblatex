@@ -343,7 +343,7 @@
      \global\togglefalse{blx@addset}}
     {}}
 
-\def\blx@citation#1#2{%
+\def\blx@citation@i#1#2{%
   \ifbool{citerequest}
     {\ifcsdef{blx@setp@\the\c@refsection @#1}
        {\blx@citation@set{#1}{#2}}
@@ -488,6 +488,29 @@
   {\blx@error
      {Failed to patch '\string\blx@bbl@entry'}
      {Patching '\string\blx@bbl@entry' failed for some reason.
+      \MessageBreak
+      Please report this bug}}
+
+% we can't rely on \inset in the .bbl (which should be in the child
+% entry), so we produce setc manually from the @set parent
+\apptocmd{\blx@bbl@set@i}
+  {\csxdef{blx@setc@\the\c@refsection @#1}{\abx@field@entrykey}}
+  {}
+  {\blx@error
+     {Failed to patch '\string\blx@bbl@set@i'}
+     {Patching '\string\blx@bbl@set@i' failed for some reason.
+      \MessageBreak
+      Please report this bug}}
+
+% blx@setonly doesn't exist here, since it is defined in \inset,
+% rely on the existence of setc instead
+\patchcmd{\blx@bbl@endentry}
+  {\nottoggle{blx@setonly}}
+  {\ifcsundef{blx@setc@\the\c@refsection @\abx@field@entrykey}}
+  {}
+  {\blx@error
+     {Failed to patch '\string\blx@bbl@endentry'}
+     {Patching '\string\blx@bbl@endentry' failed for some reason.
       \MessageBreak
       Please report this bug}}
 
