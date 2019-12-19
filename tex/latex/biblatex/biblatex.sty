@@ -7372,7 +7372,20 @@
 \protected\long\def\blx@bbl@msdef@i#1[#2][#3]{%
   \csuse{blx@bbl@#1def}{}{}}
   % \csuse{blx@bbl@#1def}{#2}{#3}}
-  
+
+% Biber always makes the msform/mslang of \fieldsource explicit
+% and so if they are empty, set as a normal field
+% Otherwise, these label*source fields are not normal fields as their *value*
+% is a triple of fieldname/form/lang
+% {<field>}{<value>}{<msform>}{<mslang>}
+\protected\long\def\blx@bbl@fieldsourcedef#1#2#3#4{%
+  \ifstrempty{#3}
+    {\blx@bbl@fielddef{}{}{#1}{#2}}
+    {\csxappto\blx@bbl@data{%
+      \def\expandafter\noexpand\csname abx@fieldsource@field@#1\endcsname{#2}%
+      \def\expandafter\noexpand\csname abx@fieldsource@msform@#1\endcsname{#3}%
+      \def\expandafter\noexpand\csname abx@fieldsource@mslang@#1\endcsname{#4}}}}
+
 % {<msform>}{<mslang>}{<field>}{<value>}
 \protected\long\def\blx@bbl@fielddef#1#2#3#4{%
   \def\NewValue{#4}%
@@ -7929,9 +7942,9 @@
 
 % {<fieldname>}
 \def\blx@resolve@annotation@label#1{%
-  \ifcsundef{abx@field@@@#1source}
+  \ifcsundef{abx@fieldsource@field@#1}
     {}%
-    {\letcs\blx@tempa{abx@field@@@#1source}}}
+    {\letcs\blx@tempa{abx@field@\abx@fieldsource@msform@#1 @\abx@fieldsource@mslang@#1 @\abx@fieldsource@field@#1}}}
 
 \begingroup
 \catcode`\<=12
@@ -8103,19 +8116,19 @@
   %
   % fields
   \def\do##1{%
-    \ifcsundef{abx@field@@@##1source}
+    \ifcsundef{abx@fieldsource@field@##1}
       {}%
-      {\csletcs{abx@field@@@##1}{abx@field@@@\csuse{abx@field@@@##1source}}}}%
+      {\csletcs{abx@field@@@##1}{abx@field@\csuse{abx@fieldsource@msform@##1}@\csuse{abx@fieldsource@mslang@##1}@\csuse{abx@fieldsource@field@##1}}}}%
   \dolistloop\abx@rfields%
   % names
   \def\do##1{%
-    \ifcsundef{abx@field@@@##1source}
+    \ifcsundef{abx@fieldsource@field@##1}
      {}
      {\csname c@##1\expandafter\endcsname\expandafter
-        \the\csname c@\csuse{abx@field@@@##1source}\endcsname
-      \csletcs{abx@name@@@##1}{abx@name@@@\csuse{abx@field@@@##1source}}%
+        \the\csname c@\csuse{abx@fieldsoure@field@##1}\endcsname
+      \csletcs{abx@name@@@##1}{abx@name@\csuse{abx@fieldsource@msform@##1@\csuse{abx@fieldsource@mslang@##1@\csuse{abx@fieldsource@field@##1}}%
       \csletcs{etb@tgl@abx@bool@more##1}{%
-        etb@tgl@abx@bool@more\csuse{abx@field@@@##1source}}}}%
+        etb@tgl@abx@bool@more\csuse{abx@fieldsource@field@##1}}}}%
   \dolistloop\abx@rnames%
   % Resolve labeldate
   % Note that here we can't refer to labelyear as this is where we create it, hence the
@@ -8654,6 +8667,7 @@
   \let\name\blx@bbl@msnamedef
   \let\list\blx@bbl@mslistdef
   \let\field\blx@bbl@msfielddef
+  \let\fieldsource\blx@bbl@fieldsourcedef
   \let\range\blx@bbl@rangedef
   \let\strng\blx@bbl@stringdef
   \let\cnt\blx@bbl@cntdef
