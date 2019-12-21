@@ -1759,12 +1759,14 @@
   \csdef{blx@qp@comma}{\blx@postpunct}%
   \csdef{blx@qp@semicolon}{\blx@postpunct}%
   \csdef{blx@qp@colon}{\blx@postpunct}%
+  \csdef{blx@qp@colonnonfrench}{\blx@postpunct}%
   \csdef{blx@qp@period}{\blx@postpunct}%
   \csdef{blx@qp@exclam}{\blx@postpunct}%
   \csdef{blx@qp@question}{\blx@postpunct}%
   \cslet{blx@pq@comma}\@empty
   \cslet{blx@pq@semicolon}\@empty
   \cslet{blx@pq@colon}\@empty
+  \cslet{blx@pq@colonnonfrench}\@empty
   \cslet{blx@pq@period}\@empty
   \cslet{blx@pq@exclam}\@empty
   \cslet{blx@pq@question}\@empty
@@ -1853,6 +1855,13 @@
   \def\abx@comma{\ifdim\lastkern>\z@\unkern\fi\abx@puncthook{,}}%
   \def\abx@semicolon{\abx@puncthook{;}}%
   \def\abx@colon{\abx@puncthook{:}}%
+  \def\abx@colonnonfrench{%
+    \abx@puncthook{%
+      \begingroup
+      \csuse{NoAutoSpacing}%
+      \string:%
+      \endgroup
+      }}%
   \def\abx@period{\ifdim\lastkern>\z@\unkern\fi\abx@puncthook{.}}%
   \def\abx@exclam{\abx@puncthook{!}}%
   \def\abx@question{\abx@puncthook{?}}%
@@ -1934,6 +1943,7 @@
 \protected\def\blx@imc@addcomma{\blx@addpunct{comma}}
 \protected\def\blx@imc@addsemicolon{\blx@addpunct{semicolon}}
 \protected\def\blx@imc@addcolon{\blx@addpunct{colon}}
+\protected\def\blx@imc@addcolonnonfrench{\blx@addpunct{colonnonfrench}}
 \protected\def\blx@imc@addexclam{\blx@addpunct{exclam}}
 \protected\def\blx@imc@addquestion{\blx@addpunct{question}}
 
@@ -2061,7 +2071,7 @@
 \blx@regimcs{%
   \setpunctfont \resetpunctfont \ifcapital \autocap \ifpunctmark
   \ifpunct \ifterm \nopunct \isdot \adddot \addperiod \addcomma
-  \addsemicolon \addcolon \addexclam \addquestion}
+  \addsemicolon \addcolon \addcolonnonfrench \addexclam \addquestion}
 
 \appto\blx@blxinit{%
   \appto\nocorrlist{\isdot\adddot\addperiod\addcomma}}
@@ -9784,7 +9794,7 @@
   \def\blx@thebiblistdriver{#1}}
 
 % Custom bibliography list
-% [<otions>]{biblistname}
+% [<options>]{biblistname}
 \newrobustcmd*{\printbiblist}[2][]{%
   \begingroup
   \delimcontext{biblist}%
@@ -10318,9 +10328,10 @@
 %% that we can use for that purpose as well.
 %% This is fairly new, so we need to have a fallback for older versions.
 
-%% The standard classes are tricky. They have no good hooks and just
-%% for sections at least \pretocmd-ing executes the code before
-%% counters are increased, so the labels attach to the wrong thing.
+%% The standard classes are tricky. 
+%% We insert something in \@startsection to get the level number
+%% and then patch \@sect and \@ssect so the label attaches to the
+%% right thing.
 
 %% Test for correct KOMA patch method
 % KOMA 3.27 has \AddtoDoHook
@@ -10396,7 +10407,7 @@
           {\blx@refpatch@chapter@std{#1}}}}}
 
 % \section, \subsection
-% {<section csname>}{<precode>}{<section level number>}
+% {<section csname>}{<patch code>}{<section level number>}
 \def\blx@refpatch@sect#1#2#3{%
   \ifcsundef{#1}
     {\blx@err@nodocdiv{#1}\@gobbletwo}
@@ -10415,6 +10426,8 @@
 \def\blx@refpatch@sect@koma@startsection#1#2{%
   \At@startsection{\ifnumequal{\startsection@secnumdepth}{#2}{#1}{}}}
 
+% The memoir classes have a nice hook we can use
+% {<section csname>}{<patch code>}
 \edef\blx@refpatch@sect@memoir#1#2{%
   \apptocmd\noexpand\memsecinfo
     {\noexpand\blx@refpatch@sect@memoir@i{\string#1}{#1}{#2}}
@@ -10426,31 +10439,94 @@
 \def\blx@refpatch@sect@memoir@i#1#2#3{%
   \ifstrequal{#1}{#2}{#3}{}}
 
-\edef\blx@refpatch@sect@std#1#2{%
-  \def\noexpand\do##1{%
-    \pretocmd##1%
-      {\noexpand\blx@refpatch@sect@std@i{#1}{#2}{\string#2}}
-      {\togglefalse{blx@tempa}\noexpand\listbreak}
-      {}}%
-  \noexpand\blx@refpatch@sect@std@ii}
+% The standard classes have \@startsection, \@sect and \@ssect.
+% \@startsection is used by unstarred and starred sections alike
+% but it comes in too early if we set labels.
+% The counter is only stepped in \@sect, so we need to patch
+% that if we want \labels to attach to the right thing.
+% But then we also need to patch \@ssect for starred/un-numbered
+% sections. Unfortunately, \@ssect doesn't know the level number
+% so we patch \@startsection to remember the level number
+% in blx@refpatch@current@sectlevel
+% and then patch \@sect and \@ssect with the actual code
+% testing against blx@refpatch@current@sectlevel.
 
-\def\blx@refpatch@sect@std@i#1#2#3{%
-  \ifnumequal{#2}{#3}{#1}{}}
-
-\def\blx@refpatch@sect@std@ii{%
+% {<do initialization>}{<csv list to do>}{<error>}
+\def\blx@refpatch@docsvlist#1#2#3{%
   \toggletrue{blx@tempa}%
-  \docsvlist{%       order does matter:
-    \H@old@sectm@m,% memoir+hyperref (what a mess...)
-    \M@sect,%        memoir
-    \H@old@sect,%    hyperref
-    \NR@sect,%       nameref
-    \scr@sect,%      koma-script 3.x
-    \scr@startsection,%  bad hack for koma 3.15 <= v <= 3.25
-    \@startsection}%         latex
+  #1%
+  \docsvlist{#2}%
   \iftoggle{blx@tempa}
-    {\blx@err@patch{\string\@sect}}
+    {#3}
     {}%
   \let\do\noexpand}
+
+\newtoggle{blx@refpatch@sect@std@pre@done}
+
+\def\blx@refpatch@sect@std@pre{%
+  \iftoggle{blx@refpatch@sect@std@pre@done}
+    {}
+    {\blx@refpatch@docsvlist
+       {\blx@refpatch@sect@std@pre@defdo}
+       {\scr@startsection,
+        \@startsection}
+       {\blx@err@patch{\string\@startsection}}
+     \global\toggletrue{blx@refpatch@sect@std@pre@done}}}
+
+\edef\blx@refpatch@sect@std@pre@defdo{%
+  \def\noexpand\do##1{%
+    \pretocmd##1
+      {\csnumdef{blx@refpatch@current@sectlevel}{\string#2}}
+      {\togglefalse{blx@tempa}\noexpand\listbreak}
+      {}}}
+
+\edef\blx@refpatch@sect@std@defdo@sect#1#2{%
+  \def\noexpand\do##1{%
+    \patchcmd##1%
+      {\noexpand\@tempskipa \string#5\noexpand\relax}
+      {\noexpand\blx@refpatch@sect@std@testandruncode{#1}{#2}%
+       \noexpand\@tempskipa \string#5\noexpand\relax}
+      {\togglefalse{blx@tempa}\noexpand\listbreak}
+      {}}}
+
+\edef\blx@refpatch@sect@std@defdo@ssect#1#2{%
+  \def\noexpand\do##1{%
+    \patchcmd##1%
+      {\noexpand\@tempskipa \string#3\noexpand\relax}
+      {\noexpand\blx@refpatch@sect@std@testandruncode{#1}{#2}%
+       \noexpand\@tempskipa \string#3\noexpand\relax}
+      {\togglefalse{blx@tempa}\noexpand\listbreak}
+      {}}}
+
+% {<patch code>}{<section level number>}
+\def\blx@refpatch@sect@std#1#2{%
+  \blx@refpatch@sect@std@pre
+  % \@sect for numbered (unstarred) sections
+  \blx@refpatch@docsvlist
+    {\blx@refpatch@sect@std@defdo@sect{#1}{#2}}
+    {\H@old@sectm@m,% memoir+hyperref (what a mess...)
+     \M@sect,%        memoir
+     \H@old@sect,%    hyperref
+     \NR@sect,%       nameref
+     \scr@sect,%      koma-script 3.x
+     \scr@startsection,%  bad hack for koma 3.15 <= v <= 3.25
+     \@sect}
+    {\blx@err@patch{\string\@sect}}
+  % \@ssect for un-numbered (starred) sections
+  \blx@refpatch@docsvlist
+    {\blx@refpatch@sect@std@defdo@ssect{#1}{#2}}
+    {\H@old@ssectm@m,% memoir+hyperref (what a mess...)
+     \M@ssect,%        memoir
+     \H@old@ssect,%    hyperref
+     \NR@ssect,%       nameref
+     \scr@ssect,%      koma-script 3.x
+     \@ssect}
+    {\blx@err@patch{\string\@ssect}}}
+
+\def\blx@refpatch@sect@std@testandruncode#1#2{%
+  \ifnumequal{#2}{0\csuse{blx@refpatch@current@sectlevel}}
+    {#1}
+    {}}
 
 % Bibliography categories
 

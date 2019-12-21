@@ -21,11 +21,23 @@
   `\printunit` is needed instead of `\setunit` to stop subsequent
   `\setunit`s from overriding `\intitlepunct` in case of missing
   fields.
+- Added `\addcolonnonfrench` to produce a colon without leading
+  space that might be added by `babel` or `polyglossia`'s French
+  language modules.
+- Added `\mautocite` and `\Mautocite`.
 
 # RELEASE NOTES FOR VERSION 3.14
 - biber from version 2.14 has extended, granular XDATA functionality to
   allow referencing from and to parts of fields. This makes XDATA entries into
   more general data sharing containers.
+- Biber applies Perl's Unicode case folding to normalise the
+  capitalisation of field names and entry types when reading from the
+  `.bib` file. The output in the `.bbl` (what comes out on the
+  `biblatex` side uses the capitalisation from the data model; the only
+  exception are unknown entry types which are passed on *exactly*
+  as they are given in the `.bib` file - of course it is strongly
+  recommended to define all entry types one intends to use in the
+  data model).
 - `biblatex` now interfaces with `polyglossia` much better and can deal
   with language variants.
   Note that `polyglossia` v1.45 (2019/10/27) is required for this
