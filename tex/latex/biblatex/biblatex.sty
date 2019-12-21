@@ -7358,6 +7358,7 @@
     \def\expandafter\noexpand\csname abx@field@@@#3\endcsname{#5}}}
 
 % {<rangefield>}{<value>}
+% No range fields are multiscript
 \protected\def\blx@bbl@rangedef#1#2{%
   \csxappto\blx@bbl@data{%
     \def\expandafter\noexpand\csname abx@range@#1\endcsname{#2}}}
@@ -7367,6 +7368,15 @@
   \csxappto\blx@bbl@data{%
     \def\expandafter\noexpand\csname abx@field@#3@#4@#1\endcsname{#2}}}
 
+\blx@regimcs{\msformloop \mslangloop}
+
+\def\blx@imc@msformloop#1{%
+  \dolistcsloop{abx@fieldforms@#1}}
+
+\def\blx@imc@mslangloop#1{%
+  \dolistcsloop{abx@fieldlangs@#1}}
+
+% [<msform>][<mslang>]{field}{value}
 \protected\long\def\blx@bbl@msfielddef{\blx@bbl@msdef{field}}
 \protected\long\def\blx@bbl@mslistdef{\blx@bbl@msdef{list}}
 \protected\long\def\blx@bbl@msnamedef{\blx@bbl@msdef{name}}
@@ -7384,7 +7394,7 @@
   % \csuse{blx@bbl@#1def}{#2}{#3}}
 
 % Biber always makes the msform/mslang of \fieldsource explicit
-% and so if they are empty, set as a normal field
+% and so if they are empty, set as a normal field e.g. \fieldsource{labeldate}{}{}
 % Otherwise, these label*source fields are not normal fields as their *value*
 % is a triple of fieldname/form/lang
 % {<field>}{<value>}{<msform>}{<mslang>}
@@ -7404,7 +7414,10 @@
      \ifdefvoid\NewValue}
     {\@secondoftwo}
        {}
-       {\blx@bbl@addfield{#3}{\expandonce\NewValue}{#1}{#2}}}
+       {\csxappto\blx@bbl@data{%
+           \ifinlistcs{#1}{abx@fieldforms@#3}{}{\listcsadd{abx@fieldforms@#3}{#1}}%
+           \ifinlistcs{#2}{abx@fieldlangs@#3}{}{\listcsadd{abx@fieldlangs@#3}{#2}}}%
+         \blx@bbl@addfield{#3}{\expandonce\NewValue}{#1}{#2}}}
 
 % No multiscript fields are set via this
 \protected\long\def\blx@bbl@fieldedef#1#2{%
@@ -7993,7 +8006,9 @@
     {\@secondoftwo}
        {}
        {\csxappto\blx@bbl@data{%
-          \csname c@#3\endcsname\NewCount\relax
+           \ifinlistcs{#1}{abx@fieldforms@#3}{}{\listcsadd{abx@fieldforms@#3}{#1}}%
+           \ifinlistcs{#2}{abx@fieldlangs@#3}{}{\listcsadd{abx@fieldlangs@#3}{#2}}%
+           \csname c@#3\endcsname\NewCount\relax
           \def\expandafter\noexpand\csname abx@list@#1@#2@#3\endcsname
           {\expandonce\NewValue}}}}
 
@@ -8008,7 +8023,9 @@
     {\@secondoftwo}
        {}
        {\csxappto\blx@bbl@data{%
-          \csname c@#3\endcsname\NewCount\relax
+           \ifinlistcs{#1}{abx@fieldforms@#3}{}{\listcsadd{abx@fieldforms@#3}{#1}}%
+           \ifinlistcs{#2}{abx@fieldlangs@#3}{}{\listcsadd{abx@fieldlangs@#3}{#2}}%
+           \csname c@#3\endcsname\NewCount\relax
           \def\expandafter\noexpand\csname abx@name@#1@#2@#3\endcsname
           {{\expandonce\NewOption}{\expandonce\NewValue}}}}}
 
@@ -8687,7 +8704,15 @@
   \let\endverb\blx@bbl@verbend
   \let\lverb\blx@bbl@verbldef
   \let\endlverb\blx@bbl@verblend
-  \let\annotation\blx@bbl@annotationdef}
+  \let\annotation\blx@bbl@annotationdef
+  \let\msforms\blx@bbl@msformsdef
+  \let\mslangs\blx@bbl@mslangsdef}
+
+% List of all forms/langs in the documents, comes from biber via .bbl
+\def\blx@bbl@msformsdef#1{%
+  \gdef\blx@msforms{#1}}
+\def\blx@bbl@mslangsdef#1{%
+  \gdef\blx@mslangs{#1}}
 
 \def\blx@bblend{%
   % Special warning for defernumbers when a citation cannot be found
