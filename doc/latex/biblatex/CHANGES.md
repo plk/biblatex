@@ -1,3 +1,13 @@
+# RELEASE NOTES FOR VERSION 4.0
+ - This is a major update with support for multiscript fields
+ - **INCOMPATIBLE CHANGE** Namelist-specific hashes of the form
+   <namelist>namehash, <namelist>bibnamehash or <namelist>fullhash now must
+   contain a multiscript form and language in order to differentiate
+   between multiscript name alternates. The format is now
+   <namelist><msform><mslang>namehash,
+   <namelist><msform><mslang>bibnamehash or
+   <namelist><msform><mslang>fullhash and biber 4.0+ always generates specific
+   name hashes in this format.
 # RELEASE NOTES FOR VERSION 3.15
 - Fixed a long-standing issue with `\intitlepunct`.
   The old definition
