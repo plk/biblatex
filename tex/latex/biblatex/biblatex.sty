@@ -2436,16 +2436,19 @@
   \@ifstar{\blx@savedatacs{name}}{\global\blx@savedatacs{name}}}
 
 % {<field>}{<true>}{<false>}
+% Checks if any alternate if defined for field
 \def\blx@imc@iffieldundef#1{%
-  \ifcsundef{abx@field@@@#1}}
+  \ifcsundef{abx@field@#1}}
 
 % {<plainlist>}{<true>}{<false>}
+% Checks if any alternate if defined for list
 \def\blx@imc@iflistundef#1{%
-  \ifcsundef{abx@list@@@#1}}
+  \ifcsundef{abx@list@#1}}
 
 % {<namelist>}{<true>}{<false>}
+% Checks if any alternate if defined for name
 \def\blx@imc@ifnameundef#1{%
-  \ifcsundef{abx@name@@@#1}}
+  \ifcsundef{abx@name@#1}}
 
 % {<field1>}{<field2>}{<true>}{<false>}
 \def\blx@imc@iffieldsequal#1#2{%
@@ -3876,6 +3879,9 @@
   \ifboolexpr{ test {\iffieldsequal{#1year}{#2year}}
                and test {\iffieldsequal{#1dateera}{#2dateera}}}}
 
+\def\blx@imc@ifmsentryfield#1{%
+  \ifcsdef{blx@datamodel@multiscript@entryfield@#1}}
+
 \blx@regimcs{%
   \ifdriver \thefield \strfield \csfield \usefield \thelist \strlist
   \thefirstlistitem \usefirstlistitem \strfirstlistitem
@@ -3897,7 +3903,7 @@
   \ifdateshavedifferentprecision
   \ifdateyearsequal
   \mkpageprefix \mkpagetotal
-  \newblock \newunit \setunit \printunit \finentry}
+  \newblock \newunit \setunit \printunit \finentry \ifmsentryfield}
 
 \appto\blx@blxinit{%
   \def\ifnatbibmode{\iftoggle{blx@natbib}}%
@@ -4455,6 +4461,22 @@
 
 % [<format>]{<field>}
 \newrobustcmd*{\blx@imc@printfield}[2][]{%
+  \blx@imc@ifmsentryfield{#2}
+    {\@ifnextchar[%]
+     {\blx@imc@printfield@i{#1}{#2}}
+     {\ifblank{#1}
+       {\blx@imc@printfield@ii{#2}{\blx@msform}{\blx@mslang}}
+       {\blx@imc@printfield@ii[#1]{#2}{\blx@msform}{\blx@mslang}}}}
+    {\ifblank{#1}
+      {\blx@imc@printfield@ii{#2}{}{}}
+      {\blx@imc@printfield@ii[#1]{#2}{}{}}}}
+
+% {<format>}{<field>}[<msform>][<mslang>]
+\def\blx@imc@printfield@i#1#2[#3][#4]{%
+  \blx@imc@printfield@ii[#1]{#2}{#3}{#4}}
+
+% [<format>]{<field>}{<msform>}{<mslang>}
+\newrobustcmd*{\blx@imc@printfield@ii}[4][]{%
   \blx@imc@iffieldundef{#2}
     {\blx@nounit}
     {\blx@getformat\blx@theformat{ffd}{#1}{#2}%
@@ -4467,9 +4489,10 @@
         \expandafter\expandafter
         \expandafter\blx@theformat
         \expandafter\expandafter
-        \expandafter{\csname abx@field@@@#2\endcsname}%
+        \expandafter{\csname abx@field@#3@#4@#2\endcsname}%
         \blx@endunit}}}
 
+  
 % [<format>]{<field>}
 \newcommand*{\blx@imc@indexfield}[2][]{%
   \blx@imc@iffieldundef{#2}
@@ -7365,6 +7388,7 @@
 % No multiscript fields are set via this
 \long\def\blx@bbl@addentryfield#1#2#3#4#5{%
   \csxappto{blx@data@#2@#4@#1}{%
+    \def\expandafter\noexpand\csname abx@field@#3\endcsname{#5}%
     \def\expandafter\noexpand\csname abx@field@@@#3\endcsname{#5}}}
 
 % {<rangefield>}{<value>}
@@ -7376,6 +7400,7 @@
 % {<field>}{<value>}{<msform>}{<mslang>}
 \long\def\blx@bbl@addfield#1#2#3#4{%
   \csxappto\blx@bbl@data{%
+    \def\expandafter\noexpand\csname abx@field@#1\endcsname{1}% value doesn't matter
     \def\expandafter\noexpand\csname abx@field@#3@#4@#1\endcsname{#2}}}
 
 \blx@regimcs{\fieldmsforms \fieldmslangs}
@@ -7397,8 +7422,8 @@
 % and so we can detect multiscript fields simply
 % by the presence of a bracket here
 \protected\long\def\blx@bbl@msdef@i#1[#2][#3]{%
-  \csuse{blx@bbl@#1def}{}{}}
-  % \csuse{blx@bbl@#1def}{#2}{#3}}
+  %\csuse{blx@bbl@#1def}{}{}}
+  \csuse{blx@bbl@#1def}{#2}{#3}}
 
 % Biber always makes the msform/mslang of \fieldsource explicit
 % and so if they are empty, set as a normal field e.g. \fieldsource{labeldate}{}{}
@@ -8016,8 +8041,8 @@
            \ifinlistcs{#1}{abx@fieldmsforms@#3}{}{\listcsadd{abx@fieldmsforms@#3}{#1}}%
            \ifinlistcs{#2}{abx@fieldmslangs@#3}{}{\listcsadd{abx@fieldmslangs@#3}{#2}}%
            \csname c@#3\endcsname\NewCount\relax
-          \def\expandafter\noexpand\csname abx@list@#1@#2@#3\endcsname
-          {\expandonce\NewValue}}}}
+           \def\expandafter\noexpand\csname abx@list@#3\endcsname{1}% value doesn't matter
+           \def\expandafter\noexpand\csname abx@list@#1@#2@#3\endcsname{\expandonce\NewValue}}}}
 
 % {<msform>}{<mslang>}{<name>}{<itemcount>}{<nameoptions>}{<value>}
 \protected\def\blx@bbl@namedef#1#2#3#4#5#6{%
@@ -8033,8 +8058,8 @@
            \ifinlistcs{#1}{abx@fieldmsforms@#3}{}{\listcsadd{abx@fieldmsforms@#3}{#1}}%
            \ifinlistcs{#2}{abx@fieldmslangs@#3}{}{\listcsadd{abx@fieldmslangs@#3}{#2}}%
            \csname c@#3\endcsname\NewCount\relax
-          \def\expandafter\noexpand\csname abx@name@#1@#2@#3\endcsname
-          {{\expandonce\NewOption}{\expandonce\NewValue}}}}}
+           \def\expandafter\noexpand\csname abx@name@#3\endcsname{1}% value doesn't matter
+           \def\expandafter\noexpand\csname abx@name@#1@#2@#3\endcsname{{\expandonce\NewOption}{\expandonce\NewValue}}}}}
 
 % blx@setp@<rs>@<sp> = map of set parent <sp> in a refsection <rs> to csv
 %                      of set children
