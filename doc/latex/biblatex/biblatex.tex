@@ -6262,15 +6262,15 @@ Key limitations of the \bibtex backend are:
 \subsection{Multiscript Support}
 \label{use:multiscript}
 
-\biblatex and \biber allow the user to specify <alternates> for fields designated as <multiscript> in the bibliography data. The <alternates> are simply alternative <form> and <language> combinations of the same field data. The <form> of an alternate field value is one of the vales of the <multiscriptforms> constant, the default for which is:
+\biblatex and \biber allow the user to specify <alternates> for entryfields designated as <multiscript> in the bibliography data. Here and below <entryfield> is any bibliography field, whether a plain field, list or name. The <alternates> are simply alternative <form> and <language> combinations of the same entryfield data. The <form> of an alternate entryfield value is one of the vales of the <multiscriptforms> constant, the default for which is:
 
 \begin{ltxexample}
 \DeclareDatamodelConstant[type=list]{multiscriptforms}{default,transliteration,transcription,translation}
 \end{ltxexample}
 %
-The <language> of an alternate field value is a standard IETF BCP47\footnote{https://tools.ietf.org/html/bcp47} language tag which specifies a language code along with optional subtags specifying dialects etc. In most cases, these are obvious and well-known tags such as <en> for English, <en-us> for US-english, <fr> for French, <de> for German etc.
+The <language> of an alternate entryfield value is a standard IETF BCP47\footnote{https://tools.ietf.org/html/bcp47} language tag which specifies a language code along with optional subtags specifying dialects etc. In most cases, these are obvious and well-known tags such as <en> for English, <en-us> for US-english, <fr> for French, <de> for German etc.
 
-Bibliographic entry fields which support multiscript alternates are specified in the datamodel using \cmd{DeclareDatamodelMultiscriptEntryfields}. The default includes most name, list and literal fields in the standard datamodel. Multiscript enabled fields always have a <form> and <language> associated with them which default to the global \opt{msform} and \opt{mslang} options respectively. These global defaults can be overriden on a per-refcontext basis by the \opt{msform} and \opt{mslang} options to the refcontext macros.
+Bibliographic entryfields which support multiscript alternates are specified in the datamodel using \cmd{DeclareDatamodelMultiscriptEntryfields}. The default includes most name, list and literal fields in the standard datamodel. Multiscript enabled entryfields always have a <form> and <language> associated with them which default to the global \opt{msform} and \opt{mslang} options respectively. These global defaults can be overriden on a per-refcontext basis by the \opt{msform} and \opt{mslang} options to the refcontext macros.
 
 The \biblatex options:
 
@@ -6281,7 +6281,7 @@ The \biblatex options:
   \item \cmd{DeclareLabelalphaTemplate}
 \end{itemize}
 %
-are multiscript aware and allow the selection of specific field alternates by use of the \opt{form} and \opt{lang} options. For example, declaring the \opt{labelname} template like this:
+are multiscript aware and allow the selection of specific entryfield alternates by use of the \opt{form} and \opt{lang} options. For example, declaring the \opt{labelname} template like this:
 
 \begin{ltxexample}
 \DeclareLabelname{%
@@ -6290,7 +6290,7 @@ are multiscript aware and allow the selection of specific field alternates by us
 }
 \end{ltxexample}
 %
-Would set the \opt{labelname} to a Russian Cyrillic alternate of the \bibfield{author} field, if found, before trying the default alternate <form> and <language> alternate of the \bibfield{author} field.
+Would set the \opt{labelname} to a Russian Cyrillic alternate of the \bibfield{author} name field, if found, before trying the default alternate <form> and <language> alternate of the \bibfield{author} name field.
 
 Here is an example of the \biber multiscript support syntax for \file{.bib} datasources:
 {\footnotesize
@@ -6313,10 +6313,10 @@ Here is an example of the \biber multiscript support syntax for \file{.bib} data
 \end{lstlisting}
 }
 %
-This example demonstrates the multiscript field alternate syntax where the
-<form> and <language> follow the field name, separated by a (customisable)
+This example demonstrates the multiscript entryfield alternate syntax where the
+<form> and <language> follow the entryfield name, separated by a (customisable)
 separator (the default is an underscore). Notice that there are alternates
-for the \bibfield{author}, \bibfield{location} and \bibfield{title} fields.
+for the \bibfield{author}, \bibfield{location} and \bibfield{title} entryfields.
 
 It is also possible to override the <language> of an alternate on a
 per-item basis using the \biber data annotation feature (see
@@ -6324,9 +6324,9 @@ per-item basis using the \biber data annotation feature (see
 named annotation for this purpose. These annotations are available via the
 interfaces described in \ref{use:annote}. As a convenience in name formats,
 the \bibfield{mslang} field holds any per-item <language> annotation tag as
-a per-name setting.
+a per-name setting for use in name formats.
 
-The standard \bibfield{langid} field plays a special role in multiscript support as it can be a per-entry override for the default alternate <language> for all fields in the entry when the \biber option \opt{msstrict} is used. For example:
+The standard \bibfield{langid} entryfield plays a special role in multiscript support as it can be a per-entry override for the default alternate <language> for all entryfields in the entry when the \biber option \opt{msstrict} is used. For example:
 
 \begin{lstlisting}[style=bibtex]{}
 @ARTICLE{mstest,
@@ -6336,9 +6336,9 @@ The standard \bibfield{langid} field plays a special role in multiscript support
 }
 \end{lstlisting}
 %
-The name <Пушкин, Александр> will be processed by \biber with the <language> \opt{ru-Cyrl} due to the \bibfield{langid} field which overrides the global \opt{mslang} setting of \biblatex which is passed to \biber. This only happens if the \biber \opt{msstrict} option is used however, because \opt{langid} is quite common in \file{.bib} datasources and this would potentially cause backwards compatibility issues, the \biber option is not enabled by default. The compatibility problems are due to the default settings of the multiscript aware macros noted above which only look for default alternates and override the alternate <language> default in entries by use of \bibfield{langid} would result in many fields being ignored for \bibfield{labelname} setting and sorting etc. For full multiscript-aware use, it is of course recommended to use \biber with \opt{msstrict} and make sure the settings for multiscript aware macros in \biblatex are set accordingly to pick up field alternates that you need.
+The name <Пушкин, Александр> will be processed by \biber with the <language> \opt{ru-Cyrl} due to the \bibfield{langid} entryfield which overrides the global \opt{mslang} setting of \biblatex which is passed to \biber. This only happens if the \biber \opt{msstrict} option is used however, because \opt{langid} is quite common in \file{.bib} datasources and this would potentially cause backwards compatibility issues, the \biber option is not enabled by default. The compatibility problems are due to the default settings of the multiscript aware macros noted above which only look for default alternates and override the alternate <language> default in entries by use of \bibfield{langid} would result in many entryfields being ignored for \bibfield{labelname} setting and sorting etc. For full multiscript-aware use, it is of course recommended to use \biber with \opt{msstrict} and make sure the settings for multiscript aware macros in \biblatex are set accordingly to pick up entryfield alternates that you need.
 
-Within field, list and name formatting directives, the macros \cmd{msformloop} and \cmd{mslangloop} are provided which allow looping over valid multiscript forms and languages for the entry field being processed. See \ref{aut:fmt:ilc}.
+Within field, list and name formatting directives, the macros \cmd{currentmsforms} and \cmd{currentmslangs} are \sty{etoolbox} lists of valid multiscript forms/langs for the current entryfield which allow, for example, looping over valid multiscript forms and languages for the entryfield being processed. See \ref{aut:bib:fmt} and \ref{aut:fmt:ilc}.
 
 \section{Author Guide}
 \label{aut}
@@ -7680,12 +7680,12 @@ This section introduces the commands used to define the formatting directives re
 \cmditem{DeclareFieldFormat}[entrytype, \dots]{format}{code}
 \cmditem*{DeclareFieldFormat}*{format}{code}
 
-Defines the field format \prm{format}. This formatting directive is arbitrary \prm{code} to be executed by \cmd{printfield}. The value of the field will be passed to the \prm{code} as its first and only argument. The name of the field currently being processed is available to the \prm{code} as \cmd{currentfield}. If an \prm{entrytype} is specified, the format is specific to that type. The \prm{entrytype} argument may be a comma"=separated list of values. The starred variant of this command is similar to the regular version, except that all type-specific formats are cleared. \emph{Do not put any whitespace between the arguments to this macro as the definitions are quite complex and you will get unexpected results}.
+Defines the field format \prm{format}. This formatting directive is arbitrary \prm{code} to be executed by \cmd{printfield}. The value of the field will be passed to the \prm{code} as its first and only argument. The name of the field currently being processed is available to the \prm{code} as \cmd{currentfield}. For multiscript fields, the defined forms/langs of all alternates are provided as \sty{etoolbox} lists \cmd{currentmsforms} and \cmd{currentmslangs}. If an \prm{entrytype} is specified, the format is specific to that type. The \prm{entrytype} argument may be a comma"=separated list of values. The starred variant of this command is similar to the regular version, except that all type-specific formats are cleared. \emph{Do not put any whitespace between the arguments to this macro as the definitions are quite complex and you will get unexpected results}.
 
 \cmditem{DeclareListFormat}[entrytype, \dots]{format}{code}
 \cmditem*{DeclareListFormat}*{format}{code}
 
-Defines the literal list format \prm{format}. This formatting directive is arbitrary \prm{code} to be executed for every item in a list processed by \cmd{printlist}. The current item will be passed to the \prm{code} as its first and only argument. The name of the literal list currently being processed is available to the \prm{code} as \cmd{currentlist}. If an \prm{entrytype} is specified, the format is specific to that type. The \prm{entrytype} argument may be a comma"=separated list of values. Note that the formatting directive also handles the punctuation to be inserted between the individual items in the list. You need to check whether you are in the middle of or at the end of the list, \ie whether \cnt{listcount} is smaller than or equal to \cnt{liststop}. The starred variant of this command is similar to the regular version, except that all type-specific formats are cleared. \emph{Do not put any whitespace between the arguments to this macro as the definitions are quite complex and you will get unexpected results}.
+Defines the literal list format \prm{format}. This formatting directive is arbitrary \prm{code} to be executed for every item in a list processed by \cmd{printlist}. The current item will be passed to the \prm{code} as its first and only argument. The name of the literal list currently being processed is available to the \prm{code} as \cmd{currentlist}. For multiscript fields, the defined forms/langs of all alternates are provided as \sty{etoolbox} lists \cmd{currentmsforms} and \cmd{currentmslangs}. If an \prm{entrytype} is specified, the format is specific to that type. The \prm{entrytype} argument may be a comma"=separated list of values. Note that the formatting directive also handles the punctuation to be inserted between the individual items in the list. You need to check whether you are in the middle of or at the end of the list, \ie whether \cnt{listcount} is smaller than or equal to \cnt{liststop}. The starred variant of this command is similar to the regular version, except that all type-specific formats are cleared. \emph{Do not put any whitespace between the arguments to this macro as the definitions are quite complex and you will get unexpected results}.
 
 
 \cmditem{DeclareNameFormat}[entrytype, \dots]{format}{code}
@@ -7713,7 +7713,7 @@ The value of the datamodel <nameparts> constant (see \secref{aut:bbx:drv}) creat
 \namepartgiveni
 \end{ltxexample}
 %
-If a certain part of a name is not available, the corresponding macro will be empty, hence you may use, for example, the \sty{etoolbox} tests like \cmd{ifdefvoid} to check for the individual parts of a name. The name of the name list currently being processed is available to the \prm{code} as \cmd{currentname}. Note that the formatting directive also handles the punctuation to be inserted between separate names and between the individual parts of a name. You need to check whether you are in the middle of or at the end of the list, \ie whether \cnt{listcount} is smaller than or equal to \cnt{liststop}. See also \secref{use:cav:nam}. The starred variant of this command is similar to the regular version, except that all type-specific formats are cleared. \emph{Do not put any whitespace between the arguments to this macro as the definitions are quite complex and you will get unexpected results}.
+If a certain part of a name is not available, the corresponding macro will be empty, hence you may use, for example, the \sty{etoolbox} tests like \cmd{ifdefvoid} to check for the individual parts of a name. The name of the name list currently being processed is available to the \prm{code} as \cmd{currentname}. For multiscript fields, the defined forms/langs of all alternates are provided as \sty{etoolbox} lists \cmd{currentmsforms} and \cmd{currentmslangs}. Note that the formatting directive also handles the punctuation to be inserted between separate names and between the individual parts of a name. You need to check whether you are in the middle of or at the end of the list, \ie whether \cnt{listcount} is smaller than or equal to \cnt{liststop}. See also \secref{use:cav:nam}. The starred variant of this command is similar to the regular version, except that all type-specific formats are cleared. \emph{Do not put any whitespace between the arguments to this macro as the definitions are quite complex and you will get unexpected results}.
 
 \cmditem{DeclareListWrapperFormat}[entrytype, \dots]{format}{code}
 \cmditem*{DeclareListWrapperFormat}*{format}{code}
@@ -12663,14 +12663,6 @@ The length registers and counters discussed here are used by \biblatex to pass i
 
 \begin{ltxsyntax}
 
-\cmditem{msformloop}{entryfield}
-
-Loops over all multiscript forms for the current field. As with normal \sty{etoolbox} lists, expects that \cmd{do} is set to a single parameter macro which is executed for each multiscript form name which exists for \prm{entryfield} in the current entry. It is intended for use in formatting directives and does not hold meaningful data when used anywhere else.
-
-\cmditem{mslangloop}{entryfield}
-
-Loops over all multiscript BCP47 language tags for the current field. As with normal \sty{etoolbox} lists, expects that \cmd{do} is set to a single parameter macro which is executed for each multiscript language tag which exists for \prm{entryfield} in the current entry. It is intended for use in formatting directives and does not hold meaningful data when used anywhere else.
-
 \lenitem{$<$labelfield$>$width}
 
 For every field marked as a <label> field in the data model, a length register is created as per \texttt{shorthandwidth} above. Since \bibfield{shorthand} is so marked in the default data model, this functionality is a superset of that described for \texttt{shorthandwidth}.
@@ -12783,6 +12775,22 @@ The name of the literal list currently being processed by \cmd{printlist}. This 
 \csitem{currentname}
 
 The name of the name list currently being processed by \cmd{printnames}. This information is only available locally in name formatting directives.
+
+\csitem{currentmsforms}
+
+An \sty{etoolbox} list of all defined multiscript forms of the current entryfield. This information is only available locally in name formatting directives.
+
+\csitem{currentmslangs}
+
+An \sty{etoolbox} list of all defined multiscript BCP47 language tags of the current entryfield. This information is only available locally in name formatting directives.
+
+\cmditem{fieldmsforms}{entryfield}
+
+As \cmd{currentmsforms} but for entryfield \prm{entryfield}. It is intended for use in formatting directives and does not hold meaningful data when used anywhere else.
+
+\cmditem{fieldmslangs}{entryfield}
+
+As \cmd{currentmslangs} but for entryfield \prm{entryfield}. It is intended for use in formatting directives and does not hold meaningful data when used anywhere else.
 
 \end{ltxsyntax}
 
