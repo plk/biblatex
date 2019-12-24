@@ -41,7 +41,13 @@
 \RequirePackage{logreq}
 \RequirePackage{ifthen}
 \RequirePackage{url}
+\RequirePackage{xparse}
 %\RequirePackage{trace}
+
+% Turn of xparse redefine warnings as we do this a lot
+\ExplSyntaxOn
+ \msg_redirect_name:nnn { LaTeX } { xparse / redefine-command } { none }
+\ExplSyntaxOff
 
 \@ifpackagelater{etoolbox}{2010/11/29}
   {}
@@ -2435,18 +2441,24 @@
 \protected\def\blx@imc@savenamecs{%
   \@ifstar{\blx@savedatacs{name}}{\global\blx@savedatacs{name}}}
 
-% {<field>}{<true>}{<false>}
-% Checks if any alternate if defined for field
-\def\blx@imc@iffieldundef#1{%
+% [<msform>][<mslang>]{<field>}{<true>}{<false>}
+% \def\blx@imc@iffieldundef#1{%
+%   \ifcsundef{abx@field@#1}}
+\def\blx@imc@iffieldundef{%
+  \@ifnextchar[%\]
+    {\blx@imc@iffieldundef@ii}
+    {\blx@imc@iffieldundef@i}}
+\def\blx@imc@iffieldundef@i#1{%
   \ifcsundef{abx@field@#1}}
+\DeclareExpandableDocumentCommand{\blx@imc@iffieldundef@ii}
+  {O{\blx@msform}O{\blx@mslang}m}
+  {\ifcsundef{abx@field@#1@#2@#3}}
 
 % {<plainlist>}{<true>}{<false>}
-% Checks if any alternate if defined for list
 \def\blx@imc@iflistundef#1{%
   \ifcsundef{abx@list@#1}}
 
 % {<namelist>}{<true>}{<false>}
-% Checks if any alternate if defined for name
 \def\blx@imc@ifnameundef#1{%
   \ifcsundef{abx@name@#1}}
 
@@ -4344,8 +4356,6 @@
   \csedef{abx@#1@#2@#3}{%
     \expandonce{\csname abx@#1@#4@#5\endcsname}}}
 
-
-
 % {<macro>}{<class>}{<name>}{<field>}
 \def\blx@getformat#1#2#3#4{%
   \blx@safe@actives
@@ -4459,39 +4469,37 @@
         \blx@theformat{#2}%
         \blx@endunit}}}
 
-% [<format>]{<field>}
-\newrobustcmd*{\blx@imc@printfield}[2][]{%
-  \blx@imc@ifmsentryfield{#2}
-    {\@ifnextchar[%]
-     {\blx@imc@printfield@i{#1}{#2}}
-     {\ifblank{#1}
-       {\blx@imc@printfield@ii{#2}{\blx@msform}{\blx@mslang}}
-       {\blx@imc@printfield@ii[#1]{#2}{\blx@msform}{\blx@mslang}}}}
-    {\ifblank{#1}
-      {\blx@imc@printfield@ii{#2}{}{}}
-      {\blx@imc@printfield@ii[#1]{#2}{}{}}}}
-
-% {<format>}{<field>}[<msform>][<mslang>]
-\def\blx@imc@printfield@i#1#2[#3][#4]{%
-  \blx@imc@printfield@ii[#1]{#2}{#3}{#4}}
-
-% [<format>]{<field>}{<msform>}{<mslang>}
-\newrobustcmd*{\blx@imc@printfield@ii}[4][]{%
-  \blx@imc@iffieldundef{#2}
+\DeclareExpandableDocumentCommand{\blx@imc@printfield}
+  {O{}O{\blx@msform}O{\blx@mslang}m}
+  {\blx@imc@iffieldundef[#2][#3]{#4}
     {\blx@nounit}
-    {\blx@getformat\blx@theformat{ffd}{#1}{#2}%
+    {\blx@getformat\blx@theformat{ffd}{#1}{#4}%
      \ifdefvoid\blx@theformat
        {\blx@nounit}
        {\blx@begunit
-        \edef\currentfield{#2}%
-        \letcs\currentmsforms{abx@fieldmsforms@#2}%
-        \letcs\currentmslangs{abx@fieldmslangs@#2}%
+        \edef\currentfield{#4}%
+        \edef\currentmsform{#2}%
+        \edef\currentmslang{#3}%
+        \letcs\currentmsforms{abx@fieldmsforms@#4}%
+        \letcs\currentmslangs{abx@fieldmslangs@#4}%
+        % begin language for field mslang
+        \edef\blx@tempa{\csuse{blx@msmaplang@#3}}%
+        \ifdef\blx@thelangenv
+          {\csuse{abx@extras@\blx@tempa}%
+           \csuse{abx@strings@\blx@tempa}%
+           \blx@hook@initlang
+           \csname\blx@thelangenv\expandafter\endcsname\expandafter{\blx@tempa}}
+          {}%
         \expandafter\expandafter
         \expandafter\blx@theformat
         \expandafter\expandafter
-        \expandafter{\csname abx@field@#3@#4@#2\endcsname}%
+        \expandafter{\csname abx@field@#2@#3@#4\endcsname}%
+        % end language for field mslang
+        \ifdef\blx@thelangenv
+          {\blx@hook@endlang
+           \csname end\blx@thelangenv\endcsname}
+          {}%
         \blx@endunit}}}
-
   
 % [<format>]{<field>}
 \newcommand*{\blx@imc@indexfield}[2][]{%
@@ -7422,8 +7430,8 @@
 % and so we can detect multiscript fields simply
 % by the presence of a bracket here
 \protected\long\def\blx@bbl@msdef@i#1[#2][#3]{%
-  \csuse{blx@bbl@#1def}{}{}}
-  %\csuse{blx@bbl@#1def}{#2}{#3}}
+  %\csuse{blx@bbl@#1def}{}{}}
+  \csuse{blx@bbl@#1def}{#2}{#3}}
 
 % Biber always makes the msform/mslang of \fieldsource explicit
 % and so if they are empty, set as a normal field e.g. \fieldsource{labeldate}{}{}
@@ -8746,7 +8754,10 @@
 % List of all forms/langs in the documents, comes from biber via .bbl
 \def\blx@bbl@msformsdef#1{%
   \gdef\blx@msforms{#1}}
+% pre-load all mslangs mentioned in all field alternates
 \def\blx@bbl@mslangsdef#1{%
+  \def\do##1{\blx@langsetup{\csuse{blx@msmaplang@##1}}}%
+  \docsvlist{#1}%
   \gdef\blx@mslangs{#1}}
 
 % Mapping of BCP47->babel ids until babel supports BCP47 tags
