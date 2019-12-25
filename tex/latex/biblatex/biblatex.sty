@@ -4610,7 +4610,7 @@
     {\expandafter\expandafter
      \expandafter\blx@namesetup@ii\csname abx@name@@@#3\endcsname}}
 
- \def\blx@namesetup@ii#1#2{%
+\def\blx@namesetup@ii#1#2{%
   \c@uniquelist\z@
   \ifblank{#1}
     {}
@@ -4622,7 +4622,7 @@
 % \blx@DeclareBackendOption these are not 'real' options
 \define@key{blx@opt@namelist}{ul}{\c@uniquelist#1\relax}
 
-\define@key{blx@opt@name}{mslang}{\def\abx@field@@@mslang{#1}}
+\define@key{blx@opt@name}{mslang}{\def\blx@tempa{#1}}
 \define@key{blx@opt@name}{un}{\c@uniquename#1\relax}
 \define@key{blx@opt@name}{uniquepart}{\def\abx@field@@@uniquepart{#1}}
 \define@key{blx@opt@name}{hash}{\edef\abx@field@@@hash{\detokenize{#1}}}
@@ -4700,6 +4700,7 @@
 % {name opts}{nameparts}
 \long\def\blx@nameparser@i#1#2{%
   \begingroup
+  \let\blx@tempa\@empty
   \ifblank{#1}
     {}
     {\setkeys{blx@opt@name}{#1}}%
@@ -4712,7 +4713,22 @@
   % Still pass the nameparts forward for backwards compat
   % When \nameparts is finally removed, remove the "{2}" and remove the
   % arg to \blx@defformat@d in def of \blx@defnameformat
-  \blx@theformat{#2}%
+  \ifdefempty\blx@tempa
+    {\blx@theformat{#2}}
+    {% begin language for name list item mslang
+     \edef\blx@tempa{\csuse{blx@msmaplang@\blx@tempa}}%
+     \ifdef\blx@thelangenv
+       {\csuse{abx@extras@\blx@tempa}%
+        \csuse{abx@strings@\blx@tempa}%
+        \blx@hook@initlang
+        \csname\blx@thelangenv\expandafter\endcsname\expandafter{\blx@tempa}}
+       {}%
+     \blx@theformat{#2}%
+     % end language for name list item mslang
+     \ifdef\blx@thelangenv
+       {\blx@hook@endlang
+        \csname end\blx@thelangenv\endcsname}
+       {}}%
   \endgroup}
 
 \long\def\blx@namebreak#1&{}
