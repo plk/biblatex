@@ -2441,26 +2441,30 @@
 \protected\def\blx@imc@savenamecs{%
   \@ifstar{\blx@savedatacs{name}}{\global\blx@savedatacs{name}}}
 
-% [<msform>][<mslang>]{<field>}{<true>}{<false>}
-% \def\blx@imc@iffieldundef#1{%
-%   \ifcsundef{abx@field@#1}}
-\def\blx@imc@iffieldundef{%
+% {field|list|name}[<msform>][<mslang>]{<field>}{<true>}{<false>}
+\def\blx@ifmsundef#1{%
   \@ifnextchar[%\]
-    {\blx@imc@iffieldundef@ii}
-    {\blx@imc@iffieldundef@i}}
-\def\blx@imc@iffieldundef@i#1{%
-  \ifcsundef{abx@field@#1}}
-\DeclareExpandableDocumentCommand{\blx@imc@iffieldundef@ii}
-  {O{\blx@msform}O{\blx@mslang}m}
-  {\ifcsundef{abx@field@#1@#2@#3}}
+    {\blx@imc@ifmsundef@ii{#1}}
+    {\blx@imc@ifmsundef@i{#1}}}
+\def\blx@imc@ifmsundef@i#1#2{%
+  \ifcsundef{abx@#1@#2}}
+\DeclareExpandableDocumentCommand{\blx@imc@ifmsundef@ii}
+  {m O{\blx@msform} O{\blx@mslang} m}
+  {\blx@imc@ifmsentryfield{#4}
+    {\ifcsundef{abx@#1@#2@#3@#4}}
+    {\ifcsundef{abx@#1@@@#4}}}
 
-% {<plainlist>}{<true>}{<false>}
-\def\blx@imc@iflistundef#1{%
-  \ifcsundef{abx@list@#1}}
+% [<msform>][<mslang>]{<field>}{<true>}{<false>}
+\def\blx@imc@iffieldundef{%
+  \blx@ifmsundef{field}}
 
-% {<namelist>}{<true>}{<false>}
-\def\blx@imc@ifnameundef#1{%
-  \ifcsundef{abx@name@#1}}
+% [<msform>][<mslang>]{<plainlist>}{<true>}{<false>}
+\def\blx@imc@iflistundef{%
+  \blx@ifmsundef{list}}
+
+% [<msform>][<mslang>]{<namelist>}{<true>}{<false>}
+\def\blx@imc@ifnameundef{%
+  \blx@ifmsundef{name}}
 
 % {<field1>}{<field2>}{<true>}{<false>}
 \def\blx@imc@iffieldsequal#1#2{%
@@ -4469,8 +4473,10 @@
         \blx@theformat{#2}%
         \blx@endunit}}}
 
+% [<format>][<msform>][<mslang>]{field}
+% O{} is an optional arg which defaults to nothing rather than xparse "-NoValue-"  
 \DeclareExpandableDocumentCommand{\blx@imc@printfield}
-  {O{}O{\blx@msform}O{\blx@mslang}m}
+  {O{} O{\blx@msform} O{\blx@mslang} m}
   {\blx@imc@iffieldundef[#2][#3]{#4}
     {\blx@nounit}
     {\blx@getformat\blx@theformat{ffd}{#1}{#4}%
@@ -4482,23 +4488,28 @@
         \edef\currentmslang{#3}%
         \letcs\currentmsforms{abx@fieldmsforms@#4}%
         \letcs\currentmslangs{abx@fieldmslangs@#4}%
-        % begin language for field mslang
-        \edef\blx@tempa{\csuse{blx@msmaplang@#3}}%
-        \ifdef\blx@thelangenv
-          {\csuse{abx@extras@\blx@tempa}%
-           \csuse{abx@strings@\blx@tempa}%
-           \blx@hook@initlang
-           \csname\blx@thelangenv\expandafter\endcsname\expandafter{\blx@tempa}}
-          {}%
-        \expandafter\expandafter
-        \expandafter\blx@theformat
-        \expandafter\expandafter
-        \expandafter{\csname abx@field@#2@#3@#4\endcsname}%
-        % end language for field mslang
-        \ifdef\blx@thelangenv
-          {\blx@hook@endlang
-           \csname end\blx@thelangenv\endcsname}
-          {}%
+        \blx@imc@ifmsentryfield{#4}
+          {% begin language for field mslang
+           \edef\blx@tempa{\csuse{blx@msmaplang@#3}}%
+           \ifdef\blx@thelangenv
+             {\csuse{abx@extras@\blx@tempa}%
+              \csuse{abx@strings@\blx@tempa}%
+              \blx@hook@initlang
+              \csname\blx@thelangenv\expandafter\endcsname\expandafter{\blx@tempa}}
+             {}%
+           \expandafter\expandafter
+           \expandafter\blx@theformat
+           \expandafter\expandafter
+           \expandafter{\csname abx@field@#2@#3@#4\endcsname}%
+           % end language for field mslang
+           \ifdef\blx@thelangenv
+             {\blx@hook@endlang
+              \csname end\blx@thelangenv\endcsname}
+             {}}
+          {\expandafter\expandafter
+           \expandafter\blx@theformat
+           \expandafter\expandafter
+           \expandafter{\csname abx@field@@@#4\endcsname}}%
         \blx@endunit}}}
   
 % [<format>]{<field>}
@@ -4523,50 +4534,49 @@
        {\blx@nounit}}
     {\blx@nounit}}
 
-% {<macro>}[<format>][<start>-<stop>]
-% => <macro>{<format>}{<start>}{<stop>}
-\def\blx@listargs#1{%
-  \@ifnextchar[%]
-    {\blx@listargs@i{#1}}
-    {#1{}{}{}}}
-
-\def\blx@listargs@i#1[#2]{%
-  \@ifnextchar[%]
-    {\blx@listargs@ii{#1}{#2}}
-    {#1{#2}{}{}}}
-
-\def\blx@listargs@ii#1#2[#3]{%
-  \blx@listargs@iii{#1}{#2}#3&}
-
-\def\blx@listargs@iii#1#2#3-#4&{%
-  #1{#2}{#3}{#4}}
-
+% {<macro>}[<format>][<start>-<stop>][<msform>][<mslang>]
+% => <macro>{<format>}{<start>}{<stop>}{<msform>}{<mslang>}
+\DeclareDocumentCommand\blx@listargs
+  {m O{} >{\SplitArgument{1}{-}}O{} O{\blx@msform} O{\blx@mslang}}
+  {\let\Start\@empty%
+   \let\Stop\@empty%
+   \ifblank{#3}
+     {}%
+     {\edef\Start{\@firstoftwo#3}%
+      \edef\Stop{\@secondoftwo#3}}%
+   \expandafter\IfNoValueTF\expandafter{\Stop}% Work around bug in xparse
+     {\def\Stop{}}
+     {}%
+    \protected@edef\z{\noexpand#1{#2}{\Start}{\Stop}{#4}{#5}}\z}
+  
 % [<format>][<start>-<stop>]{<namelist>}
 \protected\def\blx@imc@printnames{%
   \blx@listargs\blx@printnames}
 
-% {<format>}{<start>}{<stop>}{<namelist>}
-\def\blx@printnames#1#2#3#4{%
-  \blx@imc@ifnameundef{#4}
+% {<format>}{<start>}{<stop>}{<msform>}{<mslang>}{<namelist>}
+\def\blx@printnames#1#2#3#4#5#6{%
+  \blx@imc@ifnameundef[#4][#5]{#6}
     {\blx@nounit}
-    {\blx@getformat\blx@thewrapperformat{nwd}{#1}{#4}%
+    {\blx@getformat\blx@thewrapperformat{nwd}{#1}{#6}%
      \ifdefvoid\blx@thewrapperformat
        {\blx@nounit}
-       {\blx@getformat\blx@theformat{nfd}{#1}{#4}%
+       {\blx@getformat\blx@theformat{nfd}{#1}{#6}%
         \ifdefvoid\blx@theformat
           {\blx@nounit}
           {\blx@begunit
-           \blx@namesetup{#2}{#3}{#4}%
+           \blx@namesetup{#2}{#3}{#4}{#5}{#6}%
            \blx@thewrapperformat{\expandafter\blx@nameparser\blx@thedata{}&}%
            \blx@endunit}}}}
 
-\def\blx@namesetup#1#2#3{%
-  \def\currentname{#3}%
-  \letcs\currentmsforms{abx@fieldmsforms@#3}%
-  \letcs\currentmslangs{abx@fieldmslangs@#3}%
+\def\blx@namesetup#1#2#3#4#5{%
+  \def\currentname{#5}%
+  \edef\currentmsform{#3}%
+  \edef\currentmslang{#4}%
+  \letcs\currentmsforms{abx@fieldmsforms@#5}%
+  \letcs\currentmslangs{abx@fieldmslangs@#5}%
   \c@listcount\@ne
-  \c@listtotal\csname c@#3\endcsname
-  \blx@namesetup@i{#3}%
+  \c@listtotal\csname c@#5\endcsname
+  \blx@namesetup@i{#3}{#4}{#5}%
   \ifblank{#1}
     {\c@liststart\@ne}
     {\ifnum#1<\@ne
@@ -4593,11 +4603,14 @@
      \fi}%
   \blx@namecodes}
 
-\def\blx@namesetup@i#1{%
-  \expandafter\expandafter
-  \expandafter\blx@namesetup@ii\csname abx@name@@@#1\endcsname}
+\def\blx@namesetup@i#1#2#3{%
+  \blx@imc@ifmsentryfield{#3}
+    {\expandafter\expandafter
+     \expandafter\blx@namesetup@ii\csname abx@name@#1@#2@#3\endcsname}
+    {\expandafter\expandafter
+     \expandafter\blx@namesetup@ii\csname abx@name@@@#3\endcsname}}
 
-\def\blx@namesetup@ii#1#2{%
+ \def\blx@namesetup@ii#1#2{%
   \c@uniquelist\z@
   \ifblank{#1}
     {}
@@ -4659,7 +4672,24 @@
     {\blx@namebreak}
     {\ifnum\c@listcount<\c@liststart
      \else
-       \blx@nameparser@i#1%
+        \blx@imc@ifmsentryfield{\currentname}
+          {% begin language for list mslang
+           \edef\blx@tempa{\csuse{blx@msmaplang@\currentmslang}}%
+           \ifdef\blx@thelangenv
+             {\csuse{abx@extras@\blx@tempa}%
+              \csuse{abx@strings@\blx@tempa}%
+              \blx@hook@initlang
+              \csname\blx@thelangenv\expandafter\endcsname\expandafter{\blx@tempa}}
+            {}}
+          {}%
+        \blx@nameparser@i#1%
+        \blx@imc@ifmsentryfield{\currentname}
+          {% end language for list mslang
+           \ifdef\blx@thelangenv
+            {\blx@hook@endlang
+             \csname end\blx@thelangenv\endcsname}
+            {}}
+          {}%  
      \fi
      \advance\c@listcount\@ne
      \ifnum\c@listcount>\c@liststop
@@ -4691,28 +4721,32 @@
 \protected\def\blx@imc@printlist{%
   \blx@listargs\blx@printlist}
 
-% {<format>}{<start>}{<stop>}{<plainlist>}
-\def\blx@printlist#1#2#3#4{%
-  \blx@imc@iflistundef{#4}
+% {<format>}{<start>}{<stop>}{<msform>}{<mslang>}{<plainlist>}
+\def\blx@printlist#1#2#3#4#5#6{%
+  \blx@imc@iflistundef[#4][#5]{#6}
     {\blx@nounit}
-    {\blx@getformat\blx@thewrapperformat{lwd}{#1}{#4}%
+    {\blx@getformat\blx@thewrapperformat{lwd}{#1}{#6}%
      \ifdefvoid\blx@thewrapperformat
        {\blx@nounit}
-       {\blx@getformat\blx@theformat{lfd}{#1}{#4}%
+       {\blx@getformat\blx@theformat{lfd}{#1}{#6}%
         \ifdefvoid\blx@theformat
           {\blx@nounit}
           {\blx@begunit
-           \blx@listsetup{#2}{#3}{#4}%
+           \blx@listsetup{#2}{#3}{#4}{#5}{#6}%
            \blx@thewrapperformat{\expandafter\blx@listparser\blx@thedata{}&}%
            \blx@endunit}}}}
 
-\def\blx@listsetup#1#2#3{%
-  \def\currentlist{#3}%
-  \letcs\currentmsforms{abx@fieldmsforms@#3}%
-  \letcs\currentmslangs{abx@fieldmslangs@#3}%
+\def\blx@listsetup#1#2#3#4#5{%
+  \def\currentlist{#5}%
+  \edef\currentmsform{#3}%
+  \edef\currentmslang{#4}%
+  \letcs\currentmsforms{abx@fieldmsforms@#5}%
+  \letcs\currentmslangs{abx@fieldmslangs@#5}%
   \c@listcount\@ne
-  \expandafter\c@listtotal\csname c@#3\endcsname
-  \letcs\blx@thedata{abx@list@@@#3}%
+  \expandafter\c@listtotal\csname c@#5\endcsname
+  \blx@imc@ifmsentryfield{#5}
+    {\letcs\blx@thedata{abx@list@#3@#4@#5}}
+    {\letcs\blx@thedata{abx@list@@@#5}}%  
   \ifblank{#1}
     {\c@liststart\@ne}
     {\ifnum#1<\@ne
@@ -4739,18 +4773,18 @@
 \protected\def\blx@imc@indexlist{%
   \blx@listargs\blx@indexlist}
 
-% {<format>}{<start>}{<stop>}{<plainlist>}
-\def\blx@indexlist#1#2#3#4{%
-  \blx@imc@iflistundef{#4}
+% {<format>}{<start>}{<stop>}{<msform>}{<mslang>}{<plainlist>}
+\def\blx@indexlist#1#2#3#4#5#6{%
+  \blx@imc@iflistundef[#4][#5]{#6}
     {}
-    {\blx@getformat\blx@thewrapperformat{lxd}{#1}{#4}%
+    {\blx@getformat\blx@thewrapperformat{lxd}{#1}{#6}%
      \ifdefvoid\blx@thewrapperformat
        {}
-       {\blx@getformat\blx@theformat{lid}{#1}{#4}%
+       {\blx@getformat\blx@theformat{lid}{#1}{#6}%
         \ifdefvoid\blx@theformat
           {}
           {\begingroup
-           \blx@listsetup{#2}{#3}{#4}%
+           \blx@listsetup{#2}{#3}{#4}{#5}{#6}%
            \expandafter\blx@listparser\blx@thedata{}&%
            \endgroup}}}}
 
@@ -4760,7 +4794,24 @@
     {\blx@listbreak}
     {\ifnum\c@listcount<\c@liststart
      \else
-       \blx@theformat{#1}%
+        \blx@imc@ifmsentryfield{\currentlist}
+          {% begin language for list mslang
+           \edef\blx@tempa{\csuse{blx@msmaplang@\currentmslang}}%
+           \ifdef\blx@thelangenv
+             {\csuse{abx@extras@\blx@tempa}%
+              \csuse{abx@strings@\blx@tempa}%
+              \blx@hook@initlang
+              \csname\blx@thelangenv\expandafter\endcsname\expandafter{\blx@tempa}}
+            {}}
+          {}%
+        \blx@theformat{#1}%
+        \blx@imc@ifmsentryfield{\currentlist}
+          {% end language for list mslang
+           \ifdef\blx@thelangenv
+            {\blx@hook@endlang
+             \csname end\blx@thelangenv\endcsname}
+            {}}
+          {}%  
      \fi
      \advance\c@listcount\@ne
      \ifnum\c@listcount>\c@liststop
@@ -7430,7 +7481,6 @@
 % and so we can detect multiscript fields simply
 % by the presence of a bracket here
 \protected\long\def\blx@bbl@msdef@i#1[#2][#3]{%
-  %\csuse{blx@bbl@#1def}{}{}}
   \csuse{blx@bbl@#1def}{#2}{#3}}
 
 % Biber always makes the msform/mslang of \fieldsource explicit
