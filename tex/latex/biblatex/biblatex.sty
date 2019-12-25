@@ -4484,12 +4484,16 @@
        {\blx@nounit}
        {\blx@begunit
         \edef\currentfield{#4}%
-        \edef\currentmsform{#2}%
-        \edef\currentmslang{#3}%
-        \letcs\currentmsforms{abx@fieldmsforms@#4}%
-        \letcs\currentmslangs{abx@fieldmslangs@#4}%
+        \let\currentmsform\@empty
+        \let\currentmslang\@empty
+        \let\currentmsforms\@empty
+        \let\currentmslangs\@empty
         \blx@imc@ifmsentryfield{#4}
           {% begin language for field mslang
+           \edef\currentmsform{#2}%
+           \edef\currentmslang{#3}%
+           \letcs\currentmsforms{abx@fieldmsforms@#4}%
+           \letcs\currentmslangs{abx@fieldmslangs@#4}%
            \edef\blx@tempa{\csuse{blx@msmaplang@#3}}%
            \ifdef\blx@thelangenv
              {\csuse{abx@extras@\blx@tempa}%
@@ -4570,10 +4574,10 @@
 
 \def\blx@namesetup#1#2#3#4#5{%
   \def\currentname{#5}%
-  \edef\currentmsform{#3}%
-  \edef\currentmslang{#4}%
-  \letcs\currentmsforms{abx@fieldmsforms@#5}%
-  \letcs\currentmslangs{abx@fieldmslangs@#5}%
+  \let\currentmsform\@empty
+  \let\currentmslang\@empty
+  \let\currentmsforms\@empty
+  \let\currentmslangs\@empty
   \c@listcount\@ne
   \c@listtotal\csname c@#5\endcsname
   \blx@namesetup@i{#3}{#4}{#5}%
@@ -4605,7 +4609,11 @@
 
 \def\blx@namesetup@i#1#2#3{%
   \blx@imc@ifmsentryfield{#3}
-    {\expandafter\expandafter
+    {\edef\currentmsform{#1}%
+     \edef\currentmslang{#2}%
+     \letcs\currentmsforms{abx@fieldmsforms@#3}%
+     \letcs\currentmslangs{abx@fieldmslangs@#3}%
+     \expandafter\expandafter
      \expandafter\blx@namesetup@ii\csname abx@name@#1@#2@#3\endcsname}
     {\expandafter\expandafter
      \expandafter\blx@namesetup@ii\csname abx@name@@@#3\endcsname}}
@@ -4751,14 +4759,18 @@
 
 \def\blx@listsetup#1#2#3#4#5{%
   \def\currentlist{#5}%
-  \edef\currentmsform{#3}%
-  \edef\currentmslang{#4}%
-  \letcs\currentmsforms{abx@fieldmsforms@#5}%
-  \letcs\currentmslangs{abx@fieldmslangs@#5}%
+  \let\currentmsform\@empty
+  \let\currentmslang\@empty
+  \let\currentmsforms\@empty
+  \let\currentmslangs\@empty
   \c@listcount\@ne
   \expandafter\c@listtotal\csname c@#5\endcsname
   \blx@imc@ifmsentryfield{#5}
-    {\letcs\blx@thedata{abx@list@#3@#4@#5}}
+    {\letcs\blx@thedata{abx@list@#3@#4@#5}%
+     \edef\currentmsform{#3}%
+     \edef\currentmslang{#4}%
+     \letcs\currentmsforms{abx@fieldmsforms@#5}%
+     \letcs\currentmslangs{abx@fieldmslangs@#5}}
     {\letcs\blx@thedata{abx@list@@@#5}}%  
   \ifblank{#1}
     {\c@liststart\@ne}
@@ -7590,8 +7602,10 @@
   \blx@bbl@verbadd@i}
 
 % [<msform>][<mslang>]{<scope>}{<field>}{<name>}{<itemcount>}{<part>}{<isliteral>}{<value>}
-\protected\def\blx@bbl@annotationdef[#1][#2]#3#4#5#6#7#8#9{%
-  \ifstrequal{#3}{field}
+% No need to default form/lang as, if present, they are always defined by biber
+\DeclareExpandableDocumentCommand{\blx@bbl@annotationdef}
+  {O{} O{} m m m m m m m}
+  {\ifstrequal{#3}{field}
      {\csxappto\blx@bbl@data{%
         \listadd\noexpand\abx@annotation@defined{field@#1@#2@#4@#5}}%
       \ifstrequal{#8}{1}
@@ -7622,45 +7636,26 @@
           \docsvlist{#9}}}}
      {}}
 
-% [<field>][<annotationname>][<msform>][<mslang>]
-\def\blx@imc@getfieldannotation{%
-  \let\blx@tempa\@empty
-  \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
-  \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
-  \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
-  \@ifnextchar[%]
-   {\blx@imc@getfieldannotation@i}
-   {\blx@imc@getfieldannotation@i[\blx@tempa]}}
+% [<msform>][<mslang>][<field>][<annotationname>]
+%\def\blx@imc@getfieldannotation{%
+\DeclareDocumentCommand{\blx@imc@getfieldannotation}
+  {O{\blx@msform} O{\blx@mslang} O{} O{default}} 
+  {\let\blx@tempa\@empty
+   \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
+   \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
+   \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
+   \ifblank{#3}
+     {}
+     {\def\blx@tempa{#3}}%
+   \blx@resolve@annotation@label{\blx@tempa}%   
+   \expandafter\blx@imc@ifmsentryfield\blx@tempa%
+     {\edef\blx@tempc{abx@annotation@literal@field@#1@#2@\blx@tempa @#4}}
+     {\edef\blx@tempc{abx@annotation@literal@field@\blx@tempa @#4}}%
+   \ifcsdef{\blx@tempc}
+     {\csuse{\blx@tempc}}
+     {}}
 
-\def\blx@imc@getfieldannotation@i[#1]{%
-  \ifstrempty{#1}
-    {\blx@imc@getfieldannotation@i[\blx@tempa]}
-    {\@ifnextchar[%]
-       {\blx@imc@getfieldannotation@ii{#1}}
-       {\blx@imc@getfieldannotation@ii{#1}[default]}}}
-
-\def\blx@imc@getfieldannotation@ii#1[#2]{%
-  \ifstrempty{#2}
-    {\blx@imc@getfieldannotation@ii{#1}[default]}
-    {\@ifnextchar[%]
-       {\blx@imc@getfieldannotation@iii{#1}{#2}}
-       {\blx@imc@getfieldannotation@iii{#1}{#2}[\blx@msform]}}}
-
-\def\blx@imc@getfieldannotation@iii#1#2[#3]{%
-  \ifstrempty{#3}
-    {\blx@imc@getfieldannotation@iii{#1}{#2}[\blx@msform]}
-    {\@ifnextchar[%]
-       {\blx@imc@getfieldannotation@iv{#1}{#2}{#3}}
-       {\blx@imc@getfieldannotation@iv{#1}{#2}{#3}[\blx@mslang]}}}
-
-\def\blx@imc@getfieldannotation@iv#1#2#3[#4]{%
-  \def\blx@tempb{#1}%
-  \blx@resolve@annotation@label{\blx@tempb}%
-  \ifcsdef{abx@annotation@literal@field@\blx@tempa @#3@#4@#2}
-    {\csuse{abx@annotation@literal@field@\blx@tempa @#3@#4@#2}}
-    {}}
-
-% [<field>][<annotationname>][<item>][<msform>][<mslang>]
+% [<field>][<annotationname>][<item>]
 \def\blx@imc@getitemannotation{%
   \let\blx@tempa\@empty
   \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
@@ -7669,14 +7664,12 @@
   \@ifnextchar[%]
    {\blx@imc@getitemannotation@i}
    {\blx@imc@getitemannotation@i[\blx@tempa]}}
-
 \def\blx@imc@getitemannotation@i[#1]{%
   \ifstrempty{#1}
     {\blx@imc@getitemannotation@i[\blx@tempa]}
     {\@ifnextchar[%]
       {\blx@imc@getitemannotation@ii{#1}}
       {\blx@imc@getitemannotation@ii{#1}[default]}}}
-
 \def\blx@imc@getitemannotation@ii#1[#2]{%
   \ifstrempty{#2}
     {\def\blx@tempb{default}}
@@ -7684,29 +7677,14 @@
   \@ifnextchar[%]
     {\blx@imc@getitemannotation@iii{#1}{\blx@tempb}}
     {\blx@imc@getitemannotation@iii{#1}{\blx@tempb}[\the\value{listcount}]}}
-  
 \def\blx@imc@getitemannotation@iii#1#2[#3]{%
-  \ifstrempty{#3}
-    {\blx@imc@getitemannotation@iii{#1}{#2}[\the\value{listcount}]}
-    {\@ifnextchar[%]
-       {\blx@imc@getitemannotation@iv{#1}{#2}{#3}}
-       {\blx@imc@getitemannotation@iv{#1}{#2}{#3}[\blx@msform]}}}
-
-\def\blx@imc@getitemannotation@iv#1#2#3[#4]{%
-  \ifstrempty{#4}
-    {\blx@imc@getitemannotation@iv{#1}{#2}{#3}[\blx@msform]}
-    {\@ifnextchar[%]
-       {\blx@imc@getitemannotation@v{#1}{#2}{#3}{#4}}
-       {\blx@imc@getitemannotation@v{#1}{#2}{#3}{#4}[\blx@mslang]}}}
-  
-\def\blx@imc@getitemannotation@v#1#2#3#4[#5]{%
   \def\blx@tempc{#1}%
   \blx@resolve@annotation@label{\blx@tempc}%
-  \ifcsdef{abx@annotation@literal@item@\blx@tempa @#4@#5@#2@#3}
-    {\csuse{abx@annotation@literal@item@\blx@tempa @#4@#5@#2@#3}}
+  \ifcsdef{abx@annotation@literal@item@\blx@tempc @#2@#3}
+    {\csuse{abx@annotation@literal@item@\blx@tempc @#2@#3}}
     {}}
 
-% [<field>][<annotationname>][<item>][<msform>][<mslang>]{<part>}
+% [<field>][<annotationname>][<item>]{<part>}
 \def\blx@imc@getpartannotation{%
   \let\blx@tempa\@empty
   \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
@@ -7715,14 +7693,12 @@
   \@ifnextchar[%]
     {\blx@imc@getpartannotation@i}
     {\blx@imc@getpartannotation@i[\blx@tempa]}}
-
 \def\blx@imc@getpartannotation@i[#1]{%
   \ifstrempty{#1}
     {\blx@imc@getpartannotation@i[\blx@tempa]}
     {\@ifnextchar[%]
       {\blx@imc@getpartannotation@ii{#1}}
       {\blx@imc@getpartannotation@ii{#1}[default]}}}
-
 \def\blx@imc@getpartannotation@ii#1[#2]{%
  \ifstrempty{#2}
    {\def\blx@tempb{default}}
@@ -7730,32 +7706,17 @@
   \@ifnextchar[%]
     {\blx@imc@getpartannotation@iii{#1}{\blx@tempb}}
     {\blx@imc@getpartannotation@iii{#1}{\blx@tempb}[\the\value{listcount}]}}
-
-\def\blx@imc@getpartannotation@iii#1#2[#3]{%
+\def\blx@imc@getpartannotation@iii#1#2[#3]#4{%
   \ifstrempty{#3}
-    {\blx@imc@getpartannotation@iii{#1}{#2}[\the\value{listcount}]}
-    {\@ifnextchar[%]
-       {\blx@imc@getpartannotation@iv{#1}{#2}{#3}}
-       {\blx@imc@getpartannotation@iv{#1}{#2}{#3}[\blx@msform]}}}
-
-\def\blx@imc@getpartannotation@iv#1#2#3[#4]{%
-  \ifstrempty{#4}
-    {\blx@imc@getpartannotation@iv{#1}{#2}{#3}[\blx@msform]}
-    {\@ifnextchar[%]
-       {\blx@imc@getpartannotation@v{#1}{#2}{#3}{#4}}
-       {\blx@imc@getpartannotation@v{#1}{#2}{#3}{#4}[\blx@mslang]}}}
-
-\def\blx@imc@getpartannotation@v#1#2#3#4[#5]#6{%
-  \ifstrempty{#5}
-    {\def\blx@tempc{\blx@mslang}}
-    {\def\blx@tempc{#5}}%
+    {\def\blx@tempc{\the\value{listcount}}}
+    {\def\blx@tempc{#3}}%
   \def\blx@tempd{#1}%
   \blx@resolve@annotation@label{\blx@tempd}%
-  \ifcsdef{abx@annotation@literal@part@\blx@tempa @#4@\blx@tempc @#2@#3@#4}
-    {\csuse{abx@annotation@literal@part@\blx@tempa @#4@\blx@tempc @#2@#3@#4}}
+  \ifcsdef{abx@annotation@literal@part@\blx@tempd @#2@\blx@tempc @#4}
+    {\csuse{abx@annotation@literal@part@\blx@tempd @#2@\blx@tempc @#4}}
     {}}
 
-% [<field>][<annotationname>][<msform>][<mslang>]{<annotation>}
+% [<field>][<annotationname>]{<annotation>}
 \def\blx@imc@iffieldannotation{%
   \let\blx@tempa\@empty
   \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
@@ -7764,37 +7725,21 @@
  \@ifnextchar[%]
     {\blx@imc@iffieldannotation@i}
     {\blx@imc@iffieldannotation@i[\blx@tempa]}}
-
 \def\blx@imc@iffieldannotation@i[#1]{%
   \ifstrempty{#1}
     {\blx@imc@iffieldannotation@i[\blx@tempa]}
     {\@ifnextchar[%]
       {\blx@imc@iffieldannotation@ii{#1}}
       {\blx@imc@iffieldannotation@ii{#1}[default]}}}
-
-\def\blx@imc@iffieldannotation@ii#1[#2]{%
+\def\blx@imc@iffieldannotation@ii#1[#2]#3{%
   \ifstrempty{#2}
-    {\blx@imc@iffieldannotation@ii{#1}[default]}
-    {\@ifnextchar[%]
-       {\blx@imc@iffieldannotation@iii{#1}{#2}}
-       {\blx@imc@iffieldannotation@iii{#1}{#2}[\blx@msform]}}}
-
-\def\blx@imc@iffieldannotation@iii#1#2[#3]{%
-  \ifstrempty{#3}
-    {\blx@imc@iffieldannotation@iii{#1}{#2}[\blx@msform]}
-    {\@ifnextchar[%]
-       {\blx@imc@iffieldannotation@iv{#1}{#2}{#3}}
-       {\blx@imc@iffieldannotation@iv{#1}{#2}{#3}[\blx@mslang]}}}
-  
-\def\blx@imc@iffieldannotation@iv#1#2#3[#4]#5{%
-  \ifstrempty{#4}
-    {\def\blx@tempb{\blx@mslang}}
-    {\def\blx@tempb{#4}}%
+    {\def\blx@tempb{default}}
+    {\def\blx@tempb{#2}}%
   \def\blx@tempc{#1}%
   \blx@resolve@annotation@label{\blx@tempc}%
-  \ifinlistcs{#5}{abx@annotation@field@\blx@tempa @#3@\blx@tempb @#2}}
+  \ifinlistcs{#3}{abx@annotation@field@\blx@tempc @\blx@tempb}}
 
-% [<field>][<annotationname>][<item>][<msform>][<mslang>]{<annotation>}
+% [<field>][<annotationname>][<item>]{<annotation>}
 \def\blx@imc@ifitemannotation{%
   \let\blx@tempa\@empty
   \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
@@ -7803,14 +7748,12 @@
    \@ifnextchar[%]
     {\blx@imc@ifitemannotation@i}
     {\blx@imc@ifitemannotation@i[\blx@tempa]}}
-
 \def\blx@imc@ifitemannotation@i[#1]{%
   \ifstrempty{#1}
     {\blx@imc@ifitemannotation@i[\blx@tempa]}
     {\@ifnextchar[%]
       {\blx@imc@ifitemannotation@ii{#1}}
       {\blx@imc@ifitemannotation@ii{#1}[default]}}}
-
 \def\blx@imc@ifitemannotation@ii#1[#2]{%
   \ifstrempty{#2}
     {\def\blx@tempb{default}}
@@ -7818,30 +7761,12 @@
   \@ifnextchar[%]
     {\blx@imc@ifitemannotation@iii{#1}{\blx@tempb}}
     {\blx@imc@ifitemannotation@iii{#1}{\blx@tempb}[\the\value{listcount}]}}
-  
-\def\blx@imc@ifitemannotation@iii#1#2[#3]{%
-  \ifstrempty{#3}
-    {\blx@imc@ifitemannotation@iii{#1}{#2}[\the\value{listcount}]}
-    {\@ifnextchar[%]
-       {\blx@imc@ifitemannotation@iv{#1}{#2}{#3}}
-       {\blx@imc@ifitemannotation@iv{#1}{#2}{#3}[\blx@msform]}}}
-
-\def\blx@imc@ifitemannotation@iv#1#2#3[#4]{%
-  \ifstrempty{#4}
-    {\blx@imc@ifitemannotation@iv{#1}{#2}{#3}[\blx@msform]}
-    {\@ifnextchar[%]
-       {\blx@imc@ifitemannotation@v{#1}{#2}{#3}{#4}}
-       {\blx@imc@ifitemannotation@v{#1}{#2}{#3}{#4}[\blx@mslang]}}}
-
-\def\blx@imc@ifitemannotation@v#1#2#3#4[#5]#6{%
-  \ifstrempty{#5}
-    {\def\blx@tempb{\blx@mslang}}
-    {\def\blx@tempb{#4}}%
+\def\blx@imc@ifitemannotation@iii#1#2[#3]#4{%
   \def\blx@tempc{#1}%
   \blx@resolve@annotation@label{\blx@tempc}%
-  \ifinlistcs{#6}{abx@annotation@item@\blx@tempa @#4@\blx@tempb @#2@#3}}
+  \ifinlistcs{#4}{abx@annotation@item@\blx@tempc @#2@#3}}
 
-% [<field>][<annotationname>][<item>][<msform>][<mslang>]{<part>}{<annotation>}
+% [<field>][<annotationname>][<item>]{<part>}{<annotation>}
 \def\blx@imc@ifpartannotation{%
   \let\blx@tempa\@empty
   \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
@@ -7850,14 +7775,12 @@
   \@ifnextchar[%]
     {\blx@imc@ifpartannotation@i}
     {\blx@imc@ifpartannotation@i[\blx@tempa]}}
-
 \def\blx@imc@ifpartannotation@i[#1]{%
   \ifstrempty{#1}
     {\blx@imc@ifpartannotation@i[\blx@tempa]}
     {\@ifnextchar[%]
       {\blx@imc@ifpartannotation@ii{#1}}
       {\blx@imc@ifpartannotation@ii{#1}[default]}}}
-
 \def\blx@imc@ifpartannotation@ii#1[#2]{%
  \ifstrempty{#2}
    {\def\blx@tempb{default}}
@@ -7865,30 +7788,15 @@
   \@ifnextchar[%]
     {\blx@imc@ifpartannotation@iii{#1}{\blx@tempb}}
     {\blx@imc@ifpartannotation@iii{#1}{\blx@tempb}[\the\value{listcount}]}}
-  
-\def\blx@imc@ifpartannotation@iii#1#2[#3]{%
+\def\blx@imc@ifpartannotation@iii#1#2[#3]#4#5{%
   \ifstrempty{#3}
-    {\blx@imc@ifpartannotation@iii{#1}{#2}[\the\value{listcount}]}
-    {\@ifnextchar[%]
-       {\blx@imc@ifpartannotation@iv{#1}{#2}{#3}}
-       {\blx@imc@ifpartannotation@iv{#1}{#2}{#3}[\blx@msform]}}}
-
-\def\blx@imc@ifpartannotation@iv#1#2#3[#4]{%
-  \ifstrempty{#4}
-    {\blx@imc@ifpartannotation@iv{#1}{#2}{#3}[\blx@msform]}
-    {\@ifnextchar[%]
-       {\blx@imc@ifpartannotation@v{#1}{#2}{#3}{#4}}
-       {\blx@imc@ifpartannotation@v{#1}{#2}{#3}{#4}[\blx@mslang]}}}
-
-\def\blx@imc@ifpartannotation@v#1#2#3#4[#5]#6#7{%
-  \ifstrempty{#5}
-    {\def\blx@tempc{\blx@mslang}}
-    {\def\blx@tempc{#5}}%
+    {\def\blx@tempc{\the\value{listcount}}}
+    {\def\blx@tempc{#3}}%
   \def\blx@tempd{#1}%
   \blx@resolve@annotation@label{\blx@tempd}%
-  \ifinlistcs{#7}{abx@annotation@part@\blx@tempa @#4@\blx@tempc @#2@#3@#6}}
+  \ifinlistcs{#5}{abx@annotation@part@\blx@tempd @#2@\blx@tempc @#4}}
 
-% [<field>][<annotationname>][<msform>][<mslang>]
+% [<field>][<annotationname>]
 \def\blx@imc@hasfieldannotation{%
   \let\blx@tempa\@empty
   \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
@@ -7897,37 +7805,21 @@
  \@ifnextchar[%]
     {\blx@imc@hasfieldannotation@i}
     {\blx@imc@hasfieldannotation@i[\blx@tempa]}}
-
 \def\blx@imc@hasfieldannotation@i[#1]{%
   \ifstrempty{#1}
     {\blx@imc@hasfieldannotation@i[\blx@tempa]}
     {\@ifnextchar[%]
       {\blx@imc@hasfieldannotation@ii{#1}}
       {\blx@imc@hasfieldannotation@ii{#1}[default]}}}
-
 \def\blx@imc@hasfieldannotation@ii#1[#2]{%
   \ifstrempty{#2}
-    {\blx@imc@hasfieldannotation@ii{#1}[default]}
-    {\@ifnextchar[%]
-       {\blx@imc@hasfieldannotation@iii{#1}{#2}}
-       {\blx@imc@hasfieldannotation@iii{#1}{#2}[\blx@msform]}}}
-
-\def\blx@imc@hasfieldannotation@iii#1#2[#3]{%
-  \ifstrempty{#3}
-    {\blx@imc@hasfieldannotation@iii{#1}{#2}[\blx@msform]}
-    {\@ifnextchar[%]
-       {\blx@imc@hasfieldannotation@iv{#1}{#2}{#3}}
-       {\blx@imc@hasfieldannotation@iv{#1}{#2}{#3}[\blx@mslang]}}}
-  
-\def\blx@imc@hasfieldannotation@iv#1#2#3[#4]{%
-  \ifstrempty{#4}
-    {\def\blx@tempb{\blx@mslang}}
-    {\def\blx@tempb{#4}}%
+    {\def\blx@tempb{default}}
+    {\def\blx@tempb{#2}}%
   \def\blx@tempc{#1}%
   \blx@resolve@annotation@label{\blx@tempc}%
-  \ifcsdef{abx@annotation@literal@field@\blx@tempa @#3\blx@tempb @#2}}
+  \ifcsdef{abx@annotation@literal@field@\blx@tempc @\blx@tempb}}
 
-% [<field>][<annotationname>][<item>][<msform>][<mslang>]
+% [<field>][<annotationname>][<item>]
 \def\blx@imc@hasitemannotation{%
   \let\blx@tempa\@empty
   \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
@@ -7936,14 +7828,12 @@
    \@ifnextchar[%]
     {\blx@imc@hasitemannotation@i}
     {\blx@imc@hasitemannotation@i[\blx@tempa]}}
-
 \def\blx@imc@hasitemannotation@i[#1]{%
   \ifstrempty{#1}
     {\blx@imc@hasitemannotation@i[\blx@tempa]}
     {\@ifnextchar[%]
       {\blx@imc@hasitemannotation@ii{#1}}
       {\blx@imc@hasitemannotation@ii{#1}[default]}}}
-
 \def\blx@imc@hasitemannotation@ii#1[#2]{%
   \ifstrempty{#2}
     {\def\blx@tempb{default}}
@@ -7951,30 +7841,12 @@
   \@ifnextchar[%]
     {\blx@imc@hasitemannotation@iii{#1}{\blx@tempb}}
     {\blx@imc@hasitemannotation@iii{#1}{\blx@tempb}[\the\value{listcount}]}}
-
 \def\blx@imc@hasitemannotation@iii#1#2[#3]{%
-  \ifstrempty{#3}
-    {\blx@imc@hasitemannotation@iii{#1}{#2}[\the\value{listcount}]}
-    {\@ifnextchar[%]
-       {\blx@imc@hasitemannotation@iv{#1}{#2}{#3}}
-       {\blx@imc@hasitemannotation@iv{#1}{#2}{#3}[\blx@msform]}}}
-
-\def\blx@imc@hasitemannotation@iv#1#2#3[#4]{%
-  \ifstrempty{#4}
-    {\blx@imc@hasitemannotation@iv{#1}{#2}{#3}[\blx@msform]}
-    {\@ifnextchar[%]
-       {\blx@imc@hasitemannotation@v{#1}{#2}{#3}{#4}}
-       {\blx@imc@hasitemannotation@v{#1}{#2}{#3}{#4}[\blx@mslang]}}}
-  
-\def\blx@imc@hasitemannotation@v#1#2#3#4[#5]{%
-  \ifstrempty{#5}
-    {\def\blx@tempb{\blx@mslang}}
-    {\def\blx@tempb{#5}}%
   \def\blx@tempc{#1}%
   \blx@resolve@annotation@label{\blx@tempc}%
-  \ifcsdef{abx@annotation@literal@item@\blx@tempa @#4@\blx@tempb @#2@#3}}
+  \ifcsdef{abx@annotation@literal@item@\blx@tempc @#2@#3}}
 
-% [<field>][<annotationname>][<item>][<msform>][<mslang>]{<part>}
+% [<field>][<annotationname>][<item>]{<part>}
 \def\blx@imc@haspartannotation{%
   \let\blx@tempa\@empty
   \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
@@ -7983,14 +7855,12 @@
   \@ifnextchar[%]
     {\blx@imc@haspartannotation@i}
     {\blx@imc@haspartannotation@i[\blx@tempa]}}
-
 \def\blx@imc@haspartannotation@i[#1]{%
   \ifstrempty{#1}
     {\blx@imc@haspartannotation@i[\blx@tempa]}
     {\@ifnextchar[%]
       {\blx@imc@haspartannotation@ii{#1}}
       {\blx@imc@haspartannotation@ii{#1}[default]}}}
-
 \def\blx@imc@haspartannotation@ii#1[#2]{%
  \ifstrempty{#2}
    {\def\blx@tempb{default}}
@@ -7998,28 +7868,412 @@
   \@ifnextchar[%]
     {\blx@imc@haspartannotation@iii{#1}{\blx@tempb}}
     {\blx@imc@haspartannotation@iii{#1}{\blx@tempb}[\the\value{listcount}]}}
-
-\def\blx@imc@haspartannotation@iii#1#2[#3]{%
+\def\blx@imc@haspartannotation@iii#1#2[#3]#4{%
   \ifstrempty{#3}
-    {\blx@imc@haspartannotation@iii{#1}{#2}[\the\value{listcount}]}
-    {\@ifnextchar[%]
-       {\blx@imc@haspartannotation@iv{#1}{#2}{#3}}
-       {\blx@imc@haspartannotation@iv{#1}{#2}{#3}[\blx@msform]}}}
-
-\def\blx@imc@haspartannotation@iv#1#2#3[#4]{%
-  \ifstrempty{#4}
-    {\blx@imc@haspartannotation@iv{#1}{#2}{#3}[\blx@msform]}
-    {\@ifnextchar[%]
-       {\blx@imc@haspartannotation@v{#1}{#2}{#3}{#4}}
-       {\blx@imc@haspartannotation@v{#1}{#2}{#3}{#4}[\blx@mslang]}}}
-  
-\def\blx@imc@haspartannotation@v#1#2#3#4[#5]#6{%
-  \ifstrempty{#5}
-    {\def\blx@tempc{\blx@mslang}}
-    {\def\blx@tempc{#5}}%
+    {\def\blx@tempc{\the\value{listcount}}}
+    {\def\blx@tempc{#3}}%
   \def\blx@tempd{#1}%
   \blx@resolve@annotation@label{\blx@tempd}%
-  \ifcsdef{abx@annotation@literal@part@\blx@tempa @#4@\blx@tempc @#2@#3@#6}}
+  \ifcsdef{abx@annotation@literal@part@\blx@tempd @#2@\blx@tempc @#4}}
+   
+% % [<field>][<annotationname>][<msform>][<mslang>]
+% \def\blx@imc@getfieldannotation{%
+%   \let\blx@tempa\@empty
+%   \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
+%   \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
+%   \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
+%   \@ifnextchar[%]
+%    {\blx@imc@getfieldannotation@i}
+%    {\blx@imc@getfieldannotation@i[\blx@tempa]}}
+
+% \def\blx@imc@getfieldannotation@i[#1]{%
+%   \ifstrempty{#1}
+%     {\blx@imc@getfieldannotation@i[\blx@tempa]}
+%     {\@ifnextchar[%]
+%        {\blx@imc@getfieldannotation@ii{#1}}
+%        {\blx@imc@getfieldannotation@ii{#1}[default]}}}
+
+% \def\blx@imc@getfieldannotation@ii#1[#2]{%
+%   \ifstrempty{#2}
+%     {\blx@imc@getfieldannotation@ii{#1}[default]}
+%     {\@ifnextchar[%]
+%        {\blx@imc@getfieldannotation@iii{#1}{#2}}
+%        {\blx@imc@getfieldannotation@iii{#1}{#2}[\blx@msform]}}}
+
+% \def\blx@imc@getfieldannotation@iii#1#2[#3]{%
+%   \ifstrempty{#3}
+%     {\blx@imc@getfieldannotation@iii{#1}{#2}[\blx@msform]}
+%     {\@ifnextchar[%]
+%        {\blx@imc@getfieldannotation@iv{#1}{#2}{#3}}
+%        {\blx@imc@getfieldannotation@iv{#1}{#2}{#3}[\blx@mslang]}}}
+
+% \def\blx@imc@getfieldannotation@iv#1#2#3[#4]{%
+%   \def\blx@tempb{#1}%
+%   \blx@resolve@annotation@label{\blx@tempb}%
+%   \ifcsdef{abx@annotation@literal@field@\blx@tempa @#3@#4@#2}
+%     {\csuse{abx@annotation@literal@field@\blx@tempa @#3@#4@#2}}
+%     {}}
+
+% % [<field>][<annotationname>][<item>][<msform>][<mslang>]
+% \def\blx@imc@getitemannotation{%
+%   \let\blx@tempa\@empty
+%   \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
+%   \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
+%   \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
+%   \@ifnextchar[%]
+%    {\blx@imc@getitemannotation@i}
+%    {\blx@imc@getitemannotation@i[\blx@tempa]}}
+
+% \def\blx@imc@getitemannotation@i[#1]{%
+%   \ifstrempty{#1}
+%     {\blx@imc@getitemannotation@i[\blx@tempa]}
+%     {\@ifnextchar[%]
+%       {\blx@imc@getitemannotation@ii{#1}}
+%       {\blx@imc@getitemannotation@ii{#1}[default]}}}
+
+% \def\blx@imc@getitemannotation@ii#1[#2]{%
+%   \ifstrempty{#2}
+%     {\def\blx@tempb{default}}
+%     {\def\blx@tempb{#2}}%
+%   \@ifnextchar[%]
+%     {\blx@imc@getitemannotation@iii{#1}{\blx@tempb}}
+%     {\blx@imc@getitemannotation@iii{#1}{\blx@tempb}[\the\value{listcount}]}}
+  
+% \def\blx@imc@getitemannotation@iii#1#2[#3]{%
+%   \ifstrempty{#3}
+%     {\blx@imc@getitemannotation@iii{#1}{#2}[\the\value{listcount}]}
+%     {\@ifnextchar[%]
+%        {\blx@imc@getitemannotation@iv{#1}{#2}{#3}}
+%        {\blx@imc@getitemannotation@iv{#1}{#2}{#3}[\blx@msform]}}}
+
+% \def\blx@imc@getitemannotation@iv#1#2#3[#4]{%
+%   \ifstrempty{#4}
+%     {\blx@imc@getitemannotation@iv{#1}{#2}{#3}[\blx@msform]}
+%     {\@ifnextchar[%]
+%        {\blx@imc@getitemannotation@v{#1}{#2}{#3}{#4}}
+%        {\blx@imc@getitemannotation@v{#1}{#2}{#3}{#4}[\blx@mslang]}}}
+  
+% \def\blx@imc@getitemannotation@v#1#2#3#4[#5]{%
+%   \def\blx@tempc{#1}%
+%   \blx@resolve@annotation@label{\blx@tempc}%
+%   \ifcsdef{abx@annotation@literal@item@\blx@tempa @#4@#5@#2@#3}
+%     {\csuse{abx@annotation@literal@item@\blx@tempa @#4@#5@#2@#3}}
+%     {}}
+
+% % [<field>][<annotationname>][<item>][<msform>][<mslang>]{<part>}
+% \def\blx@imc@getpartannotation{%
+%   \let\blx@tempa\@empty
+%   \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
+%   \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
+%   \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
+%   \@ifnextchar[%]
+%     {\blx@imc@getpartannotation@i}
+%     {\blx@imc@getpartannotation@i[\blx@tempa]}}
+
+% \def\blx@imc@getpartannotation@i[#1]{%
+%   \ifstrempty{#1}
+%     {\blx@imc@getpartannotation@i[\blx@tempa]}
+%     {\@ifnextchar[%]
+%       {\blx@imc@getpartannotation@ii{#1}}
+%       {\blx@imc@getpartannotation@ii{#1}[default]}}}
+
+% \def\blx@imc@getpartannotation@ii#1[#2]{%
+%  \ifstrempty{#2}
+%    {\def\blx@tempb{default}}
+%    {\def\blx@tempb{#2}}%
+%   \@ifnextchar[%]
+%     {\blx@imc@getpartannotation@iii{#1}{\blx@tempb}}
+%     {\blx@imc@getpartannotation@iii{#1}{\blx@tempb}[\the\value{listcount}]}}
+
+% \def\blx@imc@getpartannotation@iii#1#2[#3]{%
+%   \ifstrempty{#3}
+%     {\blx@imc@getpartannotation@iii{#1}{#2}[\the\value{listcount}]}
+%     {\@ifnextchar[%]
+%        {\blx@imc@getpartannotation@iv{#1}{#2}{#3}}
+%        {\blx@imc@getpartannotation@iv{#1}{#2}{#3}[\blx@msform]}}}
+
+% \def\blx@imc@getpartannotation@iv#1#2#3[#4]{%
+%   \ifstrempty{#4}
+%     {\blx@imc@getpartannotation@iv{#1}{#2}{#3}[\blx@msform]}
+%     {\@ifnextchar[%]
+%        {\blx@imc@getpartannotation@v{#1}{#2}{#3}{#4}}
+%        {\blx@imc@getpartannotation@v{#1}{#2}{#3}{#4}[\blx@mslang]}}}
+
+% \def\blx@imc@getpartannotation@v#1#2#3#4[#5]#6{%
+%   \ifstrempty{#5}
+%     {\def\blx@tempc{\blx@mslang}}
+%     {\def\blx@tempc{#5}}%
+%   \def\blx@tempd{#1}%
+%   \blx@resolve@annotation@label{\blx@tempd}%
+%   \ifcsdef{abx@annotation@literal@part@\blx@tempa @#4@\blx@tempc @#2@#3@#4}
+%     {\csuse{abx@annotation@literal@part@\blx@tempa @#4@\blx@tempc @#2@#3@#4}}
+%     {}}
+
+% % [<field>][<annotationname>][<msform>][<mslang>]{<annotation>}
+% \def\blx@imc@iffieldannotation{%
+%   \let\blx@tempa\@empty
+%   \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
+%   \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
+%   \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
+%  \@ifnextchar[%]
+%     {\blx@imc@iffieldannotation@i}
+%     {\blx@imc@iffieldannotation@i[\blx@tempa]}}
+
+% \def\blx@imc@iffieldannotation@i[#1]{%
+%   \ifstrempty{#1}
+%     {\blx@imc@iffieldannotation@i[\blx@tempa]}
+%     {\@ifnextchar[%]
+%       {\blx@imc@iffieldannotation@ii{#1}}
+%       {\blx@imc@iffieldannotation@ii{#1}[default]}}}
+
+% \def\blx@imc@iffieldannotation@ii#1[#2]{%
+%   \ifstrempty{#2}
+%     {\blx@imc@iffieldannotation@ii{#1}[default]}
+%     {\@ifnextchar[%]
+%        {\blx@imc@iffieldannotation@iii{#1}{#2}}
+%        {\blx@imc@iffieldannotation@iii{#1}{#2}[\blx@msform]}}}
+
+% \def\blx@imc@iffieldannotation@iii#1#2[#3]{%
+%   \ifstrempty{#3}
+%     {\blx@imc@iffieldannotation@iii{#1}{#2}[\blx@msform]}
+%     {\@ifnextchar[%]
+%        {\blx@imc@iffieldannotation@iv{#1}{#2}{#3}}
+%        {\blx@imc@iffieldannotation@iv{#1}{#2}{#3}[\blx@mslang]}}}
+  
+% \def\blx@imc@iffieldannotation@iv#1#2#3[#4]#5{%
+%   \ifstrempty{#4}
+%     {\def\blx@tempb{\blx@mslang}}
+%     {\def\blx@tempb{#4}}%
+%   \def\blx@tempc{#1}%
+%   \blx@resolve@annotation@label{\blx@tempc}%
+%   \ifinlistcs{#5}{abx@annotation@field@\blx@tempa @#3@\blx@tempb @#2}}
+
+% % [<field>][<annotationname>][<item>][<msform>][<mslang>]{<annotation>}
+% \def\blx@imc@ifitemannotation{%
+%   \let\blx@tempa\@empty
+%   \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
+%   \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
+%   \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
+%    \@ifnextchar[%]
+%     {\blx@imc@ifitemannotation@i}
+%     {\blx@imc@ifitemannotation@i[\blx@tempa]}}
+
+% \def\blx@imc@ifitemannotation@i[#1]{%
+%   \ifstrempty{#1}
+%     {\blx@imc@ifitemannotation@i[\blx@tempa]}
+%     {\@ifnextchar[%]
+%       {\blx@imc@ifitemannotation@ii{#1}}
+%       {\blx@imc@ifitemannotation@ii{#1}[default]}}}
+
+% \def\blx@imc@ifitemannotation@ii#1[#2]{%
+%   \ifstrempty{#2}
+%     {\def\blx@tempb{default}}
+%     {\def\blx@tempb{#2}}%
+%   \@ifnextchar[%]
+%     {\blx@imc@ifitemannotation@iii{#1}{\blx@tempb}}
+%     {\blx@imc@ifitemannotation@iii{#1}{\blx@tempb}[\the\value{listcount}]}}
+  
+% \def\blx@imc@ifitemannotation@iii#1#2[#3]{%
+%   \ifstrempty{#3}
+%     {\blx@imc@ifitemannotation@iii{#1}{#2}[\the\value{listcount}]}
+%     {\@ifnextchar[%]
+%        {\blx@imc@ifitemannotation@iv{#1}{#2}{#3}}
+%        {\blx@imc@ifitemannotation@iv{#1}{#2}{#3}[\blx@msform]}}}
+
+% \def\blx@imc@ifitemannotation@iv#1#2#3[#4]{%
+%   \ifstrempty{#4}
+%     {\blx@imc@ifitemannotation@iv{#1}{#2}{#3}[\blx@msform]}
+%     {\@ifnextchar[%]
+%        {\blx@imc@ifitemannotation@v{#1}{#2}{#3}{#4}}
+%        {\blx@imc@ifitemannotation@v{#1}{#2}{#3}{#4}[\blx@mslang]}}}
+
+% \def\blx@imc@ifitemannotation@v#1#2#3#4[#5]#6{%
+%   \ifstrempty{#5}
+%     {\def\blx@tempb{\blx@mslang}}
+%     {\def\blx@tempb{#4}}%
+%   \def\blx@tempc{#1}%
+%   \blx@resolve@annotation@label{\blx@tempc}%
+%   \ifinlistcs{#6}{abx@annotation@item@\blx@tempa @#4@\blx@tempb @#2@#3}}
+
+% % [<field>][<annotationname>][<item>][<msform>][<mslang>]{<part>}{<annotation>}
+% \def\blx@imc@ifpartannotation{%
+%   \let\blx@tempa\@empty
+%   \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
+%   \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
+%   \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
+%   \@ifnextchar[%]
+%     {\blx@imc@ifpartannotation@i}
+%     {\blx@imc@ifpartannotation@i[\blx@tempa]}}
+
+% \def\blx@imc@ifpartannotation@i[#1]{%
+%   \ifstrempty{#1}
+%     {\blx@imc@ifpartannotation@i[\blx@tempa]}
+%     {\@ifnextchar[%]
+%       {\blx@imc@ifpartannotation@ii{#1}}
+%       {\blx@imc@ifpartannotation@ii{#1}[default]}}}
+
+% \def\blx@imc@ifpartannotation@ii#1[#2]{%
+%  \ifstrempty{#2}
+%    {\def\blx@tempb{default}}
+%    {\def\blx@tempb{#2}}%
+%   \@ifnextchar[%]
+%     {\blx@imc@ifpartannotation@iii{#1}{\blx@tempb}}
+%     {\blx@imc@ifpartannotation@iii{#1}{\blx@tempb}[\the\value{listcount}]}}
+  
+% \def\blx@imc@ifpartannotation@iii#1#2[#3]{%
+%   \ifstrempty{#3}
+%     {\blx@imc@ifpartannotation@iii{#1}{#2}[\the\value{listcount}]}
+%     {\@ifnextchar[%]
+%        {\blx@imc@ifpartannotation@iv{#1}{#2}{#3}}
+%        {\blx@imc@ifpartannotation@iv{#1}{#2}{#3}[\blx@msform]}}}
+
+% \def\blx@imc@ifpartannotation@iv#1#2#3[#4]{%
+%   \ifstrempty{#4}
+%     {\blx@imc@ifpartannotation@iv{#1}{#2}{#3}[\blx@msform]}
+%     {\@ifnextchar[%]
+%        {\blx@imc@ifpartannotation@v{#1}{#2}{#3}{#4}}
+%        {\blx@imc@ifpartannotation@v{#1}{#2}{#3}{#4}[\blx@mslang]}}}
+
+% \def\blx@imc@ifpartannotation@v#1#2#3#4[#5]#6#7{%
+%   \ifstrempty{#5}
+%     {\def\blx@tempc{\blx@mslang}}
+%     {\def\blx@tempc{#5}}%
+%   \def\blx@tempd{#1}%
+%   \blx@resolve@annotation@label{\blx@tempd}%
+%   \ifinlistcs{#7}{abx@annotation@part@\blx@tempa @#4@\blx@tempc @#2@#3@#6}}
+
+% % [<field>][<annotationname>][<msform>][<mslang>]
+% \def\blx@imc@hasfieldannotation{%
+%   \let\blx@tempa\@empty
+%   \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
+%   \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
+%   \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
+%  \@ifnextchar[%]
+%     {\blx@imc@hasfieldannotation@i}
+%     {\blx@imc@hasfieldannotation@i[\blx@tempa]}}
+
+% \def\blx@imc@hasfieldannotation@i[#1]{%
+%   \ifstrempty{#1}
+%     {\blx@imc@hasfieldannotation@i[\blx@tempa]}
+%     {\@ifnextchar[%]
+%       {\blx@imc@hasfieldannotation@ii{#1}}
+%       {\blx@imc@hasfieldannotation@ii{#1}[default]}}}
+
+% \def\blx@imc@hasfieldannotation@ii#1[#2]{%
+%   \ifstrempty{#2}
+%     {\blx@imc@hasfieldannotation@ii{#1}[default]}
+%     {\@ifnextchar[%]
+%        {\blx@imc@hasfieldannotation@iii{#1}{#2}}
+%        {\blx@imc@hasfieldannotation@iii{#1}{#2}[\blx@msform]}}}
+
+% \def\blx@imc@hasfieldannotation@iii#1#2[#3]{%
+%   \ifstrempty{#3}
+%     {\blx@imc@hasfieldannotation@iii{#1}{#2}[\blx@msform]}
+%     {\@ifnextchar[%]
+%        {\blx@imc@hasfieldannotation@iv{#1}{#2}{#3}}
+%        {\blx@imc@hasfieldannotation@iv{#1}{#2}{#3}[\blx@mslang]}}}
+  
+% \def\blx@imc@hasfieldannotation@iv#1#2#3[#4]{%
+%   \ifstrempty{#4}
+%     {\def\blx@tempb{\blx@mslang}}
+%     {\def\blx@tempb{#4}}%
+%   \def\blx@tempc{#1}%
+%   \blx@resolve@annotation@label{\blx@tempc}%
+%   \ifcsdef{abx@annotation@literal@field@\blx@tempa @#3\blx@tempb @#2}}
+
+% % [<field>][<annotationname>][<item>][<msform>][<mslang>]
+% \def\blx@imc@hasitemannotation{%
+%   \let\blx@tempa\@empty
+%   \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
+%   \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
+%   \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
+%    \@ifnextchar[%]
+%     {\blx@imc@hasitemannotation@i}
+%     {\blx@imc@hasitemannotation@i[\blx@tempa]}}
+
+% \def\blx@imc@hasitemannotation@i[#1]{%
+%   \ifstrempty{#1}
+%     {\blx@imc@hasitemannotation@i[\blx@tempa]}
+%     {\@ifnextchar[%]
+%       {\blx@imc@hasitemannotation@ii{#1}}
+%       {\blx@imc@hasitemannotation@ii{#1}[default]}}}
+
+% \def\blx@imc@hasitemannotation@ii#1[#2]{%
+%   \ifstrempty{#2}
+%     {\def\blx@tempb{default}}
+%     {\def\blx@tempb{#2}}%
+%   \@ifnextchar[%]
+%     {\blx@imc@hasitemannotation@iii{#1}{\blx@tempb}}
+%     {\blx@imc@hasitemannotation@iii{#1}{\blx@tempb}[\the\value{listcount}]}}
+
+% \def\blx@imc@hasitemannotation@iii#1#2[#3]{%
+%   \ifstrempty{#3}
+%     {\blx@imc@hasitemannotation@iii{#1}{#2}[\the\value{listcount}]}
+%     {\@ifnextchar[%]
+%        {\blx@imc@hasitemannotation@iv{#1}{#2}{#3}}
+%        {\blx@imc@hasitemannotation@iv{#1}{#2}{#3}[\blx@msform]}}}
+
+% \def\blx@imc@hasitemannotation@iv#1#2#3[#4]{%
+%   \ifstrempty{#4}
+%     {\blx@imc@hasitemannotation@iv{#1}{#2}{#3}[\blx@msform]}
+%     {\@ifnextchar[%]
+%        {\blx@imc@hasitemannotation@v{#1}{#2}{#3}{#4}}
+%        {\blx@imc@hasitemannotation@v{#1}{#2}{#3}{#4}[\blx@mslang]}}}
+  
+% \def\blx@imc@hasitemannotation@v#1#2#3#4[#5]{%
+%   \ifstrempty{#5}
+%     {\def\blx@tempb{\blx@mslang}}
+%     {\def\blx@tempb{#5}}%
+%   \def\blx@tempc{#1}%
+%   \blx@resolve@annotation@label{\blx@tempc}%
+%   \ifcsdef{abx@annotation@literal@item@\blx@tempa @#4@\blx@tempb @#2@#3}}
+
+% % [<field>][<annotationname>][<item>][<msform>][<mslang>]{<part>}
+% \def\blx@imc@haspartannotation{%
+%   \let\blx@tempa\@empty
+%   \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
+%   \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
+%   \ifdefvoid\currentname{}{\let\blx@tempa\currentname}%
+%   \@ifnextchar[%]
+%     {\blx@imc@haspartannotation@i}
+%     {\blx@imc@haspartannotation@i[\blx@tempa]}}
+
+% \def\blx@imc@haspartannotation@i[#1]{%
+%   \ifstrempty{#1}
+%     {\blx@imc@haspartannotation@i[\blx@tempa]}
+%     {\@ifnextchar[%]
+%       {\blx@imc@haspartannotation@ii{#1}}
+%       {\blx@imc@haspartannotation@ii{#1}[default]}}}
+
+% \def\blx@imc@haspartannotation@ii#1[#2]{%
+%  \ifstrempty{#2}
+%    {\def\blx@tempb{default}}
+%    {\def\blx@tempb{#2}}%
+%   \@ifnextchar[%]
+%     {\blx@imc@haspartannotation@iii{#1}{\blx@tempb}}
+%     {\blx@imc@haspartannotation@iii{#1}{\blx@tempb}[\the\value{listcount}]}}
+
+% \def\blx@imc@haspartannotation@iii#1#2[#3]{%
+%   \ifstrempty{#3}
+%     {\blx@imc@haspartannotation@iii{#1}{#2}[\the\value{listcount}]}
+%     {\@ifnextchar[%]
+%        {\blx@imc@haspartannotation@iv{#1}{#2}{#3}}
+%        {\blx@imc@haspartannotation@iv{#1}{#2}{#3}[\blx@msform]}}}
+
+% \def\blx@imc@haspartannotation@iv#1#2#3[#4]{%
+%   \ifstrempty{#4}
+%     {\blx@imc@haspartannotation@iv{#1}{#2}{#3}[\blx@msform]}
+%     {\@ifnextchar[%]
+%        {\blx@imc@haspartannotation@v{#1}{#2}{#3}{#4}}
+%        {\blx@imc@haspartannotation@v{#1}{#2}{#3}{#4}[\blx@mslang]}}}
+  
+% \def\blx@imc@haspartannotation@v#1#2#3#4[#5]#6{%
+%   \ifstrempty{#5}
+%     {\def\blx@tempc{\blx@mslang}}
+%     {\def\blx@tempc{#5}}%
+%   \def\blx@tempd{#1}%
+%   \blx@resolve@annotation@label{\blx@tempd}%
+%   \ifcsdef{abx@annotation@literal@part@\blx@tempa @#4@\blx@tempc @#2@#3@#6}}
 
 % labeldatesource has a slightly different format than other <field>sources
 % that's one reason for a dedicated command, the other being that this command
