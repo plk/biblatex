@@ -769,6 +769,7 @@
 \newtoggle{blx@sortcase}
 \newtoggle{blx@sortupper}
 \newtoggle{blx@autolangbib}
+\newtoggle{blx@autofieldlangstrings}
 \newtoggle{blx@autolangcite}
 \newtoggle{blx@clearlang}
 \newtoggle{blx@defernumbers}
@@ -4495,20 +4496,25 @@
            \letcs\currentmsforms{abx@fieldmsforms@#4}%
            \letcs\currentmslangs{abx@fieldmslangs@#4}%
            \edef\blx@tempa{\csuse{blx@msmaplang@#3}}%
-           \ifdef\blx@thelangenv
-             {\csuse{abx@extras@\blx@tempa}%
-              \csuse{abx@strings@\blx@tempa}%
-              \blx@hook@initlang
-              \csname\blx@thelangenv\expandafter\endcsname\expandafter{\blx@tempa}}
+           \ifdef\blx@thefieldlangenv
+             {\iftoggle{blx@autofieldlangstrings}
+                {\blx@langsetup{\blx@tempa}% must call this to load the .lbx
+                 \csuse{abx@extras@\blx@tempa}%
+                 \csuse{abx@strings@\blx@tempa}}
+                {}%
+              \blx@hook@initfieldlang
+              \begingroup
+              \csname\blx@thefieldlangenv\expandafter\endcsname\expandafter{\blx@tempa}}
              {}%
            \expandafter\expandafter
            \expandafter\blx@theformat
            \expandafter\expandafter
            \expandafter{\csname abx@field@#2@#3@#4\endcsname}%
            % end language for field mslang
-           \ifdef\blx@thelangenv
-             {\blx@hook@endlang
-              \csname end\blx@thelangenv\endcsname}
+           \ifdef\blx@thefieldlangenv
+             {\blx@hook@endfieldlang
+              \csname end\blx@thefieldlangenv\endcsname
+              \endgroup}
              {}}
           {\expandafter\expandafter
            \expandafter\blx@theformat
@@ -4569,7 +4575,29 @@
           {\blx@nounit}
           {\blx@begunit
            \blx@namesetup{#2}{#3}{#4}{#5}{#6}%
+           \blx@imc@ifmsentryfield{\currentname}
+             {% begin language for name list mslang
+              \edef\blx@tempa{\csuse{blx@msmaplang@\currentmslang}}%
+              \ifdef\blx@thefieldlangenv
+                {\iftoggle{blx@autofieldlangstrings}
+                  {\blx@langsetup{\blx@tempa}% must call this to load the .lbx
+                   \csuse{abx@extras@\blx@tempa}%
+                   \csuse{abx@strings@\blx@tempa}}
+                {}%
+              \blx@hook@initfieldlang
+              \begingroup
+              \csname\blx@thefieldlangenv\expandafter\endcsname\expandafter{\blx@tempa}}
+             {}}
+           {}%
            \blx@thewrapperformat{\expandafter\blx@nameparser\blx@thedata{}&}%
+           \blx@imc@ifmsentryfield{\currentname}
+             {% end language for name list mslang
+              \ifdef\blx@thefieldlangenv
+                {\blx@hook@endfieldlang
+                 \csname end\blx@thefieldlangenv\endcsname
+                 \endgroup}
+                {}}
+             {}%  
            \blx@endunit}}}}
 
 \def\blx@namesetup#1#2#3#4#5{%
@@ -4680,24 +4708,7 @@
     {\blx@namebreak}
     {\ifnum\c@listcount<\c@liststart
      \else
-        \blx@imc@ifmsentryfield{\currentname}
-          {% begin language for list mslang
-           \edef\blx@tempa{\csuse{blx@msmaplang@\currentmslang}}%
-           \ifdef\blx@thelangenv
-             {\csuse{abx@extras@\blx@tempa}%
-              \csuse{abx@strings@\blx@tempa}%
-              \blx@hook@initlang
-              \csname\blx@thelangenv\expandafter\endcsname\expandafter{\blx@tempa}}
-            {}}
-          {}%
         \blx@nameparser@i#1%
-        \blx@imc@ifmsentryfield{\currentname}
-          {% end language for list mslang
-           \ifdef\blx@thelangenv
-            {\blx@hook@endlang
-             \csname end\blx@thelangenv\endcsname}
-            {}}
-          {}%  
      \fi
      \advance\c@listcount\@ne
      \ifnum\c@listcount>\c@liststop
@@ -4721,18 +4732,24 @@
   \ifdefempty\blx@tempa
     {\blx@theformat{}}
     {% begin language for name list item mslang
+     \edef\currentmslang{\blx@tempa}%
      \edef\blx@tempa{\csuse{blx@msmaplang@\blx@tempa}}%
-     \ifdef\blx@thelangenv
-       {\csuse{abx@extras@\blx@tempa}%
-        \csuse{abx@strings@\blx@tempa}%
-        \blx@hook@initlang
-        \csname\blx@thelangenv\expandafter\endcsname\expandafter{\blx@tempa}}
+     \ifdef\blx@thefieldlangenv
+       {\iftoggle{blx@autofieldlangstrings}
+         {\blx@langsetup{\blx@tempa}% must call this to load the .lbx
+          \csuse{abx@extras@\blx@tempa}%
+          \csuse{abx@strings@\blx@tempa}}
+         {}%
+        \blx@hook@initfieldlang
+        \begingroup
+        \csname\blx@thefieldlangenv\expandafter\endcsname\expandafter{\blx@tempa}}
        {}%
      \blx@theformat{}%
      % end language for name list item mslang
-     \ifdef\blx@thelangenv
-       {\blx@hook@endlang
-        \csname end\blx@thelangenv\endcsname}
+     \ifdef\blx@thefieldlangenv
+       {\blx@hook@endfieldlang
+        \csname end\blx@thefieldlangenv\endcsname
+        \endgroup}
        {}}%
   \endgroup}
 
@@ -4754,7 +4771,28 @@
           {\blx@nounit}
           {\blx@begunit
            \blx@listsetup{#2}{#3}{#4}{#5}{#6}%
+           \blx@imc@ifmsentryfield{\currentlist}
+             {% begin language for list mslang
+              \edef\blx@tempa{\csuse{blx@msmaplang@\currentmslang}}%
+              \ifdef\blx@thefieldlangenv
+                {\iftoggle{blx@autofieldlangstrings}
+                   {\blx@langsetup{\blx@tempa}% must call this to load the .lbx
+                    \csuse{abx@extras@\blx@tempa}%
+                    \csuse{abx@strings@\blx@tempa}}
+                 \blx@hook@initfieldlang
+                 \begingroup
+                 \csname\blx@thefieldlangenv\expandafter\endcsname\expandafter{\blx@tempa}}
+               {}}
+             {}%
            \blx@thewrapperformat{\expandafter\blx@listparser\blx@thedata{}&}%
+           \blx@imc@ifmsentryfield{\currentlist}
+             {% end language for list mslang
+              \ifdef\blx@thefieldlangenv
+                {\blx@hook@endfieldlang
+                 \csname end\blx@thefieldlangenv\endcsname
+                 \endgroup}
+                {}}
+             {}%  
            \blx@endunit}}}}
 
 \def\blx@listsetup#1#2#3#4#5{%
@@ -4819,26 +4857,32 @@
     {\blx@listbreak}
     {\ifnum\c@listcount<\c@liststart
      \else
-        \blx@imc@ifmsentryfield{\currentlist}
-          {% begin language for list mslang
-           \edef\blx@tempa{\csuse{blx@msmaplang@\currentmslang}}%
-           % Overide language from list langtag annotation
-           \ifcsdef{abx@annotation@literal@item@\currentmsform @\currentmslang @\currentlist @langtags@\thelistcount}
-             {\edef\blx@tempa{\csuse{blx@msmaplang@\csuse{abx@annotation@literal@item@\currentmsform @\currentmslang @\currentlist @langtags@\thelistcount}}}}
-             {}%
-           \ifdef\blx@thelangenv
-             {\csuse{abx@extras@\blx@tempa}%
-              \csuse{abx@strings@\blx@tempa}%
-              \blx@hook@initlang
-              \csname\blx@thelangenv\expandafter\endcsname\expandafter{\blx@tempa}}
-            {}}
+       \let\blx@tempc\currentmslang
+       % This effectively does two checks - one for multiscript and one for an item annotation
+       \ifcsdef{abx@annotation@literal@item@\currentmsform @\blx@tempc @\currentlist @langtags@\thelistcount}
+          {% begin language for list item mslang
+           % Overide language from list item langtag annotation
+           \edef\blx@tempb{\csuse{abx@annotation@literal@item@\currentmsform @\blx@tempc @\currentlist @langtags@\thelistcount}}%
+           \edef\blx@tempa{\csuse{blx@msmaplang@\blx@tempb}}%
+           \let\currentmslang\blx@tempb
+           \ifdef\blx@thefieldlangenv
+             {\iftoggle{blx@autofieldlangstrings}
+                {\blx@langsetup{\blx@tempa}% must call this to load the .lbx
+                 \csuse{abx@extras@\blx@tempa}%
+                 \csuse{abx@strings@\blx@tempa}}
+                {}%
+              \blx@hook@initfieldlang
+              \begingroup
+              \csname\blx@thefieldlangenv\expandafter\endcsname\expandafter{\blx@tempa}}
+             {}}
           {}%
         \blx@theformat{#1}%
-        \blx@imc@ifmsentryfield{\currentlist}
+        \ifcsdef{abx@annotation@literal@item@\currentmsform @\blx@tempc @\currentlist @langtags@\thelistcount}
           {% end language for list mslang
-           \ifdef\blx@thelangenv
-            {\blx@hook@endlang
-             \csname end\blx@thelangenv\endcsname}
+           \ifdef\blx@thefieldlangenv
+            {\blx@hook@endfieldlang
+             \csname end\blx@thefieldlangenv\endcsname
+             \endgroup}
             {}}
           {}%  
      \fi
@@ -8588,8 +8632,8 @@
   \gdef\blx@msforms{#1}}
 % pre-load all mslangs mentioned in all field alternates
 \def\blx@bbl@mslangsdef#1{%
-  \def\do##1{\blx@langsetup{\csuse{blx@msmaplang@##1}}}%
-  \docsvlist{#1}%
+  % \def\do##1{\blx@langsetup{\csuse{blx@msmaplang@##1}}}%
+  % \docsvlist{#1}%
   \gdef\blx@mslangs{#1}}
 
 % Mapping of BCP47->babel ids until babel supports BCP47 tags
@@ -14466,6 +14510,40 @@
   \def\blx@hook@initlang{\@quotereset\@ne}%
   \def\blx@hook@endlang{\blx@postpunct}}
 
+\DeclareBibliographyOption[string]{autofieldlang}{%
+  \blx@autofieldlang@i{#1}}
+
+\def\blx@autofieldlang@i#1{%
+  \ifcsdef{blx@opt@autofieldlang@#1}
+    {\csuse{blx@opt@autofieldlang@#1}}
+    {\blx@err@invopt{autofieldlang=#1}{}}}
+
+\def\blx@opt@autofieldlang@none{%
+  \undef\blx@thefieldlangenv
+  \let\blx@hook@initfieldlang\@empty
+  \let\blx@hook@endfieldlang\@empty}
+\def\blx@opt@autofieldlang@hyphen{%
+  \def\blx@thefieldlangenv{hyphenrules}%
+  \let\blx@hook@initfieldlang\@empty
+  \let\blx@hook@endfieldlang\@empty}
+\csdef{blx@opt@autofieldlang@other*}{%
+  \def\blx@thefieldlangenv{otherlanguage*}%
+  \def\blx@hook@initfieldlang{\@quotereset\@ne}%
+  \def\blx@hook@endfieldlang{\blx@postpunct}}
+\def\blx@opt@autofieldlang@other{%
+  \def\blx@thefieldlangenv{otherlanguage}%
+  \def\blx@hook@initfieldlang{\@quotereset\@ne}%
+  \def\blx@hook@endfieldlang{\blx@postpunct}}
+\def\blx@opt@autofieldlang@langname{%
+  \@ifpackageloaded{polyglossia}
+    {\def\blx@thefieldlangenv{langname}}
+    {\def\blx@thefieldlangenv{otherlanguage}}%
+  \def\blx@hook@initfieldlang{\@quotereset\@ne}%
+  \def\blx@hook@endfieldlang{\blx@postpunct}}
+
+\DeclareBibliographyOption{autofieldlangstrings}[true]{%
+  \settoggle{blx@autofieldlangstrings}{#1}}
+
 \DeclareBiblatexOption{global,type,entry}[string]{indexing}[true]{%
   \blx@opt@index{#1}}
 \def\blx@opt@index#1{%
@@ -15281,9 +15359,9 @@
   backref=false,backrefsetstyle=setonly,pagetracker=false,ibidtracker=false,
   idemtracker=false,opcittracker=false,loccittracker=false,citetracker=false,
   citecounter=false,block=none,language=autobib,clearlang=true,autolang=none,
-  date=comp,labeldate=year,origdate=comp,eventdate=comp,urldate=short,
-  autopunct=true,punctfont=false,defernumbers=false,timezeros=true,
-  refsection=none,refsegment=none,citereset=none,hyperref=auto,
+  autofieldlang=none,autofieldlangstrings=false,date=comp,labeldate=year,origdate=comp,
+  eventdate=comp,urldate=short,autopunct=true,punctfont=false,defernumbers=false,
+  timezeros=true,refsection=none,refsegment=none,citereset=none,hyperref=auto,
   parentracker,maxparens=3,bibencoding=auto,bibwarn,timezones=false,
   seconds=false,julian=false,labeltime=24h,locallabelwidth=false,msform=default,mslang=en-us}
 
