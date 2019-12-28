@@ -2242,40 +2242,74 @@
 
 \def\ifbibmacroundef{\blx@imc@ifbibmacroundef}
 
-% {<field>}
-\def\blx@imc@thefield#1{\csuse{abx@field@@@#1}}
+% [msform][mslang]{<field>}
+\DeclareExpandableDocumentCommand{\blx@imc@thefield}
+  {O{\blx@msform} O{\blx@mslang} m}
+  {\blx@imc@ifmsentryfield{#3}
+    {\csuse{abx@field@#1@#2@#3}}
+    {\csuse{abx@field@@@#3}}}
 
-\def\blx@imc@strfield#1{%
-  \ifcsdef{abx@field@@@#1}
-    {\detokenize\expandafter\expandafter\expandafter
-       {\csname abx@field@@@#1\endcsname}}
-    {}}
+\DeclareExpandableDocumentCommand{\blx@imc@strfield}
+  {O{\blx@msform} O{\blx@mslang} m}
+  {\blx@imc@ifmsentryfield{#3}
+    {\ifcsdef{abx@field@#1@#2@#3}
+      {\detokenize\expandafter\expandafter\expandafter
+         {\csname abx@field@#1@#2@#3\endcsname}}
+      {}}
+    {\ifcsdef{abx@field@@@#3}
+      {\detokenize\expandafter\expandafter\expandafter
+         {\csname abx@field@@@#3\endcsname}}
+      {}}}
 
-\def\blx@imc@csfield#1{\usefield{\unexpanded}{#1}}
+\def\blx@imc@csfield{\usefield{\unexpanded}}
 
-% {<command>}{<field>}
-\def\blx@imc@usefield#1#2{%
-  \expandafter\expandafter\expandafter#1%
-  \expandafter\expandafter\expandafter{\csname abx@field@@@#2\endcsname}}
+% {<command>}[msform][mslang]{<field>}
+\DeclareExpandableDocumentCommand{\blx@imc@usefield}
+  {m O{\blx@msform} O{\blx@mslang} m}
+  {\blx@imc@ifmsentryfield{#4}
+    {\expandafter\expandafter\expandafter#1%
+     \expandafter\expandafter\expandafter{\csname abx@field@#2@#3@#4\endcsname}}
+    {\expandafter\expandafter\expandafter#1%
+     \expandafter\expandafter\expandafter{\csname abx@field@@@#4\endcsname}}}
 
-% {<plainlist>}
-\def\blx@imc@thelist#1{\csuse{abx@list@@@#1}}
+% [msform][mslang]{<plainlist>}
+\DeclareExpandableDocumentCommand{\blx@imc@thelist}
+  {O{\blx@msform} O{\blx@mslang} m}
+  {\blx@imc@ifmsentryfield{#3}
+    {\csuse{abx@list@#1@#2@#3}}
+    {\csuse{abx@list@@@#3}}}
 
-\def\blx@imc@strlist#1{%
-  \ifcsdef{abx@list@@@#1}
-    {\detokenize\expandafter\expandafter\expandafter
-       {\csname abx@list@@@#1\endcsname}}
-    {}}
+\DeclareExpandableDocumentCommand{\blx@imc@strlist}
+  {O{\blx@msform} O{\blx@mslang} m}
+  {\blx@imc@ifmsentryfield{#3}
+    {\ifcsdef{abx@list@#1@#2@#3}
+      {\detokenize\expandafter\expandafter\expandafter
+         {\csname abx@list@#1@#2@#3\endcsname}}
+      {}}
+    {\ifcsdef{abx@list@@@#3}
+      {\detokenize\expandafter\expandafter\expandafter
+         {\csname abx@list@@@#3\endcsname}}
+      {}}}
 
-\def\blx@imc@thefirstlistitem#1{%
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \blx@imc@thefirstlistitem@grab
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  {\csuse{abx@list@@@#1}}}
+\DeclareExpandableDocumentCommand{\blx@imc@thefirstlistitem}
+  {O{\blx@msform} O{\blx@mslang} m}
+  {\blx@imc@ifmsentryfield{#3}
+    {\expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \blx@imc@thefirstlistitem@grab
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     {\csuse{abx@list@#1@#2@#3}}}
+    {\expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \blx@imc@thefirstlistitem@grab
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     {\csuse{abx@list@@@#3}}}}
 
 \def\blx@imc@thefirstlistitem@grab#1{%
   \blx@imc@thefirstlistitem@grab@i
@@ -2283,78 +2317,148 @@
   \blx@imc@thefirstlistitem@grab@i@end}
 \def\blx@imc@thefirstlistitem@grab@i#1#2\blx@imc@thefirstlistitem@grab@i@end{#1}
 
-% {<command>}{<field>}
+% {<command>}[msform][mslang]{<field>}
 % needs 7 levels of expansion, i.e. 2^7-1=127 '\expandafter's
-\def\blx@imc@usefirstlistitem#1#2{%
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter
-  #1%
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter\expandafter\expandafter\expandafter
-  \expandafter\expandafter
-  {\blx@imc@thefirstlistitem{#2}}}
+\DeclareExpandableDocumentCommand{\blx@imc@usefirstlistitem}
+  {m O{\blx@msform} O{\blx@mslang} m}
+  {\blx@imc@ifmsentryfield{#3}
+     {\expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter
+      #1%
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter\expandafter\expandafter\expandafter
+      \expandafter\expandafter
+      {\blx@imc@thefirstlistitem[#2][#3]{#4}}}
+    {\expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter
+     #1%
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter
+     {\blx@imc@thefirstlistitem{#4}}}}
 
-\def\blx@imc@strfirstlistitem#1{%
-  \ifcsdef{abx@list@@@#1}
-    {\blx@imc@usefirstlistitem{\detokenize}{#1}}
+\DeclareExpandableDocumentCommand{\blx@imc@strfirstlistitem}
+  {O{\blx@msform} O{\blx@mslang} m}
+  {\blx@imc@ifmsentryfield{#3}
+    {\ifcsdef{abx@list@#1@#2@#3}
+      {\blx@imc@usefirstlistitem{\detokenize}[#1][#2]{#3}}
+      {}}
+    {\ifcsdef{abx@list@@@#3}
+      {\blx@imc@usefirstlistitem{\detokenize}{#3}}
+      {}}}
+
+% [msform][mslang]{<namelist>}
+\DeclareExpandableDocumentCommand{\blx@imc@thename}
+  {O{\blx@msform} O{\blx@mslang} m}
+  {\blx@imc@ifmsentryfield{#3}
+    {\csuse{abx@name@#1@#2@#3}}
+    {\csuse{abx@name@@@#3}}}
+
+\DeclareExpandableDocumentCommand{\blx@imc@strname}
+  {O{\blx@msform} O{\blx@mslang} m}
+  {\blx@imc@ifmsentryfield{#3}
+    {\ifcsdef{abx@name@#1@#2@#3}
+      {\detokenize\expandafter\expandafter\expandafter
+        {\csname abx@name@#1@#2@#3\endcsname}}
     {}}
-
-% {<namelist>}
-\def\blx@imc@thename#1{\csuse{abx@name@@@#1}}
-
-\def\blx@imc@strname#1{%
-  \ifcsdef{abx@name@@@#1}
-    {\detokenize\expandafter\expandafter\expandafter
-       {\csname abx@name@@@#1\endcsname}}
-    {}}
-
+    {\ifcsdef{abx@name@@@#3}
+      {\detokenize\expandafter\expandafter\expandafter
+        {\csname abx@name@@@#3\endcsname}}
+    {}}}
 
 % We have to save cleared fields/lists/names in case a related entry
 % needs them for tests
@@ -2362,7 +2466,7 @@
 \let\abx@dorellists\@empty
 \let\abx@dorelnames\@empty
 
-% {<field>}
+% [msform][mslang]{<field>}
 % If there is a related field in the entry, save a special copy in case
 % the related entry needs it for tests. See the corresponding tests in
 % \blx@save{field,list,name}
