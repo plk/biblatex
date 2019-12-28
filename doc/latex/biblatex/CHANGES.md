@@ -1,6 +1,15 @@
 # RELEASE NOTES FOR VERSION 4.0
  - This is a major update with support for multiscript fields
- - **INCOMPATIBLE CHANGE** Namelist-specific hashes of the form
+ - **INCOMPATIBLE CHANGE** Data annotation test macros \if*annotation,
+   \has*annotation and \get*annotation now have multiscript form and
+   language as optional arguments in position 1 and 2, therefore, if you
+   are using these macros with any optional arguments, be sure to supply
+   the first two arguments (as "[][]"). For example:
+
+   \getitemannotation[somefield] -> \getitemannotation[][][somefield]
+   \ifpartannotation[][someannotationname][2]{family}{someval} -> 
+     \ifpartannotation[][][][someannotationname][2]{family}{someval}
+- **INCOMPATIBLE CHANGE** Namelist-specific hashes of the form
    <namelist>namehash, <namelist>bibnamehash or <namelist>fullhash now must
    contain a multiscript form and language in order to differentiate
    between multiscript name alternates. The format is now
