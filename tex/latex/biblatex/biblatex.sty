@@ -2469,18 +2469,53 @@
 % [msform][mslang]{<field>}
 % If there is a related field in the entry, save a special copy in case
 % the related entry needs it for tests. See the corresponding tests in
-% \blx@save{field,list,name}
-\protected\def\blx@imc@clearfield#1{%
-  \ifdef\abx@field@@@related
-    {\csletcs{abx@field@@@relsaved#1}{abx@field@@@#1}%
-     \listadd\abx@dorelfields{#1}}
-    {}%
-  \csundef{abx@field@@@#1}}
+% \blx@saverelfield
+\DeclareDocumentCommand{\blx@imc@clearfield}
+  {O{} O{} m}
+  {\blx@imc@ifmsentryfield{#3}
+    {\ifboolexpr{ test {\ifblank{#1}}
+                  and test {\ifblank{#2}} }
+      % clear all alternates of a multiscript field
+      {\blx@imc@iffieldundef{#3}
+        {}
+        {\def\do##1{%
+          \begingroup
+          \def\do####1{%
+            \ifdef\abx@field@@@related
+              {\csletcs{abx@field@@@relsaved@##1@####1@#3}{abx@field@##1@####1@#3}%
+               \listadd\abx@dorelfields{{{##1}{####1}{#3}}}}
+              {}%
+            \global\csundef{abx@field@##1@####1@#3}}%
+          \dolistcsloop{abx@fieldmslangs@#3}%
+          \endgroup}%
+       \dolistcsloop{abx@fieldmsforms@#3}}}
+      % clear specific alternate of a multiscript field
+     {\blx@imc@iffieldundef[#1][#2]{#3}
+       {}
+       {\ifdef\abx@field@@@related
+         {\csletcs{abx@field@@@relsaved@#1@#2@#3}{abx@field@#1@#2@#3}%
+          \listadd\abx@dorelfields{{{#1}{#2}{#3}}}}
+         {}%
+       \csundef{abx@field@#1@#2@#3}}}}
+    % clear non multiscript field
+    {\blx@imc@iffieldundef{#3}
+      {\ifdef\abx@field@@@related
+        {\csletcs{abx@field@@@relsaved@@@#3}{abx@field@@@#3}%
+         \listadd\abx@dorelfields{{{}{}{#3}}}}
+        {}%
+     \csundef{abx@field@@@#3}}}}
+
+% \protected\def\blx@imc@clearfield#1{%
+  % \ifdef\abx@field@@@related
+  %   {\csletcs{abx@field@@@relsaved#1}{abx@field@@@#1}%
+  %    \listadd\abx@dorelfields{#1}}
+  %   {}%
+  % \csundef{abx@field@@@#1}}
 
 % {<plainlist>}
 % If there is a related field in the entry, save a special copy in case
 % the related entry needs it for tests. See the corresponding tests in
-% \blx@save{field,list,name}
+% \blx@saverellist
 \protected\def\blx@imc@clearlist#1{%
   \ifcsundef{abx@list@@@#1}
     {}
@@ -2497,7 +2532,7 @@
 % {<namelist>}
 % If there is a related field in the entry, save a special copy in case
 % the related entry needs it for tests. See the corresponding tests in
-% \blx@save{field,list,name}
+% \blx@saverelname
 \protected\def\blx@imc@clearname#1{%
   \ifcsundef{abx@name@@@#1}
     {}
@@ -7589,12 +7624,19 @@
   \csletcs{abx@list@@@saved#1}{abx@list@@@relsaved#1}%
   \csname c@saved#1\endcsname\csname c@relsaved#1\endcsname}
 
+% saves all alternates of multiscript fields
 \protected\def\blx@savefield#1{%
-  \csletcs{abx@field@@@saved#1}{abx@field@@@#1}}
+  \blx@imc@ifmsentryfield{#1}
+    {\def\do##1{%
+       \begingroup
+       \def\do####1{%
+         \csletcs{abx@field@@@saved@##1@####1@#1}{abx@field@##1@####1@#1}}\dolistcsloop{abx@fieldmslangs@#1}%
+        \endgroup}\dolistcsloop{abx@fieldmsforms@#1}}
+    {\csletcs{abx@field@@@saved@@@#1}{abx@field@@@#1}}}
 
 % override with field saved from \clearfield for related processing
-\protected\def\blx@saverelfield#1{%
-  \csletcs{abx@field@@@saved@#1}{abx@field@@@relsaved#1}}
+\protected\def\blx@saverelfield#1#2#3{%
+  \csletcs{abx@field@@@saved@#1@#2@#3}{abx@field@@@relsaved@#1@#2@#3}}
 
 \protected\def\blx@savebool#1{%
   \csletcs{etb@tgl@abx@bool@saved#1}{etb@tgl@abx@bool@#1}}
@@ -7607,7 +7649,7 @@
   \protected\csedef{blx@imc@printsaved#1dateextra}{%
     \begingroup
       % extradate is hard-coded in date macros, so reset it temporarily
-      \csletcs{abx@field@@@extradate}{abx@field@@@savedextradate}%
+      \csletcs{abx@field@@@extradate}{abx@field@@@saved@@@extradate}%
       \noexpand\csuse{mkdaterange\csuse{blx@dateformat@saved#1date}extra}
         {saved#1}%
     \endgroup}%
@@ -8479,7 +8521,7 @@
 
 \protected\def\blx@bbl@endentry{%
   % Useful for debugging
-  % \expandafter\show\csname\blx@bbl@data\endcsname
+  %\expandafter\show\csname\blx@bbl@data\endcsname
   \csuse\blx@bbl@data
   \ifcsundef{blx@pref@\the\c@refsection @\abx@field@@@entrykey}
     {}
