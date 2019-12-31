@@ -2506,46 +2506,102 @@
         {}%
        \csundef{abx@field@@@#3}}}}
 
-% \protected\def\blx@imc@clearfield#1{%
-  % \ifdef\abx@field@@@related
-  %   {\csletcs{abx@field@@@relsaved#1}{abx@field@@@#1}%
-  %    \listadd\abx@dorelfields{#1}}
-  %   {}%
-  % \csundef{abx@field@@@#1}}
-
-% {<plainlist>}
+% [msform][mslang]{<plainlist>}
 % If there is a related field in the entry, save a special copy in case
 % the related entry needs it for tests. See the corresponding tests in
 % \blx@saverellist
-\protected\def\blx@imc@clearlist#1{%
-  \ifcsundef{abx@list@@@#1}
-    {}
-    {\ifdef\abx@field@@@related
-       {\csletcs{abx@list@@@relsaved#1}{abx@list@@@#1}%
-        \csletcs{etb@tgl@abx@bool@morerelsaved#1}{etb@tgl@abx@bool@more#1}%
-        \csletcs{c@relsaved#1}{c@#1}%
-        \listadd\abx@dorellists{#1}}
-       {}%
-     \togglefalse{abx@bool@more#1}%
-     \csundef{abx@list@@@#1}%
-     \csname c@#1\endcsname\z@}}
+\DeclareDocumentCommand{\blx@imc@clearlist}
+  {O{} O{} m}
+  {\blx@imc@ifmsentryfield{#3}
+    {\ifboolexpr{ test {\ifblank{#1}}
+                  and test {\ifblank{#2}} }
+      % clear all alternates of a multiscript list
+      {\blx@imc@iflistundef{#3}
+        {}
+        {\def\do##1{%
+           \begingroup
+           \def\do####1{%
+             \ifdef\abx@field@@@related
+               {\csletcs{abx@list@@@relsaved@##1@####1@#3}{abx@list@##1@####1@#3}%
+                \csletcs{etb@tgl@abx@bool@morerelsaved#3}{etb@tgl@abx@bool@more#3}%
+                \csletcs{c@relsaved#3}{c@#3}%
+                \listadd\abx@dorellists{{##1}{####1}{#3}}}
+               {}%
+             \global\togglefalse{abx@bool@more#3}%
+             \global\csundef{abx@list@##1@####1@#3}%
+             \global\csname c@#3\endcsname\z@}%
+           \dolistcsloop{abx@fieldmslangs@#3}%
+           \endgroup}%
+         \dolistcsloop{abx@fieldmsforms@#3}}}
+      % clear specific alternate of a multiscript list
+     {\blx@imc@iflistundef[#1][#2]{#3}
+       {}
+       {\ifdef\abx@field@@@related
+         {\csletcs{abx@list@@@relsaved@#1@#2@#3}{abx@list@#1@#2@#3}%
+          \listadd\abx@dorellists{{#1}{#2}{#3}}}
+         {}%
+       \csundef{abx@list@#1@#2@#3}}}}
+    % clear non multiscript list
+    {\blx@imc@iflistundef{#3}
+      {}
+      {\ifdef\abx@field@@@related
+         {\csletcs{abx@list@@@relsaved@@@#3}{abx@list@@@#3}%
+          \csletcs{etb@tgl@abx@bool@morerelsaved#3}{etb@tgl@abx@bool@more#3}%
+          \csletcs{c@relsaved#3}{c@#3}%
+          \listadd\abx@dorellists{{}{}{#3}}}
+         {}%
+       \togglefalse{abx@bool@more#3}%
+       \csundef{abx@list@@@#3}%
+       \csname c@#3\endcsname\z@}}}
 
+ 
 % {<namelist>}
 % If there is a related field in the entry, save a special copy in case
 % the related entry needs it for tests. See the corresponding tests in
 % \blx@saverelname
-\protected\def\blx@imc@clearname#1{%
-  \ifcsundef{abx@name@@@#1}
-    {}
-    {\ifdef\abx@field@@@related
-      {\csletcs{abx@name@@@relsaved#1}{abx@name@@@#1}%
-       \csletcs{etb@tgl@abx@bool@morerelsaved#1}{etb@tgl@abx@bool@more#1}%
-       \csletcs{c@relsaved#1}{c@#1}%
-       \listadd\abx@dorelnames{#1}}
-      {}%
-     \togglefalse{abx@bool@more#1}%
-     \csundef{abx@name@@@#1}%
-     \csname c@#1\endcsname\z@}}
+\DeclareDocumentCommand{\blx@imc@clearname}
+  {O{} O{} m}
+  {\blx@imc@ifmsentryfield{#3}
+    {\ifboolexpr{ test {\ifblank{#1}}
+                  and test {\ifblank{#2}} }
+      % clear all alternates of a multiscript list
+      {\blx@imc@ifnameundef{#3}
+        {}
+        {\def\do##1{%
+           \begingroup
+           \def\do####1{%
+             \ifdef\abx@field@@@related
+               {\csletcs{abx@name@@@relsaved@##1@####1@#3}{abx@name@##1@####1@#3}%
+                \csletcs{etb@tgl@abx@bool@morerelsaved#3}{etb@tgl@abx@bool@more#3}%
+                \csletcs{c@relsaved#3}{c@#3}%
+                \listadd\abx@dorelnames{{##1}{####1}{#3}}}
+               {}%
+             \global\togglefalse{abx@bool@more#3}%
+             \global\csundef{abx@name@##1@####1@#3}%
+             \global\csname c@#3\endcsname\z@}%
+           \dolistcsloop{abx@fieldmslangs@#3}%
+           \endgroup}%
+         \dolistcsloop{abx@fieldmsforms@#3}}}
+      % clear specific alternate of a multiscript list
+     {\blx@imc@ifnameundef[#1][#2]{#3}
+       {}
+       {\ifdef\abx@field@@@related
+         {\csletcs{abx@name@@@relsaved@#1@#2@#3}{abx@name@#1@#2@#3}%
+          \listadd\abx@dorelnames{{#1}{#2}{#3}}}
+         {}%
+       \csundef{abx@name@#1@#2@#3}}}}
+    % clear non multiscript list
+    {\blx@imc@iflnameundef{#3}
+      {}
+      {\ifdef\abx@field@@@related
+         {\csletcs{abx@name@@@relsaved@@@#3}{abx@name@@@#3}%
+          \csletcs{etb@tgl@abx@bool@morerelsaved#3}{etb@tgl@abx@bool@more#3}%
+          \csletcs{c@relsaved#3}{c@#3}%
+          \listadd\abx@dorelnames{{}{}{#3}}}
+         {}%
+       \togglefalse{abx@bool@more#3}%
+       \csundef{abx@name@@@#3}%
+       \csname c@#3\endcsname\z@}}}
 
 % {<field>}{<macro>}
 \protected\def\blx@imc@restorefield#1{\cslet{abx@field@@@#1}}
@@ -7603,27 +7659,45 @@
   \c@savedcitecounter\c@citecounter
   \let\do\blx@saved@do}
 
+% saves all alternates of multiscript names
 \protected\def\blx@savename#1{%
-  \csletcs{etb@tgl@abx@bool@moresaved#1}{etb@tgl@abx@bool@more#1}%
-  \csletcs{abx@name@@@saved#1}{abx@name@@@#1}%
-  \csname c@saved#1\endcsname\csname c@#1\endcsname}
+  \blx@imc@ifmsentryfield{#1}
+    {\def\do##1{%
+       \begingroup
+       \def\do####1{%
+         \csletcs{abx@name@@@saved@##1@####1@#1}{abx@name@##1@####1@#1}}%
+       \dolistcsloop{abx@fieldmslangs@#1}%
+       \endgroup}%
+     \dolistcsloop{abx@fieldmsforms@#1}%
+     \csletcs{etb@tgl@abx@bool@moresaved#1}{etb@tgl@abx@bool@more#1}%
+     \csname c@saved#1\endcsname\csname c@#1\endcsname}
+    {\csletcs{abx@name@@@saved@@@#1}{abx@name@@@#1}}}
 
-% override with name saved from \clearfield for related processing
-\protected\def\blx@saverelname#1{%
-  \csletcs{etb@tgl@abx@bool@moresaved#1}{etb@tgl@abx@bool@morerelsaved#1}%
-  \csletcs{abx@name@@@saved#1}{abx@name@@@relsaved#1}%
-  \csname c@saved#1\endcsname\csname c@relsaved#1\endcsname}
+% override with name saved from \clearname for related processing
+\protected\def\blx@saverelname#1#2#3{%
+  \csletcs{etb@tgl@abx@bool@moresaved#3}{etb@tgl@abx@bool@morerelsaved#3}%
+  \csletcs{abx@name@@@saved@#1@#2@#3}{abx@name@@@relsaved@#1@#2@#3}%
+  \csname c@saved#3\endcsname\csname c@relsaved#3\endcsname}
 
+% saves all alternates of multiscript lists
 \protected\def\blx@savelist#1{%
-  \csletcs{etb@tgl@abx@bool@moresaved#1}{etb@tgl@abx@bool@more#1}%
-  \csletcs{abx@list@@@saved#1}{abx@list@@@#1}%
-  \csname c@saved#1\endcsname\csname c@#1\endcsname}
+  \blx@imc@ifmsentryfield{#1}
+    {\def\do##1{%
+       \begingroup
+       \def\do####1{%
+         \csletcs{abx@list@@@saved@##1@####1@#1}{abx@list@##1@####1@#1}}%
+       \dolistcsloop{abx@fieldmslangs@#1}%
+       \endgroup}%
+     \dolistcsloop{abx@fieldmsforms@#1}%
+     \csletcs{etb@tgl@abx@bool@moresaved#1}{etb@tgl@abx@bool@more#1}%
+     \csname c@saved#1\endcsname\csname c@#1\endcsname}
+    {\csletcs{abx@list@@@saved@@@#1}{abx@list@@@#1}}}
 
-% override with list saved from \clearfield for related processing
-\protected\def\blx@saverellist#1{%
-  \csletcs{etb@tgl@abx@bool@moresaved#1}{etb@tgl@abx@bool@morerelsaved#1}%
-  \csletcs{abx@list@@@saved#1}{abx@list@@@relsaved#1}%
-  \csname c@saved#1\endcsname\csname c@relsaved#1\endcsname}
+% override with list saved from \clearlist for related processing
+\protected\def\blx@saverellist#1#2#3{%
+  \csletcs{etb@tgl@abx@bool@moresaved#3}{etb@tgl@abx@bool@morerelsaved#3}%
+  \csletcs{abx@list@@@saved@#1@#2@#3}{abx@list@@@relsaved@#1@#2@#3}%
+  \csname c@saved#3\endcsname\csname c@relsaved#3\endcsname}
 
 % saves all alternates of multiscript fields
 \protected\def\blx@savefield#1{%
@@ -7631,8 +7705,10 @@
     {\def\do##1{%
        \begingroup
        \def\do####1{%
-         \csletcs{abx@field@@@saved@##1@####1@#1}{abx@field@##1@####1@#1}}\dolistcsloop{abx@fieldmslangs@#1}%
-        \endgroup}\dolistcsloop{abx@fieldmsforms@#1}}
+         \csletcs{abx@field@@@saved@##1@####1@#1}{abx@field@##1@####1@#1}}%
+       \dolistcsloop{abx@fieldmslangs@#1}%
+       \endgroup}%
+     \dolistcsloop{abx@fieldmsforms@#1}}
     {\csletcs{abx@field@@@saved@@@#1}{abx@field@@@#1}}}
 
 % override with field saved from \clearfield for related processing
