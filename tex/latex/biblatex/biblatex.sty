@@ -2466,7 +2466,7 @@
 \let\abx@dorellists\@empty
 \let\abx@dorelnames\@empty
 
-% [msform][mslang]{<field>}
+% [<msform>][<mslang>]{<field>}
 % If there is a related field in the entry, save a special copy in case
 % the related entry needs it for tests. See the corresponding tests in
 % \blx@saverelfield
@@ -2506,7 +2506,7 @@
         {}%
        \csundef{abx@field@@@#3}}}}
 
-% [msform][mslang]{<plainlist>}
+% [<msform>][<mslang>]{<plainlist>}
 % If there is a related field in the entry, save a special copy in case
 % the related entry needs it for tests. See the corresponding tests in
 % \blx@saverellist
@@ -2555,7 +2555,7 @@
        \csname c@#3\endcsname\z@}}}
 
  
-% {<namelist>}
+% [<msform>][<mslang>]{<namelist>}
 % If there is a related field in the entry, save a special copy in case
 % the related entry needs it for tests. See the corresponding tests in
 % \blx@saverelname
@@ -2603,19 +2603,44 @@
        \csundef{abx@name@@@#3}%
        \csname c@#3\endcsname\z@}}}
 
-% {<field>}{<macro>}
-\protected\def\blx@imc@restorefield#1{\cslet{abx@field@@@#1}}
+% {field|list|name}[<msform>][<mslang>]{<field>}{<macro>}
+\DeclareDocumentCommand{\blx@savedata}
+  {m O{\blx@msform} O{\blx@mslang} m m}
+  {\blx@imc@ifmsentryfield{#4}
+    {\letcs#5{abx@#1@#2@#3@#4}}
+    {\letcs#5{abx@#1@@@#4}}}
 
-% {<plainlist>}{<macro>}
-\protected\def\blx@imc@restorelist#1{\cslet{abx@list@@@#1}}
+% {field|list|name}[<msform>][<mslang>]{<field>}{<macro>}
+\DeclareDocumentCommand{\blx@savedatacs}
+  {m O{\blx@msform} O{\blx@mslang} m m}
+  {\blx@imc@ifmsentryfield{#4}
+    {\csletcs{#5}{abx@#1@#2@#3@#4}}
+    {\csletcs{#5}{abx@#1@@@#4}}}
+  
+% [<msform>][<mslang>]{<field>}{<macro>}
+\DeclareDocumentCommand{\blx@imc@restorefield}
+  {O{\blx@msform} O{\blx@mslang} m}
+  {\blx@imc@ifmsentryfield{#3}
+    {\cslet{abx@field@#1@#2@#3}}
+    {\cslet{abx@field@@@#3}}}
 
-% {<namelist>}{<macro>}
-\protected\def\blx@imc@restorename#1{\cslet{abx@name@@@#1}}
+% [<msform>][<mslang>]{<plainlist>}{<macro>}
+\DeclareDocumentCommand{\blx@imc@restorelist}
+  {O{\blx@msform} O{\blx@mslang} m}
+  {\blx@imc@ifmsentryfield{#3}
+    {\cslet{abx@list@#1@#2@#3}}
+    {\cslet{abx@list@@@#3}}}
 
-% {<field>}{<macro>}
+% [<msform>][<mslang>]{<namelist>}{<macro>}
+\DeclareDocumentCommand{\blx@imc@restorename}
+  {O{\blx@msform} O{\blx@mslang} m}
+  {\blx@imc@ifmsentryfield{#3}
+    {\cslet{abx@name@#1@#2@#3}}
+    {\cslet{abx@name@@@#3}}}
+
+% [<msform>][<mslang>]{<field>}{<macro>}
 \protected\def\blx@imc@savefield{%
   \@ifstar{\blx@savedata{field}}{\global\blx@savedata{field}}}
-\def\blx@savedata#1#2#3{\letcs#3{abx@#1@#2}}
 
 % {<plainlist>}{<macro>}
 \protected\def\blx@imc@savelist{%
@@ -2628,7 +2653,6 @@
 % {<field>}{<csname>}
 \protected\def\blx@imc@savefieldcs{%
   \@ifstar{\blx@savedatacs{field}}{\global\blx@savedatacs{field}}}
-\def\blx@savedatacs#1#2#3{\csletcs{#3}{abx@#1@#2}}
 
 % {<plainlist>}{<csname>}
 \protected\def\blx@imc@savelistcs{%
