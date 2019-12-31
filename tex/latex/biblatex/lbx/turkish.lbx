@@ -4,6 +4,7 @@
 \DeclareRedundantLanguages{turkish}{turkish}
 
 \DeclareBibliographyExtras{%
+  \DeclareCapitalPunctuation{.!?}%
   \protected\def\bibrangedash{%
     \textendash\penalty\hyphenpenalty}% breakable dash
   \let\finalandcomma=\empty
@@ -12,11 +13,10 @@
   \protected\def\mkbibmascord{\mkbibordinal}%
   \protected\def\mkbibfemord{\mkbibordinal}%
   \protected\def\mkbibneutord{\mkbibordinal}%
-  
   \protected\def\mkbibdatelong#1#2#3{%
     \iffieldundef{#3}
       {}
-      {\stripzeros{\thefield{#3}}%
+      {\bibstring{\thefield{#3}}%
        \iffieldundef{#2}{}{\nobreakspace}}%
     \iffieldundef{#2}
       {}
@@ -25,7 +25,6 @@
     \iffieldbibstring{#1}
       {\bibstring{\thefield{#1}}}
       {\dateeraprintpre{#1}\stripzeros{\thefield{#1}}}}%
-	  
   \protected\def\mkbibdateshort#1#2#3{%
     \iffieldundef{#3}
       {}
@@ -38,8 +37,17 @@
     \iffieldbibstring{#1}
       {\bibstring{\thefield{#1}}}
       {\dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}}}%
-	  
-  \expandafter\protected\expandafter\def\csname mkbibtime24h\endcsname#1#2#3#4{%
+  \savecommand\lbx@lfromlang
+  \savecommand\lbx@sfromlang
+  \def\lbx@lfromlang{%
+    \iflistundef{origlanguage}
+      {}
+      {\printlist[lfromoriglanguage]{origlanguage}\space}}%
+  \def\lbx@sfromlang{%
+    \iflistundef{origlanguage}
+      {}
+      {\printlist[sfromoriglanguage]{origlanguage}\space}}%
+   \expandafter\protected\expandafter\def\csname mkbibtime24h\endcsname#1#2#3#4{%
       \iffieldundef{#1}{}
         {\printtext{\mktimezeros{\thefield{#1}}}\setunit{\bibtimesep}}%
       \iffieldundef{#2}{}
@@ -50,10 +58,8 @@
       \iffieldundef{#4}{}
         {\bibtimezonesep
          \mkbibtimezone{\thefield{#4}}}}%
-		 
   \expandafter\protected\expandafter\def\csname mkbibtime12h\endcsname#1#2#3#4{%
-      \stripzeros{\mktimehh{\thefield{#1}}}%
-      \bibtimesep
+      \stripzeros{\mktimehh{\thefield{#1}}}\bibtimesep
       \forcezerosmdt{\thefield{#2}}%
       \iffieldundef{#3}{}
         {\bibtimesep
@@ -65,41 +71,24 @@
       \iffieldundef{#4}{}
        {\space\bibtimezonesep
         \parentext{\mkbibtimezone{\thefield{#4}}}}}%
-		
   \protected\def\mkbibseasondateshort#1#2{%
     \mkbibseason{\thefield{#2}}%
     \iffieldundef{#1}{}{\space}%
     \dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}}%
-	
   \protected\def\mkbibseasondatelong#1#2{%
     \mkbibseason{\thefield{#2}}%
     \iffieldundef{#1}{}{\space}%
     \dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}}%
-	
-  \savecommand\mkdaterangecomp
-  \savecommand\mkdaterangecompextra
-  \savecommand\mkdaterangeterse
-  \savecommand\mkdaterangeterseextra
-  \protected\def\mkdaterangecomp{%
-    \lbx@us@mkdaterangetrunc@long{long}}%
-  \protected\def\mkdaterangeterse{%
-    \lbx@us@mkdaterangetrunc@short{short}}%
-  \protected\def\mkdaterangecompextra{%
-    \lbx@us@mkdaterangetruncextra@long{long}}%
-  \protected\def\mkdaterangeterseextra{%
-    \lbx@us@mkdaterangetruncextra@short{short}}%
 }
 
 \UndeclareBibliographyExtras{%
-  \restorecommand\mkdaterangecomp
-  \restorecommand\mkdaterangecompextra
-  \restorecommand\mkdaterangeterse
-  \restorecommand\mkdaterangeterseextra
+  \restorecommand\lbx@lfromlang
+  \restorecommand\lbx@sfromlang
 }
 
 \DeclareBibliographyStrings{%
   bibliography     = {{kaynak\c{c}a}{kaynak\c{c}a}},
-  references       = {{referanslar}{referanslar}},
+  references       = {{kaynaklar}{kaynaklar}},
   shorthands       = {{k{\i}saltmalar dizini}{k{\i}saltmalar}},
   editor           = {{edit\"{o}r}{ed\adddot}},
   editors          = {{edit\"{o}rler}{ed\adddot}},
@@ -126,7 +115,7 @@
   introduction     = {{giri\c{s}}{giri\c{s}}},
   foreword         = {{\"{o}ns\"{o}z}{\"{o}ns\"{o}z}},
   afterword        = {{sons\"{o}z}{sons\"{o}z}},
-  editortr         = {{edit\"{o}r ve \c{c}eviren}
+  editortr         = {{edit\"{o}r ve \c{c}eviren}%
                       {ed\adddot\ ve \c{c}ev\adddot}},
   editorstr        = {{edit\"{o}rler ve \c{c}evirenler}%
                       {ed\adddot\ ve \c{c}ev\adddot}},
@@ -262,9 +251,9 @@
                       {\c{c}ev\adddot, a\c{c}{\i}k\adddot\ ve sons\"{o}z}},
   translatorsanaf  = {{\c{c}evirenler, a\c{c}{\i}klayanlar ve sons\"{o}z}%
                       {\c{c}ev\adddot, a\c{c}{\i}k\adddot\ ve sons\"{o}z}},
-  %organizer        = {{d\"{u}zenleyen}{d\"{u}z\adddot}},
-  %organizers       = {{d\"{u}zenleyenler}{d\"{u}z\adddot}},
-  %byorganizer      = {{taraf{\i}ndan d\"{u}zenlenmi\c{s}tir}{trf\adddotspace d\"{u}z\adddot}},
+  organizer        = {{d\"{u}zenleyen}{d\"{u}z\adddot}},
+  organizers       = {{d\"{u}zenleyenler}{d\"{u}z\adddot}},
+  byorganizer      = {{taraf{\i}ndan d\"{u}zenlenmi\c{s}tir}{trf\adddotspace d\"{u}z\adddot}},
   byauthor         = {{taraf{\i}ndan}{trf\adddot}},
   byeditor         = {{taraf{\i}ndan d\"{u}zenlenmi\c{s}tir}{trf\adddotspace d\"{u}z\adddot}},
   bycompiler       = {{taraf{\i}ndan derlenmi\c{s}tir}{trf\adddotspace der\adddot}},
@@ -277,11 +266,11 @@
   bytranslator     = {{taraf{\i}ndan \lbx@lfromlang\ \c{c}evrilmi\c{s}tir}{trf\adddotspace \lbx@sfromlang\ \c{c}ev\adddot}},
   bycommentator    = {{taraf{\i}ndan yorumlanm{\i}\c{s}t{\i}r}{trf\adddotspace yrm\adddot}},
   byannotator      = {{taraf{\i}ndan a\c{c}{\i}klanm{\i}\c{s}t{\i}r}{trf\adddotspace a\c{c}{\i}k\adddot}},
-  withcommentator  = {{yorumlar{\i}yla}{yorumlar{\i}yla}},
-  withannotator    = {{a\c{c}{\i}klamalar{\i}yla}{a\c{c}{\i}klamalar{\i}yla}},
-  withintroduction = {{taraf{\i}ndan yaz{\i}lan giri\c{s} ile}{trf\adddotspace yaz\adddotspace giri\c{s} ile}},
-  withforeword     = {{taraf{\i}ndan yaz{\i}lan \"{o}ns\"{o}z ile}{trf\adddotspace yaz\adddotspace \"{o}ns\"{o}z ile}},
-  withafterword    = {{taraf{\i}ndan yaz{\i}lan sons\"{o}z ile}{trf\adddotspace yaz\adddotspace sons\"{o}z ile}},
+  withcommentator  = {{yorumlar{\i}yla katk{\i}da bulunan}{yor\adddotspace kat\adddotspace bul\adddot:}},
+  withannotator    = {{a\c{c}{\i}klamalar{\i}yla katk{\i}da bulunan}{a\c{c}{\i}k\adddotspace kat\adddotspace bul\adddot:}},
+  withintroduction = {{taraf{\i}ndan yaz{\i}lan giri\c{s} ile}{trf\adddotspace yaz\adddotspace giri\c{s} ile}}, % FIX me: need the entry item in the beginning
+  withforeword     = {{taraf{\i}ndan yaz{\i}lan \"{o}ns\"{o}z ile}{trf\adddotspace yaz\adddotspace \"{o}ns\"{o}z ile}}, % FIX me: need the entry item in the beginning
+  withafterword    = {{taraf{\i}ndan yaz{\i}lan sons\"{o}z ile}{trf\adddotspace yaz\adddotspace sons\"{o}z ile}}, % FIX me: need the entry item in the beginning
   byeditortr       = {{taraf{\i}ndan d\"{u}zenlenmi\c{s} ve \lbx@lfromlang\ \c{c}evrilmi\c{s}tir}%
                       {trf\adddotspace d\"{u}z\adddot\ ve \lbx@sfromlang\ \c{c}ev\adddot}},
   byeditorco       = {{taraf{\i}ndan d\"{u}zenlenmi\c{s} ve yorumlanm{\i}\c{s}t{\i}r}%
@@ -350,33 +339,33 @@
                       {trf\adddotspace \lbx@sfromlang\ \c{c}ev\adddot, a\c{c}{\i}k\adddot\ ve \"{o}ns\"{o}z\"{u} yaz\adddot}},
   bytranslatoranaf = {{taraf{\i}ndan \lbx@lfromlang\ \c{c}evrilmi\c{s}, yorumlanm{\i}\c{s} ve sons\"{o}z\"{u} yaz{\i}lm{\i}\c{s}t{\i}r}%
                       {trf\adddotspace \lbx@sfromlang\ \c{c}ev\adddot, a\c{c}{\i}k\adddot\ ve sons\"{o}z\"{u} yaz\adddot}},
-  and               = {{ve}{ve}},
+  and              = {{ve}{ve}},
   andothers        = {{ve di\u{g}erleri}{ve di\u{g}\adddot}},
   andmore          = {{ve di\u{g}erleri}{ve di\u{g}\adddot}},
   volume           = {{cilt}{cilt}},
-  volumes          = {{ciltler}{ciltler}},
-  involumes        = {{ciltler i\c{c}inde}{ciltler i\c{c}inde}},
+  volumes          = {{cilt}{cilt}},
+  involumes        = {{i\c{c}inde}{i\c{c}inde}},
   jourvol          = {{cilt}{cilt}},
   jourser          = {{seri}{seri}},
   book             = {{kitap}{kitap}},
-  part             = {{b\"{o}l\"{u}m}{b\"{o}l\"{u}m}},
+  part             = {{k{\i}s{\i}m}{k{\i}s{\i}m}},
   issue            = {{say{\i}}{say{\i}}},
   newseries        = {{yeni seriler}{yeni seriler}},
   oldseries        = {{eski seriler}{eski seriler}},
-  edition          = {{bask{\i}}{bask{\i}}},
-  reprint          = {{yeniden bas{\i}m}{yeniden bas{\i}m}},
-  reprintof        = {{yeniden bas{\i}m{\i}}{yeniden bas{\i}m{\i}}},
-  reprintas        = {{yeniden bas{\i}m olarak}{yeniden bas{\i}m olarak}},
-  reprintfrom      = {{'den yeniden bas{\i}lm{\i}\c{s}t{\i}r}{'den yeniden bas{\i}lm{\i}\c{s}t{\i}r}},
-  reviewof         = {{derlemesi}{derlemesi}},
-  translationof    = {{\c{c}evirisi}{\c{c}evirisi}},
-  translationas    = {{\c{c}evirisi olarak}{\c{c}evirisi olarak}},
-  translationfrom  = {{'den \c{c}evrilmi\c{s}tir}{'den \c{c}evrilmi\c{s}tir}},
-  origpubas        = {{aslen bas{\i}m olarak}{aslen bas{\i}m olarak}},
-  origpubin        = {{aslen bas{\i}lm{\i}\c{s}t{\i}r}{aslen bas{\i}lm{\i}\c{s}t{\i}r}},
-  astitle          = {{ba\c{s}l{\i}k olarak}{ba\c{s}l{\i}k olarak}},
-  bypublisher      = {{taraf{\i}ndan bas{\i}lm{\i}\c{s}t{\i}r}{taraf{\i}ndan bas{\i}lm{\i}\c{s}t{\i}r}},
-  nodate           = {{tarih yok}{t\adddot y\adddot}},
+  edition          = {{bask{\i}}{bs\adddot}},
+  reprint          = {{yeniden bas{\i}m}{yeniden bas{\i}m}}, % FIX me: need the entry item in the beginning
+  reprintof        = {{yeniden bas{\i}m}{yeniden bas{\i}m}}, % FIX me: need the entry item in the beginning
+  reprintas        = {{yeniden bas{\i}m{\i} olarak}{yeniden bas{\i}m{\i} olarak}}, % FIX me: need the entry item in the beginning 
+  reprintfrom      = {{yeniden bas{\i}lm{\i}\c{s}t{\i}r}{yeniden bas{\i}lm{\i}\c{s}t{\i}r}}, % FIX me: need the entry item in the beginning
+  reviewof         = {{derlemesi}{'nin derlemesi}}, % FIX me: need the entry item in the beginning
+  translationof    = {{\c{c}evirisi}{\c{c}evirisi}}, % FIX me: need the entry item in the beginning 
+  translationas    = {{\c{c}evirisi olarak}{\c{c}evirisi olarak}}, % FIX me: need the entry item in the beginning
+  translationfrom  = {{\c{c}evrilmi\c{s}tir}{\c{c}evrilmi\c{s}tir}}, % FIX me: need the entry item in the beginning
+  origpubas        = {{aslen bas{\i}m:}{aslen bas{\i}m:}},
+  origpubin        = {{aslen bas{\i}m tarihi:}{aslen bas{\i}m tarihi:}},
+  astitle          = {{yeni ba\c{s}l{\i}\u{g}{\i}:}{yeni ba\c{s}l{\i}\u{g}{\i}:}},
+  bypublisher      = {{taraf{\i}ndan bas{\i}lm{\i}\c{s}t{\i}r}{taraf{\i}ndan bas{\i}lm{\i}\c{s}t{\i}r}}, % FIX me: need the entry item in the beginning
+  nodate           = {{tarih yok}{tarih yok\adddot}},
   page             = {{sayfa}{s\adddot}},
   pages            = {{sayfalar}{s\adddot}},
   column           = {{s\"{u}tun}{s\"{u}t\adddot}},
@@ -389,25 +378,25 @@
   sections         = {{b\"{o}l\"{u}mler}{b\"{o}l\adddot}},
   paragraph        = {{paragraf}{par\adddot}},
   paragraphs       = {{paragraflar}{par\adddot}},
-  %pagetotal        = {{sayfa toplam{\i}}{stop\adddot}},
-  %pagetotals       = {{sayfalar toplam{\i}}{stop\adddot}},
-  %columntotal      = {{s\"{u}tun toplam{\i}}{s\"{u}ttop\adddot}},
-  %columntotals     = {{s\"{u}tunlar toplam{\i}}{s\"{u}ttop\adddot}},
-  %linetotal        = {{sat{\i}r toplam{\i}}{sattop\adddot}},
-  %linetotals       = {{sat{\i}rlar toplam{\i}}{sattop\adddot}},
-  %versetotal       = {{m{\i}sra toplam{\i}}{m{\i}stop\adddot}},
-  %versetotals      = {{m{\i}sralar toplam{\i}}{m{\i}stop\adddot}},
-  %sectiontotal     = {{b\"{o}l\"{u}m toplam{\i}}{b\"{o}ltop\adddot}},
-  %sectiontotals    = {{b\"{o}l\"{u}mler toplam{\i}}{b\"{o}ltop\adddot}},
-  %paragraphtotal   = {{paragraf toplam{\i}}{partop\adddot}},
-  %paragraphtotals  = {{paragraflar toplam{\i}}{partop\adddot}},
+  pagetotal        = {{sayfa toplam{\i}}{s\adddotspace top\adddot}},
+  pagetotals       = {{sayfalar toplam{\i}}{s\adddotspace top\adddot}},
+  columntotal      = {{s\"{u}tun toplam{\i}}{s\"{u}t\adddotspace top\adddot}},
+  columntotals     = {{s\"{u}tunlar toplam{\i}}{s\"{u}t\adddotspace top\adddot}},
+  linetotal        = {{sat{\i}r toplam{\i}}{sat\adddotspace top\adddot}},
+  linetotals       = {{sat{\i}rlar toplam{\i}}{sat\adddotspace top\adddot}},
+  versetotal       = {{m{\i}sra toplam{\i}}{m{\i}s\adddotspace top\adddot}},
+  versetotals      = {{m{\i}sralar toplam{\i}}{m{\i}s\adddotspace top\adddot}},
+  sectiontotal     = {{b\"{o}l\"{u}m toplam{\i}}{b\"{o}l\adddotspace top\adddot}},
+  sectiontotals    = {{b\"{o}l\"{u}mler toplam{\i}}{b\"{o}l\adddotspace top\adddot}},
+  paragraphtotal   = {{paragraf toplam{\i}}{par\adddotspace top\adddot}},
+  paragraphtotals  = {{paragraflar toplam{\i}}{par\adddotspace top\adddot}},
   in               = {{i\c{c}inde}{i\c{c}inde}},
   inseries         = {{serilerde}{serilerde}},
   ofseries         = {{serilerin}{serilerin}},
-  number           = {{numara}{num\adddot}},
+  number           = {{numara}{no\adddot}},
   chapter          = {{b\"{o}l\"{u}m}{b\"{o}l\adddot}},
-  %bathesis         = {{lisans tezi}{lis\adddot\ tezi}},
-  mathesis         = {{y\"{u}ksek lisans tezi}{ylis\adddot\ tezi}},
+  bathesis         = {{lisans tezi}{lis\adddot\ tezi}},
+  mathesis         = {{y\"{u}ksek lisans tezi}{y\"{u}k\adddot\ lis\adddot\ tezi}},
   phdthesis        = {{doktora tezi}{dok\adddot\ tezi}},
   candthesis       = {{aday tezi}{aday tezi}},
   resreport        = {{ara\c{s}t{\i}rma raporu}{ara\c{s}\adddotspace rap\adddot}},
@@ -415,10 +404,10 @@
   software         = {{bilgisayar yaz{\i}l{\i}m{\i}}{bilg\adddotspace yaz\adddot}},
   datacd           = {{CD}{CD}},
   audiocd          = {{ses CD'si}{ses CD'si}},
-  version          = {{versiyon}{versiyon}},
-  url              = {{eri\c{s}im adresi}{eri\c{s}im adresi}},
-  urlfrom          = {{eri\c{s}im adresinden}{eri\c{s}im adresinden}},
-  urlseen          = {{eri\c{s}im sa\u{g}lanm{\i}\c{s}t{\i}r}{eri\c{s}im sa\u{g}lanm{\i}\c{s}t{\i}r}},
+  version          = {{versiyon}{ver\adddot}},
+  url              = {{eri\c{s}im adresi:}{eri\c{s}im adresi:}},
+  urlfrom          = {{eri\c{s}im adresi:}{eri\c{s}im adresi:}},
+  urlseen          = {{eri\c{s}im tarihi:}{eri\c{s}im tarihi:}},
   inpreparation    = {{haz{\i}rl{\i}k a\c{s}amas{\i}nda}{haz{\i}rl{\i}k a\c{s}amas{\i}nda}},
   submitted        = {{g\"{o}nderilmi\c{s}tir}{g\"{o}nderilmi\c{s}tir}},
   forthcoming      = {{yak{\i}nda}{yak{\i}nda}},
@@ -456,67 +445,69 @@
   july             = {{Temmuz}{Tem\adddot}},
   august           = {{A\u{g}ustos}{A\u{g}us\adddot}},
   september        = {{Eyl\"{u}l}{Eyl\adddot}},
-  october          = {{Ekim}{Ekim\adddot}},
+  october          = {{Ekim}{Ekim}},
   november         = {{Kas{\i}m}{Kas\adddot}},
   december         = {{Aral{\i}k}{Ara\adddot}},
   langamerican     = {{Amerikanca}{Amerikanca}},
   langbrazilian    = {{Brezilyanca}{Brezilyanca}},
-  %langbulgarian    = {{Bulgarca}{Bulgarca}},
+  langbulgarian    = {{Bulgarca}{Bulgarca}},
   langcatalan      = {{Katalanca}{Katalanca}},
   langcroatian     = {{H{\i}rvat\c{c}a}{H{\i}rvat\c{c}a}},
   langczech        = {{\c{C}ek\c{c}e}{\c{C}ek\c{c}e}},
   langdanish       = {{Danimarkanca}{Danimarkanca}},
   langdutch        = {{Flemenk\c{c}e}{Flemenk\c{c}e}},
   langenglish      = {{\.{I}ngilizce}{\.{I}ngilizce}},
-  %langestonian     = {{Estonca}{Estonca}},
+  langestonian     = {{Estonca}{Estonca}},
   langfinnish      = {{Fince}{Fince}},
   langfrench       = {{Frans{\i}zca}{Frans{\i}zca}},
-  %langgalician     = {{Galce}{Galce}},
+  langgalician     = {{Galce}{Galce}},
   langgerman       = {{Almanca}{Almanca}},
   langgreek        = {{Yunanca}{Yunanca}},
-  %langhungarian    = {{Macarca}{Macarca}},
+  langhungarian    = {{Macarca}{Macarca}},
   langitalian      = {{\.{I}talyanca}{\.{I}talyanca}},
   langjapanese     = {{Japonca}{Japonca}},
   langlatin        = {{Latince}{Latince}},
-  %langlatvian      = {{Letonca}{Letonca}},
+  langlatvian      = {{Letonca}{Letonca}},
   langnorwegian    = {{Norve\c{c}\c{c}e}{Norve\c{c}\c{c}e}},
   langpolish       = {{Polonyaca}{Polonyaca}},
   langportuguese   = {{Portekizce}{Portekizce}},
   langrussian      = {{Rus\c{c}a}{Rus\c{c}a}},
-  %langslovak       = {{Slovak\c{c}a}{Slovak\c{c}a}},
+  %langserbian      = {{S{\i}rp\c{c}a}{S{\i}rp\c{c}a}},
+  langslovak       = {{Slovak\c{c}a}{Slovak\c{c}a}},
   langslovene      = {{Slovence}{Slovence}},
   langspanish      = {{\.{I}spanyolca}{\.{I}spanyolca}},
   langswedish      = {{\.{I}sve\c{c}\c{c}e}{\.{I}sve\c{c}\c{c}e}},
-  %langukrainian    = {{Ukraynaca}{Ukraynaca}},
+  langukrainian    = {{Ukraynaca}{Ukraynaca}},
   fromamerican     = {{Amerikanca'dan}{Amerikanca'dan}},
   frombrazilian    = {{Brezilyanca'dan}{Brezilyanca'dan}},
-  %frombulgarian    = {{Bulgarca'dan}{Bulgarca'dan}},
+  frombulgarian    = {{Bulgarca'dan}{Bulgarca'dan}},
   fromcatalan      = {{Katalanca'dan}{Katalanca'dan}},
   fromcroatian     = {{H{\i}rvat\c{c}a'dan}{H{\i}rvat\c{c}a'dan}},
   fromczech        = {{\c{C}ek\c{c}e'den}{\c{C}ek\c{c}e'den}},
   fromdanish       = {{Danimarkanca'dan}{Danimarkanca'dan}},
   fromdutch        = {{Flemenk\c{c}e'den}{Flemenk\c{c}e'den}},
   fromenglish      = {{\.{I}ngilizce'den}{\.{I}ngilizce'den}},
-  %fromestonian     = {{Estonyaca'dan}{Estonyaca'dan}},
+  fromestonian     = {{Estonyaca'dan}{Estonyaca'dan}},
   fromfinnish      = {{Fince'den}{Fince'den}},
   fromfrench       = {{Frans{\i}zca'dan}{Frans{\i}zca'dan}},
-  %fromgalician     = {{Galyaca'dan}{Galyaca'dan}},
+  fromgalician     = {{Galyaca'dan}{Galyaca'dan}},
   fromgerman       = {{Almanca'dan}{Almanca'dan}},
   fromgreek        = {{Yunanca'dan}{Yunanca'dan}},
-  %fromhungarian    = {{Macarca'dan}{Macarca'dan}},
+  fromhungarian    = {{Macarca'dan}{Macarca'dan}},
   fromitalian      = {{\.{I}talyanca'dan}{\.{I}talyanca'dan}},
   fromjapanese     = {{Japonca'dan}{Japonca'dan}},
   fromlatin        = {{Latince'den}{Latince'den}},
-  %fromlatvian      = {{Latvianca'dan}{Latvianca'dan}},
+  fromlatvian      = {{Latvianca'dan}{Latvianca'dan}},
   fromnorwegian    = {{Norve\c{c}\c{c}e'den}{Norve\c{c}\c{c}e'den}},
   frompolish       = {{Polonyaca'dan}{Polonyaca'dan}},
   fromportuguese   = {{Portekizce'den}{Portekizce'den}},
   fromrussian      = {{Rus\c{c}a'dan}{Rus\c{c}a'dan}},
-  %fromslovak       = {{Slovak\c{c}a'dan}{Slovak\c{c}a'dan}},
+  %fromserbian      = {{S{\i}rp\c{c}a'dan}{S{\i}rp\c{c}a'dan}},
+  fromslovak       = {{Slovak\c{c}a'dan}{Slovak\c{c}a'dan}},
   fromslovene      = {{Slovence'den}{Slovence'den}},
   fromspanish      = {{\.{I}spanyolca'dan}{\.{I}spanyolca'dan}},
   fromswedish      = {{\.{I}sve\c{c}\c{c}e'den}{\.{I}sve\c{c}\c{c}e'den}},
-  %fromukrainian    = {{Ukraynaca'dan}{Ukraynaca'dan}},
+  fromukrainian    = {{Ukraynaca'dan}{Ukraynaca'dan}},
   countryde        = {{Almanya}{DE}},
   countryeu        = {{Avrupa Birli\u{g}i}{AB}},
   countryep        = {{Avrupa Birli\u{g}i}{AB}},
@@ -539,169 +530,17 @@
   library          = {{k\"{u}t\"{u}phane}{k\"{u}t\"{u}phane}},
   abstract         = {{\"{o}zet}{\"{o}zet}},
   annotation       = {{a\c{c}{\i}klama}{a\c{c}{\i}klama}},
-  %commonera        = {{Milattan sonra}{MS}},
-  %beforecommonera  = {{Milattan \"{o}nce}{M\"{O}}},
-  %annodomini       = {{Milattan sonra}{MS}},
-  %beforechrist     = {{Milattan \"{o}nce}{M\"{O}}},
-  %circa            = {{yakla\c{s}{\i}k olarak}{yak\adddot}},
-  %spring           = {{Bahar}{Bahar}},
-  %summer           = {{Yaz}{Yaz}},
-  %autumn           = {{G\"{u}z}{G\"{u}z}},
-  %winter           = {{K{\i}\c{s}}{K{\i}\c{s}}},
-  %am               = {{AM}{AM}},
-  %pm               = {{PM}{PM}},
+  commonera        = {{milattan sonra}{MS}},
+  beforecommonera  = {{milattan \"{o}nce}{M\"{O}}},
+  annodomini       = {{milattan sonra}{MS}},
+  beforechrist     = {{milattan \"{o}nce}{M\"{O}}},
+  circa            = {{yakla\c{s}{\i}k olarak}{yak\adddot}},
+  spring           = {{ikbahar}{ilkbahar}},
+  summer           = {{yaz}{yaz}},
+  autumn           = {{sonbahar}{sonbahar}},
+  winter           = {{k{\i}\c{s}}{k{\i}\c{s}}},
+  am               = {{AM}{AM}},
+  pm               = {{PM}{PM}},
 }
-
-\protected\gdef\lbx@us@mkdaterangetrunc@long#1#2{%
-  \blx@if@printanytimes{#2}
-    {\mkdaterangefull{#1}{#2}}
-    {\lbx@us@mkdaterangetrunc@long@i{#1}{#2}}}
-
-\protected\gdef\lbx@us@mkdaterangetrunc@long@i#1#2{%
-  \begingroup
-    \blx@metadateinfo{#2}%
-    \iffieldundef{#2year}
-      {\blx@nounit}
-      {\printtext[#2date]{%
-         \datecircaprint
-         \iffieldundef{#2season}
-           {\ifdateyearsequal{#2}{#2end}
-             {\csuse{mkbibdate#1}{}{#2month}{#2day}}
-             {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
-              \dateeraprint{#2year}}}
-           {\ifdateyearsequal{#2}{#2end}
-             {\csuse{mkbibseasondate#1}{}{#2season}}
-             {\csuse{mkbibseasondate#1}{#2year}{#2season}%
-              \dateeraprint{#2year}}}%
-         \dateuncertainprint
-         \iffieldundef{#2endyear}
-           {}
-           {\iffieldequalstr{#2endyear}{}
-             {\mbox{\bibdaterangesep}}
-             {\bibdaterangesep
-              \enddatecircaprint
-              \iffieldundef{#2endseason}
-                {\ifdateyearsequal{#2}{#2end}
-                  {\iffieldsequal{#2month}{#2endmonth}
-                    {\csuse{mkbibdate#1}{#2endyear}{}{#2endday}}
-                    {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}}
-                  {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}}
-                {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}%
-              \enddateuncertainprint
-              \dateeraprint{#2endyear}}}}}%
-  \endgroup}
-
-\protected\gdef\lbx@us@mkdaterangetrunc@short#1#2{%
-  \blx@if@printanytimes{#2}
-    {\mkdaterangefull{#1}{#2}}
-    {\lbx@us@mkdaterangetrunc@short@i{#1}{#2}}}
-
-\protected\gdef\lbx@us@mkdaterangetrunc@short@i#1#2{%
-  \begingroup
-    \blx@metadateinfo{#2}%
-    \iffieldundef{#2year}
-      {\blx@nounit}
-      {\printtext[#2date]{%
-         \datecircaprint
-         \iffieldundef{#2season}
-           {\ifdateyearsequal{#2}{#2end}
-             {\csuse{mkbibdate#1}{}{#2month}{#2day}}
-             {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
-              \dateeraprint{#2year}}}
-           {\ifdateyearsequal{#2}{#2end}
-             {\csuse{mkbibseasondate#1}{}{#2season}}
-             {\csuse{mkbibseasondate#1}{#2year}{#2season}%
-              \dateeraprint{#2year}}}%
-         \dateuncertainprint
-         \iffieldundef{#2endyear}
-           {}
-           {\iffieldequalstr{#2endyear}{}
-              {\mbox{\bibdaterangesep}}
-              {\bibdaterangesep
-               \enddatecircaprint
-               \iffieldundef{#2endseason}
-                 {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}
-                 {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}%
-               \enddateuncertainprint
-               \dateeraprint{#2endyear}}}}}%
-  \endgroup}
-
-\protected\gdef\lbx@us@mkdaterangetruncextra@long#1#2{%
-  \blx@if@printanytimes{#2}
-    {\mkdaterangefullextra{#1}{#2}}
-    {\lbx@us@mkdaterangetruncextra@long@i{#1}{#2}}}
-
-\protected\gdef\lbx@us@mkdaterangetruncextra@long#1#2{%
-  \begingroup
-    \blx@metadateinfo{#2}%
-    \iffieldundef{#2year}
-      {\blx@nounit}
-      {\printtext[#2date]{%
-         \datecircaprint
-         \iffieldundef{#2season}
-           {\ifdateyearsequal{#2}{#2end}
-             {\csuse{mkbibdate#1}{}{#2month}{#2day}}
-             {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
-              \dateeraprint{#2year}}}
-           {\ifdateyearsequal{#2}{#2end}
-             {\csuse{mkbibseasondate#1}{}{#2season}}
-             {\csuse{mkbibseasondate#1}{#2year}{#2season}%
-              \dateeraprint{#2year}}}%
-         \dateuncertainprint
-         \iffieldundef{#2endyear}
-           {\printfield{extradate}}
-           {\iffieldequalstr{#2endyear}{}
-              {\printfield{extradate}%
-               \mbox{\bibdaterangesep}}
-              {\bibdaterangesep
-               \enddatecircaprint
-               \iffieldundef{#2endseason}
-                 {\ifdateyearsequal{#2}{#2end}
-                   {\iffieldsequal{#2month}{#2endmonth}
-                      {\csuse{mkbibdate#1}{#2endyear}{}{#2endday}}
-                      {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}}
-                   {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}}
-                 {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}%
-               \printfield{extradate}%
-               \enddateuncertainprint
-               \dateeraprint{#2endyear}}}}}%
-  \endgroup}
-
-\protected\gdef\lbx@us@mkdaterangetruncextra@short#1#2{%
-  \blx@if@printanytimes{#2}
-    {\mkdaterangefullextra{#1}{#2}}
-    {\lbx@us@mkdaterangetruncextra@short@i{#1}{#2}}}
-
-\protected\gdef\lbx@us@mkdaterangetruncextra@short#1#2{%
-  \begingroup
-    \blx@metadateinfo{#2}%
-    \iffieldundef{#2year}
-      {\blx@nounit}
-      {\printtext[#2date]{%
-         \datecircaprint
-         \iffieldundef{#2season}
-           {\ifdateyearsequal{#2}{#2end}
-             {\csuse{mkbibdate#1}{}{#2month}{#2day}}
-             {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
-              \dateeraprint{#2year}}}
-           {\ifdateyearsequal{#2}{#2end}
-             {\csuse{mkbibseasondate#1}{}{#2season}}
-             {\csuse{mkbibseasondate#1}{#2year}{#2season}%
-              \dateeraprint{#2year}}}%
-         \dateuncertainprint
-         \iffieldundef{#2endyear}
-           {\printfield{extradate}}
-           {\iffieldequalstr{#2endyear}{}
-              {\printfield{extradate}%
-            \mbox{\bibdaterangesep}}
-           {\bibdaterangesep
-            \enddatecircaprint
-            \iffieldundef{#2endseason}
-              {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}
-              {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}%
-            \printfield{extradate}%
-            \enddateuncertainprint
-            \dateeraprint{#2endyear}}}}}%
-  \endgroup}
 
 \endinput
