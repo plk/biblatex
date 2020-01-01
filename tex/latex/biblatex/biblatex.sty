@@ -977,21 +977,29 @@
     \expandafter\blx@regimcs@i
   \fi}
 
-% {<field>} => \do{<item1>}\do{<item2>}...
-\def\blx@imc@docsvfield#1{%
-  \blx@imc@iffieldundef{#1}
+% [<msform>][<mslang>]{<field>} => \do{<item1>}\do{<item2>}...
+\DeclareExpandableDocumentCommand{\blx@imc@docsvfield}
+  {O{\blx@msform} O{\blx@mslang} m}
+  {\blx@imc@iffieldundef[#1][#2]{#3}
     {}
-    {\expandafter\expandafter\expandafter\docsvlist
+    {\blx@imc@ifmsentryfield{#3}
+       {\def\blx@tempa{abx@field@#1@#2@#3}}
+       {\def\blx@tempa{abx@field@@@#3}}%
+     \expandafter\expandafter\expandafter\docsvlist
      \expandafter\expandafter\expandafter{%
-       \csname abx@field@@@#1\endcsname}}}
+     \csname\blx@tempa\endcsname}}}
 
-% {<handler>}{<field>} => <handler>{<item1>}<handler>{<item2>}...
-\def\blx@imc@forcsvfield#1#2{%
-  \blx@imc@iffieldundef{#2}
+% {<handler>}[<msform>][<mslang>]{<field>} => <handler>{<item1>}<handler>{<item2>}...
+\DeclareExpandableDocumentCommand{\blx@imc@forcsvfield}
+  {m O{\blx@msform} O{\blx@mslang} m}
+  {\blx@imc@iffieldundef[#2][#3]{#4}
     {}
-    {\expandafter\expandafter\expandafter\blx@imc@forcsvfield@i
+    {\blx@imc@ifmsentryfield{#4}
+       {\def\blx@tempa{abx@field@#2@#3@#4}}
+       {\def\blx@tempa{abx@field@@@#4}}%
+     \expandafter\expandafter\expandafter\blx@imc@forcsvfield@i
      \expandafter\expandafter\expandafter{%
-       \csname abx@field@@@#2\endcsname}{#1}}}
+     \csname\blx@tempa\endcsname}{#1}}}
 
 \def\blx@imc@forcsvfield@i#1#2{\forcsvlist{#2}{#1}}
 
@@ -2888,6 +2896,7 @@
      \csname\blx@tempa\endcsname}{#4}}}
 
 % [<msform>][<mslang>]{<field>}{<true>}{<false>}
+
 \DeclareDocumentCommand{\blx@imc@iffieldxref}
   {O{\blx@msform} O{\blx@mslang} m}
   {\blx@imc@iffieldundef[#1][#2]{#3}
