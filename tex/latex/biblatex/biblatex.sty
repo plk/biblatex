@@ -2482,13 +2482,14 @@
           \begingroup
           \def\do####1{%
             \ifdef\abx@field@@@related
-              {\csletcs{abx@field@@@relsaved@##1@####1@#3}{abx@field@##1@####1@#3}%
-               \listadd\abx@dorelfields{{{##1}{####1}{#3}}}}
+              {\gappto\blx@tempi{\csletcs{abx@field@@@relsaved@##1@####1@#3}{abx@field@##1@####1@#3}}%
+                \listadd\abx@dorelfields{{{##1}{####1}{#3}}}}
               {}%
-            \global\csundef{abx@field@##1@####1@#3}}%
+            \gappto\blx@tempi{\csundef{abx@field@##1@####1@#3}}}%
           \dolistcsloop{abx@fieldmslangs@#3}%
           \endgroup}%
-       \dolistcsloop{abx@fieldmsforms@#3}}}
+       \dolistcsloop{abx@fieldmsforms@#3}%
+       \blx@tempi\global\undef\blx@tempi}}
       % clear specific alternate of a multiscript field
      {\blx@imc@iffieldundef[#1][#2]{#3}
        {}
@@ -2522,17 +2523,18 @@
            \begingroup
            \def\do####1{%
              \ifdef\abx@field@@@related
-               {\csletcs{abx@list@@@relsaved@##1@####1@#3}{abx@list@##1@####1@#3}%
-                \csletcs{etb@tgl@abx@bool@morerelsaved#3}{etb@tgl@abx@bool@more#3}%
-                \csletcs{c@relsaved#3}{c@#3}%
-                \listadd\abx@dorellists{{##1}{####1}{#3}}}
+               {\gappto\blx@tempi{\csletcs{abx@list@@@relsaved@##1@####1@#3}{abx@list@##1@####1@#3}%
+                   \csletcs{etb@tgl@abx@bool@morerelsaved#3}{etb@tgl@abx@bool@more#3}%
+                   \csletcs{c@relsaved#3}{c@#3}%
+                   \listadd\abx@dorellists{{##1}{####1}{#3}}}}
                {}%
-             \global\togglefalse{abx@bool@more#3}%
-             \global\csundef{abx@list@##1@####1@#3}%
-             \global\csname c@#3\endcsname\z@}%
+             \gappto\blx@tempi{\togglefalse{abx@bool@more#3}%
+               \csundef{abx@list@##1@####1@#3}%
+               \csname c@#3\endcsname\z@}}%
            \dolistcsloop{abx@fieldmslangs@#3}%
            \endgroup}%
-         \dolistcsloop{abx@fieldmsforms@#3}}}
+         \dolistcsloop{abx@fieldmsforms@#3}%
+         \blx@tempi\global\undef\blx@tempi}}
       % clear specific alternate of a multiscript list
      {\blx@imc@iflistundef[#1][#2]{#3}
        {}
@@ -2571,17 +2573,18 @@
            \begingroup
            \def\do####1{%
              \ifdef\abx@field@@@related
-               {\csletcs{abx@name@@@relsaved@##1@####1@#3}{abx@name@##1@####1@#3}%
-                \csletcs{etb@tgl@abx@bool@morerelsaved#3}{etb@tgl@abx@bool@more#3}%
-                \csletcs{c@relsaved#3}{c@#3}%
-                \listadd\abx@dorelnames{{##1}{####1}{#3}}}
+               {\gappto\blx@tempi{\csletcs{abx@name@@@relsaved@##1@####1@#3}{abx@name@##1@####1@#3}%
+                   \csletcs{etb@tgl@abx@bool@morerelsaved#3}{etb@tgl@abx@bool@more#3}%
+                   \csletcs{c@relsaved#3}{c@#3}%
+                   \listadd\abx@dorelnames{{##1}{####1}{#3}}}}
                {}%
-             \global\togglefalse{abx@bool@more#3}%
-             \global\csundef{abx@name@##1@####1@#3}%
-             \global\csname c@#3\endcsname\z@}%
+             \gappto\blx@tempi{\togglefalse{abx@bool@more#3}%
+               \csundef{abx@name@##1@####1@#3}%
+               \csname c@#3\endcsname\z@}}%
            \dolistcsloop{abx@fieldmslangs@#3}%
            \endgroup}%
-         \dolistcsloop{abx@fieldmsforms@#3}}}
+         \dolistcsloop{abx@fieldmsforms@#3}%
+         \blx@tempi\global\undef\blx@tempi}}
       % clear specific alternate of a multiscript list
      {\blx@imc@ifnameundef[#1][#2]{#3}
        {}
@@ -2872,29 +2875,37 @@
     \expandafter\@secondoftwo
   \fi}
 
-% {<field>}{<string>}{<true>}{<false>}
-\protected\long\def\blx@imc@iffieldequalstr#1#2{%
-  \blx@imc@iffieldundef{#1}
+% [<msform>][<mslang>]{<field>}{<string>}{<true>}{<false>}
+\DeclareDocumentCommand{\blx@imc@iffieldequalstr}
+  {O{\blx@msform} O{\blx@mslang} m m}
+  {\blx@imc@iffieldundef[#1][#2]{#3}
     {\@secondoftwo}
-    {\expandafter\expandafter\expandafter\ifstrequal
+    {\blx@imc@ifmsentryfield{#3}
+       {\def\blx@tempa{abx@field@#1@#2@#3}}
+       {\def\blx@tempa{abx@field@@@#3}}%
+     \expandafter\expandafter\expandafter\ifstrequal
      \expandafter\expandafter\expandafter{%
-       \csname abx@field@@@#1\endcsname}{#2}}}
+     \csname\blx@tempa\endcsname}{#4}}}
 
-% {<field>}{<true>}{<false>}
-\protected\def\blx@imc@iffieldxref#1{%
-  \blx@imc@iffieldundef{#1}
+% [<msform>][<mslang>]{<field>}{<true>}{<false>}
+\DeclareDocumentCommand{\blx@imc@iffieldxref}
+  {O{\blx@msform} O{\blx@mslang} m}
+  {\blx@imc@iffieldundef[#1][#2]{#3}
     {\@secondoftwo}
     {\blx@whichxref
-       {\blx@iffieldxref{#1}}
-       {\@secondoftwo}}}
+      {\blx@iffieldxref{#1}{#2}{#3}}
+      {\@secondoftwo}}}
 
-\def\blx@iffieldxref#1#2{%
+% {<msform>}{<mslang>}{field}{xref|crossref}
+\def\blx@iffieldxref#1#2#3#4{%
   \begingroup
-  \letcs\blx@tempa{abx@field@@@#2}%
-  \letcs\blx@tempb{abx@field@@@#1}%
+  \blx@imc@ifmsentryfield{#3}
+    {\letcs\blx@tempb{abx@field@#1@#2@#3}}
+    {\letcs\blx@tempb{abx@field@@@#3}}%
+  \letcs\blx@tempa{abx@field@@@#4}% xref|crossref - non multi
   \blx@resetdata
   \blx@getdata{\blx@tempa}%
-  \blx@imc@iffieldequals{#1}\blx@tempb
+  \blx@imc@iffieldequals[#1][#2]{#3}\blx@tempb
     {\aftergroup\@firstoftwo}
     {\aftergroup\@secondoftwo}%
   \endgroup}
@@ -2906,44 +2917,52 @@
        {#1{xref}}}
     {#1{crossref}}}
 
-% {<plainlist>}{<true>}{<false>}
-\protected\def\blx@imc@iflistxref#1{%
-  \blx@imc@iflistundef{#1}
+% [<msform>][<mslang>]{<plainlist>}{<true>}{<false>}
+\DeclareDocumentCommand{\blx@imc@iflistxref}
+  {O{\blx@msform} O{\blx@mslang} m}
+  {\blx@imc@iflistundef[#1][#2]{#3}
     {\@secondoftwo}
     {\blx@whichxref
-       {\blx@iflistxref{#1}}
-       {\@secondoftwo}}}
+      {\blx@iflistxref{#1}{#2}{#3}}
+      {\@secondoftwo}}}
 
-\def\blx@iflistxref#1#2{%
+% {<msform>}{<mslang>}{field}{xref|crossref}
+\def\blx@iflistxref#1#2#3#4{%
   \begingroup
-  \letcs\blx@tempa{abx@field@@@#2}%
-  \letcs\blx@tempb{abx@list@@@#1}%
+  \blx@imc@ifmsentryfield{#3}
+    {\letcs\blx@tempb{abx@list@#1@#2@#3}}
+    {\letcs\blx@tempb{abx@list@@@#3}}%
+  \letcs\blx@tempa{abx@field@@@#4}% xref|crossref - non multi
   \blx@resetdata
   \blx@getdata{\blx@tempa}%
-  \blx@imc@iflistequals{#1}\blx@tempb
+  \blx@imc@iflistequals[#1][#2]{#3}\blx@tempb
     {\aftergroup\@firstoftwo}
     {\aftergroup\@secondoftwo}%
   \endgroup}
 
-% {<namelist>}{<true>}{<false>}
-\protected\def\blx@imc@ifnamexref#1{%
-  \blx@imc@ifnameundef{#1}
+% [<msform>][<mslang>]{<namelist>}{<true>}{<false>}
+\DeclareDocumentCommand{\blx@imc@ifnamexref}
+  {O{\blx@msform} O{\blx@mslang} m}
+  {\blx@imc@ifnameundef[#1][#2]{#3}
     {\@secondoftwo}
     {\blx@whichxref
-       {\blx@ifnamexref{#1}}
-       {\@secondoftwo}}}
+      {\blx@ifnamexref{#1}{#2}{#3}}
+      {\@secondoftwo}}}
 
-\def\blx@ifnamexref#1#2{%
+% {<msform>}{<mslang>}{field}{xref|crossref}
+\def\blx@ifnamexref#1#2#3#4{%
   \begingroup
-  \letcs\blx@tempa{abx@field@@@#2}%
-  \letcs\blx@tempb{abx@name@@@#1}%
+  \blx@imc@ifmsentryfield{#3}
+    {\letcs\blx@tempb{abx@name@#1@#2@#3}}
+    {\letcs\blx@tempb{abx@name@@@#3}}%
+  \letcs\blx@tempa{abx@field@@@#4}% xref|crossref - non multi
   \blx@resetdata
   \blx@getdata{\blx@tempa}%
-  \blx@imc@ifnameequals{#1}\blx@tempb
+  \blx@imc@ifnameequals[#1][#2]{#3}\blx@tempb
     {\aftergroup\@firstoftwo}
     {\aftergroup\@secondoftwo}%
   \endgroup}
-
+  
 % {<string>}{<true>}{<false>}
 \protected\def\blx@imc@ifcurrentfield#1{%
   \begingroup
