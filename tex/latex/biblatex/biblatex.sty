@@ -3351,7 +3351,7 @@
   \endgroup}
 
 % [<msform>][<mslang>]{<field>}{<true>}{<false>}
-\DeclareDocumentCommand{\blx@imc@ifnameequalcs}
+\DeclareDocumentCommand{\blx@imc@iffieldint}
   {O{\blx@msform} O{\blx@mslang} m}
   {\blx@imc@iffieldundef[#1][#2]{#3}
     {\@secondoftwo}
@@ -3361,15 +3361,7 @@
      \expandafter\expandafter
      \expandafter\blx@imc@ifinteger
      \expandafter\expandafter
-     \expandafter{\csname\blx@tempa\endcsname}}
-
-% \protected\def\blx@imc@iffieldint#1{%
-%   \blx@imc@iffieldundef{#1}
-%     {\@secondoftwo}
-%     {\expandafter\expandafter
-%      \expandafter\blx@imc@ifinteger
-%      \expandafter\expandafter
-%      \expandafter{\csname abx@field@@@#1\endcsname}}}
+     \expandafter{\csname\blx@tempa\endcsname}}}
 
 % {<string>}{<true>}{<false>}
 \protected\def\blx@imc@ifnumeral{%
@@ -3423,30 +3415,42 @@
   \def\do##1{\let##1\@empty}%
   \blx@dopagecmds}
 
-% {<field>}{<true>}{<false>}
-\protected\def\blx@imc@iffieldnum#1{%
-  \blx@imc@iffieldundef{#1}
+% [msform][mslang]{<field>}{<true>}{<false>}
+\DeclareDocumentCommand{\blx@imc@iffieldnum}
+  {O{\blx@msform} O{\blx@mslang} m}
+  {\blx@imc@iffieldundef[#1][#2]{#3}
     {\@secondoftwo}
-    {\expandafter\expandafter
+    {\blx@imc@ifmsentryfield{#3}
+       {\def\blx@tempa{abx@field@#1@#2@#3}}
+       {\def\blx@tempa{abx@field@@@#3}}%
+     \expandafter\expandafter
      \expandafter\blx@imc@ifnumeral
      \expandafter\expandafter
-     \expandafter{\csname abx@field@@@#1\endcsname}}}
+     \expandafter{\csname\blx@tempa\endcsname}}}
 
-\protected\def\blx@imc@iffieldnums#1{%
-  \blx@imc@iffieldundef{#1}
+\DeclareDocumentCommand{\blx@imc@iffieldnums}
+  {O{\blx@msform} O{\blx@mslang} m}
+  {\blx@imc@iffieldundef[#1][#2]{#3}
     {\@secondoftwo}
-    {\expandafter\expandafter
+    {\blx@imc@ifmsentryfield{#3}
+       {\def\blx@tempa{abx@field@#1@#2@#3}}
+       {\def\blx@tempa{abx@field@@@#3}}%
+     \expandafter\expandafter
      \expandafter\blx@imc@ifnumerals
      \expandafter\expandafter
-     \expandafter{\csname abx@field@@@#1\endcsname}}}
+     \expandafter{\csname\blx@tempa\endcsname}}}
 
-\protected\def\blx@imc@iffieldpages#1{%
-  \blx@imc@iffieldundef{#1}
+\DeclareDocumentCommand{\blx@imc@iffieldpages}
+  {O{\blx@msform} O{\blx@mslang} m}
+  {\blx@imc@iffieldundef[#1][#2]{#3}
     {\@secondoftwo}
-    {\expandafter\expandafter
+    {\blx@imc@ifmsentryfield{#3}
+       {\def\blx@tempa{abx@field@#1@#2@#3}}
+       {\def\blx@tempa{abx@field@@@#3}}%
+     \expandafter\expandafter
      \expandafter\blx@imc@ifpages
      \expandafter\expandafter
-     \expandafter{\csname abx@field@@@#1\endcsname}}}
+     \expandafter{\csname\blx@tempa\endcsname}}}
 
 % {<chars>}
 \newrobustcmd*{\DeclareNumChars}{%
@@ -5503,25 +5507,42 @@
     {\@secondoftwo}
     {\@firstoftwo}}
 
-% {<field>}{<true>}{<false>}
-\def\blx@imc@iffieldbibstring#1{%
-  \blx@imc@iffieldundef{#1}
+% [<msform>][<mslang>]{<field>}{<true>}{<false>}
+\DeclareExpandableDocumentCommand{\blx@imc@iffieldbibstring}
+  {O{\blx@msform} O{\blx@mslang} m}
+  {\blx@imc@iffieldundef[#1][#2]{#3}
     {\@secondoftwo}
-    {\ifcsundef{\abx@str @\detokenize\expandafter
-                          \expandafter\expandafter{%
-                \csname abx@field@@@#1\endcsname}}
-       {\@secondoftwo}
-       {\@firstoftwo}}}
+    {\blx@imc@ifmsentryfield{#3}
+       {\def\blx@tempa{abx@field@#1@#2@#3}}
+       {\def\blx@tempa{abx@field@@@#3}}%
+     \ifcsundef{\abx@str @\detokenize\expandafter
+                           \expandafter\expandafter{%
+                 \csname\blx@tempa\endcsname}}
+        {\@secondoftwo}
+        {\@firstoftwo}}}
 
-% {<field>}{<string>}{<true>}{<false>}
-\def\blx@imc@iffieldplusstringbibstring#1#2{%
-  \blx@imc@iffieldundef{#1}
+% [<msform>][<mslang>]{<field>}{<string>}{<true>}{<false>}
+\DeclareExpandableDocumentCommand{\blx@imc@iffieldplusstringbibstring}
+  {O{\blx@msform} O{\blx@mslang} m m}
+  {\blx@imc@iffieldundef[#1][#2]{#3}
     {\@secondoftwo}
-    {\ifcsundef{\abx@str @\detokenize\expandafter
-                          \expandafter\expandafter{%
-                \csname abx@field@@@#1\endcsname}#2}
-       {\@secondoftwo}
-       {\@firstoftwo}}}
+    {\blx@imc@ifmsentryfield{#3}
+       {\def\blx@tempa{abx@field@#1@#2@#3}}
+       {\def\blx@tempa{abx@field@@@#3}}%
+     \ifcsundef{\abx@str @\detokenize\expandafter
+                           \expandafter\expandafter{%
+                 \csname\blx@tempa\endcsname}#4}
+        {\@secondoftwo}
+        {\@firstoftwo}}}
+
+% \def\blx@imc@iffieldplusstringbibstring#1#2{%
+%   \blx@imc@iffieldundef{#1}
+%     {\@secondoftwo}
+%     {\ifcsundef{\abx@str @\detokenize\expandafter
+%                           \expandafter\expandafter{%
+%                 \csname abx@field@@@#1\endcsname}#2}
+%        {\@secondoftwo}
+%        {\@firstoftwo}}}
 
 \blx@regimcs{%
   \bibstring   \biblstring   \bibsstring
