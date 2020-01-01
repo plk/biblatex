@@ -42,7 +42,7 @@
 \RequirePackage{ifthen}
 \RequirePackage{url}
 \RequirePackage{xparse}
-%\RequirePackage{trace}
+\RequirePackage{trace}
 
 % Turn of xparse redefine warnings as we do this a lot
 \ExplSyntaxOn
@@ -2720,6 +2720,8 @@
      {\def\blx@tempb{abx@list@@@#6}}%
    \ifcsequal\blx@tempa\blx@tempb}
 
+% This works by extracting a list of all of the name list hashes "{hash1}{hash2}..."
+% from the individual names and comparing these lists of hashes
 % [<msform>][<mslang>]{<namelist1>}[<msform>][<mslang>]{<namelist2>}{<true>}{<false>}
 \DeclareExpandableDocumentCommand{\blx@imc@ifnamesequal}
   {O{\blx@msform} O{\blx@mslang} m O{\blx@msform} O{\blx@mslang} m}
@@ -2769,53 +2771,106 @@
     {\eappto\blx@tempc{{\abx@field@@@hash}}}
     {\eappto\blx@tempc{{{\namepartfamily}{\namepartgiven}{\namepartprefix}{\namepartsuffix}}}}}
 
-% {<field>}{<macro>}{<true>}{<false>}
-\def\blx@imc@iffieldequals#1#2{%
-  \blx@imc@iffieldundef{#1}
+% [<msform>][<mslang>]{<field>}{<macro>}{<true>}{<false>}
+\DeclareExpandableDocumentCommand{\blx@imc@iffieldequals}
+  {O{\blx@msform} O{\blx@mslang} m m}
+  {\blx@imc@iffieldundef[#1][#2]{#3}
     {\@secondoftwo}
-    {\ifundef#2%
+    {\blx@imc@ifmsentryfield{#3}
+       {\edef\blx@tempa{\csuse{abx@field@#1@#2@#3}}}
+       {\edef\blx@tempa{\csuse{abx@field@@@#3}}}%
+     \ifundef#4%
        {\@secondoftwo}
-       {\expandafter\ifx\csname abx@field@@@#1\endcsname#2%
+       {\ifx\blx@tempa#4%
+          \expandafter\@firstoftwo
+        \else
+          \expandafter\@secondoftwo
+        \fi}}}
+  
+% [<msform>][<mslang>]{<plainlist>}{<macro>}{<true>}{<false>}
+\DeclareExpandableDocumentCommand{\blx@imc@iflistequals}
+  {O{\blx@msform} O{\blx@mslang} m m}
+  {\blx@imc@iflistundef[#1][#2]{#3}
+    {\@secondoftwo}
+    {\blx@imc@ifmsentryfield{#3}
+       {\edef\blx@tempa{\csuse{abx@list@#1@#2@#3}}}
+       {\edef\blx@tempa{\csuse{abx@list@@@#3}}}%
+     \ifundef#4%
+       {\@secondoftwo}
+       {\ifx\blx@tempa#4%
           \expandafter\@firstoftwo
         \else
           \expandafter\@secondoftwo
         \fi}}}
 
-% {<plainlist>}{<macro>}{<true>}{<false>}
-\def\blx@imc@iflistequals#1#2{%
-  \blx@imc@iflistundef{#1}
+% This works in much the same way as \blx@imc@ifnamesequal and shares some macros with it  
+% [<msform>][<mslang>]{<namelist>}{<macro>}{<true>}{<false>}
+\DeclareExpandableDocumentCommand{\blx@imc@ifnameequals}
+  {O{\blx@msform} O{\blx@mslang} m m}
+  {\blx@imc@ifnameundef[#1][#2]{#3}
     {\@secondoftwo}
-    {\ifundef#2%
+    {\blx@imc@ifmsentryfield{#3}
+       {\def\blx@tempa{abx@name@#1@#2@#3}}
+       {\def\blx@tempa{abx@name@@@#3}}%
+     \ifundef#4%
        {\@secondoftwo}
-       {\expandafter\ifx\csname abx@list@@@#1\endcsname#2%
-          \expandafter\@firstoftwo
-        \else
-          \expandafter\@secondoftwo
-        \fi}}}
+       {\blx@ifnameequals\blx@tempa#4}}}
 
-% {<namelist>}{<macro>}{<true>}{<false>}
-\def\blx@imc@ifnameequals#1#2{% FIXME
-  \blx@imc@ifnameundef{#1}
+\def\blx@ifnameequals#1#2{%
+  \begingroup
+  \let\blx@tempc\@empty
+  \expandafter\blx@ifnamesequal@i#2
+  \let\blx@tempd\blx@tempc
+  \let\blx@tempc\@empty
+  \expandafter\expandafter
+  \expandafter\blx@ifnamesequal@i\csname #1\endcsname
+  \expandafter\endgroup
+  \ifx\blx@tempc\blx@tempd
+    \expandafter\@firstoftwo
+  \else
+    \expandafter\@secondoftwo
+  \fi}
+   
+% [<msform>][<mslang>]{<field>}{<csname>}{<true>}{<false>}
+\DeclareExpandableDocumentCommand{\blx@imc@iffieldequalcs}
+  {O{\blx@msform} O{\blx@mslang} m}
+  {\blx@imc@ifmsentryfield{#3}
+     {\ifcsequal{abx@field@#1@#2@#3}}
+     {\ifcsequal{abx@field@@@#3}}}
+
+% [<msform>][<mslang>]{<plainlist>}{<csname>}{<true>}{<false>}
+\DeclareExpandableDocumentCommand{\blx@imc@iflistequalcs}
+  {O{\blx@msform} O{\blx@mslang} m}
+  {\blx@imc@ifmsentryfield{#3}
+     {\ifcsequal{abx@list@#1@#2@#3}}
+     {\ifcsequal{abx@list@@@#3}}}
+
+% [<msform>][<mslang>]{<namelist>}{<csname>}{<true>}{<false>}
+\DeclareExpandableDocumentCommand{\blx@imc@ifnameequalcs}
+  {O{\blx@msform} O{\blx@mslang} m m}
+  {\blx@imc@ifnameundef[#1][#2]{#3}
     {\@secondoftwo}
-    {\ifundef#2%
+    {\blx@imc@ifmsentryfield{#3}
+       {\def\blx@tempa{abx@name@#1@#2@#3}}
+       {\def\blx@tempa{abx@name@@@#3}}%
+     \ifcsundef{#4}%
        {\@secondoftwo}
-       {\expandafter\ifx\csname abx@name@@@#1\endcsname#2%
-          \expandafter\@firstoftwo
-        \else
-          \expandafter\@secondoftwo
-        \fi}}}
+       {\blx@ifnameequalcs\blx@tempa{#4}}}}
 
-% {<field>}{<csname>}{<true>}{<false>}
-\def\blx@imc@iffieldequalcs#1{%
-  \ifcsequal{abx@field@@@#1}}
-
-% {<plainlist>}{<csname>}{<true>}{<false>}
-\def\blx@imc@iflistequalcs#1{%
-  \ifcsequal{abx@list@@@#1}}
-
-% {<namelist>}{<csname>}{<true>}{<false>}
-\def\blx@imc@ifnameequalcs#1{% FIXME
-  \ifcsequal{abx@name@@@#1}}
+\def\blx@ifnameequalcs#1#2{%
+  \begingroup
+  \let\blx@tempc\@empty
+  \expandafter\expandafter\expandafter\blx@ifnamesequal@i\csname #2\endcsname
+  \let\blx@tempd\blx@tempc
+  \let\blx@tempc\@empty
+  \expandafter\expandafter
+  \expandafter\blx@ifnamesequal@i\csname #1\endcsname
+  \expandafter\endgroup
+  \ifx\blx@tempc\blx@tempd
+    \expandafter\@firstoftwo
+  \else
+    \expandafter\@secondoftwo
+  \fi}
 
 % {<field>}{<string>}{<true>}{<false>}
 \protected\long\def\blx@imc@iffieldequalstr#1#2{%
