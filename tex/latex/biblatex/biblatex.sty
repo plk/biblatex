@@ -2687,38 +2687,70 @@
 \def\blx@imc@ifnameundef{%
   \blx@ifmsundef{name}}
 
-% {<field1>}{<field2>}{<true>}{<false>}
-\def\blx@imc@iffieldsequal#1#2{%
-  \ifcsequal{abx@field@@@#1}{abx@field@@@#2}}
+% [<msform>][<mslang>]{<field1>}[<msform>][<mslang>]{<field2>}{<true>}{<false>}
+\DeclareExpandableDocumentCommand{\blx@imc@iffieldsequal}
+  {O{\blx@msform} O{\blx@mslang} m O{\blx@msform} O{\blx@mslang} m}
+  {\blx@imc@ifmsentryfield{#3}
+     {\def\blx@tempa{abx@field@#1@#2@#3}}
+     {\def\blx@tempa{abx@field@@@#3}}%
+   \blx@imc@ifmsentryfield{#6}
+     {\def\blx@tempb{abx@field@#4@#5@#6}}
+     {\def\blx@tempb{abx@field@@@#6}}%
+   \ifcsequal{\blx@tempa}{\blx@tempb}}
 
-% {<plainlist1>}{<plainlist2>}{<true>}{<false>}
-\def\blx@imc@iflistsequal#1#2{%
-  \ifcsequal{abx@list@@@#1}{abx@list@@@#2}}
+% [<msform>][<mslang>]{<plainlist1>}[<msform>][<mslang>]{<plainlist2>}{<true>}{<false>}
+\DeclareExpandableDocumentCommand{\blx@imc@iflistsequal}
+  {O{\blx@msform} O{\blx@mslang} m O{\blx@msform} O{\blx@mslang} m}
+  {\blx@imc@ifmsentryfield{#3}
+     {\def\blx@tempa{abx@list@#1@#2@#3}}
+     {\def\blx@tempa{abx@list@@@#3}}%
+   \blx@imc@ifmsentryfield{#6}
+     {\def\blx@tempb{abx@list@#4@#5@#6}}
+     {\def\blx@tempb{abx@list@@@#6}}%
+   \ifcsequal\blx@tempa\blx@tempb}
 
-% {<namelist1>}{<namelist2>}{<true>}{<false>}
-\def\blx@imc@ifnamesequal#1#2{%
-  \ifcsundef{abx@name@@@#1}
-    {\@secondoftwo}
-    {\ifcsundef{abx@name@@@#2}
-       {\@secondoftwo}
-       {\blx@ifnamesequal{#1}{#2}}}}
+% [<msform>][<mslang>]{<plainlist1>}[<msform>][<mslang>]{<plainlist2>}{<true>}{<false>}
+\DeclareExpandableDocumentCommand{\blx@imc@iflistsequal}
+  {O{\blx@msform} O{\blx@mslang} m O{\blx@msform} O{\blx@mslang} m}
+  {\blx@imc@ifmsentryfield{#3}
+     {\def\blx@tempa{abx@list@#1@#2@#3}}
+     {\def\blx@tempa{abx@list@@@#3}}%
+   \blx@imc@ifmsentryfield{#6}
+     {\def\blx@tempb{abx@list@#4@#5@#6}}
+     {\def\blx@tempb{abx@list@@@#6}}%
+   \ifcsequal\blx@tempa\blx@tempb}
+
+% [<msform>][<mslang>]{<namelist1>}[<msform>][<mslang>]{<namelist2>}{<true>}{<false>}
+\DeclareExpandableDocumentCommand{\blx@imc@ifnamesequal}
+  {O{\blx@msform} O{\blx@mslang} m O{\blx@msform} O{\blx@mslang} m}
+  {\blx@imc@ifmsentryfield{#3}
+     {\def\blx@tempa{abx@name@#1@#2@#3}}
+     {\def\blx@tempa{abx@name@@@#3}}%
+   \blx@imc@ifmsentryfield{#6}
+     {\def\blx@tempb{abx@name@#4@#5@#6}}
+     {\def\blx@tempb{abx@name@@@#6}}%
+   \ifcsundef\blx@tempa
+     {\@secondoftwo}
+     {\ifcsundef\blx@tempb
+        {\@secondoftwo}
+        {\blx@ifnamesequal\blx@tempa\blx@tempb}}}
 
 \def\blx@ifnamesequal#1#2{%
   \begingroup
   \let\blx@tempa\@empty
   \expandafter\expandafter
-  \expandafter\blx@ifnamesequal@i\csname abx@name@@@#2\endcsname
+  \expandafter\blx@ifnamesequal@i\csname #2\endcsname
   \let\blx@tempb\blx@tempa
   \let\blx@tempa\@empty
   \expandafter\expandafter
-  \expandafter\blx@ifnamesequal@i\csname abx@name@@@#1\endcsname
+  \expandafter\blx@ifnamesequal@i\csname #1\endcsname
   \expandafter\endgroup
   \ifx\blx@tempa\blx@tempb
     \expandafter\@firstoftwo
   \else
     \expandafter\@secondoftwo
   \fi}
-
+    
 \def\blx@ifnamesequal@i#1#2{%
   \expandafter\blx@ifnamesequal@ii#2{}&}
 
@@ -2736,6 +2768,29 @@
   \ifdef\abx@field@@@hash
     {\eappto\blx@tempa{{\abx@field@@@hash}}}
     {\eappto\blx@tempa{{{\namepartfamily}{\namepartgiven}{\namepartprefix}{\namepartsuffix}}}}}
+
+% \def\blx@imc@ifnamesequal#1#2{%
+%  \ifcsundef{abx@name@@@#1}
+%    {\@secondoftwo}
+%    {\ifcsundef{abx@name@@@#2}
+%       {\@secondoftwo}
+%       {\blx@ifnamesequal{#1}{#2}}}}
+
+% \def\blx@ifnamesequal#1#2{%
+%   \begingroup
+%   \let\blx@tempa\@empty
+%   \expandafter\expandafter
+%   \expandafter\blx@ifnamesequal@i\csname abx@name@@@#2\endcsname
+%   \let\blx@tempb\blx@tempa
+%   \let\blx@tempa\@empty
+%   \expandafter\expandafter
+%   \expandafter\blx@ifnamesequal@i\csname abx@name@@@#1\endcsname
+%   \expandafter\endgroup
+%   \ifx\blx@tempa\blx@tempb
+%     \expandafter\@firstoftwo
+%   \else
+%     \expandafter\@secondoftwo
+%   \fi}
 
 % {<field>}{<macro>}{<true>}{<false>}
 \def\blx@imc@iffieldequals#1#2{%
