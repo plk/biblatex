@@ -21,9 +21,6 @@
   `\printunit` is needed instead of `\setunit` to stop subsequent
   `\setunit`s from overriding `\intitlepunct` in case of missing
   fields.
-- Added `\addcolonnonfrench` to produce a colon without leading
-  space that might be added by `babel` or `polyglossia`'s French
-  language modules.
 - Added `\mautocite` and `\Mautocite`.
 
 # RELEASE NOTES FOR VERSION 3.14
