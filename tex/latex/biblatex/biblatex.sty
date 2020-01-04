@@ -878,19 +878,28 @@
 
 % Deprecations
 \newrobustcmd*{\DeprecateField}[2]{%
-  \csdef{abx@field@@@#1}{%
+  \blx@imc@ifmsentryfield{#1}
+    {\def\blx@tempa{abx@field@\blx@msform@\blx@mslang@#1}}
+    {\def\blx@tempa{abx@field@@@#1}}%
+  \csdef{\blx@tempa}{%
     \ifcsundef{abx@legacywarning@field@#1}
       {\blx@warning@noline{Field '#1' is deprecated. #2}}
       {}%
     \global\cslet{abx@legacywarning@field@#1}\@empty}}%
 \newrobustcmd*{\DeprecateList}[2]{%
-  \csdef{abx@list@@@#1}{%
+  \blx@imc@ifmsentryfield{#1}
+    {\def\blx@tempa{abx@list@\blx@msform@\blx@mslang@#1}}
+    {\def\blx@tempa{abx@list@@@#1}}%
+  \csdef{\blx@tempa}{%
     \ifcsundef{abx@legacywarning@list@#1}
       {\blx@warning@noline{List '#1' is deprecated. #2}}
       {}%
     \global\cslet{abx@legacywarning@list@#1}\@empty}}
 \newrobustcmd*{\DeprecateName}[2]{%
-  \csdef{abx@name@@@#1}{%
+  \blx@imc@ifmsentryfield{#1}
+    {\def\blx@tempa{abx@name@\blx@msform@\blx@mslang@#1}}
+    {\def\blx@tempa{abx@name@@@#1}}%
+  \csdef{\blx@tempa}{%
     \ifcsundef{abx@legacywarning@name@#1}
       {\blx@warning@noline{Name '#1' is deprecated. #2}}
       {}%
@@ -2488,7 +2497,7 @@
           \endgroup}%
        \dolistcsloop{abx@fieldmsforms@#3}%
        \blx@tempi\global\undef\blx@tempi}}
-      % clear specific alternate of a multiscript field
+     % clear specific alternate of a multiscript field
      {\blx@imc@iffieldundef[#1][#2]{#3}
        {}
        {\ifdef\abx@field@@@related
@@ -2610,14 +2619,14 @@
        \csundef{abx@name@#3}}}}
 
 % {field|list|name}[<msform>][<mslang>]{<field>}{<macro>}
-\DeclareDocumentCommand{\blx@savedata}
+\DeclareExpandableDocumentCommand{\blx@savedata}
   {m O{\blx@msform} O{\blx@mslang} m m}
   {\blx@imc@ifmsentryfield{#4}
     {\letcs#5{abx@#1@#2@#3@#4}}
     {\letcs#5{abx@#1@@@#4}}}
 
 % {field|list|name}[<msform>][<mslang>]{<field>}{<macro>}
-\DeclareDocumentCommand{\blx@savedatacs}
+\DeclareExpandableDocumentCommand{\blx@savedatacs}
   {m O{\blx@msform} O{\blx@mslang} m m}
   {\blx@imc@ifmsentryfield{#4}
     {\csletcs{#5}{abx@#1@#2@#3@#4}}
@@ -2891,8 +2900,7 @@
      \csname\blx@tempa\endcsname}{#4}}}
 
 % [<msform>][<mslang>]{<field>}{<true>}{<false>}
-
-\DeclareDocumentCommand{\blx@imc@iffieldxref}
+\DeclareExpandableDocumentCommand{\blx@imc@iffieldxref}
   {O{\blx@msform} O{\blx@mslang} m}
   {\blx@imc@iffieldundef[#1][#2]{#3}
     {\@secondoftwo}
@@ -4869,7 +4877,7 @@
         \blx@endunit}}}
 
 % [<format>][<msform>][<mslang>]{field}
-\DeclareDocumentCommand{\blx@imc@indexfield}
+\DeclareExpandableDocumentCommand{\blx@imc@indexfield}
   {O{} O{\blx@msform} O{\blx@mslang} m}
   {\blx@imc@iffieldundef[#2][#3]{#4}
     {}
@@ -7914,7 +7922,7 @@
   \protected\csedef{blx@imc@printsaved#1dateextra}{%
     \begingroup
       % extradate is hard-coded in date macros, so reset it temporarily
-      \csletcs{abx@field@@@extradate}{abx@field@@@saved@@@extradate}%
+      \csletcs{abx@field@@@extradate}{abx@field@@@savedextradate}%
       \noexpand\csuse{mkdaterange\csuse{blx@dateformat@saved#1date}extra}
         {saved#1}%
     \endgroup}%
@@ -8024,18 +8032,15 @@
 \protected\long\def\blx@bbl@msdef@i#1[#2][#3]{%
   \csuse{blx@bbl@#1def}{#2}{#3}}
 
-% Biber always makes the msform/mslang of \fieldsource explicit
-% and so if they are empty, set as a normal field e.g. \fieldsource{labeldate}{}{}
-% Otherwise, these label*source fields are not normal fields as their *value*
+% Biber always makes the msform/mslang of \fieldmssource explicit
+% These label*source fields are not normal fields as their *value*
 % is a triple of fieldname/form/lang
 % {<field>}{<value>}{<msform>}{<mslang>}
-\protected\long\def\blx@bbl@fieldsourcedef#1#2#3#4{%
-  \ifstrempty{#3}
-    {\blx@bbl@fielddef{}{}{#1}{#2}}
-    {\csxappto\blx@bbl@data{%
-      \def\expandafter\noexpand\csname abx@fieldsource@field@#1\endcsname{#2}%
-      \def\expandafter\noexpand\csname abx@fieldsource@msform@#1\endcsname{#3}%
-      \def\expandafter\noexpand\csname abx@fieldsource@mslang@#1\endcsname{#4}}}}
+\protected\long\def\blx@bbl@fieldmssourcedef#1#2#3#4{%
+  \csxappto\blx@bbl@data{%
+    \def\expandafter\noexpand\csname abx@fieldmssource@field@#1\endcsname{#2}%
+    \def\expandafter\noexpand\csname abx@fieldmssource@msform@#1\endcsname{#3}%
+    \def\expandafter\noexpand\csname abx@fieldmssource@mslang@#1\endcsname{#4}}}
 
 % {<msform>}{<mslang>}{<field>}{<value>}
 \protected\long\def\blx@bbl@fielddef#1#2#3#4{%
@@ -8115,7 +8120,7 @@
 
 % [<msform>][<mslang>]{<scope>}{<field>}{<name>}{<itemcount>}{<part>}{<isliteral>}{<value>}
 % No need to default form/lang as, if present, they are always defined by biber
-\DeclareExpandableDocumentCommand{\blx@bbl@annotationdef}
+\DeclareDocumentCommand{\blx@bbl@annotationdef}
   {O{} O{} m m m m m m m}
   {\ifstrequal{#3}{field}
      {\csxappto\blx@bbl@data{%
@@ -8185,7 +8190,7 @@
        {}}
 
 % [<msform>][<mslang>][<entryfield>][<annotationname>][<item>]{<part>}
-\DeclareDocumentCommand{\blx@imc@getpartannotation}
+\DeclareExpandableDocumentCommand{\blx@imc@getpartannotation}
   {O{\blx@msform} O{\blx@mslang} O{} O{default} O{\thelistcount} m} 
   {\let\blx@tempa\@empty
    \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
@@ -8283,7 +8288,7 @@
    \ifcsdef{\blx@tempc}}
 
 % [<msform>][<mslang>][<entryfield>][<annotationname>][<item>]{<part>}
-\DeclareDocumentCommand{\blx@imc@haspartannotation}
+\DeclareExpandableDocumentCommand{\blx@imc@haspartannotation}
   {O{\blx@msform} O{\blx@mslang} O{} O{default} O{\thelistcount} m} 
   {\let\blx@tempa\@empty
    \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
@@ -8349,9 +8354,9 @@
 
 % {<fieldname>}
 \def\blx@resolve@annotation@label#1{%
-  \ifcsundef{abx@fieldsource@field@#1}
+  \ifcsundef{abx@fieldmssource@field@#1}
     {}%
-    {\letcs\blx@tempa{abx@field@\abx@fieldsource@msform@#1 @\abx@fieldsource@mslang@#1 @\abx@fieldsource@field@#1}}}
+    {\letcs\blx@tempa{abx@field@\abx@fieldmssource@msform@#1 @\abx@fieldmssource@mslang@#1 @\abx@fieldmssource@field@#1}}}
 
 \begingroup
 \catcode`\<=12
@@ -8527,19 +8532,19 @@
   %
   % fields
   \def\do##1{%
-    \ifcsundef{abx@fieldsource@field@##1}
+    \ifcsundef{abx@fieldmssource@field@##1}
       {}%
-      {\csletcs{abx@field@@@##1}{abx@field@\csuse{abx@fieldsource@msform@##1}@\csuse{abx@fieldsource@mslang@##1}@\csuse{abx@fieldsource@field@##1}}}}%
+      {\csletcs{abx@field@@@##1}{abx@field@\csuse{abx@fieldmssource@msform@##1}@\csuse{abx@fieldmssource@mslang@##1}@\csuse{abx@fieldmssource@field@##1}}}}%
   \dolistloop\abx@rfields%
   % names
   \def\do##1{%
-    \ifcsundef{abx@fieldsource@field@##1}
+    \ifcsundef{abx@fieldmssource@field@##1}
      {}
      {\csname c@##1\expandafter\endcsname\expandafter
-        \the\csname c@\csuse{abx@fieldsoure@field@##1}\endcsname
-      \csletcs{abx@name@@@##1}{abx@name@\csuse{abx@fieldsource@msform@##1}@\csuse{abx@fieldsource@mslang@##1}@\csuse{abx@fieldsource@field@##1}}%
+        \the\csname c@\csuse{abx@fieldmssource@field@##1}\endcsname
+      \csletcs{abx@name@@@##1}{abx@name@\csuse{abx@fieldmssource@msform@##1}@\csuse{abx@fieldmssource@mslang@##1}@\csuse{abx@fieldmssource@field@##1}}%
       \csletcs{etb@tgl@abx@bool@more##1}{%
-        etb@tgl@abx@bool@more\csuse{abx@fieldsource@field@##1}}}}%
+        etb@tgl@abx@bool@more\csuse{abx@fieldmssource@field@##1}}}}%
   \dolistloop\abx@rnames%
   % Resolve labeldate
   % Note that here we can't refer to labelyear as this is where we create it, hence the
@@ -8555,7 +8560,7 @@
          % \DeclareLabeldate resolved to a literal/localisation string
          {\edef\abx@field@@@labelyear{\abx@field@@@labeldatesource}}
          % \DeclareLabeldate resolved to a non-date field.  Not safe to \edef because
-         % such contents could contain arbitrary macros, unlike EDTF sourced labeldatesource values
+         % such contents could contain arbitrary macros, unlike ISO8601 sourced labeldatesource values
          {\letcs\abx@field@@@labelyear{abx@field@@@\abx@field@@@labeldatesource}}}
        % \DeclareLabeldate resolved to a date field name prefix like '', 'event', 'url'
        % or 'orig'
@@ -9034,7 +9039,7 @@
 \def\blx@bbl@titles{%
   \ifundef\abx@field@@@indextitle
     {\csgappto\blx@bbl@data{%
-       \let\abx@field@@@indextitle\abx@field@@@title}}
+       \letcs\abx@field@@@indextitle{abx@field@\blx@msform @\blx@mslang @title}}}
     {}%
   \ifundef\abx@field@@@indexsorttitle
     {\csgappto\blx@bbl@data{%
@@ -9080,7 +9085,7 @@
   \let\name\blx@bbl@msnamedef
   \let\list\blx@bbl@mslistdef
   \let\field\blx@bbl@msfielddef
-  \let\fieldsource\blx@bbl@fieldsourcedef
+  \let\fieldmssource\blx@bbl@fieldmssourcedef
   \let\range\blx@bbl@rangedef
   \let\strng\blx@bbl@stringdef
   \let\cnt\blx@bbl@cntdef
