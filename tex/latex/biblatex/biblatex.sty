@@ -8039,6 +8039,10 @@
 % Biber always makes the msform/mslang of \fieldmssource explicit
 % These label*source fields are not normal fields as their *value*
 % is a triple of fieldname/form/lang
+% msform/mslang can be empty for non-multiscript sources in which case
+% the expansions of \abx@fieldmssource@ms*@<field> will be empty and these
+% are only used in places where empty expansion would therefore lead to a
+% the correct non-multiscript \abx@{field|list|name}@@@...
 % {<field>}{<value>}{<msform>}{<mslang>}
 \protected\long\def\blx@bbl@fieldmssourcedef#1#2#3#4{%
   \csxappto\blx@bbl@data{%
@@ -8122,6 +8126,15 @@
   \catcode\endlinechar=12\relax
   \blx@bbl@verbadd@i}
 
+% because msform/mslang are optional and are followed in some cases by more
+% more optional arguments, they need supplying as empty in some cases 
+% and this overrides the defaulting in xparse so we pre-process to force
+% defaulting in case of supplied empty arguments
+\def\blx@msformexpand#1{%
+  \ifblank{#1}{\let\ProcessedArgument\blx@msform}{\def\ProcessedArgument{#1}}}
+\def\blx@mslangexpand#1{%
+  \ifblank{#1}{\let\ProcessedArgument\blx@mslang}{\let\ProcessedArgument\@empty}}
+
 % [<msform>][<mslang>]{<scope>}{<field>}{<name>}{<itemcount>}{<part>}{<isliteral>}{<value>}
 % No need to default form/lang as, if present, they are always defined by biber
 \DeclareDocumentCommand{\blx@bbl@annotationdef}
@@ -8159,7 +8172,10 @@
 
 % [<msform>][<mslang>][<entryfield>][<annotationname>]
 \DeclareDocumentCommand{\blx@imc@getfieldannotation}
-  {O{\blx@msform} O{\blx@mslang} O{} O{default}} 
+  {>{\blx@msformexpand}O{\blx@msform}
+   >{\blx@mslangexpand}O{\blx@mslang}
+   O{}
+   O{default}} 
   {\let\blx@tempa\@empty
    \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
    \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
@@ -8167,7 +8183,7 @@
    \ifblank{#3}
      {}
      {\def\blx@tempa{#3}}%
-   \blx@resolve@annotation@label{\blx@tempa}%   
+     \blx@resolve@annotation@label{\blx@tempa}%   
    \blx@imc@ifmsentryfield\blx@tempa
      {\edef\blx@tempc{abx@annotation@literal@field@#1@#2@\blx@tempa @#4}}
      {\edef\blx@tempc{abx@annotation@literal@field@@@\blx@tempa @#4}}%
@@ -8177,7 +8193,11 @@
 
 % [<msform>][<mslang>][<entryfield>][<annotationname>][<item>]
 \DeclareDocumentCommand{\blx@imc@getitemannotation}
-  {O{\blx@msform} O{\blx@mslang} O{} O{default} O{\thelistcount}} 
+  {>{\blx@msformexpand}O{\blx@msform}
+   >{\blx@mslangexpand}O{\blx@mslang}
+   O{}
+   O{default}
+   O{\thelistcount}} 
   {\let\blx@tempa\@empty
    \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
    \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
@@ -8194,8 +8214,13 @@
        {}}
 
 % [<msform>][<mslang>][<entryfield>][<annotationname>][<item>]{<part>}
-\DeclareExpandableDocumentCommand{\blx@imc@getpartannotation}
-  {O{\blx@msform} O{\blx@mslang} O{} O{default} O{\thelistcount} m} 
+\DeclareDocumentCommand{\blx@imc@getpartannotation}
+  {>{\blx@msformexpand}O{\blx@msform}
+   >{\blx@mslangexpand}O{\blx@mslang}
+   O{}
+   O{default}
+   O{\thelistcount}
+   m} 
   {\let\blx@tempa\@empty
    \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
    \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
@@ -8212,8 +8237,12 @@
        {}}
 
 % [<msform>][<mslang>][<entryfield>][<annotationname>]{<annotation>}
-\DeclareExpandableDocumentCommand{\blx@imc@iffieldannotation}
-  {O{\blx@msform} O{\blx@mslang} O{} O{default} m} 
+\DeclareDocumentCommand{\blx@imc@iffieldannotation}
+  {>{\blx@msformexpand}O{\blx@msform}
+   >{\blx@mslangexpand}O{\blx@mslang}
+   O{}
+   O{default}
+   m} 
   {\let\blx@tempa\@empty
    \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
    \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
@@ -8228,8 +8257,13 @@
    \ifinlistcs{#5}{\blx@tempc}}
 
 % [<msform>][<mslang>][<entryfield>][<annotationname>][<item>]{<annotation>}
-\DeclareExpandableDocumentCommand{\blx@imc@ifitemannotation}
-  {O{\blx@msform} O{\blx@mslang} O{} O{default} O{\thelistcount} m} 
+\DeclareDocumentCommand{\blx@imc@ifitemannotation}
+  {>{\blx@msformexpand}O{\blx@msform}
+   >{\blx@mslangexpand}O{\blx@mslang}
+   O{}
+   O{default}
+   O{\thelistcount}
+   m} 
   {\let\blx@tempa\@empty
    \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
    \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
@@ -8244,8 +8278,14 @@
    \ifinlistcs{#6}{\blx@tempc}}
 
 % [<msform>][<mslang>][<entryfield>][<annotationname>][<item>]{<part>}{<annotation>}
-\DeclareExpandableDocumentCommand{\blx@imc@ifpartannotation}
-  {O{\blx@msform} O{\blx@mslang} O{} O{default} O{\thelistcount} m m} 
+\DeclareDocumentCommand{\blx@imc@ifpartannotation}
+  {>{\blx@msformexpand}O{\blx@msform}
+   >{\blx@mslangexpand}O{\blx@mslang}
+   O{}
+   O{default}
+   O{\thelistcount}
+   m
+   m} 
   {\let\blx@tempa\@empty
    \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
    \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
@@ -8259,9 +8299,12 @@
      {\edef\blx@tempc{abx@annotation@part@@@\blx@tempa @#4@#5@#6}}%
    \ifinlistcs{#7}{\blx@tempc}}
 
-% [<msform>][<mslang>][<entryfield>][<annotationname>]
+ % [<msform>][<mslang>][<entryfield>][<annotationname>]
 \DeclareDocumentCommand{\blx@imc@hasfieldannotation}
-  {O{\blx@msform} O{\blx@mslang} O{} O{default}} 
+  {>{\blx@msformexpand}O{\blx@msform}
+   >{\blx@mslangexpand}O{\blx@mslang}
+   O{}
+   O{default}} 
   {\let\blx@tempa\@empty
    \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
    \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
@@ -8269,7 +8312,7 @@
    \ifblank{#3}
      {}
      {\def\blx@tempa{#3}}%
-   \blx@resolve@annotation@label{\blx@tempa}%   
+   \blx@resolve@annotation@label{\blx@tempa}%
    \blx@imc@ifmsentryfield\blx@tempa
      {\edef\blx@tempc{abx@annotation@literal@field@#1@#2@\blx@tempa @#4}}
      {\edef\blx@tempc{abx@annotation@literal@field@@@\blx@tempa @#4}}%
@@ -8277,7 +8320,11 @@
 
 % [<msform>][<mslang>][<entryfield>][<annotationname>][<item>]
 \DeclareDocumentCommand{\blx@imc@hasitemannotation}
-  {O{\blx@msform} O{\blx@mslang} O{} O{default} O{\thelistcount}} 
+  {>{\blx@msformexpand}O{\blx@msform}
+   >{\blx@mslangexpand}O{\blx@mslang}
+   O{}
+   O{default}
+   O{\thelistcount}} 
   {\let\blx@tempa\@empty
    \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
    \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
@@ -8292,8 +8339,13 @@
    \ifcsdef{\blx@tempc}}
 
 % [<msform>][<mslang>][<entryfield>][<annotationname>][<item>]{<part>}
-\DeclareExpandableDocumentCommand{\blx@imc@haspartannotation}
-  {O{\blx@msform} O{\blx@mslang} O{} O{default} O{\thelistcount} m} 
+\DeclareDocumentCommand{\blx@imc@haspartannotation}
+  {>{\blx@msformexpand}O{\blx@msform}
+   >{\blx@mslangexpand}O{\blx@mslang}
+   O{}
+   O{default}
+   O{\thelistcount}
+   m} 
   {\let\blx@tempa\@empty
    \ifdefvoid\currentfield{}{\let\blx@tempa\currentfield}%
    \ifdefvoid\currentlist{}{\let\blx@tempa\currentlist}%
@@ -8390,6 +8442,7 @@
     \togglefalse{abx@bool@#1}}}
 
 % {<msform>}{<mslang>}{<list>}{<itemcount>}{<value>}
+% msform and mslang can be empty for non-multiscript lists
 \protected\def\blx@bbl@listdef#1#2#3#4#5{%
   \def\NewCount{#4}%
   \def\NewValue{#5}%
@@ -8406,6 +8459,7 @@
            \def\expandafter\noexpand\csname abx@list@#1@#2@#3\endcsname{\expandonce\NewValue}}}}
 
 % {<msform>}{<mslang>}{<name>}{<itemcount>}{<nameoptions>}{<value>}
+% msform and mslang can be empty for non-multiscript names
 \protected\def\blx@bbl@namedef#1#2#3#4#5#6{%
   \def\NewCount{#4}%
   \def\NewOption{#5}%
