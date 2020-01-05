@@ -910,42 +910,90 @@
 \newrobustcmd*{\DeprecateFieldWithReplacement}[2]{%
   \appto\blx@aliasfields{%
     \ifcsundef{abx@field@#2}
-      {}
-      {\csdef{abx@field@@@#1}{%
-         \csuse{abx@field@@@#2}%
-         \ifcsundef{abx@legacywarning@field@#1}
-           {\blx@warning@noline{Field '#1' is deprecated.\MessageBreak
-              Please use '#2' instead.\MessageBreak
-              Using '#2' now}}
-           {}%
-         \global\cslet{abx@legacywarning@field@#1}\@empty}}}}
+      {}%
+      {\blx@imc@ifmsentryfield{#2}
+        {\begingroup
+          \csgdef{blx@datamodel@multiscript@entryfield@#1}{1}%
+          \def\do##1{%
+           \def\do####1{%
+               \csgdef{abx@field@##1@####1@#1}{%
+               \csuse{abx@field@##1@####1@#2}%
+               \ifcsundef{abx@legacywarning@field@#1}
+                 {\blx@warning@noline{Field '#1' is deprecated.\MessageBreak
+                  Please use '#2' instead.\MessageBreak
+                  Using '#2' now}}
+                 {}%
+               \global\cslet{abx@legacywarning@field@#1}\@empty}}%
+           \dolistcsloop{abx@fieldmslangs@#2}}%
+         \dolistcsloop{abx@fieldmsforms@#2}%
+         \endgroup}
+         {\csdef{abx@field@@@#1}{%
+            \csuse{abx@field@@@#2}%
+            \ifcsundef{abx@legacywarning@field@#1}
+              {\blx@warning@noline{Field '#1' is deprecated.\MessageBreak
+                 Please use '#2' instead.\MessageBreak
+                 Using '#2' now}}
+              {}%
+            \global\cslet{abx@legacywarning@field@#1}\@empty}}}}}
 
 \newrobustcmd*{\DeprecateListWithReplacement}[2]{%
   \appto\blx@aliasfields{%
-    \ifcsundef{abx@list@@@#2}
-      {}
-      {\csdef{abx@list@@@#1}{%
-         \csuse{abx@list@@@#2}%
-         \ifcsundef{abx@legacywarning@list@#1}
-           {\blx@warning@noline{List '#1' is deprecated.\MessageBreak
-              Please use '#2' instead.\MessageBreak
-              Using '#2' now}}
-           {}%
-         \global\cslet{abx@legacywarning@list@#1}\@empty}}}}
+    \ifcsundef{abx@list@#2}
+      {}%
+      {\blx@imc@ifmsentryfield{#2}
+        {\begingroup
+          \csgdef{blx@datamodel@multiscript@entryfield@#1}{1}%
+          \def\do##1{%
+           \def\do####1{%
+               \csgdef{abx@list@##1@####1@#1}{%
+               \csuse{abx@list@##1@####1@#2}%
+               \ifcsundef{abx@legacywarning@list@#1}
+                 {\blx@warning@noline{List '#1' is deprecated.\MessageBreak
+                  Please use '#2' instead.\MessageBreak
+                  Using '#2' now}}
+                 {}%
+               \global\cslet{abx@legacywarning@list@#1}\@empty}}%
+           \dolistcsloop{abx@fieldmslangs@#2}}%
+         \dolistcsloop{abx@fieldmsforms@#2}%
+         \endgroup}
+         {\csdef{abx@list@@@#1}{%
+            \csuse{abx@list@@@#2}%
+            \ifcsundef{abx@legacywarning@list@#1}
+              {\blx@warning@noline{List '#1' is deprecated.\MessageBreak
+                 Please use '#2' instead.\MessageBreak
+                 Using '#2' now}}
+              {}%
+            \global\cslet{abx@legacywarning@list@#1}\@empty}}}}}
 
 \newrobustcmd*{\DeprecateNameWithReplacement}[2]{%
   \appto\blx@aliasfields{%
-    \ifcsundef{abx@name@@@#2}
-      {}
-      {\csdef{abx@name@@@#1}{%
-         \csuse{abx@name@@@#2}%
-         \ifcsundef{abx@legacywarning@name@#1}
-           {\blx@warning@noline{Name '#1' is deprecated.\MessageBreak
-              Please use '#2' instead.\MessageBreak
-              Using '#2' now}}
-           {}%
-         \global\cslet{abx@legacywarning@name@#1}\@empty}}}}
-
+    \ifcsundef{abx@name@#2}
+      {}%
+      {\blx@imc@ifmsentryfield{#2}
+        {\begingroup
+          \csgdef{blx@datamodel@multiscript@entryfield@#1}{1}%
+          \def\do##1{%
+           \def\do####1{%
+               \csgdef{abx@name@##1@####1@#1}{%
+               \csuse{abx@name@##1@####1@#2}%
+               \ifcsundef{abx@legacywarning@name@#1}
+                 {\blx@warning@noline{Name '#1' is deprecated.\MessageBreak
+                  Please use '#2' instead.\MessageBreak
+                  Using '#2' now}}
+                 {}%
+               \global\cslet{abx@legacywarning@name@#1}\@empty}}%
+           \dolistcsloop{abx@fieldmslangs@#2}}%
+         \dolistcsloop{abx@fieldmsforms@#2}%
+         \endgroup}
+         {\csdef{abx@name@@@#1}{%
+            \csuse{abx@name@@@#2}%
+            \ifcsundef{abx@legacywarning@name@#1}
+              {\blx@warning@noline{Name '#1' is deprecated.\MessageBreak
+                 Please use '#2' instead.\MessageBreak
+                 Using '#2' now}}
+              {}%
+            \global\cslet{abx@legacywarning@name@#1}\@empty}}}}}
+  
 %% Initialisation
 \def\blx@blxinit{%
   \let\blx@blxinit\relax
@@ -8852,7 +8900,7 @@
 
 \protected\def\blx@bbl@endentry{%
   % Useful for debugging
-  %\expandafter\show\csname\blx@bbl@data\endcsname
+  % \expandafter\show\csname\blx@bbl@data\endcsname
   \csuse\blx@bbl@data
   \ifcsundef{blx@pref@\the\c@refsection @\abx@field@@@entrykey}
     {}
