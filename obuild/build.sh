@@ -283,7 +283,7 @@ PDFLaTeX errors/warnings
       echo >> ../example_errs_bibtex.txt
       if $bibtexflag 
       then
-        echo -e "\033[0;31mERRORS\033[0m"
+          echo -e "\033[0;31mERRORS\033[0m"
       else
         echo "OK"
       fi
