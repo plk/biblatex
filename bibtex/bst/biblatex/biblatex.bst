@@ -1132,10 +1132,22 @@ FUNCTION {output:write:field:maybeempty} {
   swap$ wrap:braces * output:indent:field
 }
 
+FUNCTION {output:write:fieldsource:maybeempty} {
+  swap$ "\fieldmssource" swap$ wrap:braces *
+  swap$ wrap:braces * "{}{}" * output:indent:field
+}
+
 FUNCTION {output:write:field} {
   duplicate$ empty$
     { pop$ pop$ }
     { output:write:field:maybeempty }
+  if$
+}
+
+FUNCTION {output:write:fieldsource} {
+  duplicate$ empty$
+    { pop$ pop$ }
+    { output:write:fieldsource:maybeempty }
   if$
 }
 
@@ -1442,7 +1454,7 @@ FUNCTION {output:specials} {
     { shorthand }
   if$
   "label"            swap$          output:write:field
-  "labelnamesource"  push:labelname output:write:field
+  "labelname"  push:labelname output:write:fieldsource
   shorttitle empty$
     { title empty$
        { "" }
@@ -1451,7 +1463,7 @@ FUNCTION {output:specials} {
     }
     { "shorttitle" }
   if$
-  "labeltitlesource" swap$          output:write:field
+  "labeltitle" swap$          output:write:fieldsource
   ctrl.labelalpha
     { "labelalpha"  labelalpha      output:write:field
       "extraalpha"  extraalpha      output:write:field
