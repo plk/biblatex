@@ -283,7 +283,7 @@ PDFLaTeX errors/warnings
       echo >> ../example_errs_bibtex.txt
       if $bibtexflag 
       then
-        echo "ERRORS"
+        echo -e "\033[0;31mERRORS\033[0m"
       else
         echo "OK"
       fi
@@ -358,7 +358,7 @@ $TEXENGINE errors/warnings
       echo >> ../example_errs_biber.txt
       if $biberflag 
       then
-        echo "ERRORS"
+          echo -e "\033[0;31mERRORS\033[0m"
       else
         echo "OK"
       fi
