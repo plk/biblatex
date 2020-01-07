@@ -5135,6 +5135,23 @@
      \fi
      \blx@indexnameparser}}
 
+% {name opts}{nameparts}
+\long\def\blx@indexnameparser@i#1#2{%
+  \begingroup
+  \let\blx@tempa\@empty
+  \ifblank{#1}
+    {}
+    {\setkeys{blx@opt@name}{#1}}%
+  % reset all the nameparts to empty between names
+  \def\do##1{%
+    \cslet{namepart##1}\@empty
+    \cslet{namepart##1i}\@empty
+    \cslet{namepart##1un}\@empty}%
+  \expandafter\docsvlist\expandafter{\blx@datamodel@constant@nameparts}%
+  \setkeys{blx@opt@namepart}{#2}% Extract nameparts information
+  \blx@theformat{}%
+  \endgroup}
+
 % {<name1>}{<name2>}{...}
 \long\def\blx@nameparser#1{%
   \ifblank{#1}
@@ -5150,22 +5167,6 @@
      \blx@nameparser}}
 
 % {name opts}{nameparts}
-\long\def\blx@indexnameparser@i#1#2{%
-  \begingroup
-  \let\blx@tempa\@empty
-  \ifblank{#1}
-    {}
-    {\setkeys{blx@opt@name}{#1}}%
-  % reset all the nameparts to empty between names
-  \def\do##1{%
-    \cslet{namepart##1}\@empty
-    \cslet{namepart##1i}\@empty}%
-  \expandafter\docsvlist\expandafter{\blx@datamodel@constant@nameparts}%
-  \setkeys{blx@opt@namepart}{#2}% Extract nameparts information
-  \blx@theformat{}%
-  \endgroup}
-
-% {name opts}{nameparts}
 \long\def\blx@nameparser@i#1#2{%
   \begingroup
   \let\blx@tempa\@empty
@@ -5175,7 +5176,8 @@
   % reset all the nameparts to empty between names
   \def\do##1{%
     \cslet{namepart##1}\@empty
-    \cslet{namepart##1i}\@empty}%
+    \cslet{namepart##1i}\@empty
+    \cslet{namepart##1un}\@empty}%
   \expandafter\docsvlist\expandafter{\blx@datamodel@constant@nameparts}%
   \setkeys{blx@opt@namepart}{#2}% Extract nameparts information
   \ifdefempty\blx@tempa
@@ -9217,10 +9219,7 @@
 % List of all forms/langs in the documents, comes from biber via .bbl
 \def\blx@bbl@msformsdef#1{%
   \gdef\blx@msforms{#1}}
-% pre-load all mslangs mentioned in all field alternates
 \def\blx@bbl@mslangsdef#1{%
-  % \def\do##1{\blx@langsetup{\csuse{blx@msmaplang@##1}}}%
-  % \docsvlist{#1}%
   \gdef\blx@mslangs{#1}}
 
 % Mapping of BCP47->babel ids until babel supports BCP47 tags
