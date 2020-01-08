@@ -6711,6 +6711,18 @@ Inside name formats, the <nameparts> constant declaration makes available two or
 
 Note these per-namepart uniqueness macros are essentially an override of the \opt{uniquename} value (see \secref{aut:aux:tst}) for the name as a whole. Styles can choose to use either the less granular \opt{uniquename} value or the more detailed per-namepart values. Usually the general \opt{uniquename} value is enough for ordinary Western names but the more granular information per-namepart is provided to allow sophisticated name uniqueness processing for more complex name schemata.
 
+For multiscript name lists, these macros refer to the particular name list multiscript alternate being printed. It is also useful to be able to access alternates of the particular name list item being printed and so all available alternates of the current name list item are available in name formats via macros:
+
+\begin{ltxexample}
+\namepart<namepart><msform><mslang>
+\end{ltxexample}
+%
+Note that <mslang> is a BCP47 tag which may contain hyphens and so raw macro use will not work. It is therefore safer to refer to these macros with \cmd{csuse} e.g.:
+
+\begin{ltxexample}
+\csuse{namepartfamilydefaulten-us}
+\end{ltxexample}
+%
 The name formatting directive is executed once for each name in the name list. Here is a simplified example---the standard name formats are more intricate:
 
 \begin{ltxexample}
@@ -7569,6 +7581,18 @@ This command prints a \prm{field} (for a multiscript field, \prm{msform}/\prm{ms
 
 This command loops over all items in a \prm{literal list} (for a multiscript list, \prm{msform}/\prm{mslang} may be specified, otherwise, the global or refcontext override values of \opt{msform}/\opt{mslang} are used), starting at item number \prm{start} and stopping at item number \prm{stop}, including \prm{start} and \prm{stop} (all lists are numbered starting at~1). Each item is printed using the formatting directive \prm{format}, as defined with \cmd{DeclareListFormat}. If a type"=specific \prm{format} has been declared, the type"=specific formatting directive takes precedence over the generic one. If the \prm{literal list} is undefined, nothing is printed. If the \prm{format} is omitted, \cmd{printlist} tries using the name of the list as a format name. In this case, any type"=specific formatting directive will also take precedence over the generic one. If all of these formats are undefined, it falls back to \texttt{default} as a last resort. The \prm{start} argument defaults to 1; \prm{stop} defaults to the total number of items in the list. If the total number is greater than \prm{maxitems}, \prm{stop} defaults to \prm{minitems} (see \secref{use:opt:pre:gen}). See \cmd{printnames} for further details. Note that \cmd{printlist} provides the name of the literal list currently being processed in \cmd{currentlist} for use in list formatting directives.
 
+In multiscript lists, macros of the format:
+
+\begin{ltxexample}
+\listitem<msform><mslang>
+\end{ltxexample}
+%
+Are available for all valid combinations of <msform> and <mslang>. They refer to alternates of the current list item. Note that <mslang> is a BCP47 tag which may contain hyphens and so raw macro use will not work. It is therefore safer to refer to these macros with \cmd{csuse} e.g.:
+
+\begin{ltxexample}
+\csuse{listitemdefaulten-us}
+\end{ltxexample}
+
 \cmditem{printnames}[format][start\ensuremath\rangle--\ensuremath\langle stop][msform][mslang]{name list}
 
 This command loops over all items in a \prm{name list} (for a multiscript name, \prm{msform}/\prm{mslang} may be specified, otherwise, the global or refcontext override values of \opt{msform}/\opt{mslang} are used), starting at item number \prm{start} and stopping at item number \prm{stop}, including \prm{start} and \prm{stop} (all lists are numbered starting at~1). Each item is printed using the formatting directive \prm{format}, as defined with \cmd{DeclareNameFormat}. If a type"=specific \prm{format} has been declared, the type"=specific formatting directive takes precedence over the generic one. If the \prm{name list} is undefined, nothing is printed. If the \prm{format} is omitted, \cmd{printnames} tries using the name of the list as a format name. In this case, any type"=specific formatting directive will also take precedence over the generic one. If all of these formats are undefined, it falls back to \texttt{default} as a last resort. The \prm{start} argument defaults to 1; \prm{stop} defaults to the total number of items in the list. If the total number is greater than \prm{maxnames}, \prm{stop} defaults to \prm{minnames} (see \secref{use:opt:pre:gen}). If you want to select a range but use the default list format, the first optional argument must still be given, but is left empty:
@@ -7723,7 +7747,21 @@ The value of the datamodel <nameparts> constant (see \secref{aut:bbx:drv}) creat
 \namepartgiveni
 \end{ltxexample}
 %
-If a certain part of a name is not available, the corresponding macro will be empty, hence you may use, for example, the \sty{etoolbox} tests like \cmd{ifdefvoid} to check for the individual parts of a name. The name of the name list currently being processed is available to the \prm{code} as \cmd{currentname}. For multiscript fields, the defined forms/langs of all alternates are provided as \sty{etoolbox} lists \cmd{currentmsforms} and \cmd{currentmslangs}. Note that the formatting directive also handles the punctuation to be inserted between separate names and between the individual parts of a name. You need to check whether you are in the middle of or at the end of the list, \ie whether \cnt{listcount} is smaller than or equal to \cnt{liststop}. See also \secref{use:cav:nam}. The starred variant of this command is similar to the regular version, except that all type-specific formats are cleared. \emph{Do not put any whitespace between the arguments to this macro as the definitions are quite complex and you will get unexpected results}.
+If a certain part of a name is not available, the corresponding macro will be empty, hence you may use, for example, the \sty{etoolbox} tests like \cmd{ifdefvoid} to check for the individual parts of a name. The name of the name list currently being processed is available to the \prm{code} as \cmd{currentname}. For multiscript fields, the defined forms/langs of all alternates are provided as \sty{etoolbox} lists \cmd{currentmsforms} and \cmd{currentmslangs}.
+
+For multiscript name lists, all available alternates of the current name list item are available in name formats via macros:
+
+\begin{ltxexample}
+\namepart<namepart><msform><mslang>
+\end{ltxexample}
+%
+Note that <mslang> is a BCP47 tag which may contain hyphens and so raw macro use will not work. It is therefore safer to refer to these macros with \cmd{csuse} e.g.:
+
+\begin{ltxexample}
+\csuse{namepartfamilydefaulten-us}
+\end{ltxexample}
+
+Note that the formatting directive also handles the punctuation to be inserted between separate names and between the individual parts of a name. You need to check whether you are in the middle of or at the end of the list, \ie whether \cnt{listcount} is smaller than or equal to \cnt{liststop}. See also \secref{use:cav:nam}. The starred variant of this command is similar to the regular version, except that all type-specific formats are cleared. \emph{Do not put any whitespace between the arguments to this macro as the definitions are quite complex and you will get unexpected results}.
 
 \cmditem{DeclareListWrapperFormat}[entrytype, \dots]{format}{code}
 \cmditem*{DeclareListWrapperFormat}*{format}{code}
