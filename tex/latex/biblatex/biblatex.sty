@@ -5180,6 +5180,11 @@
     \cslet{namepart##1un}\@empty}%
   \expandafter\docsvlist\expandafter{\blx@datamodel@constant@nameparts}%
   \setkeys{blx@opt@namepart}{#2}% Extract nameparts information
+  % Extract all alternate nameparts for use in format
+  \begingroup
+  \edef\blx@tempc{\endgroup
+    \noexpand\setkeys{blx@opt@nameparts}{\csuse{abx@nameparts@\currentname @\thelistcount}}}%
+  \blx@tempc
   \ifdefempty\blx@tempa
     {\blx@theformat{}}
     {% begin language for name list item mslang
@@ -5323,25 +5328,33 @@
     {\ifnum\c@listcount<\c@liststart
      \else
        \let\blx@tempc\currentmslang
-       % This effectively does two checks since only multiscript fields would have such an annotation
+       \blx@imc@ifmsentryfield{\currentlist}
+         {% Extract all alternate listitems for use in format
+          \begingroup
+          \edef\blx@tempd{\endgroup
+            \noexpand\setkeys{blx@opt@listitems}{\csuse{abx@listitems@\currentlist @\thelistcount}}}%
+          \blx@tempd}
+         {}%
+       % begin language for list item mslang
+       % Overide language from list item langtag annotation
+       % This does two checks since only multiscript fields would have such an annotation
        \ifcsdef{abx@annotation@literal@item@\currentmsform @\blx@tempc @\currentlist @langtags@\thelistcount}
-          {% begin language for list item mslang
-           % Overide language from list item langtag annotation
-           \edef\blx@tempb{\csuse{abx@annotation@literal@item@\currentmsform @\blx@tempc @\currentlist @langtags@\thelistcount}}%
-           \edef\blx@tempa{\csuse{blx@msmaplang@\blx@tempb}}%
-           \let\currentmslang\blx@tempb
-           \ifdef\blx@thefieldlangenv
-             {\iftoggle{blx@autofieldlangstrings}
-                {\blx@langsetup{\blx@tempa}% must call this to load the .lbx
-                 \csuse{abx@extras@\blx@tempa}%
-                 \csuse{abx@strings@\blx@tempa}}
-                {}%
-              \blx@hook@initfieldlang
-              \begingroup
-              \csname\blx@thefieldlangenv\expandafter\endcsname\expandafter{\blx@tempa}}
-             {}}
+         {\edef\blx@tempb{\csuse{abx@annotation@literal@item@\currentmsform @\blx@tempc @\currentlist @langtags@\thelistcount}}%
+          \edef\blx@tempa{\csuse{blx@msmaplang@\blx@tempb}}%
+          \let\currentmslang\blx@tempb
+          \ifdef\blx@thefieldlangenv
+            {\iftoggle{blx@autofieldlangstrings}
+               {\blx@langsetup{\blx@tempa}% must call this to load the .lbx
+                \csuse{abx@extras@\blx@tempa}%
+                \csuse{abx@strings@\blx@tempa}}
+               {}%
+             \blx@hook@initfieldlang
+             \begingroup
+             \csname\blx@thefieldlangenv\expandafter\endcsname\expandafter{\blx@tempa}}
+            {}}
           {}%
         \blx@theformat{#1}%
+        % This does two checks since only multiscript fields would have such an annotation
         \ifcsdef{abx@annotation@literal@item@\currentmsform @\blx@tempc @\currentlist @langtags@\thelistcount}
           {% end language for list mslang
            \ifdef\blx@thefieldlangenv
@@ -9199,6 +9212,8 @@
   \let\xref\blx@bbl@xref % A No-op for Biber
   \let\keyw\blx@bbl@keyw
   \let\name\blx@bbl@msnamedef
+  \let\namepartms\blx@bbl@msnamepartdef
+  \let\listitemms\blx@bbl@mslistitemdef
   \let\list\blx@bbl@mslistdef
   \let\field\blx@bbl@msfielddef
   \let\fieldmssource\blx@bbl@fieldmssourcedef
@@ -9216,18 +9231,46 @@
   \let\mslangs\blx@bbl@mslangsdef
   \let\msmaplang\blx@bbl@msmaplangdef}
 
+% namepart definitions for all alternates of a name
+\protected\long\def\blx@bbl@msnamepartdef#1#2#3{%
+  \csgappto\blx@bbl@data{\csdef{abx@nameparts@#1@#2}{#3}}}
+% listitem definitions for all alternates of a list
+\protected\long\def\blx@bbl@mslistitemdef#1#2#3{%
+  \csgappto\blx@bbl@data{\csdef{abx@listitems@#1@#2}{#3}}}  
+
 % List of all forms/langs in the documents, comes from biber via .bbl
-\def\blx@bbl@msformsdef#1{%
+\protected\def\blx@bbl@msformsdef#1{%
   \gdef\blx@msforms{#1}}
-\def\blx@bbl@mslangsdef#1{%
+\protected\def\blx@bbl@mslangsdef#1{%
   \gdef\blx@mslangs{#1}}
 
 % Mapping of BCP47->babel ids until babel supports BCP47 tags
 % Must use \csuse on blx@msmaplang due to hyphens in tags
-\def\blx@bbl@msmaplangdef#1#2{%
+\protected\def\blx@bbl@msmaplangdef#1#2{%
   \csgdef{blx@msmaplang@#1}{#2}}
 
 \def\blx@bblend{%
+  % Create all namepart macros now that we know the valid bbl forms/langs 
+  \def\do##1{%
+    \begingroup
+    \def\do####1{%
+      \begingroup
+      \def\do########1{%
+        \csgdef{KV@blx@opt@nameparts@##1####1########1}################1{\csdef{namepart##1####1########1}{################1}}%
+        \csgdef{KV@blx@opt@nameparts@##1####1########1i}################1{\csdef{namepart##1####1########1i}{################1}}}%
+      \expandafter\docsvlist\expandafter{\blx@mslangs}%
+      \endgroup}%
+    \expandafter\docsvlist\expandafter{\blx@msforms}%
+    \endgroup}%
+  \expandafter\docsvlist\expandafter{\blx@datamodel@constant@nameparts}%
+  % Create all listitem macros now that we know the valid bbl forms/langs 
+  \def\do##1{%
+    \begingroup
+    \def\do####1{%
+      \csgdef{KV@blx@opt@listitems@##1####1}########1{\csdef{listitem##1####1}{########1}}}%
+    \expandafter\docsvlist\expandafter{\blx@mslangs}%
+    \endgroup}%
+  \expandafter\docsvlist\expandafter{\blx@msforms}%
   % Special warning for defernumbers when a citation cannot be found
   \iftoggle{blx@defernumbers}
     {\def\do##1{\ifinlist{##1}\blx@entries
