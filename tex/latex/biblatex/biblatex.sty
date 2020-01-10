@@ -7857,6 +7857,12 @@
 
 \protected\def\blx@resetdata{%
   \let\blx@saved@do\do
+  \def\do##1{%
+    \csundef{abx@fieldmssource@field@##1}%
+    \csundef{abx@fieldmssource@msform@##1}%
+    \csundef{abx@fieldmssource@mslang@##1}}%
+  \abx@dorfields
+  \abx@dornames
   \let\do\blx@imc@clearname
   \abx@donames
   \let\do\blx@imc@clearlist
@@ -7864,6 +7870,16 @@
   \let\do\blx@imc@clearfield
   \abx@dofields
   \abx@dointernalfields
+  \ifundef\abx@nameparts@defined
+    {}
+    {\def\do##1{\csundef{abx@nameparts@##1}}%
+     \dolistloop\abx@nameparts@defined}%
+  \let\abx@nameparts@defined\@empty
+  \ifundef\abx@listitems@defined
+    {}
+    {\def\do##1{\csundef{abx@listitems@##1}}%
+     \dolistloop\abx@listitems@defined}%
+  \let\abx@listitems@defined\@empty
   \ifundef\abx@annotation@defined
     {}
     {\def\do##1{\csundef{abx@annotation@##1}}%
@@ -7883,6 +7899,9 @@
 
 \protected\def\blx@saveentry{%
   \let\blx@saved@do\do
+  \let\do\blx@savefieldmssource
+  \abx@dorfields
+  \abx@dornames
   \let\do\blx@savename
   \abx@donames
   \let\do\blx@saverelname
@@ -7906,6 +7925,26 @@
     {\let\do\blx@saveannotations
      \dolistloop\abx@annotation@defined}%
   \let\abx@savedannotation@defined\abx@annotation@defined
+  \ifundef\abx@savednameparts@defined
+    {}
+    {\def\do##1{\csundef{abx@nameparts@\blx@savenameparts@makesaved##1}}%
+     \dolistloop\abx@savednameparts@defined}%
+  \let\abx@savednameparts@defined\@empty
+  \ifundef\abx@nameparts@defined
+    {}
+    {\let\do\blx@savenameparts
+     \dolistloop\abx@nameparts@defined}%
+  \let\abx@savednameparts@defined\abx@nameparts@defined
+  \ifundef\abx@savedlistitems@defined
+    {}
+    {\def\do##1{\csundef{abx@listitems@\blx@savelistitems@makesaved##1}}%
+     \dolistloop\abx@savedlistitems@defined}%
+  \let\abx@savedlistitems@defined\@empty
+  \ifundef\abx@listitems@defined
+    {}
+    {\let\do\blx@savelistitems
+     \dolistloop\abx@listitems@defined}%
+  \let\abx@savedlistitems@defined\abx@listitems@defined
   \let\do\blx@savebool
   \abx@dobooleans
   \let\do\blx@savedatetype
@@ -7913,6 +7952,23 @@
   \do{label}%
   \c@savedcitecounter\c@citecounter
   \let\do\blx@saved@do}
+
+\protected\def\blx@savefieldmssource#1{%
+  \csletcs{abx@fieldmssource@field@saved#1}{abx@fieldmssource@field@#1}%
+  \csletcs{abx@fieldmssource@msform@saved#1}{abx@fieldmssource@msform@#1}%
+  \csletcs{abx@fieldmssource@mslang@saved#1}{abx@fieldmssource@mslang@#1}}
+
+\def\blx@saveannotations@makesaved#1@#2{#1@saved#2}
+\protected\def\blx@saveannotations#1{%
+  \csletcs{abx@annotation@\blx@saveannotations@makesaved#1}{abx@annotation@#1}}
+
+\def\blx@savenameparts@makesaved#1@#2{#1@saved#2}
+\protected\def\blx@savenameparts#1{%
+  \csletcs{abx@nameparts@\blx@savenameparts@makesaved#1}{abx@nameparts@#1}}
+
+\def\blx@savelistitems@makesaved#1@#2{#1@saved#2}
+\protected\def\blx@savelistitems#1{%
+  \csletcs{abx@listitems@\blx@savelistitems@makesaved#1}{abx@listitems@#1}}
 
 % saves all alternates of multiscript fields
 \protected\def\blx@savefield#1{%
@@ -8046,10 +8102,6 @@
   \csletcs{printsaved#1date}{blx@imc@printsaved#1date}%
   \csletcs{printsaved#1time}{blx@imc@printsaved#1time}%
   \csletcs{printsaved#1dateextra}{blx@imc@printsaved#1dateextra}}
-
-\def\blx@saveannotations@makesaved#1@#2{#1@saved#2}
-\protected\def\blx@saveannotations#1{%
-  \csletcs{abx@annotation@\blx@saveannotations@makesaved#1}{abx@annotation@#1}}
 
 % {<code>}
 \protected\long\def\blx@bbl@preamble#1{%
@@ -8235,33 +8287,33 @@
 \DeclareDocumentCommand{\blx@bbl@annotationdef}
   {O{} O{} m m m m m m m}
   {\ifstrequal{#3}{field}
-     {\csxappto\blx@bbl@data{%
-        \listadd\noexpand\abx@annotation@defined{field@#1@#2@#4@#5}}%
-      \ifstrequal{#8}{1}
-        {\csgappto\blx@bbl@data{%
-           \csdef{abx@annotation@literal@field@#1@#2@#4@#5}{#9}}}
+     {\ifstrequal{#8}{1}
         {\csxappto\blx@bbl@data{%
+            \listadd\noexpand\abx@annotation@defined{literal@field@#1@#2@#4@#5}%
+            \csdef{abx@annotation@literal@field@#1@#2@#4@#5}{#9}}}
+        {\csxappto\blx@bbl@data{%
+           \listadd\noexpand\abx@annotation@defined{field@#1@#2@#4@#5}%
            \def\do####1{\listcsadd{abx@annotation@field@#1@#2@#4@#5}{####1}}%
            \docsvlist{#9}}}}
      {}%
   \ifstrequal{#3}{item}
-     {\csxappto\blx@bbl@data{%
-        \listadd\noexpand\abx@annotation@defined{item@#1@#2@#4@#5@#6}}%
-      \ifstrequal{#8}{1}
-        {\csgappto\blx@bbl@data{%
-           \csdef{abx@annotation@literal@item@#1@#2@#4@#5@#6}{#9}}}
+     {\ifstrequal{#8}{1}
         {\csxappto\blx@bbl@data{%
-           \def\do####1{\listcsadd{abx@annotation@item@#1@#2@#4@#5@#6}{####1}}%
+            \listadd\noexpand\abx@annotation@defined{literal@item@#1@#2@#4@#5@#6}%
+            \csdef{abx@annotation@literal@item@#1@#2@#4@#5@#6}{#9}}}
+        {\csxappto\blx@bbl@data{%
+            \listadd\noexpand\abx@annotation@defined{item@#1@#2@#4@#5@#6}%
+            \def\do####1{\listcsadd{abx@annotation@item@#1@#2@#4@#5@#6}{####1}}%
            \docsvlist{#9}}}}
      {}%
   \ifstrequal{#3}{part}
-     {\csxappto\blx@bbl@data{%
-        \listadd\noexpand\abx@annotation@defined{part@#1@#2@#4@#5@#6@#7}}%
-      \ifstrequal{#8}{1}
-        {\csgappto\blx@bbl@data{%
-           \csdef{abx@annotation@literal@part@#1@#2@#4@#5@#6@#7}{#9}}}
+     {\ifstrequal{#8}{1}
         {\csxappto\blx@bbl@data{%
-          \def\do####1{\listcsadd{abx@annotation@part@#1@#2@#4@#5@#6@#7}{####1}}%
+            \listadd\noexpand\abx@annotation@defined{literal@part@#1@#2@#4@#5@#6@#7}%
+            \csdef{abx@annotation@literal@part@#1@#2@#4@#5@#6@#7}{#9}}}
+        {\csxappto\blx@bbl@data{%
+            \listadd\noexpand\abx@annotation@defined{part@#1@#2@#4@#5@#6@#7}%
+            \def\do####1{\listcsadd{abx@annotation@part@#1@#2@#4@#5@#6@#7}{####1}}%
           \docsvlist{#9}}}}
      {}}
 
@@ -8688,7 +8740,7 @@
     \ifcsundef{abx@fieldmssource@field@##1}
       {}%
       {\csletcs{abx@field@@@##1}{abx@field@\csuse{abx@fieldmssource@msform@##1}@\csuse{abx@fieldmssource@mslang@##1}@\csuse{abx@fieldmssource@field@##1}}}}%
-  \dolistloop\abx@rfields%
+  \abx@dorfields%
   % names
   \def\do##1{%
     \ifcsundef{abx@fieldmssource@field@##1}
@@ -8698,7 +8750,7 @@
       \csletcs{abx@name@@@##1}{abx@name@\csuse{abx@fieldmssource@msform@##1}@\csuse{abx@fieldmssource@mslang@##1}@\csuse{abx@fieldmssource@field@##1}}%
       \csletcs{etb@tgl@abx@bool@more##1}{%
         etb@tgl@abx@bool@more\csuse{abx@fieldmssource@field@##1}}}}%
-  \dolistloop\abx@rnames%
+  \abx@dornames%
   % Resolve labeldate
   % Note that here we can't refer to labelyear as this is where we create it, hence the
   % complications in constructing test names etc.
@@ -9258,10 +9310,14 @@
 
 % namepart definitions for all alternates of a name
 \protected\long\def\blx@bbl@msnamepartdef#1#2#3{%
-  \csgappto\blx@bbl@data{\csdef{abx@nameparts@#1@#2}{#3}}}
+  \csxappto\blx@bbl@data{%
+    \listadd\noexpand\abx@nameparts@defined{#1@#2}%
+    \csdef{abx@nameparts@#1@#2}{#3}}}
 % listitem definitions for all alternates of a list
 \protected\long\def\blx@bbl@mslistitemdef#1#2#3{%
-  \csgappto\blx@bbl@data{\csdef{abx@listitems@#1@#2}{#3}}}  
+  \csxappto\blx@bbl@data{%
+    \listadd\noexpand\abx@listitems@defined{#1@#2}%
+    \csdef{abx@listitems@#1@#2}{#3}}}
 
 % List of all forms/langs in the documents, comes from biber via .bbl
 \protected\def\blx@bbl@msformsdef#1{%
