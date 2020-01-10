@@ -748,7 +748,7 @@ Name list fields automatically have an \cmd{ifuse*} test created as per the name
 \item Name suffix (also known as <Jr> part)
 \end{itemize}
 
-The supported list of name parts is defined as a constant list in the default data model using the \cmd{DeclareDatamodelConstant} command (see \ref{aut:ctm:dm}). However, it is not enough to simply add to this list in order to add support for another name part as name parts typically have to be hard coded into bibliography drivers and the backend processing. See the example file \file{93-nameparts.tex} for details on how to define and use custom name parts. Also see \cmd{DeclareUniquenameTemplate} in \secref{aut:cav:amb} for information on how to customise name disambiguation using custom name parts.
+The supported list of name parts is defined as a constant list in the default data model using the \cmd{DeclareDatamodelConstant} command (see \secref{aut:ctm:dm}). However, it is not enough to simply add to this list in order to add support for another name part as name parts typically have to be hard coded into bibliography drivers and the backend processing. See the example file \file{93-nameparts.tex} for details on how to define and use custom name parts. Also see \cmd{DeclareUniquenameTemplate} in \secref{aut:cav:amb} for information on how to customise name disambiguation using custom name parts.
 
 \item[Literal lists] are parsed and split up into the individual items at the \texttt{and} delimiter but not dissected further. Literal lists may be truncated in the \file{bib} file with the keyword <\texttt{and others}>. There are two subtypes:
 
@@ -6334,15 +6334,15 @@ per-item basis using the \biber data annotation feature (see
 named literal annotation for this purpose. These annotations are available via the
 interfaces described in \ref{use:annote}.
 
-Within formats, \cmd{currentmsform} and \cmd{currentmslang} contain the multiscript form and BCP47 language tag respectively for the current field/list item. \cmd{currentmsforms} and \cmd{currentmslangs} contain \sty{etoolbox} lists of all multiscript forms and BCP47 language tags respetively of the current entryfield. The macros are all empty in non-multiscript fields.
+Within formats, \cmd{currentmsform} and \cmd{currentmslang} contain the multiscript form and BCP47 language tag respectively for the current field/list item. \cmd{currentmsforms} and \cmd{currentmslangs} contain \sty{etoolbox} lists of all multiscript forms and BCP47 language tags respectively of the current entryfield. The macros are all empty in non-multiscript fields.
 
 The standard \bibfield{langid} entryfield plays a special role in multiscript support as it can be a per-entry override for the default alternate <language> for all entryfields in the entry when the \biber option \opt{msstrict} is used. For example:
 
 \begin{lstlisting}[style=bibtex]{}
 @ARTICLE{mstest,
-  LANGID = {ru-Cyrl},
+  LANGID = {russian},
   AUTHOR = {Bill Smith and Пушкин, Александр},
-  AUTHOR+an:langtags = {1=en-US},
+  AUTHOR+an:langtags = {1="en-US"},
 }
 \end{lstlisting}
 %
@@ -6352,7 +6352,15 @@ Within field, list and name formatting directives, the macros \cmd{currentmsform
 
 Inside the formats for multiscript name list and plain list fields, macros are automatically made available which contain all alternates of the current list item/nameparts. See \ref{aut:bbx:drv} and \ref{aut:bib:fmt}.
 
-Automatic \sty{babel}/\sty{polyglossia} language and \sty{biblatex} bibstring switching on a per-list item/namepart basis is controlled by the options \opt{autofieldlang} and \opt{autofieldlangstrings} which allow switching at a more granular level than \opt{autolang}.
+Automatic \sty{babel}/\sty{polyglossia} language and \sty{biblatex} bibstring switching on a per-list item/namepart basis is controlled by the options \opt{autofieldlang} and \opt{autofieldlangstrings} which allow switching at a more granular level than \opt{autolang}. Granular automatic language switching relies on a mapping of BCP47 language tags to \biblatex/\sty{babel}/\sty{polyglossia} language identifiers so that these packages know which language to switch to (this is necessary until BCP47 support is native to \biblatex, \sty{babel} and \sty{polyglossia}. \biblatex has default mappings as defined in Appendix \secref{apx:bcp}. In addition, you may override or add new mappings with the \cmd{maplangtag} command:
+
+\begin{ltxsyntax}
+
+\cmditem{maplangtag}{BCP47tag}{langid}
+
+Provides a mapping between the BCP47 language tags used in multiscript entryfield alternate specifications and \biblatex/\sty{babel}/\sty{polyglossia} language identifiers.
+
+\end{ltxsyntax}
 
 \section{Author Guide}
 \label{aut}
@@ -10254,15 +10262,15 @@ value of \cmd{currentlang}.
 
 \cmditem{ifsortingnamekeytemplatename}{string}{true}{false}
 
-Expands to \prm{true} if the \prm{string} is equal to the current in scope sorting name key template name (see \ref{aut:ctm:srt}), and to \prm{false} otherwise.
+Expands to \prm{true} if the \prm{string} is equal to the current in scope sorting name key template name (see \secref{aut:ctm:srt}), and to \prm{false} otherwise.
 
 \cmditem{ifuniquenametemplatename}{string}{true}{false}
 
-Expands to \prm{true} if the \prm{string} is equal to the current in scope uniqueness name key template name (see \ref{aut:ctm:srt}), and to \prm{false} otherwise.
+Expands to \prm{true} if the \prm{string} is equal to the current in scope uniqueness name key template name (see \secref{aut:ctm:srt}), and to \prm{false} otherwise.
 
 \cmditem{iflabelalphanametemplatename}{string}{true}{false}
 
-Expands to \prm{true} if the \prm{string} is equal to the current in scope alphabetic label name template name (see \ref{aut:ctm:srt}), and to \prm{false} otherwise.
+Expands to \prm{true} if the \prm{string} is equal to the current in scope alphabetic label name template name (see \secref{aut:ctm:srt}), and to \prm{false} otherwise.
 
 \cmditem{iffieldundef}[msform][mslang]{field}{true}{false}
 
@@ -10646,7 +10654,7 @@ The additional tests provided by \biblatex are only available when \cmd{ifboolex
 \subsubsection{Miscellaneous Commands}
 \label{aut:aux:msc}
 
-The section introduced miscellaneous commands and little helpers for use in bibliography and citation styles.
+The section introduces miscellaneous commands and little helpers for use in bibliography and citation styles.
 
 \begin{ltxsyntax}
 
@@ -14274,6 +14282,8 @@ arxiv                             &\+&\+&\_&\_&\_&\_&\_\\
 autocite                          &\+&\+&\_&\_&\_&\_&\_\\
 autopunct                         &\+&\+&\_&\_&\_&\_&\_\\
 autolang                          &\+&\+&\_&\_&\_&\_&\_\\
+autofieldlang                     &\+&\+&\_&\_&\_&\_&\_\\
+autofieldlangstrings              &\+&\+&\_&\_&\_&\_&\_\\
 backend                           &\+&\_&\_&\_&\_&\_&\_\\
 backref                           &\+&\+&\_&\_&\_&\_&\_\\
 backrefsetstyle                   &\+&\+&\_&\_&\_&\_&\_\\
@@ -14386,6 +14396,179 @@ useprefix                         &\+&\+&\_&\+&\+&\+&\+\\
 use$<$name$>$                     &\+&\+&\_&\+&\+&\_&\_\\
 \end{longtable}
 \endgroup
+
+\section{Default BCP47 to babel/polyglossia language identifiers}
+\label{apx:bcp}
+
+\begin{tabular}{ll}
+af & afrikaans\\
+af-za & afrikaans\\
+am & ethiopia\\
+am-et & amharic\\
+ar & arabic\\
+ar-001 & arabic\\
+ast & asturian\\
+ast-es & asturian\\
+bg & bulgarian\\
+bg-bg & bulgarian\\
+bn & bengali\\
+bn-bd & bengali\\
+bo & tibetan\\
+bo-cn & tibetan\\
+br & breton\\
+br-fr & breton\\
+ca & catalan\\
+ca-ad & catalan\\
+ca-es & catalan\\
+cop & coptic\\
+cs & czech\\
+cs-cz & czech\\
+cy & welsh\\
+cy-gb & welsh\\
+da & danish\\
+da-dk & danish\\
+de-1996 & ngerman\\
+de-at & austrian\\
+de-at-1996 & naustrian\\
+de-ch & swissgerman\\
+de-ch-1996 & nswissgerman\\
+de & german\\
+de-de & german\\
+de-de-1996 & ngerman\\
+dsb & lowersorbian\\
+dsb-de & lowersorbian\\
+dv & divehi\\
+dv-mv & divehi\\
+el & greek\\
+el-cy & ibygreek\\
+el-gr & greek\\
+en & english\\
+en-au & australian\\
+en-ca & canadian\\
+en-uk & ukenglish\\
+en-gb & british\\
+en-nz & newzealand\\
+en-us & usenglish\\
+en-us & american\\
+en-us & english\\
+eo & esperanto\\
+eo-001 & esperanto\\
+es & spanish\\
+es-es & spanish\\
+et & estonian\\
+et-ee & estonian\\
+eu & basque\\
+eu-es & basque\\
+fa & farsi\\
+fa-ir & farsi\\
+fi & finnish\\
+fi-fi & finnish\\
+fr & french\\
+fr-ca & acadian\\
+fr-ca & canadien\\
+fr-fr & french\\
+fur & friulan\\
+fur-it & friulan\\
+ga & irish\\
+ga-ie & irish\\
+gd & scottish\\
+gd-gb & scottish\\
+gl & galician\\
+gl-es & galician\\
+ha & nko\\
+ha-ng & nko\\
+he & hebrew\\
+he-il & hebrew\\
+hi & hindi\\
+hi-in & hindi\\
+hr & croatian\\
+hr-hr & croatian\\
+hsb & uppersorbian\\
+hsb-de & uppersorbian\\
+hu & magyar\\
+hu-hu & magyar\\
+hy & armenian\\
+hy-am & armenian\\
+ia & interlingua\\
+ia-fr & interlingua\\
+id & indonesia\\
+is & icelandic\\
+is-is & icelandic\\
+it & italian\\
+it-it & italian\\
+ja & japanese\\
+ja-jp & japanese\\
+kn & kannada\\
+kn-in & kannada\\
+lo & lao\\
+lo-la & lao\\
+lt & lithuanian\\
+lt-lt & lithuanian\\
+lv & latvian\\
+lv-lv & latvian\\
+ml & malayalam\\
+ml-in & malayalam\\
+mn & mongolian\\
+mn-cyrl & mongolian\\
+mr & marathi\\
+mr-in & marathi\\
+nb & norsk\\
+nb-no & norsk\\
+nl & dutch\\
+nl-nl & dutch\\
+nn & nynorsk\\
+nn-no & nynorsk\\
+oc & occitan\\
+oc-fr & occitan\\
+pl & polish\\
+pl-pl & polish\\
+pms & piedmontese\\
+pms-it & piedmontese\\
+pny & pinyin\\
+pt & portuguese\\
+pt-br & brazilian\\
+pt-pt & portuguese\\
+rm & romansh\\
+rm-ch & romansh\\
+ro & romanian\\
+ro-ro & romanian\\
+ru & russian\\
+ru-ru & russian\\
+ru-grek & greek\\
+ru-latn & latin\\
+sa & sanskrit\\
+sa-in & sanskrit\\
+se & samin\\
+se-no & samin\\
+sk & slovak\\
+sk-sk & slovak\\
+sl & slovenian\\
+sl-si & slovenian\\
+sq & albanian\\
+sq-al & albanian\\
+sr & serbian\\
+sr-cyrl & serbian\\
+sr-latn & latin\\
+sv & swedish\\
+sv-se & swedish\\
+syc & syriac\\
+ta & tamil\\
+ta-in & tamil\\
+te & telugu\\
+te-in & telugu\\
+th & thai\\
+th-th & thai\\
+tk & turkmen\\
+tk-tm & turkmen\\
+tr & turkish\\
+tr-tr & turkish\\
+uk & ukrainian\\
+uk-ua & ukrainian\\
+ur & urdu\\
+ur-in & urdu\\
+vi & vietnamese\\
+vi-vn & vietnamese\\
+\end{tabular}
 
 \section{Revision History}
 \label{apx:log}
