@@ -772,6 +772,7 @@
 \newtoggle{blx@debug}
 \newtoggle{blx@sortcase}
 \newtoggle{blx@sortupper}
+\newtoggle{blx@dynamiclabel}
 \newtoggle{blx@autolangbib}
 \newtoggle{blx@autofieldlangstrings}
 \newtoggle{blx@autolangcite}
@@ -824,12 +825,10 @@
 % Special fields which need resolution using the information provided by biber
 \listadd\abx@rfields{labeltitle}
 \def\abx@dorfields{%
-  \dolistloop\abx@rfields%
-}
+  \dolistloop\abx@rfields}
 \listadd\abx@rnames{labelname}
 \def\abx@dornames{%
-  \dolistloop\abx@rnames%
-}
+  \dolistloop\abx@rnames}
 
 % Used to track document forms and langs
 \global\let\blx@msforms\@empty
@@ -8696,15 +8695,25 @@
   \def\do##1{%
     \ifcsundef{abx@fieldmssource@field@##1}
       {}%
-      {\csletcs{abx@field@@@##1}{abx@field@\csuse{abx@fieldmssource@msform@##1}@\csuse{abx@fieldmssource@mslang@##1}@\csuse{abx@fieldmssource@field@##1}}}}%
+      {\iftoggle{blx@dynamiclabel}
+        {\let\blx@tempa\blx@msform
+         \let\blx@tempb\blx@mslang}
+        {\edef\blx@tempa{\csuse{abx@fieldmssource@msform@##1}}%
+         \edef\blx@tempb{\csuse{abx@fieldmssource@mslang@##1}}}%
+        \csletcs{abx@field@@@##1}{abx@field@\blx@tempa @\blx@tempb @\csuse{abx@fieldmssource@field@##1}}}}%
   \abx@dorfields%
   % names
   \def\do##1{%
     \ifcsundef{abx@fieldmssource@field@##1}
      {}
-     {\csname c@##1\expandafter\endcsname\expandafter
+     {\iftoggle{blx@dynamiclabel}
+        {\let\blx@tempa\blx@msform
+         \let\blx@tempb\blx@mslang}
+        {\edef\blx@tempa{\csuse{abx@fieldmssource@msform@##1}}%
+         \edef\blx@tempb{\csuse{abx@fieldmssource@mslang@##1}}}%
+      \csname c@##1\expandafter\endcsname\expandafter
         \the\csname c@\csuse{abx@fieldmssource@field@##1}\endcsname
-      \csletcs{abx@name@@@##1}{abx@name@\csuse{abx@fieldmssource@msform@##1}@\csuse{abx@fieldmssource@mslang@##1}@\csuse{abx@fieldmssource@field@##1}}%
+      \csletcs{abx@name@@@##1}{abx@name@\blx@tempa @\blx@tempb @\csuse{abx@fieldmssource@field@##1}}%
       \csletcs{etb@tgl@abx@bool@more##1}{%
         etb@tgl@abx@bool@more\csuse{abx@fieldmssource@field@##1}}}}%
   \abx@dornames%
@@ -15575,6 +15584,9 @@
 \DeclareBibliographyOption{autofieldlangstrings}[true]{%
   \settoggle{blx@autofieldlangstrings}{#1}}
 
+\DeclareBibliographyOption{dynamiclabel}[true]{%
+  \settoggle{blx@dynamiclabel}{#1}}
+
 \DeclareBiblatexOption{global,type,entry}[string]{indexing}[true]{%
   \blx@opt@index{#1}}
 \def\blx@opt@index#1{%
@@ -16394,7 +16406,8 @@
   eventdate=comp,urldate=short,autopunct=true,punctfont=false,defernumbers=false,
   timezeros=true,refsection=none,refsegment=none,citereset=none,hyperref=auto,
   parentracker,maxparens=3,bibencoding=auto,bibwarn,timezones=false,
-  seconds=false,julian=false,labeltime=24h,locallabelwidth=false,msform=default}
+  seconds=false,julian=false,labeltime=24h,locallabelwidth=false,msform=default,
+  dynamiclabel=false}
 
 % Load Unicode enhancements (only for LuaTeX and XeTeX)
 \ifboolexpr{

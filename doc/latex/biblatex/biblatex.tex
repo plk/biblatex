@@ -2061,6 +2061,10 @@ The default multiscript field alternate <form>. Must be one of the forms declare
 
 The default multiscript field alternate <language> as a BCP47 tag. This controls the default <language> selected by \biber and also the default <language> selected by citations. Can be overridden on a per-refcontext basis. See \ref{use:multiscript}. If \sty{babel} or \sty{polyglossia} are used, this is determined from the main language selected at the beginning of the document. If neither \sty{babel} or \sty{polyglossia} is loaded, the default is as show above.
 
+\boolitem[false]{dynamiclabel}
+
+Normally the multiscript entryfield alternates pointed to by \bibfield{labelname} and \bibfield{labeltitle} are determined for the document via the \cmd{DeclareLabelname} and \cmd{DeclareLabeltitle} commands and this determination is static. If this option is <true>, then the multiscript alternate entryfield pointed by \bibfield{labelname} and \bibfield{labeltitle} are determined dynamically by the setting of the \opt{msform} and \opt{mslang} options at the point where the \bibfield{labelname} or \bibfield{labeltitle} are printed. See \secref{use:multiscript}.
+
 \optitem[nty]{sorting}{\opt{nty}, \opt{nyt}, \opt{nyvt}, \opt{anyt}, \opt{anyvt}, \opt{ynt}, \opt{ydnt}, \opt{none}, \opt{debug}, \prm{name}}
 
 The sorting order of the bibliography. Unless stated otherwise, the entries are sorted in ascending order. The following choices are available by default:
@@ -6279,6 +6283,7 @@ Key limitations of the \bibtex backend are:
 \item All macros which accept the name of an entryfield have optional <msform> and <mslang> arguments to allow the specification of a particular <alternate> of the entryfield, with the default <alternate> determined by the global/per-refcontext \opt{msform} and \opt{mslang} options. \item The language of individual items in name list or plain list entryfields can be specified using a dedicated data annotation to allow script/language switching on a per-item basis.
 \item For name list and plain list entryfields, all alternates of the item being printed are available as macros
 \item Options are available to determine how automatic script/language switching is performed at a per-field and per-listitem level.
+\item The alternate for \bibfield{labelname} and \bibfield{labeltitle} can be determined dynamically depending on the current \opt{msform} and \opt{mslang} settings at time of printing.
 \end{itemize}
 
 The <form> of an alternate entryfield value is one of the vales of the <multiscriptforms> constant, the default for which is:
@@ -6370,6 +6375,26 @@ Automatic \sty{babel}/\sty{polyglossia} language and \sty{biblatex} bibstring sw
 Provides a mapping between the BCP47 language tags used in multiscript entryfield alternate specifications and \biblatex/\sty{babel}/\sty{polyglossia} language identifiers.
 
 \end{ltxsyntax}
+
+The \biblatex option \opt{dynamiclabel} allows dynamic selection of \bibfield{labelname} and \bibfield{labeltitle} depending on the current \opt{msform} and \opt{mslang} settings. For example, suppose that following:
+
+\begin{lstlisting}[style=bibtex]{}
+@ARTICLE{mstest,
+  AUTHOR                    = {Pushkin, Alexander},
+  AUTHOR_transliteration_ru = {Пушкин, Александр},
+}
+\end{lstlisting}
+%
+The default \cmd{DeclareLabelname} setting would select the English \bibfield{author} field alternate as the value of \bibfield{labelname} and the following would print <Pushkin> for both citations in an \sty{authoryear} style since citations in such styles use \bibfield{labelname} by default:
+
+\begin{ltxexample}
+  \cite{mtest}
+  \begin{refcontext}[msform=transliteration,mslang=ru]
+    \cite{mtest}
+  \end{refcontext}
+\end{ltxexample}
+%
+\bibfield{labelname} here is the same in both refcontexts, as determined by the \cmd{DeclareLabelname} setting. However, with <\kvopt{dynamiclabel}{true}>, the second citation would determine \bibfield{labelname} from the current (refcontext) settings for \opt{msform} and \opt{mslang} and the second citation would read <Пушкин>. It is also possible to select particular alternates of name list fields using the optional arguments to \cmd{DeclareLabelname} but bear in mind that these are still static settings--\bibfield{labelname} selection will not be dynamic and override the \cmd{DeclareLabelname} choice unless <\kvopt{dynamiclabel}{true}>. Similar considerations apply to \bibfield{labeltitle}.
 
 \section{Author Guide}
 \label{aut}

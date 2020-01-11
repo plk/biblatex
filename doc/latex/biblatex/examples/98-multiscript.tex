@@ -1,0 +1,57 @@
+%
+% This file demonstrates the multiscript features
+%
+\documentclass[a4paper]{article}
+\usepackage{fontspec}
+\setmainfont{Linux Libertine O}
+\setsansfont{Linux Biolinum O}
+
+\usepackage[russian,greek,french,main=english]{babel}
+\usepackage{csquotes}
+\usepackage{filecontents}
+\begin{filecontents}[force]{\jobname.bib}
+@BOOK{mstest,
+  AUTHOR                                     = {Bill Smith and Пушкин, Александр},
+  AUTHOR+an:langtags                         = {2="ru"},
+  AUTHOR_transliteration_el                  = {Bill Smith and Πούσκιν, Ἀλεξάντρ},
+  AUTHOR_transliteration_el+an:langtags      = {1="en"},
+  LOCATION                                   = {locationa and Standortb},
+  LOCATION+an:langtags                       = {2="de"},
+  LOCATION_translation_fr                    = {emplacementa and Standortb},
+  LOCATION_translation_fr+an:langtags        = {2="de"},
+  TITLE                                      = {Title},
+  TITLE_translation_fr                       = {Titre},
+  DATE                                       = {1995}
+}
+\end{filecontents}
+\usepackage[style=authoryear,%
+            dynamiclabel=true,%
+            language=auto,%
+            autolang=other,%
+            autofieldlang=hyphen,%
+            autofieldlangstrings=true]{biblatex}
+\addbibresource{\jobname.bib}
+
+
+
+\begin{document}
+% Here we are citing and printing the bibliography using data contain in
+% the entryfields of alternate msform="default" and mslang="en" (due to the
+% main babel language of "english" which maps to "en")
+\cite{mstest}
+\printbibliography
+% Here we are citing and printing the bibliography using data contain in
+% the entryfields of alternate msform="transliteration" and mslang="el"
+\begin{refcontext}[msform=transliteration,mslang=el]
+
+  % Notice that due to the "dynamiclabel=true" option, the labelname printed in the citation
+  % is not the static labelname as determined by \DeclareLabelname but the alternate
+  % of the labelname determined by the current (refcontext) msform/mslang options
+  \cite{mstest}
+
+  % Note that the default msform/mslang used to determine which alternates to print in the
+  % bibliography for multiscript entryfields are determined by the current (refcontext)
+  % msform/mslang options
+  \printbibliography
+\end{refcontext}
+\end{document}
