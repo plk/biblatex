@@ -519,8 +519,12 @@
        {\edef\blx@sortlocale{\blx@main@language}}
        {\def\blx@sortlocale{english}}}
      {}%
-}
 
+  % Set default mslang from babel/polyglossia or a fallback
+  \ifdef\blx@main@language
+    {\edef\blx@mslang{\csuse{blx@msmaplangr@\blx@main@language}}}
+    {\def\blx@mslang{en}}% fallback when no babel/polyglossia
+}
 
 \begingroup
 \@makeother\#
@@ -5327,34 +5331,7 @@
             \noexpand\setkeys{blx@opt@listitems}{\csuse{abx@listitems@\currentlist @\thelistcount}}}%
           \blx@tempd}
          {}%
-       % % begin language for list item mslang
-       % % Overide language from list item langtag annotation
-       % % This does two checks since only multiscript fields would have such an annotation
-       % \ifcsdef{abx@annotation@literal@item@\currentmsform @\blx@tempc @\currentlist @langtags@\thelistcount}
-       %   {\edef\blx@tempb{\csuse{abx@annotation@literal@item@\currentmsform @\blx@tempc @\currentlist @langtags@\thelistcount}}%
-       %    \edef\blx@tempa{\csuse{blx@msmaplang@\blx@tempb}}%
-       %    \let\currentmslang\blx@tempb
-       %    \ifdef\blx@thefieldlangenv
-       %      {\iftoggle{blx@autofieldlangstrings}
-       %         {\blx@langsetup{\blx@tempa}% must call this to load the .lbx
-       %          \csuse{abx@extras@\blx@tempa}%
-       %          \csuse{abx@strings@\blx@tempa}}
-       %         {}%
-       %       \blx@hook@initfieldlang
-       %       \begingroup
-       %       \csname\blx@thefieldlangenv\expandafter\endcsname\expandafter{\blx@tempa}}
-       %      {}}
-       %    {}%
         \blx@theformat{#1}%
-        % % This does two checks since only multiscript fields would have such an annotation
-        % \ifcsdef{abx@annotation@literal@item@\currentmsform @\blx@tempc @\currentlist @langtags@\thelistcount}
-        %   {% end language for list mslang
-        %    \ifdef\blx@thefieldlangenv
-        %     {\blx@hook@endfieldlang
-        %      \csname end\blx@thefieldlangenv\endcsname}
-        %     {}%
-        %   \endgroup}
-        %   {}%  
      \fi
      \advance\c@listcount\@ne
      \ifnum\c@listcount>\c@liststop
@@ -9311,6 +9288,8 @@
   \csgdef{blx@msmaplang@#1}{#2}}
 
 % Default BCP47->babel/polyglossia mappings
+% Used to determine babel/polyglossia/biblatex language from BCP47 tag
+% Needs to be replaced by some real package
 \blx@imc@maplangtag{af}{afrikaans}
 \blx@imc@maplangtag{af-za}{afrikaans}
 \blx@imc@maplangtag{am}{ethiopia}
@@ -9479,6 +9458,128 @@
 \blx@imc@maplangtag{vi}{vietnamese}
 \blx@imc@maplangtag{vi-vn}{vietnamese}
 
+% Mapping of babel->BCP47 ids until babel/polyglossia support BCP47 tags
+% Must use \csuse on blx@msmaplangr due to hyphens in tags
+% No user-facing macro needed
+\protected\def\blx@maplangtagr#1#2{%
+  \csgdef{blx@msmaplangr@#1}{#2}}
+
+% Default mappings of babel/polyglossia language id to BCP47
+% Used to determine default mslang option
+% Needs to be replaced by some real package
+\blx@maplangtagr{acadian}{fr-ca}
+\blx@maplangtagr{american}{en-us}
+\blx@maplangtagr{australian}{en-au}
+\blx@maplangtagr{afrikaans}{af-za}
+\blx@maplangtagr{albanian}{sq-al}
+\blx@maplangtagr{amharic}{am-et}
+\blx@maplangtagr{arabic}{ar-001}
+\blx@maplangtagr{armenian}{hy-am}
+\blx@maplangtagr{asturian}{ast-es}
+\blx@maplangtagr{austrian}{de-at}
+\blx@maplangtagr{bahasa}{id-id}
+\blx@maplangtagr{bahasai}{id-id}
+\blx@maplangtagr{bahasam}{id-id}
+\blx@maplangtagr{basque}{eu-es}
+\blx@maplangtagr{bengali}{bn-bd}
+\blx@maplangtagr{bgreek}{el-gr}
+\blx@maplangtagr{brazil}{pt-br}
+\blx@maplangtagr{brazilian}{pt-br}
+\blx@maplangtagr{breton}{br-fr}
+\blx@maplangtagr{british}{en-gb}
+\blx@maplangtagr{bulgarian}{bg-bg}
+\blx@maplangtagr{canadian}{en-ca}
+\blx@maplangtagr{canadien}{fr-ca}
+\blx@maplangtagr{catalan}{ca-ad}
+\blx@maplangtagr{coptic}{cop}
+\blx@maplangtagr{croatian}{hr-hr}
+\blx@maplangtagr{czech}{cs-cz}
+\blx@maplangtagr{danish}{da-dk}
+\blx@maplangtagr{divehi}{dv-mv}
+\blx@maplangtagr{dutch}{nl-nl}
+\blx@maplangtagr{english}{en}
+\blx@maplangtagr{esperanto}{eo-001}
+\blx@maplangtagr{estonian}{et-ee}
+\blx@maplangtagr{ethiopia}{am-et}
+\blx@maplangtagr{farsi}{fa-ir}
+\blx@maplangtagr{finnish}{fi-fi}
+\blx@maplangtagr{francais}{fr-fr}
+\blx@maplangtagr{french}{fr-fr}
+\blx@maplangtagr{frenchle}{fr-fr}
+\blx@maplangtagr{friulan}{fur-it}
+\blx@maplangtagr{galician}{gl-es}
+\blx@maplangtagr{german}{de}
+\blx@maplangtagr{germanb}{de-de}
+\blx@maplangtagr{greek}{el-gr}
+\blx@maplangtagr{hebrew}{he-il}
+\blx@maplangtagr{hindi}{hi-in}
+\blx@maplangtagr{ibygreek}{el-cy}
+\blx@maplangtagr{icelandic}{is-is}
+\blx@maplangtagr{indon}{id-id}
+\blx@maplangtagr{indonesia}{id-id}
+\blx@maplangtagr{interlingua}{ia-fr}
+\blx@maplangtagr{irish}{ga-ie}
+\blx@maplangtagr{italian}{it-it}
+\blx@maplangtagr{japanese}{ja-jp}
+\blx@maplangtagr{kannada}{kn-in}
+\blx@maplangtagr{lao}{lo-la}
+\blx@maplangtagr{latin}{la-latn}
+\blx@maplangtagr{latvian}{lv-lv}
+\blx@maplangtagr{lithuanian}{lt-lt}
+\blx@maplangtagr{lowersorbian}{dsb-de}
+\blx@maplangtagr{lsorbian}{dsb-de}
+\blx@maplangtagr{magyar}{hu-hu}
+\blx@maplangtagr{malay}{id-id}
+\blx@maplangtagr{malayalam}{ml-in}
+\blx@maplangtagr{marathi}{mr-in}
+\blx@maplangtagr{meyalu}{id-id}
+\blx@maplangtagr{mongolian}{mn-cyrl}
+\blx@maplangtagr{naustrian}{de-at}
+\blx@maplangtagr{newzealand}{en-nz}
+\blx@maplangtagr{ngerman}{de-de}
+\blx@maplangtagr{nko}{ha-ng}
+\blx@maplangtagr{norsk}{nb-no}
+\blx@maplangtagr{norwegian}{nn-no}
+\blx@maplangtagr{nynorsk}{nn-no}
+\blx@maplangtagr{occitan}{oc-fr}
+\blx@maplangtagr{piedmontese}{pms-it}
+\blx@maplangtagr{pinyin}{pny}
+\blx@maplangtagr{polish}{pl-pl}
+\blx@maplangtagr{polutonikogreek}{el-gr}
+\blx@maplangtagr{portuges}{pt-pt}
+\blx@maplangtagr{portuguese}{pt-pt}
+\blx@maplangtagr{romanian}{ro-ro}
+\blx@maplangtagr{romansh}{rm-ch}
+\blx@maplangtagr{russian}{ru-ru}
+\blx@maplangtagr{samin}{se-no}
+\blx@maplangtagr{sanskrit}{sa-in}
+\blx@maplangtagr{scottish}{gd-gb}
+\blx@maplangtagr{serbian}{sr-latn}
+\blx@maplangtagr{serbianc}{sr-cyrl}
+\blx@maplangtagr{slovak}{sk-sk}
+\blx@maplangtagr{slovene}{sl-si}
+\blx@maplangtagr{slovenian}{sl-si}
+\blx@maplangtagr{spanish}{es-es}
+\blx@maplangtagr{swedish}{sv-se}
+\blx@maplangtagr{swiss}{de-ch}
+\blx@maplangtagr{swissgerman}{de-ch}
+\blx@maplangtagr{nswissgerman}{de-ch}
+\blx@maplangtagr{syriac}{syc}
+\blx@maplangtagr{tamil}{ta-in}
+\blx@maplangtagr{telugu}{te-in}
+\blx@maplangtagr{thai}{th-th}
+\blx@maplangtagr{thaicjk}{th-th}
+\blx@maplangtagr{tibetan}{bo-cn}
+\blx@maplangtagr{turkish}{tr-tr}
+\blx@maplangtagr{turkmen}{tk-tm}
+\blx@maplangtagr{ukrainian}{uk-ua}
+\blx@maplangtagr{urdu}{ur-in}
+\blx@maplangtagr{ukenglish}{en-uk}
+\blx@maplangtagr{uppersorbian}{hsb-de}
+\blx@maplangtagr{usenglish}{en-us}
+\blx@maplangtagr{usorbian}{hsb-de}
+\blx@maplangtagr{vietnamese}{vi-vn}
+\blx@maplangtagr{welsh}{cy-gb}
 
 \def\blx@bblend{%
   % Create all namepart macros now that we know the valid bbl forms/langs 
@@ -16293,7 +16394,7 @@
   eventdate=comp,urldate=short,autopunct=true,punctfont=false,defernumbers=false,
   timezeros=true,refsection=none,refsegment=none,citereset=none,hyperref=auto,
   parentracker,maxparens=3,bibencoding=auto,bibwarn,timezones=false,
-  seconds=false,julian=false,labeltime=24h,locallabelwidth=false,msform=default,mslang=en-us}
+  seconds=false,julian=false,labeltime=24h,locallabelwidth=false,msform=default}
 
 % Load Unicode enhancements (only for LuaTeX and XeTeX)
 \ifboolexpr{
