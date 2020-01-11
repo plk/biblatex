@@ -602,7 +602,9 @@
 
 \DeclareListFormat{default}{%
   \usebibmacro{list:delim}{#1}%
+  \usebibmacro{list:langswitchon}%
   #1\isdot
+  \usebibmacro{list:langswitchoff}%
   \usebibmacro{list:andothers}}
 
 % The default used by \citelist
@@ -613,7 +615,9 @@
 
 \DeclareListFormat{publisher}{%
   \usebibmacro{list:delim}{#1}%
+  \usebibmacro{list:langswitchon}%
   #1\isdot
+  \usebibmacro{list:langswitchoff}%
   \usebibmacro{list:andothers}}
 
 \DeclareListFormat{language}{%
@@ -623,11 +627,13 @@
       {\ifbibstring{lang#1}
          {\bibxstring{lang#1}}
          {#1}}}%
+  \usebibmacro{list:langswitchon}%
   \ifbibstring{#1}
     {\bibstring{#1}}
     {\ifbibstring{lang#1}
        {\bibstring{lang#1}}
        {#1}}%
+  \usebibmacro{list:langswitchoff}%
   \usebibmacro{list:andothers}}
 
 \DeclareListFormat{origlanguage}{%
@@ -637,11 +643,13 @@
       {\ifbibstring{lang#1}
          {\bibxstring{lang#1}}
          {#1}}}%
+  \usebibmacro{list:langswitchon}%
   \ifbibstring{#1}
     {\bibstring{#1}}
     {\ifbibstring{lang#1}
        {\bibstring{lang#1}}
        {#1}}%
+  \usebibmacro{list:langswitchoff}%
   \usebibmacro{list:andothers}}
 
 
@@ -654,13 +662,15 @@
       {\ifbibstring{lang#1}
          {\bibxlstring{lang#1}}
          {#1}}}%
+  \usebibmacro{list:langswitchon}%
   \ifbibstring{from#1}
     {\bibstring{from#1}}
     {\ifbibstring{lang#1}
        {\biblstring{lang#1}}
        {#1}}%
- \usebibmacro{list:andothers}%
- \endgroup}
+  \usebibmacro{list:langswitchoff}%
+  \usebibmacro{list:andothers}%
+  \endgroup}
 
 \DeclareListFormat{sfromoriglanguage}{%
   \begingroup
@@ -671,17 +681,51 @@
       {\ifbibstring{lang#1}
          {\bibxsstring{lang#1}}
          {#1}}}%
+  \usebibmacro{list:langswitchon}%
   \ifbibstring{from#1}
     {\bibstring{from#1}}
     {\ifbibstring{lang#1}
        {\bibsstring{lang#1}}
        {#1}}%
- \usebibmacro{list:andothers}%
- \endgroup}
+  \usebibmacro{list:langswitchoff}%
+  \usebibmacro{list:andothers}%
+  \endgroup}
+
+\newbibmacro*{list:langswitchon}{%
+  % begin language for list item mslang
+  % Overide language from list item langtag annotation
+  % This does two checks since only multiscript fields would have such an annotation
+  \ifcsdef{abx@annotation@literal@item@\currentmsform @\blx@mslangswitch @\currentlist @langtags@\thelistcount}
+  {\edef\blx@tempb{\csuse{abx@annotation@literal@item@\currentmsform @\blx@mslangswitch @\currentlist @langtags@\thelistcount}}%
+    \edef\blx@tempa{\csuse{blx@msmaplang@\blx@tempb}}%
+    \let\currentmslang\blx@tempb
+    \ifdef\blx@thefieldlangenv
+    {\iftoggle{blx@autofieldlangstrings}
+      {\blx@langsetup{\blx@tempa}% must call this to load the .lbx
+        \csuse{abx@extras@\blx@tempa}%
+        \csuse{abx@strings@\blx@tempa}}
+      {}%
+      \blx@hook@initfieldlang
+      \begingroup
+      \csname\blx@thefieldlangenv\expandafter\endcsname\expandafter{\blx@tempa}}
+    {}}
+  {}}
+
+\newbibmacro*{list:langswitchoff}{%
+  \ifcsdef{abx@annotation@literal@item@\currentmsform @\blx@mslangswitch @\currentlist @langtags@\thelistcount}
+  {% end language for list mslang
+    \ifdef\blx@thefieldlangenv
+    {\blx@hook@endfieldlang
+      \csname end\blx@thefieldlangenv\endcsname}
+    {}%
+    \endgroup}
+  {}}
 
 \DeclareListFormat{location}{%
   \usebibmacro{list:delim}{#1}%
+  \usebibmacro{list:langswitchon}%
   #1\isdot
+  \usebibmacro{list:langswitchoff}%
   \usebibmacro{list:andothers}}
 
 \DeclareListFormat[patent]{location}{%
@@ -993,10 +1037,37 @@
 
 \newcommand{\mkbibcompletenamefamily}{\mkbibcompletename}
 
+\newbibmacro*{name:langswitchon}{%
+  % begin language for name list item mslang
+  \ifdefempty\blx@mslangswitch
+    {}
+    {\edef\currentmslang{\blx@mslangswitch}%
+     \edef\blx@mslangswitch{\csuse{blx@msmaplang@\blx@mslangswitch}}%
+     \ifdef\blx@thefieldlangenv
+     {\iftoggle{blx@autofieldlangstrings}
+       {\blx@langsetup{\blx@mslangswitch}% must call this to load the .lbx
+         \csuse{abx@extras@\blx@mslangswitch}%
+         \csuse{abx@strings@\blx@mslangswitch}}
+       {}%
+       \blx@hook@initfieldlang
+       \begingroup
+       \csname\blx@thefieldlangenv\expandafter\endcsname\expandafter{\blx@mslangswitch}}
+     {}}}
+
+\newbibmacro*{name:langswitchoff}{%
+  \ifdefempty\blx@mslangswitch
+    {}
+    {\ifdef\blx@thefieldlangenv
+    {\blx@hook@endfieldlang
+     \csname end\blx@thefieldlangenv\endcsname
+     \endgroup}
+    {}}}
+
 \newbibmacro*{name:family}[4]{%
   \ifuseprefix
     {\usebibmacro{name:delim}{#3#1}%
      \usebibmacro{name:hook}{#3#1}%
+     \usebibmacro{name:langswitchon}%
      \mkbibcompletenamefamily{%
        \ifdefvoid{#3}
          {}
@@ -1007,8 +1078,10 @@
        \mkbibnamefamily{#1}\isdot}}
     {\usebibmacro{name:delim}{#1}%
      \usebibmacro{name:hook}{#1}%
+     \usebibmacro{name:langswitchon}%
      \mkbibcompletenamefamily{%
-       \mkbibnamefamily{#1}\isdot}}}%
+       \mkbibnamefamily{#1}\isdot}}%
+  \usebibmacro{name:langswitchoff}}%
 \newbibmacro*{name:last}[4]{% legacy alias
   \blx@warning@noline{%
     'name:last' is deprecated, please use 'name:family'}%
@@ -1019,6 +1092,7 @@
 \newbibmacro*{name:given-family}[4]{%
   \usebibmacro{name:delim}{#2#3#1}%
   \usebibmacro{name:hook}{#2#3#1}%
+  \usebibmacro{name:langswitchon}%
   \mkbibcompletenamegivenfamily{%
     \ifdefvoid{#2}
       {}
@@ -1030,7 +1104,8 @@
          {}
          {\ifuseprefix{\bibnamedelimc}{\bibnamedelimd}}}%
     \mkbibnamefamily{#1}\isdot
-    \ifdefvoid{#4}{}{\bibnamedelimd\mkbibnamesuffix{#4}\isdot}}}
+    \ifdefvoid{#4}{}{\bibnamedelimd\mkbibnamesuffix{#4}\isdot}}%
+  \usebibmacro{name:langswitchoff}}
 \newbibmacro*{name:first-last}[4]{% legacy alias
   \blx@warning@noline{%
     'name:first-last' is deprecated, please use 'name:given-family'}%
@@ -1042,6 +1117,7 @@
   \ifuseprefix
     {\usebibmacro{name:delim}{#3#1}%
      \usebibmacro{name:hook}{#3#1}%
+     \usebibmacro{name:langswitchon}%
      \mkbibcompletenamefamilygiven{%
        \ifdefvoid{#3}
          {}
@@ -1058,6 +1134,7 @@
          {\revsdnamepunct\bibnamedelimd\mkbibnamegiven{#2}\isdot}}}
     {\usebibmacro{name:delim}{#1}%
      \usebibmacro{name:hook}{#1}%
+     \usebibmacro{name:langswitchon}%
      \mkbibcompletenamefamilygiven{%
        \mkbibnamefamily{#1}\isdot
        \ifdefvoid{#4}
@@ -1074,7 +1151,8 @@
          {\bibnamedelimd\mkbibnamegiven{#2}\isdot}%
        \ifdefvoid{#3}
          {}
-         {\bibnamedelimd\mkbibnameprefix{#3}\isdot}}}}
+         {\bibnamedelimd\mkbibnameprefix{#3}\isdot}}}%
+   \usebibmacro{name:langswitchoff}}
 \newbibmacro*{name:last-first}[4]{% legacy alias
   \blx@warning@noline{%
     'name:last-first' is deprecated, please use 'name:family-given'}%

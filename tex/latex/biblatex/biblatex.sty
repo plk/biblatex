@@ -5008,6 +5008,7 @@
            \blx@namesetup{#2}{#3}{#4}{#5}{#6}%
            \blx@imc@ifmsentryfield{\currentname}
              {% begin language for name list mslang
+              \begingroup
               \edef\blx@tempa{\csuse{blx@msmaplang@\currentmslang}}%
               \ifdef\blx@thefieldlangenv
                 {\iftoggle{blx@autofieldlangstrings}
@@ -5016,7 +5017,6 @@
                    \csuse{abx@strings@\blx@tempa}}
                 {}%
               \blx@hook@initfieldlang
-              \begingroup
               \csname\blx@thefieldlangenv\expandafter\endcsname\expandafter{\blx@tempa}}
              {}}
            {}%
@@ -5025,9 +5025,9 @@
              {% end language for name list mslang
               \ifdef\blx@thefieldlangenv
                 {\blx@hook@endfieldlang
-                 \csname end\blx@thefieldlangenv\endcsname
-                 \endgroup}
-                {}}
+                 \csname end\blx@thefieldlangenv\endcsname}
+                {}%
+              \endgroup}
              {}%  
            \blx@endunit}}}}
 
@@ -5089,7 +5089,7 @@
 % \blx@DeclareBackendOption these are not 'real' options
 \define@key{blx@opt@namelist}{ul}{\c@uniquelist#1\relax}
 
-\define@key{blx@opt@name}{mslang}{\def\blx@tempa{#1}}
+\define@key{blx@opt@name}{mslang}{\def\blx@mslangswitch{#1}}
 \define@key{blx@opt@name}{un}{\c@uniquename#1\relax}
 \define@key{blx@opt@name}{uniquepart}{\def\abx@field@@@uniquepart{#1}}
 \define@key{blx@opt@name}{hash}{\edef\abx@field@@@hash{\detokenize{#1}}}
@@ -5150,7 +5150,6 @@
 % {name opts}{nameparts}
 \long\def\blx@indexnameparser@i#1#2{%
   \begingroup
-  \let\blx@tempa\@empty
   \ifblank{#1}
     {}
     {\setkeys{blx@opt@name}{#1}}%
@@ -5181,7 +5180,7 @@
 % {name opts}{nameparts}
 \long\def\blx@nameparser@i#1#2{%
   \begingroup
-  \let\blx@tempa\@empty
+  \let\blx@mslangswitch\@empty
   \ifblank{#1}
     {}
     {\setkeys{blx@opt@name}{#1}}%
@@ -5197,28 +5196,8 @@
   \edef\blx@tempc{\endgroup
     \noexpand\setkeys{blx@opt@nameparts}{\csuse{abx@nameparts@\currentname @\thelistcount}}}%
   \blx@tempc
-  \ifdefempty\blx@tempa
-    {\blx@theformat{}}
-    {% begin language for name list item mslang
-     \edef\currentmslang{\blx@tempa}%
-     \edef\blx@tempa{\csuse{blx@msmaplang@\blx@tempa}}%
-     \ifdef\blx@thefieldlangenv
-       {\iftoggle{blx@autofieldlangstrings}
-         {\blx@langsetup{\blx@tempa}% must call this to load the .lbx
-          \csuse{abx@extras@\blx@tempa}%
-          \csuse{abx@strings@\blx@tempa}}
-         {}%
-        \blx@hook@initfieldlang
-        \begingroup
-        \csname\blx@thefieldlangenv\expandafter\endcsname\expandafter{\blx@tempa}}
-       {}%
-     \blx@theformat{}%
-     % end language for name list item mslang
-     \ifdef\blx@thefieldlangenv
-       {\blx@hook@endfieldlang
-        \csname end\blx@thefieldlangenv\endcsname
-        \endgroup}
-       {}}%
+  % For per-name lang switching, see name:langswitchon/off in biblatex.def
+  \blx@theformat{}%
   \endgroup}
 
 \long\def\blx@namebreak#1&{}
@@ -5241,6 +5220,7 @@
            \blx@listsetup{#2}{#3}{#4}{#5}{#6}%
            \blx@imc@ifmsentryfield{\currentlist}
              {% begin language for list mslang
+              \begingroup
               \edef\blx@tempa{\csuse{blx@msmaplang@\currentmslang}}%
               \ifdef\blx@thefieldlangenv
                 {\iftoggle{blx@autofieldlangstrings}
@@ -5248,7 +5228,6 @@
                     \csuse{abx@extras@\blx@tempa}%
                     \csuse{abx@strings@\blx@tempa}}
                  \blx@hook@initfieldlang
-                 \begingroup
                  \csname\blx@thefieldlangenv\expandafter\endcsname\expandafter{\blx@tempa}}
                {}}
              {}%
@@ -5257,9 +5236,9 @@
              {% end language for list mslang
               \ifdef\blx@thefieldlangenv
                 {\blx@hook@endfieldlang
-                 \csname end\blx@thefieldlangenv\endcsname
-                 \endgroup}
-                {}}
+                 \csname end\blx@thefieldlangenv\endcsname}
+                {}%
+              \endgroup}
              {}%  
            \blx@endunit}}}}
 
@@ -5337,9 +5316,10 @@
 \long\def\blx@listparser#1{%
   \ifblank{#1}
     {\blx@listbreak}
-    {\ifnum\c@listcount<\c@liststart
+    {\let\blx@mslangswitch\@empty
+     \ifnum\c@listcount<\c@liststart
      \else
-       \let\blx@tempc\currentmslang
+       \let\blx@mslangswitch\currentmslang
        \blx@imc@ifmsentryfield{\currentlist}
          {% Extract all alternate listitems for use in format
           \begingroup
@@ -5347,34 +5327,34 @@
             \noexpand\setkeys{blx@opt@listitems}{\csuse{abx@listitems@\currentlist @\thelistcount}}}%
           \blx@tempd}
          {}%
-       % begin language for list item mslang
-       % Overide language from list item langtag annotation
-       % This does two checks since only multiscript fields would have such an annotation
-       \ifcsdef{abx@annotation@literal@item@\currentmsform @\blx@tempc @\currentlist @langtags@\thelistcount}
-         {\edef\blx@tempb{\csuse{abx@annotation@literal@item@\currentmsform @\blx@tempc @\currentlist @langtags@\thelistcount}}%
-          \edef\blx@tempa{\csuse{blx@msmaplang@\blx@tempb}}%
-          \let\currentmslang\blx@tempb
-          \ifdef\blx@thefieldlangenv
-            {\iftoggle{blx@autofieldlangstrings}
-               {\blx@langsetup{\blx@tempa}% must call this to load the .lbx
-                \csuse{abx@extras@\blx@tempa}%
-                \csuse{abx@strings@\blx@tempa}}
-               {}%
-             \blx@hook@initfieldlang
-             \begingroup
-             \csname\blx@thefieldlangenv\expandafter\endcsname\expandafter{\blx@tempa}}
-            {}}
-          {}%
+       % % begin language for list item mslang
+       % % Overide language from list item langtag annotation
+       % % This does two checks since only multiscript fields would have such an annotation
+       % \ifcsdef{abx@annotation@literal@item@\currentmsform @\blx@tempc @\currentlist @langtags@\thelistcount}
+       %   {\edef\blx@tempb{\csuse{abx@annotation@literal@item@\currentmsform @\blx@tempc @\currentlist @langtags@\thelistcount}}%
+       %    \edef\blx@tempa{\csuse{blx@msmaplang@\blx@tempb}}%
+       %    \let\currentmslang\blx@tempb
+       %    \ifdef\blx@thefieldlangenv
+       %      {\iftoggle{blx@autofieldlangstrings}
+       %         {\blx@langsetup{\blx@tempa}% must call this to load the .lbx
+       %          \csuse{abx@extras@\blx@tempa}%
+       %          \csuse{abx@strings@\blx@tempa}}
+       %         {}%
+       %       \blx@hook@initfieldlang
+       %       \begingroup
+       %       \csname\blx@thefieldlangenv\expandafter\endcsname\expandafter{\blx@tempa}}
+       %      {}}
+       %    {}%
         \blx@theformat{#1}%
-        % This does two checks since only multiscript fields would have such an annotation
-        \ifcsdef{abx@annotation@literal@item@\currentmsform @\blx@tempc @\currentlist @langtags@\thelistcount}
-          {% end language for list mslang
-           \ifdef\blx@thefieldlangenv
-            {\blx@hook@endfieldlang
-             \csname end\blx@thefieldlangenv\endcsname
-             \endgroup}
-            {}}
-          {}%  
+        % % This does two checks since only multiscript fields would have such an annotation
+        % \ifcsdef{abx@annotation@literal@item@\currentmsform @\blx@tempc @\currentlist @langtags@\thelistcount}
+        %   {% end language for list mslang
+        %    \ifdef\blx@thefieldlangenv
+        %     {\blx@hook@endfieldlang
+        %      \csname end\blx@thefieldlangenv\endcsname}
+        %     {}%
+        %   \endgroup}
+        %   {}%  
      \fi
      \advance\c@listcount\@ne
      \ifnum\c@listcount>\c@liststop
@@ -7100,7 +7080,7 @@
        {\def\blx@beglang{%
           \blx@clearlang
           \begingroup
-         % Need to override all entries, regardless of if there is a langid
+         % Need to override all entries, regardless of whether there is a langid
          % if language=<language> option is given
          \ifboolexpr { test {\ifdef\abx@field@@@langid }
                        or
@@ -7149,7 +7129,7 @@
        {\def\blx@beglang{%
           \blx@clearlang
           \begingroup
-          % Need to override all entries, regardless of if there is a
+          % Need to override all entries, regardless of whether there is a
           % langid if language=<language> option is given
           \ifboolexpr { test {\ifdef\abx@field@@@langid }
                         or
@@ -15479,13 +15459,11 @@
 \def\blx@opt@autofieldlang@other{%
   \def\blx@thefieldlangenv{otherlanguage}%
   \def\blx@hook@initfieldlang{\@quotereset\@ne}%
-  \def\blx@hook@endfieldlang{\blx@postpunct}%
-  \toggletrue{blx@autofieldlangstrings}}
+  \def\blx@hook@endfieldlang{\blx@postpunct}}
 \csdef{blx@opt@autofieldlang@other*}{%
   \def\blx@thefieldlangenv{otherlanguage*}%
   \def\blx@hook@initfieldlang{\@quotereset\@ne}%
-  \def\blx@hook@endfieldlang{\blx@postpunct}%
-  \toggletrue{blx@autofieldlangstrings}}
+  \def\blx@hook@endfieldlang{\blx@postpunct}}
 \def\blx@opt@autofieldlang@langname{%
   \@ifpackageloaded{polyglossia}
     {\def\blx@thefieldlangenv{langname}}

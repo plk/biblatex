@@ -1,6 +1,20 @@
 # RELEASE NOTES FOR VERSION 4.0
  - This is a major update with support for multiscript fields
- - **INCOMPATIBLE CHANGE** Data annotation test macros \if*annotation,
+ - **INCOMPATIBLE CHANGE** Default name list and plan list formats declared
+    with \DeclareNameFormat and \DeclareListFormat respectively have been
+    modified to support per-item language switching via the macros:
+
+    name:langswitchon/name:langswitchoff
+    list:langswitchon/list:langswitchoff
+
+    If you use or provide custom name/list formats, you may want to look at
+    the format definitions in biblatex.def to see where to place these in
+    your custom formats in order to provide multiscript support for
+    per-item automatic language switching. Nothing will break if you don't
+    do this but there may be a loss of some aspects of multiscript
+    functionality. In general, you should place the "on" macros *after*
+    name:delim/list:delim and the "off" macros at the end of the format.
+- **INCOMPATIBLE CHANGE** Data annotation test macros \if*annotation,
    \has*annotation and \get*annotation now have multiscript form and
    language as optional arguments in position 1 and 2, therefore, if you
    are using these macros with any optional arguments, be sure to supply
