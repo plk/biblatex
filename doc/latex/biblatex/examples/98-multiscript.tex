@@ -6,7 +6,7 @@
 \setmainfont{Linux Libertine O}
 \setsansfont{Linux Biolinum O}
 
-\usepackage[russian,greek,french,main=english]{babel}
+\usepackage[russian,greek,french,german,main=english]{babel}
 \usepackage{csquotes}
 \usepackage{filecontents}
 \begin{filecontents}[force]{\jobname.bib}
@@ -15,7 +15,7 @@
   AUTHOR+an:langtags                         = {2="ru"},
   AUTHOR_transliteration_el                  = {Bill Smith and Πούσκιν, Ἀλεξάντρ},
   AUTHOR_transliteration_el+an:langtags      = {1="en"},
-  LOCATION                                   = {locationa and Standortb},
+  LOCATION                                   = {locationa and Standort"s},
   LOCATION+an:langtags                       = {2="de"},
   LOCATION_translation_fr                    = {emplacementa and Standortb},
   LOCATION_translation_fr+an:langtags        = {2="de"},
@@ -28,18 +28,68 @@
             dynamiclabel=true,%
             language=auto,%
             autolang=other,%
-            autofieldlang=hyphen,%
-            autofieldlangstrings=true]{biblatex}
+            autofieldlang=other]{biblatex}
 \addbibresource{\jobname.bib}
 
-
-
 \begin{document}
-% Here we are citing and printing the bibliography using data contain in
+% Here we are citing and printing the bibliography using data contained in
 % the entryfields of alternate msform="default" and mslang="en" (due to the
 % main babel language of "english" which maps to "en")
 \cite{mstest}
+
+% Due to "autofieldlang=other" and the langtags annotation for the default author
+% name field, the second, russian name in the author field is automatically printed inside
+% a babel \otherlanguage{russian} context where additionally, all biblatex russian bibstrings
+% are activated
+
+% Inside the name format which \printnames uses, macros are automatically defined for every
+% alternate of the current name list item. This means when printing the first name in the author
+% list, in addition to the usual \namepartfamily, \namepartgiven etc. macros, also available are:
+
+% \namepartfamilydefaulten={Smith}
+% \namepartfamilydefaulteni={S\bibinitperiod}
+% \namepartgivendefaulten={Bill}
+% \namepartgivendefaulteni={B\bibinitperiod}
+% \namepartfamilytransliterationen={Smith}
+% \namepartfamilytransliterationeni={S\bibinitperiod}
+% \namepartgiventransliterationen={Bill}
+% \namepartgiventransliterationeni={B\bibinitperiod}
+
+% and for the second name, also available are:
+
+% \namepartfamilydefaultru={Пушкин},
+% \namepartfamilydefaultrui={П\bibinitperiod},
+% \namepartgivendefaultru={Александр},
+% \namepartgivendefaultrui={А\bibinitperiod},
+% \namepartfamilytransliterationel={Πούσκιν},
+% \namepartfamilytransliterationeli={Π\bibinitperiod},
+% \namepartgiventransliterationel={Ἀλεξάντρ},
+% \namepartgiventransliterationeli={Ἀ\bibinitperiod}
+
+
+% The location list is in the context of a babel "english" otherlanguage environment
+% (the global default) but the second item in the list is switched to the \otherlanguage{german}
+% due to the langtags annotation and you can see this by the use of the german "s babel shorthand
+% being correctly interpreted
+
+% Inside the list format which \printlist uses, macros are automatically defined for every
+% alternate of the current plain list item. This means when printing the first item in the location
+% list, also available are:
+
+% \listitemdefaulten={locationa}
+% \listitemtranslationfr={emplacementa}
+
+% and for the second list item, also available are:
+
+% \listitemdefaultde={Standort"s}
+% \listitemtranslationde={Standortb}
+
+% The translated french alternate of the location list could be printed in a driver
+% using \printlist[][][translated][fr]{location} and this would automatically (due to
+% autofieldlang=other) be inside a \otherlanguage{french} environement with all french biblatex
+% bibstrings being activated.
 \printbibliography
+
 % Here we are citing and printing the bibliography using data contain in
 % the entryfields of alternate msform="transliteration" and mslang="el"
 \begin{refcontext}[msform=transliteration,mslang=el]
@@ -52,6 +102,20 @@
   % Note that the default msform/mslang used to determine which alternates to print in the
   % bibliography for multiscript entryfields are determined by the current (refcontext)
   % msform/mslang options
+
+  % Note that the "and" in the name list is in Greek. This is because the "autofieldlang"
+  % is set to "other", which automatically loads the greek language strings for the whole
+  % msform=transliteration/mslang=el author field. This alternate is being printed due to
+  % the refcontext settings for msform and mslang.
+
+  % Note also that due to "autofieldlang=other" and the langtags annotation for the first, english
+  % name in the transliterated greek author name list, this english name is automatically printed
+  % inside a babel \otherlanguage{english} context where additionally, all biblatex english
+  % bibstrings are activated
+
+  % No location field is printed in the bibliography because there is no transliterated greek
+  % alternate for this field, only a translated french alternate. The same applied to the title
+  % field
   \printbibliography
 \end{refcontext}
 \end{document}
