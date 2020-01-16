@@ -5326,9 +5326,15 @@
        \blx@imc@ifmsentryfield{\currentlist}
          {% Extract all alternate listitems for use in format
           \begingroup
+          % Need expand the actual value here only once, as in fielddef otherwise
+          % we get into problems with setkeys when values contain things like \emph{}
+          % Since setkeys needs a string of keyvals, we have to edef when the keyvals
+          % are the value of some macro and this fully expands output macros which might
+          % in plain list values like \emph{} etc.
+          \expandafter\expandafter\expandafter\def\expandafter\expandafter\expandafter\blx@tempb\expandafter\expandafter\expandafter{\expandafter\expandonce\csname abx@listitems@\currentlist @\thelistcount\endcsname}%
           \edef\blx@tempd{\endgroup
-            \noexpand\setkeys{blx@opt@listitems}{\csuse{abx@listitems@\currentlist @\thelistcount}}}%
-          \blx@tempd}
+            \noexpand\setkeys{blx@opt@listitems}{\blx@tempb}}%
+            \blx@tempd}
          {}%
         \blx@theformat{#1}%
      \fi
@@ -9273,15 +9279,15 @@
   \let\mslangs\blx@bbl@mslangsdef}
 
 % namepart definitions for all alternates of a name
-\protected\long\def\blx@bbl@msnamepartdef#1#2#3{%
+\protected\def\blx@bbl@msnamepartdef#1#2#3{%
   \csxappto\blx@bbl@data{%
     \listadd\noexpand\abx@nameparts@defined{#1@#2}%
-    \csdef{abx@nameparts@#1@#2}{#3}}}
+    \def\expandafter\noexpand\csname abx@nameparts@#1@#2\endcsname{\unexpanded{#3}}}}
 % listitem definitions for all alternates of a list
-\protected\long\def\blx@bbl@mslistitemdef#1#2#3{%
+\protected\def\blx@bbl@mslistitemdef#1#2#3{%
   \csxappto\blx@bbl@data{%
     \listadd\noexpand\abx@listitems@defined{#1@#2}%
-    \csdef{abx@listitems@#1@#2}{#3}}}
+    \def\expandafter\noexpand\csname abx@listitems@#1@#2\endcsname{\unexpanded{#3}}}}
 
 % List of all forms/langs in the documents, comes from biber via .bbl
 \protected\def\blx@bbl@msformsdef#1{%
@@ -9661,7 +9667,7 @@
           ########1%
           \ifdef\blx@thefieldlangenv
             {\blx@hook@endfieldlang
-              \csname end\blx@thefieldlangenv\endcsname
+             \csname end\blx@thefieldlangenv\endcsname
              \endgroup}}}}%
     \expandafter\docsvlist\expandafter{\blx@mslangs}%
     \endgroup}%
