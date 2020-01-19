@@ -5334,9 +5334,35 @@
           \expandafter\expandafter\expandafter\def\expandafter\expandafter\expandafter\blx@tempb\expandafter\expandafter\expandafter{\expandafter\expandonce\csname abx@listitems@\currentlist @\thelistcount\endcsname}%
           \edef\blx@tempd{\endgroup
             \noexpand\setkeys{blx@opt@listitems}{\blx@tempb}}%
-            \blx@tempd}
-         {}%
+            \blx@tempd
+            % begin language for list item mslang
+            % Overide language from list item langtag annotation
+            \ifcsdef{abx@annotation@literal@item@\currentmsform @\blx@mslangswitch @\currentlist @langtags@\thelistcount}
+              {\edef\blx@tempe{\csuse{abx@annotation@literal@item@\currentmsform @\blx@mslangswitch @\currentlist @langtags@\thelistcount}}%
+               \edef\blx@tempa{\csuse{blx@msmaplang@\blx@tempe}}%
+               \let\currentmslang\blx@tempe
+               \ifdef\blx@thefieldlangenv
+                 {\iftoggle{blx@autofieldlangstrings}
+                    {\blx@langsetup{\blx@tempa}% must call this to load the .lbx
+                     \csuse{abx@extras@\blx@tempa}%
+                     \csuse{abx@strings@\blx@tempa}}
+                    {}%
+                  \blx@hook@initfieldlang
+                  \begingroup
+                  \csname\blx@thefieldlangenv\expandafter\endcsname\expandafter{\blx@tempa}}
+                {}}
+             {}}
+          {}%
         \blx@theformat{#1}%
+        % This does two checks since only multiscript fields would have such an annotation
+        \ifcsdef{abx@annotation@literal@item@\currentmsform @\blx@mslangswitch @\currentlist @langtags@\thelistcount}
+          {% end language for list mslang
+           \ifdef\blx@thefieldlangenv
+            {\blx@hook@endfieldlang
+             \csname end\blx@thefieldlangenv\endcsname}
+            {}%
+          \endgroup}
+          {}%  
      \fi
      \advance\c@listcount\@ne
      \ifnum\c@listcount>\c@liststop
