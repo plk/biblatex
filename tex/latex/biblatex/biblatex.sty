@@ -4911,22 +4911,27 @@
         \let\currentmsforms\@empty
         \let\currentmslangs\@empty
         \blx@imc@ifmsentryfield{#4}
-          {% begin language for field mslang
+          {\begingroup
+           % begin language for field mslang
            \edef\currentmsform{#2}%
            \edef\currentmslang{#3}%
            \letcs\currentmsforms{abx@fieldmsforms@#4}%
            \letcs\currentmslangs{abx@fieldmslangs@#4}%
            \edef\blx@tempa{\csuse{blx@msmaplang@#3}}%
-           \ifdef\blx@thefieldlangenv
-             {\iftoggle{blx@autofieldlangstrings}
-                {\blx@langsetup{\blx@tempa}% must call this to load the .lbx
-                 \csuse{abx@extras@\blx@tempa}%
-                 \csuse{abx@strings@\blx@tempa}}
-                {}%
-              \blx@hook@initfieldlang
-              \begingroup
-              \csname\blx@thefieldlangenv\expandafter\endcsname\expandafter{\blx@tempa}}
+           % Override language from any field langtags annotation
+           \ifcsdef{abx@annotation@literal@field@\currentmsform @\currentmslang @\currentfield @langtags}
+             {\edef\blx@tempe{\csuse{abx@annotation@literal@field@\currentmsform @\currentmslang @\currentfield @langtags}}%
+              \edef\blx@tempa{\csuse{blx@msmaplang@\blx@tempe}}}
              {}%
+             \ifdef\blx@thefieldlangenv
+               {\iftoggle{blx@autofieldlangstrings}
+                  {\blx@langsetup{\blx@tempa}% must call this to load the .lbx
+                   \csuse{abx@extras@\blx@tempa}%
+                   \csuse{abx@strings@\blx@tempa}}
+                 {}%
+                \blx@hook@initfieldlang
+                \csname\blx@thefieldlangenv\expandafter\endcsname\expandafter{\blx@tempa}}
+               {}%
            \expandafter\expandafter
            \expandafter\blx@theformat
            \expandafter\expandafter
@@ -4934,9 +4939,9 @@
            % end language for field mslang
            \ifdef\blx@thefieldlangenv
              {\blx@hook@endfieldlang
-              \csname end\blx@thefieldlangenv\endcsname
-              \endgroup}
-             {}}
+              \csname end\blx@thefieldlangenv\endcsname}
+            {}%
+            \endgroup}
           {\expandafter\expandafter
            \expandafter\blx@theformat
            \expandafter\expandafter
@@ -5351,8 +5356,8 @@
                   \begingroup
                   \csname\blx@thefieldlangenv\expandafter\endcsname\expandafter{\blx@tempa}}
                 {}}
-             {}}
-          {}%
+              {}}
+            {}%
         \blx@theformat{#1}%
         % This does two checks since only multiscript fields would have such an annotation
         \ifcsdef{abx@annotation@literal@item@\currentmsform @\blx@mslangswitch @\currentlist @langtags@\thelistcount}
