@@ -4467,26 +4467,31 @@
   \@ifstar\blx@mksc@i\blx@mksc@ii}
 
 % Check, in order:
+% * \currentmslang
 % * explicit option language=<lang>, which overrides everything
-% * langid field of entry
+% * langid field
 % * babel/polyglossia lang
 % * main document lang
 \def\blx@mksc@i{%
-  \ifdef\blx@forcelanguagename
-    {\xifinlist\blx@forcelanguagename\blx@cmksc@lang
+  \ifdef\currentmslang
+    {\xifinlist{\csuse{blx@msmaplang@\currentmslang}}\blx@cmksc@lang
        {\blx@mksc@ii}
        {\@firstofone}}
-    {\ifdef\abx@field@@@langid
-      {\xifinlist\abx@field@@@langid\blx@cmksc@lang
+    {\ifdef\blx@forcelanguagename
+      {\xifinlist\blx@forcelanguagename\blx@cmksc@lang
          {\blx@mksc@ii}
          {\@firstofone}}
-      {\ifdef\blx@main@language
-        {\xifinlist\blx@main@language\blx@cmksc@lang
-          {\blx@mksc@ii}
-          {\@firstofone}}
-        {\xifinlist\blx@languagename\blx@cmksc@lang
-          {\blx@mksc@ii}
-          {\@firstofone}}}}}
+      {\ifdef\abx@field@@@langid
+        {\xifinlist\abx@field@@@langid\blx@cmksc@lang
+           {\blx@mksc@ii}
+           {\@firstofone}}
+        {\ifdef\blx@main@language
+          {\xifinlist\blx@main@language\blx@cmksc@lang
+            {\blx@mksc@ii}
+            {\@firstofone}}
+          {\xifinlist\blx@languagename\blx@cmksc@lang
+            {\blx@mksc@ii}
+            {\@firstofone}}}}}}
 
 \long\def\blx@mksc@ii#1{%
   \begingroup
@@ -4918,12 +4923,12 @@
            \letcs\currentmsforms{abx@fieldmsforms@#4}%
            \letcs\currentmslangs{abx@fieldmslangs@#4}%
            \edef\blx@tempa{\csuse{blx@msmaplang@#3}}%
-           % Override language from any field langtags annotation
-           \ifcsdef{abx@annotation@literal@field@\currentmsform @\currentmslang @\currentfield @langtags}
-             {\edef\blx@tempe{\csuse{abx@annotation@literal@field@\currentmsform @\currentmslang @\currentfield @langtags}}%
-              \edef\blx@tempa{\csuse{blx@msmaplang@\blx@tempe}}}
+           % Override language from any field-level mslang annotation
+           \ifcsdef{abx@annotation@literal@field@\currentmsform @\currentmslang @\currentfield @mslang}
+             {\edef\currentmslang{\csuse{abx@annotation@literal@field@\currentmsform @\currentmslang @\currentfield @mslang}}%
+              \edef\blx@tempa{\csuse{blx@msmaplang@\currentmslang}}}%
              {}%
-             \ifdef\blx@thefieldlangenv
+            \ifdef\blx@thefieldlangenv
                {\iftoggle{blx@autofieldlangstrings}
                   {\blx@langsetup{\blx@tempa}% must call this to load the .lbx
                    \csuse{abx@extras@\blx@tempa}%
@@ -5018,6 +5023,11 @@
              {% begin language for name list mslang
               \begingroup
               \edef\blx@tempa{\csuse{blx@msmaplang@\currentmslang}}%
+              % Override language from any field-level mslang annotation
+              \ifcsdef{abx@annotation@literal@field@\currentmsform @\currentmslang @\currentname @mslang}
+                {\edef\currentmslang{\csuse{abx@annotation@literal@field@\currentmsform @\currentmslang @\currentname @mslang}}%
+                 \edef\blx@tempa{\csuse{blx@msmaplang@\currentmslang}}}%
+                {}%
               \ifdef\blx@thefieldlangenv
                 {\iftoggle{blx@autofieldlangstrings}
                   {\blx@langsetup{\blx@tempa}% must call this to load the .lbx
@@ -5205,6 +5215,10 @@
     \noexpand\setkeys{blx@opt@nameparts}{\csuse{abx@nameparts@\currentname @\thelistcount}}}%
   \blx@tempc
   % For per-name lang switching, see name:langswitchon/off in biblatex.def
+  % This is because the format wraps everything, including namelist delims like "and"
+  % which then are set according to the lang strings of the name list item and this is
+  % not what we want - putting the lang switching in the format makes it granular
+  % to just the name list item data
   \blx@theformat{}%
   \endgroup}
 
@@ -5230,6 +5244,11 @@
              {% begin language for list mslang
               \begingroup
               \edef\blx@tempa{\csuse{blx@msmaplang@\currentmslang}}%
+              % Override language from any field-level mslang annotation
+              \ifcsdef{abx@annotation@literal@field@\currentmsform @\currentmslang @\currentlist @mslang}
+                {\edef\currentmslang{\csuse{abx@annotation@literal@field@\currentmsform @\currentmslang @\currentlist @mslang}}%
+                 \edef\blx@tempa{\csuse{blx@msmaplang@\currentmslang}}}%
+                {}%
               \ifdef\blx@thefieldlangenv
                 {\iftoggle{blx@autofieldlangstrings}
                    {\blx@langsetup{\blx@tempa}% must call this to load the .lbx
@@ -5324,10 +5343,8 @@
 \long\def\blx@listparser#1{%
   \ifblank{#1}
     {\blx@listbreak}
-    {\let\blx@mslangswitch\@empty
-     \ifnum\c@listcount<\c@liststart
+    {\ifnum\c@listcount<\c@liststart
      \else
-       \let\blx@mslangswitch\currentmslang
        \blx@imc@ifmsentryfield{\currentlist}
          {% Extract all alternate listitems for use in format
           \begingroup
@@ -5339,35 +5356,14 @@
           \expandafter\expandafter\expandafter\def\expandafter\expandafter\expandafter\blx@tempb\expandafter\expandafter\expandafter{\expandafter\expandonce\csname abx@listitems@\currentlist @\thelistcount\endcsname}%
           \edef\blx@tempd{\endgroup
             \noexpand\setkeys{blx@opt@listitems}{\blx@tempb}}%
-            \blx@tempd
-            % begin language for list item mslang
-            % Overide language from list item langtag annotation
-            \ifcsdef{abx@annotation@literal@item@\currentmsform @\blx@mslangswitch @\currentlist @langtags@\thelistcount}
-              {\edef\blx@tempe{\csuse{abx@annotation@literal@item@\currentmsform @\blx@mslangswitch @\currentlist @langtags@\thelistcount}}%
-               \edef\blx@tempa{\csuse{blx@msmaplang@\blx@tempe}}%
-               \let\currentmslang\blx@tempe
-               \ifdef\blx@thefieldlangenv
-                 {\iftoggle{blx@autofieldlangstrings}
-                    {\blx@langsetup{\blx@tempa}% must call this to load the .lbx
-                     \csuse{abx@extras@\blx@tempa}%
-                     \csuse{abx@strings@\blx@tempa}}
-                    {}%
-                  \blx@hook@initfieldlang
-                  \begingroup
-                  \csname\blx@thefieldlangenv\expandafter\endcsname\expandafter{\blx@tempa}}
-                {}}
-              {}}
-            {}%
-        \blx@theformat{#1}%
-        % This does two checks since only multiscript fields would have such an annotation
-        \ifcsdef{abx@annotation@literal@item@\currentmsform @\blx@mslangswitch @\currentlist @langtags@\thelistcount}
-          {% end language for list mslang
-           \ifdef\blx@thefieldlangenv
-            {\blx@hook@endfieldlang
-             \csname end\blx@thefieldlangenv\endcsname}
-            {}%
-          \endgroup}
-          {}%  
+          \blx@tempd}
+         {}%
+         % per-list item lang switching is done in list:langswitchon/off in biblatex.def
+         % This is because the format wraps everything, including list delims like "and"
+         % which then are set according to the lang strings of the list item and this is
+         % not what we want - putting the lang switching in the format makes it granular
+         % to just the list item data
+         \blx@theformat{#1}%
      \fi
      \advance\c@listcount\@ne
      \ifnum\c@listcount>\c@liststop
@@ -9585,7 +9581,7 @@
 \blx@maplangtagr{mongolian}{mn-cyrl}
 \blx@maplangtagr{naustrian}{de-at}
 \blx@maplangtagr{newzealand}{en-nz}
-\blx@maplangtagr{ngerman}{de-de}
+\blx@maplangtagr{ngerman}{de-de-1996}
 \blx@maplangtagr{nko}{ha-ng}
 \blx@maplangtagr{norsk}{nb-no}
 \blx@maplangtagr{norwegian}{nn-no}
