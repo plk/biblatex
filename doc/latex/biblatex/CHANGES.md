@@ -55,6 +55,12 @@
   `\setunit`s from overriding `\intitlepunct` in case of missing
   fields.
 - Added `\mautocite` and `\Mautocite`.
+- Added `\NumsCheckSetup` and `\PagesCheckSetup` for finer control
+  of the `\ifnumerals` and `\ifpages` checks.
+- **INCOMPATIBLE CHANGE**
+  `biblatex` no longer falls back to English for unknown languages.
+  Warnings will be triggered if undefined language strings or extras
+  are used.
 
 # RELEASE NOTES FOR VERSION 3.14
 - biber from version 2.14 has extended, granular XDATA functionality to
