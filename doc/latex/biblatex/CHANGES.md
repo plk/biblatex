@@ -28,6 +28,9 @@
   `biblatex` no longer falls back to English for unknown languages.
   Warnings will be triggered if undefined language strings or extras
   are used.
+- **INCOMPATIBLE CHANGE** `numeric-comp` compresses subentry set
+  references now.
+  This behaviour can be disabled with `subentrycomp=false`.
 - Added `subentrycomp` option to `numeric-comp` citation style.
   The option is only relevant with `subentry=true`.
   With `subentrycomp=true` set citations will be compressed
