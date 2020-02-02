@@ -1,30 +1,57 @@
 \ProvidesFile{numeric-comp.cbx}
 [\abx@cbxid]
 
-\ExecuteBibliographyOptions{labelnumber,sortcites,autocite=inline}
+\newtoggle{cbx:subentrycomp}
+\DeclareBiblatexOption{global,type,entry}[boolean]{subentrycomp}[true]{%
+  \settoggle{cbx:subentrycomp}{#1}}
 
-\renewcommand*{\multicitedelim}{\addcomma\space}
+\ExecuteBibliographyOptions{labelnumber,sortcites,autocite=inline,
+  subentrycomp=true}
+
 \renewcommand*{\iffinalcitedelim}{%
   \ifnumequal{\value{textcitecount}}{\value{textcitetotal}-1}}
 
 \providebool{bbx:subentry}
 \newbool{cbx:parens}
 
-\newcounter{cbx@tempcnta}
-\newcounter{cbx@tempcntb}
+\newcounter{cbx@tempcnta}% no. of labelnumbers skipped
+\newcounter{cbx@tempcntb}% 'predicted' labelnumber for current cite
+\newcounter{cbx@tempcntc}% no. of entrysetcounts we skipped
+\newcounter{cbx@tempcntd}% 'predicted' entrysetcount
 
 \DeclareFieldFormat{entrysetcount}{\mknumalph{#1}}
+
+\newcommand*{\cbx@iflabelnumberequalslast}{%
+  \iffieldequals{labelnumber}{\cbx@lastnumber}}
+
+% \iffieldequals is false even if both are empty/undef
+% so we need a special test for that case
+% this test is optimised for performance and laziness
+% rather than prettiness, not that it would matter a lot...
+\newcommand*{\cbx@iflabelprefixequalslast}{%
+  \ifundef\cbx@lastprefix
+    {\iffieldundef{labelprefix}}
+    {\iffieldequals{labelprefix}{\cbx@lastprefix}}}
+
+% \cbx@iflabelnumberequalslast and \cbx@iflabelprefixequalslast
+\newcommand*{\cbx@iflabelnumberandprefixequallast}{%
+  \cbx@iflabelnumberequalslast
+    {\cbx@iflabelprefixequalslast}
+    {\@secondoftwo}}
 
 \newbibmacro*{cite:init}{%
   \global\boolfalse{cbx:parens}%
   \global\undef\cbx@lasthash
   \global\undef\cbx@lastnumber
   \global\undef\cbx@lastprefix
+  \global\undef\cbx@lastentrysetcount
   \setcounter{cbx@tempcnta}{0}%
-  \setcounter{cbx@tempcntb}{-2}}
+  \setcounter{cbx@tempcntb}{-2}%
+  \setcounter{cbx@tempcntc}{0}%
+  \setcounter{cbx@tempcntd}{-1}}
 
 \newbibmacro*{cite:comp}{%
-  \addtocounter{cbx@tempcntb}{1}%
+  \stepcounter{cbx@tempcntb}%
   \iffieldundef{shorthand}
     {\ifbool{bbx:subentry}
        {\iffieldundef{entrysetcount}
@@ -34,24 +61,18 @@
     {\usebibmacro{cite:comp:shand}}}
 
 \newbibmacro*{cite:comp:comp}{%
-  \ifboolexpr{
-    ( test {\iffieldundef{labelprefix}} and test {\ifundef\cbx@lastprefix} )
-    or
-    test {\iffieldequals{labelprefix}{\cbx@lastprefix}}
-  }
+  \cbx@iflabelprefixequalslast
     {\ifnumequal{\thefield{labelnumber}}{\value{cbx@tempcntb}}
        {\savefield{entrykey}{\cbx@lastkey}%
         \savefield{labelnumber}{\cbx@lastnumber}%
-        \addtocounter{cbx@tempcnta}{1}}
+        \stepcounter{cbx@tempcnta}}
        {\ifnumequal{\thefield{labelnumber}}{\value{cbx@tempcntb}-1}
-          {}
-          {\usebibmacro{cite:dump}%
-           \ifnumgreater{\value{cbx@tempcntb}}{-1}
-             {\multicitedelim}
-             {}%
-           \printtext[bibhyperref]{%
-             \printfield{labelprefix}%
-             \printfield{labelnumber}}}}}
+          {% current cite is *exactly* the same a previous source
+           % this can only happen if the same source is cited twice
+           % and sortcites is turned off
+           % print nothing
+          }
+          {\usebibmacro{cite:comp:end}}}}
     {\usebibmacro{cite:comp:end}}%
   \setcounter{cbx@tempcntb}{\thefield{labelnumber}}%
   \savefield{labelprefix}{\cbx@lastprefix}}
@@ -66,15 +87,37 @@
     \printfield{labelnumber}}}
 
 \newbibmacro*{cite:comp:inset}{%
-  \usebibmacro{cite:dump}%
-  \ifnumgreater{\value{cbx@tempcntb}}{-1}
-    {\multicitedelim}
-    {}%
-  \printtext[bibhyperref]{%
-    \printfield{labelprefix}%
-    \printfield{labelnumber}%
-    \printfield{entrysetcount}}%
-  \setcounter{cbx@tempcntb}{-1}}
+  \stepcounter{cbx@tempcntd}%
+  \ifboolexpr{    togl {cbx:subentrycomp}
+              and test {\cbx@iflabelnumberandprefixequallast}}
+    {\ifnumequal{\thefield{entrysetcount}}{\value{cbx@tempcntd}}
+       {\savefield{entrykey}{\cbx@lastkey}%
+        \savefield{entrysetcount}{\cbx@lastentrysetcount}%
+        \stepcounter{cbx@tempcntc}}
+       {\ifnumequal{\thefield{entrysetcount}}{\value{cbx@tempcntd}-1}
+          {% current cite is *exactly* the same a previous source
+           % this can only happen if the same source is cited twice
+           % and sortcites is turned off
+           % print nothing
+          }
+          {\usebibmacro{cite:dump:inset}%
+           \ifnumgreater{\value{cbx@tempcntd}}{-1}
+             {\multicitesubentrydelim}
+             {}%
+           \printtext[bibhyperref]{\printfield{entrysetcount}}}}}
+    {\usebibmacro{cite:dump}%
+     \ifnumgreater{\value{cbx@tempcntb}}{-1}
+       {\multicitedelim}
+       {}%
+     \setcounter{cbx@tempcntd}{-1}%
+     \printtext[bibhyperref]{%
+       \printfield{labelprefix}%
+       \printfield{labelnumber}%
+       \printfield{entrysetcount}}%
+     \savefield{labelprefix}{\cbx@lastprefix}%
+     \savefield{labelnumber}{\cbx@lastnumber}}%
+    \setcounter{cbx@tempcntd}{\thefield{entrysetcount}}%
+    \setcounter{cbx@tempcntb}{-1}}
 
 \newbibmacro*{cite:comp:shand}{%
   \usebibmacro{cite:dump}%
@@ -84,19 +127,34 @@
   \printtext[bibhyperref]{\printfield{shorthand}}%
   \setcounter{cbx@tempcntb}{-1}}
 
+\newbibmacro{cite:dump:inset}{%
+  % dump subentry
+  \ifnumgreater{\value{cbx@tempcntc}}{0}
+    {\ifnumgreater{\value{cbx@tempcntc}}{1}
+       {\multicitesubentryrangedelim}
+       {\multicitesubentrydelim}%
+     \bibhyperref[\cbx@lastkey]{%
+       \printtext[entrysetcount]{\cbx@lastentrysetcount}}}
+    {}%
+  \setcounter{cbx@tempcntc}{0}%
+}
+
 \newbibmacro*{cite:dump}{%
+  \usebibmacro{cite:dump:inset}%
+  % dump labelnumber (+labelprefix)
   \ifnumgreater{\value{cbx@tempcnta}}{0}
     {\ifnumgreater{\value{cbx@tempcnta}}{1}
-       {\bibrangedash}
+       {\multiciterangedelim}
        {\multicitedelim}%
      \bibhyperref[\cbx@lastkey]{%
        \ifdef\cbx@lastprefix
          {\printtext[labelprefix]{\cbx@lastprefix}}
          {}%
-       \printtext[labelnumber]{\cbx@lastnumber}}}
+       \printtext[labelnumber]{\cbx@lastnumber}}%
+     \global\undef\cbx@lastprefix}
     {}%
   \setcounter{cbx@tempcnta}{0}%
-  \global\undef\cbx@lastprefix}
+}
 
 \newbibmacro*{textcite}{%
   \iffieldequals{namehash}{\cbx@lasthash}
@@ -169,6 +227,9 @@
 \DeclareCiteCommand{\supercite}[\mkbibsuperscript]
   {\usebibmacro{cite:init}%
    \let\multicitedelim=\supercitedelim
+   \let\multicitesubentrydelim=\supercitesubentrydelim
+   \let\multiciterangedelim=\superciterangedelim
+   \let\multicitesubentryrangedelim=\supercitesubentryrangedelim
    \iffieldundef{prenote}
      {}
      {\BibliographyWarning{Ignoring prenote argument}}%
