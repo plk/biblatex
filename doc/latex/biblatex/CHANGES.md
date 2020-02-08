@@ -28,6 +28,20 @@
   `biblatex` no longer falls back to English for unknown languages.
   Warnings will be triggered if undefined language strings or extras
   are used.
+- **INCOMPATIBLE CHANGE** `numeric-comp` compresses subentry set
+  references now.
+  This behaviour can be disabled with `subentrycomp=false`.
+- Added `subentrycomp` option to `numeric-comp` citation style.
+  The option is only relevant with `subentry=true`.
+  With `subentrycomp=true` set citations will be compressed
+  to "1a-c" instead of "1a; 1b; 1c".
+  The option is mainly intended for backwards compatibility,
+  the behaviour of previous `biblatex` versions can be restored
+  with `subentrycomp=false`.
+- Added `\multiciterangedelim`, `\multicitesubentrydelim`,
+  `\multicitesubentryrangedelim`, `\superciterangedelim`,
+  `\supercitesubentrydelim`, and `\supercitesubentryrangedelim` for
+  finer control over (compressed) subentry citations in `numeric-comp`.
 
 # RELEASE NOTES FOR VERSION 3.14
 - biber from version 2.14 has extended, granular XDATA functionality to
