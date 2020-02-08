@@ -756,6 +756,7 @@
 \newbool{citerequest}
 \booltrue{citerequest}
 \newbool{sortcites}
+\newbool{selectms}
 
 \newtoggle{blx@bbldone}
 \newtoggle{blx@tempa}
@@ -4904,13 +4905,40 @@
         \blx@theformat{#2}%
         \blx@endunit}}}
 
+% This loops over all form/lang pairs defined for a lang and uses the first one it finds
+% by defining \blx@msform/\blx@mslang according to what it finds
+% {bcp47tag}{entryfield}{entryfieldtype}
+\DeclareDocumentCommand{\blx@ifselectmsfield}
+  {m m m}
+  {\blx@imc@ifmsentryfield{#2}
+    {\global\boolfalse{selectms}%
+      \ifcsdef{blx@msselect@#1}
+      {\def\do##1{\do@i##1}% \blx@msselect@... list contains pairs like {form}{lang}|{form}{lang}
+       \def\do@i##1##2{%
+         \blx@ifmsundef{#3}[{##1}][{##2}]{#2}
+           {}
+           {\gdef\blx@msform{##1}%
+            \gdef\blx@mslang{##2}%
+            \global\booltrue{selectms}%
+            \listbreak}}%
+        \dolistcsloop{blx@msselect@#1}}
+      {}%
+     \ifbool{selectms}
+       {\@secondoftwo}
+       {\blx@ifmsundef{#3}{#2}}}
+    {\blx@ifmsundef{#3}{#2}}}
+  
 % [<format>][<msform>][<mslang>]{field}
 % O{} is an optional arg which defaults to nothing rather than xparse "-NoValue-"  
 \DeclareDocumentCommand{\blx@imc@printfield}
-  {O{} O{\blx@msform} O{\blx@mslang} m}
-  {\blx@imc@iffieldundef[{#2}][{#3}]{#4}
-    {\blx@nounit}
-    {\blx@getformat\blx@theformat{ffd}{#1}{#4}%
+  {O{} O{} O{} m}
+  {\ifboolexpr {test {\ifblank{#2}} and test {\ifblank{#3}}}
+     {\blx@ifselectmsfield{\blx@mslang}{#4}{field}}
+     {\edef\blx@msform{#2}%
+      \edef\blx@mslang{#3}%
+      \blx@imc@iffieldundef[{#2}][{#3}]{#4}}%
+   {\blx@nounit}
+   {\blx@getformat\blx@theformat{ffd}{#1}{#4}%
      \ifdefvoid\blx@theformat
        {\blx@nounit}
        {\blx@begunit
@@ -4922,11 +4950,11 @@
         \blx@imc@ifmsentryfield{#4}
           {\begingroup
            % begin language for field mslang
-           \edef\currentmsform{#2}%
-           \edef\currentmslang{#3}%
+           \edef\currentmsform{\blx@msform}%
+           \edef\currentmslang{\blx@mslang}%
            \letcs\currentmsforms{abx@fieldmsforms@#4}%
            \letcs\currentmslangs{abx@fieldmslangs@#4}%
-           \edef\blx@tempa{\csuse{blx@msmaplang@#3}}%
+           \edef\blx@tempa{\csuse{blx@msmaplang@\blx@mslang}}%
            % Override language from any field-level mslang annotation
            \ifcsdef{abx@annotation@literal@field@\currentmsform @\currentmslang @\currentfield @mslang}
              {\edef\currentmslang{\csuse{abx@annotation@literal@field@\currentmsform @\currentmslang @\currentfield @mslang}}%
@@ -4944,7 +4972,7 @@
            \expandafter\expandafter
            \expandafter\blx@theformat
            \expandafter\expandafter
-           \expandafter{\csname abx@field@#2@#3@#4\endcsname}%
+           \expandafter{\csname abx@field@\blx@msform @\blx@mslang @#4\endcsname}%
            % end language for field mslang
            \ifdef\blx@thefieldlangenv
              {\blx@hook@endfieldlang
@@ -9328,16 +9356,14 @@
 
 % Record select list for a langid
 \protected\def\blx@msselect#1#2#3{%
-  \listcsgadd{blx@msselect@#1}{#2,#3}}
+  \listcsgadd{blx@msselect@#1}{{#2}{#3}}}
 
 % List of all forms/langs in the documents, comes from biber via .bbl
 \protected\def\blx@bbl@msformsdef#1{%
   \gdef\blx@msforms{#1}}
 \protected\def\blx@bbl@mslangsdef#1{%
   \gdef\blx@mslangs{#1}}
-\protected\def\blx@bbl@msentrylangsdef#1{%
-  \def\do##1{\blx@msselect{##1}{default}{##1}}%
-  \docsvlist{#1}}
+\protected\def\blx@bbl@msentrylangsdef#1{}
 
 % Mapping of BCP47->babel ids until babel/polyglossia support BCP47 tags
 % Must use \csuse on blx@msmaplang due to hyphens in tags
