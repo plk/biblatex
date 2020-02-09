@@ -2745,14 +2745,18 @@
 \protected\def\blx@imc@savenamecs{%
   \@ifstar{\blx@savedatacs{name}}{\global\blx@savedatacs{name}}}
 
+% {<entryfield>}
+\def\blx@imc@ifentryfieldundef#1{%
+  \ifcsundef{abx@entryfield@#1}}
+
 % {field|list|name}[<msform>][<mslang>]{<field>}{<true>}{<false>}
 \DeclareExpandableDocumentCommand{\blx@ifmsundef}
   {m O{} O{} m}
   {\blx@imc@ifmsentryfield{#4}
     {\ifstrempty{#2}
       {\ifstrempty{#3}
-         {\ifcsundef{abx@#1@#4}}% is multiscript field defined at all when no form/lang?
-         {\ifcsundef{abx@#1@\blx@msform @#3@#4}}}
+        {\ifcsundef{abx@#1@\blx@msform @\blx@mslang @#4}}
+        {\ifcsundef{abx@#1@\blx@msform @#3@#4}}}
       {\ifstrempty{#3}
          {\ifcsundef{abx@#1@#2@\blx@mslang @#4}}
          {\ifcsundef{abx@#1@#2@#3@#4}}}}
@@ -4334,7 +4338,7 @@
   \ifciteseen  \ifciteibid \ifciteidem \ifopcit \ifloccit
   \ifcurrentfield \ifcurrentlist \ifcurrentname \ifentrytype
   \iffieldequalcs \iffieldequals \iffieldequalstr \iffieldsequal
-  \iffieldundef \iffieldxref \iflistequalcs \iflistequals
+  \ifentryfieldundef \iffieldundef \iffieldxref \iflistequalcs \iflistequals
   \iflistsequal \iflistundef \iflistxref
   \ifmorenames \ifmoreitems \iffirstcitekey \iflastcitekey
   \ifnameequalcs \ifnameequals \ifnamesequal \ifnameundef \ifnamexref
@@ -4908,32 +4912,37 @@
 % This loops over all form/lang pairs defined for a lang and uses the first one it finds
 % by defining \blx@msform/\blx@mslang according to what it finds
 % {bcp47tag}{entryfield}{entryfieldtype}
-\DeclareDocumentCommand{\blx@ifselectmsfield}
+\DeclareDocumentCommand{\blx@ifselectmsentryfield}
   {m m m}
   {\blx@imc@ifmsentryfield{#2}
-    {\global\boolfalse{selectms}%
-      \ifcsdef{blx@msselect@#1}
-      {\def\do##1{\do@i##1}% \blx@msselect@... list contains pairs like {form}{lang}|{form}{lang}
-       \def\do@i##1##2{%
-         \blx@ifmsundef{#3}[{##1}][{##2}]{#2}
-           {}
-           {\gdef\blx@msform{##1}%
-            \gdef\blx@mslang{##2}%
-            \global\booltrue{selectms}%
-            \listbreak}}%
-        \dolistcsloop{blx@msselect@#1}}
-      {}%
+     {\boolfalse{selectms}%
+     % First check the current \blx@msform/\blx@mslang
+     \blx@ifmsundef{#3}{#2}
+       % If not defined, then check the default select list
+       {\ifcsdef{blx@msselect@#1}
+         {\def\do##1{\do@i##1}% \blx@msselect@... list contains pairs like {form}{lang}|{form}{lang}
+          \def\do@i##1##2{%
+            \blx@ifmsundef{#3}[{##1}][{##2}]{#2}
+              {}
+              {% Found a field alternate, save form/lang values and exit listloop
+               \def\blx@msform{##1}%
+               \def\blx@mslang{##2}%
+               \booltrue{selectms}%
+               \listbreak}}%
+           \dolistcsloop{blx@msselect@#1}}
+         {}}
+       {\booltrue{selectms}}% Found the current form/lang alternate
      \ifbool{selectms}
-       {\@secondoftwo}
-       {\blx@ifmsundef{#3}{#2}}}
-    {\blx@ifmsundef{#3}{#2}}}
+       {\@secondoftwo}% found an alternate
+       {\@firstoftwo}}% no alternate found
+     {\blx@ifmsundef{#3}{#2}}} % Not a multiscript field, just do a normal undef check
   
 % [<format>][<msform>][<mslang>]{field}
 % O{} is an optional arg which defaults to nothing rather than xparse "-NoValue-"  
 \DeclareDocumentCommand{\blx@imc@printfield}
   {O{} O{} O{} m}
   {\ifboolexpr {test {\ifblank{#2}} and test {\ifblank{#3}}}
-     {\blx@ifselectmsfield{\blx@mslang}{#4}{field}}
+     {\blx@ifselectmsentryfield{\blx@mslang}{#4}{field}}
      {\edef\blx@msform{#2}%
       \edef\blx@mslang{#3}%
       \blx@imc@iffieldundef[{#2}][{#3}]{#4}}%
@@ -8180,6 +8189,7 @@
 % {<field>}{<value>}{<msform>}{<mslang>}
 \long\def\blx@bbl@addfield#1#2#3#4{%
   \csxappto\blx@bbl@data{%
+    \def\expandafter\noexpand\csname abx@entryfield@#1\endcsname{1}% value doesn't matter
     \def\expandafter\noexpand\csname abx@field@#1\endcsname{1}% value doesn't matter
     \def\expandafter\noexpand\csname abx@field@#3@#4@#1\endcsname{#2}}}
 
@@ -8624,6 +8634,7 @@
            \ifinlistcs{#1}{abx@fieldmsforms@#3}{}{\listcsadd{abx@fieldmsforms@#3}{#1}}%
            \ifinlistcs{#2}{abx@fieldmslangs@#3}{}{\listcsadd{abx@fieldmslangs@#3}{#2}}%
            \csname c@#3\endcsname\NewCount\relax
+           \def\expandafter\noexpand\csname abx@entryfield@#3\endcsname{1}% value doesn't matter
            \def\expandafter\noexpand\csname abx@list@#3\endcsname{1}% value doesn't matter
            \def\expandafter\noexpand\csname abx@list@#1@#2@#3\endcsname{\expandonce\NewValue}}}}
 
@@ -8642,6 +8653,7 @@
            \ifinlistcs{#1}{abx@fieldmsforms@#3}{}{\listcsadd{abx@fieldmsforms@#3}{#1}}%
            \ifinlistcs{#2}{abx@fieldmslangs@#3}{}{\listcsadd{abx@fieldmslangs@#3}{#2}}%
            \csname c@#3\endcsname\NewCount\relax
+           \def\expandafter\noexpand\csname abx@entryfield@#3\endcsname{1}% value doesn't matter
            \def\expandafter\noexpand\csname abx@name@#3\endcsname{1}% value doesn't matter
            \def\expandafter\noexpand\csname abx@name@#1@#2@#3\endcsname{{\expandonce\NewOption}{\expandonce\NewValue}}}}}
 
@@ -13263,6 +13275,7 @@
     \DeclareExpandableDocumentCommand{\iffieldequalstr}{O{\blx@msform} O{\blx@mslang} m m}{\blx@TE{\blx@imc@iffieldequalstr[{#1}][{#2}]{#3}{#4}}}%
     \DeclareExpandableDocumentCommand{\iffieldsequal}{O{\blx@msform} O{\blx@mslang} m O{\blx@msform} O{\blx@mslang} m}{\blx@TE{\blx@imc@iffieldsequal[{#1}][{#2}]{#3}[{#4}][{#5}]{#6}}}%
     \def\ifbibmacroundef#1{\blx@TE{\blx@imc@ifbibmacroundef{#1}}}%
+    \DeclareExpandableDocumentCommand{\ifentryfieldundef}{m}{\blx@TE{\blx@imc@ifentryfieldundef{#1}}}%
     \DeclareExpandableDocumentCommand{\iffieldundef}{O{\blx@msform} O{\blx@mslang} m}{\blx@TE{\blx@imc@iffieldundef[{#1}][{#2}]{#3}}}%
     \DeclareExpandableDocumentCommand{\iflistxref}{O{\blx@msform} O{\blx@mslang} m}{\blx@TE{\blx@imc@iflistxref[{#1}][{#2}]{#3}}}%
     \DeclareExpandableDocumentCommand{\iflistequalcs}{O{\blx@msform} O{\blx@mslang} m m}{\blx@TE{\blx@imc@iflistequalcs[{#1}][{#2}]{#3}{#4}}}%
