@@ -1127,11 +1127,15 @@ FUNCTION {output:indent:subfield:keyval} {
   if$
 }
 
+FUNCTION {output:write:field:maybeempty} {
+  swap$ "\field" swap$ wrap:braces *
+  swap$ wrap:braces * output:indent:field
+}
+
 FUNCTION {output:write:field} {
   duplicate$ empty$
     { pop$ pop$ }
-    { swap$ "\field" swap$ wrap:braces *
-      swap$ wrap:braces * output:indent:field }
+    { output:write:field:maybeempty }
   if$
 }
 
@@ -1471,7 +1475,7 @@ FUNCTION {output:specials} {
         }
       if$
       "extradate"   extradate       output:write:field
-      "labeldatesource" "year"      output:write:field
+      "labeldatesource" ""          output:write:field:maybeempty
     }
     'skip$
   if$
@@ -1914,7 +1918,7 @@ FUNCTION {input:control:options} {
 % This version corresponds to the .bcf version, *not* the biblatex version!
 FUNCTION {input:control:version} {
   input:control:parse
-  "$Revision: 3.6 $"
+  "$Revision: 3.7 $"
   #12 entry.max$ substring$
   #-3 entry.max$ substring$
   'tempstrga :=
@@ -2757,7 +2761,7 @@ SORT
 % This version corresponds to the .bbl version, *not* the biblatex version!
 FUNCTION {output:main:begin} {
   "% $ biblatex auxiliary file $"                               write$ newline$
-  "% $ biblatex bbl format version " "$Revision: 3.0 $"
+  "% $ biblatex bbl format version " "$Revision: 3.1 $"
   #12 entry.max$ substring$ #-3 entry.max$ substring$ * " $" *  write$ newline$
   "% Do not modify the above lines!"                            write$ newline$
   "%"                                                           write$ newline$

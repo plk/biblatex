@@ -22,12 +22,12 @@
 % This is not updated by build script as the control file version
 % does not necessarily change with the package version.
 % This is used when writing the .bcf
-\def\blx@bcfversion{3.6}
+\def\blx@bcfversion{3.7}
 
 % This is not updated by build script as the bbl version
 % does not necessarily change with the package version.
 % This is used when checking the .bbl
-\def\blx@bblversion{3.0}
+\def\blx@bblversion{3.1}
 
 \NeedsTeXFormat{LaTeX2e}[2005/12/01]
 \ProvidesPackage{biblatex}
@@ -52,21 +52,6 @@
       This is a fatal error. I'm aborting now}%
    \endinput}
 
-% polyglossia pretends to be babel, so we need to make sure
-% we are definitely talking to babel here.
-\AtEndPreamble{%
-  \@ifpackageloaded{polyglossia}
-    {}
-    {\@ifpackageloaded{babel}
-       {\@ifpackagelater{babel}{2016/04/23}
-          {}
-          {\PackageError{biblatex}
-             {Outdated 'babel' package}
-             {Upgrade to babel 3.9r (2016/04/23) or later.\MessageBreak
-              I found: '\csuse{ver@babel.sty}'.\MessageBreak
-              This is a fatal error. I'm aborting now}%
-            \endinput}}
-       {}}}
 
 %% Category codes
 
@@ -117,6 +102,9 @@
     \endgroup}}
 
 %% Compatibility
+% this hook is executed once at the beginning of loading the package
+% just a few lines down
+% and again later in an \AtEndPreamble hook
 \def\blx@packageincompatibility{%
   \def\do##1{%
     \@ifpackageloaded{##1}
@@ -166,8 +154,15 @@
 % still gives a weird error.
 \blx@packageincompatibility
 
-% people should not be abusing noerroretextools, so warn if it is not needed
+% this part is only executed now
+\@ifpackageloaded{polyglossia}
+  {\global\cslet{blx@pkgloaded@polyglossia}\@empty}
+  {}
+
+% this part is deferred to \AtEndPreamble
 \def\blx@packageincompatibility@endpreambleonly{%
+  % people should not be abusing noerroretextools,
+  % so warn if it is not needed
   \ifcsdef{blx@noerroretextools}
     {\@ifpackageloaded{etextools}
        {}
@@ -176,7 +171,34 @@
           but 'etextools' is not loaded.\MessageBreak
           Please do not define '\string\blx@noerroretextools'\MessageBreak
           unless you really need it}}}
-    {}}
+    {}%
+  % polyglossia pretends to be babel, so the nested structure helps
+  % to make sure that babel really is babel
+  \@ifpackageloaded{polyglossia}
+    {\ifcsundef{blx@pkgloaded@polyglossia}
+       {\blx@error
+         {'polyglossia' loaded after biblatex}
+         {'polyglossia' must be loaded before biblatex}}
+       {}%
+     \@ifpackagelater{polyglossia}{2019/10/27}
+       {}
+       {\blx@warning@noline
+          {biblatex works best with 'polyglossia' 1.45\MessageBreak
+           or above.\MessageBreak
+           Please update 'polyglossia' to v1.45 (2019/10/27)\MessageBreak
+           or later.\MessageBreak
+           Variant detection will not work properly with\MessageBreak
+           older versions}}}
+    {\@ifpackageloaded{babel}
+       {\@ifpackagelater{babel}{2016/04/23}
+          {}
+          {\blx@error
+             {Outdated 'babel' package}
+             {Upgrade to babel 3.9r (2016/04/23) or later.\MessageBreak
+              I found: '\csuse{ver@babel.sty}'.\MessageBreak
+              This is a fatal error. I'm aborting now}%
+            \endinput}}
+       {}}}
 
 \begingroup
 \catcode`\#=12
@@ -201,58 +223,6 @@
 \AtEndPreamble{%
   \blx@packageincompatibility
   \blx@packageincompatibility@endpreambleonly
-  \def\blx@langstrings{}%
-  % Set up sortlocale defaults and default language if babel/polyglossia is not loaded
-  \ifdefstring\blx@sortlocale{auto}
-    {\ifdef\bbl@main@language% babel or polyglossia is loaded
-      {\edef\blx@sortlocale{\bbl@main@language}}
-      {\def\blx@sortlocale{english}}}
-    {}%
-  \@ifpackageloaded{polyglossia}
-    {% This is required for languages which are never explicitly selected
-     % This check because \xpg@loaded is not defined in polyglossia <= v1.42.0
-     \ifundef\xpg@loaded
-       {\let\xpg@loaded\@empty
-        \let\xpg@vloaded\@empty
-        \blx@warning@noline{Upgrade package 'polyglossia' to > v1.42.0 recommended}}
-       {}%
-     \def\do#1{\blx@langsetup{#1}}%
-     \expandafter\docsvlist\expandafter{\xpg@loaded}%
-     \expandafter\docsvlist\expandafter{\xpg@vloaded}%
-     \ifboolexpr{
-      not togl {blx@autolangbib}
-      and
-      not togl {blx@autolangcite}}
-       {\blx@mknoautolang}
-       {\blx@mkautolangpoly}}
-    {\@ifpackageloaded{babel}
-      {% This is required for languages which are never explicitly selected
-       \def\do#1{\blx@langsetup{#1}}%
-       \expandafter\docsvlist\expandafter{\bbl@loaded}%
-       \ifboolexpr{
-        not togl {blx@autolangbib}
-        and
-        not togl {blx@autolangcite}}
-         {\blx@mknoautolang}
-         {\blx@mkautolangbabel}}
-      {\blx@mknoautolang}}%
-  % These already have defaults set to basically do nothing
-  % so if the toggles are true, we need to define again since
-  % mkautolang* redefines \blx@beglang
-  % In turn, \blx@beglang defines \blx@endlang and so \blx@beglangcite and
-  % \blx@endlangcite need redefining inside \blx@beglang after \blx@endlang
-  % has been defined.
-  \iftoggle{blx@autolangbib}
-    {\let\blx@beglangbib\blx@beglang}
-    {}%
-  \iftoggle{blx@autolangcite}
-    {\let\blx@beglangcite\blx@beglang}
-    {}%
-  \csuse{abx@extras@\blx@languagename}%
-  \csuse{abx@strings@\blx@languagename}%
-  \undef\blx@mkautolangbabel
-  \undef\blx@mkautolangpoly
-  \undef\blx@mknoautolang
   \ifnum\blx@hyperref=\thr@@
   \else
     \ifnum\blx@hyperref=\z@
@@ -477,6 +447,75 @@
        \sfcode`\'=\z@}}%
   \let\do\noexpand}
 
+% no longer needed, keep for backwards compatibility
+\let\blx@langstrings\relax
+
+\def\blx@ifhyphenationundef#1{\ifcsundef{l@#1}}
+
+% polyglossia makes heavy use of \AtBeginDocument, so we need to use
+% it too to get in later than polyglossia's setup.
+% This means that load-order is relevant, boo ...
+\AtBeginDocument{%
+  \@ifpackageloaded{polyglossia}
+    {\ifundef\xpg@ifdefined
+       {}
+       {\def\blx@ifhyphenationundef#1#2#3{\xpg@ifdefined{#1}{#3}{#2}}}%
+     % This is required for languages which are never explicitly selected
+     % \xpg@bloaded is not defined in polyglossia < v1.45
+     \ifundef\xpg@bloaded
+       {\ifundef\xpg@loaded
+          {\let\xpg@bloaded\@empty}
+          {\let\xpg@bloaded\xpg@loaded}}
+       {}%
+     \global\let\blx@maplang\blx@maplang@polyglossia
+     \def\do#1{\blx@langsetup{#1}}%
+     \expandafter\docsvlist\expandafter{\xpg@bloaded}%
+     \ifboolexpr{
+      not togl {blx@autolangbib}
+      and
+      not togl {blx@autolangcite}}
+       {\blx@mknoautolang}
+       {\blx@mkautolangpoly}%
+    }
+    {\global\let\blx@maplang\blx@maplang@babel
+     \@ifpackageloaded{babel}
+       {% This is required for languages which are never explicitly selected
+        \def\do#1{\blx@langsetup{#1}}%
+        \expandafter\docsvlist\expandafter{\bbl@loaded}%
+        \ifboolexpr{
+          not togl {blx@autolangbib}
+          and
+          not togl {blx@autolangcite}}
+          {\blx@mknoautolang}
+          {\blx@mkautolangbabel}}
+       {\blx@mknoautolang}}%
+  % These already have defaults set to basically do nothing
+  % so if the toggles are true, we need to define again since
+  % mkautolang* redefines \blx@beglang
+  % In turn, \blx@beglang defines \blx@endlang and so \blx@beglangcite and
+  % \blx@endlangcite need redefining inside \blx@beglang after \blx@endlang
+  % has been defined.
+  \iftoggle{blx@autolangbib}
+    {\let\blx@beglangbib\blx@beglang}
+    {}%
+  \iftoggle{blx@autolangcite}
+    {\let\blx@beglangcite\blx@beglang}
+    {}%
+  \csuse{abx@extras@\blx@languagename}%
+  \csuse{abx@strings@\blx@languagename}%
+  \undef\blx@mkautolangbabel
+  \undef\blx@mkautolangpoly
+  \undef\blx@mknoautolang
+  % pick up the main document language as sortlocale if
+  % auto-detection is desired
+  \ifdefstring\blx@sortlocale{auto}
+    {\ifdef\blx@main@language% babel or polyglossia is loaded
+       {\edef\blx@sortlocale{\blx@main@language}}
+       {\def\blx@sortlocale{english}}}
+     {}%
+}
+
+
 \begingroup
 \@makeother\#
 % \relax: gobble newline -> titletoc.sty
@@ -510,6 +549,7 @@
 \let\HAR@checkdef\@empty
 
 \providecommand{\@gobblefive}[5]{}
+\providecommand{\@gobblethree}[3]{}
 
 % etoolbox helpers
 
@@ -681,18 +721,10 @@
 \def\blx@mincitenames{0}
 \def\blx@maxsortnames{0}
 \def\blx@minsortnames{0}
-\def\blx@maxbibnames@type{\blx@maxbibnames}
-\def\blx@minbibnames@type{\blx@minbibnames}
-\def\blx@maxcitenames@type{\blx@maxcitenames}
-\def\blx@mincitenames@type{\blx@mincitenames}
-\def\blx@maxsortnames@type{\blx@maxsortnames}
-\def\blx@minsortnames@type{\blx@minsortnames}
 \def\blx@maxalphanames{0}
 \def\blx@minalphanames{0}
 \def\blx@maxitems{0}
 \def\blx@minitems{0}
-\def\blx@maxitems@type{\blx@maxitems}
-\def\blx@minitems@type{\blx@minitems}
 
 \newlength{\labelnumberwidth}
 \newlength{\labelalphawidth}
@@ -742,19 +774,11 @@
 \newtoggle{blx@labeltitleyear}
 \newtoggle{blx@labeldateparts}
 \newtoggle{blx@natbib}
-\newtoggle{blx@noroman}
-\newtoggle{blx@nohashothers}
-\newtoggle{blx@nosortothers}
 \newtoggle{blx@mcite}
 \newtoggle{blx@loadfiles}
-\newtoggle{blx@singletitle}
 \newtoggle{blx@sortsets}
 \newtoggle{blx@crossrefsource}
 \newtoggle{blx@xrefsource}
-\newtoggle{blx@uniqueprimaryauthor}
-\newtoggle{blx@uniquetitle}
-\newtoggle{blx@uniquebaretitle}
-\newtoggle{blx@uniquework}
 \newtoggle{blx@terseinits}
 \newtoggle{blx@useprefix}
 \newtoggle{blx@addset}
@@ -764,11 +788,20 @@
 \newtoggle{blx@skipbiblist}
 \newtoggle{blx@skiplab}
 \newtoggle{blx@citation}
+\newtoggle{blx@volcite}
 \newtoggle{blx@bibliography}
 \newtoggle{blx@citeindex}
 \newtoggle{blx@bibindex}
 \newtoggle{blx@localnumber}
 \newtoggle{blx@refcontext}
+\newtoggle{blx@noroman}
+\newtoggle{blx@nohashothers}
+\newtoggle{blx@nosortothers}
+\newtoggle{blx@singletitle}
+\newtoggle{blx@uniquebaretitle}
+\newtoggle{blx@uniqueprimaryauthor}
+\newtoggle{blx@uniquetitle}
+\newtoggle{blx@uniquework}
 
 \newcommand*{\blx@xifstrequal}[2]{%
   \begingroup
@@ -1199,10 +1232,10 @@
         See the biblatex manual for valid option keys and possible values}
        {#2}}}
 
-\def\blx@err@optdef#1{%
+\def\blx@err@optdef#1#2{%
   \blx@error
-    {Conflicting options}
-    {The option '#1' is already defined}}
+    {Option '#1' already defined}
+    {The option '#1' is already defined in scope '#2'}}
 
 \def\blx@err@nodocdiv#1{%
   \blx@error
@@ -2014,8 +2047,13 @@
 \providerobustcmd*{\allowhyphens}{%
   \nobreak\hskip\z@skip}
 
+% Idea from Peter Wilson's hyphenat package
+% https://ctan.org/pkg/hyphenat
+% also https://texfaq.org/FAQ-hyphoff
+\newlanguage\blx@langwohyphens
+
 \providerobustcmd*{\nohyphenation}{%
-  \lefthyphenmin\@m}
+  \language\blx@langwohyphens}
 
 \providerobustcmd*{\textnohyphenation}[1]{%
   \bgroup\nohyphenation#1\egroup}
@@ -2057,7 +2095,7 @@
           Using fallback driver}%
         \csuse{blx@bbx@*}}
        {\blx@error
-          {No driver found}
+          {No driver for '\abx@field@entrytype' found}
           {I can't find a driver for the entry type
            '\abx@field@entrytype'\MessageBreak
            and there is no fallback driver either}}}}
@@ -2206,6 +2244,85 @@
   \ifcsdef{abx@list@#1}
     {\detokenize\expandafter\expandafter\expandafter
        {\csname abx@list@#1\endcsname}}
+    {}}
+
+\def\blx@imc@thefirstlistitem#1{%
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \blx@imc@thefirstlistitem@grab
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  {\csuse{abx@list@#1}}}
+
+\def\blx@imc@thefirstlistitem@grab#1{%
+  \blx@imc@thefirstlistitem@grab@i
+  #1{}{}%
+  \blx@imc@thefirstlistitem@grab@i@end}
+\def\blx@imc@thefirstlistitem@grab@i#1#2\blx@imc@thefirstlistitem@grab@i@end{#1}
+
+% {<command>}{<field>}
+% needs 7 levels of expansion, i.e. 2^7-1=127 '\expandafter's
+\def\blx@imc@usefirstlistitem#1#2{%
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter
+  #1%
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter\expandafter\expandafter\expandafter
+  \expandafter\expandafter
+  {\blx@imc@thefirstlistitem{#2}}}
+
+\def\blx@imc@strfirstlistitem#1{%
+  \ifcsdef{abx@list@#1}
+    {\blx@imc@usefirstlistitem{\detokenize}{#1}}
     {}}
 
 % {<namelist>}
@@ -2853,7 +2970,7 @@
   \begingroup
   \def\do##1{\uccode`##1=`\%}%
   \do\0\do\1\do\2\do\3\do\4\do\5\do\6\do\7\do\8\do\9%
-  \makeatletter
+  \catcode`\@=11
   \catcode`\%=9
   \endlinechar\m@ne
   \uppercase{\scantokens{\def\blx@tempa{#1}}}%
@@ -2890,7 +3007,7 @@
   \ifx\blx@tempa\@empty
     \aftergroup\@secondoftwo
   \else
-    \makeatletter
+    \catcode`\@=11
     \catcode`\%=9
     \endlinechar\m@ne
     \everyeof{\noexpand}#1%
@@ -3040,6 +3157,10 @@
 \newrobustcmd*{\NumCheckSetup}{\appto\blx@hook@ifnum}
 \newcommand*{\NumcheckSetup}{\NumCheckSetup}
 
+\newrobustcmd*{\NumsCheckSetup}{\appto\blx@hook@ifnums}
+
+\newrobustcmd*{\PagesCheckSetup}{\appto\blx@hook@ifpages}
+
 % [<pagination>][<postpro>]{<string>}
 \newrobustcmd*{\blx@imc@mkpageprefix}[1][pagination]{%
   \begingroup
@@ -3063,7 +3184,7 @@
        {\bibstring{#1s}\ppspace}
        {\def\pno{\bibstring{#1}}%
         \def\ppno{\bibstring{#1s}}}}%
-  \blx@mkpageprefix@i[#2]{#3}}
+  \blx@mkpageprefix@i[{#2}]{#3}}
 
 \long\def\blx@mkpageprefix@i[#1]#2{#1{#2}\endgroup}
 
@@ -3123,25 +3244,32 @@
     {\blx@range@aux\blx@normrange@i}}
 
 \def\blx@range@aux#1{%
-  \@ifnextchar[{#1}{#1[\@firstofone]}}
+  \@ifnextchar[{\blx@range@aux@i#1}{#1[\@firstofone][\@firstofone]}}
 
-\def\blx@normrange@i[#1]#2{%
+\def\blx@range@aux@i#1[#2]{%
+  \@ifnextchar[{#1[{#2}]}{#1[{#2}][\@firstofone]}}
+
+\def\blx@normrange@i[#1][#2]#3{%
   \let\blx@tempa\@empty
   \protected\def\blx@range@out@value{\appto\blx@tempa}%
+  \def\blx@range@out@item@process{#2}%
   \let\blx@range@out@delim\blx@range@out@value
-  \let\blx@range@split\blx@normrange@split
+  \let\blx@range@split\blx@genrange@split
   \let\blx@range@process\blx@normrange@process
-  \blx@range@chunk{#2}%
+  \blx@range@chunk{#3}%
+  \begingroup
   \edef\blx@tempa{\endgroup
     \unexpanded{#1}{\expandonce\blx@tempa}}%
-  \blx@tempa}
+  \blx@tempa
+  \endgroup}
 
-\def\blx@normrange@ii[#1]#2{%
+\def\blx@normrange@ii[#1][#2]#3{%
   \protected\def\blx@range@out@value{#1}%
+  \def\blx@range@out@item@process{#2}%
   \let\blx@range@out@delim\@firstofone
-  \let\blx@range@split\blx@normrange@split
+  \let\blx@range@split\blx@genrange@split
   \let\blx@range@process\blx@normrange@process
-  \blx@range@chunk{#2}%
+  \blx@range@chunk{#3}%
   \endgroup}
 
 \def\blx@range@chunk#1{%
@@ -3176,8 +3304,10 @@
     {}}
 
 % Unicode en-dashes are supported in blx-unicode.def
-\def\blx@normrange@split#1{%
-  \def\blx@normrange@abort{\blx@range@out@value{#1}}%
+\def\blx@genrange@split#1{%
+  \protected@edef\blx@normrange@abort{%
+    \blx@range@out@value{%
+      \blx@range@out@item@process{\unexpanded{#1}}}}%
   \blx@imc@ifpages{#1}
     {\blx@normrange@range#1\bibrangedash\bibrangedash&}
     {\blx@normrange@abort}}
@@ -3186,9 +3316,20 @@
   \ifblank{#3}
     {\blx@normrange@hyphen#1--&}
     {\ifblank{#2}
-       {\blx@range@out@value{#1\bibrangedash}}
+       {\begingroup
+        \protected@edef\blx@tempc{\endgroup
+          \blx@range@out@value{%
+            \blx@range@out@item@process{\unexpanded{#1}}%
+            \noexpand\bibrangedash}}%
+        \blx@tempc}
        {\ifblank{#1}
-          {\blx@range@out@value{\bibrangedash#2}}
+          {\begingroup
+           \protected@edef\blx@tempc{\endgroup
+             \blx@range@out@value{%
+               \noexpand\bibrangedash
+               \blx@range@out@item@process{%
+                 \unexpanded{#2}}}}%
+           \blx@tempc}
           {\blx@range@process{#1}{#2}}}}}
 
 \def\blx@normrange@hyphen#1-#2-#3&{%
@@ -3200,22 +3341,44 @@
           {\def\blx@tempb{#1}}%
         \blx@normrange@hyphen@i#3&}
        {\ifblank{#1}
-          {\blx@range@out@value{\bibrangedash#2}}
+          {\begingroup
+           \protected@edef\blx@tempc{\endgroup
+             \blx@range@out@value{%
+               \noexpand\bibrangedash
+               \blx@range@out@item@process{%
+                 \unexpanded{#2}}}}%
+           \blx@tempc}
           {\blx@range@process{#1}{#2}}}}}
 
 \def\blx@normrange@hyphen@i#1-#2&{%
   \ifblank{#1#2}
-    {\expandafter\blx@range@out@value
-     \expandafter{\blx@tempb\bibrangedash}}
+    {\begingroup
+     \protected@edef\blx@tempc{\endgroup
+       \blx@range@out@value{%
+         \blx@range@out@item@process{\expandonce\blx@tempb}%
+         \noexpand\bibrangedash}}%
+     \blx@tempc}
     {\notblank{#1}
        {\ifdefempty\blx@tempb
-          {\blx@range@out@value{\bibrangedash#1}}
+          {\begingroup
+           \protected@edef\blx@tempc{\endgroup
+             \blx@range@out@value{%
+               \noexpand\bibrangedash
+               \blx@range@out@item@process{%
+                 \unexpanded{#1}}}}%
+           \blx@tempc}
           {\expandafter\blx@range@process
            \expandafter{\blx@tempb}{#1}}}
        {\blx@normrange@hyphen@i#2&}}}
 
 \def\blx@normrange@process#1#2{%
-  \blx@range@out@value{#1\bibrangedash#2}}
+  \begingroup
+  \protected@edef\blx@tempc{\endgroup
+    \blx@range@out@value{%
+      \blx@range@out@item@process{\unexpanded{#1}}%
+      \noexpand\bibrangedash
+      \blx@range@out@item@process{\unexpanded{#2}}}}%
+  \blx@tempc}
 
 % <*>[<postpro>]{<string>}
 \newrobustcmd*{\mkcomprange}{%
@@ -3224,31 +3387,43 @@
     {\blx@range@aux\blx@comprange@ii}
     {\blx@range@aux\blx@comprange@i}}
 
-\def\blx@comprange@i[#1]#2{%
+\def\blx@comprange@i[#1][#2]#3{%
   \let\blx@tempa\@empty
   \protected\def\blx@range@out@value{\appto\blx@tempa}%
+  \def\blx@range@out@item@process{#2}%
   \let\blx@range@out@delim\blx@range@out@value
-  \let\blx@range@split\blx@normrange@split
+  \let\blx@range@split\blx@genrange@split
   \let\blx@range@process\blx@comprange@check
-  \blx@range@chunk{#2}%
+  \blx@range@chunk{#3}%
+  \begingroup
   \edef\blx@tempa{\endgroup
     \unexpanded{#1}{\expandonce\blx@tempa}}%
-  \blx@tempa}
+  \blx@tempa
+  \endgroup}
 
-\def\blx@comprange@ii[#1]#2{%
+\def\blx@comprange@ii[#1][#2]#3{%
   \protected\def\blx@range@out@value{#1}%
+  \def\blx@range@out@item@process{#2}%
   \let\blx@range@out@delim\@firstofone
-  \let\blx@range@split\blx@normrange@split
+  \let\blx@range@split\blx@genrange@split
   \let\blx@range@process\blx@comprange@check
-  \blx@range@chunk{#2}%
+  \blx@range@chunk{#3}%
   \endgroup}
 
 \def\blx@comprange@check#1#2{%
   \blx@imc@ifinteger{#1}
     {\blx@imc@ifinteger{#2}
-       {\blx@comprange@comp{#1}{#2}}
-       {\blx@range@out@value{#1\bibrangedash#2}}}
-    {\blx@range@out@value{#1\bibrangedash#2}}}
+       {\@firstoftwo}
+       {\@secondoftwo}}
+    {\@secondoftwo}
+    {\blx@comprange@comp{#1}{#2}}
+    {\begingroup
+     \protected@edef\blx@tempc{\endgroup
+       \blx@range@out@value{%
+         \blx@range@out@item@process{\unexpanded{#1}}%
+         \noexpand\bibrangedash
+         \blx@range@out@item@process{\unexpanded{#2}}}}%
+     \blx@tempc}}
 
 \def\blx@comprange@comp#1#2{%
   \def\blx@tempb{#1}%
@@ -3278,8 +3453,12 @@
   \else
     \numdef\blx@tempc\blx@tempd
   \fi
-  \edef\blx@tempb{%
-    \blx@range@out@value{\blx@tempb\noexpand\bibrangedash\blx@tempc}}%
+  \begingroup
+  \protected@edef\blx@tempb{\endgroup
+    \blx@range@out@value{%
+      \blx@range@out@item@process{\blx@tempb}%
+      \noexpand\bibrangedash
+      \blx@range@out@item@process{\blx@tempc}}}%
   \blx@tempb}
 
 \def\blx@comprange@comp@div{%
@@ -3307,40 +3486,52 @@
 \newrobustcmd*{\mkfirstpage}{%
   \begingroup
   \@ifstar
-    {\blx@firstpage\blx@firstpage@ii}
-    {\blx@firstpage\blx@firstpage@i}}
+    {\blx@range@aux\blx@firstpage@ii}
+    {\blx@range@aux\blx@firstpage@i}}
 
-\def\blx@firstpage#1{%
-  \@ifnextchar[{#1}{#1[\@firstofone]}}
-
-\def\blx@firstpage@i[#1]#2{%
+\def\blx@firstpage@i[#1][#2]#3{%
   \let\blx@tempa\@empty
   \protected\def\blx@range@out@value{\appto\blx@tempa}%
+  \def\blx@range@out@item@process{#2}%
   \let\blx@range@out@delim\blx@range@out@value
   \let\blx@range@split\blx@firstpage@split
-  \blx@range@chunk{#2}%
+  \blx@range@chunk{#3}%
+  \begingroup
   \edef\blx@tempa{\endgroup
     \unexpanded{#1}{\expandonce\blx@tempa}}%
-  \blx@tempa}
+  \blx@tempa
+  \endgroup}
 
-\def\blx@firstpage@ii[#1]#2{%
+\def\blx@firstpage@ii[#1][#2]#3{%
   \protected\def\blx@range@out@value{#1}%
+  \def\blx@range@out@item@process{#2}%
   \let\blx@range@out@delim\@firstofone
   \let\blx@range@split\blx@firstpage@split
-  \blx@range@chunk{#2}%
+  \blx@range@chunk{#3}%
   \endgroup}
 
 % Unicode en-dashes are supported in blx-unicode.def
 \def\blx@firstpage@split#1{%
-  \def\blx@firstpage@abort{\blx@range@out@value{#1}}%
+  \protected@edef\blx@firstpage@abort{%
+    \blx@range@out@value{%
+      \blx@range@out@item@process{\unexpanded{#1}}}}%
   \blx@firstpage@range#1\bibrangedash\bibrangedash&}
 
 \def\blx@firstpage@range#1\bibrangedash#2\bibrangedash#3&{%
   \ifblank{#3}
     {\blx@firstpage@hyphen#1--&}
     {\ifblank{#1}
-       {\blx@range@out@value{\bibrangedash#2}}
-       {\blx@range@out@value{#1}}}}
+       {\begingroup
+        \protected@edef\blx@tempc{\endgroup
+          \blx@range@out@value{%
+            \noexpand\bibrangedash
+            \blx@range@out@item@process{\unexpanded{#2}}}}%
+        \blx@tempc}
+       {\begingroup
+        \protected@edef\blx@tempc{\endgroup
+          \blx@range@out@value{%
+            \blx@range@out@item@process{\unexpanded{#1}}}}%
+        \blx@tempc}}}
 
 \def\blx@firstpage@hyphen#1-#2-#3&{%
   \ifblank{#3}
@@ -3348,15 +3539,31 @@
     {\ifblank{#1}
        {\ifblank{#2}
           {\blx@firstpage@hyphen@i#3&}
-          {\blx@range@out@value{\bibrangedash#2}}}
-       {\blx@range@out@value{#1}}}}
+          {\begingroup
+           \protected@edef\blx@tempc{\endgroup
+             \blx@range@out@value{%
+               \noexpand\bibrangedash
+               \blx@range@out@item@process{%
+                 \unexpanded{#2}}}}%
+           \blx@tempc}}
+       {\begingroup
+        \protected@edef\blx@tempc{\endgroup
+          \blx@range@out@value{%
+            \blx@range@out@item@process{\unexpanded{#1}}}}%
+        \blx@tempc}}}
 
 \def\blx@firstpage@hyphen@i#1-#2&{%
   \ifblank{#1}
     {\ifblank{#2}
        {\blx@firstpage@abort}
        {\blx@firstpage@hyphen@i#2&}}
-    {\blx@range@out@value{\bibrangedash#1}}}
+    {\begingroup
+     \protected@edef\blx@tempc{\endgroup
+       \blx@range@out@value{%
+         \noexpand\bibrangedash
+         \blx@range@out@item@process{%
+           \unexpanded{#1}}}}%
+     \blx@tempc}}
 
 \newcommand*{\ppspace}{\addnbspace}
 \newcommand*{\sqspace}{\addnbspace}
@@ -3394,7 +3601,7 @@
   \blx@cleardelim{#2}%
   \ifblank{#1}
     {\blx@declaredelim{#2}{#3}}
-    {\blx@declaredelim[#1]{#2}{#3}}}
+    {\blx@declaredelim[{#1}]{#2}{#3}}}
 
 \newrobustcmd*{\blx@declaredelim}[3][]{%
   \ifblank{#1}
@@ -3512,9 +3719,9 @@
 % {<init>}{<entrytype>}
 \protected\def\blx@imc@usedriver#1#2{%
   \begingroup
+  \delimcontext{bib}%
   \csuse{blx@hook@usedriver}%
   \csuse{blx@hook@bbxinit}#1%
-  \delimcontext{bib}%
   \blx@beglangbib
   \blx@driver{#2}%
   \blx@endlangbib
@@ -3660,7 +3867,9 @@
                and test {\iffieldsequal{#1dateera}{#2dateera}}}}
 
 \blx@regimcs{%
-  \ifdriver \thefield \strfield \csfield \usefield \thelist \strlist \thename \strname
+  \ifdriver \thefield \strfield \csfield \usefield \thelist \strlist
+  \thefirstlistitem \usefirstlistitem \strfirstlistitem
+  \thename \strname
   \clearfield \clearlist \clearname \restorefield \restorelist \restorename
   \ifcategory \ifkeyword
   \ifciteseen  \ifciteibid \ifciteidem \ifopcit \ifloccit
@@ -3683,6 +3892,7 @@
 \appto\blx@blxinit{%
   \def\ifnatbibmode{\iftoggle{blx@natbib}}%
   \def\ifcitation{\iftoggle{blx@citation}}%
+  \def\ifvolcite{\iftoggle{blx@volcite}}%
   \def\ifbibliography{\iftoggle{blx@bibliography}}%
   \def\ifciteindex{\iftoggle{blx@citeindex}}%
   \def\ifbibindex{\iftoggle{blx@bibindex}}%
@@ -3698,6 +3908,7 @@
   \def\ifuniquework{\iftoggle{abx@bool@uniquework}}%
   \def\ifuniqueprimaryauthor{\iftoggle{abx@bool@uniqueprimaryauthor}}%
   \def\ifandothers#1{\iftoggle{abx@bool@more#1}}%
+  \protected\def\pnfmt{\printtext[postnote]}%
   \protected\def\pno{\bibstring{page}}%
   \protected\def\ppno{\bibstring{pages}}%
   \let\nopp\relax
@@ -3715,7 +3926,7 @@
       \protected\def#1{\ERROR}%
     \fi
   }%
-  \docsvlist{\pno,\ppno,\nopp,\psq,\psqq}%
+  \docsvlist{\pnfmt,\pno,\ppno,\nopp,\psq,\psqq}%
 }
 
 %% Global formatting hooks
@@ -3815,8 +4026,8 @@
       {\xifinlist\abx@field@langid\blx@cmksc@lang
          {\blx@mksc@ii}
          {\@firstofone}}
-      {\ifdef\bbl@main@language
-        {\xifinlist\bbl@main@language\blx@cmksc@lang
+      {\ifdef\blx@main@language
+        {\xifinlist\blx@main@language\blx@cmksc@lang
           {\blx@mksc@ii}
           {\@firstofone}}
         {\xifinlist\blx@languagename\blx@cmksc@lang
@@ -3846,6 +4057,8 @@
 \def\blx@mksc@parse{%
   \futurelet\@let@token\blx@mksc@eval}
 
+\let\blx@asttoken=*
+
 \def\blx@mksc@eval{%
   \ifx\@let@token\blx@mksc@end
     \expandafter\blx@mksc@end
@@ -3870,6 +4083,9 @@
   \fi
   \ifx\@let@token\blx@mkcp@dbl
     \expandafter\blx@mksc@getthree
+  \fi
+  \ifx\@let@token\blx@asttoken
+    \expandafter\blx@mksc@cs
   \fi
   \if\noexpand\@let@token\relax
     \expandafter\blx@mksc@cs
@@ -4260,7 +4476,7 @@
   \iftoggle{blx@loadfiles}
     {\IfFileExists{#2}
        {\listxadd\blx@list@req@edit{#2}%
-        \blx@imc@printtext[#1]{\input{#2}\unspace}}
+        \blx@imc@printtext[{#1}]{\input{#2}\unspace}}
        {\blx@nounit}}
     {\blx@nounit}}
 
@@ -4343,25 +4559,15 @@
     {\setkeys{blx@opt@namelist}{#1}}%
   \def\blx@thedata{#2}}
 
-% These are options in the .bbl that biber makes explicit as they are needed in biblatex
-% for various reasons. Not all namelist/name scope options are necessary in the .bbl as
-% some are used by biber only and are not needed by biblatex after biber has finished
-% generating the .bbl
-% Per-namelist options
-\define@key{blx@opt@namelist}{uniquelist}{\c@uniquelist#1\relax}
-\define@key{blx@opt@namelist}{useprefix}{\settoggle{blx@useprefix}{#1}}
-\define@key{blx@opt@namelist}{sortingnamekeytemplatename}{\def\blx@refcontext@sortingnamekeytemplatename{#1}}
-\define@key{blx@opt@namelist}{uniquenametemplatename}{\def\blx@refcontext@uniquenametemplatename{#1}}
-\define@key{blx@opt@namelist}{labelalphanametemplatename}{\def\blx@refcontext@labelalphanametemplatename{#1}}
+% Biber-calculated info passed back to biblatex as an option in the .bbl
+% unlike stuff defined with \DeclareBiblatexOption and
+% \blx@DeclareBackendOption these are not 'real' options
+\define@key{blx@opt@namelist}{ul}{\c@uniquelist#1\relax}
 
-% Per-name options
-\define@key{blx@opt@name}{uniquename}{\c@uniquename#1\relax}
+\define@key{blx@opt@name}{un}{\c@uniquename#1\relax}
 \define@key{blx@opt@name}{uniquepart}{\def\abx@field@uniquepart{#1}}
 \define@key{blx@opt@name}{hash}{\edef\abx@field@hash{\detokenize{#1}}}
-\define@key{blx@opt@name}{useprefix}{\settoggle{blx@useprefix}{#1}}
-\define@key{blx@opt@name}{sortingnamekeytemplatename}{\def\blx@refcontext@sortingnamekeytemplatename{#1}}
-\define@key{blx@opt@name}{uniquenametemplatename}{\def\blx@refcontext@uniquenametemplatename{#1}}
-\define@key{blx@opt@name}{labelalphanametemplatename}{\def\blx@refcontext@labelalphanametemplatename{#1}}
+
 
 \newrobustcmd*{\bibinitperiod}{\adddot}
 \newrobustcmd*{\bibinitdelim}{\addnbspace}
@@ -5102,6 +5308,7 @@
   \do{langnorwegian}%
   \do{langpolish}%
   \do{langportuguese}%
+  \do{langserbian}%
   \do{langrussian}%
   \do{langslovak}%
   \do{langslovene}%
@@ -5132,6 +5339,7 @@
   \do{frompolish}%
   \do{fromportuguese}%
   \do{fromrussian}%
+  \do{fromserbian}%
   \do{fromslovak}%
   \do{fromslovene}%
   \do{fromspanish}%
@@ -5260,6 +5468,10 @@
       {\letcs\biblistname{\abx@str @shorthands}}
       {\let\biblistname\@empty}}}
 
+% this one is special, it's basically ours and probably not defined
+% by anyone else, so we had better make sure it exists
+\providecommand*{\biblistname}{\blx@warn@nostring{shorthands}}
+
 \def\blx@defbibstrings@i#1{%
   \ifcsdef{abx@lstr@#1}
     {\def\expandafter\noexpand\csname abx@lstr@#1\endcsname{%
@@ -5277,14 +5489,14 @@
 
 % {<language>}{<exceptions>}
 \newrobustcmd*{\DefineHyphenationExceptions}[2]{%
-  \ifcsundef{l@#1}
+  \blx@ifhyphenationundef{#1}
     {\blx@warn@nohyph{#1}}
     {}%
   \csgappto{blx@hook@hyph@#1}{\blx@hyphexcept{#1}{#2}}}
 \@onlypreamble\DefineHyphenationExceptions
 
 \def\blx@hyphexcept#1#2{%
-  \ifcsundef{l@#1}
+  \blx@ifhyphenationundef{#1}
     {\blx@warn@nohyph{#1}}
     {\begingroup
      \language\csname l@#1\endcsname\relax
@@ -5421,14 +5633,14 @@
 \def\blx@lbx@input@postprocess@all#1{%
   \blx@lbx@input@postprocess@strings{#1}%
   \blx@lbx@input@postprocess@extras{#1}%
-  \csuse{blx@hook@hyph@#1}}
+  \csuse{blx@hook@hyph@#1}%
+  \blx@maplang{#1}{#1}}
 
 % {<language>}{<lbxfile>}{<message>}
 \def\blx@lbxinput@iv#1#2#3{%
   \begingroup
     \blx@lbx@input@handler{#2.lbx}{#3}
-      {\blx@maplang{#1}{#1}%
-       \let\InheritBibliographyStrings\@gobble
+      {\let\InheritBibliographyStrings\@gobble
        \let\DeclareBibliographyStrings\@gobble
        \let\InheritBibliographyExtras\@gobble
        \let\DeclareBibliographyExtras\@gobble
@@ -5450,10 +5662,7 @@
     {\edef\blx@languagename{#1}}
     {\blx@warning
        {Language '#1' not supported.\MessageBreak
-        Using fallback language '\blx@languagename'}%
-     \blx@lbxinput{\blx@languagename}
-       {\blx@maplang{#1}{\blx@languagename}}
-       {\blx@err@nolang{\blx@languagename}}}}
+        Using dummy definitions}}}
 
 % auxiliary macros
 
@@ -5513,13 +5722,13 @@
           {\iffieldsequal{#1minute}{#1endminute}
              % 14:13:xx 14:13:xx
              {\toggletrue{blx@seconds}%
-              \printtext[#1time]{%
+              \printtext[{#1time}]{%
                 \csuse{mkbibtime24h}{#1hour}{#1minute}{#1second}{}%
               \bibtimerangesep
               \csuse{mkbibtime24h}{}{}{#1endsecond}{}}}
              % 14:13:xx 14:14:xx
              {\toggletrue{blx@seconds}%
-              \printtext[#1time]{\csuse{mkbibtime24h}{#1hour}{#1minute}{}{}%
+              \printtext[{#1time}]{\csuse{mkbibtime24h}{#1hour}{#1minute}{}{}%
               \bibtimerangesep
               \csuse{mkbibtime24h}{}{#1endminute}{}{}}}}
           % 14:xx:xx 15:xx:xx
@@ -5527,17 +5736,20 @@
 
 % {<24h|24hcomp|12h>}{<datetype>}
 \newrobustcmd*{\mktimerange}[2]{%
-  \iffieldundef{#2hour}
-    {\blx@nounit}
-    {\blx@timepre{#2}{}%
-     \printtext[#2time]{\csuse{mkbibtime#1}{#2hour}{#2minute}{#2second}{#2timezone}%
-     \iffieldundef{#2endhour}
-       {}
-       {\blx@timepre{#2}{end}%
-        \iffieldequalstr{#2endhour}{}
-          {\mbox{\bibtimerangesep}}
-          {\bibtimerangesep
-           \csuse{mkbibtime#1}{#2endhour}{#2endminute}{#2endsecond}{#2endtimezone}}}}}}
+  \begingroup
+    \iffieldundef{#2hour}
+      {\blx@nounit}
+      {\blx@timepre{#2}{}%
+       \printtext[{#2time}]{%
+         \csuse{mkbibtime#1}{#2hour}{#2minute}{#2second}{#2timezone}%
+         \iffieldundef{#2endhour}
+           {}
+           {\blx@timepre{#2}{end}%
+            \iffieldequalstr{#2endhour}{}
+              {\mbox{\bibtimerangesep}}
+              {\bibtimerangesep
+               \csuse{mkbibtime#1}{#2endhour}{#2endminute}{#2endsecond}{#2endtimezone}}}}}%
+  \endgroup}
 
 % {<datetype>}{''|end}
 \newrobustcmd*{\blx@timepre}[2]{%
@@ -5546,13 +5758,36 @@
   \iftoggle{blx@seconds}{}
     {\blx@imc@clearfield{#1#2second}}}
 
+\newcommand*{\blx@if@printtime}[2]{%
+  \ifboolexpr{%
+    togl {blx@#1dateusetime}
+    and
+    not test {\iffieldundef{#1#2hour}}}}
+
+\newcommand*{\blx@if@printanytimes}[1]{%
+  \ifboolexpr{
+       togl {blx@#1dateusetime}
+    and
+    (   not test {\iffieldundef{#1hour}}
+     or not test {\iffieldundef{#1endhour}})}}
+
+% {<datetype>}{'' | end}
+\newrobustcmd*{\blx@printtime}[2]{%
+  \blx@if@printtime{#1}{#2}
+    {\blx@timepre{#1}{#2}%
+     \printtext{\bibdatetimesep}%
+     \printtext[{#1time}]{%
+       \csuse{mkbibtime\csuse{blx@timeformat@#1time}}
+         {#1#2hour}{#1#2minute}{#1#2second}{#1#2timezone}}}
+    {}}
+
 % {<short|long>}{<datetype>}
 \newrobustcmd*{\mkdaterangefull}[2]{%
   \begingroup
     \blx@metadateinfo{#2}%
     \iffieldundef{#2year}
       {\blx@nounit}
-      {\printtext[#2date]{%
+      {\printtext[{#2date}]{%
          \datecircaprint
          % Such a season component can only come from an ISO8601 season which replaces
          % a normal month so if it exists, we know that a normal date print is ruled out
@@ -5569,46 +5804,10 @@
               {\mbox{\bibdaterangesep}}
               {\bibdaterangesep
                \enddatecircaprint
-               \iffieldundef{#2season}
+               \iffieldundef{#2endseason}
                  {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}%
                   % Optionally print the time after the date
                   \blx@printtime{#2}{end}}
-                 {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}%
-               \enddateuncertainprint
-               \dateeraprint{#2endyear}}}}}%
-  \endgroup}
-
-\newrobustcmd*{\mkdaterangetrunc}[2]{%
-  \begingroup
-    \blx@metadateinfo{#2}%
-    \iffieldundef{#2year}
-      {\blx@nounit}
-      {\printtext[#2date]{%
-         \datecircaprint
-         % Such a season component can only come from an ISO8601 season which replaces
-         % a normal month so if it exists, we know that a normal date print is ruled out
-         \iffieldundef{#2season}
-           {\ifdateyearsequal{#2}{#2end}
-              {\iffieldsequal{#2month}{#2endmonth}
-                 {\csuse{mkbibdate#1}{}{}{#2day}}
-                 {\csuse{mkbibdate#1}{}{#2month}{#2day}}}
-              {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
-               \iffieldsequal{#2dateera}{#2enddateera}{}
-                 {\dateeraprint{#2year}}}}
-           {\ifdateyearsequal{#2}{#2end}
-             {\csuse{mkbibseasondate#1}{}{#2season}}
-             {\csuse{mkbibseasondate#1}{#2year}{#2season}%
-              \iffieldsequal{#2dateera}{#2enddateera}{}
-                {\dateeraprint{#2year}}}}%
-         \dateuncertainprint
-         \iffieldundef{#2endyear}
-           {}
-           {\iffieldequalstr{#2endyear}{}
-              {\mbox{\bibdaterangesep}}
-              {\bibdaterangesep
-               \enddatecircaprint
-               \iffieldundef{#2season}
-                 {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}
                  {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}%
                \enddateuncertainprint
                \dateeraprint{#2endyear}}}}}%
@@ -5619,7 +5818,7 @@
     \blx@metadateinfo{#2}%
     \iffieldundef{#2year}
       {\blx@nounit}
-      {\printtext[#2date]{%
+      {\printtext[{#2date}]{%
          \datecircaprint
          % Such a season component can only come from an ISO8601 season which replaces
          % a normal month so if it exists, we know that a normal date print is ruled out
@@ -5638,7 +5837,7 @@
               {\printtext{%
                  \bibdaterangesep
                  \enddatecircaprint
-                 \iffieldundef{#2season}
+                 \iffieldundef{#2endseason}
                    {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}%
                     % Optionally print the time after the date
                     \blx@printtime{#2}{end}}
@@ -5648,12 +5847,58 @@
                  \dateeraprint{#2endyear}}}}}%
   \endgroup}
 
-\newrobustcmd*{\mkdaterangetruncextra}[2]{%
+\newrobustcmd*{\mkdaterangetrunc}[2]{%
+  \blx@if@printanytimes{#2}
+    {\mkdaterangefull{#1}{#2}}
+    {\mkdaterangetrunc@i{#1}{#2}}}
+
+\newrobustcmd*{\mkdaterangetrunc@i}[2]{%
   \begingroup
     \blx@metadateinfo{#2}%
     \iffieldundef{#2year}
       {\blx@nounit}
-      {\printtext[#2date]{%
+      {\printtext[{#2date}]{%
+         \datecircaprint
+         % Such a season component can only come from an ISO8601 season which replaces
+         % a normal month so if it exists, we know that a normal date print is ruled out
+         \iffieldundef{#2season}
+           {\ifdateyearsequal{#2}{#2end}
+              {\iffieldsequal{#2month}{#2endmonth}
+                 {\csuse{mkbibdate#1}{}{}{#2day}}
+                 {\csuse{mkbibdate#1}{}{#2month}{#2day}}}
+              {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
+               \iffieldsequal{#2dateera}{#2enddateera}{}
+                 {\dateeraprint{#2year}}}}
+           {\ifdateyearsequal{#2}{#2end}
+             {\csuse{mkbibseasondate#1}{}{#2season}}
+             {\csuse{mkbibseasondate#1}{#2year}{#2season}%
+              \iffieldsequal{#2dateera}{#2enddateera}{}
+                {\dateeraprint{#2year}}}}%
+         \dateuncertainprint
+         \iffieldundef{#2endyear}
+           {}
+           {\iffieldequalstr{#2endyear}{}
+              {\mbox{\bibdaterangesep}}
+              {\bibdaterangesep
+               \enddatecircaprint
+               \iffieldundef{#2endseason}
+                 {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}
+                 {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}%
+               \enddateuncertainprint
+               \dateeraprint{#2endyear}}}}}%
+  \endgroup}
+
+\newrobustcmd*{\mkdaterangetruncextra}[2]{%
+  \blx@if@printanytimes{#2}
+    {\mkdaterangefullextra{#1}{#2}}
+    {\mkdaterangetruncextra@i{#1}{#2}}}
+
+\newrobustcmd*{\mkdaterangetruncextra@i}[2]{%
+  \begingroup
+    \blx@metadateinfo{#2}%
+    \iffieldundef{#2year}
+      {\blx@nounit}
+      {\printtext[{#2date}]{%
          \datecircaprint
          % Such a season component can only come from an ISO8601 season which replaces
          % a normal month so if it exists, we know that a normal date print is ruled out
@@ -5679,7 +5924,7 @@
               {\printtext{%
                  \bibdaterangesep
                  \enddatecircaprint
-                 \iffieldundef{#2season}
+                 \iffieldundef{#2endseason}
                    {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}
                    {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}}%
                  \printfield{extradate}%
@@ -5688,24 +5933,26 @@
   \endgroup}
 
 \newrobustcmd*{\mkdaterangeyear}[1]{%
-  \blx@imc@clearfield{#1season}%
-  \blx@imc@clearfield{#1month}%
-  \blx@imc@clearfield{#1day}%
-  \blx@imc@clearfield{#1hour}%
-  \blx@imc@clearfield{#1minute}%
-  \blx@imc@clearfield{#1second}%
-  \blx@imc@clearfield{#1timezone}%
-  \blx@imc@clearfield{#1endseason}%
-  \blx@imc@clearfield{#1endmonth}%
-  \blx@imc@clearfield{#1endday}%
-  \blx@imc@clearfield{#1endhour}%
-  \blx@imc@clearfield{#1endminute}%
-  \blx@imc@clearfield{#1endsecond}%
-  \blx@imc@clearfield{#1endtimezone}%
-  \ifdateyearsequal{#1}{#1end}
-    {\blx@imc@clearfield{#1endyear}}
-    {}%
-  \mkdaterangefull{short}{#1}}
+  \begingroup
+    \blx@imc@clearfield{#1season}%
+    \blx@imc@clearfield{#1month}%
+    \blx@imc@clearfield{#1day}%
+    \blx@imc@clearfield{#1hour}%
+    \blx@imc@clearfield{#1minute}%
+    \blx@imc@clearfield{#1second}%
+    \blx@imc@clearfield{#1timezone}%
+    \blx@imc@clearfield{#1endseason}%
+    \blx@imc@clearfield{#1endmonth}%
+    \blx@imc@clearfield{#1endday}%
+    \blx@imc@clearfield{#1endhour}%
+    \blx@imc@clearfield{#1endminute}%
+    \blx@imc@clearfield{#1endsecond}%
+    \blx@imc@clearfield{#1endtimezone}%
+    \ifdateyearsequal{#1}{#1end}
+      {\blx@imc@clearfield{#1endyear}}
+      {}%
+    \mkdaterangefull{short}{#1}%
+  \endgroup}
 
 % {<datetype>}
 \newrobustcmd*{\mkdaterangeymd}[1]{%
@@ -5713,7 +5960,7 @@
     \blx@metadateinfo{#1}%
     \iffieldundef{#1year}
       {\blx@nounit}
-      {\printtext[#1date]{%
+      {\printtext[{#1date}]{%
          \datecircaprint
          % Such a season component can only come from an  ISO8601 season which replaces
          % a normal month so if it exists, we know that a normal date print is ruled out
@@ -5745,7 +5992,7 @@
     \blx@metadateinfo{#1}%
     \iffieldundef{#1year}
       {\blx@nounit}
-      {\printtext[#1date]{%
+      {\printtext[{#1date}]{%
          \datecircaprint
          % Such a season component can only come from an ISO8601 season which replaces
          % a normal month so if it exists, we know that a normal date print is ruled out
@@ -5780,35 +6027,26 @@
   \iffieldundef{#2#3day}{}{\bibdatesep\mkdayzeros{\thefield{#2#3day}}}}
 
 \newrobustcmd*{\mkdaterangeyearextra}[1]{%
-  \blx@imc@clearfield{#1season}%
-  \blx@imc@clearfield{#1month}%
-  \blx@imc@clearfield{#1day}%
-  \blx@imc@clearfield{#1hour}%
-  \blx@imc@clearfield{#1minute}%
-  \blx@imc@clearfield{#1second}%
-  \blx@imc@clearfield{#1timezone}%
-  \blx@imc@clearfield{#1endseason}%
-  \blx@imc@clearfield{#1endmonth}%
-  \blx@imc@clearfield{#1endday}%
-  \blx@imc@clearfield{#1endhour}%
-  \blx@imc@clearfield{#1endminute}%
-  \blx@imc@clearfield{#1endsecond}%
-  \blx@imc@clearfield{#1endtimezone}%
-  \ifdateyearsequal{#1}{#1end}
-    {\blx@imc@clearfield{#1endyear}}
-    {}%
-  \mkdaterangefullextra{short}{#1}}
-
-% {<datetype>}{'' | end}
-\newrobustcmd*{\blx@printtime}[2]{%
-  \ifboolexpr{%
-    togl {blx@#1dateusetime}
-    and
-    not test {\iffieldundef{#1#2hour}}}
-    {\blx@timepre{#1}{#2}%
-     \printtext{\bibdatetimesep}%
-     \printtext[#1time]{\csuse{mkbibtime\csuse{blx@timeformat@#1time}}{#1#2hour}{#1#2minute}{#1#2second}{#1#2timezone}}}
-    {}}
+  \begingroup
+    \blx@imc@clearfield{#1season}%
+    \blx@imc@clearfield{#1month}%
+    \blx@imc@clearfield{#1day}%
+    \blx@imc@clearfield{#1hour}%
+    \blx@imc@clearfield{#1minute}%
+    \blx@imc@clearfield{#1second}%
+    \blx@imc@clearfield{#1timezone}%
+    \blx@imc@clearfield{#1endseason}%
+    \blx@imc@clearfield{#1endmonth}%
+    \blx@imc@clearfield{#1endday}%
+    \blx@imc@clearfield{#1endhour}%
+    \blx@imc@clearfield{#1endminute}%
+    \blx@imc@clearfield{#1endsecond}%
+    \blx@imc@clearfield{#1endtimezone}%
+    \ifdateyearsequal{#1}{#1end}
+      {\blx@imc@clearfield{#1endyear}}
+      {}%
+    \mkdaterangefullextra{short}{#1}%
+  \endgroup}
 
 \newrobustcmd*{\mkdaterangeiso}[1]{%
   \begingroup
@@ -5816,7 +6054,7 @@
     \def\bibdatetimesep{T}%
     \iffieldundef{#1year}
       {\blx@nounit}
-      {\printtext[#1date]{%
+      {\printtext[{#1date}]{%
          \blx@isodate{#1}{}%
          \ifboolexpr{%
            togl {blx@#1dateusetime}
@@ -5848,7 +6086,7 @@
     \def\bibdatetimesep{T}%
     \iffieldundef{#1year}
       {\blx@nounit}
-      {\printtext[#1date]{%
+      {\printtext[{#1date}]{%
          \blx@isodate[extradate]{#1}{}%
          \ifboolexpr{%
            togl {blx@#1dateusetime}
@@ -6033,6 +6271,7 @@
   \iffieldundef{#1}{}{\space}%
   \dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}}
 
+\newrobustcmd*{\bibdatedash}{\bibrangedash}
 \newrobustcmd*{\finalandcomma}{}
 \newrobustcmd*{\finalandsemicolon}{}
 \newrobustcmd*{\mkbibordinal}[1]{%
@@ -6134,14 +6373,27 @@
 \def\currentlang{\blx@languagename}
 
 % {<language>}{<strings>}
-\def\blx@maplang#1#2{%
-  \csxappto{extras#1}{%
-    \noexpand\blx@resetpunct
-    \expandafter\noexpand\csname abx@extras@#2\endcsname
-    \expandafter\noexpand\csname abx@strings@#2\endcsname}%
-  \csxappto{noextras#1}{%
-    \noexpand\blx@resetpunct
-    \expandafter\noexpand\csname abx@noextras@#2\endcsname}}
+\def\blx@maplang@babel#1#2{%
+  \csgappto{extras#1}{%
+    \blx@resetpunct
+    \csuse{abx@extras@#2}%
+    \csuse{abx@strings@#2}}%
+  \csgappto{noextras#1}{%
+    \blx@resetpunct
+    \csuse{abx@noextras@#2}}}
+
+\def\blx@maplang@polyglossia#1#2{%
+  \csgappto{blockextras@bbl@#1}{%
+    \blx@resetpunct
+    \csuse{abx@extras@#2}%
+    \csuse{abx@strings@#2}}%
+  \csgappto{inlinextras@bbl@#1}{%
+    \blx@resetpunct
+    \csuse{abx@extras@#2}%
+    \csuse{abx@strings@#2}}%
+  \csgappto{noextras@bbl@#1}{%
+    \blx@resetpunct
+    \csuse{abx@noextras@#2}}}
 
 %% babel/polyglossia interface
 \def\blx@beglang{\blx@clearlang\begingroup}
@@ -6154,7 +6406,7 @@
 \let\blx@hook@initlang\@empty
 \let\blx@imc@mainlang\@empty
 \def\blx@hyphenreset{%
-  \ifcsundef{l@\blx@languagename}
+  \blx@ifhyphenationundef{\blx@languagename}
     {}
     {\language\csname l@\blx@languagename\endcsname\relax}%
   \ifcsundef{\blx@languagename hyphenmins}
@@ -6172,7 +6424,9 @@
     {\blx@error
       {No default 'babel' language defined}
       {You must define a default language for 'babel'}}
-    {}%
+    {\let\blx@main@language\bbl@main@language}%
+  \edef\blx@saved@apostrophe@catcode{\the\catcode`\'}%
+  \@makeother\'
   \pretocmd\select@language{\blx@langsetup{#1}}
     {\ifdef\blx@thelangenv
        {\def\blx@beglang{%
@@ -6189,7 +6443,7 @@
                {\let\abx@field@langid\blx@forcelanguagename}
                {}%
              \let\blx@languagename\abx@field@langid% track global language
-             \ifcsundef{l@\abx@field@langid}
+             \blx@ifhyphenationundef{\abx@field@langid}
                {\blx@warn@nohyph{\abx@field@langid}}
                {\blx@hook@initlang
                 \def\blx@endlang{%
@@ -6206,37 +6460,39 @@
                 \expandafter{\abx@field@langid}}}
             {}}}
        {}%
-     \def\blx@langstrings{}%
-     \def\blx@imc@mainlang{\select@language{\bbl@main@language}}%
-     \blx@langsetup\bbl@main@language}
+     \def\blx@imc@mainlang{\select@language{\blx@main@language}}%
+     \blx@langsetup\blx@main@language}
     {\blx@err@patch{'babel' package}%
-     \blx@mknoautolang}}
+     \blx@mknoautolang}%
+  \catcode`\'=\blx@saved@apostrophe@catcode\relax}
 
 \gdef\blx@mkautolangpoly{%
-  \ifundef\bbl@main@language
-    {\blx@error
-      {No default 'polyglossia' language defined}
-      {You must define a default language for 'polyglossia'}}
-    {}%
+  \ifundef\mainbabelname
+    {\ifundef\bbl@main@language
+       {\blx@error
+          {No default 'polyglossia' language defined}
+          {You must define a default language for 'polyglossia'}}
+       {\let\blx@main@language\bbl@main@language}}
+    {\let\blx@main@language\mainbabelname}%
   \edef\blx@saved@underscore@catcode{\the\catcode`\_}%
   \catcode`\_=11% polyglossia uses "_" as a letter
-  \pretocmd\select@language{\blx@langsetup{#1}}
+  \pretocmd\select@language{\blx@langsetup{\babelname}}
     {\ifdef\blx@thelangenv
        {\def\blx@beglang{%
           \blx@clearlang
           \begingroup
-         % Need to override all entries, regardless of if there is a langid
-         % if language=<language> option is given
-         \ifboolexpr { test {\ifdef\abx@field@langid }
-                       or
-                       test {\ifdef\blx@forcelanguagename} }
+          % Need to override all entries, regardless of if there is a
+          % langid if language=<language> option is given
+          \ifboolexpr { test {\ifdef\abx@field@langid }
+                        or
+                        test {\ifdef\blx@forcelanguagename} }
             % override local langid if we forced it with
             % language=<language> option
             {\ifdef\blx@forcelanguagename
                {\let\abx@field@langid\blx@forcelanguagename}
                {}%
              \let\blx@languagename\abx@field@langid% track global language
-             \ifcsundef{l@\abx@field@langid}
+             \blx@ifhyphenationundef{\abx@field@langid}
                {\blx@warn@nohyph{\abx@field@langid}}
                {\blx@hook@initlang
                 \def\blx@endlang{%
@@ -6265,18 +6521,8 @@
                    \csuse{abx@strings@\abx@field@langid}}}}
             {}}}
        {}%
-     % polyglossia needs this - it doesn't get the
-     % strings automatically set for some reason
-     \def\blx@langstrings{%
-       \csuse{abx@extras@\languagename}%
-       \csuse{abx@strings@\languagename}}%
-     \def\blx@imc@mainlang{%
-       \select@language{\bbl@main@language}%
-       % These lines are equal to \blx@maplang
-       \blx@resetpunct
-       \csuse{abx@extras@\bbl@main@language}%
-       \csuse{abx@strings@\bbl@main@language}}%
-     \blx@langsetup\bbl@main@language}
+     \def\blx@imc@mainlang{\select@language{\blx@main@language}}%
+     \blx@langsetup\blx@main@language}
     {\blx@err@patch{'polyglossia' package}%
      \blx@mknoautolang}%
   \catcode`\_=\blx@saved@underscore@catcode\relax}
@@ -6408,7 +6654,10 @@
   \global\cslet{blx@entryopts@#1}\@empty
   \global\cslet{blx@namelistopts@#1}\@empty
   \global\cslet{blx@nameopts@#1}\@empty}
-\expandafter\expandafter\expandafter\docsvlist\expandafter\expandafter\expandafter{\csname blx@datamodel@constant@optiondatatypes\endcsname}
+\expandafter\expandafter\expandafter
+\docsvlist
+\expandafter\expandafter\expandafter
+{\csname blx@datamodel@constant@optiondatatypes\endcsname}
 
 % Helper for collecting options and datatypes
 % {<datatype>}{<scope>}{<name>}
@@ -6419,6 +6668,160 @@
   \ifinlistcs{#3}{#2@#1}
     {}
     {\listcsgadd{#2@#1}{#3}}}
+
+
+% entry, namelist, name scopes are input/handled on the backend side
+% if we want to see the info back on the biblatex side, we need the backend
+% to pass the info through via the .bbl file
+\def\blx@declareblxopt@extrahandler@entry#1{%
+  \csgdef{blx@bcf@backendout@entry@#1}{1}}
+\def\blx@declareblxopt@extrahandler@namelist#1{%
+  \csgdef{blx@bcf@backendout@namelist@#1}{1}}
+\def\blx@declareblxopt@extrahandler@name#1{%
+  \csgdef{blx@bcf@backendout@name@#1}{1}}
+
+% {<option scope>}[<datatype>]{<key>}[<value>]{<code>}
+\protected\def\blx@declareblxopt#1{%
+  \@ifnextchar[%]
+    {\blx@declareblxopt@i#1}
+    {\blx@declareblxopt@i#1[]}}
+
+\def\blx@declareblxopt@i#1[#2]#3{%
+  \begingroup
+  \ifblank{#2}
+    {\def\blx@tempa{boolean}}
+    {\ifcsundef{blx@#1opts@#2}
+       {\blx@warn@badoptdt{#2}%
+        \def\blx@tempa{boolean}}
+       {\def\blx@tempa{#2}}}%
+  \expandafter\blx@collectopts\expandafter{\blx@tempa}{blx@#1opts}{#3}%
+  \ifcsundef{blx@declareblxopt@extrahandler@#1}
+    {}
+    {\csuse{blx@declareblxopt@extrahandler@#1}{#3}}%
+  \endgroup
+  \@ifnextchar[%]
+    {\csuse{blx@defblxopt@#1opt}{#3}}
+    {\csuse{blx@defblxopt@#1opt}{#3}[]}}
+
+\long\def\blx@defblxopt@globalopt#1[#2]#3{%
+  \ifcsundef{KV@blx@opt@ldt@#1}
+    {\ifcsundef{KV@blx@opt@pre@#1}
+       {\ifblank{#2}
+          {\define@key{blx@opt@pre}{#1}{#3}}
+          {\define@key{blx@opt@pre}{#1}[{#2}]{#3}}}
+       {\blx@err@optdef{#1}{pre/global}}}
+    {\blx@err@optdef{#1}{ldt/global}}}
+
+\long\def\blx@defblxopt@typeentryopt#1#2[#3]#4{%
+  \ifcsundef{KV@blx@opt@#1@#2}
+    {\ifblank{#3}
+       {\define@key{blx@opt@#1}{#2}{#4}}
+       {\define@key{blx@opt@#1}{#2}[{#3}]{#4}}}
+    {\blx@err@optdef{#2}{#1}}}
+
+\def\blx@defblxopt@typeopt{\blx@defblxopt@typeentryopt{typ}}
+\def\blx@defblxopt@entryopt{\blx@defblxopt@typeentryopt{ent}}
+\def\blx@defblxopt@nameopt{\blx@defblxopt@typeentryopt{name}}
+\def\blx@defblxopt@namelistopt{\blx@defblxopt@typeentryopt{namelist}}
+
+% The Declare*Option macros are for options which need to be visible
+% to biblatex. For options which only biber needs to see, they can be
+% passed to the .bcf directly using \blx@collectopts
+% [<datatype>]{<key>}[<default value>]{<code>}
+\newcommand*{\DeclareBibliographyOption}{\blx@declareblxopt{global}}
+\newcommand*{\DeclareTypeOption}{\blx@declareblxopt{type}}
+\newcommand*{\DeclareEntryOption}{\blx@declareblxopt{entry}}
+
+% we'll assume that \blx@optscopes is non-empty from now on
+\newcommand*{\blx@optscopes}{}
+\forcsvlist{\listadd\blx@optscopes}{global,type,entry}
+
+\long\def\blx@defblxopt@loopscopes@i#1[#2]#3#4{%
+  \csuse{blx@defblxopt@#4opt}{#1}[{#2}]{#3}}
+
+\long\def\blx@defblxopt@loopscopes#1[#2]#3{%
+  \forlistloop{\blx@defblxopt@loopscopes@i{#1}[{#2}]{#3}}{\blx@optscopes}}
+
+% {<option scopes>}[<datatype>]{<key>}[<default value>]{<code>}
+\newrobustcmd*{\DeclareBiblatexOption}[1]{%
+  \let\blx@optscopes\@empty
+  \forcsvlist{\listadd\blx@optscopes}{#1}%
+  \blx@DeclareBiblatexOption@i}
+
+\newrobustcmd*{\blx@DeclareBiblatexOption@i}[2][]{%
+  \begingroup
+  \ifblank{#1}
+    {\def\blx@tempa{boolean}}
+    {\let\blx@tempb\@secondoftwo
+     \def\do##1{%
+       \ifcsundef{blx@##1opts@#1}
+         {\let\blx@tempb\@firstoftwo\listbreak}
+         {}}%
+     \dolistloop{\blx@optscopes}%
+     \blx@tempb
+       {\blx@warn@badoptdt{#1}%
+        \def\blx@tempa{boolean}}
+       {\def\blx@tempa{#1}}}%
+  \def\do##1{%
+    \expandafter\blx@collectopts\expandafter{\blx@tempa}{blx@##1opts}{#2}%
+    \ifcsundef{blx@declareblxopt@extrahandler@##1}
+      {}
+      {\csuse{blx@declareblxopt@extrahandler@##1}{#2}}}%
+  \dolistloop{\blx@optscopes}%
+  \endgroup
+  \@ifnextchar[%]
+    {\blx@defblxopt@loopscopes{#2}}
+    {\blx@defblxopt@loopscopes{#2}[]}}
+
+% this macro is internal for now because options declared with it need
+% support on the backend side and are not useful for document or style authors
+% {<option scopes>}[<datatype>]{<key>}
+\newrobustcmd*{\blx@DeclareBackendOption}[1]{%
+  \let\blx@optscopes\@empty
+  \forcsvlist{\listadd\blx@optscopes}{#1}%
+  \blx@DeclareBackendOption@i}
+
+\newrobustcmd*{\blx@DeclareBackendOption@i}[2][]{%
+  \begingroup
+  \ifblank{#1}
+    {\def\blx@tempa{boolean}}
+    {\let\blx@tempb\@secondoftwo
+     \def\do##1{%
+       \ifcsundef{blx@##1opts@#1}
+         {\let\blx@tempb\@firstoftwo\listbreak}
+         {}}%
+     \dolistloop{\blx@optscopes}%
+     \blx@tempb
+       {\blx@warn@badoptdt{#1}%
+        \def\blx@tempa{boolean}}
+       {\def\blx@tempa{#1}}}%
+  \def\do##1{%
+    \expandafter\blx@collectopts\expandafter{\blx@tempa}{blx@##1opts}{#2}}%
+  \dolistloop{\blx@optscopes}%
+  \endgroup}
+
+% per-entry inheritance blocking option for biber
+\blx@DeclareBackendOption{entry}[string]{noinherit}
+
+
+% nametemplates meta-option entry/namelist/name scope
+% this meta option is resolved by Biber
+\blx@DeclareBackendOption{entry,namelist,name}[string]{nametemplates}
+\gdef\blx@bcf@backendin@entry@nametemplates{sortingnamekeytemplatename,%
+  uniquenametemplatename,labelalphanametemplatename}%
+\gdef\blx@bcf@backendin@namelist@nametemplates{sortingnamekeytemplatename,%
+  uniquenametemplatename,labelalphanametemplatename}%
+\gdef\blx@bcf@backendin@name@nametemplates{sortingnamekeytemplatename,%
+  uniquenametemplatename,labelalphanametemplatename}%
+
+% Misc globalopts
+\blx@DeclareBackendOption{global}[xml]{datamodel}
+\blx@collectopts{string}{blx@globalopts}{controlversion}
+
+\newcommand*{\labelalphaothers}{+}
+\newcommand*{\sortalphaothers}{\labelalphaothers}
+\blx@DeclareBackendOption{global,type}[string]{alphaothers}
+\blx@DeclareBackendOption{global,type}[string]{sortalphaothers}
 
 % date, eventdate, urldate etc.
 \def\abx@dodates{\dolistloop\blx@datamodel@dates}
@@ -6436,124 +6839,13 @@
 % very unlikely that anyone would *remove* the main date field in a custom application ...
 \def\abx@dodatetypes{\do{}\dolistloop\blx@datetypes}
 
-% per-entry inheritance blocking option for biber
-\blx@collectopts{string}{blx@entryopts}{noinherit}
-
-% useprefix namelist/name scope
-\blx@collectopts{boolean}{blx@namelistopts}{useprefix}% for passing to bcf
-\blx@collectopts{boolean}{blx@nameopts}{useprefix}% for passing to the .bcf
-
-% nametemplates meta-option entry/namelist/name scope
-\blx@collectopts{string}{blx@entryopts}{nametemplates}
-\blx@collectopts{string}{blx@namelistopts}{nametemplates}% for passing to bcf
-\blx@collectopts{string}{blx@nameopts}{nametemplates}% for passing to the .bcf
-
-% sortingnamekeytemplate namelist/name scope
-\blx@collectopts{string}{blx@namelistopts}{sortingnamekeytemplatename}% for passing to bcf
-\blx@collectopts{string}{blx@nameopts}{sortingnamekeytemplatename}% for passing to the .bcf
-
-% uniquenametemplate namelist/name scope
-\blx@collectopts{string}{blx@namelistopts}{uniquenametemplatename}% for passing to bcf
-\blx@collectopts{string}{blx@nameopts}{uniquenametemplatename}% for passing to the .bcf
-
-% uniquelist namelist scope
-\blx@collectopts{string}{blx@namelistopts}{uniquelist}% for passing to bcf
-
-% uniquename namelist/name scope
-\blx@collectopts{string}{blx@namelistopts}{uniquename}% for passing to bcf
-\blx@collectopts{string}{blx@nameopts}{uniquename}% for passing to the .bcf
-
-% labelalphanametemplate namelist/name scope
-\blx@collectopts{string}{blx@namelistopts}{labelalphanametemplatename}% for passing to bcf
-\blx@collectopts{string}{blx@nameopts}{labelalphanametemplatename}% for passing to the .bcf
-
-% nohashothers and nosortothers namelist scope
-\blx@collectopts{boolean}{blx@namelistopts}{nohashothers}% for passing to bcf
-\blx@collectopts{boolean}{blx@namelistopts}{nosortothers}% for passing to bcf
-
-% Misc globalopts
-\blx@collectopts{xml}{blx@globalopts}{datamodel}% for passing to the .bcf
-\blx@collectopts{string}{blx@globalopts}{controlversion}% for passing to the .bcf
-
-\newcommand*{\labelalphaothers}{+}
-\newcommand*{\sortalphaothers}{\labelalphaothers}
-\blx@collectopts{string}{blx@globalopts}{alphaothers}% for passing to the .bcf
-\blx@collectopts{string}{blx@typeopts}{alphaothers}% for passing to the .bcf
-\blx@collectopts{string}{blx@globalopts}{sortalphaothers}% for passing to the .bcf
-\blx@collectopts{string}{blx@typeopts}{sortalphaothers}% for passing to the .bcf
-
-% The Declare*Option macros are for options which need to be visible
-% to biblatex. For options which only biber needs to see, they can be
-% passed to the .bcf directly using \blx@collectopts
-% [<datatype>]{<key>}[<value>]{<code>}
-\newrobustcmd*{\DeclareBibliographyOption}[2][]{%
-  \ifblank{#1}
-    {\def\blx@tempa{boolean}}
-    {\ifcsundef{blx@globalopts@#1}
-       {\blx@warn@badoptdt{#1}%
-        \def\blx@tempa{boolean}}
-       {\def\blx@tempa{#1}}}%
-  \expandafter\blx@collectopts\expandafter{\blx@tempa}{blx@globalopts}{#2}%
-  \@ifnextchar[%]
-    {\blx@defbibopt{#2}}
-    {\blx@defbibopt{#2}[]}}
-
-\long\def\blx@defbibopt#1[#2]#3{%
-  \ifcsundef{KV@blx@opt@ldt@#1}
-    {\ifcsundef{KV@blx@opt@pre@#1}
-       {\ifblank{#2}
-          {\define@key{blx@opt@pre}{#1}{#3}}
-          {\define@key{blx@opt@pre}{#1}[#2]{#3}}}
-       {\blx@err@optdef{#1}}}
-    {\blx@err@optdef{#1}}}
-
-% [<datatype>]{<key>}[<value>]{<code>}
-\newrobustcmd*{\DeclareTypeOption}[2][]{%
-  \ifblank{#1}
-    {\def\blx@tempa{boolean}}
-    {\ifcsundef{blx@typeopts@#1}
-       {\blx@warn@badoptdt{#1}%
-        \def\blx@tempa{boolean}}
-       {\def\blx@tempa{#1}}}%
-    \expandafter\blx@collectopts\expandafter{\blx@tempa}{blx@typeopts}{#2}%
-  \@ifnextchar[%]
-    {\blx@deftypeopt{#2}}
-    {\blx@deftypeopt{#2}[]}}
-
-\long\def\blx@deftypeopt#1[#2]#3{%
-  \ifcsundef{KV@blx@opt@typ@#1}
-    {\ifblank{#2}
-       {\define@key{blx@opt@typ}{#1}{#3}}
-       {\define@key{blx@opt@typ}{#1}[#2]{#3}}}
-    {\blx@err@optdef{#1}}}
-
-% [<datatype>]{<key>}[<value>]{<code>}
-\newrobustcmd*{\DeclareEntryOption}[2][]{%
-  \ifblank{#1}
-    {\def\blx@tempa{boolean}}
-    {\ifcsundef{blx@entryopts@#1}
-       {\blx@warn@badoptdt{#1}%
-        \def\blx@tempa{boolean}}
-       {\def\blx@tempa{#1}}}%
-    \expandafter\blx@collectopts\expandafter{\blx@tempa}{blx@entryopts}{#2}%
-  \@ifnextchar[%]
-    {\blx@defentryopt{#2}}
-    {\blx@defentryopt{#2}[]}}
-
- \long\def\blx@defentryopt#1[#2]#3{%
-  \ifcsundef{KV@blx@opt@ent@#1}
-    {\ifblank{#2}
-       {\define@key{blx@opt@ent}{#1}{#3}}
-       {\define@key{blx@opt@ent}{#1}[#2]{#3}}}
-    {\blx@err@optdef{#1}}}
-
 % Sanity check on date field names - they *must* end in 'date' to make things easier/possible later
 \def\do#1{%
   \blx@ifstrendswith{#1}{date}
     {}
     {\blx@error
        {Invalid date field name '#1'}
-       {Date fields in the datemodel must end in the string 'date' but '#1' doesn't}}}
+       {Date fields in the datamodel must end in the string 'date' but '#1' doesn't}}}
 \abx@dodates
 
 % date meta-information option fallbacks
@@ -6846,15 +7138,13 @@
     \csdef{if#1inits}{\iftoggle{abx@bool@#1inits}}%
     \appto\blx@TE@hook{%
       \csdef{if#1inits}{\blx@TE{\iftoggle{abx@bool@#1inits}}}}}%
-  \DeclareBibliographyOption[boolean]{#1inits}[true]{%
+  \DeclareBiblatexOption{global,type,entry,namelist,name}[boolean]{#1inits}[true]{%
     \settoggle{abx@bool@#1inits}{##1}}}
 \abx@donameparts
 
 \def\do#1{%
   % Define use<name> options scope for biber
-  \blx@collectopts{boolean}{blx@globalopts}{use#1}%
-  \blx@collectopts{boolean}{blx@typeopts}{use#1}%
-  \blx@collectopts{boolean}{blx@entryopts}{use#1}%
+  \blx@DeclareBackendOption{global,type,entry}[boolean]{use#1}%
   % Define name toggles
   \newtoggle{blx@use#1}\toggletrue{blx@use#1}%
   % Define tests
@@ -7705,7 +7995,7 @@
          % \DeclareLabeldate resolved to a literal/localisation string
          {\edef\abx@field@labelyear{\abx@field@labeldatesource}}
          % \DeclareLabeldate resolved to a non-date field.  Not safe to \edef because
-         % such contents could contain arbitrary macros, unlike ETDF sourced labeldatesource values
+         % such contents could contain arbitrary macros, unlike EDTF sourced labeldatesource values
          {\letcs\abx@field@labelyear{abx@field@\abx@field@labeldatesource}}}
        % \DeclareLabeldate resolved to a date field name prefix like '', 'event', 'url'
        % or 'orig'
@@ -8017,10 +8307,10 @@
   \csletcs{#1}{abx@tmp@theformat}}
 
 \def\blx@labelwidth@resetlocal{%
-  \locallabelnumberwidth0pt\relax
-  \locallabelalphawidth0pt\relax
+  \locallabelnumberwidth\z@
+  \locallabelalphawidth\z@
   \def\do##1{%
-    \csname local##1width\endcsname0pt\relax}%
+    \csname local##1width\endcsname\z@}%
   \abx@dolabelfields}
 
 \def\blx@labelwidth@settolocal{%
@@ -8252,17 +8542,23 @@
 % {<entrykey>}
 % Get the saved information on which citations were mentioned last run
 \protected\def\abx@aux@cite#1{%
-  \listxadd\blx@lastcites{\detokenize{#1}}}
+  \xifinlist{\detokenize{#1}}\blx@lastcites
+    {}
+    {\listxadd\blx@lastcites{\detokenize{#1}}}}
 
 % {<refcontext>}
 % Get the saved information on which refcontexts were mentioned last run
 \protected\def\abx@aux@refcontext#1{%
-  \listxadd\blx@lastrefcontexts{\detokenize{#1}}}
+  \xifinlist{\detokenize{#1}}\blx@lastrefcontexts
+    {}
+    {\listxadd\blx@lastrefcontexts{\detokenize{#1}}}}
 
 % {<sortingtemplatename>}
 % Get the saved information on which shorthand sorting templates were mentioned last run
 \protected\def\abx@aux@biblist#1{%
-  \listgadd\blx@lastbiblists{#1}}
+  \ifinlist{#1}\blx@lastbiblists
+    {}
+    {\listgadd\blx@lastbiblists{#1}}}
 
 % Here we mustn't change the checksum if we used localnumbers from the
 % .aux file as this means that deferred numbering is
@@ -8475,7 +8771,7 @@
 
 \def\blx@defbibheading#1[#2]{%
   \csundef{#1}%
-  \expandafter\newcommand\csname#1\endcsname[1][#2]}
+  \expandafter\newcommand\csname#1\endcsname[1][{#2}]}
 
 % {<name>}{<text>}
 \newrobustcmd*{\defbibnote}[1]{%
@@ -8737,6 +9033,8 @@
 \define@key{blx@bib2}{check}{\blx@key@bibcheck{#1}}
 \define@key{blx@biblist2}{check}{\blx@key@bibcheck{#1}}
 
+% empty bibcheck does nothing
+\cslet{blx@bibcheck@}\relax
 \def\blx@key@bibcheck#1{%
   \ifcsdef{blx@bibcheck@#1}
     {\letcs\blx@bibcheck{blx@bibcheck@#1}}
@@ -8746,74 +9044,103 @@
        {The check '#1' could not be found.\MessageBreak
         Use \string\defbibcheck\space to define it}}}
 
-\define@key{blx@bhd}{heading}{\blx@key@heading{#1}}
-\define@key{blx@bib2}{heading}{\blx@key@heading{#1}}
-\define@key{blx@biblist2}{heading}{\blx@key@heading{#1}}
-\define@key{blx@bbs}{heading}{\blx@key@heading{#1}}
-\define@key{blx@bbg}{heading}{\blx@key@heading{#1}}
+\def\blx@default@theheading{bibliography}
+\define@key{blx@bibdefaults}{heading}{%
+  \blx@key@heading{\blx@default@theheading}{#1}}
+\define@key{blx@bhd}{heading}{%
+  \blx@key@heading{\blx@theheading}{#1}}
+\define@key{blx@bib2}{heading}{%
+  \blx@key@heading{\blx@theheading}{#1}}
+\define@key{blx@biblist2}{heading}{%
+  \blx@key@heading{\blx@theheading}{#1}}
+\define@key{blx@bbs}{heading}{%
+  \blx@key@heading{\blx@theheading}{#1}}
+\define@key{blx@bbg}{heading}{%
+  \blx@key@heading{\blx@theheading}{#1}}
 
-\def\blx@key@heading#1{%
-  \ifcsundef{blx@head@#1}
+\def\blx@key@heading#1#2{%
+  \ifcsundef{blx@head@#2}
      {\blx@error
-        {Heading '#1' not found}
-        {The heading '#1' could not be found.\MessageBreak
+        {Heading '#2' not found}
+        {The heading '#2' could not be found.\MessageBreak
          Use \string\defbibheading\space to define it}}
-     {\def\blx@theheading{#1}}}
+     {\def#1{#2}}}
 
-\define@key{blx@bib2}{env}{\blx@key@env{#1}}
-\define@key{blx@biblist2}{env}{\blx@key@env{#1}}
-\define@key{blx@bbs}{env}{\blx@key@env{#1}}
-\define@key{blx@bbg}{env}{\blx@key@env{#1}}
-\define@key{blx@bbc}{env}{\blx@key@env{#1}}
+\def\blx@default@theenv{bibliography}
+\define@key{blx@bibdefaults}{env}{%
+  \blx@key@env{\blx@default@theenv}{#1}}
+\define@key{blx@bib2}{env}{\blx@key@env{\blx@theenv}{#1}}
+\define@key{blx@biblist2}{env}{\blx@key@env{\blx@theenv}{#1}}
+\define@key{blx@bbs}{env}{\blx@key@env{\blx@theenv}{#1}}
+\define@key{blx@bbg}{env}{\blx@key@env{\blx@theenv}{#1}}
+\define@key{blx@bbc}{env}{\blx@key@env{\blx@theenv}{#1}}
 
-\def\blx@key@env#1{%
-  \ifcsundef{blx@env@#1}
+\def\blx@key@env#1#2{%
+  \ifcsundef{blx@env@#2}
      {\blx@error
-        {Environment '#1' not found}
-        {The environment '#1' could not be found.\MessageBreak
+        {Environment '#2' not found}
+        {The environment '#2' could not be found.\MessageBreak
          Use \string\defbibenvironment\space to define it}}
-     {\def\blx@theenv{#1}}}
+     {\def#1{#2}}}
 
+\let\blx@default@thetitle\@empty
+\define@key{blx@bibdefaults}{title}{%
+  \def\blx@default@thetitle{#1}}
 \define@key{blx@bhd}{title}{\def\blx@thetitle{#1}}
 \define@key{blx@bib2}{title}{\def\blx@thetitle{#1}}
 \define@key{blx@biblist2}{title}{\def\blx@thetitle{#1}}
 
-\define@key{blx@bib2}{prenote}{\blx@key@prenote{#1}}
-\define@key{blx@biblist2}{prenote}{\blx@key@prenote{#1}}
-\define@key{blx@bbs}{prenote}{\blx@key@prenote{#1}}
-\define@key{blx@bbg}{prenote}{\blx@key@prenote{#1}}
-\define@key{blx@bbc}{prenote}{\blx@key@prenote{#1}}
-\def\blx@key@prenote#1{%
-  \ifcsundef{blx@note@#1}
-     {\blx@error
-        {Note '#1' not found}
-        {The note '#1' could not be found.\MessageBreak
-         Use \string\defbibnote\space to define it}}
-     {\def\blx@theprenote{#1}}}
+\cslet{blx@note@}\@empty
+\def\blx@key@bibnote#1#2{%
+  \ifcsundef{blx@note@#2}
+    {\blx@error
+       {Note '#2' not found}
+       {The note '#2' could not be found.\MessageBreak
+        Use \string\defbibnote\space to define it}}
+    {\def#1{#2}}}
 
-\define@key{blx@bib2}{postnote}{\blx@key@postnote{#1}}
-\define@key{blx@biblist2}{postnote}{\blx@key@postnote{#1}}
-\define@key{blx@bbs}{postnote}{\blx@key@postnote{#1}}
-\define@key{blx@bbg}{postnote}{\blx@key@postnote{#1}}
-\define@key{blx@bbc}{postnote}{\blx@key@postnote{#1}}
+\let\blx@default@theprenote\@empty
+\define@key{blx@bibdefaults}{prenote}{%
+  \blx@key@bibnote{\blx@default@theprenote}{#1}}
+\define@key{blx@bib2}{prenote}{%
+  \blx@key@bibnote{\blx@theprenote}{#1}}
+\define@key{blx@biblist2}{prenote}{%
+  \blx@key@bibnote{\blx@theprenote}{#1}}
+\define@key{blx@bbs}{prenote}{%
+  \blx@key@bibnote{\blx@theprenote}{#1}}
+\define@key{blx@bbg}{prenote}{%
+  \blx@key@bibnote{\blx@theprenote}{#1}}
+\define@key{blx@bbc}{prenote}{%
+  \blx@key@bibnote{\blx@theprenote}{#1}}
 
-\def\blx@key@postnote#1{%
-  \ifcsundef{blx@note@#1}
-     {\blx@error
-        {Note '#1' not found}
-        {The note '#1' could not be found.\MessageBreak
-         Use \string\defbibnote\space to define it}}
-     {\def\blx@thepostnote{#1}}}
+\let\blx@default@thepostnote\@empty
+\define@key{blx@bibdefaults}{postnote}{%
+  \blx@key@bibnote{\blx@default@thepostnote}{#1}}
+\define@key{blx@bib2}{postnote}{%
+  \blx@key@bibnote{\blx@thepostnote}{#1}}
+\define@key{blx@biblist2}{postnote}{%
+  \blx@key@bibnote{\blx@thepostnote}{#1}}
+\define@key{blx@bbs}{postnote}{%
+  \blx@key@bibnote{\blx@thepostnote}{#1}}
+\define@key{blx@bbg}{postnote}{%
+  \blx@key@bibnote{\blx@thepostnote}{#1}}
+\define@key{blx@bbc}{postnote}{%
+  \blx@key@bibnote{\blx@thepostnote}{#1}}
 
+\let\abx@default@locallabelwidth\@gobble
+\define@key{blx@bibdefaults}{locallabelwidth}{%
+  \blx@key@locallabelwidth{\abx@default@locallabelwidth}{#1}}
 \define@key{blx@bib1}{locallabelwidth}[]{}
 \define@key{blx@biblist1}{locallabelwidth}[]{}
-\define@key{blx@bib2}{locallabelwidth}[true]{\blx@key@locallabelwidth{#1}}
-\define@key{blx@biblist2}{locallabelwidth}[true]{\blx@key@locallabelwidth{#1}}
+\define@key{blx@bib2}{locallabelwidth}[true]{%
+  \blx@key@locallabelwidth{\abx@locallabelwidth}{#1}}
+\define@key{blx@biblist2}{locallabelwidth}[true]{%
+  \blx@key@locallabelwidth{\abx@locallabelwidth}{#1}}
 
-\def\blx@key@locallabelwidth#1{%
-  \ifstrequal{#1}{true}
-    {\def\abx@locallabelwidth{\blx@locallabelwidth}}
-    {\let\abx@locallabelwidth\@gobble}}
+\def\blx@key@locallabelwidth#1#2{%
+  \ifstrequal{#2}{true}
+    {\def#1{\blx@locallabelwidth}}
+    {\let#1\@gobble}}
 
 \define@key{blx@bib2}{resetnumbers}[true]{%
   \iftoggle{blx@defernumbers}
@@ -8835,6 +9162,10 @@
           Ignoring 'omitnumbers=true'}}}
     {}}
 
+
+\newrobustcmd*{\DeclarePrintbibliographyDefaults}{%
+  \setkeys{blx@bibdefaults}}
+
 % [<options>]
 \newrobustcmd*{\printbibheading}{%
   \begingroup
@@ -8844,12 +9175,11 @@
     {\blx@printbibheading[]}}
 
 \def\blx@printbibheading[#1]{%
-  \def\blx@theheading{bibliography}%
-  \let\blx@thetitle\@empty
+  \let\blx@theheading\blx@default@theheading
+  \let\blx@thetitle\blx@default@thetitle
   \blx@safe@actives
   \setkeys{blx@bhd}{#1}%
   \blx@rest@actives
-  \blx@langstrings
   \blx@bibheading\blx@theheading\blx@thetitle
   \endgroup}
 
@@ -8870,11 +9200,11 @@
 \def\blx@printbibliography[#1]{%
   \toggletrue{blx@tempa}%
   \toggletrue{blx@tempb}%
-  \def\blx@theheading{bibliography}%
-  \def\blx@theenv{bibliography}%
-  \let\blx@theprenote\@empty
-  \let\blx@thepostnote\@empty
-  \let\blx@thetitle\@empty
+  \let\blx@theheading\blx@default@theheading
+  \let\blx@theenv\blx@default@theenv
+  \let\blx@theprenote\blx@default@theprenote
+  \let\blx@thepostnote\blx@default@thepostnote
+  \let\blx@thetitle\blx@default@thetitle
   % defaults
   \let\blx@tempa\@empty% before there is a .bbl, this must not be undef
   \edef\blx@tempe{\the\c@refsection}% default refsection is current
@@ -8886,6 +9216,8 @@
   \iftoggle{blx@resetnumsexplicit}
     {}
     {\ifdefempty\blx@refcontext@labelprefix
+      {\ifdefempty\blx@refcontext@labelprefix@real}
+      {\@secondoftwo}
       {}
       {\setkeys{blx@bib2}{resetnumbers}}}%
   \blx@rest@actives
@@ -8922,11 +9254,11 @@
     {\blx@bibbysection[]}}
 
 \def\blx@bibbysection[#1]{%
-  \def\blx@theheading{bibliography}%
-  \def\blx@theenv{bibliography}%
-  \let\blx@theprenote\@empty
-  \let\blx@thepostnote\@empty
-  \let\blx@thetitle\@empty
+  \let\blx@theheading\blx@default@theheading
+  \let\blx@theenv\blx@default@theenv
+  \let\blx@theprenote\blx@default@theprenote
+  \let\blx@thepostnote\blx@default@thepostnote
+  \let\blx@thetitle\blx@default@thetitle
   \c@refsection\z@
   \blx@safe@actives
   \setkeys{blx@bbs}{#1}%
@@ -8961,11 +9293,11 @@
     {\blx@bibbysegment[]}}
 
 \def\blx@bibbysegment[#1]{%
-  \def\blx@theheading{bibliography}%
-  \def\blx@theenv{bibliography}%
-  \let\blx@theprenote\@empty
-  \let\blx@thepostnote\@empty
-  \let\blx@thetitle\@empty
+  \let\blx@theheading\blx@default@theheading
+  \let\blx@theenv\blx@default@theenv
+  \let\blx@theprenote\blx@default@theprenote
+  \let\blx@thepostnote\blx@default@thepostnote
+  \let\blx@thetitle\blx@default@thetitle
   \c@refsegment\@ne
   \blx@safe@actives
   \setkeys{blx@bbg}{#1}%
@@ -9005,11 +9337,11 @@
     {\blx@bibbycategory[]}}
 
 \def\blx@bibbycategory[#1]{%
-  \def\blx@theheading{bibliography}%
-  \def\blx@theenv{bibliography}%
-  \let\blx@theprenote\@empty
-  \let\blx@thepostnote\@empty
-  \let\blx@thetitle\@empty
+  \let\blx@theheading\blx@default@theheading
+  \let\blx@theenv\blx@default@theenv
+  \let\blx@theprenote\blx@default@theprenote
+  \let\blx@thepostnote\blx@default@thepostnote
+  \let\blx@thetitle\blx@default@thetitle
   \c@refsection\z@
   \blx@safe@actives
   \setkeys{blx@bbc}{#1}%
@@ -9023,7 +9355,7 @@
     {}
     {\toggletrue{blx@tempa}%
      \begingroup
-     \blx@key@heading{#1}%
+     \blx@key@heading{\blx@theheading}{#1}%
      \let\blx@tempa\@empty
      \ifcsvoid{blx@dlist@entry@\the\c@refsection @\blx@refcontext@context}
        {}
@@ -9037,7 +9369,6 @@
 
 % {<entrykey>,...}
 \def\blx@bibliography#1{%
-  \blx@langstrings
   \blx@bibheading\blx@theheading\blx@thetitle
   \blx@bibnote\blx@theprenote
   \begingroup
@@ -9076,7 +9407,7 @@
   \let\newrefsegment\relax
   \ifblank{#2}
     {\csuse{blx@head@#1}}
-    {\csuse{blx@head@#1}[#2]}%
+    {\csuse{blx@head@#1}[{#2}]}%
   \let\newrefsection\blx@newrefsection
   \let\newrefsegment\blx@newrefsegment}
 
@@ -9184,6 +9515,10 @@
   \csxdef{blx@assignedrefcontextbib@#1@#2}{\detokenize{#3}}}
 \def\abx@aux@refcontextdefaultsdone{%
   \global\boolfalse{refcontextdefaults}}
+% \abx@aux@defaultlabelprefix is a dummy only used by BibTeX to implement a
+% simple labelprefix not based on full refcontexts, which BibTeX does not
+% support.
+\let\abx@aux@defaultlabelprefix\@gobblethree
 
 \AtEndDocument{%
   % write the .aux to say we don't need to re-run to consume refcontext defaults
@@ -9299,7 +9634,7 @@
   \def\blx@thebiblistdriver{#1}}
 
 % Custom bibliography list
-% [<otions>]{biblistname}
+% [<options>]{biblistname}
 \newrobustcmd*{\printbiblist}[2][]{%
   \begingroup
   \delimcontext{biblist}%
@@ -9327,7 +9662,11 @@
     % Note that the name must be unique so we prepend "#2:" because the combination of
     % options might not generate a unique name since sortschemename has a fallback to the
     % refcontext scheme if there is no sortscheme named after the list
-    \blx@edef@refcontext{#2:\blx@tempc/\blx@refcontext@sortingnamekeytemplatename/\blx@refcontext@labelprefix/\blx@refcontext@uniquenametemplatename/\blx@refcontext@labelalphanametemplatename}%
+    \blx@edef@refcontext{#2:\blx@tempc/%
+      \blx@refcontext@sortingnamekeytemplatename/%
+      \blx@refcontext@labelprefix/%
+      \blx@refcontext@uniquenametemplatename/%
+      \blx@refcontext@labelalphanametemplatename}%
   \xifinlist\blx@tempc\blx@sortingtemplatenames
     {}
     {\listxadd\blx@sortingtemplatenames\blx@tempc}%
@@ -9339,8 +9678,8 @@
   % so we can compare on next run
   \xifinlist\blx@tempc\blx@biblists
     {}
-    {\listxadd\blx@biblists\blx@tempc
-     \blx@auxwrite\@mainaux{}{\string\abx@aux@biblist{\blx@tempc}}}%
+    {\listxadd\blx@biblists\blx@tempc}%
+  \blx@auxwrite\@mainaux{}{\string\abx@aux@biblist{\blx@tempc}}%
   \setkeys{blx@biblist1}{#1}% Set section only, if present ...
   \blx@rest@actives
   \ifcsvoid{blx@dlist@list@\blx@tempe @\blx@refcontext@context}
@@ -9379,7 +9718,6 @@
   \else
     \@restonecolfalse
   \fi
-  \blx@langstrings
   \blx@bibheading\blx@theheading\blx@thetitle
   \blx@bibnote\blx@theprenote
   \begingroup
@@ -9456,8 +9794,8 @@
 
 \def\refcontext@i[#1]{%
   \@ifnextchar\bgroup
-    {\refcontext@ii[#1]}
-    {\refcontext@ii[#1]{}}}
+    {\refcontext@ii[{#1}]}
+    {\refcontext@ii[{#1}]{}}}
 
 \newcommand*{\refcontext@ii}[2][]{%
   \iftoggle{blx@refcontext}
@@ -9467,7 +9805,9 @@
      % Set refcontext from named refcontext, if given
      \ifblank{#2}
        {}
-       {\edef\z{\noexpand\setkeys{blx@refcontext}{\csuse{blx@refcontext@name@#2}}}\z}%
+       {\edef\z{%
+          \noexpand\setkeys{blx@refcontext}{\csuse{blx@refcontext@name@#2}}}%
+        \z}%
      % Override with explicit refcontext keyvals, if given
      \setkeys{blx@refcontext}{#1}%
      % Add the sortingtemplate to the list of sortingtemplates so we can track
@@ -9475,12 +9815,17 @@
      \xifinlist\blx@refcontext@sortingtemplatename\blx@sortingtemplatenames
        {}
        {\listxadd\blx@sortingtemplatenames\blx@refcontext@sortingtemplatename}%
-     \blx@xdef@refcontext{\blx@refcontext@sortingtemplatename/\blx@refcontext@sortingnamekeytemplatename/\blx@refcontext@labelprefix/\blx@refcontext@uniquenametemplatename/\blx@refcontext@labelalphanametemplatename}%
+     \blx@xdef@refcontext{%
+       \blx@refcontext@sortingtemplatename/%
+       \blx@refcontext@sortingnamekeytemplatename/%
+       \blx@refcontext@labelprefix/%
+       \blx@refcontext@uniquenametemplatename/%
+       \blx@refcontext@labelalphanametemplatename}%
      % Add the refcontext to the list of refcontexts so we can compare on next run
      \xifinlist\blx@refcontext@context\blx@refcontexts
        {}
-       {\listxadd\blx@refcontexts\blx@refcontext@context
-        \blx@auxwrite\@mainaux{}{\string\abx@aux@refcontext{\blx@refcontext@context}}}%
+       {\listxadd\blx@refcontexts\blx@refcontext@context}%
+     \blx@auxwrite\@mainaux{}{\string\abx@aux@refcontext{\blx@refcontext@context}}%
      \ifcsundef{blx@sortingtemplate@\blx@refcontext@sortingtemplatename}
        {\blx@err@invopt{sorting=\blx@refcontext@sortingtemplatename}{}}
        {}%
@@ -9503,7 +9848,12 @@
   \gdef\blx@refcontext@sortingnamekeytemplatename{global}%
   \gdef\blx@refcontext@uniquenametemplatename{global}%
   \gdef\blx@refcontext@labelalphanametemplatename{global}%
-  \blx@xdef@refcontext{\blx@refcontext@sortingtemplatename/\blx@refcontext@sortingnamekeytemplatename//\blx@refcontext@uniquenametemplatename/\blx@refcontext@labelalphanametemplatename}}
+  \blx@xdef@refcontext{%
+    \blx@refcontext@sortingtemplatename/%
+    \blx@refcontext@sortingnamekeytemplatename/%
+    /%
+    \blx@refcontext@uniquenametemplatename/%
+    \blx@refcontext@labelalphanametemplatename}}
 
 % Meta option to set all name template options
 \define@key{blx@refcontext}{nametemplates}{%
@@ -9715,6 +10065,11 @@
 
 \AtEndDocument{%
   \endrefcontext
+  % close non-0 refsection if active
+  \ifnum\c@refsection>\z@
+    \blx@endrefsection
+  \fi
+  % close refsection 0
   \blx@endrefsection
   \def\abx@aux@refsection#1#2{\blx@addchecksum{#1}{#2}}}
 
@@ -9757,77 +10112,264 @@
 % we are prepending to the commands so that the resets happen before
 % the part title is typeset otherwise \cites in there could be "ibid"
 % which makes no sense
+
+% option switch
+%{<option level counter>}{<patch>}{<pre>}{<post>}
+\def\blx@patchsection@switch#1#2#3#4{%
+  \AtEndPreamble{%
+    #3%
+    \ifcase#1
+    \or % 1: part
+      \blx@refpatch@part{#2}%
+    \or % 2: chapter
+      \blx@refpatch@chapter{#2}%
+    \or % 3: section
+      \blx@refpatch@sect{section}{#2}{1}%
+    \or % 4: subsection
+      \blx@refpatch@sect{subsection}{#2}{2}%
+    \or % 5: chapter+ = part, chapter
+      \blx@refpatch@part{#2}%
+      \blx@refpatch@chapter{#2}%
+    \or % 6: section+ = part, chapter, section
+      \blx@refpatch@part{#2}%
+      \ifundef\chapter
+        {}
+        {\blx@refpatch@chapter{#2}}%
+      \blx@refpatch@sect{section}{#2}{1}%
+    \or % 7: subsection+ = part, chapter, section, subsection
+      \blx@refpatch@part{#2}%
+      \ifundef\chapter
+        {}
+        {\blx@refpatch@chapter{#2}}%
+      \blx@refpatch@sect{section}{#2}{1}%
+      \blx@refpatch@sect{subsection}{#2}{2}%
+    \fi
+    #4%
+  }%
+}
+
+%% Patching all the different document classes and their sectioning
+%% commands is ... messy at best
+%% For now we do the big three: (1) Standard classes, (2) KOMA-Script
+%% and (3) memoir.
+%%
+%% Timing of the patch can be tricky.
+%% Ideally we want the code to be executed when all counters have
+%% been increased so the labels attach to the right thing, but
+%% at the same time we want the code to be executed before the heading
+%% is typeset so it already applies to the text in the heading.
+%% Bonus points for actually executing the code on the correct page.
+
+%% memoir has hooks for section headings that we can use here
+%% see 18.25 'Heading Hooks' of the manual (v3.7h, 2018/12/12)
+%% they are in a good position, when the counters have been
+%% increased but heading text not yet typeset.
+%% The manual suggests this hooks have been around since 2005 or so,
+%% so we take them for granted.
+
+%% Newer versions of KOMA-Script (>=3.27) (will) have a hook system
+%% that we can use for that purpose as well.
+%% This is fairly new, so we need to have a fallback for older versions.
+
+%% The standard classes are tricky. 
+%% We insert something in \@startsection to get the level number
+%% and then patch \@sect and \@ssect so the label attaches to the
+%% right thing.
+
+%% Test for correct KOMA patch method
+% KOMA 3.27 has \AddtoDoHook
+\newcommand*{\blx@ifkoma@AddtoDoHook}{%
+  \ifboolexpr{not test {\ifcsundef{KOMAClassName}}
+              and not test {\ifcsundef{AddtoDoHook}}}}
+
+% KOMA 3.26 has \startsection@secnumdepth for some testing
+\newcommand*{\blx@ifkoma@startsection}{%
+  \ifboolexpr{not test {\ifcsundef{KOMAClassName}}
+              and not test {\ifcsundef{startsection@secnumdepth}}}}
+
+\newcommand*{\blx@ifmemoir}{\@ifclassloaded{memoir}}
+
+% Note that \ExecuteDoHook always feeds an argument to the code, here that is
+% going to be an empty group, which we explicitly gobble to avoid trouble.
+\def\blx@refpatch@koma@AddtoDoHook#1#2{%
+  \AddtoDoHook{heading/begingroup/#1}{#2\@gobble}}
+
+% \part
+\def\blx@refpatch@part@memoir#1{%
+  \apptocmd\mempartinfo{#1}
+    {}{\blx@err@patch{\string\mempartinfo}}%
+  \apptocmd\mempartstarinfo{#1}
+    {}{\blx@err@patch{\string\mempartstarinfo}}}
+
+\def\blx@refpatch@part@std#1{%
+  \toggletrue{blx@tempa}%
+  \def\do##1{%
+    \pretocmd##1{#1}
+      {\togglefalse{blx@tempa}\listbreak}
+      {}}%
+  \docsvlist{%
+    \H@old@part,%    hyperref
+    \NR@part,%       nameref
+    \@part}%         latex/koma-script/memoir
+  \iftoggle{blx@tempa}
+    {\blx@err@patch{\string\@part}}
+    {}%
+  \let\do\noexpand}
+
 \def\blx@refpatch@part#1{%
-    \ifundef\part
-      {\blx@err@nodocdiv{part}}
-      {\toggletrue{blx@tempa}%
-       \def\do##1{%
-         \pretocmd##1{#1}
-           {\togglefalse{blx@tempa}\listbreak}
-           {}}%
-       \docsvlist{%
-         \H@old@part,%    hyperref
-         \NR@part,%       nameref
-         \@part}%         latex/koma-script/memoir
-       \iftoggle{blx@tempa}
-         {\blx@err@patch{\string\@part}}
-         {}%
-       \let\do\noexpand}}
+  \ifundef\part
+    {\blx@err@nodocdiv{part}}
+    {\blx@ifkoma@AddtoDoHook
+       {\blx@refpatch@koma@AddtoDoHook{part}{#1}}
+       {\blx@ifmemoir
+          {\blx@refpatch@part@memoir{#1}}
+          {\blx@refpatch@part@std{#1}}}}}
+
+% \chapter
+\def\blx@refpatch@chapter@memoir#1{%
+  \apptocmd\memchapinfo{#1}
+    {}{\blx@err@patch{\string\memchapinfo}}%
+  \apptocmd\memchapstarinfo{#1}
+    {}{\blx@err@patch{\string\memchapstarinfo}}}
+
+\def\blx@refpatch@chapter@std#1{%
+  \pretocmd\@makechapterhead{#1}
+    {}
+    {\blx@err@patch{\string\@makechapterhead}}
+  \pretocmd\@makeschapterhead{#1}
+    {}
+    {\blx@err@patch{\string\@makeschapterhead}}}
 
 \def\blx@refpatch@chapter#1{%
   \ifundef\chapter
     {\blx@err@nodocdiv{chapter}}
-    {% the \ifcsundef{KOMAClassName} should be redundant, but you never know
-     \ifboolexpr{test {\ifcsundef{KOMAClassName}}
-                 or test {\ifcsundef{startsection@secnumdepth}}}
-       {\pretocmd\@makechapterhead{#1}
-          {}
-          {\blx@err@patch{\string\@makechapterhead}}
-        \pretocmd\@makeschapterhead{#1}
-          {}
-          {\blx@err@patch{\string\@makeschapterhead}}}
-       {% <- new KOMA >= 3.26 defines \startsection@secnumdepth
-        \At@startsection{\ifnumequal{\startsection@secnumdepth}{0}{#1}{}}}}}
+    {\blx@ifkoma@AddtoDoHook
+       {\blx@refpatch@koma@AddtoDoHook{chapter}{#1}}
+       {\blx@ifmemoir
+          {\blx@refpatch@chapter@memoir{#1}}
+          {\blx@refpatch@chapter@std{#1}}}}}
 
-\def\blx@refpatch@sect#1{%
+% \section, \subsection
+% {<section csname>}{<patch code>}{<section level number>}
+\def\blx@refpatch@sect#1#2#3{%
   \ifcsundef{#1}
     {\blx@err@nodocdiv{#1}\@gobbletwo}
-    {% the \ifcsundef{KOMAClassName} should be redundant, but you never know
-     \ifboolexpr{test {\ifcsundef{KOMAClassName}}
-                 or test {\ifcsundef{startsection@secnumdepth}}}
-       {\blx@refpatch@sect@i}
-       {\blx@refpatch@sect@koma}}}
+    {\blx@ifkoma@AddtoDoHook
+       {\blx@refpatch@koma@AddtoDoHook{#1}{#2}}
+       {\blx@ifkoma@startsection
+          {\blx@refpatch@sect@koma@startsection{#2}{#3}}
+          {\blx@ifmemoir
+             {\blx@refpatch@sect@memoir{#1}{#2}}
+             {\blx@refpatch@sect@std{#2}{#3}}}}}}
 
 % KOMA >= 3.26 defines \startsection@secnumdepth to check the sectioning level,
-% so we can now use \At@startsection
-\def\blx@refpatch@sect@koma#1#2{%
+% so we can now use \At@startsection.
+% Starting from 3.27 we use AddtoDoHook, so this is a short-lived
+% intermezzo.
+\def\blx@refpatch@sect@koma@startsection#1#2{%
   \At@startsection{\ifnumequal{\startsection@secnumdepth}{#2}{#1}{}}}
 
-\edef\blx@refpatch@sect@i#1#2{%
-  \def\noexpand\do##1{%
-    \pretocmd##1%
-      {\noexpand\blx@refpatch@sect@ii{#1}{#2}{\string#2}}
-      {\togglefalse{blx@tempa}\noexpand\listbreak}
-      {}}%
-  \noexpand\blx@refpatch@sect@iii}
+% The memoir classes have a nice hook we can use
+% {<section csname>}{<patch code>}
+\edef\blx@refpatch@sect@memoir#1#2{%
+  \apptocmd\noexpand\memsecinfo
+    {\noexpand\blx@refpatch@sect@memoir@i{\string#1}{#1}{#2}}
+    {}{\noexpand\blx@err@patch{\string\memsecinfo}}%
+  \apptocmd\noexpand\memsecstarinfo
+    {\noexpand\blx@refpatch@sect@memoir@i{\string#1}{#1}{#2}}
+    {}{\noexpand\blx@err@patch{\string\memsecstarinfo}}}
 
-\def\blx@refpatch@sect@ii#1#2#3{%
-  \ifnumequal{#2}{#3}{#1}{}}
+\def\blx@refpatch@sect@memoir@i#1#2#3{%
+  \ifstrequal{#1}{#2}{#3}{}}
 
-\def\blx@refpatch@sect@iii{%
+% The standard classes have \@startsection, \@sect and \@ssect.
+% \@startsection is used by unstarred and starred sections alike
+% but it comes in too early if we set labels.
+% The counter is only stepped in \@sect, so we need to patch
+% that if we want \labels to attach to the right thing.
+% But then we also need to patch \@ssect for starred/un-numbered
+% sections. Unfortunately, \@ssect doesn't know the level number
+% so we patch \@startsection to remember the level number
+% in blx@refpatch@current@sectlevel
+% and then patch \@sect and \@ssect with the actual code
+% testing against blx@refpatch@current@sectlevel.
+
+% {<do initialization>}{<csv list to do>}{<error>}
+\def\blx@refpatch@docsvlist#1#2#3{%
   \toggletrue{blx@tempa}%
-  \docsvlist{%       order does matter:
-    \H@old@sectm@m,% memoir+hyperref (what a mess...)
-    \M@sect,%        memoir
-    \H@old@sect,%    hyperref
-    \NR@sect,%       nameref
-    \scr@sect,%      koma-script 3.x
-    \scr@startsection,%  bad hack for koma 3.15 <= v <= 3.25
-    \@startsection}%         latex
+  #1%
+  \docsvlist{#2}%
   \iftoggle{blx@tempa}
-    {\blx@err@patch{\string\@sect}}
+    {#3}
     {}%
   \let\do\noexpand}
+
+\newtoggle{blx@refpatch@sect@std@pre@done}
+
+\def\blx@refpatch@sect@std@pre{%
+  \iftoggle{blx@refpatch@sect@std@pre@done}
+    {}
+    {\blx@refpatch@docsvlist
+       {\blx@refpatch@sect@std@pre@defdo}
+       {\scr@startsection,
+        \@startsection}
+       {\blx@err@patch{\string\@startsection}}
+     \global\toggletrue{blx@refpatch@sect@std@pre@done}}}
+
+\edef\blx@refpatch@sect@std@pre@defdo{%
+  \def\noexpand\do##1{%
+    \pretocmd##1
+      {\csnumdef{blx@refpatch@current@sectlevel}{\string#2}}
+      {\togglefalse{blx@tempa}\noexpand\listbreak}
+      {}}}
+
+\edef\blx@refpatch@sect@std@defdo@sect#1#2{%
+  \def\noexpand\do##1{%
+    \patchcmd##1%
+      {\noexpand\@tempskipa \string#5\noexpand\relax}
+      {\noexpand\blx@refpatch@sect@std@testandruncode{#1}{#2}%
+       \noexpand\@tempskipa \string#5\noexpand\relax}
+      {\togglefalse{blx@tempa}\noexpand\listbreak}
+      {}}}
+
+\edef\blx@refpatch@sect@std@defdo@ssect#1#2{%
+  \def\noexpand\do##1{%
+    \patchcmd##1%
+      {\noexpand\@tempskipa \string#3\noexpand\relax}
+      {\noexpand\blx@refpatch@sect@std@testandruncode{#1}{#2}%
+       \noexpand\@tempskipa \string#3\noexpand\relax}
+      {\togglefalse{blx@tempa}\noexpand\listbreak}
+      {}}}
+
+% {<patch code>}{<section level number>}
+\def\blx@refpatch@sect@std#1#2{%
+  \blx@refpatch@sect@std@pre
+  % \@sect for numbered (unstarred) sections
+  \blx@refpatch@docsvlist
+    {\blx@refpatch@sect@std@defdo@sect{#1}{#2}}
+    {\H@old@sectm@m,% memoir+hyperref (what a mess...)
+     \M@sect,%        memoir
+     \H@old@sect,%    hyperref
+     \NR@sect,%       nameref
+     \scr@sect,%      koma-script 3.x
+     \scr@startsection,%  bad hack for koma 3.15 <= v <= 3.25
+     \@sect}
+    {\blx@err@patch{\string\@sect}}
+  % \@ssect for un-numbered (starred) sections
+  \blx@refpatch@docsvlist
+    {\blx@refpatch@sect@std@defdo@ssect{#1}{#2}}
+    {\H@old@ssectm@m,% memoir+hyperref (what a mess...)
+     \M@ssect,%        memoir
+     \H@old@ssect,%    hyperref
+     \NR@ssect,%       nameref
+     \scr@ssect,%      koma-script 3.x
+     \@ssect}
+    {\blx@err@patch{\string\@ssect}}}
+
+\def\blx@refpatch@sect@std@testandruncode#1#2{%
+  \ifnumequal{#2}{0\csuse{blx@refpatch@current@sectlevel}}
+    {#1}
+    {}}
 
 % Bibliography categories
 
@@ -10087,12 +10629,14 @@
   \blx@bibreq{#1}%
   \ifinlist{#1}\blx@cites
     {}
-    {\listgadd{\blx@cites}{#1}%
-     \blx@auxwrite\@mainaux{}{\string\abx@aux@cite{#1}}}%
+    {\listgadd{\blx@cites}{#1}}%
+  \blx@auxwrite\@mainaux{}{\string\abx@aux@cite{#1}}%
   \ifinlistcs{#1}{blx@segm@\the\c@refsection @\the\c@refsegment}
     {}
     {\listcsgadd{blx@segm@\the\c@refsection @\the\c@refsegment}{#1}}%
-  \blx@auxwrite\@mainaux{}{\string\abx@aux@segm{\the\c@refsection}{\the\c@refsegment}{\detokenize{#1}}}%
+  \blx@auxwrite\@mainaux{}{\string\abx@aux@segm{\the\c@refsection}%
+                                               {\the\c@refsegment}%
+                                               {\detokenize{#1}}}%
   \blx@ifdata{#1}
     {}
     {\ifcsdef{blx@miss@\the\c@refsection}
@@ -10102,7 +10646,9 @@
        {\blx@logreq@active{#2{#1}}}}}
 
 \protected\def\abx@aux@segm#1#2#3{%
-  \listcsxadd{blx@segm@#1@#2}{\detokenize{#3}}}
+  \xifinlistcs{\detokenize{#3}}{blx@segm@#1@#2}
+    {}
+    {\listcsxadd{blx@segm@#1@#2}{\detokenize{#3}}}}
 
 \def\blx@nocitation@all{%
   \ifinlist{*}\blx@nocites
@@ -10157,7 +10703,8 @@
        {}
        {\blx@error
           {Conflicting definitions of '\blx@tempa'}
-          {The entry set '\blx@tempa' been defined before.\MessageBreak
+          {The entry set '\blx@tempa' has been defined before.%
+           \MessageBreak
            old: \blx@tempa\space = %
            \csuse{blx@set@\the\c@refsection @\blx@tempa}\MessageBreak
            new: \blx@tempa\space = \blx@tempb\MessageBreak
@@ -10887,11 +11434,9 @@
 \def\blx@nocite#1{%
   \@bsphack
   \AfterPreamble{%
-    \iftoggle{blx@bibliography}
-      {}
-      {\ifstrequal{*}{#1}
-        {\blx@nocitation@all}
-        {\blx@xsanitizeafter{\forcsvlist\blx@nocite@do}{#1}}}}%
+    \ifstrequal{*}{#1}
+      {\blx@nocitation@all}
+      {\blx@xsanitizeafter{\forcsvlist\blx@nocite@do}{#1}}}%
   \@esphack}
 
 \def\blx@nocite@do#1{%
@@ -10945,7 +11490,7 @@
 \long\def\blx@citexpunct@i#1#2#3#4{%
   \@ifnextchar[%]
     {\blx@citexpunct@ii{#1}{{#2}{#3}{#4}}}
-    {\blx@citexpunct@ii{#1}{{#2}{#3}{#4}}[#1]}}
+    {\blx@citexpunct@ii{#1}{{#2}{#3}{#4}}[{#1}]}}
 \long\def\blx@citexpunct@ii#1#2[#3]#4{%
   \blx@thecheckpunct{\blxcitecmd{#1}#2{#3}{#4}}}
 
@@ -10984,7 +11529,6 @@
     {}
     {\toggletrue{blx@citation}}%
   \blx@blxinit
-  \blx@langstrings
   \citesetup
   \blx@setsfcodes
   \blx@postpunct@agroup
@@ -11075,7 +11619,10 @@
       {\def\abx@field@prenote{##1}}%
     \ifblank{##2}
       {\let\blx@thenotecheck\relax}
-      {\def\abx@field@postnote{##2}}%
+      {\def\abx@field@postnote{##2}%
+       \iftoggle{blx@volcite}
+         {\blx@defvolcitepostnote##2}
+         {}}%
     \def\blx@precode{\delimcontext{#1}#2}%
     \def\blx@loopcode{#3}%
     \def\blx@dlimcode{#4}%
@@ -11371,7 +11918,7 @@
     \ifnameundef{#5}
       {\blx@warning@entry{'#5' undefined or not a name list}%
        \abx@missing{#5}}
-      {\printnames[#4]{#5}}}%
+      {\printnames[{#4}]{#5}}}%
   \def\blx@dlimcode{\multicitedelim}%
   \def\blx@postpunct@saved{#6}%
   \ifblank{#2}
@@ -11399,7 +11946,7 @@
     \iflistundef{#5}
       {\blx@warning@entry{'#5' undefined or not a literal list}%
        \abx@missing{#5}}
-      {\printlist[#4]{#5}}}%
+      {\printlist[{#4}]{#5}}}%
   \def\blx@dlimcode{\multicitedelim}%
   \def\blx@postpunct@saved{#6}%
   \ifblank{#2}
@@ -11428,7 +11975,7 @@
     \iffieldundef{#5}
       {\blx@warning@entry{'#5' undefined or not a field}%
        \abx@missing{#5}}
-      {\printfield[#4]{#5}}}%
+      {\printfield[{#4}]{#5}}}%
   \def\blx@dlimcode{\multicitedelim}%
   \def\blx@postpunct@saved{#6}%
   \ifblank{#2}
@@ -11516,6 +12063,7 @@
     \def\iffieldbibstring#1{\blx@TE{\blx@imc@iffieldbibstring{#1}}}%
     \def\ifnatbibmode{\blx@TE{\iftoggle{blx@natbib}}}%
     \def\ifcitation{\blx@TE{\iftoggle{blx@citation}}}%
+    \def\ifvolcite{\blx@TE{\iftoggle{blx@volcite}}}%
     \def\ifbibliography{\blx@TE{\iftoggle{blx@bibliography}}}%
     \def\ifciteindex{\blx@TE{\iftoggle{blx@citeindex}}}%
     \def\ifbibindex{\blx@TE{\iftoggle{blx@bibindex}}}%
@@ -11855,7 +12403,9 @@
 % {<macro>}[<pre>]{<vol>}[<post>] => <macro>{<pre>}{{<vol>}{<post>}}
 
 \newrobustcmd*{\volcitecmd}{%
-  \AtNextCite{\DeclareFieldAlias{postnote}{volcitenote}}%
+  \AtNextCite{%
+    \toggletrue{blx@volcite}%
+    \csuse{blx@hook@volcite}}%
   \begingroup\let\blx@citeargs\blx@volciteargs}
 
 \protected\def\blx@volciteargs#1{%
@@ -11873,7 +12423,9 @@
   \blx@citeargs@iii{#1{#2}{{#3}{#4}}}}
 
 \newrobustcmd*{\multivolcitecmd}{%
-  \AtNextCite{\DeclareFieldAlias{postnote}{volcitenote}}%
+  \AtNextCite{%
+    \toggletrue{blx@volcite}%
+    \csuse{blx@hook@volcite}}%
   \def\blx@hook@mcite@before{%
     \global\undef\blx@hook@mcite@before
     \let\blx@citeargs\blx@volmciteargs}}
@@ -11882,6 +12434,24 @@
   \@ifnextchar[%]
     {\blx@volciteargs@i{#1}}
     {\blx@volciteargs@i{#1}[]}}
+
+\long\def\blx@defvolcitepostnote#1#2{%
+  \def\abx@field@volcitevolume{#1}%
+  \ifblank{#2}
+    {}
+    {\def\abx@field@volcitepages{#2}}}
+
+\newrobustcmd*{\AtVolcite}{%
+  \@ifstar
+    {\global\undef\blx@hook@volcite
+     \gappto\blx@hook@volcite}
+    {\gappto\blx@hook@volcite}}
+\@onlypreamble\AtVolcite
+\def\blx@imc@UseVolciteHook{\csuse{blx@hook@volcite}}
+\blx@regimcs{\UseVolciteHook}
+
+\AtVolcite{%
+  \DeclareFieldAlias{postnote}{volcitenote}}
 
 %% Control file
 
@@ -12129,8 +12699,14 @@
   ~~<bcf:optionscope type="#1">\blx@nl
   #2%
   ~~</bcf:optionscope>\blx@nl}
-\xdef\blx@xml@option@scope#1#2{%
+\xdef\blx@xml@option@scope#1#2{% GLOBAL/TYPE scope
   ~~~~<bcf:option datatype="#1">#2</bcf:option>\blx@nl}
+\xdef\blx@xml@option@entryscope#1#2{% ENTRY scope
+  ~~~~<bcf:option datatype="#1"\noexpand\ifcsdef{blx@bcf@backendout@entry@#2}{ backendout="1"}{}\noexpand\ifcsdef{blx@bcf@backendin@entry@#2}{ backendin="\noexpand\csuse{blx@bcf@backendin@entry@#2}"}{}>#2</bcf:option>\blx@nl}
+\xdef\blx@xml@option@namelistscope#1#2{% NAMELIST scope
+  ~~~~<bcf:option datatype="#1"\noexpand\ifcsdef{blx@bcf@backendout@namelist@#2}{ backendout="1"}{}\noexpand\ifcsdef{blx@bcf@backendin@namelist@#2}{ backendin="\noexpand\csuse{blx@bcf@backendin@namelist@#2}"}{}>#2</bcf:option>\blx@nl}
+\xdef\blx@xml@option@namescope#1#2{% NAME scope
+  ~~~~<bcf:option datatype="#1"\noexpand\ifcsdef{blx@bcf@backendout@name@#2}{ backendout="1"}{}\noexpand\ifcsdef{blx@bcf@backendin@name@#2}{ backendin="\noexpand\csuse{blx@bcf@backendin@name@#2}"}{}>#2</bcf:option>\blx@nl}
 \endgroup
 
 \def\blx@bcf@options@global{%
@@ -12198,15 +12774,15 @@
         {\csuse{blx@bcf@labeldatespec@#1}}
         {\blx@bcf@labeldatespec}}%
     \blx@xml@svalue{maxalphanames}{\blx@maxalphanames}%
-    \blx@xml@svalue{maxbibnames}{\blx@maxbibnames@type}%
-    \blx@xml@svalue{maxcitenames}{\blx@maxcitenames@type}%
-    \blx@xml@svalue{maxsortnames}{\blx@maxsortnames@type}%
-    \blx@xml@svalue{maxitems}{\blx@maxitems@type}%
+    \blx@xml@svalue{maxbibnames}{\blx@maxbibnames}%
+    \blx@xml@svalue{maxcitenames}{\blx@maxcitenames}%
+    \blx@xml@svalue{maxsortnames}{\blx@maxsortnames}%
+    \blx@xml@svalue{maxitems}{\blx@maxitems}%
     \blx@xml@svalue{minalphanames}{\blx@minalphanames}%
-    \blx@xml@svalue{minbibnames}{\blx@minbibnames@type}%
-    \blx@xml@svalue{mincitenames}{\blx@mincitenames@type}%
-    \blx@xml@svalue{minsortnames}{\blx@minsortnames@type}%
-    \blx@xml@svalue{minitems}{\blx@minitems@type}%
+    \blx@xml@svalue{minbibnames}{\blx@minbibnames}%
+    \blx@xml@svalue{mincitenames}{\blx@mincitenames}%
+    \blx@xml@svalue{minsortnames}{\blx@minsortnames}%
+    \blx@xml@svalue{minitems}{\blx@minitems}%
     \blx@xml@toggle{nohashothers}%
     \blx@xml@toggle{noroman}%
     \blx@xml@toggle{nosortothers}%
@@ -12285,21 +12861,21 @@
   % ENTRY
   \def\do##1{%
     \begingroup
-    \def\do####1{\xappto\blx@bcf@options@scope@entry{\blx@xml@option@scope{##1}{####1}}}%
+    \def\do####1{\xappto\blx@bcf@options@scope@entry{\blx@xml@option@entryscope{##1}{####1}}}%
     \dolistcsloop{blx@entryopts@##1}%
     \endgroup}%
   \dolistloop\blx@entryopts@datatypes
   % NAMELIST
   \def\do##1{%
     \begingroup
-    \def\do####1{\xappto\blx@bcf@options@scope@namelist{\blx@xml@option@scope{##1}{####1}}}%
+    \def\do####1{\xappto\blx@bcf@options@scope@namelist{\blx@xml@option@namelistscope{##1}{####1}}}%
     \dolistcsloop{blx@namelistopts@##1}%
     \endgroup}%
   \dolistloop\blx@entryopts@datatypes
   % NAME
   \def\do##1{%
     \begingroup
-    \def\do####1{\xappto\blx@bcf@options@scope@name{\blx@xml@option@scope{##1}{####1}}}%
+    \def\do####1{\xappto\blx@bcf@options@scope@name{\blx@xml@option@namescope{##1}{####1}}}%
     \dolistcsloop{blx@nameopts@##1}%
     \endgroup}%
   \dolistloop\blx@entryopts@datatypes
@@ -12433,6 +13009,7 @@
         \blx@bcf@datamodel@fields
       }%
       \blx@bcf@datamodel@entryfields
+      \blx@bcf@datamodel@multiscript@entryfields
       \blx@bcf@datamodel@constraints
     }%
   }%
@@ -12698,6 +13275,22 @@
   \ifstrequal{#1}{true}
     {\appto\blx@tempf{ map\string_final="1"}}
     {}}
+\define@key{blx@sourcemap@step}{cited}[true]{% true|false
+  \ifstrequal{#1}{true}
+    {\appto\blx@tempf{ map\string_entrykey\string_cited="1"}}
+    {}}
+\define@key{blx@sourcemap@step}{nocited}[true]{% true|false
+  \ifstrequal{#1}{true}
+    {\appto\blx@tempf{ map\string_entrykey\string_nocited="1"}}
+    {}}
+\define@key{blx@sourcemap@step}{citedornocited}[true]{% true|false
+  \ifstrequal{#1}{true}
+    {\appto\blx@tempf{ map\string_entrykey\string_citedornocited="1"}}
+    {}}
+\define@key{blx@sourcemap@step}{allnocited}[true]{% true|false
+  \ifstrequal{#1}{true}
+    {\appto\blx@tempf{ map\string_entrykey\string_allnocited="1"}}
+    {}}
 \define@key{blx@sourcemap@step}{fieldsource}{% characters
   \eappto\blx@tempf{ map\string_field\string_source="#1"}}
 \define@key{blx@sourcemap@step}{notfield}{% characters
@@ -12778,8 +13371,8 @@
     {\listxadd\blx@lantemplatespecs\blx@lantname}%
   \endgroup}
 \@onlypreamble\DeclareLabelalphaNameTemplate
-\blx@collectopts{xml}{blx@globalopts}{labelalphanametemplate}% for passing to the .bcf
-\DeclareEntryOption[string]{labelalphanametemplatename}{%
+\blx@DeclareBackendOption{global}[xml]{labelalphanametemplate}
+\DeclareBiblatexOption{entry,namelist,name}[string]{labelalphanametemplatename}{%
   \def\blx@refcontext@labelalphanametemplatename{#1}}
 
 \newcommand*{\blx@lantem@namepart}[2][]{%
@@ -12821,8 +13414,7 @@
      {\blx@latem{#2}{global}}
      {\forcsvlist{\blx@latem{#2}}{#1}}}
 \@onlypreamble\DeclareLabelalphaTemplate
-\blx@collectopts{xml}{blx@globalopts}{labelalphatemplate}% for passing to the .bcf
-\blx@collectopts{xml}{blx@typeopts}{labelalphatemplate}% for passing to the .bcf
+\blx@DeclareBackendOption{global,type}[xml]{labelalphatemplate}
 
 \def\blx@latem#1#2{%
   \begingroup
@@ -12982,7 +13574,7 @@
 \def\blx@inherit@ii#1#2{%
   \eappto\blx@tempa{\blx@xml@inherit@type{#1}{#2}{}}}
 
-\blx@collectopts{xml}{blx@globalopts}{inheritance}% for passing to the .bcf
+\blx@DeclareBackendOption{global}[xml]{inheritance}
 
 % [<options>]{<source>}{<target>}
 \newcommand*{\blx@inherit@field}[3][]{%
@@ -13066,8 +13658,7 @@
     {\listxadd\blx@translits\blx@tempa}%
   \endgroup}
 \@onlypreamble\DeclareSortTranslit
-\blx@collectopts{xml}{blx@globalopts}{translit}% for passing to the .bcf
-\blx@collectopts{xml}{blx@typeopts}{translit}% for passing to the .bcf
+\blx@DeclareBackendOption{global,type}[xml]{translit}
 
 \newcommand*{\blx@translit@setup}[4][]{%
   \eappto\blx@tempb{%
@@ -13091,8 +13682,8 @@
     {\listxadd\blx@untemplatespecs\blx@untname}%
   \endgroup}
 \@onlypreamble\DeclareUniquenameTemplate
-\blx@collectopts{xml}{blx@globalopts}{uniquenametemplate}% for passing to the .bcf
-\DeclareEntryOption[string]{uniquenametemplatename}{%
+\blx@DeclareBackendOption{global}[xml]{uniquenametemplate}
+\DeclareBiblatexOption{entry,namelist,name}[string]{uniquenametemplatename}{%
   \def\blx@refcontext@uniquenametemplatename{#1}}
 
 \newcommand*{\blx@untemp@namepart}[2][]{%
@@ -13136,8 +13727,8 @@
     {\listxadd\blx@sortingnamekeytemplates\blx@snkname}%
   \endgroup}
 \@onlypreamble\DeclareSortingNamekeyTemplate
-\blx@collectopts{xml}{blx@globalopts}{sortingnamekeytemplate}% for passing to the .bcf
-\DeclareEntryOption[string]{sortingnamekeytemplatename}{%
+\blx@DeclareBackendOption{global}[xml]{sortingnamekeytemplate}
+\DeclareBiblatexOption{entry,namelist,name}[string]{sortingnamekeytemplatename}{%
   \def\blx@refcontext@sortingnamekeytemplatename{#1}}
 
 % User-mode macro for checking sorting name template options
@@ -13209,7 +13800,7 @@
   \global\cslet{blx@sortingtemplate@#2}\blx@tempa
   \endgroup}
 \@onlypreamble\DeclareSortingTemplate
-\blx@collectopts{xml}{blx@globalopts}{sortingtemplate}% for passing to the .bcf
+\blx@DeclareBackendOption{global}[xml]{sortingtemplate}
 
 \define@key{blx@sortdef@sorting}{locale}{% locale name
   \def\blx@templ{#1}}
@@ -13275,7 +13866,7 @@
   \advance\blx@tempcntb\@ne
   \blx@xmlsanitizeafter{\def\blx@tempe}{#1}%
   \eappto\blx@tempb{%
-    \blx@xml@sortitem{order="\the\blx@tempcntb"}{\blx@tempe}}}
+    \blx@xml@sortitem{literal="1" order="\the\blx@tempcntb"}{\blx@tempe}}}
 
 % [<type,type,...>]{<string>}
 \newrobustcmd*{\DeclarePresort}[2][]{%
@@ -13288,9 +13879,7 @@
        {\forcsvlist\blx@undefpresort{#1}}}%
   \endgroup}
 \@onlypreamble\DeclarePresort
-\blx@collectopts{string}{blx@globalopts}{presort}% for passing to the .bcf
-\blx@collectopts{string}{blx@typeopts}{presort}% for passing to the .bcf
-\blx@collectopts{string}{blx@entryopts}{presort}% for passing to the .bcf
+\blx@DeclareBackendOption{global,type,entry}[string]{presort}
 
 \def\blx@defpresort#1#2{%
   \csxdef{blx@bcf@presort@#2}{\blx@xml@presort{#2}{#1}}}
@@ -13300,7 +13889,7 @@
 % {<entrytype,...>}{<field,...>}
 \newrobustcmd*{\DeclareSortExclusion}[2]{%
   \forcsvlist{\blx@sortexclude{#2}}{#1}}
-\blx@collectopts{xml}{blx@typeopts}{sortexclusion}% for passing to the .bcf
+\blx@DeclareBackendOption{type}[xml]{sortexclusion}
 
 % {<field>}{<entrytype>}
 \def\blx@sortexclude#1#2{%
@@ -13319,7 +13908,7 @@
 % {<entrytype,...>}{<field,...>}
 \newrobustcmd*{\DeclareSortInclusion}[2]{%
   \forcsvlist{\blx@sortinclude{#2}}{#1}}
-\blx@collectopts{xml}{blx@typeopts}{sortinclusion}% for passing to the .bcf
+\blx@DeclareBackendOption{type}[xml]{sortinclusion}
 
 % {<field>}{<entrytype>}
 \def\blx@sortinclude#1#2{%
@@ -13344,7 +13933,7 @@
   \global\let\blx@bcf@extradatespec\blx@tempa
   \endgroup}
 \@onlypreamble\DeclareExtradate
-\blx@collectopts{xml}{blx@globalopts}{extradatespec}% for passing to the .bcf
+\blx@DeclareBackendOption{global}[xml]{extradatespec}
 
 \newrobustcmd*{\blx@extradate@scope}[1]{%
   \let\blx@tempb\@empty
@@ -13372,8 +13961,7 @@
   #2%
   \endgroup}
 \@onlypreamble\DeclareLabelname
-\blx@collectopts{xml}{blx@globalopts}{labelnamespec}% for passing to the .bcf
-\blx@collectopts{xml}{blx@typeopts}{labelnamespec}% for passing to the .bcf
+\blx@DeclareBackendOption{global,type}[xml]{labelnamespec}
 
 \newrobustcmd*{\DeclareLabeltitle}[2][]{%
   \begingroup
@@ -13388,8 +13976,7 @@
   #2%
   \endgroup}
 \@onlypreamble\DeclareLabeltitle
-\blx@collectopts{xml}{blx@globalopts}{labeltitlespec}% for passing to the .bcf
-\blx@collectopts{xml}{blx@typeopts}{labeltitlespec}% for passing to the .bcf
+\blx@DeclareBackendOption{global,type}[xml]{labeltitlespec}
 
 \newrobustcmd*{\DeclareLabeldate}[2][]{%
   \begingroup
@@ -13405,8 +13992,7 @@
   #2%
   \endgroup}
 \@onlypreamble\DeclareLabeldate
-\blx@collectopts{xml}{blx@globalopts}{labeldatespec}% for passing to the .bcf
-\blx@collectopts{xml}{blx@typeopts}{labeldatespec}% for passing to the .bcf
+\blx@DeclareBackendOption{global,type}[xml]{labeldatespec}
 
 \newcommand*{\blx@ordered@field}[2][]{%
   \let\blx@tempc\@empty
@@ -13571,7 +14157,7 @@
 \define@key{blx@opt@pre}{sorting}{%
   \def\blx@sorting{#1}%
   \def\blx@refcontext@sortingtemplatename{#1}}
-\blx@collectopts{string}{blx@globalopts}{sortingtemplatename}% for passing to the .bcf
+\blx@DeclareBackendOption{global}[string]{sortingtemplatename}
 
 \AtEndPreamble{%
   \ifcsdef{blx@sortingtemplate@\blx@sorting}
@@ -13585,7 +14171,12 @@
   \let\blx@refcontext@labelprefix@real\@empty
   \def\blx@refcontext@uniquenametemplatename{global}%
   \def\blx@refcontext@labelalphanametemplatename{global}%
-  \blx@xdef@refcontext{\blx@refcontext@sortingtemplatename/\blx@refcontext@sortingnamekeytemplatename/\blx@refcontext@labelprefix/\blx@refcontext@uniquenametemplatename/\blx@refcontext@labelalphanametemplatename}%
+  \blx@xdef@refcontext{%
+    \blx@refcontext@sortingtemplatename/%
+    \blx@refcontext@sortingnamekeytemplatename/%
+    \blx@refcontext@labelprefix/%
+    \blx@refcontext@uniquenametemplatename/%
+    \blx@refcontext@labelalphanametemplatename}%
   \listxadd\blx@refcontexts\blx@refcontext@context}
 
 \DeclareBibliographyOption[boolean]{sortcase}[true]{%
@@ -13594,134 +14185,80 @@
 \DeclareBibliographyOption[boolean]{sortupper}[true]{%
   \settoggle{blx@sortupper}{#1}}
 
-\DeclareBibliographyOption[integer]{maxnames}{%
+\DeclareBiblatexOption{global,type}[integer]{maxnames}{%
   \numdef\blx@maxcitenames{#1}%
   \numdef\blx@maxbibnames{#1}%
-  \numdef\blx@maxsortnames{#1}}
-\DeclareBibliographyOption[integer]{minnames}{%
+  \numdef\blx@maxsortnames{#1}%
+  \c@maxnames#1\relax}
+\DeclareBiblatexOption{global,type}[integer]{minnames}{%
   \numdef\blx@mincitenames{#1}%
   \numdef\blx@minbibnames{#1}%
-  \numdef\blx@minsortnames{#1}}
-\DeclareTypeOption[integer]{maxnames}{%
-  \numdef\blx@maxcitenames@type{#1}%
-  \numdef\blx@maxbibnames@type{#1}%
-  \numdef\blx@maxsortnames@type{#1}%
-  \c@maxnames#1\relax}
-\DeclareTypeOption[integer]{minnames}{%
-  \numdef\blx@mincitenames@type{#1}%
-  \numdef\blx@minbibnames@type{#1}%
-  \numdef\blx@minsortnames@type{#1}%
+  \numdef\blx@minsortnames{#1}%
   \c@minnames#1\relax}
-\DeclareEntryOption[integer]{maxnames}{%
-  \c@maxnames#1\relax}
-\DeclareEntryOption[integer]{minnames}{%
-  \c@minnames#1\relax}
+% the per-entry option is resolved by Biber directly
+\blx@DeclareBackendOption{entry}[integer]{maxnames}
+\blx@DeclareBackendOption{entry}[integer]{minnames}
+\gdef\blx@bcf@backendin@entry@maxnames{maxcitenames,maxbibnames,maxsortnames}%
+\gdef\blx@bcf@backendin@entry@minnames{mincitenames,minbibnames,minsortnames}%
 
-\DeclareBibliographyOption[integer]{maxbibnames}{%
+
+\DeclareBiblatexOption{global,type,entry}[integer]{maxbibnames}{%
   \numdef\blx@maxbibnames{#1}%
-  \numdef\blx@maxsortnames{#1}}
-\DeclareBibliographyOption[integer]{minbibnames}{%
+  \numdef\blx@maxsortnames{#1}%
+  \iftoggle{blx@bibliography}
+    {\c@maxnames#1\relax}
+    {}}
+\DeclareBiblatexOption{global,type,entry}[integer]{minbibnames}{%
   \numdef\blx@minbibnames{#1}%
-  \numdef\blx@minsortnames{#1}}
-\DeclareTypeOption[integer]{maxbibnames}{%
-  \numdef\blx@maxbibnames@type{#1}%
-  \numdef\blx@maxsortnames@type{#1}%
-  \iftoggle{blx@bibliography}
-    {\c@maxnames#1\relax}
-    {}}
-\DeclareTypeOption[integer]{minbibnames}{%
-  \numdef\blx@minbibnames@type{#1}%
-  \numdef\blx@minsortnames@type{#1}%
-  \iftoggle{blx@bibliography}
-    {\c@minnames#1\relax}
-    {}}
-\DeclareEntryOption[integer]{maxbibnames}{%
-  \iftoggle{blx@bibliography}
-    {\c@maxnames#1\relax}
-    {}}
-\DeclareEntryOption[integer]{minbibnames}{%
+  \numdef\blx@minsortnames{#1}%
   \iftoggle{blx@bibliography}
     {\c@minnames#1\relax}
     {}}
 
-\DeclareBibliographyOption[integer]{maxcitenames}{%
-  \numdef\blx@maxcitenames{#1}}
-\DeclareBibliographyOption[integer]{mincitenames}{%
-  \numdef\blx@mincitenames{#1}}
-\DeclareTypeOption[integer]{maxcitenames}{%
-  \numdef\blx@maxcitenames@type{#1}%
+\DeclareBiblatexOption{global,type,entry}[integer]{maxcitenames}{%
+  \numdef\blx@maxcitenames{#1}%
   \iftoggle{blx@bibliography}
     {}
     {\c@maxnames#1\relax}}
-\DeclareTypeOption[integer]{mincitenames}{%
-  \numdef\blx@mincitenames@type{#1}%
-  \iftoggle{blx@bibliography}
-    {}
-    {\c@minnames#1\relax}}
-\DeclareEntryOption[integer]{maxcitenames}{%
-  \iftoggle{blx@bibliography}
-    {}
-    {\c@maxnames#1\relax}}
-\DeclareEntryOption[integer]{mincitenames}{%
+\DeclareBiblatexOption{global,type,entry}[integer]{mincitenames}{%
+  \numdef\blx@mincitenames{#1}%
   \iftoggle{blx@bibliography}
     {}
     {\c@minnames#1\relax}}
 
-\DeclareBibliographyOption[integer]{maxsortnames}{%
+\DeclareBiblatexOption{global,type,entry}[integer]{maxsortnames}{%
   \numdef\blx@maxsortnames{#1}}
-\DeclareBibliographyOption[integer]{minsortnames}{%
+\DeclareBiblatexOption{global,type,entry}[integer]{minsortnames}{%
   \numdef\blx@minsortnames{#1}}
-\DeclareTypeOption[integer]{maxsortnames}{%
-  \numdef\blx@maxsortnames@type{#1}}
-\DeclareTypeOption[integer]{minsortnames}{%
-  \numdef\blx@minsortnames@type{#1}}
-\DeclareEntryOption[integer]{maxsortnames}{}
-\DeclareEntryOption[integer]{minsortnames}{}
 
 \appto\blx@checkoptions@global{%
   \blx@maxmin@num{maxbibnames}{minbibnames}\blx@maxbibnames\blx@minbibnames
   \blx@maxmin@num{maxcitenames}{mincitenames}\blx@maxcitenames\blx@mincitenames
   \blx@maxmin@num{maxsortnames}{minsortnames}\blx@maxsortnames\blx@minsortnames}
 \appto\blx@checkoptions@type{%
-  \blx@maxmin@num{maxbibnames}{minbibnames}\blx@maxbibnames@type\blx@minbibnames@type
-  \blx@maxmin@num{maxcitenames}{mincitenames}\blx@maxcitenames@type\blx@mincitenames@type
-  \blx@maxmin@num{maxsortnames}{minsortnames}\blx@maxsortnames@type\blx@minsortnames@type}
+  \blx@maxmin@num{maxbibnames}{minbibnames}\blx@maxbibnames\blx@minbibnames
+  \blx@maxmin@num{maxcitenames}{mincitenames}\blx@maxcitenames\blx@mincitenames
+  \blx@maxmin@num{maxsortnames}{minsortnames}\blx@maxsortnames\blx@minsortnames}
 \appto\blx@checkoptions@entry{%
   \blx@maxmin@cnt{maxnames}{minnames}\c@maxnames\c@minnames}
 
-\DeclareBibliographyOption[integer]{maxitems}{%
-  \numdef\blx@maxitems{#1}}
-\DeclareBibliographyOption[integer]{minitems}{%
-  \numdef\blx@minitems{#1}}
-\DeclareTypeOption[integer]{maxitems}{%
-  \numdef\blx@maxitems@type{#1}%
+\DeclareBiblatexOption{global,type,entry}[integer]{maxitems}{%
+  \numdef\blx@maxitems{#1}%
   \c@maxitems#1\relax}
-\DeclareTypeOption[integer]{minitems}{%
-  \numdef\blx@minitems@type{#1}%
-  \c@minitems#1\relax}
-\DeclareEntryOption[integer]{maxitems}{%
-  \c@maxitems#1\relax}
-\DeclareEntryOption[integer]{minitems}{%
+\DeclareBiblatexOption{global,type,entry}[integer]{minitems}{%
+  \numdef\blx@minitems{#1}%
   \c@minitems#1\relax}
 
 \appto\blx@checkoptions@global{%
   \blx@maxmin@num{maxitems}{minitems}\blx@maxitems\blx@minitems}
 \appto\blx@checkoptions@type{%
-  \blx@maxmin@num{maxitems}{minitems}\blx@maxitems@type\blx@minitems@type}
+  \blx@maxmin@num{maxitems}{minitems}\blx@maxitems\blx@minitems}
 \appto\blx@checkoptions@entry{%
   \blx@maxmin@cnt{maxitems}{minitems}\c@maxitems\blx@minitems}
 
-\DeclareBibliographyOption[integer]{maxalphanames}{%
+\DeclareBiblatexOption{global,type,entry}[integer]{maxalphanames}{%
   \numdef\blx@maxalphanames{#1}}
-\DeclareBibliographyOption[integer]{minalphanames}{%
-  \numdef\blx@minalphanames{#1}}
-\DeclareTypeOption[integer]{maxalphanames}{%
-  \numdef\blx@maxalphanames{#1}}
-\DeclareTypeOption[integer]{minalphanames}{%
-  \numdef\blx@minalphanames{#1}}
-\DeclareEntryOption[integer]{maxalphanames}{%
-  \numdef\blx@maxalphanames{#1}}
-\DeclareEntryOption[integer]{minalphanames}{%
+\DeclareBiblatexOption{global,type,entry}[integer]{minalphanames}{%
   \numdef\blx@minalphanames{#1}}
 
 \appto\blx@checkoptions@global{%
@@ -13757,7 +14294,7 @@
      #3=#4}
     {}}
 
-\DeclareBibliographyOption[boolean]{terseinits}[true]{%
+\DeclareBiblatexOption{global,type,entry,namelist,name}[boolean]{terseinits}[true]{%
   \ifstrequal{#1}{true}
     {\toggletrue{blx@terseinits}
      \renewrobustcmd*{\bibinitperiod}{}
@@ -13768,12 +14305,12 @@
      \renewrobustcmd*{\bibinitdelim}{\addnbspace}
      \renewrobustcmd*{\bibinithyphendelim}{\adddot\mbox{-}}}}
 
-\DeclareBibliographyOption[boolean]{abbreviate}[true]{%
+\DeclareBiblatexOption{global,type,entry}[boolean]{abbreviate}[true]{%
   \ifstrequal{#1}{true}
     {\def\abx@str{abx@sstr}}
     {\def\abx@str{abx@lstr}}}
 
-\DeclareBibliographyOption[boolean]{dateabbrev}[true]{%
+\DeclareBiblatexOption{global,type,entry}[boolean]{dateabbrev}[true]{%
   \ifstrequal{#1}{true}
     {\let\abx@bibmonth\blx@imc@bibsstring
      \let\abx@bibseason\blx@imc@bibsstring}
@@ -13786,6 +14323,8 @@
 \DeclareBibliographyOption[string]{language}{%
   \togglefalse{blx@autolangbib}%
   \togglefalse{blx@autolangcite}%
+  \undef\blx@languagename
+  \undef\blx@forcelanguagename
   \ifboolexpr{
     test {\ifstrequal{#1}{auto}}
     or
@@ -13815,7 +14354,7 @@
       {Language '#1' not supported}
       {Failed to find a matching '#1.lbx' file}}}}
 
-\DeclareBibliographyOption[boolean]{clearlang}[true]{%
+\DeclareBiblatexOption{global,type,entry}[boolean]{clearlang}[true]{%
   \settoggle{blx@clearlang}{#1}}
 
 \DeclareBibliographyOption[string]{autolang}{%
@@ -13849,11 +14388,7 @@
   \def\blx@hook@initlang{\@quotereset\@ne}%
   \def\blx@hook@endlang{\blx@postpunct}}
 
-\DeclareBibliographyOption[boolean]{indexing}[true]{%
-  \blx@opt@index{#1}}
-\DeclareTypeOption[boolean]{indexing}[true]{%
-  \blx@opt@index{#1}}
-\DeclareEntryOption[boolean]{indexing}[true]{%
+\DeclareBiblatexOption{global,type,entry}[string]{indexing}[true]{%
   \blx@opt@index{#1}}
 \def\blx@opt@index#1{%
   \ifcsdef{blx@opt@index@#1}
@@ -13883,7 +14418,7 @@
 \DeclareBibliographyOption[boolean]{sortsets}[true]{%
   \settoggle{blx@sortsets}{#1}}
 
-\DeclareBibliographyOption[boolean]{hyperref}[true]{%
+\DeclareBibliographyOption[string]{hyperref}[true]{%
   \ifcsdef{blx@opt@hyperref@#1}
     {\letcs\blx@hyperref{blx@opt@hyperref@#1}}
     {\blx@err@invopt{hyperref=#1}{}}}
@@ -13979,7 +14514,7 @@
   \def\newblockpunct{%
     \unspace\penalty-9\relax\space}}
 
-\DeclareBibliographyOption[boolean]{pagetracker}[true]{%
+\DeclareBibliographyOption[string]{pagetracker}[true]{%
   \ifcsdef{blx@opt@pagetracker@#1}
     {\csuse{blx@opt@pagetracker@#1}}
     {\blx@err@invopt{pagetracker=#1}{}}}
@@ -14012,7 +14547,7 @@
     \blx@opt@pagetracker@page
   \fi}
 
-\DeclareBibliographyOption[boolean]{citecounter}[true]{%
+\DeclareBibliographyOption[string]{citecounter}[true]{%
   \ifcsdef{blx@opt@citecounter@#1}
     {\csuse{blx@opt@citecounter@#1}}
     {\blx@err@invopt{citecounter=#1}{}}}
@@ -14034,7 +14569,7 @@
   \let\abx@aux@count\@gobbletwo
   \let\abx@aux@fncount\@gobbletwo}
 
-\DeclareBibliographyOption[boolean]{citetracker}[true]{%
+\DeclareBiblatexOption{global,type,entry}[string]{citetracker}[true]{%
   \ifcsdef{blx@opt@citetracker@#1}
     {\csuse{blx@opt@citetracker@#1}}
     {\blx@err@invopt{citetracker=#1}{}}}
@@ -14065,7 +14600,7 @@
     \blx@ifcitesingle{\blx@citetracker@context}{}}%
   \booltrue{citetracker}}
 
-\DeclareBibliographyOption[boolean]{ibidtracker}[true]{%
+\DeclareBiblatexOption{global,type,entry}[string]{ibidtracker}[true]{%
   \ifcsdef{blx@opt@ibidtracker@#1}
     {\csuse{blx@opt@ibidtracker@#1}}
     {\blx@err@invopt{ibidtracker=#1}{}}}
@@ -14094,7 +14629,7 @@
   \let\blx@ibidreset\blx@ibidreset@context
   \booltrue{citetracker}}
 
-\DeclareBibliographyOption[boolean]{idemtracker}[true]{%
+\DeclareBiblatexOption{global,type,entry}[string]{idemtracker}[true]{%
   \ifcsdef{blx@opt@idemtracker@#1}
     {\csuse{blx@opt@idemtracker@#1}}
     {\blx@err@invopt{idemtracker=#1}{}}}
@@ -14123,7 +14658,7 @@
   \let\blx@idemreset\blx@idemreset@context
   \booltrue{citetracker}}
 
-\DeclareBibliographyOption[boolean]{opcittracker}[true]{%
+\DeclareBiblatexOption{global,type,entry}[string]{opcittracker}[true]{%
   \ifcsdef{blx@opt@opcittracker@#1}
     {\csuse{blx@opt@opcittracker@#1}}
     {\blx@err@invopt{opcittracker=#1}{}}}
@@ -14152,7 +14687,7 @@
   \let\blx@opcitreset\blx@opcitreset@context
   \booltrue{citetracker}}
 
-\DeclareBibliographyOption[boolean]{loccittracker}[true]{%
+\DeclareBiblatexOption{global,type,entry}[string]{loccittracker}[true]{%
   \ifcsdef{blx@opt@loccittracker@#1}
     {\csuse{blx@opt@loccittracker@#1}}
     {\blx@err@invopt{loccittracker=#1}{}}}
@@ -14448,48 +14983,22 @@
   \iftoggle{blx@labelnumber}
     {}
     {\setkeys{blx@opt@pre}{defernumbers=false}}}
-\DeclareTypeOption[boolean]{labelnumber}[true]{%
-  \settoggle{blx@labelnumber}{#1}}
-\DeclareEntryOption[boolean]{labelnumber}[true]{%
+\DeclareBiblatexOption{type,entry}[boolean]{labelnumber}[true]{%
   \settoggle{blx@labelnumber}{#1}}
 
-\DeclareBibliographyOption[boolean]{labelalpha}[true]{%
-  \settoggle{blx@labelalpha}{#1}}
-\DeclareTypeOption[boolean]{labelalpha}[true]{%
-  \settoggle{blx@labelalpha}{#1}}
-\DeclareEntryOption[boolean]{labelalpha}[true]{%
+\DeclareBiblatexOption{global,type,entry}[boolean]{labelalpha}[true]{%
   \settoggle{blx@labelalpha}{#1}}
 
-\DeclareBibliographyOption[boolean]{labeltitle}[true]{%
-  \settoggle{blx@labeltitle}{#1}}
-\DeclareTypeOption[boolean]{labeltitle}[true]{%
-  \settoggle{blx@labeltitle}{#1}}
-\DeclareEntryOption[boolean]{labeltitle}[true]{%
+\DeclareBiblatexOption{global,type,entry}[boolean]{labeltitle}[true]{%
   \settoggle{blx@labeltitle}{#1}}
 
-\DeclareBibliographyOption[boolean]{labeltitleyear}[true]{%
-  \settoggle{blx@labeltitleyear}{#1}}
-\DeclareTypeOption[boolean]{labeltitleyear}[true]{%
-  \settoggle{blx@labeltitleyear}{#1}}
-\DeclareEntryOption[boolean]{labeltitleyear}[true]{%
+\DeclareBiblatexOption{global,type,entry}[boolean]{labeltitleyear}[true]{%
   \settoggle{blx@labeltitleyear}{#1}}
 
-\DeclareBibliographyOption[boolean]{labeldateparts}[true]{%
-  \settoggle{blx@labeldateparts}{#1}}
-\DeclareTypeOption[boolean]{labeldateparts}[true]{%
-  \settoggle{blx@labeldateparts}{#1}}
-\DeclareEntryOption[boolean]{labeldateparts}[true]{%
+\DeclareBiblatexOption{global,type,entry}[boolean]{labeldateparts}[true]{%
   \settoggle{blx@labeldateparts}{#1}}
 
-\DeclareBibliographyOption[string]{uniquelist}[true]{%
-  \ifcsdef{blx@opt@uniquelist@#1}
-    {\letcs\blx@uniquelist{blx@opt@uniquelist@#1}}
-    {\blx@err@invopt{uniquelist=#1}{}}}
-\DeclareTypeOption[string]{uniquelist}[true]{%
-  \ifcsdef{blx@opt@uniquelist@#1}
-    {\letcs\blx@uniquelist{blx@opt@uniquelist@#1}}
-    {\blx@err@invopt{uniquelist=#1}{}}}
-\DeclareEntryOption[string]{uniquelist}[true]{%
+\DeclareBiblatexOption{global,type}[string]{uniquelist}[true]{%
   \ifcsdef{blx@opt@uniquelist@#1}
     {\letcs\blx@uniquelist{blx@opt@uniquelist@#1}}
     {\blx@err@invopt{uniquelist=#1}{}}}
@@ -14497,29 +15006,17 @@
 \def\blx@opt@uniquelist@true{true}
 \def\blx@opt@uniquelist@minyear{minyear}
 
-\DeclareBibliographyOption[boolean]{nohashothers}[true]{%
-  \settoggle{blx@nohashothers}{#1}}
-\DeclareTypeOption[boolean]{nohashothers}[false]{%
-  \settoggle{blx@nohashothers}{#1}}
-\DeclareEntryOption[boolean]{nohashothers}[false]{%
-  \settoggle{blx@nohashothers}{#1}}
+\blx@DeclareBackendOption{entry,namelist}[string]{uniquelist}
 
-\DeclareBibliographyOption[boolean]{nosortothers}[true]{%
-  \settoggle{blx@nosortothers}{#1}}
-\DeclareTypeOption[boolean]{nosortothers}[false]{%
-  \settoggle{blx@nosortothers}{#1}}
-\DeclareEntryOption[boolean]{nosortothers}[false]{%
-  \settoggle{blx@nosortothers}{#1}}
+\DeclareBiblatexOption{global,type}[boolean]{nohashothers}[true]{%
+  \settoggle{blx@nohashothers}{#1}}
+\blx@DeclareBackendOption{entry,namelist}[boolean]{nohashothers}
 
-\DeclareBibliographyOption[string]{uniquename}[true]{%
-  \ifcsdef{blx@opt@uniquename@#1}
-    {\letcs\blx@uniquename{blx@opt@uniquename@#1}}
-    {\blx@err@invopt{uniquename=#1}{}}}
-\DeclareTypeOption[string]{uniquename}[true]{%
-  \ifcsdef{blx@opt@uniquename@#1}
-    {\letcs\blx@uniquename{blx@opt@uniquename@#1}}
-    {\blx@err@invopt{uniquename=#1}{}}}
-\DeclareEntryOption[string]{uniquename}[true]{%
+\DeclareBiblatexOption{global,type}[boolean]{nosortothers}[true]{%
+  \settoggle{blx@nosortothers}{#1}}
+\blx@DeclareBackendOption{entry,namelist}[boolean]{nosortothers}
+
+\DeclareBiblatexOption{global,type}[string]{uniquename}[true]{%
   \ifcsdef{blx@opt@uniquename@#1}
     {\letcs\blx@uniquename{blx@opt@uniquename@#1}}
     {\blx@err@invopt{uniquename=#1}{}}}
@@ -14532,47 +15029,32 @@
 \def\blx@opt@uniquename@mininit{mininit}
 \def\blx@opt@uniquename@minfull{minfull}
 
-\DeclareBibliographyOption[boolean]{noroman}[true]{%
+\blx@DeclareBackendOption{entry,namelist,name}[string]{uniquename}
+
+\DeclareBiblatexOption{global,type}[boolean]{noroman}[true]{%
   \settoggle{blx@noroman}{#1}}
-\DeclareTypeOption[boolean]{noroman}[true]{%
-  \settoggle{blx@noroman}{#1}}
-\DeclareEntryOption[boolean]{noroman}[true]{%
-  \settoggle{blx@noroman}{#1}}
+\blx@DeclareBackendOption{entry}[boolean]{noroman}
 
-\DeclareBibliographyOption[boolean]{singletitle}[true]{%
+\DeclareBiblatexOption{global,type}[boolean]{singletitle}[true]{%
   \settoggle{blx@singletitle}{#1}}
-\DeclareTypeOption[boolean]{singletitle}[true]{%
-  \settoggle{blx@singletitle}{#1}}
-\DeclareEntryOption[boolean]{singletitle}[true]{%
-  \settoggle{blx@singletitle}{#1}}
+\blx@DeclareBackendOption{entry}[boolean]{singletitle}
 
-\DeclareBibliographyOption[boolean]{uniquetitle}[true]{%
+\DeclareBiblatexOption{global,type}[boolean]{uniquetitle}[true]{%
   \settoggle{blx@uniquetitle}{#1}}
-\DeclareTypeOption[boolean]{uniquetitle}[true]{%
-  \settoggle{blx@uniquetitle}{#1}}
-\DeclareEntryOption[boolean]{uniquetitle}[true]{%
-  \settoggle{blx@uniquetitle}{#1}}
+\blx@DeclareBackendOption{entry}[boolean]{uniquetitle}
 
-\DeclareBibliographyOption[boolean]{uniquebaretitle}[true]{%
+\DeclareBiblatexOption{global,type}[boolean]{uniquebaretitle}[true]{%
   \settoggle{blx@uniquebaretitle}{#1}}
-\DeclareTypeOption[boolean]{uniquebaretitle}[true]{%
-  \settoggle{blx@uniquebaretitle}{#1}}
-\DeclareEntryOption[boolean]{uniquebaretitle}[true]{%
-  \settoggle{blx@uniquebaretitle}{#1}}
+\blx@DeclareBackendOption{entry}[boolean]{uniquebaretitle}
 
-\DeclareBibliographyOption[boolean]{uniquework}[true]{%
+\DeclareBiblatexOption{global,type}[boolean]{uniquework}[true]{%
   \settoggle{blx@uniquework}{#1}}
-\DeclareTypeOption[boolean]{uniquework}[true]{%
-  \settoggle{blx@uniquework}{#1}}
-\DeclareEntryOption[boolean]{uniquework}[true]{%
-  \settoggle{blx@uniquework}{#1}}
+\blx@DeclareBackendOption{entry}[boolean]{uniquework}
 
-\DeclareBibliographyOption[boolean]{uniqueprimaryauthor}[true]{%
+\DeclareBiblatexOption{global,type}[boolean]{uniqueprimaryauthor}[true]{%
   \settoggle{blx@uniqueprimaryauthor}{#1}}
-\DeclareTypeOption[boolean]{uniqueprimaryauthor}[true]{%
-  \settoggle{blx@uniqueprimaryauthor}{#1}}
-\DeclareEntryOption[boolean]{uniqueprimaryauthor}[true]{%
-  \settoggle{blx@uniqueprimaryauthor}{#1}}
+\blx@DeclareBackendOption{entry}[boolean]{uniqueprimaryauthor}
+
 
 \DeclareBibliographyOption[boolean]{defernumbers}[true]{%
   \settoggle{blx@defernumbers}{#1}%
@@ -14584,41 +15066,8 @@
      \let\abx@aux@number\@gobblefive}}
 
 \DeclareBibliographyOption[boolean]{locallabelwidth}[true]{%
-  \blx@key@locallabelwidth{#1}}
+  \blx@key@locallabelwidth{\abx@locallabelwidth}{#1}}
 
-%{<switch>}{<patch>}{<pre>}{<post>}
-\def\blx@patchsection@switch#1#2#3#4{%
-  \AtEndPreamble{%
-    #3%
-    \ifcase#1
-    \or % 1: part
-      \blx@refpatch@part{#2}%
-    \or % 2: chapter
-      \blx@refpatch@chapter{#2}%
-    \or % 3: section
-      \blx@refpatch@sect{section}{#2}{1}%
-    \or % 4: subsection
-      \blx@refpatch@sect{subsection}{#2}{2}%
-    \or % 5: chapter+ = part, chapter
-      \blx@refpatch@part{#2}%
-      \blx@refpatch@chapter{#2}%
-    \or % 6: section+ = part, chapter, section
-      \blx@refpatch@part{#2}%
-      \ifundef\chapter
-        {}
-        {\blx@refpatch@chapter{#2}}%
-      \blx@refpatch@sect{section}{#2}{1}%
-    \or % 7: subsection+ = part, chapter, section, subsection
-      \blx@refpatch@part{#2}%
-      \ifundef\chapter
-        {}
-        {\blx@refpatch@chapter{#2}}%
-      \blx@refpatch@sect{section}{#2}{1}%
-      \blx@refpatch@sect{subsection}{#2}{2}%
-    \fi
-    #4%
-  }%
-}
 
 \DeclareBibliographyOption[string]{refsection}{%
   \ifcsdef{blx@opt@refsection@#1}
@@ -14684,55 +15133,37 @@
 
 % Name field options
 \def\do#1{%
-  \DeclareBibliographyOption[boolean]{use#1}[true]{%
-    \settoggle{blx@use#1}{##1}}
-  \DeclareTypeOption[boolean]{use#1}[true]{%
-    \settoggle{blx@use#1}{##1}}
-  \DeclareEntryOption[boolean]{use#1}[true]{%
+  \DeclareBiblatexOption{global,type,entry}[boolean]{use#1}[true]{%
     \settoggle{blx@use#1}{##1}}}
 \abx@donames
 
 % Entry options
-\DeclareBibliographyOption[boolean]{useprefix}[true]{%
-  \settoggle{blx@useprefix}{#1}}
-\DeclareTypeOption[boolean]{useprefix}[true]{%
-  \settoggle{blx@useprefix}{#1}}
-\DeclareEntryOption[boolean]{useprefix}[true]{%
+\DeclareBiblatexOption{global,type,entry,namelist,name}[boolean]{useprefix}[true]{%
   \settoggle{blx@useprefix}{#1}}
 
-\DeclareBibliographyOption[boolean]{skipbib}[true]{%
-  \settoggle{blx@skipbib}{#1}}
-\DeclareTypeOption[boolean]{skipbib}[true]{%
-  \settoggle{blx@skipbib}{#1}}
-\DeclareEntryOption[boolean]{skipbib}[true]{%
+\DeclareBiblatexOption{global,type,entry}[boolean]{skipbib}[true]{%
   \settoggle{blx@skipbib}{#1}}
 
-\DeclareBibliographyOption[boolean]{skipbiblist}[true]{%
-  \settoggle{blx@skipbiblist}{#1}}
-\DeclareTypeOption[boolean]{skipbiblist}[true]{%
-  \settoggle{blx@skipbiblist}{#1}}
-\DeclareEntryOption[boolean]{skipbiblist}[true]{%
+\DeclareBiblatexOption{global,type,entry}[boolean]{skipbiblist}[true]{%
   \settoggle{blx@skipbiblist}{#1}}
 
-\DeclareBibliographyOption[boolean]{skiplab}[true]{%
-  \settoggle{blx@skiplab}{#1}}
-\DeclareTypeOption[boolean]{skiplab}[true]{%
-  \settoggle{blx@skiplab}{#1}}
-\DeclareEntryOption[boolean]{skiplab}[true]{%
+\DeclareBiblatexOption{global,type,entry}[boolean]{skiplab}[true]{%
   \settoggle{blx@skiplab}{#1}}
 
-\DeclareBibliographyOption[boolean]{dataonly}[true]{%
+\DeclareBiblatexOption{global,type}[boolean]{dataonly}[true]{%
   \settoggle{blx@skipbib}{#1}%
   \settoggle{blx@skipbiblist}{#1}%
   \settoggle{blx@skiplab}{#1}}
-\DeclareTypeOption[boolean]{dataonly}[true]{%
-  \settoggle{blx@skipbib}{#1}%
-  \settoggle{blx@skipbiblist}{#1}%
-  \settoggle{blx@skiplab}{#1}}
-\DeclareEntryOption[boolean]{dataonly}[true]{%
-  \settoggle{blx@skipbib}{#1}%
-  \settoggle{blx@skipbiblist}{#1}%
-  \settoggle{blx@skiplab}{#1}}
+% the entry option is resolved by Biber
+\blx@DeclareBackendOption{entry}[boolean]{dataonly}
+% This is handled in a special way by by biber. It indicates what to set for various options
+% if the dataonly option is "true". If biber finds dataonly=false
+% in an entry, the booleans here will be reversed (skip*) and the unique* options (which are not
+% booleans) will be ignored, defaulting to higher scope values. biber assumes
+% that \blx@bcf@backendin@entry@* options are boolean options as otherwise, negating them
+% per-entry makes little sense and it is not clear what to do with such lower-scope overrides.
+\gdef\blx@bcf@backendin@entry@dataonly{uniquename=false,uniquelist=false,%
+  skipbib=true,skipbiblist=true,skiplab=true}
 
 % Option processor/scheduler
 \DeclareOption*{%
@@ -14857,7 +15288,7 @@
          \ifdefstring\blx@dateera{astronomical}{}
            {\blx@warn@conflopt{%
               '#1=iso' requires 'dateera=astronomical'.\MessageBreak
-              Setting 'dateera=astrononmical'}%
+              Setting 'dateera=astronomical'}%
             \setkeys{blx@opt@pre}{dateera=astronomical}}%
           \ifcsstring{blx@timeformat@\blx@datetype time}{24h}%
            {}
@@ -14971,6 +15402,7 @@
   \def\ResetDatamodelFields{\blx@warn@dm{ResetDatamodelFields}}
   \def\ResetDatamodelEntryfields{\blx@warn@dm{ResetDatamodelEntryfields}}
   \def\ResetDatamodelConstraints{\blx@warn@dm{ResetDatamodelConstraints}}
+  \renewcommand*{\DeclareDatamodelMultiscriptEntryfields}[1]{\blx@warn@dm{DeclareDatamodelMultiscriptEntryfields}}
   \renewcommand*{\DeclareDatamodelEntrytypes}[2][]{\blx@warn@dm{DeclareDatamodelEntrytypes}}
   \renewcommand*{\DeclareDatamodelFields}[2][]{\blx@warn@dm{DeclareDatamodelFields}}
   \renewcommand*{\DeclareDatamodelEntryfields}[2][]{\blx@warn@dm{DeclareDatamodelEntryfields}}
@@ -14982,5 +15414,6 @@
     \let\do\noexpand}}
 
 \def\BiblatexHungarianWarningOff{\global\let\lbx@hu@loadinfo\@empty}
+\def\BiblatexLatvianWarningOff{\global\let\lbx@lv@loadinfo\@empty}
 
 \endinput

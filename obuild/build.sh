@@ -283,7 +283,7 @@ PDFLaTeX errors/warnings
       echo >> ../example_errs_bibtex.txt
       if $bibtexflag 
       then
-        echo "ERRORS"
+          echo -e "\033[0;31mERRORS\033[0m"
       else
         echo "OK"
       fi
@@ -358,7 +358,7 @@ $TEXENGINE errors/warnings
       echo >> ../example_errs_biber.txt
       if $biberflag 
       then
-        echo "ERRORS"
+          echo -e "\033[0;31mERRORS\033[0m"
       else
         echo "OK"
       fi
@@ -369,6 +369,15 @@ fi
 
 if [[ "$1" == "testoutput" ]]
 then
-  cd obuild || exit
-  ./testfull.pl
+  for f in obuild/test/examples/*.pdf
+  do
+    echo -n "Checking `basename $f` ... "
+    diff-pdf "doc/latex/biblatex/examples/`basename $f`" $f
+    if [[ $? -eq 0 ]]
+    then
+      echo "PASS"
+    else
+      echo -e "\033[0;31mFAIL\033[0m"
+    fi
+  done
 fi

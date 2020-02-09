@@ -95,11 +95,22 @@
 \DeclareDelimFormat{andmoredelim}{\addspace}
 
 \newcommand*{\multicitedelim}{\addsemicolon\space}
+\newcommand*{\multicitesubentrydelim}{\addcomma}
+\newcommand*{\multiciterangedelim}{\bibrangedash}
+\newcommand*{\multicitesubentryrangedelim}{\multiciterangedelim}
+
 \newcommand*{\compcitedelim}{\addcomma\space}
+
 \newcommand*{\supercitedelim}{\addcomma}
-\newcommand*{\prenotedelim}{\addspace}
-\newcommand*{\postnotedelim}{\addcomma\space}
-\newcommand*{\extpostnotedelim}{\addspace}
+\newcommand*{\supercitesubentrydelim}{\supercitedelim}
+\newcommand*{\superciterangedelim}{\bibrangedash}
+\newcommand*{\supercitesubentryrangedelim}{\superciterangedelim}
+
+\DeclareDelimFormat{prenotedelim}{\addspace}
+\DeclareDelimFormat{postnotedelim}{\addcomma\space}
+\DeclareDelimAlias{multiprenotedelim}{prenotedelim}
+\DeclareDelimAlias{multipostnotedelim}{postnotedelim}
+\DeclareDelimFormat{extpostnotedelim}{\addspace}
 \newcommand*{\volcitedelim}{\addcomma\space}
 \newcommand*{\textcitedelim}{%
   \iffinalcitedelim
@@ -243,30 +254,64 @@
 
 % Local setup for \url; see comments in url.sty for details.
 
+\newcounter{biburlbigbreakpenalty}
+\newcounter{biburlbreakpenalty}
 \newcounter{biburlnumpenalty}
 \newcounter{biburlucpenalty}
 \newcounter{biburllcpenalty}
 
+\setcounter{biburlbigbreakpenalty}{100}
+\setcounter{biburlbreakpenalty}{200}
+
+\newmuskip\biburlbigskip
+\newmuskip\biburlnumskip
+\newmuskip\biburlucskip
+\newmuskip\biburllcskip
+
+% I'd have preferred \setlength here, but calc does not support
+% muglue (yet?).
+% https://github.com/plk/biblatex/issues/889
+% See also https://tex.stackexchange.com/q/188215/
+\biburlbigskip=0mu plus 3mu\relax
+\biburlnumskip=0mu\relax
+\biburlucskip=0mu\relax
+\biburllcskip=0mu\relax
+
 \newcommand*{\biburlsetup}{%
-  \Urlmuskip=0mu plus 3mu\relax
-  \mathchardef\UrlBigBreakPenalty=100\relax
-  \mathchardef\UrlBreakPenalty=200\relax
+  \Urlmuskip\biburlbigskip
+  \mathchardef\UrlBigBreakPenalty=\value{biburlbigbreakpenalty}\relax
+  \mathchardef\UrlBreakPenalty=\value{biburlbreakpenalty}\relax
   \def\UrlBigBreaks{\do\:\do\-}%
   \def\UrlBreaks{%
     \do\.\do\@\do\/\do\\\do\!\do\_\do\|\do\;\do\>\do\]\do\)\do\}%
     \do\,\do\?\do\'\do\+\do\=\do\#\do\$\do\&\do\*\do\^\do\"}%
   \ifnumgreater{\value{biburlnumpenalty}}{0}
-    {\def\do##1{\appto\UrlSpecials{\do##1{\mathchar`##1 \penalty\value{biburlnumpenalty}}}}%
+    {\def\do##1{%
+       \appto\UrlSpecials{%
+         \do##1{%
+           \mathchar`##1
+           \mskip\biburlnumskip
+           \penalty\value{biburlnumpenalty}}}}%
      \do\1\do\2\do\3\do\4\do\5\do\6\do\7\do\8\do\9\do\0}
     {}%
   \ifnumgreater{\value{biburlucpenalty}}{0}
-    {\def\do##1{\appto\UrlSpecials{\do##1{\mathchar`##1 \penalty\value{biburlucpenalty}}}}%
+    {\def\do##1{%
+       \appto\UrlSpecials{%
+         \do##1{%
+           \mathchar`##1
+           \mskip\biburlucskip
+           \penalty\value{biburlucpenalty}}}}%
      \do\A\do\B\do\C\do\D\do\E\do\F\do\G\do\H\do\I\do\J
      \do\K\do\L\do\M\do\N\do\O\do\P\do\Q\do\R\do\S\do\T
      \do\U\do\V\do\W\do\X\do\Y\do\Z}
     {}%
   \ifnumgreater{\value{biburllcpenalty}}{0}
-    {\def\do##1{\appto\UrlSpecials{\do##1{\mathchar`##1 \penalty\value{biburllcpenalty}}}}%
+    {\def\do##1{%
+       \appto\UrlSpecials{%
+         \do##1{%
+           \mathchar`##1
+           \mskip\biburllcskip
+           \penalty\value{biburllcpenalty}}}}%
      \do\a\do\b\do\c\do\d\do\e\do\f\do\g\do\h\do\i\do\j
      \do\k\do\l\do\m\do\n\do\o\do\p\do\q\do\r\do\s\do\t
      \do\u\do\v\do\w\do\x\do\y\do\z}
@@ -503,7 +548,7 @@
 \DeclareFieldFormat{isbn}{\mkbibacro{ISBN}\addcolon\space #1}
 \DeclareFieldFormat{isrn}{\mkbibacro{ISRN}\addcolon\space #1}
 \DeclareFieldFormat{issn}{\mkbibacro{ISSN}\addcolon\space #1}
-\DeclareFieldFormat{journaltitle}{\mkbibemph{#1}}
+\DeclareFieldFormat{journaltitle}{\mkbibemph{#1\isdot}}
 \DeclareFieldFormat{issuetitle}{\mkbibemph{#1}}
 \DeclareFieldFormat{maintitle}{\mkbibemph{#1}}
 \DeclareFieldFormat{booktitle}{\mkbibemph{#1}}
@@ -842,7 +887,7 @@
       {\namepartprefix}
       {\namepartsuffix}}%
   \usebibmacro{name:andothers}}
-  
+
 \DeprecateNameFormatWithReplacement{last-first}{family-given}
 
 
@@ -955,64 +1000,92 @@
 % Auxiliary macros for name formatting directives
 % ------------------------------------------------------------------
 
+\newcommand{\mkbibcompletename}[1]{#1}
+
+\newcommand{\mkbibcompletenamefamily}{\mkbibcompletename}
+
 \newbibmacro*{name:family}[4]{%
   \ifuseprefix
     {\usebibmacro{name:delim}{#3#1}%
      \usebibmacro{name:hook}{#3#1}%
-     \ifdefvoid{#3}
-       {}
-       {\ifcapital
-          {\mkbibnameprefix{\MakeCapital{#3}}\isdot}
-          {\mkbibnameprefix{#3}\isdot}%
-        \ifprefchar{}{\bibnamedelimc}}}
+     \mkbibcompletenamefamily{%
+       \ifdefvoid{#3}
+         {}
+         {\ifcapital
+            {\mkbibnameprefix{\MakeCapital{#3}}\isdot}
+            {\mkbibnameprefix{#3}\isdot}%
+          \ifprefchar{}{\bibnamedelimc}}%
+       \mkbibnamefamily{#1}\isdot}}
     {\usebibmacro{name:delim}{#1}%
-     \usebibmacro{name:hook}{#1}}%
-  \mkbibnamefamily{#1}\isdot}%
+     \usebibmacro{name:hook}{#1}%
+     \mkbibcompletenamefamily{%
+       \mkbibnamefamily{#1}\isdot}}}%
 \newbibmacro*{name:last}[4]{% legacy alias
   \blx@warning@noline{%
     'name:last' is deprecated, please use 'name:family'}%
   \usebibmacro{name:family}{#1}{#2}{#3}{#4}}
 
+\newcommand{\mkbibcompletenamegivenfamily}{\mkbibcompletename}
+
 \newbibmacro*{name:given-family}[4]{%
   \usebibmacro{name:delim}{#2#3#1}%
   \usebibmacro{name:hook}{#2#3#1}%
-  \ifdefvoid{#2}{}{\mkbibnamegiven{#2}\isdot\bibnamedelimd}%
-  \ifdefvoid{#3}{}{%
-    \mkbibnameprefix{#3}\isdot
-    \ifprefchar
+  \mkbibcompletenamegivenfamily{%
+    \ifdefvoid{#2}
       {}
-      {\ifuseprefix{\bibnamedelimc}{\bibnamedelimd}}}%
-  \mkbibnamefamily{#1}\isdot
-  \ifdefvoid{#4}{}{\bibnamedelimd\mkbibnamesuffix{#4}\isdot}}
+      {\mkbibnamegiven{#2}\isdot\bibnamedelimd}%
+    \ifdefvoid{#3}
+      {}
+      {\mkbibnameprefix{#3}\isdot
+       \ifprefchar
+         {}
+         {\ifuseprefix{\bibnamedelimc}{\bibnamedelimd}}}%
+    \mkbibnamefamily{#1}\isdot
+    \ifdefvoid{#4}{}{\bibnamedelimd\mkbibnamesuffix{#4}\isdot}}}
 \newbibmacro*{name:first-last}[4]{% legacy alias
   \blx@warning@noline{%
     'name:first-last' is deprecated, please use 'name:given-family'}%
   \usebibmacro{name:given-family}{#1}{#2}{#3}{#4}}
 
+\newcommand{\mkbibcompletenamefamilygiven}{\mkbibcompletename}
+
 \newbibmacro*{name:family-given}[4]{%
   \ifuseprefix
     {\usebibmacro{name:delim}{#3#1}%
      \usebibmacro{name:hook}{#3#1}%
-     \ifdefvoid{#3}{}{%
-       \ifcapital
-         {\mkbibnameprefix{\MakeCapital{#3}}\isdot}
-         {\mkbibnameprefix{#3}\isdot}%
-       \ifprefchar{}{\bibnamedelimc}}%
-     \mkbibnamefamily{#1}\isdot
-     \ifdefvoid{#4}{}{\bibnamedelimd\mkbibnamesuffix{#4}\isdot}%
-     \ifdefvoid{#2}{}{\revsdnamepunct\bibnamedelimd\mkbibnamegiven{#2}\isdot}}
+     \mkbibcompletenamefamilygiven{%
+       \ifdefvoid{#3}
+         {}
+         {\ifcapital
+            {\mkbibnameprefix{\MakeCapital{#3}}\isdot}
+            {\mkbibnameprefix{#3}\isdot}%
+          \ifprefchar{}{\bibnamedelimc}}%
+       \mkbibnamefamily{#1}\isdot
+       \ifdefvoid{#4}
+         {}
+         {\bibnamedelimd\mkbibnamesuffix{#4}\isdot}%
+       \ifdefvoid{#2}
+         {}
+         {\revsdnamepunct\bibnamedelimd\mkbibnamegiven{#2}\isdot}}}
     {\usebibmacro{name:delim}{#1}%
      \usebibmacro{name:hook}{#1}%
-     \mkbibnamefamily{#1}\isdot
-     \ifdefvoid{#4}{}{\bibnamedelimd\mkbibnamesuffix{#4}\isdot}%
-     \ifboolexpe{%
-       test {\ifdefvoid{#2}}
-       and
-       test {\ifdefvoid{#3}}}
-       {}
-       {\revsdnamepunct}%
-     \ifdefvoid{#2}{}{\bibnamedelimd\mkbibnamegiven{#2}\isdot}%
-     \ifdefvoid{#3}{}{\bibnamedelimd\mkbibnameprefix{#3}\isdot}}}
+     \mkbibcompletenamefamilygiven{%
+       \mkbibnamefamily{#1}\isdot
+       \ifdefvoid{#4}
+         {}
+         {\bibnamedelimd\mkbibnamesuffix{#4}\isdot}%
+       \ifboolexpe{%
+         test {\ifdefvoid{#2}}
+         and
+         test {\ifdefvoid{#3}}}
+         {}
+         {\revsdnamepunct}%
+       \ifdefvoid{#2}
+         {}
+         {\bibnamedelimd\mkbibnamegiven{#2}\isdot}%
+       \ifdefvoid{#3}
+         {}
+         {\bibnamedelimd\mkbibnameprefix{#3}\isdot}}}}
 \newbibmacro*{name:last-first}[4]{% legacy alias
   \blx@warning@noline{%
     'name:last-first' is deprecated, please use 'name:family-given'}%
@@ -1170,11 +1243,12 @@
      \@firstofone #1% remove spurious braces
      \ifdefvoid{#4}{}{ #4}%
      \ifdefvoid{#2}{}{, #2}%
-     \actualoperator
-     \ifdefvoid{#3}{}{\MakeCapital{#3} }%
-     #1%
-     \ifdefvoid{#4}{}{ #4}%
-     \ifdefvoid{#2}{}{, #2}}
+     \ifdefvoid{#3}{}{%
+       \actualoperator
+       \MakeCapital{#3} %
+       #1%
+       \ifdefvoid{#4}{}{ #4}%
+       \ifdefvoid{#2}{}{, #2}}}
     {\@firstofone #1% remove spurious braces
      \ifdefvoid{#4}{}{ #4}%
      \ifboolexpe{%
@@ -1337,8 +1411,6 @@
 \DeclareSortingNamekeyTemplate{
   \keypart{
     \namepart[use=true]{prefix}
-  }
-  \keypart{
     \namepart{family}
   }
   \keypart{
@@ -2143,21 +2215,21 @@
 
 \DeclareCiteCommand{\notecite}
   {\printfield{prenote}%
-   \setunit*{\prenotedelim}}
+   \setunit*{\printdelim{prenotedelim}}}
   {\nocite{\thefield{entrykey}}}
   {}
   {\printfield{postnote}}
 
 \DeclareCiteCommand{\pnotecite}[\mkbibparens]
   {\printfield{prenote}%
-   \setunit*{\prenotedelim}}
+   \setunit*{\printdelim{prenotedelim}}}
   {\nocite{\thefield{entrykey}}}
   {}
   {\printfield{postnote}}
 
 \DeclareCiteCommand{\fnotecite}[\mkbibfootnote]
   {\printfield{prenote}%
-   \setunit*{\prenotedelim}}
+   \setunit*{\printdelim{prenotedelim}}}
   {\nocite{\thefield{entrykey}}}
   {}
   {\printfield{postnote}}
@@ -2262,12 +2334,12 @@
   \iffieldundef{prenote}
     {}
     {\printfield{prenote}%
-     \setunit{\prenotedelim}}}
+     \setunit{\printdelim{prenotedelim}}}}
 
 \newbibmacro*{postnote}{%
   \iffieldundef{postnote}
     {}
-    {\setunit{\postnotedelim}%
+    {\setunit{\printdelim{postnotedelim}}%
      \printfield{postnote}}}
 
 % multicite commands
@@ -2276,12 +2348,12 @@
   \iffieldundef{multiprenote}
     {}
     {\printfield{multiprenote}%
-     \prenotedelim}}
+     \printdelim{multiprenotedelim}}}
 
 \newbibmacro*{multipostnote}{%
   \iffieldundef{multipostnote}
     {}
-    {\postnotedelim
+    {\printdelim{multipostnotedelim}
      \printfield{multipostnote}}}
 
 % ------------------------------------------------------------------
@@ -2798,8 +2870,8 @@
        \printfield[titlecase]{issuesubtitle}}}}
 
 \newbibmacro*{in:}{%
-  \printtext{%
-    \bibstring{in}\intitlepunct}}
+  \bibstring{in}%
+  \printunit{\intitlepunct}}
 
 \newbibmacro*{date}{\printdate}
 
@@ -2837,9 +2909,12 @@
     {\printfield[eprint:\strfield{eprinttype}]{eprint}}}
 
 \newbibmacro*{annotation}{%
+  \begingroup
+  \togglefalse{blx@bibliography}%
   \iffieldundef{annotation}
     {\printfile[annotation]{\bibannotationprefix\thefield{entrykey}.tex}}
-    {\printfield{annotation}}}
+    {\printfield{annotation}}%
+  \endgroup}
 
 \newbibmacro*{abstract}{%
   \iffieldundef{abstract}

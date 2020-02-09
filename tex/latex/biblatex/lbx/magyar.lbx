@@ -111,15 +111,15 @@
   % this redefines \mkpageprefix to put the page number as suffix
   \savecommand\blx@mkpageprefix
   \protected\long\def\blx@mkpageprefix#1[#2]#3{%
-  \blx@mkpageprefix@i[#2]{#3}%
-  \ifnumeral{#3}
-    {\ppspace\bibstring{#1}}
-    {\ifnumerals{#3}
-       {\ppspace\bibstring{#1s}}
-       {\def\pno{\bibstring{#1}}%
-        \def\ppno{\bibstring{#1s}}}}}%
-  % NOTE: a few field formats are redefined here, this overrides corresponding
-  % style and preamble definitions.
+    \blx@mkpageprefix@i[{#2}]{#3}%
+    \ifnumeral{#3}
+      {\ppspace\bibstring{#1}}
+      {\ifnumerals{#3}
+         {\ppspace\bibstring{#1s}}
+         {\def\pno{\bibstring{#1}}%
+          \def\ppno{\bibstring{#1s}}}}}%
+  % NOTE: a few field formats are redefined here, this overrides
+  % corresponding style and preamble definitions.
   % If you want to overwrite the changes made here, use
   % \DefineBibliographyExtras{magyar}{...}
   % Do not forget to make these changes undone with
@@ -462,7 +462,7 @@
 % translationfrom  = {{}{}},% FIXME need example
   reviewof         = {{recenzi\'oja}{rec\adddot}},% FIXME swap word order
   origpubas        = {{eredeti c\'ime}{ered\adddotspace c\'im}},
-  origpubin        = {{eredeti kiad\'as}{ered\adddotspace kiad\adddotspace}},
+  origpubin        = {{eredeti kiad\'as}{ered\adddotspace kiad\adddot}},
 % astitle          = {{}{}},% FIXME need example
 % bypublisher      = {{\addcomma}{\addcomma}},% FIXME: this is a cludge that can not be guaranteed to work in most situations, so it stays commented out
   nodate           = {{\'ev n\'elk\"ul}{\'e\adddotspace n\adddot}},
@@ -649,12 +649,17 @@
                    or not togl {blx@#1dateusetime})}}
 
 \protected\gdef\lbx@hu@mkdaterangetrunc#1#2{%
+  \blx@if@printanytimes{#2}
+    {\mkdaterangefull{#1}{#2}}
+    {\lbx@hu@mkdaterangetrunc@i{#1}{#2}}}
+
+\protected\gdef\lbx@hu@mkdaterangetrunc@i#1#2{%
   \begingroup
     \blx@metadateinfo{#2}%
     \edef\lbx@hu@dayrange{\lbx@hu@dayrange@i{#2}}%
     \iffieldundef{#2year}
       {}
-      {\printtext[#2date]{%
+      {\printtext[{#2date}]{%
          \datecircaprint
          \iffieldundef{#2season}
            {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
@@ -684,12 +689,17 @@
   \endgroup}
 
 \protected\gdef\lbx@hu@mkdaterangetruncextra#1#2{%
+  \blx@if@printanytimes{#2}
+    {\mkdaterangefullextra{#1}{#2}}
+    {\lbx@hu@mkdaterangetruncextra@i{#1}{#2}}}
+
+\protected\gdef\lbx@hu@mkdaterangetruncextra@i#1#2{%
   \begingroup
     \blx@metadateinfo{#2}%
     \edef\lbx@hu@dayrange{\lbx@hu@dayrange@i{#2}}%
     \iffieldundef{#2year}
       {}
-      {\printtext[#2date]{%
+      {\printtext[{#2date}]{%
          \datecircaprint
          \iffieldundef{#2season}
            {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%

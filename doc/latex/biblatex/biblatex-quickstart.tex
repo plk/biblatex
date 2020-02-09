@@ -319,77 +319,100 @@ the \biber manual. Running \cmd{biber --help} from the command line is the
 best source of information about the options which \biber supports.
 
 In what follows, \biber is presupposed as the backend processor as
-explained above. 
+explained above. No example are given as the main documentation has many
+examples--this guide is intended as a quick pointer into the larger
+documentation file.
 \subsection{How do I ...?}
 
 \subsubsection{Use multiple bibliography data sources?\msecpref{use:bib:res}}
 
 Bibliographic data can be kept in any number of files (commonly,
-\file{.bib} files) and as many as you like can be used:
-
-\begin{ltxexample}[style=latex]{}
-  \addbibresource{file1.bib}
-  \addbibresource{file2.bib}
-  \addbibresource{file3.bib}
-\end{ltxexample}
-
-File patterns can be used too\footnote{These are full BSD-style file glob
-  patterns.}:
-
-\begin{ltxexample}[style=latex]{}
-  \addbibresource{file*.bib}
-  \addbibresource{file?.bib}
-  \addbibresource{file{1,2,3}.bib}
-\end{ltxexample}
+\file{.bib} files) and as many as you like can be used. Full BSD0-style
+file pattern globs are recognised.
   
 \subsubsection{Use remote data sources?\msecpref{use:bib:res}}
 
-Remote datasources can be fetched via HTTP(S) or FTP(S):
-
-\begin{ltxexample}[style=latex]{}
-  \addbibresource[location=remote]{http://www.citeulike.org/bibtex/group/9517}
-\end{ltxexample}
+Remote datasources can be fetched via HTTP(S) or FTP(S). The remote source
+only has to return text of the expected format (\file{.bib} for
+example)--this might be a literal web page or a web service returning the
+data.
 
 \subsubsection{Manipulate the bibliographic data without changing the
   source files?\msecpref{aut:ctm:map}}
 
-It is possible to change the data in almost arbitrary ways as it is read,
-without modifying the data files. This is useful, for example for data
+It is possible to change source data in almost arbitrary ways as it is read,
+without modifying the data files. This is useful, for example for
 normalisation and also in situations where you do not control the data
 files. This is done by <source mapping> which \biber applies as it reads
 the data files. Source maps are defined with the \cmd{DeclareSourcemap}
-macro. Here is a simple example--suppose that the data source file
-\file{file1.bib} had \bibtype{article} entries with large or badly
-formatted \bibfield{abstract} fields, you could remove these as the data is
-read like this:
-
-\begin{ltxexample}[style=latex]{}
-\DeclareSourcemap{
-  \maps[datatype=bibtex]{
-    \map{
-      \perdatasource{<<file1.bib>>}
-      \pertype{<<article>>}
-      \step[fieldset=<<abstract>>, null]
-    }
-  }
-}
+macro. Many data manipulation operations are possible--regular expression
+matching and replace, entry and field cloning, deletion of entries or
+fields, appending to fields etc.
 
 \end{ltxexample}
 
+\subsubsection{Customise Sorting the Bibliography?\msecpref{aut:ctm:srt}}
 
-\subsubsection{Sort the bibliography correctly for a particular language?\msecpref{bib:cav:enc}}
+Sorting is one of the main strengths of \biber and uses a full Unicode
+engine with tailoring for specific languages. \biblatex comes with
+several pre-defined sorting templates to sort the bibliography in standard
+ways\msecpref{use:opt:pre:gen} but users can define their own sorting
+templates with the \cmd{DeclareSortingTemplate} command. Sorting is
+completely customisable and it is possible to sort on any fields, in any
+order with a choice, per-field, of ascending/descending, case-sensitiviy,
+language locale etc. It is also possible to ignore specific parts of any data
+for sorting purposes (for example <The> in titles or particular diacritics
+preceding names in some languages)\msecpref{aut:ctm:nosort}.
 
-Sorting can be tailored to specific languages\footnote{Actually, <locales>
-  but \biber maps babel/polyglossia language names to locale names
-  automatically} easily when using \sty{babel} or \sty{polyglossia} with
-the option:
+\subsubsection{Truncate long name lists?\msecpref{use:opt:pre:gen}}
 
-\begin{ltxexample}[style=latex]{}
-  \usepackage[sortlocale=auto]{biblatex}
-\end{ltxexample}
-%
-The sorting locale can also be specified explicitly and with more
-granularity than this global setting example.\msecpref{aut:ctm:srt}
+See the \opt{maxnames/minnames} options and their sub-options. Name lists
+can be explicitly truncated with <et al.> to a desired explicit length.
+There is also a powerful automated option \opt{uniquelist} which will
+automatically truncate name lists to the point of no ambiguity.
+
+\subsubsection{Disambiguate ambiguous names?\msecpref{use:opt:pre:gen}}
+
+See the \opt{uniquename} option. This has various settings to allow the
+user to choose how potentially ambiguous names in a name list are
+disambiguated. Names can be disambiguated by adding initials or the full
+text of other nameparts to the basic name part (usually the family name) in
+order to disambiguate names. 
+
+\subsubsection{Handle names for non-Western languages?\msecpref{aut:bbx:drv}}
+
+See the \opt{nameparts} constant. By default, this adheres to the standard
+\bibtex name model of <prefix, family, suffix, given> but this can be
+customised to support arbitrary name parts such as patronymics,
+papponymics etc. \biber supports an extended name format in \bibtex data
+sources which allows names to be specified in a completely extensible way
+and is not limited to the restrictive \bibtex model. \biblatex takes care
+of automatically creating all of the formatting commands required to work
+with any nameparts defined using the \opt{nameparts} constant. The main
+documentation contains references to example files (which come with
+\biblatex) demonstrating all aspects of customised name handling.
+
+\subsubsection{Handle date and time information?\msecpref{bib:use:dat}}
+
+\biblatex has comprehensive support for \acr{ISO8601-2} Extended Format
+specification level 1 date/times in the bibliography. Input and
+customisable output for unspecified and uncertain dates, Julian dates,
+BCE/BC eras, approximate dates, negative dates and data ranges are fully
+supported.
+
+\subsubsection{Handle crossreferences and data inheritance between entries?\msecpref{bib:cav:ref}}
+
+Entries can reference other entries and inherit data from them in a
+completely customisable and cascading manner. See the
+\cmd{DeclareDataInheritance} command\msecpref{bib:cav:ref}.
+
+\subsubsection{Deal with different file encodings?\msecpref{bib:cav:enc:enc}}
+
+\biber is completely UTF-8 (NFD) internally. It decodes and encodes in
+input/output as required and will automatically convert \tex macros in the
+bibliographic data into UTF-8 on reading data to aid sorting and can
+re-encode to arbitrary encodings on output.
+
 
 % \begin{lstlisting}[style=bibtex]{}
 % \end{lstlisting}

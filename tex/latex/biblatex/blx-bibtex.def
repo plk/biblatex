@@ -343,7 +343,7 @@
      \global\togglefalse{blx@addset}}
     {}}
 
-\def\blx@citation#1#2{%
+\def\blx@citation@i#1#2{%
   \ifbool{citerequest}
     {\ifcsdef{blx@setp@\the\c@refsection @#1}
        {\blx@citation@set{#1}{#2}}
@@ -394,6 +394,139 @@
     \expandafter\expandafter\expandafter{%
       \csname blx@refc@\the\c@refsection @#1\endcsname}\blx@msg@cundef
   \fi}
+
+% no dynamic entry sets
+
+\renewrobustcmd*{\defbibentryset}[2]{%
+  \@bsphack
+  \begingroup
+  \blx@error
+    {Dynamic entry sets not available with BibTeX(8)}
+    {Dynamic entry sets are only available with Biber.\MessageBreak
+     If you need this feature, please switch to Biber}%
+  \endgroup
+  \@esphack}
+
+% refcontexts are out, but we can try to save labelprefix
+
+% Luckily all refcontext names use \blx@refcontext@labelprefix, so if we
+% don't modify that macro, we don't actually change the refcontext.
+% Remember that \blx@refcontext@labelprefix contains a hash of the labelprefix
+% and that \blx@refcontext@labelprefix@real contains the value.
+% Effectively we always stay in \blx@sorting/global/global//global/global,
+% and additionally carry around the labelprefix value
+% in \blx@refcontext@labelprefix@real and pass it to the aux file.
+% There are differences to the result obtained with Biber,
+% but it should be good enough for very simple applications.
+\define@key{blx@refcontext}{labelprefix}{%
+  \xdef\blx@refcontext@labelprefix@real{#1}%
+  \iftoggle{blx@defernumbers}
+    {}%
+    {\iftoggle{blx@labelnumber}
+       {\blx@warning{%
+          Option 'labelprefix' requires global\MessageBreak
+          'defernumbers=true'}}
+       {}}%
+  \ifundef{\blx@bibtexwarn@labelprefix@used}
+    {\blx@warning@noline{%
+       The option 'labelprefix' is limited\MessageBreak
+       when used with BibTeX.\MessageBreak
+       Consider using Biber instead}%
+     \global\let\blx@bibtexwarn@labelprefix@used\@empty}
+    {}}
+
+\def\blx@warn@bibtexrefcontext#1{%
+  \blx@warning{%
+    The refcontext option\MessageBreak
+    '#1'\MessageBreak
+    is not supported by the BibTeX backend.\MessageBreak
+    Consider switching to Biber instead.\MessageBreak
+    The option will be ignored}}
+
+\def\blx@bibtexrefcontext@disable#1{%
+  \define@key{blx@refcontext}{#1}{%
+    \blx@warn@bibtexrefcontext{#1}}}
+
+\forcsvlist{\blx@bibtexrefcontext@disable}{%
+  nametemplates,sorting,sortingnamekeytemplatename,uniquenametemplatename,
+  labelalphanametemplatename}
+
+\def\blx@assignrefcontext@disable#1{%
+  \blx@warning{%
+    BibTeX does not support refcontext assignments with\MessageBreak
+    '\string\assignrefcontext#1'.\MessageBreak
+    Consider using Biber instead.\MessageBreak
+    Ignoring the refconext assignment}}
+
+\def\blx@assignrefcontextkeyws[#1][#2]#3{%
+  \blx@assignrefcontext@disable{keyws}}
+\def\blx@assignrefcontextcats[#1][#2]#3{%
+  \blx@assignrefcontext@disable{cats}}
+\def\blx@assignrefcontextentries[#1][#2]#3{%
+  \blx@assignrefcontext@disable{entries}}
+
+\apptocmd{\blx@setdefaultrefcontext}
+  {\csxdef{blx@assignedlabelprefix@\the\c@refsection @#1}{%
+     \blx@refcontext@labelprefix@real}}
+  {}
+  {\blx@error
+     {Failed to patch '\string\blx@setdefaultrefcontext'}
+     {Patching '\string\blx@setdefaultrefcontext' failed for some reason.
+      \MessageBreak
+      Please report this bug}}
+
+\def\abx@aux@defaultlabelprefix#1#2#3{%
+  \csgdef{blx@assignedlabelprefix@#1@#2}{#3}}
+
+\apptocmd{\blx@bbl@entry}
+  {\ifcsundef{blx@assignedlabelprefix@\the\c@refsection @\thefield{entrykey}}
+     {}
+     {\blx@bbl@addfield{labelprefix}{%
+        \csuse{blx@assignedlabelprefix@\the\c@refsection
+          @\thefield{entrykey}}}}}
+  {}
+  {\blx@error
+     {Failed to patch '\string\blx@bbl@entry'}
+     {Patching '\string\blx@bbl@entry' failed for some reason.
+      \MessageBreak
+      Please report this bug}}
+
+% we can't rely on \inset in the .bbl (which should be in the child
+% entry), so we produce setc manually from the @set parent
+\apptocmd{\blx@bbl@set@i}
+  {\csxdef{blx@setc@\the\c@refsection @#1}{\abx@field@entrykey}}
+  {}
+  {\blx@error
+     {Failed to patch '\string\blx@bbl@set@i'}
+     {Patching '\string\blx@bbl@set@i' failed for some reason.
+      \MessageBreak
+      Please report this bug}}
+
+% blx@setonly doesn't exist here, since it is defined in \inset,
+% rely on the existence of setc instead
+\patchcmd{\blx@bbl@endentry}
+  {\nottoggle{blx@setonly}}
+  {\ifcsundef{blx@setc@\the\c@refsection @\abx@field@entrykey}}
+  {}
+  {\blx@error
+     {Failed to patch '\string\blx@bbl@endentry'}
+     {Patching '\string\blx@bbl@endentry' failed for some reason.
+      \MessageBreak
+      Please report this bug}}
+
+\AtEndDocument{%
+  % always add default labelprefix declarations to .aux
+  \iftoggle{blx@bbldone}
+    {\def\do#1{%
+       \begingroup
+       \def\do##1{%
+         \blx@auxwrite\@mainaux{}{\string\abx@aux@defaultlabelprefix{#1}{##1}{%
+           \csuse{blx@assignedlabelprefix@#1@##1}}}}%
+       \dolistcsloop{blx@defaultrefcontexts@#1}%
+       \endgroup}
+     \dolistloop\blx@allrefsections}
+    {}}
+
 
 % Translate sorting schemes to BibTeX form
 \def\blx@sorting@none{0}
