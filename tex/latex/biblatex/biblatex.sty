@@ -4933,11 +4933,11 @@
         {\@secondoftwo}% found an alternate
         {\blx@imc@iffieldundef{langid}% No alternate found, check form/langid as last resort
            {\@firstoftwo}
-           {\blx@ifmsundef{#3}[\blx@msform][\csuse{blx@msmaplangr@\abx@field@@@langid}]{#2}
+           {\blx@ifmsundef{#3}[\blx@msform][\blx@lmslang]{#2}
               {\@firstoftwo}
               {\let\blx@cmsform\blx@msform
-               \def\blx@cmslang{\csuse{blx@msmaplangr@\abx@field@@@langid}}%
-               \@secondoftwo}}}}
+               \let\blx@cmslang\blx@lmslang}%
+               \@secondoftwo}}}
      {\blx@ifmsundef{#3}{#2}}} % Not a multiscript field, just do a normal undef check
 
 % [<format>][<msform>][<mslang>]{field}
@@ -4947,7 +4947,7 @@
   {\ifboolexpr {test {\ifblank{#2}} and test {\ifblank{#3}}}
     {\blx@imc@iffieldundef{langid}	
       {\blx@ifmsselect{\blx@mslang}{#4}{field}}       
-      {\blx@ifmsselect{\csuse{blx@msmaplangr@\abx@field@@@langid}}{#4}{field}}}
+      {\blx@ifmsselect{\blx@lmslang}{#4}{field}}}
      {\let\blx@cmsform\blx@msform%
       \let\blx@cmslang\blx@mslang%
       \ifblank{#2}{}{\edef\blx@cmsform{#2}}%
@@ -4966,8 +4966,8 @@
            \let\currentmslangs\@empty
            \begingroup
            % begin language for field mslang
-           \edef\currentmsform{\blx@cmsform}%
-           \edef\currentmslang{\blx@cmslang}%
+           \let\currentmsform\blx@cmsform%
+           \let\currentmslang\blx@cmslang%
            \letcs\currentmsforms{abx@fieldmsforms@#4}%
            \letcs\currentmslangs{abx@fieldmslangs@#4}%
            \edef\blx@tempa{\csuse{blx@msmaplang@\currentmslang}}%
@@ -4988,7 +4988,7 @@
            \expandafter\expandafter
            \expandafter\blx@theformat
            \expandafter\expandafter
-           \expandafter{\csname abx@field@\blx@cmsform @\blx@cmslang @#4\endcsname}%
+           \expandafter{\csname abx@field@\currentmsform @\currentmslang @#4\endcsname}%
            % end language for field mslang
            \ifdef\blx@thefieldlangenv
              {\blx@hook@endfieldlang
@@ -5003,8 +5003,16 @@
 
 % [<format>][<msform>][<mslang>]{field}
 \DeclareExpandableDocumentCommand{\blx@imc@indexfield}
-  {O{} O{\blx@msform} O{\blx@lmslang} m}
-  {\blx@imc@iffieldundef[{#2}][{#3}]{#4}
+  {O{} O{} O{} m}
+  {\ifboolexpr {test {\ifblank{#2}} and test {\ifblank{#3}}}
+    {\blx@imc@iffieldundef{langid}	
+      {\blx@ifmsselect{\blx@mslang}{#4}{field}}       
+      {\blx@ifmsselect{\blx@lmslang}{#4}{field}}}
+     {\let\blx@cmsform\blx@msform%
+      \let\blx@cmslang\blx@mslang%
+      \ifblank{#2}{}{\edef\blx@cmsform{#2}}%
+      \ifblank{#3}{}{\edef\blx@cmslang{#3}}%
+      \blx@imc@iffieldundef[\blx@cmsform][\blx@cmslang]{#4}}%
     {}
     {\blx@getformat\blx@theformat{fid}{#1}{#4}%
      \ifdefvoid\blx@theformat
@@ -5016,12 +5024,12 @@
         \let\currentmsforms\@empty
         \let\currentmslangs\@empty
         \blx@imc@ifmsentryfield{#4}
-          {\edef\currentmsform{#2}%
-           \edef\currentmslang{#3}%
+          {\let\currentmsform\blx@cmsform%
+           \let\currentmslang\blx@cmslang%
            \letcs\currentmsforms{abx@fieldmsforms@#4}%
            \letcs\currentmslangs{abx@fieldmslangs@#4}%
-           \edef\blx@tempa{\csuse{blx@msmaplang@#3}}%
-           \letcs\blx@tempb{abx@field@#2@#3@#4}%
+           \edef\blx@tempa{\csuse{blx@msmaplang@\curentmslang}}%
+           \letcs\blx@tempb{abx@field@\currentmsform @\currentmslang @#4}%
            \expandafter\blx@theformat\expandafter{\blx@tempb}}
           {\letcs\blx@tempb{abx@field@@@#4}%
            \expandafter\blx@theformat\expandafter{\blx@tempb}}%
@@ -5060,7 +5068,7 @@
   \ifboolexpr {test {\ifblank{#4}} and test {\ifblank{#5}}}
     {\blx@imc@iffieldundef{langid}	
       {\blx@ifmsselect{\blx@mslang}{#6}{name}}
-      {\blx@ifmsselect{\csuse{blx@msmaplangr@\abx@field@@@langid}}{#6}{name}}}
+      {\blx@ifmsselect{\blx@lmslang}{#6}{name}}}
      {\let\blx@cmsform\blx@msform%
       \let\blx@cmslang\blx@mslang%
       \ifblank{#4}{}{\edef\blx@cmsform{#4}}%
@@ -5186,12 +5194,12 @@
   \ifboolexpr {test {\ifblank{#4}} and test {\ifblank{#5}}}
     {\blx@imc@iffieldundef{langid}	
       {\blx@ifmsselect{\blx@mslang}{#6}{name}}
-      {\blx@ifmsselect{\csuse{blx@msmaplangr@\abx@field@@@langid}}{#6}{name}}}
-     {\let\blx@cmsform\blx@msform%
-      \let\blx@cmslang\blx@mslang%
-      \ifblank{#4}{}{\edef\blx@cmsform{#4}}%
-      \ifblank{#5}{}{\edef\blx@cmslang{#5}}%
-      \blx@imc@ifnameundef[\blx@cmsform][\blx@cmslang]{#6}}%
+      {\blx@ifmsselect{\blx@lmslang}{#6}{name}}}
+    {\let\blx@cmsform\blx@msform%
+     \let\blx@cmslang\blx@mslang%
+     \ifblank{#4}{}{\edef\blx@cmsform{#4}}%
+     \ifblank{#5}{}{\edef\blx@cmslang{#5}}%
+     \blx@imc@ifnameundef[\blx@cmsform][\blx@cmslang]{#6}}%
     {}
     {\blx@getformat\blx@thewrapperformat{nxd}{#1}{#6}%
      \ifdefvoid\blx@thewrapperformat
@@ -5200,7 +5208,7 @@
         \ifdefvoid\blx@theformat
           {}
           {\begingroup
-           \blx@namesetup{#2}{#3}{#4}{#5}{#6}%
+           \blx@namesetup{#2}{#3}{\blx@cmsform}{\blx@cmslang}{#6}%
            \blx@indexnamesetup
            \expandafter\blx@indexnameparser\blx@thedata{}&%
            \endgroup}}}}
@@ -5297,7 +5305,7 @@
   \ifboolexpr {test {\ifblank{#4}} and test {\ifblank{#5}}}
     {\blx@imc@iffieldundef{langid}	
       {\blx@ifmsselect{\blx@mslang}{#6}{list}}
-      {\blx@ifmsselect{\csuse{blx@msmaplangr@\abx@field@@@langid}}{#6}{list}}}
+      {\blx@ifmsselect{\blx@lmslang}{#6}{list}}}
      {\let\blx@cmsform\blx@msform%
       \let\blx@cmslang\blx@mslang%
       \ifblank{#4}{}{\edef\blx@cmsform{#4}}%
@@ -5387,7 +5395,7 @@
   \ifboolexpr {test {\ifblank{#4}} and test {\ifblank{#5}}}
     {\blx@imc@iffieldundef{langid}	
       {\blx@ifmsselect{\blx@mslang}{#6}{list}}
-      {\blx@ifmsselect{\csuse{blx@msmaplangr@\abx@field@@@langid}}{#6}{list}}}
+      {\blx@ifmsselect{\blx@lmslang}{#6}{list}}}
      {\let\blx@cmsform\blx@msform%
       \let\blx@cmslang\blx@mslang%
       \ifblank{#4}{}{\edef\blx@cmsform{#4}}%
@@ -8766,7 +8774,7 @@
   \csuse{blx@data@\the\c@refsection @\blx@refcontext@context @#1}%
   % Set lmslang with any entry-specific language		
   \blx@imc@iffieldundef{langid}		
-    {}		
+    {\global\let\blx@lmslang\blx@mslang}		
     {\xdef\blx@lmslang{\csuse{blx@msmaplangr@\abx@field@@@langid}}}%
   \blx@adjustyears
   \blx@getlabeldata
@@ -9251,7 +9259,7 @@
 
 \def\blx@indextitle{%
   \ifundef\abx@field@@@indextitle
-    {\letcs\abx@field@@@indextitle{abx@field@\blx@msform @\blx@mslang @title}}
+    {\letcs\abx@field@@@indextitle{abx@field@\blx@msform @\blx@lmslang @title}}
     {}}
 
 % {<prefix for labelwidth fields>}
