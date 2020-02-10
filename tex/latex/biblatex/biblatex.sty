@@ -9414,8 +9414,18 @@
     \def\expandafter\noexpand\csname abx@listitems@#1@#2\endcsname{\unexpanded{#3}}}}
 
 % Record select list for a langid
-\protected\def\blx@msselect#1#2#3{%
-  \listcsgadd{blx@msselect@#1}{{#2}{#3}}}
+\newrobustcmd*{\DeclareMsselect}[2]{%
+  \begingroup
+  \let\alternate\blx@msselect
+  \def\blx@tempa{#1}%
+  \ifcsdef{blx@msmaplangr@#1}
+    {\letcs\blx@tempa{blx@msmaplangr@#1}}
+    {}%
+  #2%
+  \endgroup}
+\protected\def\blx@msselect#1#2{%
+  \listcsgadd{blx@msselect@\blx@tempa}{{#1}{#2}}}
+\@onlypreamble\DeclareMsselect
 
 % List of all forms/langs in the documents, comes from biber via .bbl
 \protected\def\blx@bbl@msformsdef#1{%

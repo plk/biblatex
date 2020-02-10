@@ -2588,11 +2588,13 @@ Suppose \texttt{key1} and \texttt{key2} are members of the set \texttt{set1}. Wi
 
 \subparagraph{\texttt{numeric-comp}} The citation style \texttt{numeric-comp}  supports the \opt{subentrycomp} option in global, per-type and per-entry scope.
 
+\begin{optionlist}
+  
 \boolitem[true]{subentrycomp}
 
 This option determines whether or not citations to set members are compressed similar to non-set citations. The option only has an effect if \opt{subentry} is set to \texttt{true}.
 
-Suppose \texttt{key1}, \texttt{key2} and \texttt{key3} are members of the set \texttt{set1}. With \opt{subentrycomp} set to \texttt{true} the three entries will be compressed to <[1a\multicitesubentryrangedelim c]> in citations. With \opt{subentry} set to \texttt{false} the citation will show in the more verbose form <[1a; 1b; 1c]>.
+Suppose \texttt{key1}, \texttt{key2} and \texttt{key3} are members of the set \texttt{set1}. With \opt{subentrycomp} set to \texttt{true} the three entries will be compressed to <[1a\cmd{multicitesubentryrangedelim} c]> in citations. With \opt{subentry} set to \texttt{false} the citation will show in the more verbose form <[1a; 1b; 1c]>.
 
 The option is intended mainly for backwards compatibility, because earlier versions of \biblatex did not compress set member citations.
 
@@ -6319,7 +6321,7 @@ The <form> of an alternate entryfield value is one of the vales of the <multiscr
 %
 The <language> of an alternate entryfield value is a standard IETF BCP47\footnote{https://tools.ietf.org/html/bcp47} language tag which specifies a language code along with optional subtags specifying dialects etc. In most cases, these are obvious and well-known tags such as <en> for English, <en-us> for US-english, <fr> for French, <de> for German etc.
 
-The default multiscript language used when selecting entryfields to print etc. is determined from the babel/polyglossia main language with a fallback to <en-US>. \biber has a corresponding \opt{mslang} option which sets the default alternate language for all multiscript entryfields which do not specify a language explicitly as described above. This also defaults to <en-US>. \biber does not pick up the default \opt{mslang} from \biblatex in the \file{.bcf} because the document language settings are not necessarily (or at all) related to the languages of bibliographic data--these options are available to make the connection when necessary. The \opt{langid} datasource entry option plays an important role in multiscript support as it determines the default alternate language on a per-entry basis, which is the relevant level of determination.
+The default multiscript language used when selecting entryfields to print etc. is determined from the babel/polyglossia main language with a fallback to <en-US>. \biber has a corresponding \opt{mslang} option which sets the default alternate language for all multiscript entryfields which do not specify a language explicitly as described above. This also defaults to <en-US>. \biber does not pick up the default \opt{mslang} from \biblatex in the \file{.bcf} because the document language settings are not necessarily (or at all) related to the languages of bibliographic data--these options are available to make the connection when necessary. The \opt{langid} datasource entry option plays an important role in multiscript support as it determines the default alternate language on a per-entry basis. See below for details on how alternates are selected for printing.
 
 Bibliographic entryfields which support multiscript alternates are specified in the datamodel using \cmd{DeclareDatamodelMultiscriptEntryfields}. The default includes most name, list and literal fields in the standard datamodel. Multiscript enabled entryfields always have a <form> and <language> associated with them which default to the global \opt{msform} and \opt{mslang} options respectively. These global defaults can be overriden on a per-refcontext basis by the \opt{msform} and \opt{mslang} options to the refcontext macros.
 
@@ -6368,6 +6370,8 @@ This example demonstrates the multiscript entryfield alternate syntax where the
 <form> and <language> follow the entryfield name, separated by a (customisable)
 separator (the default is an underscore). Notice that there are alternates
 for the \bibfield{author}, \bibfield{location} and \bibfield{title} entryfields.
+
+Note that alternates must be an \emph{alternative to something}, that is, if multiscript alternates of a field are specified, there must be a <root> entryfield with no multiscript <form> and <language>. In the above example, the <root> multiscript entryfields are \bibfield{AUTHOR}, \bibfield{LOCATION} and \bibfield{TITLE}. \biber only calculates things like uniqueness information for the <root> entryfields and not for the alternates of the <root> fields as the alternates are just alternate representations of the <root> field. \biber does calculate hashes for all alternates so that the usual comparison and testing macros work with alternates.
 
 It is also possible to override the <language> of an alternate on a
 per-item basis using the \biber data annotation feature (see
@@ -6423,18 +6427,74 @@ The default \cmd{DeclareLabelname} setting would select the English \bibfield{au
 %
 \bibfield{labelname} here is the same in both refcontexts, as determined by the \cmd{DeclareLabelname} setting. However, with <\kvopt{dynamiclabel}{true}>, the second citation would determine \bibfield{labelname} from the current (refcontext) settings for \opt{msform} and \opt{mslang} and the second citation would read <Пушкин>. It is also possible to select particular alternates of name list fields using the optional arguments to \cmd{DeclareLabelname} but bear in mind that these are still static settings--\bibfield{labelname} selection will not be dynamic and override the \cmd{DeclareLabelname} choice unless <\kvopt{dynamiclabel}{true}>. Similar considerations apply to \bibfield{labeltitle}.
 
-\subsection{Multiscript Default Language}
+\subsection{Selection of Multiscript Alternates}
 
-When selecting or printing a multiscript alternate, if no language is explicitly specified,
-then the language of the entryfield to select/print is determined from the
-current environment. In increasing order of priority, the default language
-is determined by:
+When selecting or printing a multiscript alternate with:
 
 \begin{itemize}
-\item The global \opt{mslang} setting derived from the babel/polyglossia document language
-\item The refcontext \opt{mslang} option
-\item Any \bibfield{langid} of the entry
+  \item \cmd{printfield}
+  \item \cmd{printlist}
+  \item \cmd{printname}
+  \item \cmd{indexfield}
+  \item \cmd{indexlist}
+  \item \cmd{indexname}
 \end{itemize}
+%
+the multiscript alternate to use is selected using the following rules:
+
+\begin{itemize}
+\item If an explicit form/lang is specified, then only this alternate is considered
+\item If no explicit form/lang is specified, then the following are considered, in order
+  \begin{itemize}
+    \item The alternate identified by the currently active form/lang (see below)
+    \item The first alternate found in the multiscript select list for the entry \bibfield{langid} (if it exists) or else the currently active multiscript language
+    \item The alternate identified by the currently active multiscipt form and the entry \bibfield{langid} (if it exists) or else the currently active multiscript language
+    \end{itemize}
+\end{itemize}
+
+The active multiscript form/language are determined by, in ascending order of override:
+
+\begin{itemize}
+\item The global \opt{msform} and \opt{mslang} settings derived respectively from the global option and  babel/polyglossia document language
+\item The refcontext \opt{msform}/\opt{mslang} options
+\end{itemize}
+
+The multiscript select list for a \bibfield{langid} is defined using the following macro:
+
+\begin{ltxsyntax}
+
+\cmditem{DeclareMsselect}{langid}{specification}
+
+Defines the multiscript alternates to look for, in order,  when attempting to print a multiscript field in the context of the language with \prm{langid}. \prm{langid} can be a babel/polyglossia language specifier or BCP47 language tag. The language context is either the \bibfield{langid} of the entry (if it exists) or the active \bibfield{mslang}. The \prm{specification} is one or more \cmd{alternate} macros:
+
+\begin{optionlist*}
+
+\cmditem{alternate}{form}{BCP47tag}
+
+A multiscript alternate to look for, specified by \opt{form} and \opt{BCP47tag}.
+
+\end{optionlist*}
+
+\end{ltxsyntax}
+%
+For example, to specify a multiscript select list for entries with \bibfield{langid} of <japanese> (or entries with no \bibfield{langid} field in a context where the active \opt{mslang} is the BCP47 language tag equivalent <ja-jp>).
+
+\begin{ltxexample}
+\DeclareMsselect{japanese}{
+  \alternate{transcription}{ja-hira}
+  \alternate{transliteration}{ja-latn}
+}
+\end{ltxexample}
+%
+This could also be specified as:
+
+\begin{ltxexample}
+\DeclareMsselect{ja-jp}{
+  \alternate{transcription}{ja-hira}
+  \alternate{transliteration}{ja-latn}
+}
+\end{ltxexample}
+
 \section{Author Guide}
 \label{aut}
 
