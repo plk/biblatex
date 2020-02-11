@@ -41,7 +41,7 @@
 \RequirePackage{logreq}
 \RequirePackage{ifthen}
 \RequirePackage{url}
-\RequirePackage{expl3}
+\RequirePackage{expl3}[2020/03/06]
 \RequirePackage{xparse}
 %\RequirePackage{trace}
 
@@ -4086,81 +4086,6 @@
 
 %% Global formatting hooks
 
-% capitalization
-
-% {<text>}
-\ExplSyntaxOn
-\NewDocumentCommand \blx@make@lowercase {m}
-  {
-    \text_lowercase:n {#1}
-  }
-  
-\NewDocumentCommand \blx@make@uppercase {m}
-  {
-    \text_uppercase:n {#1}
-  }
-
-\NewDocumentCommand \MakeCapital {m}
-  {
-    \text_titlecase_first:n {#1}
-  }
-\ExplSyntaxOff
-
-% {<text>}
-\newrobustcmd*{\MakeSentenceCase}{%
-  \@ifstar\blx@mksc@i\blx@mksc@ii}
-
-% Check, in order:
-% * explicit option language=<lang>, which overrides everything
-% * langid field of entry
-% * babel/polyglossia lang
-% * main document lang
-\def\blx@mksc@i{%
-  \ifdef\blx@forcelanguagename
-    {\xifinlist\blx@forcelanguagename\blx@cmksc@lang
-       {\blx@mksc@ii}
-       {\@firstofone}}
-    {\ifdef\abx@field@langid
-      {\xifinlist\abx@field@langid\blx@cmksc@lang
-         {\blx@mksc@ii}
-         {\@firstofone}}
-      {\ifdef\blx@main@language
-        {\xifinlist\blx@main@language\blx@cmksc@lang
-          {\blx@mksc@ii}
-          {\@firstofone}}
-        {\xifinlist\blx@languagename\blx@cmksc@lang
-          {\blx@mksc@ii}
-          {\@firstofone}}}}}
-
-\ExplSyntaxOn
-\NewDocumentCommand \blx@mksc@ii {m}
-  {
-    \text_titlecase:n {#1}
-  }
-\ExplSyntaxOff
-
-% {<language,language,...>}
-\newrobustcmd*{\DeclareCaseLangs}{%
-  \@ifstar
-    {\blx@defcaselangs}
-    {\global\let\blx@cmksc@lang\@empty
-     \blx@defcaselangs}}
-
-\def\blx@defcaselangs#1{%
-  \ifblank{#1}
-    {}
-    {\forcsvlist{\listgadd\blx@cmksc@lang}{#1}}}
-
-\DeclareCaseLangs{%
-  american,british,canadian,
-  english,USenglish,UKenglish,
-  australian,newzealand}
-
-\newrobustcmd*{\ifcaselang}[1][]{%
-  \ifblank{#1}
-    {\xifinlist\blx@languagename\blx@cmksc@lang}
-    {\xifinlist{#1}\blx@cmksc@lang}}
-
 %% Main formatting commands
 % They work by creating a \let alias:
 % \abx@<class>@<entrytype>@<formatname> -> \blx@defformat@d
@@ -4822,7 +4747,7 @@
 
 \protected\def\blx@biblcstring#1#2#3{%
   \blx@met@bibstring{#1}{#2}{#3}
-    {#1{\blx@make@lowercase{\csuse{#2@\blx@tempa}}}%
+    {#1{\blx@maketext@lowercase{\csuse{#2@\blx@tempa}}}%
      \blx@endunit}}
 
 % [<wrapper>]{<string>}
@@ -4837,7 +4762,7 @@
 
 \protected\def\blx@bibucstring#1#2#3{%
   \blx@met@bibstring{#1}{#2}{#3}
-    {#1{\blx@make@uppercase{\csuse{#2@\blx@tempa}}}%
+    {#1{\blx@maketext@uppercase{\csuse{#2@\blx@tempa}}}%
      \blx@endunit}}
 
 % {<string>}
@@ -6772,6 +6697,179 @@
   uniquenametemplatename,labelalphanametemplatename}%
 \gdef\blx@bcf@backendin@name@nametemplates{sortingnamekeytemplatename,%
   uniquenametemplatename,labelalphanametemplatename}%
+
+
+% capitalization
+
+% textcase defines \NoCaseChange as \let\NoCaseChange\@firstofone
+\ifundef\NoCaseChange
+  {\let\NoCaseChange\@firstofone}
+  {}
+
+% expl3 code by Joseph Wright
+% https://github.com/plk/biblatex/issues/960#issuecomment-578435859
+\ExplSyntaxOn
+\tl_put_right:Nn \l_text_expand_exclude_tl { \NoCaseChange }
+
+\tl_put_right:Nn \l_text_case_exclude_arg_tl { \NoCaseChange }
+
+\cs_new:Npn \biblatex_text_bibtex_to_expl:n #1
+  {
+    \__biblatex_text_bibtex_loop:w #1
+      \q_recursion_tail \q_recursion_stop
+  }
+
+\cs_new:Npn \__biblatex_text_bibtex_loop:w #1 \q_recursion_stop
+  {
+    \tl_if_head_is_N_type:nTF {#1}
+      { \__biblatex_text_bibtex_N_type:N }
+      {
+        \tl_if_head_is_group:nTF {#1}
+          { \__biblatex_text_bibtex_group:n }
+          { \__biblatex_text_bibtex_space:w }
+      }
+    #1 \q_recursion_stop
+  }
+
+\cs_new:Npn \__biblatex_text_bibtex_N_type:N #1
+  {
+    \quark_if_recursion_tail_stop:N #1
+    \exp_not:n {#1}
+    \__biblatex_text_bibtex_loop:w
+  }
+
+\cs_new:Npn \__biblatex_text_bibtex_group:n #1
+  {
+    {
+      \bool_lazy_and:nnTF
+        { \tl_if_head_is_N_type_p:n {#1} }
+        {
+          \exp_after:wN \token_if_cs_p:N \exp_after:wN { \tl_head:w #1 \q_stop }
+        }
+        { \exp_not:n {#1} }
+        { \exp_not:n { \NoCaseChange {#1} } }
+      }
+    \__biblatex_text_bibtex_loop:w
+  }
+
+\exp_last_unbraced:NNo \cs_new:Npn \__biblatex_text_bibtex_space:w \c_space_tl
+  {
+    \c_space_tl
+    \__biblatex_text_bibtex_loop:w
+  }
+
+
+\cs_new:Npn \blx@maketext@sentencecase@preprocess@braceprotect #1
+  {
+    \biblatex_text_bibtex_to_expl:n {#1}
+  }
+
+
+\cs_new_eq:NN \blx@maketext@sentencecase@preprocess
+              \blx@maketext@sentencecase@preprocess@braceprotect
+
+% by default we emulate BibTeX's brace case protection rules
+% but the user can turn that off for a more sane behaviour
+% that only relies on \NoCaseChange
+\DeclareBiblatexOption{global,type,entry}[boolean]{bibtexcaseprotection}[true]{%
+  \str_case:nnF { #1 }
+    {
+      { true }
+      {
+        \cs_set_eq:NN \blx@maketext@sentencecase@preprocess
+                      \blx@maketext@sentencecase@preprocess@braceprotect
+      }
+      { false }
+      {
+        \cs_set_eq:NN \blx@maketext@sentencecase@preprocess
+                      \@firstofone
+      }
+    }
+    {\blx@error
+      {Invalid~value~'#1'~for~option\MessageBreak
+       'bibtexcaseprotection'}
+      {Valid~values~for~'bibtexcaseprotection'~
+       are~'true'~and~'false'}
+    }
+}
+
+\cs_generate_variant:Nn \text_titlecase:n { o }
+
+% preprocess is either the BibTeX-to-LaTeX brace translator
+% or \@firstofone (do nothing)
+% expand once to get rid of the latter
+\NewDocumentCommand \blx@maketext@sentencecase {+m}
+  {
+    \text_titlecase:o { \blx@maketext@sentencecase@preprocess {#1} }
+  }
+
+\NewDocumentCommand \blx@maketext@lowercase {m}
+  {
+    \text_lowercase:n {#1}
+  }
+
+\NewDocumentCommand \blx@maketext@uppercase {m}
+  {
+    \text_uppercase:n {#1}
+  }
+
+\NewDocumentCommand \MakeCapital {m}
+  {
+    \text_titlecase_first:n {#1}
+  }
+
+\ExplSyntaxOff
+
+
+
+% {<text>}
+\newrobustcmd*{\MakeSentenceCase}{%
+  \@ifstar\blx@mksc@i\blx@maketext@sentencecase}
+
+% Check, in order:
+% * explicit option language=<lang>, which overrides everything
+% * langid field of entry
+% * babel/polyglossia lang
+% * main document lang
+\def\blx@mksc@i{%
+  \ifdef\blx@forcelanguagename
+    {\xifinlist\blx@forcelanguagename\blx@cmksc@lang
+       {\blx@maketext@sentencecase}
+       {\@firstofone}}
+    {\ifdef\abx@field@langid
+      {\xifinlist\abx@field@langid\blx@cmksc@lang
+         {\blx@maketext@sentencecase}
+         {\@firstofone}}
+      {\ifdef\blx@main@language
+        {\xifinlist\blx@main@language\blx@cmksc@lang
+          {\blx@maketext@sentencecase}
+          {\@firstofone}}
+        {\xifinlist\blx@languagename\blx@cmksc@lang
+          {\blx@maketext@sentencecase}
+          {\@firstofone}}}}}
+
+% {<language,language,...>}
+\newrobustcmd*{\DeclareCaseLangs}{%
+  \@ifstar
+    {\blx@defcaselangs}
+    {\global\let\blx@cmksc@lang\@empty
+     \blx@defcaselangs}}
+
+\def\blx@defcaselangs#1{%
+  \ifblank{#1}
+    {}
+    {\forcsvlist{\listgadd\blx@cmksc@lang}{#1}}}
+
+\DeclareCaseLangs{%
+  american,british,canadian,
+  english,USenglish,UKenglish,
+  australian,newzealand}
+
+\newrobustcmd*{\ifcaselang}[1][]{%
+  \ifblank{#1}
+    {\xifinlist\blx@languagename\blx@cmksc@lang}
+    {\xifinlist{#1}\blx@cmksc@lang}}
+
 
 % Misc globalopts
 \blx@DeclareBackendOption{global}[xml]{datamodel}
