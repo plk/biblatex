@@ -6371,8 +6371,6 @@ This example demonstrates the multiscript entryfield alternate syntax where the
 separator (the default is an underscore). Notice that there are alternates
 for the \bibfield{author}, \bibfield{location} and \bibfield{title} entryfields.
 
-Note that alternates must be an \emph{alternative to something}, that is, if multiscript alternates of a field are specified, there must be a <root> entryfield with no multiscript <form> and <language>. In the above example, the <root> multiscript entryfields are \bibfield{AUTHOR}, \bibfield{LOCATION} and \bibfield{TITLE}. \biber only calculates things like uniqueness information for the <root> entryfields and not for the alternates of the <root> fields as the alternates are just alternate representations of the <root> field. \biber does calculate hashes for all alternates so that the usual comparison and testing macros work with alternates.
-
 It is also possible to override the <language> of an alternate on a
 per-item basis using the \biber data annotation feature (see
 \ref{use:annote}). \biber's multiscript support reserves the \bibfield{mslang}
@@ -6494,7 +6492,64 @@ This could also be specified as:
   \alternate{transliteration}{ja-latn}
 }
 \end{ltxexample}
+%
+For example, consider the following data with two multiscript entryfields
+(the logic is the same for lists and names):
+\begin{lstlisting}[style=bibtex]{}
+@ARTICLE{mstest,
+  LANGID               = {lang4},
+  MSFIELD1             = {Value1},
+  MSFIELD1_form1_lang1 = {Value2},
+  MSFIELD1_form2_lang2 = {Value3},
+  MSFIELD1_form4_lang4 = {Value4},
+  MSFIELD2             = {Value5},
+  MSFIELD2_form1_lang1 = {Value6},
+  MSFIELD2_form3_lang3 = {Value7},
+}
+\end{lstlisting}
+%
+the values selected to be printed would be:
+{\footnotesize
+\begin{ltxexample}
+  % Assume global defaults of form=form1, lang=lang1
 
+  \DeclareMsselect{lang4}{
+    \alternate{form2}{lang2}
+  }
+
+  % Explicit form/lang
+  \printfield[form1][lang1]{MSFIELD1} => "Value2"
+  \printfield[form3][lang3]{MSFIELD1} => ""
+  \printfield[form1][lang1]{MSFIELD2} => "Value6"
+
+  % global form/lang alternates exist for both fields
+  \printfield{MSFIELD1} => "Value2"
+  \printfield{MSFIELD2} => "Value6"
+  
+  % refcontext can change defaults for form/lang
+  % but doesn't effect explicit form/lang
+  \newrefcontext[msform=form3,mslang=lang3]
+  \printfield[form1][lang1]{MSFIELD1} => "Value2"
+  \printfield[form3][lang3]{MSFIELD1} => ""
+  \printfield[form1][lang1]{MSFIELD2} => "Value6"
+
+  % MSFIELD2 has a value for refcontext default form3/lang3
+  \printfield{MSFIELD2} => "Value7"
+  
+  % MSFIELD1 does not have an alternate for refcontext
+  % default form3/lang3 but due to \DeclareMsselect, we
+  % can use form2/lang2 for MSFIELD1
+  \printfield{MSFIELD1} => "Value3"
+
+  \newrefcontext[msform=form4,mslang=lang4]
+  \printfield{MSFIELD1} => "Value4"
+  % MSFIELD2 does not have an alternate for refcontext
+  % default form4/lang4 alternate for MSFIELD2, also there
+  % is no form2/lang2 in the select list for the LANGID
+  % of the entry and no form1/lang4 alternate
+  \printfield{MSFIELD2} => ""
+\end{ltxexample}
+}
 \section{Author Guide}
 \label{aut}
 
