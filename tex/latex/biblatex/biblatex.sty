@@ -520,11 +520,26 @@
        {\def\blx@sortlocale{english}}}
      {}%
 
-  % Set default mslang from babel/polyglossia or a fallback
+ % There are several scopes of blx@mslang - they are summarised here for clarity
+ % \blx@gmslang - global option setting as this needs passing to biber
+ % \blx@mslang -  setting which varies depending on refcontext
+ % \blx@lmslang - if the langid field exists, the BCP47 tag for this, otherwise same as \blx@mslang
+ % \blx@nmslang - the value of an individual name "mslang" data annotation, if it exists. This is
+ %                just a convenient was of getting such an annotation as individual names have
+ %                a keyval list in which to store it, the "mslang" data annotation is also available
+ %                too. Non-name list "mslang" data annotations don't have this convenience variable
+ %                because there is nowhere to store them in the .bbl format and so the annotation
+ %                must be fetched directly using the annotation macros.
+
+ % Set default mslang from babel/polyglossia or a fallback
+ % mslang is a biblatex global option but we don't identify it as one as it is not
+ % passed in the .bcf as a biblatex option but rather as a biber option since it is used
+ % to set the default biber option.
   \ifdef\blx@main@language
     {\edef\blx@mslang{\csuse{blx@msmaplangr@\blx@main@language}}}
     {\def\blx@mslang{en-us}}% fallback when no babel/polyglossia
-  }
+  \let\blx@gmslang\blx@mslang
+}
 
 \begingroup
 \@makeother\#
@@ -14122,6 +14137,7 @@
       \blx@xml@toggle{debug}%
       \blx@xml@svalue{mincrossrefs}{\blx@mincrossrefs}%
       \blx@xml@svalue{minxrefs}{\blx@minxrefs}%
+      \blx@xml@svalue{mslang}{\blx@gmslang}%
       \blx@xml@toggle{sortcase}%
       \blx@xml@toggle{sortupper}%
     }%
