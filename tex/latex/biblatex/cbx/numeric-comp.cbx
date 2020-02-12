@@ -61,6 +61,9 @@
        {\usebibmacro{cite:comp:comp}}}
     {\usebibmacro{cite:comp:shand}}}
 
+% we externalise printing the citations to
+% cite:print:... macros for easier customisation
+
 \newbibmacro*{cite:comp:comp}{%
   \cbx@iflabelprefixequalslast
     {\ifnumequal{\thefield{labelnumber}}{\value{cbx@tempcntb}}
@@ -83,9 +86,7 @@
   \ifnumgreater{\value{cbx@tempcntb}}{-1}
     {\multicitedelim}
     {}%
-  \printtext[bibhyperref]{%
-    \printfield{labelprefix}%
-    \printfield{labelnumber}}}
+  \usebibmacro{cite:print:labelnumber}}
 
 \newbibmacro*{cite:comp:inset}{%
   \stepcounter{cbx@tempcntd}%
@@ -105,16 +106,13 @@
            \ifnumgreater{\value{cbx@tempcntd}}{-1}
              {\multicitesubentrydelim}
              {}%
-           \printtext[bibhyperref]{\printfield{entrysetcount}}}}}
+           \usebibmacro{cite:print:subentry:comp}}}}
     {\usebibmacro{cite:dump}%
      \ifnumgreater{\value{cbx@tempcntb}}{-1}
        {\multicitedelim}
        {}%
      \setcounter{cbx@tempcntd}{-1}%
-     \printtext[bibhyperref]{%
-       \printfield{labelprefix}%
-       \printfield{labelnumber}%
-       \printfield{entrysetcount}}%
+     \usebibmacro{cite:print:subentry:full}%
      \savefield{labelprefix}{\cbx@lastprefix}%
      \savefield{labelnumber}{\cbx@lastnumber}}%
     \setcounter{cbx@tempcntd}{\thefield{entrysetcount}}%
@@ -125,7 +123,7 @@
   \ifnumgreater{\value{cbx@tempcntb}}{-1}
     {\multicitedelim}
     {}%
-  \printtext[bibhyperref]{\printfield{shorthand}}%
+  \usebibmacro{cite:print:shorthand}%
   \setcounter{cbx@tempcntb}{-1}}
 
 \newbibmacro{cite:dump:inset}{%
@@ -134,8 +132,8 @@
     {\ifnumgreater{\value{cbx@tempcntc}}{1}
        {\multicitesubentryrangedelim}
        {\multicitesubentrydelim}%
-     \bibhyperref[\cbx@lastkey]{%
-       \printtext[entrysetcount]{\cbx@lastentrysetcount}}}
+     \usebibmacro{cite:print:last:subentry:comp}%
+     \global\undef\cbx@lastentrysetcount}
     {}%
   \setcounter{cbx@tempcntc}{0}%
 }
@@ -147,15 +145,43 @@
     {\ifnumgreater{\value{cbx@tempcnta}}{1}
        {\multiciterangedelim}
        {\multicitedelim}%
-     \bibhyperref[\cbx@lastkey]{%
-       \ifdef\cbx@lastprefix
-         {\printtext[labelprefix]{\cbx@lastprefix}}
-         {}%
-       \printtext[labelnumber]{\cbx@lastnumber}}%
+     \usebibmacro{cite:print:last:labelnumber}%
      \global\undef\cbx@lastprefix}
     {}%
   \setcounter{cbx@tempcnta}{0}%
 }
+
+% these macros do the actual printing
+
+\newbibmacro*{cite:print:shorthand}{%
+  \printtext[bibhyperref]{\printfield{shorthand}}}
+
+\newbibmacro*{cite:print:labelnumber}{%
+  \printtext[bibhyperref]{%
+    \printfield{labelprefix}%
+    \printfield{labelnumber}}}
+
+\newbibmacro*{cite:print:subentry:comp}{%
+  \printtext[bibhyperref]{\printfield{entrysetcount}}}
+
+\newbibmacro*{cite:print:subentry:full}{%
+  \printtext[bibhyperref]{%
+    \printfield{labelprefix}%
+    \printfield{labelnumber}%
+    \printfield{entrysetcount}}}
+
+\DeclareFieldFormat{bibhyperref:lastkey}{\bibhyperref[\cbx@lastkey]{#1}}
+
+\newbibmacro*{cite:print:last:subentry:comp}{%
+  \printtext[bibhyperref:lastkey]{%
+    \printtext[entrysetcount]{\cbx@lastentrysetcount}}}
+
+\newbibmacro*{cite:print:last:labelnumber}{%
+  \printtext[bibhyperref:lastkey]{%
+    \ifdef\cbx@lastprefix
+      {\printtext[labelprefix]{\cbx@lastprefix}}
+      {}%
+    \printtext[labelnumber]{\cbx@lastnumber}}}
 
 \newbibmacro*{textcite}{%
   \iffieldequals{namehash}{\cbx@lasthash}

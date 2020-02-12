@@ -75,6 +75,10 @@
   `\multicitesubentryrangedelim`, `\superciterangedelim`,
   `\supercitesubentrydelim`, and `\supercitesubentryrangedelim` for
   finer control over (compressed) subentry citations in `numeric-comp`.
+- **CRITICAL CHANGE** The structure of the bibmacros in `numeric-comp`
+  has been reworked to make it easier to customise the printed output.
+  Documents that relied on patching internal bibmacros or hevaily
+  redefined them may have to adapt.
 
 # RELEASE NOTES FOR VERSION 3.14
 - biber from version 2.14 has extended, granular XDATA functionality to
