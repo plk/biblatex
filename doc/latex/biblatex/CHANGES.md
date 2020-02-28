@@ -53,6 +53,20 @@
   redefined them may have to adapt.
 - `biblatex` now tests if a requested Biber (re)run happened by
   comparing the MD5 hashes of the new and old `.bbl` files.
+- Added file hooks `\blx@filehook@preload@<filename>`,
+  `\blx@filehook@postload@<filename>`
+  and `\blx@filehook@failure@<filename>`
+  to execute hooks before or after a file is loaded
+  or if the loading fails.
+  `\blx@lbxfilehook@simple@preload@<filename>`,
+  `\blx@lbxfilehook@simple@postload@<filename>`
+  and `\blx@lbxfilehook@simple@failure@<filename>`
+  as well as
+  `\blx@lbxfilehook@once@preload@<filename>`,
+  `\blx@lbxfilehook@once@postload@<filename>`
+  and `\blx@lbxfilehook@once@failure@<filename>`
+  are the equivalents for `.lbx` loading, where
+  files may be loaded several times in some situations.
 
 # RELEASE NOTES FOR VERSION 3.14
 - biber from version 2.14 has extended, granular XDATA functionality to

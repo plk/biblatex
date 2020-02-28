@@ -12843,6 +12843,68 @@ Appends \prm{code} to an internal hook executed every time an entrykey is proces
 
 \end{ltxsyntax}
 
+\subsubsection{File hooks}
+\label{aut:fmt:hok:fil}
+\biblatex has rudimentary support for injecting arbitrary code before and after a file is loaded via file hooks. For files that are loaded using \biblatex's file interface---that includes all bibliography and citation styles---the following three hooks are available
+
+\begin{ltxsyntax}
+\cmditem{blx@filehook@preload@$<$filename with extension$>$}
+
+If \file{$<$filename with extension$>$} is found, this hook is exected before it is loaded.
+
+\cmditem{blx@filehook@postload@$<$filename with extension$>$}
+
+If \file{$<$filename with extension$>$} is found, this hook is exected after it is loaded.
+
+\cmditem{blx@filehook@failure@$<$filename with extension$>$}
+
+This hook is executed if \file{$<$filename with extension$>$} can not be found.
+\end{ltxsyntax}
+
+\biblatex generally only loads files once even if they were requested multiple times,
+so the hooks will only be executed once.
+Naturally, the file hooks need to be populated before the files are loaded, so the safest would be to populate them before \biblatex is loaded.
+It is advisable to only append code to avoid overwriting previous hook contents.
+Since the name of the file hook include the dot and the file extension they will usually have to be defined with a command like \cmd{csappto} from \sty{etoolbox}.
+
+The \file{.lbx} files are special and may have to be loaded several times in some situations.
+Their file hooks are
+
+\begin{ltxsyntax}
+\cmditem{blx@lbxfilehook@once@preload@$<$filename with extension$>$}
+
+If \file{$<$filename with extension$>$} is found, this hook is exected before it is loaded in a situation where the \file{.lbx} files are loaded only once.
+
+\cmditem{blx@lbxfilehook@once@postload@$<$filename with extension$>$}
+
+If \file{$<$filename with extension$>$} is found, this hook is exected after it is loaded in a situation where the \file{.lbx} files are loaded only once.
+
+\cmditem{blx@lbxfilehook@once@failure@$<$filename with extension$>$}
+
+This hook is executed if \file{$<$filename with extension$>$} can not be found in a situation where the \file{.lbx} files are loaded only once.
+
+\cmditem{blx@lbxfilehook@simple@preload@$<$filename with extension$>$}
+
+If \file{$<$filename with extension$>$} is found, this hook is exected before it is loaded in a situation where the \file{.lbx} files may be loaded multiple times.
+
+\cmditem{blx@lbxfilehook@simple@postload@$<$filename with extension$>$}
+
+If \file{$<$filename with extension$>$} is found, this hook is exected after it is loaded in a situation where the \file{.lbx} files may be loaded multiple times.
+
+\cmditem{blx@lbxfilehook@simple@failure@$<$filename with extension$>$}
+
+This hook is executed if \file{$<$filename with extension$>$} can not be found in a situation where the \file{.lbx} files may be loaded multiple times.
+\end{ltxsyntax}
+
+The following code sets up \sty{beamer} to print the bibliography labels instead of its bibliography icons when \file{numeric.bbx} after is loaded
+\begin{ltxexample}
+\csappto{blx@filehook@postload@numeric.bbx}{%
+  \mode<presentation>{%
+    \setbeamertemplate{bibliography item}{%
+      \insertbiblabel}}}
+\end{ltxexample}
+
+
 \subsection{Hints and Caveats}
 \label{aut:cav}
 
@@ -14235,6 +14297,7 @@ This revision history is a list of changes relevant to users of this package. Ch
       \cmd{supercitesubentrydelim}, \cmd{supercitesubentryrangedelim}%
       \see{use:fmt:fmt}
 \item Added \opt{block} option to \cmd{printbibliography} and friends\see{use:bib:bib}
+\item Added file hooks\see{aut:fmt:hok:fil}
 \end{release}
 \begin{release}{3.14}{2019-12-01}
 \item Added new mapping verbs for citation sources\see{aut:ctm:map}
