@@ -7187,7 +7187,9 @@
       {You must define a default language for 'babel'}}
     {\let\blx@main@language\bbl@main@language}%
   \edef\blx@saved@apostrophe@catcode{\the\catcode`\'}%
+  \edef\blx@saved@hyphen@catcode{\the\catcode`\-}%
   \@makeother\'
+  \@makeother\-
   \pretocmd\select@language{\blx@langsetup{#1}}
     {\ifdef\blx@thelangenv
        {\def\blx@beglang{%
@@ -7225,7 +7227,8 @@
      \blx@langsetup\blx@main@language}
     {\blx@err@patch{'babel' package}%
      \blx@mknoautolang}%
-  \catcode`\'=\blx@saved@apostrophe@catcode\relax}
+  \catcode`\'=\blx@saved@apostrophe@catcode\relax
+  \catcode`\-=\blx@saved@hyphen@catcode\relax}
 
 \gdef\blx@mkautolangpoly{%
   \ifundef\mainbabelname
@@ -15862,10 +15865,22 @@
       references. 'pageanchor=true' is required}%
   \fi}
 
-\DeclareBibliographyOption[string]{block}{%
+\def\blx@optprocess@block#1{%
   \ifcsdef{blx@opt@block@#1}
     {\csuse{blx@opt@block@#1}}
     {\blx@err@invopt{block=#1}{}}}
+
+\DeclareBibliographyOption[string]{block}{%
+  \blx@optprocess@block{#1}}
+
+\define@key{blx@bib1}{block}{}
+\define@key{blx@bib2}{block}{\blx@optprocess@block{#1}}
+\define@key{blx@biblist1}{block}{}
+\define@key{blx@biblist2}{block}{\blx@optprocess@block{#1}}
+
+\define@key{blx@bbs}{block}{\blx@optprocess@block{#1}}
+\define@key{blx@bbg}{block}{\blx@optprocess@block{#1}}
+
 \def\blx@opt@block@none{%
   \let\blx@bibsetup\@empty
   \let\newblockpunct\@empty}
