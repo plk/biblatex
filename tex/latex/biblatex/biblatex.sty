@@ -10174,7 +10174,7 @@
 %% that we can use for that purpose as well.
 %% This is fairly new, so we need to have a fallback for older versions.
 
-%% The standard classes are tricky. 
+%% The standard classes are tricky.
 %% We insert something in \@startsection to get the level number
 %% and then patch \@sect and \@ssect so the label attaches to the
 %% right thing.
@@ -10548,6 +10548,12 @@
 \newrobustcmd*{\AtEachCitekey}{%
   \iftoggle{blx@citation}{\appto\blx@hook@citekey}{\@gobble}}
 
+\let\blx@hook@entrykey\@gobble
+\newrobustcmd*{\AtEveryEntrykey}{%
+  \apptocmd{\blx@hook@entrykey}}
+\@onlypreamble\AtEveryEntrykey
+
+
 \def\blx@imc@UseEveryCiteHook{\csuse{blx@hook@cite}}
 \def\blx@imc@UseEveryCitekeyHook{\csuse{blx@hook@citekey}}
 \def\blx@imc@UseEveryMultiCiteHook{\csuse{blx@hook@mcite}}
@@ -10646,7 +10652,8 @@
        {\ifinlistcs{#1}{blx@miss@\the\c@refsection}
           {}
           {\blx@logreq@active{#2{#1}}}}
-       {\blx@logreq@active{#2{#1}}}}}
+       {\blx@logreq@active{#2{#1}}}}%
+  \blx@hook@entrykey{#1}}
 
 \protected\def\abx@aux@segm#1#2#3{%
   \xifinlistcs{\detokenize{#3}}{blx@segm@#1@#2}
