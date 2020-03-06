@@ -361,11 +361,19 @@
           {}}
        {}}
     {}%
-  \apptocmd\@floatboxreset
-    {\boolfalse{citetracker}%
-     \boolfalse{pagetracker}}
+  \iftoggle{blx@trackfloats}
     {}
-    {\blx@err@patch{floats}}%
+    {\apptocmd\@floatboxreset
+       {\boolfalse{citetracker}%
+        \boolfalse{pagetracker}}
+       {}
+       {\blx@err@patch{floats}}}%
+  \iftoggle{blx@backreffloats}
+    {}
+    {\apptocmd\@floatboxreset
+       {\boolfalse{backtracker}}
+       {}
+       {\blx@err@patch{floats}}}%
   \ifdef\TX@endtabularx % tabularx/memoir
     {\pretocmd\TX@endtabularx
       {\addtocounter{tabx@nest}{1}}% track nested tabularx environments
@@ -14485,6 +14493,10 @@
 \def\blx@opt@backrefsetstyle@memandset{4}
 \def\blx@opt@backrefsetstyle@setplusmem{5}
 
+\newtoggle{blx@backreffloats}
+\DeclareBibliographyOption[boolean]{backreffloats}[true]{%
+  \settoggle{blx@backreffloats}{#1}}
+
 \appto\blx@mkhyperref{%
   \ifHy@plainpages
     \blx@warning@noline{%
@@ -14737,6 +14749,11 @@
   \let\blx@loccittracker\blx@loccittracker@constrict
   \let\blx@loccitreset\blx@loccitreset@context
   \booltrue{citetracker}}
+
+\newtoggle{blx@trackfloats}
+\DeclareBibliographyOption[boolean]{trackfloats}[true]{%
+  \settoggle{blx@trackfloats}{#1}}
+
 
 \DeclareBibliographyOption[boolean]{parentracker}[true]{%
   \ifstrequal{#1}{true}
@@ -15217,8 +15234,10 @@
   maxnames=3,minnames=1,maxalphanames=3,minalphanames=1,
   maxitems=3,minitems=1,mincrossrefs=2,minxrefs=2,useauthor=true,useeditor=true,
   usetranslator=false,indexing=false,abbreviate=true,dateabbrev=true,dateera=astronomical,
-  backref=false,backrefsetstyle=setonly,pagetracker=false,ibidtracker=false,
-  idemtracker=false,opcittracker=false,loccittracker=false,citetracker=false,
+  backref=false,backrefsetstyle=setonly,backreffloats=true,
+  pagetracker=false,
+  ibidtracker=false,idemtracker=false,opcittracker=false,loccittracker=false,
+  citetracker=false,trackfloats=false,
   citecounter=false,block=none,language=autobib,clearlang=true,autolang=none,
   date=comp,labeldate=year,origdate=comp,eventdate=comp,urldate=short,
   autopunct=true,punctfont=false,defernumbers=false,timezeros=true,
