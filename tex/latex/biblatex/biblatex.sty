@@ -6793,60 +6793,123 @@
     }
 }
 
-\cs_generate_variant:Nn \text_titlecase:n { o }
+
+\cs_generate_variant:Nn \text_titlecase:n  { o }
+\cs_generate_variant:Nn \text_titlecase:nn { vo }
 
 % preprocess is either the BibTeX-to-LaTeX brace translator
 % or \@firstofone (do nothing)
 % expand once to get rid of the latter
-\NewDocumentCommand \blx@maketext@sentencecase {+m}
+\NewDocumentCommand \blx@maketext@sentencecase {O{}+m}
   {
-    \text_titlecase:o { \blx@maketext@sentencecase@preprocess {#1} }
+    \cs_if_exist:cTF { blx@mksc@maplang@#1 }
+      {
+        \text_titlecase:vo
+          { blx@mksc@maplang@#1 }
+          { \blx@maketext@sentencecase@preprocess {#2} }
+      }
+      {
+        \text_titlecase:o
+          { \blx@maketext@sentencecase@preprocess {#2} }
+      }
   }
+
+
+\cs_generate_variant:Nn \text_lowercase:nn { vn }
 
 \NewDocumentCommand \blx@maketext@lowercase {m}
   {
-    \text_lowercase:n {#1}
+    \cs_if_exist:cTF { blx@mksc@maplang@\blx@languagename }
+      {
+        \text_lowercase:vn
+          { blx@mksc@maplang@\blx@languagename }
+          {#1}
+      }
+      {
+        \text_lowercase:n {#1}
+      }
   }
+
+
+\cs_generate_variant:Nn \text_uppercase:nn { vn }
 
 \NewDocumentCommand \blx@maketext@uppercase {m}
   {
-    \text_uppercase:n {#1}
+    \cs_if_exist:cTF { blx@mksc@maplang@\blx@languagename }
+      {
+        \text_uppercase:vn
+          { blx@mksc@maplang@\blx@languagename }
+          {#1}
+      }
+      {
+        \text_uppercase:n {#1}
+      }
   }
 
-\NewDocumentCommand \MakeCapital {m}
+
+\cs_generate_variant:Nn \text_titlecase_first:nn { vn }
+
+\NewDocumentCommand \blx@maketext@makecapital {m}
   {
-    \text_titlecase_first:n {#1}
+    \cs_if_exist:cTF { blx@mksc@maplang@\blx@languagename }
+      {
+        \text_titlecase_first:vn
+          { blx@mksc@maplang@\blx@languagename }
+          {#1}
+      }
+      {
+        \text_titlecase_first:n {#1}
+      }
+  }
+
+\NewDocumentCommand \MakeCapital {}
+  {
+    \blx@maketext@makecapital
   }
 
 \ExplSyntaxOff
 
+% Map for babel/polyglossia names
+% to BCP-47-like l3text names.
+% We only need maps for l3text names do that do something in
+% as of 2020/03/06 those names are
+% az, de-alt, el, lt, nl, tr.
+% biblatex currently only supports dutch, greek and turkish
+% so we only map those.
+% de-alt is optional and still unusual, so we don't map it,
+% but a user could in theory map it themselves.
+% Maybe we need an official interface here?
+\def\blx@mksc@maplang@dutch{nl}
+\def\blx@mksc@maplang@greek{el}
+\def\blx@mksc@maplang@turkish{tr}
 
 
 % {<text>}
 \newrobustcmd*{\MakeSentenceCase}{%
   \@ifstar\blx@mksc@i\blx@maketext@sentencecase}
 
-% Check, in order:
+% Language fallback, in order:
 % * explicit option language=<lang>, which overrides everything
 % * langid field of entry
 % * babel/polyglossia lang
 % * main document lang
+% everything here is expandable so that
+% \blx@mksc@lang expands to the language name
+\def\blx@mksc@lang{%
+  \ifundef\blx@forcelanguagename
+    {\ifundef\abx@field@langid
+      {\ifundef\blx@main@language
+        {\blx@languagename}
+        {\blx@main@language}}
+      {\abx@field@langid}}
+    {\blx@forcelanguagename}}
+
+% if \DeclareCaseLangs says we should apply sentence casing
+% we go for it and pass the language along to the sentence casing macro
 \def\blx@mksc@i{%
-  \ifdef\blx@forcelanguagename
-    {\xifinlist\blx@forcelanguagename\blx@cmksc@lang
-       {\blx@maketext@sentencecase}
-       {\@firstofone}}
-    {\ifdef\abx@field@langid
-      {\xifinlist\abx@field@langid\blx@cmksc@lang
-         {\blx@maketext@sentencecase}
-         {\@firstofone}}
-      {\ifdef\blx@main@language
-        {\xifinlist\blx@main@language\blx@cmksc@lang
-          {\blx@maketext@sentencecase}
-          {\@firstofone}}
-        {\xifinlist\blx@languagename\blx@cmksc@lang
-          {\blx@maketext@sentencecase}
-          {\@firstofone}}}}}
+  \xifinlist\blx@mksc@lang\blx@cmksc@lang
+    {\blx@maketext@sentencecase[\blx@mksc@lang]}
+    {\@firstofone}}
 
 % {<language,language,...>}
 \newrobustcmd*{\DeclareCaseLangs}{%
