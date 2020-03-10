@@ -6759,14 +6759,8 @@
   }
 
 
-\cs_new:Npn \blx@maketext@sentencecase@preprocess@braceprotect #1
-  {
-    \biblatex_text_bibtex_to_expl:n {#1}
-  }
-
-
-\cs_new_eq:NN \blx@maketext@sentencecase@preprocess
-              \blx@maketext@sentencecase@preprocess@braceprotect
+\cs_new_eq:NN \biblatex_text_sentencecase_preprocess:n
+              \biblatex_text_bibtex_to_expl:n
 
 % by default we emulate BibTeX's brace case protection rules
 % but the user can turn that off for a more sane behaviour
@@ -6776,13 +6770,13 @@
     {
       { true }
       {
-        \cs_set_eq:NN \blx@maketext@sentencecase@preprocess
-                      \blx@maketext@sentencecase@preprocess@braceprotect
+        \cs_set_eq:NN \biblatex_text_sentencecase_preprocess:n
+                      \biblatex_text_bibtex_to_expl:n
       }
       { false }
       {
-        \cs_set_eq:NN \blx@maketext@sentencecase@preprocess
-                      \@firstofone
+        \cs_set_eq:NN \biblatex_text_sentencecase_preprocess:n
+                      \use:n
       }
     }
     {\blx@error
@@ -6792,82 +6786,6 @@
        are~'true'~and~'false'}
     }
 }
-
-
-\cs_generate_variant:Nn \text_titlecase:n  { o }
-\cs_generate_variant:Nn \text_titlecase:nn { vo }
-
-% preprocess is either the BibTeX-to-expl3 brace translator
-% or \@firstofone (do nothing)
-% expand once to get rid of the latter
-\NewDocumentCommand \blx@maketext@sentencecase {O{}+m}
-  {
-    \cs_if_exist:cTF { biblatex_maplang_bbl_bcp_#1 }
-      {
-        \text_titlecase:vo
-          { biblatex_maplang_bbl_bcp_#1 }
-          { \blx@maketext@sentencecase@preprocess {#2} }
-      }
-      {
-        \text_titlecase:o
-          { \blx@maketext@sentencecase@preprocess {#2} }
-      }
-  }
-
-
-\cs_generate_variant:Nn \text_lowercase:nn { vn }
-
-\NewDocumentCommand \blx@maketext@lowercase {m}
-  {
-    \cs_if_exist:cTF { biblatex_maplang_bbl_bcp_\blx@languagename }
-      {
-        \text_lowercase:vn
-          { biblatex_maplang_bbl_bcp_\blx@languagename }
-          {#1}
-      }
-      {
-        \text_lowercase:n {#1}
-      }
-  }
-
-
-\cs_generate_variant:Nn \text_uppercase:nn { vn }
-
-\NewDocumentCommand \blx@maketext@uppercase {m}
-  {
-    \cs_if_exist:cTF { biblatex_maplang_bbl_bcp_\blx@languagename }
-      {
-        \text_uppercase:vn
-          { biblatex_maplang_bbl_bcp_\blx@languagename }
-          {#1}
-      }
-      {
-        \text_uppercase:n {#1}
-      }
-  }
-
-
-\cs_generate_variant:Nn \text_titlecase_first:nn { vn }
-
-\NewDocumentCommand \blx@maketext@makecapital {m}
-  {
-    \cs_if_exist:cTF { biblatex_maplang_bbl_bcp_\blx@languagename }
-      {
-        \text_titlecase_first:vn
-          { biblatex_maplang_bbl_bcp_\blx@languagename }
-          {#1}
-      }
-      {
-        \text_titlecase_first:n {#1}
-      }
-  }
-
-\NewDocumentCommand \MakeCapital {}
-  {
-    \blx@maketext@makecapital
-  }
-
-
 
 % Map for babel/polyglossia names
 % to BCP-47-like l3text names.
@@ -6879,15 +6797,19 @@
 % de-alt is optional and still unusual, so we don't map it,
 % but a user could in theory map it themselves.
 
+\prop_new:N \l_biblatex_babel_to_pseudobcp_prop
+
 \cs_new:Npn \biblatex_maplang_babel_to_pseudobcp #1 #2
   {
-    \cs_if_exist:cT { biblatex_maplang_bbl_bcp_#1 }
+    \prop_if_in:NnT \l_biblatex_babel_to_pseudobcp_prop {#1}
       {
         \blx@info
-          {Overwriting~babel->expl3~language~mapping\MessageBreak
-           for~#1~from~\use:c{ biblatex_maplang_bbl_bcp_#1 }~to#2}
+          {Overwriting~babel->l3text~language~mapping\MessageBreak
+           for~'#1'~from~
+           '\prop_item:Nn \l_biblatex_babel_to_pseudobcp_prop {#1}'~
+           to~'#2'}
       }
-    \cs_set:cpn { biblatex_maplang_bbl_bcp_#1 } {#2}
+    \prop_put:Nnn \l_biblatex_babel_to_pseudobcp_prop {#1} {#2}
   }
 
 \NewDocumentCommand \DeclareBabelToExplLanguageMapping {mm}
@@ -6897,49 +6819,155 @@
 
 \cs_new:Npn \biblatex_unmaplang_babel_to_pseudobcp #1
   {
-    \cs_set_eq:cN
-      { biblatex_maplang_bbl_bcp_#1 }
-      \tex_undefined:D 
+    \prop_if_in:NnT \l_biblatex_babel_to_pseudobcp_prop {#1}
+      {
+        \blx@info
+          {Removing~babel->l3text~language~mapping\MessageBreak
+           for~'#1'~to~
+           '\prop_item:Nn \l_biblatex_babel_to_pseudobcp_prop {#1}'}
+      }
+    \prop_remove:Nn \l_biblatex_babel_to_pseudobcp_prop {#1}
   }
 
 \NewDocumentCommand \UndeclareBabelToExplLanguageMapping {m}
   {
-    \biblatex_unmaplang_babel_to_pseudobcp {#1}
+    \str_if_eq:nnTF {#1} {*}
+      { \prop_clear:N  \l_biblatex_babel_to_pseudobcp_prop }
+      { \biblatex_unmaplang_babel_to_pseudobcp {#1} }
   }
 
 \DeclareBabelToExplLanguageMapping{dutch}{nl}
 \DeclareBabelToExplLanguageMapping{greek}{el}
 \DeclareBabelToExplLanguageMapping{turkish}{tr}
 
-\ExplSyntaxOff
 
+\cs_generate_variant:Nn \text_titlecase:n  { o }
+\cs_generate_variant:Nn \text_titlecase:nn { no }
 
-% {<text>}
-\newrobustcmd*{\MakeSentenceCase}{%
-  \@ifstar\blx@mksc@i\blx@maketext@sentencecase}
+\cs_generate_variant:Nn \prop_item:Nn { NV, Ne }
+\cs_generate_variant:Nn \prop_if_in:NnTF { NeTF }
+
+% {<case [lowercase|uppercase|titlecase|titlecase_first]>}
+% {<babel language>}{<text>}
+\cs_new:Npn \__biblatex_text_makeconverter:nnn #1 #2 #3
+  {
+    \prop_if_in:NnTF \l_biblatex_babel_to_pseudobcp_prop  { #2 }
+      {
+        \use:c { text_#1:nn }
+          { \prop_item:Nn \l_biblatex_babel_to_pseudobcp_prop { #2 } }
+          {#3}
+      }
+      {
+        \use:c { text_#1:n } {#3}
+      }
+  }
+
+% We'll use \cs_new:Npo to get rid of the helper macro.
+\cs_generate_variant:Nn \cs_new:Npn { Npo }
+
+\cs_new:Npo \biblatex_text_sentencecase:nn #1 #2
+  {
+    \__biblatex_text_makeconverter:nnn {titlecase} {#1} {#2}
+  }
+
 
 % Language fallback, in order:
 % * explicit option language=<lang>, which overrides everything
 % * langid field of entry
 % * babel/polyglossia lang
-% * main document lang
-% everything here is expandable so that
-% \blx@mksc@lang expands to the language name
+% * main document lang (we should never reach this)
+% * <empty> (we should *definitely* never reach this)
+% Everything here is expandable so that
+% \blx@mksc@lang expands to the language name.
+% Stick with etoolbox for now. I don't really see the point of using
+% \cs_if_exist:nTF here, since that would give a mixture of LaTeX2e
+% and expl3.
 \def\blx@mksc@lang{%
   \ifundef\blx@forcelanguagename
     {\ifundef\abx@field@langid
-      {\ifundef\blx@main@language
-        {\blx@languagename}
-        {\blx@main@language}}
+      {\ifundef\blx@languagename
+        {\ifundef\blx@main@language
+           {}
+           {\blx@main@language}}
+        {\blx@languagename}}
       {\abx@field@langid}}
     {\blx@forcelanguagename}}
 
-% if \DeclareCaseLangs says we should apply sentence casing
-% we go for it and pass the language along to the sentence casing macro
-\def\blx@mksc@i{%
-  \xifinlist\blx@mksc@lang\blx@cmksc@lang
-    {\blx@maketext@sentencecase[\blx@mksc@lang]}
-    {\@firstofone}}
+\cs_generate_variant:Nn \biblatex_text_sentencecase:nn { Vo, xo }
+
+% If \DeclareCaseLangs says we should apply sentence casing,
+% we go for it and pass the language along to the sentence casing macro.
+% Preprocess is either the BibTeX-to-expl3 brace translator
+% or \@firstofone (do nothing)
+% we need to expand once to get rid of the latter.
+\NewDocumentCommand \MakeSentenceCase {sm}
+  {
+    \IfBooleanTF {#1}
+      { 
+        \xifinlist\blx@mksc@lang\blx@cmksc@lang
+          {
+            \biblatex_text_sentencecase:xo { \blx@mksc@lang }
+              { \biblatex_text_sentencecase_preprocess:n {#2} } 
+          }
+          {#2}
+      }
+      { 
+        \biblatex_text_sentencecase:Vo \blx@languagename
+          { \biblatex_text_sentencecase_preprocess:n {#2} } 
+      }
+  }
+
+
+\cs_new:Npo \biblatex_text_lowercase:nn #1 #2
+  {
+    \__biblatex_text_makeconverter:nnn {lowercase} {#1} {#2}
+  }
+
+\cs_generate_variant:Nn \biblatex_text_lowercase:nn { Vn }
+
+\cs_new:Npn \biblatex_text_lowercase:n #1
+  {
+    \biblatex_text_lowercase:Vn \blx@languagename {#1}
+  }
+
+\cs_set_eq:NN \blx@maketext@lowercase \biblatex_text_lowercase:n
+
+
+\cs_new:Npo \biblatex_text_uppercase:nn #1 #2
+  {
+    \__biblatex_text_makeconverter:nnn {uppercase} {#1} {#2}
+  }
+
+\cs_generate_variant:Nn \biblatex_text_uppercase:nn { Vn }
+
+\cs_new:Npn \biblatex_text_uppercase:n #1
+  {
+    \biblatex_text_uppercase:Vn \blx@languagename {#1}
+  }
+
+\cs_set_eq:NN \blx@maketext@uppercase \biblatex_text_uppercase:n
+
+
+\cs_new:Npo \biblatex_text_makecapital:nn #1 #2
+  {
+    \__biblatex_text_makeconverter:nnn {titlecase_first} {#1} {#2}
+  }
+
+\cs_generate_variant:Nn \biblatex_text_makecapital:nn { Vn }
+
+\cs_new:Npn \biblatex_text_makecapital:n #1
+  {
+    \biblatex_text_makecapital:Vn \blx@languagename {#1}
+  }
+
+\cs_set_eq:NN \blx@maketext@makecapital \biblatex_text_makecapital:n
+
+\NewDocumentCommand \MakeCapital {m}
+  {
+    \biblatex_text_makecapital:n {#1}
+  }
+
+\ExplSyntaxOff
 
 % {<language,language,...>}
 \newrobustcmd*{\DeclareCaseLangs}{%
