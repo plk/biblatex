@@ -6706,7 +6706,7 @@
   {\let\NoCaseChange\@firstofone}
   {}
 
-% expl3 code by Joseph Wright
+% BibTeX to expl3 case protection code by Joseph Wright
 % https://github.com/plk/biblatex/issues/960#issuecomment-578435859
 \ExplSyntaxOn
 \tl_put_right:Nn \l_text_expand_exclude_tl { \NoCaseChange }
@@ -6797,15 +6797,15 @@
 \cs_generate_variant:Nn \text_titlecase:n  { o }
 \cs_generate_variant:Nn \text_titlecase:nn { vo }
 
-% preprocess is either the BibTeX-to-LaTeX brace translator
+% preprocess is either the BibTeX-to-expl3 brace translator
 % or \@firstofone (do nothing)
 % expand once to get rid of the latter
 \NewDocumentCommand \blx@maketext@sentencecase {O{}+m}
   {
-    \cs_if_exist:cTF { blx@mksc@maplang@#1 }
+    \cs_if_exist:cTF { biblatex_maplang_bbl_bcp_#1 }
       {
         \text_titlecase:vo
-          { blx@mksc@maplang@#1 }
+          { biblatex_maplang_bbl_bcp_#1 }
           { \blx@maketext@sentencecase@preprocess {#2} }
       }
       {
@@ -6819,10 +6819,10 @@
 
 \NewDocumentCommand \blx@maketext@lowercase {m}
   {
-    \cs_if_exist:cTF { blx@mksc@maplang@\blx@languagename }
+    \cs_if_exist:cTF { biblatex_maplang_bbl_bcp_\blx@languagename }
       {
         \text_lowercase:vn
-          { blx@mksc@maplang@\blx@languagename }
+          { biblatex_maplang_bbl_bcp_\blx@languagename }
           {#1}
       }
       {
@@ -6835,10 +6835,10 @@
 
 \NewDocumentCommand \blx@maketext@uppercase {m}
   {
-    \cs_if_exist:cTF { blx@mksc@maplang@\blx@languagename }
+    \cs_if_exist:cTF { biblatex_maplang_bbl_bcp_\blx@languagename }
       {
         \text_uppercase:vn
-          { blx@mksc@maplang@\blx@languagename }
+          { biblatex_maplang_bbl_bcp_\blx@languagename }
           {#1}
       }
       {
@@ -6851,10 +6851,10 @@
 
 \NewDocumentCommand \blx@maketext@makecapital {m}
   {
-    \cs_if_exist:cTF { blx@mksc@maplang@\blx@languagename }
+    \cs_if_exist:cTF { biblatex_maplang_bbl_bcp_\blx@languagename }
       {
         \text_titlecase_first:vn
-          { blx@mksc@maplang@\blx@languagename }
+          { biblatex_maplang_bbl_bcp_\blx@languagename }
           {#1}
       }
       {
@@ -6867,7 +6867,7 @@
     \blx@maketext@makecapital
   }
 
-\ExplSyntaxOff
+
 
 % Map for babel/polyglossia names
 % to BCP-47-like l3text names.
@@ -6878,10 +6878,40 @@
 % so we only map those.
 % de-alt is optional and still unusual, so we don't map it,
 % but a user could in theory map it themselves.
-% Maybe we need an official interface here?
-\def\blx@mksc@maplang@dutch{nl}
-\def\blx@mksc@maplang@greek{el}
-\def\blx@mksc@maplang@turkish{tr}
+
+\cs_new:Npn \biblatex_maplang_babel_to_pseudobcp #1 #2
+  {
+    \cs_if_exist:cT { biblatex_maplang_bbl_bcp_#1 }
+      {
+        \blx@info
+          {Overwriting~babel->expl3~language~mapping\MessageBreak
+           for~#1~from~\use:c{ biblatex_maplang_bbl_bcp_#1 }~to#2}
+      }
+    \cs_set:cpn { biblatex_maplang_bbl_bcp_#1 } {#2}
+  }
+
+\NewDocumentCommand \DeclareBabelToExplLanguageMapping {mm}
+  {
+    \biblatex_maplang_babel_to_pseudobcp {#1} {#2}
+  }
+
+\cs_new:Npn \biblatex_unmaplang_babel_to_pseudobcp #1
+  {
+    \cs_set_eq:cN
+      { biblatex_maplang_bbl_bcp_#1 }
+      \tex_undefined:D 
+  }
+
+\NewDocumentCommand \UndeclareBabelToExplLanguageMapping {m}
+  {
+    \biblatex_unmaplang_babel_to_pseudobcp {#1}
+  }
+
+\DeclareBabelToExplLanguageMapping{dutch}{nl}
+\DeclareBabelToExplLanguageMapping{greek}{el}
+\DeclareBabelToExplLanguageMapping{turkish}{tr}
+
+\ExplSyntaxOff
 
 
 % {<text>}
