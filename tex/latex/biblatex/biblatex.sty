@@ -6797,19 +6797,19 @@
 % de-alt is optional and still unusual, so we don't map it,
 % but a user could in theory map it themselves.
 
-\prop_new:N \l_biblatex_babel_to_pseudobcp_prop
+\prop_new:N \l__biblatex_babel_to_pseudobcp_prop
 
 \cs_new:Npn \biblatex_maplang_babel_to_pseudobcp #1 #2
   {
-    \prop_if_in:NnT \l_biblatex_babel_to_pseudobcp_prop {#1}
+    \prop_if_in:NnT \l__biblatex_babel_to_pseudobcp_prop {#1}
       {
         \blx@info
           {Overwriting~babel->l3text~language~mapping\MessageBreak
            for~'#1'~from~
-           '\prop_item:Nn \l_biblatex_babel_to_pseudobcp_prop {#1}'~
+           '\prop_item:Nn \l__biblatex_babel_to_pseudobcp_prop {#1}'~
            to~'#2'}
       }
-    \prop_put:Nnn \l_biblatex_babel_to_pseudobcp_prop {#1} {#2}
+    \prop_put:Nnn \l__biblatex_babel_to_pseudobcp_prop {#1} {#2}
   }
 
 \NewDocumentCommand \DeclareBabelToExplLanguageMapping {mm}
@@ -6819,20 +6819,20 @@
 
 \cs_new:Npn \biblatex_unmaplang_babel_to_pseudobcp #1
   {
-    \prop_if_in:NnT \l_biblatex_babel_to_pseudobcp_prop {#1}
+    \prop_if_in:NnT \l__biblatex_babel_to_pseudobcp_prop {#1}
       {
         \blx@info
           {Removing~babel->l3text~language~mapping\MessageBreak
            for~'#1'~to~
-           '\prop_item:Nn \l_biblatex_babel_to_pseudobcp_prop {#1}'}
+           '\prop_item:Nn \l__biblatex_babel_to_pseudobcp_prop {#1}'}
       }
-    \prop_remove:Nn \l_biblatex_babel_to_pseudobcp_prop {#1}
+    \prop_remove:Nn \l__biblatex_babel_to_pseudobcp_prop {#1}
   }
 
 \NewDocumentCommand \UndeclareBabelToExplLanguageMapping {m}
   {
     \str_if_eq:nnTF {#1} {*}
-      { \prop_clear:N  \l_biblatex_babel_to_pseudobcp_prop }
+      { \prop_clear:N  \l__biblatex_babel_to_pseudobcp_prop }
       { \biblatex_unmaplang_babel_to_pseudobcp {#1} }
   }
 
@@ -6851,10 +6851,10 @@
 % {<babel language>}{<text>}
 \cs_new:Npn \__biblatex_text_makeconverter:nnn #1 #2 #3
   {
-    \prop_if_in:NnTF \l_biblatex_babel_to_pseudobcp_prop  { #2 }
+    \prop_if_in:NnTF \l__biblatex_babel_to_pseudobcp_prop  { #2 }
       {
         \use:c { text_#1:nn }
-          { \prop_item:Nn \l_biblatex_babel_to_pseudobcp_prop { #2 } }
+          { \prop_item:Nn \l__biblatex_babel_to_pseudobcp_prop { #2 } }
           {#3}
       }
       {
@@ -6893,7 +6893,10 @@
       {\abx@field@langid}}
     {\blx@forcelanguagename}}
 
+\cs_generate_variant:Nn \clist_if_in:NnTF { NxTF }
+
 \cs_generate_variant:Nn \biblatex_text_sentencecase:nn { Vo, xo }
+
 
 % If \DeclareCaseLangs says we should apply sentence casing,
 % we go for it and pass the language along to the sentence casing macro.
@@ -6904,7 +6907,7 @@
   {
     \IfBooleanTF {#1}
       { 
-        \xifinlist\blx@mksc@lang\blx@cmksc@lang
+        \clist_if_in:NxTF \l__biblatex_caselangs_clist { \blx@mksc@lang }
           {
             \biblatex_text_sentencecase:xo { \blx@mksc@lang }
               { \biblatex_text_sentencecase_preprocess:n {#2} } 
@@ -6967,30 +6970,29 @@
     \biblatex_text_makecapital:n {#1}
   }
 
-\ExplSyntaxOff
+
+\clist_new:N \l__biblatex_caselangs_clist
 
 % {<language,language,...>}
-\newrobustcmd*{\DeclareCaseLangs}{%
-  \@ifstar
-    {\blx@defcaselangs}
-    {\global\let\blx@cmksc@lang\@empty
-     \blx@defcaselangs}}
+\NewDocumentCommand \DeclareCaseLangs {sm}
+  {
+    \IfBooleanF {#1}
+      { \clist_clear:N \l__biblatex_caselangs_clist }
+    \clist_put_left:Nn \l__biblatex_caselangs_clist {#2}
+  }
 
-\def\blx@defcaselangs#1{%
-  \ifblank{#1}
-    {}
-    {\forcsvlist{\listgadd\blx@cmksc@lang}{#1}}}
 
 \DeclareCaseLangs{%
   american,british,canadian,
   english,USenglish,UKenglish,
   australian,newzealand}
 
-\newrobustcmd*{\ifcaselang}[1][]{%
-  \ifblank{#1}
-    {\xifinlist\blx@languagename\blx@cmksc@lang}
-    {\xifinlist{#1}\blx@cmksc@lang}}
+\NewDocumentCommand \ifcaselang {O{\blx@languagename}}
+  {
+    \clist_if_in:NxTF \l__biblatex_caselangs_clist {#1}
+  }
 
+\ExplSyntaxOff
 
 % Misc globalopts
 \blx@DeclareBackendOption{global}[xml]{datamodel}
