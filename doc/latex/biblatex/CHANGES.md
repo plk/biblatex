@@ -40,7 +40,7 @@
   The option is only relevant with `subentry=true`.
   With `subentrycomp=true` set citations will be compressed
   to "1a-c" instead of "1a; 1b; 1c".
-  The option is mainly intended for backwards compatibility,
+  The option is mainly intended for backwards compatibility;
   the behaviour of previous `biblatex` versions can be restored
   with `subentrycomp=false`.
 - Added `\multiciterangedelim`, `\multicitesubentrydelim`,
@@ -49,7 +49,7 @@
   finer control over (compressed) subentry citations in `numeric-comp`.
 - **CRITICAL CHANGE** The structure of the bibmacros in `numeric-comp`
   has been reworked to make it easier to customise the printed output.
-  Documents that relied on patching internal bibmacros or hevaily
+  Documents that relied on patching internal bibmacros or heavily
   redefined them may have to adapt.
 
 # RELEASE NOTES FOR VERSION 3.14
