@@ -51,6 +51,8 @@
   has been reworked to make it easier to customise the printed output.
   Documents that relied on patching internal bibmacros or heavily
   redefined them may have to adapt.
+- `biblatex` now tests if a requested Biber (re)run happened by
+  comparing the MD5 hashes of the new and old `.bbl` files.
 
 # RELEASE NOTES FOR VERSION 3.14
 - biber from version 2.14 has extended, granular XDATA functionality to
