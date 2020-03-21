@@ -6488,61 +6488,55 @@
   \lefthyphenmin#1\relax
   \righthyphenmin#2\relax}
 
-\begingroup
-\@makeother\#
-\gdef\blx@mkautolangbabel{%
+
+
+\def\blx@mkautolangbabel{%
   \ifundef\bbl@main@language
     {\blx@error
       {No default 'babel' language defined}
       {You must define a default language for 'babel'}}
     {\let\blx@main@language\bbl@main@language}%
-  \edef\blx@saved@apostrophe@catcode{\the\catcode`\'}%
-  \edef\blx@saved@hyphen@catcode{\the\catcode`\-}%
-  \edef\blx@saved@hyphen@equalsign{\the\catcode`\=}%
-  \@makeother\'
-  \@makeother\-
-  \@makeother\=
-  \pretocmd\select@language{\blx@langsetup{#1}}
-    {\ifdef\blx@thelangenv
-       {\def\blx@beglang{%
-          \blx@clearlang
-          \begingroup
-         % Need to override all entries, regardless of if there is a langid
-         % if language=<language> option is given
+  \AddBabelHook{biblatex@langsetup}{beforeextras}{%
+    \expandafter\blx@langsetup\expandafter{\languagename}}%
+  \ifdef\blx@thelangenv
+    {\def\blx@beglang{%
+       \blx@clearlang
+       \begingroup
+         % Need to override all entries, regardless of if there is a
+         % langid if language=<language> option is given
          \ifboolexpr { test {\ifdef\abx@field@langid }
                        or
                        test {\ifdef\blx@forcelanguagename} }
-            % override local langid if we forced it with
-            % language=<language> option
-            {\ifdef\blx@forcelanguagename
-               {\let\abx@field@langid\blx@forcelanguagename}
-               {}%
-             \let\blx@languagename\abx@field@langid% track global language
-             \blx@ifhyphenationundef{\abx@field@langid}
-               {\blx@warn@nohyph{\abx@field@langid}}
-               {\blx@hook@initlang
-                \def\blx@endlang{%
-                  \blx@hook@endlang
-                  \csname end\blx@thelangenv\endcsname
-                  \endgroup}%
-                \iftoggle{blx@autolangbib}
-                  {\let\blx@endlangbib\blx@endlang}
-                  {}%
-                \iftoggle{blx@autolangcite}
-                  {\let\blx@endlangcite\blx@endlang}
-                  {}%
-                \csname\blx@thelangenv\expandafter\endcsname
-                \expandafter{\abx@field@langid}}}
-            {}}}
-       {}%
-     \def\blx@imc@mainlang{\select@language{\blx@main@language}}%
-     \blx@langsetup\blx@main@language}
-    {\blx@err@patch{'babel' package}%
-     \blx@mknoautolang}%
-  \catcode`\'=\blx@saved@apostrophe@catcode\relax
-  \catcode`\-=\blx@saved@hyphen@catcode\relax
-  \catcode`\==\blx@saved@hyphen@equalsign\relax}
+           % override local langid if we forced it with
+           % language=<language> option
+           {\ifdef\blx@forcelanguagename
+              {\let\abx@field@langid\blx@forcelanguagename}
+              {}%
+            \let\blx@languagename\abx@field@langid% track global language
+            \blx@ifhyphenationundef{\abx@field@langid}
+              {\blx@warn@nohyph{\abx@field@langid}}
+              {\blx@hook@initlang
+               \def\blx@endlang{%
+                 \blx@hook@endlang
+                 \csname end\blx@thelangenv\endcsname
+                 \endgroup}%
+               \iftoggle{blx@autolangbib}
+                 {\let\blx@endlangbib\blx@endlang}
+                 {}%
+               \iftoggle{blx@autolangcite}
+                 {\let\blx@endlangcite\blx@endlang}
+                 {}%
+               \csname\blx@thelangenv\expandafter\endcsname
+               \expandafter{\abx@field@langid}}}
+           {}}}
+    {}%
+  \def\blx@imc@mainlang{%
+    \expandafter\selectlanguage\expandafter{\blx@main@language}}%
+  \expandafter\blx@langsetup\expandafter{\blx@main@language}%
+}
 
+\begingroup
+\@makeother\#
 \gdef\blx@mkautolangpoly{%
   \ifundef\mainbabelname
     {\ifundef\bbl@main@language
