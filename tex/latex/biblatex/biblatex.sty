@@ -1137,10 +1137,15 @@
     {\blx@info@noline{Trying to load #2..}%
      \IfFileExists{#1}
        {\blx@info@noline{... file '#1' found}%
-        #3\@@input\@filef@und#4#5%
+        \csuse{blx@filehook@preload@#1}%
+        #3\@@input\@filef@und#4%
+        \csuse{blx@filehook@postload@#1}%
+        #5%
         \listxadd\blx@list@req@stat{#1}%
         \@addtofilelist{#1}}
-       {\blx@info@noline{... file '#1' not found}#6}%
+       {\blx@info@noline{... file '#1' not found}%
+        \csuse{blx@filehook@failure@#1}%
+        #6}%
      \global\cslet{blx@file@#1}\@empty}
     {#5}}
 
@@ -5632,13 +5637,18 @@
   \blx@info@noline{Trying to load #2..}%
   \IfFileExists{#1}
     {\blx@info@noline{... file '#1' found}%
-     #3\@@input\@filef@und#4#5%
+     \csuse{blx@lbxfilehook@simple@preload@#1}%
+     #3\@@input\@filef@und#4%
+     \csuse{blx@lbxfilehook@simple@postload@#1}%
+     #5%
      \ifcsundef{blx@file@lbx@simple@#1}
        {\listxadd\blx@list@req@stat{#1}%
         \@addtofilelist{#1}%
         \global\cslet{blx@file@lbx@simple@#1}\@empty}
        {}}
-    {\blx@info@noline{... file '#1' not found}#6}}
+    {\blx@info@noline{... file '#1' not found}%
+     \csuse{blx@lbxfilehook@simple@failure@#1}%
+     #6}}
 
 % {<file>}{<message>}{<preload>}{<postload>}{<success>}{<failure>}
 \protected\long\def\blx@lbx@input@handler@once#1#2#3#4#5#6{%
@@ -5646,12 +5656,17 @@
     {\blx@info@noline{Trying to load #2..}%
      \IfFileExists{#1}
        {\blx@info@noline{... file '#1' found}%
-        #3\@@input\@filef@und#4#5%
+        \csuse{blx@lbxfilehook@once@preload@#1}%
+        #3\@@input\@filef@und#4%
+        \csuse{blx@lbxfilehook@once@postload@#1}%
+        #5%
         \ifcsundef{blx@file@lbx@simple@#1}
           {\listxadd\blx@list@req@stat{#1}%
            \@addtofilelist{#1}}
           {}}
-       {\blx@info@noline{... file '#1' not found}#6}%
+       {\blx@info@noline{... file '#1' not found}%
+        \csuse{blx@lbxfilehook@once@failure@#1}%
+        #6}%
      \global\cslet{blx@file@lbx@once@#1}\@empty
      \global\cslet{blx@file@lbx@simple@#1}\@empty}
     {#5}}
