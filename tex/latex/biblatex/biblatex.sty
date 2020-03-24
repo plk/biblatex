@@ -6537,9 +6537,7 @@
   \expandafter\blx@langsetup\expandafter{\blx@main@language}%
 }
 
-\begingroup
-\@makeother\#
-\gdef\blx@mkautolangpoly{%
+\def\blx@mkautolangpoly{%
   \ifundef\mainbabelname
     {\ifundef\bbl@main@language
        {\blx@error
@@ -6547,8 +6545,6 @@
           {You must define a default language for 'polyglossia'}}
        {\let\blx@main@language\bbl@main@language}}
     {\let\blx@main@language\mainbabelname}%
-  \edef\blx@saved@underscore@catcode{\the\catcode`\_}%
-  \catcode`\_=11% polyglossia uses "_" as a letter
   \pretocmd\select@language{\blx@langsetup{\babelname}}
     {\ifdef\blx@thelangenv
        {\def\blx@beglang{%
@@ -6583,23 +6579,17 @@
                   {}%
                 \ifcsstring{blx@thelangenv}{langname}
                   {\ifdef\abx@field@langidopts
-                     {\csname\abx@field@langid\expandafter\endcsname\expandafter[\abx@field@langidopts]}
+                     {\csname\abx@field@langid\expandafter\endcsname
+                        \expandafter[\abx@field@langidopts]}
                      {\csname\abx@field@langid\endcsname}}
-                  {\csname\blx@thelangenv\expandafter\endcsname\expandafter{\abx@field@langid}}%
-                % These lines are equal to \blx@maplang
-                \ifcsstring{blx@thelangenv}{hyphenrules}
-                  {}
-                  {\blx@resetpunct
-                   \csuse{abx@extras@\abx@field@langid}%
-                   \csuse{abx@strings@\abx@field@langid}}}}
+                  {\csname\blx@thelangenv\expandafter\endcsname
+                     \expandafter{\abx@field@langid}}}}
             {}}}
        {}%
      \def\blx@imc@mainlang{\select@language{\blx@main@language}}%
      \blx@langsetup\blx@main@language}
     {\blx@err@patch{'polyglossia' package}%
-     \blx@mknoautolang}%
-  \catcode`\_=\blx@saved@underscore@catcode\relax}
-\endgroup
+     \blx@mknoautolang}}
 
 \def\blx@mknoautolang{%
   \blx@lbxinput{\blx@languagename}
