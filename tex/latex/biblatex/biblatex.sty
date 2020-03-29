@@ -15123,24 +15123,14 @@
 
 %% Initial setup
 
-
-
-
-
-% Do we need to load LaTeX2e compatibility code?
-\newtoggle{blx@latex2e}
-\newtoggle{blx@expl3}
-
-\csdef{blx@latex2e@togglelist}{}
-
 \define@key{blx@opt@ldt}{casechanger}[auto]{%
   \ifcsundef{blx@opt@casechanger@#1}
-    {\blx@err@invopt{casechanger=#1}
-     {Valid options for 'casechanger' are 'auto', 'expl3' and 'latex2e'}}
+    {\blx@err@invopt
+       {casechanger=#1}
+       {Valid options for 'casechanger' are 'auto', 'expl3' and
+        'latex2e'}}
     {\csletcs{blx@deferoption@casechanger}{blx@opt@casechanger@#1}}}
 
-\newtoggle{blx@latex2e@case}
-\listcsadd{blx@latex2e@togglelist}{case}
 
 \csdef{blx@opt@casechanger@auto}{%
   \RequirePackage{expl3}[2020/03/06]%
@@ -15154,9 +15144,22 @@
        setting 'casechanger=latex2e'}%
      \csuse{blx@opt@casechanger@latex2e}}}
 
-\csdef{blx@opt@casechanger@latex2e}{\toggletrue{blx@latex2e@case}}
+\csdef{blx@opt@casechanger@latex2e}{%
+  \blx@inputonce{blx-case-latex2e.def}
+    {LaTeX2e (legacy) case changing code}
+    {}{}{}{}}
 \csletcs{blx@opt@casechanger@2e}{blx@opt@casechanger@latex2e}
-\csdef{blx@opt@casechanger@expl3}{\togglefalse{blx@latex2e@case}}
+
+% Apparently \blx@inputonce never pops the \ExplSyntaxOff
+% from \ProvidesExplFile, so we do that ourselves.
+% We use the new file loading hooks, because the <success>
+% argument of \blx@inputonce is also executed when the file
+% is not read again (because it is already loaded).
+\csdef{blx@opt@casechanger@expl3}{%
+  \csdef{blx@filehook@postload@blx-case-expl3.def}{\ExplSyntaxOff}%
+  \blx@inputonce{blx-case-expl3.def}
+    {expl3 case changing code}
+    {}{}{}{}}
 \csletcs{blx@opt@casechanger@3}{blx@opt@casechanger@expl3}
 
 % default to auto
@@ -15199,26 +15202,9 @@
 % Process load-time options
 \ProcessOptions*
 
+% this ultimately loads either
+% blx-case-expl3.def or blx-case-latex2e.def
 \blx@deferoption@casechanger
-
-\def\do#1{%
-  \iftoggle{blx@latex2e@#1}
-    {\toggletrue{blx@latex2e}\listbreak}
-    {}}
-\dolistcsloop{blx@latex2e@togglelist}
-
-\def\do#1{%
-  \iftoggle{blx@latex2e@#1}
-    {}
-    {\toggletrue{blx@expl3}\listbreak}}
-\dolistcsloop{blx@latex2e@togglelist}
-
-\iftoggle{blx@latex2e}
-  {\RequirePackage{blx-latex2e}}
-  {}
-\iftoggle{blx@expl3}
-  {\RequirePackage{blx-expl3}}
-  {}
 
 % This is a bit unfortunate, but we need some more definitions here.
 
