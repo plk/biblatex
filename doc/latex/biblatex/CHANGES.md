@@ -67,6 +67,7 @@
   and `\blx@lbxfilehook@once@failure@<filename>`
   are the equivalents for `.lbx` loading, where
   files may be loaded several times in some situations.
+- Added limited support for 'nodate' with BibTeX.
 
 # RELEASE NOTES FOR VERSION 3.14
 - biber from version 2.14 has extended, granular XDATA functionality to
