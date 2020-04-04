@@ -6456,7 +6456,7 @@
     \blx@resetpunct
     \csuse{abx@extras@#2}%
     \csuse{abx@strings@#2}}%
-  \csgappto{inlinextras@bbl@#1}{%
+  \csgappto{inlineextras@bbl@#1}{%
     \blx@resetpunct
     \csuse{abx@extras@#2}%
     \csuse{abx@strings@#2}}%
@@ -6541,51 +6541,56 @@
           {You must define a default language for 'polyglossia'}}
        {\let\blx@main@language\bbl@main@language}}
     {\let\blx@main@language\mainbabelname}%
-  \pretocmd\select@language{\blx@langsetup{\babelname}}
-    {\ifdef\blx@thelangenv
-       {\def\blx@beglang{%
-          \blx@clearlang
-          \begingroup
-          % Need to override all entries, regardless of if there is a
-          % langid if language=<language> option is given
-          \ifboolexpr { test {\ifdef\abx@field@langid }
-                        or
-                        test {\ifdef\blx@forcelanguagename} }
-            % override local langid if we forced it with
-            % language=<language> option
-            {\ifdef\blx@forcelanguagename
-               {\let\abx@field@langid\blx@forcelanguagename}
-               {}%
-             \let\blx@languagename\abx@field@langid% track global language
-             \blx@ifhyphenationundef{\abx@field@langid}
-               {\blx@warn@nohyph{\abx@field@langid}}
-               {\blx@hook@initlang
-                \def\blx@endlang{%
-                  \blx@hook@endlang
-                  % Polyglossia language envs are \<lang>[]
-                  \ifcsstring{blx@thelangenv}{langname}
-                    {\csname end\abx@field@langid\endcsname}
-                    {\csname end\blx@thelangenv\endcsname}%
-                  \endgroup}%
-                \iftoggle{blx@autolangbib}
-                  {\let\blx@endlangbib\blx@endlang}
-                  {}%
-                \iftoggle{blx@autolangcite}
-                  {\let\blx@endlangcite\blx@endlang}
-                  {}%
+  \ifundef\polyglossia@language@switched
+    {\apptocmd\select@language
+       {\expandafter\blx@langsetup\expandafter{\babelname}}
+       {}
+       {\blx@err@patch{'polyglossia' package}%
+        \blx@mknoautolang}}
+    {\appto\polyglossia@language@switched{%
+       \expandafter\blx@langsetup\expandafter{\babelname}}}%
+  \ifdef\blx@thelangenv
+     {\def\blx@beglang{%
+        \blx@clearlang
+        \begingroup
+        % Need to override all entries, regardless of if there is a
+        % langid if language=<language> option is given
+        \ifboolexpr { test {\ifdef\abx@field@langid }
+                      or
+                      test {\ifdef\blx@forcelanguagename} }
+          % override local langid if we forced it with
+          % language=<language> option
+          {\ifdef\blx@forcelanguagename
+             {\let\abx@field@langid\blx@forcelanguagename}
+             {}%
+           \let\blx@languagename\abx@field@langid% track global language
+           \blx@ifhyphenationundef{\abx@field@langid}
+             {\blx@warn@nohyph{\abx@field@langid}}
+             {\blx@hook@initlang
+              \def\blx@endlang{%
+                \blx@hook@endlang
+                % Polyglossia language envs are \<lang>[]
                 \ifcsstring{blx@thelangenv}{langname}
-                  {\ifdef\abx@field@langidopts
-                     {\csname\abx@field@langid\expandafter\endcsname
-                        \expandafter[\abx@field@langidopts]}
-                     {\csname\abx@field@langid\endcsname}}
-                  {\csname\blx@thelangenv\expandafter\endcsname
-                     \expandafter{\abx@field@langid}}}}
-            {}}}
+                  {\csname end\abx@field@langid\endcsname}
+                  {\csname end\blx@thelangenv\endcsname}%
+                \endgroup}%
+              \iftoggle{blx@autolangbib}
+                {\let\blx@endlangbib\blx@endlang}
+                {}%
+              \iftoggle{blx@autolangcite}
+                {\let\blx@endlangcite\blx@endlang}
+                {}%
+              \ifcsstring{blx@thelangenv}{langname}
+                {\ifdef\abx@field@langidopts
+                   {\csname\abx@field@langid\expandafter\endcsname
+                      \expandafter[\abx@field@langidopts]}
+                   {\csname\abx@field@langid\endcsname}}
+                {\csname\blx@thelangenv\expandafter\endcsname
+                   \expandafter{\abx@field@langid}}}}
+          {}}}
        {}%
-     \def\blx@imc@mainlang{\select@language{\blx@main@language}}%
-     \blx@langsetup\blx@main@language}
-    {\blx@err@patch{'polyglossia' package}%
-     \blx@mknoautolang}}
+  \def\blx@imc@mainlang{\select@language{\blx@main@language}}%
+  \expandafter\blx@langsetup\expandafter{\blx@main@language}}
 
 \def\blx@mknoautolang{%
   \blx@lbxinput{\blx@languagename}
