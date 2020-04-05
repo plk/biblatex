@@ -402,17 +402,18 @@
       \csname blx@refc@\the\c@refsection @#1\endcsname}\blx@msg@cundef
   \fi}
 
-% no dynamic entry sets
+% dynamic entry sets
 
-\renewrobustcmd*{\defbibentryset}[2]{%
-  \@bsphack
-  \begingroup
-  \blx@error
-    {Dynamic entry sets not available with BibTeX(8)}
-    {Dynamic entry sets are only available with Biber.\MessageBreak
-     If you need this feature, please switch to Biber}%
-  \endgroup
-  \@esphack}
+\def\blx@btx@citeset#1#2{%
+  \blx@nl
+  @set{#1,\blx@nl
+  \space\space entryset = {#2},\blx@nl
+  }%
+}
+
+\protected\def\blx@setreq#1#2{%
+  \blx@auxwrite\blx@bcfout{}{\blx@btx@citeset{#1}{#2}}%
+  \blx@nocite@do{#1}}
 
 % refcontexts are out, but we can try to save labelprefix
 
@@ -593,12 +594,14 @@
 }
 
 \def\blx@ctrlwrite{%
-  % \sortalphaothers should only contain safe characters,
-  % so we should be able to \edef it
+  \begingroup
+  \blx@safe@actives
+  \let\protect\string
   \edef\blx@sortalphaothers{\sortalphaothers}%
   \immediate\openout\blx@write\blx@ctrlfile\blxauxsuffix.bib\relax
   \blx@auxwrite\blx@write{}{\blx@ctrl}%
-  \immediate\closeout\blx@write}
+  \endgroup
+  \AfterEndDocument{\immediate\closeout\blx@write}}
 
 % Disable some interfaces
 

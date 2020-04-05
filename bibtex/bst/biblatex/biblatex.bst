@@ -183,7 +183,7 @@ STRINGS  { ctrl.alphaothers ctrl.sortalphaothers ctrl.sortstr
            last.name last.hash last.year last.extra }
 
 FUNCTION {initialize} {
-  "$Revision: 3.13 $"
+  "$Revision: 3.15 $"
   #12 entry.max$ substring$
   #-3 entry.max$ substring$
   "Biblatex version: " swap$ * top$
@@ -1471,23 +1471,27 @@ FUNCTION {output:specials} {
     'skip$
   if$
   ctrl:labeldate
-  dateyear empty$ not
-  and
-    { "labelyear" dateyear output:write:field
-      dateendyear empty$
-        'skip$
-        { dateyear dateendyear =
+    { dateyear empty$ not
+        { "labelyear" dateyear output:write:field
+          dateendyear empty$
             'skip$
-            { dateendyear open.ended =
+            { dateyear dateendyear =
                 'skip$
-                { "labelendyear" dateendyear output:write:field }
+                { dateendyear open.ended =
+                    'skip$
+                    { "labelendyear" dateendyear output:write:field }
+                  if$
+                }
               if$
             }
           if$
+          "extradate"   extradate       output:write:field
+          "labeldatesource" ""          output:write:field:maybeempty
+        }
+        { "extradate"   extradate       output:write:field
+          "labeldatesource" "nodate"    output:write:field
         }
       if$
-      "extradate"   extradate       output:write:field
-      "labeldatesource" ""          output:write:field:maybeempty
     }
     'skip$
   if$

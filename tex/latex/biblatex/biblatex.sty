@@ -367,11 +367,19 @@
           {}}
        {}}
     {}%
-  \apptocmd\@floatboxreset
-    {\boolfalse{citetracker}%
-     \boolfalse{pagetracker}}
+  \iftoggle{blx@trackfloats}
     {}
-    {\blx@err@patch{floats}}%
+    {\apptocmd\@floatboxreset
+       {\boolfalse{citetracker}%
+        \boolfalse{pagetracker}}
+       {}
+       {\blx@err@patch{floats}}}%
+  \iftoggle{blx@backreffloats}
+    {}
+    {\apptocmd\@floatboxreset
+       {\boolfalse{backtracker}}
+       {}
+       {\blx@err@patch{floats}}}%
   \ifdef\TX@endtabularx % tabularx/memoir
     {\pretocmd\TX@endtabularx
       {\addtocounter{tabx@nest}{1}}% track nested tabularx environments
@@ -601,8 +609,50 @@
 \ifundef\pdf@mdfivesum
   {\let\blx@mdfivesum\@firstofone
    \blx@warning@noline{Command '\string\pdf@mdfivesum' undefined.\MessageBreak
-     'labelprefix' may not be able to accept all input}}
+     'labelprefix' may not be able to accept all input.\MessageBreak
+     The command is available (via 'pdftexcmds')\MessageBreak
+     in recent versions of pdfTeX, LuaTeX and XeTeX}}
   {\let\blx@mdfivesum\pdf@mdfivesum}
+
+
+\ifundef\pdf@filemdfivesum
+  {\blx@warning@noline{Command '\string\pdf@filemdfivesum' undefined.\MessageBreak
+     Biber rerun detection may not work as expected.\MessageBreak
+     The command is available (via 'pdftexcmds')\MessageBreak
+     in recent versions of pdfTeX, LuaTeX and XeTeX}%
+   \let\blx@generate@bbl@mdfivesum@found\relax
+   \let\blx@generate@bbl@mdfivesum@notfound\relax
+   \let\aux@read@bbl@mdfivesum\@gobble
+   \let\blx@aux@write@bbl@mdfivesum\relax
+   \let\blx@check@bbl@rerun@mdfivesum\relax}
+  {\let\blx@filemdfivesum\pdf@filemdfivesum
+
+   \def\blx@generate@bbl@mdfivesum@found{%
+     \xdef\blx@bbl@mdfivesum@new{\blx@filemdfivesum{\jobname.bbl}}}
+
+   \def\blx@generate@bbl@mdfivesum@notfound{%
+     \gdef\blx@bbl@mdfivesum@new{nobblfile}}
+
+   \def\aux@read@bbl@mdfivesum{%
+     \gdef\blx@bbl@mdfivesum@old}
+
+   % If we need Biber to rerun, save the hash of the current .bbl.
+   % That way we can detect if the Biber rerun really happened when
+   % we run LaTeX the next time.
+   \def\blx@aux@write@bbl@mdfivesum{%
+     \iftoggle{blx@runbiber}
+       {\blx@auxwrite\@mainaux{}{%
+          \string\aux@read@bbl@mdfivesum{\blx@bbl@mdfivesum@new}}}
+        {}}
+
+   % There was a Biber rerun request last time (\blx@bbl@mdfivesum@old),
+   % yet the bbl files are the same (as far as md5 hashes are concerned),
+   % that means *no* Biber rerun happened.
+   % So we need to re-request a rerun.
+   \def\blx@check@bbl@rerun@mdfivesum{%
+     \ifdefstrequal\blx@bbl@mdfivesum@old\blx@bbl@mdfivesum@new
+       {\blx@logreq@active{}}
+       {}}}
 
 
 % xstring replacements
@@ -1188,10 +1238,15 @@
     {\blx@info@noline{Trying to load #2..}%
      \IfFileExists{#1}
        {\blx@info@noline{... file '#1' found}%
-        #3\@@input\@filef@und#4#5%
+        \csuse{blx@filehook@preload@#1}%
+        #3\@@input\@filef@und#4%
+        \csuse{blx@filehook@postload@#1}%
+        #5%
         \listxadd\blx@list@req@stat{#1}%
         \@addtofilelist{#1}}
-       {\blx@info@noline{... file '#1' not found}#6}%
+       {\blx@info@noline{... file '#1' not found}%
+        \csuse{blx@filehook@failure@#1}%
+        #6}%
      \global\cslet{blx@file@#1}\@empty}
     {#5}}
 
@@ -1560,6 +1615,7 @@
   \global\toggletrue{blx@runbiber}%
   \global\let\blx@rerun@biber\relax}
 
+
 \let\blx@checksum@old\@empty
 \let\blx@checksum@new\@empty
 \let\blx@pagesum@old\@empty
@@ -1612,14 +1668,10 @@
   \endgroup}
 
 \def\blx@warn@auxlist{%
-  \begingroup
-  \edef\blx@tempa{%
-    Please (re)run Biber on the file:\MessageBreak
-    \jobname}%
   \blx@warning@noline{%
-    \blx@tempa\MessageBreak
-    and rerun LaTeX afterwards}%
-  \endgroup}
+    Please (re)run Biber on the file:\MessageBreak
+    \jobname\MessageBreak
+    and rerun LaTeX afterwards}}
 
 \AfterEndDocument{%
   \blx@check@rerun
@@ -3624,6 +3676,8 @@
 \newrobustcmd*{\NumsCheckSetup}{\appto\blx@hook@ifnums}
 
 \newrobustcmd*{\PagesCheckSetup}{\appto\blx@hook@ifpages}
+
+\PagesCheckSetup{\let\pnfmt\@firstofone}
 
 % [<pagination>][<postpro>]{<string>}
 \newrobustcmd*{\blx@imc@mkpageprefix}[1][pagination]{%
@@ -6066,6 +6120,7 @@
   \do{langjapanese}%
   \do{langlatin}%
   \do{langlatvian}%
+  \do{langlithuanian}%
   \do{langnorwegian}%
   \do{langpolish}%
   \do{langportuguese}%
@@ -6075,6 +6130,7 @@
   \do{langslovene}%
   \do{langspanish}%
   \do{langswedish}%
+  \do{langturkish}%
   \do{langukrainian}%
   \do{fromamerican}%
   \do{frombrazilian}%
@@ -6095,6 +6151,7 @@
   \do{fromitalian}%
   \do{fromjapanese}%
   \do{fromlatin}%
+  \do{fromlithuanian}%
   \do{fromlatvian}%
   \do{fromnorwegian}%
   \do{frompolish}%
@@ -6105,6 +6162,7 @@
   \do{fromslovene}%
   \do{fromspanish}%
   \do{fromswedish}%
+  \do{fromturkish}%
   \do{fromukrainian}%
   \do{countryde}%
   \do{countryep}%
@@ -6338,13 +6396,18 @@
   \blx@info@noline{Trying to load #2..}%
   \IfFileExists{#1}
     {\blx@info@noline{... file '#1' found}%
-     #3\@@input\@filef@und#4#5%
+     \csuse{blx@lbxfilehook@simple@preload@#1}%
+     #3\@@input\@filef@und#4%
+     \csuse{blx@lbxfilehook@simple@postload@#1}%
+     #5%
      \ifcsundef{blx@file@lbx@simple@#1}
        {\listxadd\blx@list@req@stat{#1}%
         \@addtofilelist{#1}%
         \global\cslet{blx@file@lbx@simple@#1}\@empty}
        {}}
-    {\blx@info@noline{... file '#1' not found}#6}}
+    {\blx@info@noline{... file '#1' not found}%
+     \csuse{blx@lbxfilehook@simple@failure@#1}%
+     #6}}
 
 % {<file>}{<message>}{<preload>}{<postload>}{<success>}{<failure>}
 \protected\long\def\blx@lbx@input@handler@once#1#2#3#4#5#6{%
@@ -6352,12 +6415,17 @@
     {\blx@info@noline{Trying to load #2..}%
      \IfFileExists{#1}
        {\blx@info@noline{... file '#1' found}%
-        #3\@@input\@filef@und#4#5%
+        \csuse{blx@lbxfilehook@once@preload@#1}%
+        #3\@@input\@filef@und#4%
+        \csuse{blx@lbxfilehook@once@postload@#1}%
+        #5%
         \ifcsundef{blx@file@lbx@simple@#1}
           {\listxadd\blx@list@req@stat{#1}%
            \@addtofilelist{#1}}
           {}}
-       {\blx@info@noline{... file '#1' not found}#6}%
+       {\blx@info@noline{... file '#1' not found}%
+        \csuse{blx@lbxfilehook@once@failure@#1}%
+        #6}%
      \global\cslet{blx@file@lbx@once@#1}\@empty
      \global\cslet{blx@file@lbx@simple@#1}\@empty}
     {#5}}
@@ -6536,7 +6604,7 @@
 \newrobustcmd*{\blx@printtime}[2]{%
   \blx@if@printtime{#1}{#2}
     {\blx@timepre{#1}{#2}%
-     \printtext{\bibdatetimesep}%
+     \bibdatetimesep%
      \printtext[{#1time}]{%
        \csuse{mkbibtime\csuse{blx@timeformat@#1time}}
          {#1#2hour}{#1#2minute}{#1#2second}{#1#2timezone}}}
@@ -6594,18 +6662,17 @@
            {\printfield{extradate}}
            {\iffieldequalstr{#2endyear}{}
               {\printfield{extradate}%
-               \printtext{\mbox{\bibdaterangesep}}}
-              {\printtext{%
-                 \bibdaterangesep
-                 \enddatecircaprint
-                 \iffieldundef{#2endseason}
-                   {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}%
-                    % Optionally print the time after the date
-                    \blx@printtime{#2}{end}}
-                   {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}}%
-                 \printfield{extradate}%
-                 \enddateuncertainprint
-                 \dateeraprint{#2endyear}}}}}%
+               \mbox{\bibdaterangesep}}
+              {\bibdaterangesep
+               \enddatecircaprint
+               \iffieldundef{#2endseason}
+                 {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}%
+                  % Optionally print the time after the date
+                  \blx@printtime{#2}{end}}
+                 {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}}%
+               \printfield{extradate}%
+               \enddateuncertainprint
+               \dateeraprint{#2endyear}}}}%
   \endgroup}
 
 \newrobustcmd*{\mkdaterangetrunc}[2]{%
@@ -6681,16 +6748,15 @@
            {\printfield{extradate}}
            {\iffieldequalstr{#2endyear}{}
               {\printfield{extradate}%
-               \printtext{\mbox{\bibdaterangesep}}}
-              {\printtext{%
-                 \bibdaterangesep
-                 \enddatecircaprint
-                 \iffieldundef{#2endseason}
-                   {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}
-                   {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}}%
-                 \printfield{extradate}%
-                 \enddateuncertainprint
-                 \dateeraprint{#2endyear}}}}}%
+               \mbox{\bibdaterangesep}}
+              {\bibdaterangesep
+               \enddatecircaprint
+               \iffieldundef{#2endseason}
+                 {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}
+                 {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}}%
+               \printfield{extradate}%
+               \enddateuncertainprint
+               \dateeraprint{#2endyear}}}}%
   \endgroup}
 
 \newrobustcmd*{\mkdaterangeyear}[1]{%
@@ -6768,16 +6834,15 @@
            {}
            {\iffieldequalstr{#1endyear}{}
               {\mbox{\bibdaterangesep}}
-              {\printtext{%
-                 \bibdaterangesep
-                 \enddatecircaprint
-                 \iffieldundef{#1season}
-                   {\blx@ymddate{#1}{end}%
-                    % Optionally print the time after the date
-                    \blx@printtime{#1}{end}}
-                   {\csuse{mkbibseasondateshort}{#1endyear}{#1endseason}}}%
+              {\bibdaterangesep
+               \enddatecircaprint
+               \iffieldundef{#1season}
+                 {\blx@ymddate{#1}{end}%
+                  % Optionally print the time after the date
+                  \blx@printtime{#1}{end}}
+                 {\csuse{mkbibseasondateshort}{#1endyear}{#1endseason}}}%
                \enddateuncertainprint
-               \dateeraprint{#1endyear}}}}}%
+               \dateeraprint{#1endyear}}}}%
   \endgroup}
 
 % [extradate]{<datetype>}{''|end}
@@ -6821,7 +6886,7 @@
            togl {blx@#1dateusetime}
            and
            not test {\iffieldundef{#1hour}}}
-           {\printtext{\bibdatetimesep}%
+           {\bibdatetimesep%
             \blx@isotime{#1}{}}
            {}%
          \dateuncertainprint
@@ -6834,7 +6899,7 @@
               togl {blx@#1dateusetime}
               and
               not test {\iffieldundef{#1endhour}}}
-              {\printtext{\bibdatetimesep}%
+              {\bibdatetimesep%
                \blx@isotime{#1}{end}}
               {}%
            \enddateuncertainprint
@@ -6853,7 +6918,7 @@
            togl {blx@#1dateusetime}
            and
            not test {\iffieldundef{#1hour}}}
-           {\printtext{\bibdatetimesep}%
+           {\bibdatetimesep%
             \blx@isotime{#1}{}}
            {}%
          \dateuncertainprint
@@ -6866,7 +6931,7 @@
               togl {blx@#1dateusetime}
               and
               not test {\iffieldundef{#1endhour}}}
-              {\printtext{\bibdatetimesep}%
+              {\bibdatetimesep%
                \blx@isotime{#1}{end}}
               {}%
             \enddateuncertainprint
@@ -6974,13 +7039,17 @@
     loaded, is faulty or does not contain a definition\MessageBreak
     for \expandafter\string\csname mkbibtime24h\endcsname
   }%
-    \iffieldundef{#1}{}
-      {\printtext{\mktimezeros{\thefield{#1}}}\setunit{\bibtimesep}}%
-    \iffieldundef{#2}{}
-      {\printtext{\mktimezeros{\thefield{#2}}}\setunit{\bibtimesep}}%
-    \iffieldundef{#3}{}
-      {\printtext{\mktimezeros{\thefield{#3}}}}%
-    \setunit{}%
+    \iffieldundef{#1}
+      {}
+      {\mktimezeros{\thefield{#1}}%
+       \iffieldundef{#2}{}{\bibtimesep}}%
+    \iffieldundef{#2}
+      {}
+      {\mktimezeros{\thefield{#2}}%
+       \iffieldundef{#3}{}{\bibtimesep}}%
+    \iffieldundef{#3}
+      {}
+      {\mktimezeros{\thefield{#3}}}%
     \iffieldundef{#4}{}
       {\bibtimezonesep
        \mkbibtimezone{\thefield{#4}}}}
@@ -7006,7 +7075,7 @@
        {\bibstring{pm}}%
     \iffieldundef{#4}{}
      {\space\bibtimezonesep
-      \parentext{\mkbibtimezone{\thefield{#4}}}}}
+      \mkbibparens{\mkbibtimezone{\thefield{#4}}}}}
 
 \newrobustcmd*{\mkbibseasondateshort}[2]{%
   \blx@warning@noline{%
@@ -7148,7 +7217,7 @@
     \blx@resetpunct
     \csuse{abx@extras@#2}%
     \csuse{abx@strings@#2}}%
-  \csgappto{inlinextras@bbl@#1}{%
+  \csgappto{inlineextras@bbl@#1}{%
     \blx@resetpunct
     \csuse{abx@extras@#2}%
     \csuse{abx@strings@#2}}%
@@ -7178,59 +7247,56 @@
   \lefthyphenmin#1\relax
   \righthyphenmin#2\relax}
 
-\begingroup
-\@makeother\#
-\gdef\blx@mkautolangbabel{%
+
+
+\def\blx@mkautolangbabel{%
   \ifundef\bbl@main@language
     {\blx@error
       {No default 'babel' language defined}
       {You must define a default language for 'babel'}}
     {\let\blx@main@language\bbl@main@language}%
-  \edef\blx@saved@apostrophe@catcode{\the\catcode`\'}%
-  \edef\blx@saved@hyphen@catcode{\the\catcode`\-}%
-  \@makeother\'
-  \@makeother\-
-  \pretocmd\select@language{\blx@langsetup{#1}}
-    {\ifdef\blx@thelangenv
-       {\def\blx@beglang{%
-          \blx@clearlang
-          \begingroup
-         % Need to override all entries, regardless of whether there is a langid
-         % if language=<language> option is given
+  \AddBabelHook{biblatex@langsetup}{beforeextras}{%
+    \expandafter\blx@langsetup\expandafter{\languagename}}%
+  \ifdef\blx@thelangenv
+    {\def\blx@beglang{%
+       \blx@clearlang
+       \begingroup
+         % Need to override all entries, regardless of if there is a
+         % langid if language=<language> option is given
          \ifboolexpr { test {\ifdef\abx@field@@@langid }
                        or
                        test {\ifdef\blx@forcelanguagename} }
-            % override local langid if we forced it with
-            % language=<language> option
-            {\ifdef\blx@forcelanguagename
-               {\let\abx@field@@@langid\blx@forcelanguagename}
-               {}%
-             \let\blx@languagename\abx@field@@@langid% track global language
-             \blx@ifhyphenationundef{\abx@field@@@langid}
-               {\blx@warn@nohyph{\abx@field@@@langid}}
-               {\blx@hook@initlang
-                \def\blx@endlang{%
-                  \blx@hook@endlang
-                  \csname end\blx@thelangenv\endcsname
-                  \endgroup}%
-                \iftoggle{blx@autolangbib}
-                  {\let\blx@endlangbib\blx@endlang}
-                  {}%
-                \iftoggle{blx@autolangcite}
-                  {\let\blx@endlangcite\blx@endlang}
-                  {}%
-                \csname\blx@thelangenv\expandafter\endcsname
-                \expandafter{\abx@field@@@langid}}}
-            {}}}
-       {}%
-     \def\blx@imc@mainlang{\select@language{\blx@main@language}}%
-     \blx@langsetup\blx@main@language}
-    {\blx@err@patch{'babel' package}%
-     \blx@mknoautolang}%
-  \catcode`\'=\blx@saved@apostrophe@catcode\relax
-  \catcode`\-=\blx@saved@hyphen@catcode\relax}
+           % override local langid if we forced it with
+           % language=<language> option
+           {\ifdef\blx@forcelanguagename
+              {\let\abx@field@@@@@langid\blx@forcelanguagename}
+              {}%
+            \let\blx@languagename\abx@field@@@@@langid% track global language
+            \blx@ifhyphenationundef{\abx@field@@@@@langid}
+              {\blx@warn@nohyph{\abx@field@@@@@langid}}
+              {\blx@hook@initlang
+               \def\blx@endlang{%
+                 \blx@hook@endlang
+                 \csname end\blx@thelangenv\endcsname
+                 \endgroup}%
+               \iftoggle{blx@autolangbib}
+                 {\let\blx@endlangbib\blx@endlang}
+                 {}%
+               \iftoggle{blx@autolangcite}
+                 {\let\blx@endlangcite\blx@endlang}
+                 {}%
+               \csname\blx@thelangenv\expandafter\endcsname
+               \expandafter{\abx@field@@@@@langid}}}
+           {}}}
+    {}%
+  \def\blx@imc@mainlang{%
+    \expandafter\selectlanguage\expandafter{\blx@main@language}}%
+  \expandafter\blx@langsetup\expandafter{\blx@main@language}%
+}
 
-\gdef\blx@mkautolangpoly{%
+\def\blx@beglang@spacefactors{\frenchspacing}
+
+\def\blx@mkautolangpoly{%
   \ifundef\mainbabelname
     {\ifundef\bbl@main@language
        {\blx@error
@@ -7238,59 +7304,57 @@
           {You must define a default language for 'polyglossia'}}
        {\let\blx@main@language\bbl@main@language}}
     {\let\blx@main@language\mainbabelname}%
-  \edef\blx@saved@underscore@catcode{\the\catcode`\_}%
-  \catcode`\_=11% polyglossia uses "_" as a letter
-  \pretocmd\select@language{\blx@langsetup{\babelname}}
-    {\ifdef\blx@thelangenv
-       {\def\blx@beglang{%
-          \blx@clearlang
-          \begingroup
-          % Need to override all entries, regardless of whether there is a
-          % langid if language=<language> option is given
-          \ifboolexpr { test {\ifdef\abx@field@@@langid }
-                        or
-                        test {\ifdef\blx@forcelanguagename} }
-            % override local langid if we forced it with
-            % language=<language> option
-            {\ifdef\blx@forcelanguagename
-               {\let\abx@field@@@langid\blx@forcelanguagename}
-               {}%
-             \let\blx@languagename\abx@field@@@langid% track global language
-             \blx@ifhyphenationundef{\abx@field@@@langid}
-               {\blx@warn@nohyph{\abx@field@@@langid}}
-               {\blx@hook@initlang
-                \def\blx@endlang{%
-                  \blx@hook@endlang
-                  % Polyglossia language envs are \<lang>[]
-                  \ifcsstring{blx@thelangenv}{langname}
-                    {\csname end\abx@field@@@langid\endcsname}
-                    {\csname end\blx@thelangenv\endcsname}%
-                  \endgroup}%
-                \iftoggle{blx@autolangbib}
-                  {\let\blx@endlangbib\blx@endlang}
-                  {}%
-                \iftoggle{blx@autolangcite}
-                  {\let\blx@endlangcite\blx@endlang}
-                  {}%
+  \ifundef\polyglossia@language@switched
+    {\apptocmd\select@language
+       {\expandafter\blx@langsetup\expandafter{\babelname}}
+       {}
+       {\blx@err@patch{'polyglossia' package}%
+        \blx@mknoautolang}}
+    {\appto\polyglossia@language@switched{%
+       \expandafter\blx@langsetup\expandafter{\babelname}}}%
+  \ifdef\blx@thelangenv
+     {\def\blx@beglang{%
+        \blx@clearlang
+        \begingroup
+        % Need to override all entries, regardless of if there is a
+        % langid if language=<language> option is given
+        \ifboolexpr { test {\ifdef\abx@@@field@langid }
+                      or
+                      test {\ifdef\blx@forcelanguagename} }
+          % override local langid if we forced it with
+          % language=<language> option
+          {\ifdef\blx@forcelanguagename
+             {\let\abx@field@@@langid\blx@forcelanguagename}
+             {}%
+           \let\blx@languagename\abx@field@@@langid% track global language
+           \blx@ifhyphenationundef{\abx@field@@@langid}
+             {\blx@warn@nohyph{\abx@field@@@langid}}
+             {\blx@hook@initlang
+              \def\blx@endlang{%
+                \blx@hook@endlang
+                % Polyglossia language envs are \<lang>[]
                 \ifcsstring{blx@thelangenv}{langname}
-                  {\ifdef\abx@field@@@langidopts
-                     {\csname\abx@field@@@langid\expandafter\endcsname\expandafter[\abx@field@@@langidopts]}
-                     {\csname\abx@field@@@langid\endcsname}}
-                  {\csname\blx@thelangenv\expandafter\endcsname\expandafter{\abx@field@@@langid}}%
-                % These lines are equal to \blx@maplang
-                \ifcsstring{blx@thelangenv}{hyphenrules}
-                  {}
-                  {\blx@resetpunct
-                   \csuse{abx@extras@\abx@field@@@langid}%
-                   \csuse{abx@strings@\abx@field@@@langid}}}}
-            {}}}
+                  {\csname end\abx@field@@@langid\endcsname}
+                  {\csname end\blx@thelangenv\endcsname}%
+                \endgroup}%
+              \iftoggle{blx@autolangbib}
+                {\let\blx@endlangbib\blx@endlang}
+                {}%
+              \iftoggle{blx@autolangcite}
+                {\let\blx@endlangcite\blx@endlang}
+                {}%
+              \ifcsstring{blx@thelangenv}{langname}
+                {\ifdef\abx@field@@@langidopts
+                   {\csname\abx@field@@@langid\expandafter\endcsname
+                      \expandafter[\abx@field@@@langidopts]}
+                   {\csname\abx@field@@@langid\endcsname}}
+                {\csname\blx@thelangenv\expandafter\endcsname
+                   \expandafter{\abx@field@@@langid}}%
+              \blx@beglang@spacefactors}}
+          {}}}
        {}%
-     \def\blx@imc@mainlang{\select@language{\blx@main@language}}%
-     \blx@langsetup\blx@main@language}
-    {\blx@err@patch{'polyglossia' package}%
-     \blx@mknoautolang}%
-  \catcode`\_=\blx@saved@underscore@catcode\relax}
-\endgroup
+  \def\blx@imc@mainlang{\select@language{\blx@main@language}}%
+  \expandafter\blx@langsetup\expandafter{\blx@main@language}}
 
 \def\blx@mknoautolang{%
   \blx@lbxinput{\blx@languagename}
@@ -7790,7 +7854,7 @@
              {\blx@stripfromendinto{#1}{year}\blx@datetype}%
            \csuse{if\blx@datetype\blx@tempa dateera}{bce}
              {\ifnumless{0-\thefield{#1}}{0}
-               {\printtext{\csuse{bibdateera\blx@tempa prefix}}}
+               {\csuse{bibdateera\blx@tempa prefix}}
                {}}
              {}%
            \endgroup}
@@ -7806,10 +7870,10 @@
            \csuse{if\blx@datetype\blx@tempa dateera}{bce}
              {\ifnum\numexpr0-\thefield{#1}\relax<\blx@dateeraauto
                 % \midsentence is to suppress automatic capitalisation
-                \printtext{\printdelim{dateeradelim}\midsentence\bibstring{\blx@dateera@bce}}\relax
+                \printdelim{dateeradelim}\midsentence\bibstring{\blx@dateera@bce}\relax
               \fi}
              {\ifnumless{\thefield{#1}}\blx@dateeraauto
-               {\printtext{\printdelim{dateeradelim}\midsentence\bibstring{\blx@dateera@ce}}}
+               {\printdelim{dateeradelim}\midsentence\bibstring{\blx@dateera@ce}}
                {}}%
            \endgroup}
           {}}}%
@@ -8208,13 +8272,12 @@
   \begingroup
   \def\item{\MessageBreak-\space}%
   \def\break{\MessageBreak\space\space}%
-  \edef\blx@tempa{%
+  \blx@warning@noline{%
     Biber reported the following issues%
     \ifdef\abx@field@@@entrykey
       {\MessageBreak with '\abx@field@@@entrykey'}
       {}%
     :#1}%
-  \blx@warning@noline{\blx@tempa}%
   \endgroup}
 
 % {<field>}{<code>}
@@ -8881,107 +8944,43 @@
        % in which case we only set labelyear.
        {\ifcsundef{abx@field@@@\abx@field@@@labeldatesource}
          % \DeclareLabeldate resolved to a literal/localisation string
-         {\edef\abx@field@@@labelyear{\abx@field@@@labeldatesource}}
+         {\let\abx@field@@@labelyear\abx@field@@@labeldatesource}
          % \DeclareLabeldate resolved to a non-date field.  Not safe to \edef because
          % such contents could contain arbitrary macros, unlike ISO8601 sourced labeldatesource values
          {\letcs\abx@field@@@labelyear{abx@field@@@\abx@field@@@labeldatesource}}}
        % \DeclareLabeldate resolved to a date field name prefix like '', 'event', 'url'
        % or 'orig'
        {% labeldateera/labelenddateera
-        \ifcsdef{abx@field@@@\abx@field@@@labeldatesource dateera}
-          {\edef\abx@field@@@labeldateera{\csuse{abx@field@@@\abx@field@@@labeldatesource dateera}}}
-          {}%
-        \ifcsdef{abx@field@@@\abx@field@@@labeldatesource enddateera}
-          {\edef\abx@field@@@labelenddateera{\csuse{abx@field@@@\abx@field@@@labeldatesource enddateera}}}
-          {}%
-        % labelyear/labelendyear
-        \ifcsdef{abx@field@@@\abx@field@@@labeldatesource year}
-          {\edef\abx@field@@@labelyear{\csuse{abx@field@@@\abx@field@@@labeldatesource year}}}
-          {}%
-        \ifcsdef{abx@field@@@\abx@field@@@labeldatesource endyear}
-          {\edef\abx@field@@@labelendyear{\csuse{abx@field@@@\abx@field@@@labeldatesource endyear}}}
-          {}%
-        % labelmonth
-        \ifcsdef{abx@field@@@\abx@field@@@labeldatesource month}
-          {\edef\abx@field@@@labelmonth{\csuse{abx@field@@@\abx@field@@@labeldatesource month}}}
-          {}%
-        \ifcsdef{abx@field@@@\abx@field@@@labeldatesource endmonth}
-          {\edef\abx@field@@@labelendmonth{\csuse{abx@field@@@\abx@field@@@labeldatesource endmonth}}}
-          {}%
-        % labelday/labelendday
-        \ifcsdef{abx@field@@@\abx@field@@@labeldatesource day}
-          {\edef\abx@field@@@labelday{\csuse{abx@field@@@\abx@field@@@labeldatesource day}}}
-          {}%
-        \ifcsdef{abx@field@@@\abx@field@@@labeldatesource endday}
-          {\edef\abx@field@@@labelendday{\csuse{abx@field@@@\abx@field@@@labeldatesource endday}}}
-          {}%
-        % labelhour/labelendhour
-        \ifcsdef{abx@field@@@\abx@field@@@labeldatesource hour}
-          {\edef\abx@field@@@labelhour{\csuse{abx@field@@@\abx@field@@@labeldatesource hour}}}
-          {}%
-        \ifcsdef{abx@field@@@\abx@field@@@labeldatesource endhour}
-          {\edef\abx@field@@@labelendhour{\csuse{abx@field@@@\abx@field@@@labeldatesource endhour}}}
-          {}%
-        % labelminute/labelendminute
-        \ifcsdef{abx@field@@@\abx@field@@@labeldatesource minute}
-          {\edef\abx@field@@@labelminute{\csuse{abx@field@@@\abx@field@@@labeldatesource minute}}}
-          {}%
-        \ifcsdef{abx@field@@@\abx@field@@@labeldatesource endminute}
-          {\edef\abx@field@@@labelendminute{\csuse{abx@field@@@\abx@field@@@labeldatesource endminute}}}
-          {}%
-        % labelsecond/labelendsecond
-        \ifcsdef{abx@field@@@\abx@field@@@labeldatesource second}
-          {\edef\abx@field@@@labelsecond{\csuse{abx@field@@@\abx@field@@@labeldatesource second}}}
-          {}%
-        \ifcsdef{abx@field@@@\abx@field@@@labeldatesource endsecond}
-          {\edef\abx@field@@@labelendsecond{\csuse{abx@field@@@\abx@field@@@labeldatesource endsecond}}}
-          {}%
-        % labeltimezone/labelendtimezone
-        \ifcsdef{abx@field@@@\abx@field@@@labeldatesource timezone}
-          {\edef\abx@field@@@labeltimezone{\csuse{abx@field@@@\abx@field@@@labeldatesource timezone}}}
-          {}%
-        \ifcsdef{abx@field@@@\abx@field@@@labeldatesource endtimezone}
-          {\edef\abx@field@@@labelendtimezone{\csuse{abx@field@@@\abx@field@@@labeldatesource endtimezone}}}
-          {}%
-        % labelseason/labelendseason
-        \ifcsdef{abx@field@@@\abx@field@@@labeldatesource season}
-          {\edef\abx@field@@@labelseason{\csuse{abx@field@@@\abx@field@@@labeldatesource season}}}
-          {}%
-        \ifcsdef{abx@field@@@\abx@field@@@labeldatesource endseason}
-          {\edef\abx@field@@@labelendseason{\csuse{abx@field@@@\abx@field@@@labeldatesource endseason}}}
-          {}%
-        % labeldateunspecified
-        \ifcsdef{abx@field@@@\abx@field@@@labeldatesource dateunspecified}
-          {\csletcs{abx@field@@@labeldateunspecified}{abx@field@@@\abx@field@@@labeldatesource dateunspecified}}
-          {}%
-        % labeldatecirca/labelenddatecirca
-        \ifcsdef{etb@tgl@abx@bool@\abx@field@@@labeldatesource datecirca}
-          {\csletcs{etb@tgl@abx@bool@labeldatecirca}{etb@tgl@abx@bool@\abx@field@@@labeldatesource datecirca}}
-          {}%
-        \ifcsdef{etb@tgl@abx@bool@\abx@field@@@labeldatesource enddatecirca}
-          {\csletcs{etb@tgl@abx@bool@labelenddatecirca}{etb@tgl@abx@bool@\abx@field@@@labeldatesource enddatecirca}}
-          {}%
-        % labeldatejulian/labelenddatejulian
-        \ifcsdef{etb@tgl@abx@bool@\abx@field@@@labeldatesource datejulian}
-          {\csletcs{etb@tgl@abx@bool@labeldatejulian}{etb@tgl@abx@bool@\abx@field@@@labeldatesource datejulian}}
-          {}%
-        \ifcsdef{etb@tgl@abx@bool@\abx@field@@@labeldatesource enddatejulian}
-          {\csletcs{etb@tgl@abx@bool@labelenddatejulian}{etb@tgl@abx@bool@\abx@field@@@labeldatesource enddatejulian}}
-          {}%
-        % labeldateuncertain/labelenddateuncertain
-        \ifcsdef{etb@tgl@abx@bool@\abx@field@@@labeldatesource dateuncertain}
-          {\csletcs{etb@tgl@abx@bool@labeldateuncertain}{etb@tgl@abx@bool@\abx@field@@@labeldatesource dateuncertain}}
-          {}%
-        \ifcsdef{etb@tgl@abx@bool@\abx@field@@@labeldatesource enddateuncertain}
-          {\csletcs{etb@tgl@abx@bool@labelenddateuncertain}{etb@tgl@abx@bool@\abx@field@@@labeldatesource enddateuncertain}}
-          {}%
-        % labeldateunknown/labelenddateunknown
-        \ifcsdef{etb@tgl@abx@bool@\abx@field@@@labeldatesource dateunknown}
-          {\csletcs{etb@tgl@abx@bool@labeldateunknown}{etb@tgl@abx@bool@\abx@field@@@labeldatesource dateunknown}}
-          {}%
-        \ifcsdef{etb@tgl@abx@bool@\abx@field@@@labeldatesource enddateunknown}
-          {\csletcs{etb@tgl@abx@bool@labelenddateunknown}{etb@tgl@abx@bool@\abx@field@@@labeldatesource enddateunknown}}
-          {}}}}
+        \letcs\abx@field@@@labeldateera{abx@field@@@\abx@field@@@labeldatesource dateera}%
+        \letcs\abx@field@@@labelenddateera{abx@field@@@\abx@field@@@labeldatesource enddateera}%
+        \letcs\abx@field@@@labelyear{abx@field@@@\abx@field@@@labeldatesource year}%
+        \letcs\abx@field@@@labelendyear{abx@field@@@\abx@field@@@labeldatesource endyear}%
+        \letcs\abx@field@@@labelmonth{abx@field@@@\abx@field@@@labeldatesource month}%
+        \letcs\abx@field@@@labelendmonth{abx@field@@@\abx@field@@@labeldatesource endmonth}%
+        \letcs\abx@field@@@labelday{abx@field@@@\abx@field@@@labeldatesource day}%
+        \letcs\abx@field@@@labelendday{abx@field@@@\abx@field@@@labeldatesource endday}%
+        \letcs\abx@field@@@labelhour{abx@field@@@\abx@field@@@labeldatesource hour}%
+        \letcs\abx@field@@@labelendhour{abx@field@@@\abx@field@@@labeldatesource endhour}%
+        \letcs\abx@field@@@labelminute{abx@field@@@\abx@field@@@labeldatesource minute}%
+        \letcs\abx@field@@@labelendminute{abx@field@@@\abx@field@@@labeldatesource endminute}%
+        \letcs\abx@field@@@labelsecond{abx@field@@@\abx@field@@@labeldatesource second}%
+        \letcs\abx@field@@@labelendsecond{abx@field@@@\abx@field@@@labeldatesource endsecond}%
+        \letcs\abx@field@@@labeltimezone{abx@field@@@\abx@field@@@labeldatesource timezone}%
+        \letcs\abx@field@@@labelendtimezone{abx@field@@@\abx@field@@@labeldatesource endtimezone}%
+        \letcs\abx@field@@@labelseason{abx@field@@@\abx@field@@@labeldatesource season}%
+        \letcs\abx@field@@@labelendseason{abx@field@@@\abx@field@@@labeldatesource endseason}%
+        \letcs\abx@field@@@labeldateunspecified{abx@field@@@\abx@field@@@labeldatesource dateunspecified}%
+        \letcs\etb@tgl@abx@bool@labeldatecirca{etb@tgl@abx@bool@\abx@field@@@labeldatesource datecirca}%
+        \letcs\etb@tgl@abx@bool@labelenddatecirca{etb@tgl@abx@bool@\abx@field@@@labeldatesource enddatecirca}%
+        \letcs\etb@tgl@abx@bool@labeldatejulian{etb@tgl@abx@bool@\abx@field@@@labeldatesource datejulian}%
+        \letcs\etb@tgl@abx@bool@labelenddatejulian{etb@tgl@abx@bool@\abx@field@@@labeldatesource enddatejulian}%
+        \letcs\etb@tgl@abx@bool@labeldateuncertain{etb@tgl@abx@bool@\abx@field@@@labeldatesource dateuncertain}%
+        \letcs\etb@tgl@abx@bool@labelenddateuncertain{etb@tgl@abx@bool@\abx@field@@@labeldatesource enddateuncertain}%
+        \letcs\etb@tgl@abx@bool@labeldateunknown{etb@tgl@abx@bool@\abx@field@@@labeldatesource dateunknown}%
+        \letcs\etb@tgl@abx@bool@labelenddateunknown{etb@tgl@abx@bool@\abx@field@@@labeldatesource enddateunknown}%
+       }%
+    }%
+}
 
 % This gets the entry data for a citation
 \def\blx@getdata@cite#1{%
@@ -8990,26 +8989,35 @@
   \ifcsdef{blx@setc@\the\c@refsection @#1}
     {\blx@ifdata{#1}
        {\def\abx@field@@@childentrykey{#1}%LEGACY(<3.8)
-        \edef\abx@field@@@childentrytype{\abx@field@@@entrytype}%LEGACY(<3.8)
+        \let\abx@field@@@childentrytype\abx@field@@@entrytype %LEGACY(<3.8)
         \begingroup
-        \expandafter\expandafter\expandafter\blx@getdata\expandafter\expandafter\expandafter{%
-          \csname blx@setc@\the\c@refsection @#1\endcsname}%
+        \expandafter\expandafter\expandafter\blx@getdata
+          \expandafter\expandafter\expandafter{%
+            \csname blx@setc@\the\c@refsection @#1\endcsname}%
         \let\blx@tempa\@empty
         % Inject labelnumber if it exists
         \ifdef\abx@field@@@labelnumber
-          {\appto\blx@tempa{\def\noexpand\abx@field@@@labelnumber{\abx@field@@@labelnumber}}}
+          {\appto\blx@tempa{%
+             \def\noexpand\abx@field@@@labelnumber{%
+               \expandonce\abx@field@@@labelnumber}}}
           {}%
         % Inject labelprefix if it exists
         \ifdef\abx@field@@@labelprefix
-          {\appto\blx@tempa{\def\noexpand\abx@field@@@labelprefix{\abx@field@@@labelprefix}}}
+          {\appto\blx@tempa{%
+             \def\noexpand\abx@field@@@labelprefix{%
+               \expandonce\abx@field@@@labelprefix}}}
           {}%
         % Inject labelalpha if it exists
         \ifdef\abx@field@@@labelalpha
-          {\appto\blx@tempa{\def\noexpand\abx@field@@@labelalpha{\abx@field@@@labelalpha}}}
+          {\appto\blx@tempa{%
+             \def\noexpand\abx@field@@@labelalpha{%
+               \expandonce\abx@field@@@labelalpha}}}
           {}%
         % Inject extraalpha if it exists
         \ifdef\abx@field@@@extraalpha
-          {\appto\blx@tempa{\def\noexpand\abx@field@@@extraalpha{\abx@field@@@extraalpha}}}
+          {\appto\blx@tempa{%
+              \def\noexpand\abx@field@@@extraalpha{%
+                \expandonce\abx@field@@@extraalpha}}}
           {}%
         % Perform the injection
         \edef\blx@tempb{\endgroup\blx@tempa}%
@@ -9082,7 +9090,7 @@
 % for internal use but we always want the aliases themselves in the .bcf
 % so that biber can correctly use and resolve them too.
 \protected\def\blx@bbl@keyalias#1#2{%
-  \csgdef{blx@keyalias@\the\c@refsection @#1}{\detokenize{#2}}%
+  \csxdef{blx@keyalias@\the\c@refsection @#1}{\detokenize{#2}}%
   \listcsgadd{blx@keyaliases@\the\c@refsection}{#1}}
 
 % blx@dlist@list@<section>@<refcontext> - a list of list items in a refcontext in a
@@ -9924,6 +9932,11 @@
       {\def\do#1{\blx@auxwrite\@mainaux{}{#1}}
        \dolistloop\blx@localnumaux}}
     {}%
+  % Wite md5 hash of .bbl to .aux if we need a Biber rerun.
+  % This needs to happen here and not in \blx@check@rerun together with
+  % the other rerun stuff, because \AfterEndBibliography would be too
+  % late for .aux file writing.
+  \blx@aux@write@bbl@mdfivesum
   \endgroup}
 
 % {<instcount>}{<entrykey>}{<refsection>}{<refcontext>}{<labelnumber>}
@@ -10003,8 +10016,8 @@
     \appto\blx@tempa{{##1}}%
     \advance\blx@tempcnta\@ne}%
   \dolistcsloop{blx@pref@\the\c@refsection @#1}%
-  \edef\blx@tempa{\endgroup\noexpand\blx@bbl@listdef{}{}
-    {pageref}{\the\blx@tempcnta}{\expandonce{\blx@tempa}}}%
+  \edef\blx@tempa{\endgroup
+    \noexpand\blx@bbl@listdef{}{}{pageref}{\the\blx@tempcnta}{\expandonce{\blx@tempa}}}%
   \blx@tempa}
 
 %% Data input
@@ -10022,12 +10035,18 @@
   \blx@ifsigned{\jobname}{bbl}
     {\InputIfFileExists{\jobname.bbl}
        {\blx@info@noline{... file '\jobname.bbl' found}%
-        \global\toggletrue{blx@bbldone}}
+        \global\toggletrue{blx@bbldone}%
+        \blx@generate@bbl@mdfivesum@found}
        {\blx@info@noline{... file '\jobname.bbl' not found}%
-        \typeout{No file \jobname.bbl.}}}
-    {}%
+        \typeout{No file \jobname.bbl.}%
+        % 'nobblfile' can never be equal to any mdfivehash
+        \blx@generate@bbl@mdfivesum@notfound}}
+    {\blx@generate@bbl@mdfivesum@notfound}%
   \blx@bblend
   \endgroup
+  % Check if Biber rerun was not carried out.
+  % If so, ask for it again.
+  \blx@check@bbl@rerun@mdfivesum
   % global sorting as this is called at BeginDocument
   \csnumgdef{blx@labelnumber@\the\c@refsection}{0}}
 
@@ -11472,7 +11491,7 @@
 %% that we can use for that purpose as well.
 %% This is fairly new, so we need to have a fallback for older versions.
 
-%% The standard classes are tricky. 
+%% The standard classes are tricky.
 %% We insert something in \@startsection to get the level number
 %% and then patch \@sect and \@ssect so the label attaches to the
 %% right thing.
@@ -11846,6 +11865,12 @@
 \newrobustcmd*{\AtEachCitekey}{%
   \iftoggle{blx@citation}{\appto\blx@hook@citekey}{\@gobble}}
 
+\let\blx@hook@entrykey\@gobble
+\newrobustcmd*{\AtEveryEntrykey}{%
+  \apptocmd{\blx@hook@entrykey}}
+\@onlypreamble\AtEveryEntrykey
+
+
 \def\blx@imc@UseEveryCiteHook{\csuse{blx@hook@cite}}
 \def\blx@imc@UseEveryCitekeyHook{\csuse{blx@hook@citekey}}
 \def\blx@imc@UseEveryMultiCiteHook{\csuse{blx@hook@mcite}}
@@ -11944,7 +11969,8 @@
        {\ifinlistcs{#1}{blx@miss@\the\c@refsection}
           {}
           {\blx@logreq@active{#2{#1}}}}
-       {\blx@logreq@active{#2{#1}}}}}
+       {\blx@logreq@active{#2{#1}}}}%
+  \blx@hook@entrykey{#1}}
 
 \protected\def\abx@aux@segm#1#2#3{%
   \xifinlistcs{\detokenize{#3}}{blx@segm@#1@#2}
@@ -12089,7 +12115,7 @@
 % {<entrykey>}
 \def\blx@citeadd#1{%
   \ifcsdef{blx@keyalias@\the\c@refsection @#1}
-    {\edef\blx@realkey{\csuse{blx@keyalias@\the\c@refsection @#1}}}
+    {\letcs\blx@realkey{blx@keyalias@\the\c@refsection @#1}}
     {\def\blx@realkey{#1}}%
   \expandafter\blx@getrefcontext\expandafter{\blx@realkey}% needed for \ifdata
   \expandafter\blx@citation\expandafter{\blx@realkey}\blx@msg@cundefon
@@ -14123,8 +14149,8 @@
   \blx@safe@actives
   \let\protect\string
   % options
-  \edef\labelalphaothers{\labelalphaothers}%
-  \edef\sortalphaothers{\sortalphaothers}%
+  \protected@edef\labelalphaothers{\labelalphaothers}%
+  \protected@edef\sortalphaothers{\sortalphaothers}%
   \blx@xmlsanitizeafter{\def\labelalphaothers}{\labelalphaothers}%
   \blx@xmlsanitizeafter{\def\sortalphaothers}{\sortalphaothers}%
   % Expand the global use* name toggles
@@ -15851,6 +15877,10 @@
 \def\blx@opt@backrefsetstyle@memandset{4}
 \def\blx@opt@backrefsetstyle@setplusmem{5}
 
+\newtoggle{blx@backreffloats}
+\DeclareBibliographyOption[boolean]{backreffloats}[true]{%
+  \settoggle{blx@backreffloats}{#1}}
+
 \appto\blx@mkhyperref{%
   \ifHy@plainpages
     \blx@warning@noline{%
@@ -16103,6 +16133,11 @@
   \let\blx@loccittracker\blx@loccittracker@constrict
   \let\blx@loccitreset\blx@loccitreset@context
   \booltrue{citetracker}}
+
+\newtoggle{blx@trackfloats}
+\DeclareBibliographyOption[boolean]{trackfloats}[true]{%
+  \settoggle{blx@trackfloats}{#1}}
+
 
 \DeclareBibliographyOption[boolean]{parentracker}[true]{%
   \ifstrequal{#1}{true}
@@ -16586,8 +16621,10 @@
   maxnames=3,minnames=1,maxalphanames=3,minalphanames=1,
   maxitems=3,minitems=1,mincrossrefs=2,minxrefs=2,useauthor=true,useeditor=true,
   usetranslator=false,indexing=false,abbreviate=true,dateabbrev=true,dateera=astronomical,
-  backref=false,backrefsetstyle=setonly,pagetracker=false,ibidtracker=false,
-  idemtracker=false,opcittracker=false,loccittracker=false,citetracker=false,
+  backref=false,backrefsetstyle=setonly,backreffloats=true,
+  pagetracker=false,
+  ibidtracker=false,idemtracker=false,opcittracker=false,loccittracker=false,
+  citetracker=false,trackfloats=false,
   citecounter=false,block=none,language=autobib,clearlang=true,autolang=none,
   autofieldlang=none,autofieldlangstrings=false,date=comp,labeldate=year,origdate=comp,
   eventdate=comp,urldate=short,autopunct=true,punctfont=false,defernumbers=false,

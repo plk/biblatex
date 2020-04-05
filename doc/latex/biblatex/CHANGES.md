@@ -54,6 +54,11 @@
   `\printunit` is needed instead of `\setunit` to stop subsequent
   `\setunit`s from overriding `\intitlepunct` in case of missing
   fields.
+- Added options `backreffloats` and `trackfloats` to enable/disable
+  citation tracking and back references in floats.
+  Note that citation tracking in floats can lead to undesirable
+  results in case the float objects floats too far from its "natural"
+  position.
 - Added `\mautocite` and `\Mautocite`.
 - Added `\NumsCheckSetup` and `\PagesCheckSetup` for finer control
   of the `\ifnumerals` and `\ifpages` checks.
@@ -68,7 +73,7 @@
   The option is only relevant with `subentry=true`.
   With `subentrycomp=true` set citations will be compressed
   to "1a-c" instead of "1a; 1b; 1c".
-  The option is mainly intended for backwards compatibility,
+  The option is mainly intended for backwards compatibility;
   the behaviour of previous `biblatex` versions can be restored
   with `subentrycomp=false`.
 - Added `\multiciterangedelim`, `\multicitesubentrydelim`,
@@ -77,8 +82,25 @@
   finer control over (compressed) subentry citations in `numeric-comp`.
 - **CRITICAL CHANGE** The structure of the bibmacros in `numeric-comp`
   has been reworked to make it easier to customise the printed output.
-  Documents that relied on patching internal bibmacros or hevaily
+  Documents that relied on patching internal bibmacros or heavily
   redefined them may have to adapt.
+- `biblatex` now tests if a requested Biber (re)run happened by
+  comparing the MD5 hashes of the new and old `.bbl` files.
+- Added file hooks `\blx@filehook@preload@<filename>`,
+  `\blx@filehook@postload@<filename>`
+  and `\blx@filehook@failure@<filename>`
+  to execute hooks before or after a file is loaded
+  or if the loading fails.
+  `\blx@lbxfilehook@simple@preload@<filename>`,
+  `\blx@lbxfilehook@simple@postload@<filename>`
+  and `\blx@lbxfilehook@simple@failure@<filename>`
+  as well as
+  `\blx@lbxfilehook@once@preload@<filename>`,
+  `\blx@lbxfilehook@once@postload@<filename>`
+  and `\blx@lbxfilehook@once@failure@<filename>`
+  are the equivalents for `.lbx` loading, where
+  files may be loaded several times in some situations.
+- Added limited support for 'nodate' with BibTeX.
 
 # RELEASE NOTES FOR VERSION 3.14
 - biber from version 2.14 has extended, granular XDATA functionality to

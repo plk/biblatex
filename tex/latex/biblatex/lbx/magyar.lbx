@@ -29,7 +29,8 @@
   \protected\def\mkbibmascord{\mkbibordinal}%
   \protected\def\mkbibfemord{\mkbibordinal}%
   \protected\def\mkbibneutord{\mkbibordinal}%
-  \let\lbx@hu@dayrange\@secondoftwo
+  \let\lbx@hu@ifdayrange\@secondoftwo
+  \def\lbx@hu@ifplainday{\lbx@hu@ifdayrange}%
   \protected\def\mkbibdatelong#1#2#3{%
     \iffieldundef{#1}
       {}
@@ -45,7 +46,7 @@
        \iffieldundef{#3}{}{\nobreakspace}}%
     \iffieldundef{#3}
       {}
-      {\lbx@hu@dayrange{\thefield{#3}}{\mkbibordinal{\thefield{#3}}}}%
+      {\lbx@hu@ifplainday{\thefield{#3}}{\mkbibordinal{\thefield{#3}}}}%
   }%
   \protected\def\mkbibdateshort#1#2#3{%
     \iffieldundef{#1}
@@ -62,7 +63,7 @@
        \iffieldundef{#3}{}{\nobreakspace}}%
     \iffieldundef{#3}
       {}
-      {\mkdayzeros{\thefield{#3}}\lbx@hu@dayrange{}{\adddot}}%
+      {\mkdayzeros{\thefield{#3}}\lbx@hu@ifdayrange{}{\adddot}}%
   }%
   \let\mkbibseasondatelong\mkbibseasondateshort
   \savecommand\mkdaterangecomp
@@ -77,21 +78,25 @@
     \lbx@hu@mkdaterangetruncextra{long}}%
   \protected\def\mkdaterangeterseextra{%
     \lbx@hu@mkdaterangetruncextra{short}}%
-\expandafter\protected\expandafter\def\csname mkbibtime24h\endcsname#1#2#3#4{%
-      \iffieldundef{#1}{}
-        {\printtext{\mktimezeros{\thefield{#1}}}\setunit{\bibtimesep}}%
-      \iffieldundef{#2}{}
-        {\printtext{\mktimezeros{\thefield{#2}}}\setunit{\bibtimesep}}%
-      \iffieldundef{#3}{}
-        {\printtext{\mktimezeros{\thefield{#3}}}}%
-      \setunit{}%
+  \expandafter\protected\expandafter\def\csname mkbibtime24h\endcsname#1#2#3#4{%
+      \iffieldundef{#1}
+        {}
+        {\mktimezeros{\thefield{#1}}%
+         \iffieldundef{#2}{}{\bibtimesep}}%
+      \iffieldundef{#2}
+        {}
+        {\mktimezeros{\thefield{#2}}%
+         \iffieldundef{#3}{}{\bibtimesep}}%
+      \iffieldundef{#3}
+        {}
+        {\mktimezeros{\thefield{#3}}}%
       \iffieldundef{#4}{}
         {\bibtimezonesep
          \mkbibtimezone{\thefield{#4}}}}%
   \csletcs{mkbibtime12h}{mkbibtime24h}%
   \protected\def\mkbibseasondateshort#1#2{%
     \dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}%
-    \iffieldundef{#1}{}{\adddot\space}
+    \iffieldundef{#1}{}{\adddot\space}%
     \mkbibseason{\thefield{#2}}%
   }%
   \let\mkbibseasondatelong\mkbibseasondateshort
@@ -139,12 +144,12 @@
     \mkpageprefix[pagination][\lbx@hu@mkdottednormrange]{#1}}%
   \savefieldformat{chapter}%
   \DeclareFieldFormat{chapter}{%
-    \ifnumerals{#1}{\mkbibordinal{#1}}{#1}
+    \ifnumerals{#1}{\mkbibordinal{#1}}{#1}%
     \addnbspace
     \bibstring{chapter}}%
   \savefieldformat{volume}%
   \DeclareFieldFormat{volume}{%
-    \ifnumerals{#1}{\mkbibordinal{#1}}{#1}
+    \ifnumerals{#1}{\mkbibordinal{#1}}{#1}%
     \addnbspace
     \bibstring{volume}}%
   \savefieldformat{part}%
@@ -160,7 +165,7 @@
     \bibstring{part}}%
   \savefieldformat{version}%
   \DeclareFieldFormat{version}{%
-    \ifnumerals{#1}{\mkbibordinal{#1}}{#1}
+    \ifnumerals{#1}{\mkbibordinal{#1}}{#1}%
     \addnbspace
     \bibstring{version}}%
 }
@@ -641,7 +646,7 @@
   pm               = {{d\'elut\'an}{du\adddot}},
 }
 
-\protected\gdef\lbx@hu@dayrange@i#1{%
+\protected\gdef\lbx@hu@ifdayrange@i#1{%
   \ifboolexpr{not test {\iffieldundef{#1endyear}}
               and test {\iffieldsequal{#1year}{#1endyear}}
               and test {\iffieldsequal{#1month}{#1endmonth}}
@@ -656,7 +661,7 @@
 \protected\gdef\lbx@hu@mkdaterangetrunc@i#1#2{%
   \begingroup
     \blx@metadateinfo{#2}%
-    \edef\lbx@hu@dayrange{\lbx@hu@dayrange@i{#2}}%
+    \edef\lbx@hu@ifdayrange{\lbx@hu@ifdayrange@i{#2}}%
     \iffieldundef{#2year}
       {}
       {\printtext[{#2date}]{%
@@ -671,8 +676,8 @@
            {}
            {\iffieldequalstr{#2endyear}{}
               {\mbox{\bibdaterangesep}}
-              {\lbx@hu@dayrange{\bibrangedash}{\bibdaterangesep}%
-               \let\lbx@hu@dayrange\@secondoftwo
+              {\lbx@hu@ifdayrange{\bibrangedash}{\bibdaterangesep}%
+               \let\lbx@hu@ifplainday\@secondoftwo
                \enddatecircaprint
                \iffieldundef{#2season}
                  {\iffieldsequal{#2year}{#2endyear}
@@ -696,7 +701,7 @@
 \protected\gdef\lbx@hu@mkdaterangetruncextra@i#1#2{%
   \begingroup
     \blx@metadateinfo{#2}%
-    \edef\lbx@hu@dayrange{\lbx@hu@dayrange@i{#2}}%
+    \edef\lbx@hu@ifdayrange{\lbx@hu@ifdayrange@i{#2}}%
     \iffieldundef{#2year}
       {}
       {\printtext[{#2date}]{%
@@ -712,8 +717,8 @@
            {\iffieldequalstr{#2endyear}{}
               {\printfield{extradate}%
                \mbox{\bibdaterangesep}}
-              {\lbx@hu@dayrange{\bibrangedash}{\bibdaterangesep}%
-               \let\lbx@hu@dayrange\@secondoftwo
+              {\lbx@hu@ifdayrange{\bibrangedash}{\bibdaterangesep}%
+               \let\lbx@hu@ifplainday\@secondoftwo
                \enddatecircaprint
                \iffieldundef{#2season}
                  {\iffieldsequal{#2year}{#2endyear}
