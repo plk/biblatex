@@ -68,6 +68,10 @@
   are the equivalents for `.lbx` loading, where
   files may be loaded several times in some situations.
 - Added limited support for 'nodate' with BibTeX.
+- Improved `babel` and `polyglossia` interfacing (avoids more or less
+  unsupported patches).
+  This should work with `babel` at least v3.9r (2016/04/23)
+  and polyglossia `polyglossia` v1.49 (2020/04/08) or later.
 
 # RELEASE NOTES FOR VERSION 3.14
 - biber from version 2.14 has extended, granular XDATA functionality to
