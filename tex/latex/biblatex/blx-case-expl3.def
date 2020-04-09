@@ -1,4 +1,4 @@
-\RequirePackage{expl3}[2020/03/06]
+\RequirePackage{expl3}[2020/04/06]
 \RequirePackage{xparse}
 \ProvidesExplFile {blx-case-expl3} {\abx@date} {\abx@version}
   {expl3 case changing code for biblatex}
@@ -63,21 +63,39 @@
 \DeclareBabelToExplLanguageMapping{greek}{el}
 \DeclareBabelToExplLanguageMapping{turkish}{tr}
 
+% our copy of \l_text_titlecase_check_letter_bool
+\bool_new:N \l_biblatex_titlecase_check_letter_bool
+% just to be clear, unlike l3text our default is "false"
+\bool_set_false:N \l_biblatex_titlecase_check_letter_bool
 
 % helper macro to avoid unnecessary repoetition of the same structure
 % {<case [lowercase|uppercase|titlecase|titlecase_first]>}
 % {<babel language>}{<text>}
+% Technically, this command is not expandable because of the
+% bool assignmnent. But we want to expand it once to make the helper
+% transparent to the outside world.
 \cs_new:Npn \__biblatex_text_makeconverter:nnn #1 #2 #3
   {
-    \prop_if_in:NnTF \l__biblatex_babel_to_pseudobcp_prop  { #2 }
-      {
-        \use:c { text_#1:nn }
-          { \prop_item:Nn \l__biblatex_babel_to_pseudobcp_prop { #2 } }
-          {#3}
-      }
-      {
-        \use:c { text_#1:n } {#3}
-      }
+    \group_begin:
+      \bool_if_exist:NTF \l_text_titlecase_check_letter_bool
+        {
+          \bool_set_eq:NN \l_text_titlecase_check_letter_bool
+                          \l_biblatex_titlecase_check_letter_bool
+        }
+        {
+          % should we raise an error or at least issue a warning here?
+        }
+      \prop_if_in:NnTF \l__biblatex_babel_to_pseudobcp_prop  { #2 }
+        {
+          \use:c { text_#1:nn }
+            { \prop_item:Nn
+                \l__biblatex_babel_to_pseudobcp_prop { #2 } }
+            {#3}
+        }
+        {
+          \use:c { text_#1:n } {#3}
+        }
+    \group_end:
   }
 
 
@@ -176,7 +194,8 @@
       \bool_lazy_and:nnTF
         { \tl_if_head_is_N_type_p:n {#1} }
         {
-          \exp_after:wN \token_if_cs_p:N \exp_after:wN { \tl_head:w #1 \q_stop }
+          \exp_after:wN \token_if_cs_p:N
+          \exp_after:wN { \tl_head:w #1 \q_stop }
         }
         { \exp_not:n {#1} }
         { \exp_not:n { \NoCaseChange {#1} } }
@@ -184,7 +203,8 @@
     \__biblatex_text_bibtex_loop:w
   }
 
-\exp_last_unbraced:NNo \cs_new:Npn \__biblatex_text_bibtex_space:w \c_space_tl
+\exp_last_unbraced:NNo
+  \cs_new:Npn \__biblatex_text_bibtex_space:w \c_space_tl
   {
     \c_space_tl
     \__biblatex_text_bibtex_loop:w
@@ -236,7 +256,8 @@
   {
     \IfBooleanTF {#1}
       {
-        \clist_if_in:NxTF \l__biblatex_caselangs_clist { \blx@mksc@lang }
+        \clist_if_in:NxTF
+          \l__biblatex_caselangs_clist { \blx@mksc@lang }
           {
             \biblatex_text_sentencecase:xo { \blx@mksc@lang }
               { \biblatex_text_sentencecase_preprocess:n {#2} }
