@@ -5,13 +5,13 @@
 
 % Map for babel/polyglossia names
 % to BCP-47-like l3text names.
-% We only need maps for l3text names do that do something in
-% as of 2020/03/06 those names are
+% We only need maps for l3text names that do something
+% as of 2020/04/06 those names are
 % az, de-alt, el, lt, nl, tr.
 % biblatex currently only supports dutch, greek and turkish
 % so we only map those.
 % de-alt is optional and still unusual, so *we* don't map it,
-% but a user could in theory map it themselves.
+% but a user could map it themselves.
 
 \prop_new:N \l__biblatex_babel_to_pseudobcp_prop
 
@@ -44,7 +44,7 @@
         \msg_info:nnnx { biblatex }
           { remove-babel-to-pseudobcp-map }
           {#1}
-          {\prop_item:Nn \l__biblatex_babel_to_pseudobcp_prop {#1}}
+          { \prop_item:Nn \l__biblatex_babel_to_pseudobcp_prop {#1} }
       }
     \prop_remove:Nn \l__biblatex_babel_to_pseudobcp_prop {#1}
   }
@@ -63,18 +63,15 @@
 \DeclareBabelToExplLanguageMapping{greek}{el}
 \DeclareBabelToExplLanguageMapping{turkish}{tr}
 
-% our copy of \l_text_titlecase_check_letter_bool
+% Our copy of \l_text_titlecase_check_letter_bool
 \bool_new:N \l_biblatex_titlecase_check_letter_bool
-% just to be clear, unlike l3text our default is "false"
+% Just to be clear: unlike l3text our default is "false"
 \bool_set_false:N \l_biblatex_titlecase_check_letter_bool
 
-% helper macro to avoid unnecessary repoetition of the same structure
+% Helper macro to avoid unnecessary repetition of the same structure
 % {<case [lowercase|uppercase|titlecase|titlecase_first]>}
 % {<babel language>}{<text>}
-% Technically, this command is not expandable because of the
-% bool assignmnent. But we want to expand it once to make the helper
-% transparent to the outside world.
-\cs_new:Npn \__biblatex_text_makeconverter:nnn #1 #2 #3
+\cs_new_protected:Npn \__biblatex_text_makeconverter:nnn #1 #2 #3
   {
     \group_begin:
       \bool_if_exist:NTF \l_text_titlecase_check_letter_bool
@@ -85,11 +82,11 @@
         {
           % should we raise an error or at least issue a warning here?
         }
-      \prop_if_in:NnTF \l__biblatex_babel_to_pseudobcp_prop  { #2 }
+      \prop_if_in:NnTF \l__biblatex_babel_to_pseudobcp_prop  {#2}
         {
           \use:c { text_#1:nn }
             { \prop_item:Nn
-                \l__biblatex_babel_to_pseudobcp_prop { #2 } }
+                \l__biblatex_babel_to_pseudobcp_prop {#2} }
             {#3}
         }
         {
@@ -99,10 +96,7 @@
   }
 
 
-% We'll use \cs_new:Npo to get rid of the helper macro.
-\cs_generate_variant:Nn \cs_new:Npn { Npo }
-
-\cs_new:Npo \biblatex_text_lowercase:nn #1 #2
+\cs_new:Npn \biblatex_text_lowercase:nn #1 #2
   {
     \__biblatex_text_makeconverter:nnn {lowercase} {#1} {#2}
   }
@@ -117,7 +111,7 @@
 \cs_set_eq:NN \blx@maketext@lowercase \biblatex_text_lowercase:n
 
 
-\cs_new:Npo \biblatex_text_uppercase:nn #1 #2
+\cs_new:Npn \biblatex_text_uppercase:nn #1 #2
   {
     \__biblatex_text_makeconverter:nnn {uppercase} {#1} {#2}
   }
@@ -132,7 +126,7 @@
 \cs_set_eq:NN \blx@maketext@uppercase \biblatex_text_uppercase:n
 
 
-\cs_new:Npo \biblatex_text_makecapital:nn #1 #2
+\cs_new:Npn \biblatex_text_makecapital:nn #1 #2
   {
     \__biblatex_text_makeconverter:nnn {titlecase_first} {#1} {#2}
   }
@@ -219,7 +213,7 @@
 % but the user can turn that off for a more sane behaviour
 % that only relies on \NoCaseChange.
 \DeclareBiblatexOption{global,type,entry}[boolean]{bibtexcaseprotection}[true]{%
-  \str_case:nnF { #1 }
+  \str_case:nnF {#1}
     {
       { true }
       {
@@ -232,12 +226,14 @@
                       \use:n
       }
     }
-    {\msg_error:nnn { biblatex } { invalid-value-bibtexcaseprotection }
-                    {#1} }
+    {
+      \msg_error:nnn { biblatex } { invalid-value-bibtexcaseprotection }
+                     {#1}
+    }
 }
 
 
-\cs_new:Npo \biblatex_text_sentencecase:nn #1 #2
+\cs_new:Npn \biblatex_text_sentencecase:nn #1 #2
   {
     \__biblatex_text_makeconverter:nnn {titlecase} {#1} {#2}
   }
@@ -250,7 +246,7 @@
 % If \DeclareCaseLangs says we should apply sentence casing,
 % we go for it and pass the language along to the sentence casing macro.
 % Preprocess is either the BibTeX-to-expl3 brace translator
-% or \@firstofone (do nothing)
+% or \@firstofone (do nothing),
 % we need to expand once to get rid of the latter.
 \NewDocumentCommand \MakeSentenceCase {sm}
   {
