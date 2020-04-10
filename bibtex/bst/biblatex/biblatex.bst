@@ -259,14 +259,10 @@ FUNCTION {ctrl:set} {
 
 FUNCTION {ctrl:skiplos} {
   ctrl:control skiplos or
-  ctrl:set not
-  and
 }
 
 FUNCTION {ctrl:skiplab} {
   ctrl:control skiplab or
-  ctrl:set not
-  and
 }
 
 FUNCTION {ctrl:labelalpha} {
@@ -278,6 +274,8 @@ FUNCTION {ctrl:labelalpha} {
 FUNCTION {ctrl:labeldate} {
   ctrl.labeldate
   ctrl:skiplab not
+  and
+  ctrl:set not
   and
 }
 
