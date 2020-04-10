@@ -1206,21 +1206,23 @@
   \detokenize{" xmlns:bcf="https://sourceforge.net/projects/biblatex">}}
 
 % {<true>}{<false>}
-\newrobustcmd*{\lbx@ifutfinput}{\ifboolexpr{%
-  test {\ifdefstring\inputencodingname{utf8}}
-  or
-  test {\ifdefstring\inputencodingname{utf8x}}
-  or
-  test {\ifdefstring\inputencodingname{lutf8}}
-  or
-  ( test {\ifundef\inputencodingname}
-    and
-    ( not test {\ifundef\XeTeXrevision}
-      or
-      not test {\ifundef\luatexversion}
+\newrobustcmd*{\lbx@ifutfinput}{%
+  \ifboolexpr{%
+    test {\ifdefstring\inputencodingname{utf8}}
+    or
+    test {\ifdefstring\inputencodingname{utf8x}}
+    or
+    test {\ifdefstring\inputencodingname{lutf8}}
+    or
+    ( test {\ifundef\inputencodingname}
+      and
+      ( not test {\ifundef\XeTeXrevision}
+        or
+        not test {\ifundef\luatexversion}
+      )
     )
-  )
-}}
+  }%
+}
 
 %% More user feedback
 \protected\def\blx@warning@entry#1{%
@@ -2723,17 +2725,25 @@
           \expandafter\@secondoftwo
         \fi}}}
 
+
 % {<true>}{<false>}
+%\def\blx@imc@iffirstcitekey{%
+%  \ifboolexpr{ ( test {\ifnumequal\c@multicitetotal\z@}
+%                 and test {\ifnumequal\c@citecount\@ne} )
+%    or ( test {\ifnumgreater\c@multicitetotal\z@}
+%         and test {\ifnumequal\c@multicitecount\@ne}
+%         and test {\ifnumequal\c@citecount\@ne} ) }}
 \def\blx@imc@iffirstcitekey{%
-  \ifboolexpr{ ( test {\ifnumequal\c@multicitetotal\z@}
-                 and test {\ifnumequal\c@citecount\@ne} )
-    or ( test {\ifnumgreater\c@multicitetotal\z@}
-         and test {\ifnumequal\c@multicitecount\@ne}
-         and test {\ifnumequal\c@citecount\@ne} ) }}
+  \ifnumequal\c@citecount\@ne
+    {\ifnumequal\c@multicitetotal\z@
+       {\@firstoftwo}
+       {\ifnumequal\c@multicitecount\@ne}}
+    {\@secondoftwo}}
 
 \def\blx@imc@iflastcitekey{%
-  \ifboolexpr{ test {\ifnumequal\c@citecount\c@citetotal}
-               and test {\ifnumequal\c@multicitecount\c@multicitetotal} }}
+  \ifnumequal\c@citecount\c@citetotal
+    {\ifnumequal\c@multicitecount\c@multicitetotal}
+    {\@secondoftwo}}
 
 % {<category>}{<true>}{<false>}
 \protected\def\blx@imc@ifcategory{%
@@ -5840,17 +5850,20 @@
     {\blx@imc@clearfield{#1#2second}}}
 
 \newcommand*{\blx@if@printtime}[2]{%
-  \ifboolexpr{%
-    togl {blx@#1dateusetime}
-    and
-    not test {\iffieldundef{#1#2hour}}}}
+  \iftoggle{blx@#1dateusetime}
+    {\iffieldundef{#1#2hour}
+       {\@secondoftwo}
+       {\@firstoftwo}}
+    {\@secondoftwo}}
 
 \newcommand*{\blx@if@printanytimes}[1]{%
-  \ifboolexpr{
-       togl {blx@#1dateusetime}
-    and
-    (   not test {\iffieldundef{#1hour}}
-     or not test {\iffieldundef{#1endhour}})}}
+  \iftoggle{blx@#1dateusetime}
+    {\iffieldundef{#1hour}
+       {\iffieldundef{#1endhour}
+          {\@secondoftwo}
+          {\@firstoftwo}}
+       {\@firstoftwo}}
+    {\@secondoftwo}}
 
 % {<datetype>}{'' | end}
 \newrobustcmd*{\blx@printtime}[2]{%
@@ -10216,13 +10229,19 @@
 %% Test for correct KOMA patch method
 % KOMA 3.27 has \AddtoDoHook
 \newcommand*{\blx@ifkoma@AddtoDoHook}{%
-  \ifboolexpr{not test {\ifcsundef{KOMAClassName}}
-              and not test {\ifcsundef{AddtoDoHook}}}}
+  \ifcsundef{KOMAClassName}
+    {\@secondoftwo}
+    {\ifcsundef{AddtoDoHook}
+       {\@secondoftwo}
+       {\@firstoftwo}}}
 
 % KOMA 3.26 has \startsection@secnumdepth for some testing
 \newcommand*{\blx@ifkoma@startsection}{%
-  \ifboolexpr{not test {\ifcsundef{KOMAClassName}}
-              and not test {\ifcsundef{startsection@secnumdepth}}}}
+  \ifcsundef{KOMAClassName}
+    {\@secondoftwo}
+    {\ifcsundef{startsection@secnumdepth}
+       {\@secondoftwo}
+       {\@firstoftwo}}}
 
 \newcommand*{\blx@ifmemoir}{\@ifclassloaded{memoir}}
 
