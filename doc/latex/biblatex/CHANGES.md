@@ -51,7 +51,14 @@
   has been reworked to make it easier to customise the printed output.
   Documents that relied on patching internal bibmacros or heavily
   redefined them may have to adapt.
-- `biblatex` now tests if a requested Biber (re)run happened by
+- **CRITICAL CHANGE**
+  Implemented better `@set` support for BibTeX, `@set`s should now
+  sort properly.
+  This is achieved with a two-pass structure and (hidden) copies of
+  the set entries.
+  The two-pass structure means that the compilation sequence becomes
+  LaTeX, BibTeX, LaTeX, BibTeX, LaTeX, LaTeX.
+- `biblatex` now tests if a requested backend (re)run happened by
   comparing the MD5 hashes of the new and old `.bbl` files.
 - Added file hooks `\blx@filehook@preload@<filename>`,
   `\blx@filehook@postload@<filename>`
