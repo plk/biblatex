@@ -236,6 +236,9 @@ then
       echo -n "File (bibtex): $f ... "
       exec 4>&1 7>&2 # save stdout/stderr
       exec 1>/dev/null 2>&1 # redirect them from here
+      # Twice due to two-pass @set handling in bibtex
+      pdflatex --interaction=batchmode ${f%.tex}
+      bibtex ${f%.tex}
       pdflatex --interaction=batchmode ${f%.tex}
       bibtex ${f%.tex}
       # Any refsections? If so, need extra bibtex runs
