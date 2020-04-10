@@ -4352,6 +4352,7 @@
 \def\ifentrycategory{\blx@imc@ifentrycategory}
 \def\ifentrykeyword{\blx@imc@ifentrykeyword}
 
+
 \def\blx@imc@iflabeldateisdate{%
   \ifboolexpr{%
     togl {blx@labeldateparts}
@@ -4381,8 +4382,12 @@
                   and test {\ifdatehastime{#2}})}}
 
 \def\blx@imc@ifdateyearsequal#1#2{%
-  \ifboolexpr{ test {\iffieldsequal{#1year}{#2year}}
-               and test {\iffieldsequal{#1dateera}{#2dateera}}}}
+  \iffieldsequal{#1year}{#2year}
+    {\iffieldundef{#1dateera}
+       {\iffieldundef{#2dateera}}
+       {\iffieldsequal{#1dateera}{#2dateera}}}
+    {\@secondoftwo}}
+
 
 \def\blx@imc@ifmsentryfield#1{%
   \ifcsdef{blx@datamodel@multiscript@entryfield@#1}}
@@ -8814,6 +8819,7 @@
 
 % {<entrykey>}
 \protected\def\blx@bbl@xref#1{}% No-op to avoid an error with BibTeX .bbl
+\protected\def\blx@bbl@fakeset#1{}% No-op to avoid an error with BibTeX .bbl
 
 % {<keyword>,...}
 \protected\def\blx@bbl@keyw#1{%
@@ -9406,6 +9412,7 @@
   \let\enddatalist\blx@bbl@enddlist
   \let\set\blx@bbl@set
   \let\inset\blx@bbl@inset
+  \let\fakeset\blx@bbl@fakeset % A No-op for Biber
   \let\xref\blx@bbl@xref % A No-op for Biber
   \let\keyw\blx@bbl@keyw
   \let\name\blx@bbl@msnamedef

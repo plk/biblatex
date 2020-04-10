@@ -362,8 +362,20 @@
        {}}
     {}}
 
+% the \expandafter party essentially does
+% \blx@citation@entry{\blx@fakeset@prefix#1}{\blx@msg@cundef}
+% (just correctly \detokenize'd and all)
+% it cites the fake set if we are not a fake set already
 \def\blx@citation@set#1#2{%
   \blx@citation@entry{#1}{#2}%
+  \ifcsundef{blx@isfakeset@\the\c@refsection @#1}
+    {\begingroup
+     \expandafter\def\expandafter\blx@tempa\expandafter{%
+       \expandafter\detokenize\expandafter{\blx@fakeset@prefix#1}}%
+     \expandafter\expandafter\expandafter\blx@citation@entry
+     \expandafter\expandafter\expandafter{\blx@tempa}{\blx@msg@cundef}%
+     \endgroup}
+    {}%
   \begingroup
   \def\do##1{\blx@citation@entry{##1}\blx@msg@cundef}%
   \expandafter\expandafter\expandafter\docsvlist
@@ -414,6 +426,94 @@
 \protected\def\blx@setreq#1#2{%
   \blx@auxwrite\blx@bcfout{}{\blx@btx@citeset{#1}{#2}}%
   \blx@nocite@do{#1}}
+
+% We'll generate 'fake sets' for sorting.
+% A fake set will be the copy of a normal set but with a crossref
+% to the first set member, that way it inherits sorting info.
+
+\def\blx@grabfirstcsvitem#1,#2\blx@grabfirstcsvitem@end{#1}
+
+\def\blx@btx@fakesetentry#1#2#3#4{%
+  \blx@nl
+  @set{#1,\blx@nl
+  \space\space fakeset  = {#2},\blx@nl
+  \space\space entryset = {#3},\blx@nl
+  \space\space crossref = {#4},\blx@nl
+  }%
+}
+
+\def\blx@fakeset@prefix{blx@fakeset-}
+
+\protected\def\blx@writefakeset@oo#1#2{%
+  \begingroup
+  \edef\blx@tempa{\endgroup
+    \noexpand\blx@writefakeset
+      {\expandonce{#1}}
+      {\expandonce{#2}}}%
+  \blx@tempa
+}
+
+\protected\def\blx@writefakeset#1#2{%
+  \blx@auxwrite\blx@bcfout{}{%
+    \blx@btx@fakesetentry
+      {\blx@fakeset@prefix#1}
+      {#1}
+      {#2}
+      {\blx@grabfirstcsvitem#2,\blx@grabfirstcsvitem@end}}}
+
+\protected\def\blx@bbl@fakeset#1{%
+  \csxdef{blx@isfakeset@\the\c@refsection @\abx@field@@@entrykey}{%
+    \detokenize{#1}}%
+  \global\cslet{blx@getfakeset@\the\c@refsection @#1}\abx@field@@@entrykey
+}
+
+\def\blx@getdata@cite#1{%
+  \blx@getdata{#1}%
+  \ifcsundef{blx@getfakeset@\the\c@refsection @#1}
+    {}
+    {\blx@getdata{\csuse{blx@getfakeset@\the\c@refsection @#1}}}%
+  % Inject the relevant set parent fields like labelnumber/labelprefix into child
+  \ifcsdef{blx@setc@\the\c@refsection @#1}
+    {\blx@ifdata{#1}
+       {\def\abx@field@@@childentrykey{#1}%LEGACY(<3.8)
+        \let\abx@field@@@childentrytype\abx@field@@@entrytype %LEGACY(<3.8)
+        \begingroup
+        \expandafter\expandafter\expandafter\blx@getdata
+          \expandafter\expandafter\expandafter{%
+            \csname blx@setc@\the\c@refsection @#1\endcsname}%
+        \let\blx@tempa\@empty
+        % Inject labelnumber if it exists
+        \ifdef\abx@field@@@labelnumber
+          {\appto\blx@tempa{%
+             \def\noexpand\abx@field@@@labelnumber{%
+               \expandonce\abx@field@@@labelnumber}}}
+          {}%
+        % Inject labelprefix if it exists
+        \ifdef\abx@field@@@labelprefix
+          {\appto\blx@tempa{%
+             \def\noexpand\abx@field@@@labelprefix{%
+               \expandonce\abx@field@@@labelprefix}}}
+          {}%
+        % Inject labelalpha if it exists
+        \ifdef\abx@field@@@labelalpha
+          {\appto\blx@tempa{%
+             \def\noexpand\abx@field@@@labelalpha{%
+               \expandonce\abx@field@@@labelalpha}}}
+          {}%
+        % Inject extraalpha if it exists
+        \ifdef\abx@field@@@extraalpha
+          {\appto\blx@tempa{%
+              \def\noexpand\abx@field@@@extraalpha{%
+                \expandonce\abx@field@@@extraalpha}}}
+          {}%
+        % Perform the injection
+        \edef\blx@tempb{\endgroup\blx@tempa}%
+        \blx@tempb}
+       {}}
+    {}%
+  \ifcsdef{blx@seti@\the\c@refsection @#1}
+    {\letcs\abx@field@@@entrysetcount{blx@seti@\the\c@refsection @#1}}
+    {}}
 
 % refcontexts are out, but we can try to save labelprefix
 
@@ -502,7 +602,9 @@
 % we can't rely on \inset in the .bbl (which should be in the child
 % entry), so we produce setc manually from the @set parent
 \apptocmd{\blx@bbl@set@i}
-  {\csxdef{blx@setc@\the\c@refsection @#1}{\abx@field@@@entrykey}}
+  {\ifcsundef{blx@isfakeset@\the\c@refsection @\abx@field@@@entrykey}
+     {\csxdef{blx@setc@\the\c@refsection @#1}{\abx@field@@@entrykey}}
+     {}}
   {}
   {\blx@error
      {Failed to patch '\string\blx@bbl@set@i'}
@@ -511,10 +613,20 @@
       Please report this bug}}
 
 % blx@setonly doesn't exist here, since it is defined in \inset,
-% rely on the existence of setc instead
+% rely on the existence of setc instead.
+% We also make sure to skip the actual @set entries and display
+% the fake ones.
 \patchcmd{\blx@bbl@endentry}
   {\nottoggle{blx@setonly}}
-  {\ifcsundef{blx@setc@\the\c@refsection @\abx@field@@@entrykey}}
+  {\ifentrytype{set}
+    {\ifcsundef{blx@isfakeset@\the\c@refsection @\abx@field@@@entrykey}
+       {\blx@writefakeset@oo{\abx@field@@@entrykey}{\abx@field@entryset}%
+        \settoggle{blx@skipbib}{true}%
+        \settoggle{blx@skipbiblist}{true}%
+        \settoggle{blx@skiplab}{true}}
+       {}}
+    {}%
+   \ifcsundef{blx@setc@\the\c@refsection @\abx@field@@@entrykey}}
   {}
   {\blx@error
      {Failed to patch '\string\blx@bbl@endentry'}

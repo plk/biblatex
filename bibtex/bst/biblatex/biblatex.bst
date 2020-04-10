@@ -16,6 +16,7 @@
 
 ENTRY {
     % special fields
+    fakeset
     entryset
     entrysubtype
     execute
@@ -257,12 +258,11 @@ FUNCTION {ctrl:set} {
   type$ "set" =
 }
 
-FUNCTION {ctrl:skiplos} {
-  ctrl:control skiplos or
-}
 
 FUNCTION {ctrl:skiplab} {
   ctrl:control skiplab or
+  ctrl:set %  fakeset empty$ and
+  or
 }
 
 FUNCTION {ctrl:labelalpha} {
@@ -274,8 +274,6 @@ FUNCTION {ctrl:labelalpha} {
 FUNCTION {ctrl:labeldate} {
   ctrl.labeldate
   ctrl:skiplab not
-  and
-  ctrl:set not
   and
 }
 
@@ -1430,6 +1428,14 @@ FUNCTION {output:specials} {
         { "\inset" }
       if$
       entryset wrap:braces * output:indent:field
+    }
+  if$
+  fakeset empty$
+    'skip$
+    { ctrl:set
+        { "\fakeset" fakeset wrap:braces * output:indent:field  }
+        { "fakeset can only be used for @set entries" warning * }
+      if$
     }
   if$
   xref empty$
