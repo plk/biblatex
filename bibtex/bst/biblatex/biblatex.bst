@@ -1421,6 +1421,14 @@ FUNCTION {output:write:list} {
 }
 
 FUNCTION {output:specials} {
+  fakeset empty$
+    'skip$
+    { ctrl:set
+        { "\fakeset" fakeset wrap:braces * output:indent:field  }
+        { "fakeset can only be used for @set entries" warning * }
+      if$
+    }
+  if$
   entryset empty$
     'skip$
     { ctrl:set
@@ -1428,14 +1436,6 @@ FUNCTION {output:specials} {
         { "\inset" }
       if$
       entryset wrap:braces * output:indent:field
-    }
-  if$
-  fakeset empty$
-    'skip$
-    { ctrl:set
-        { "\fakeset" fakeset wrap:braces * output:indent:field  }
-        { "fakeset can only be used for @set entries" warning * }
-      if$
     }
   if$
   xref empty$
