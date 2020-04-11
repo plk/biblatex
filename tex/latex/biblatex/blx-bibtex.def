@@ -365,7 +365,8 @@
 % but the bibliography may not be in a nice order to grab setc
 % properly, so we need to save setc data in the .aux file
 \appto\blx@secinit{%
-  \cslet{blx@setclist@\the\c@refsection}\@empty}
+  \cslet{blx@setclist@\the\c@refsection}\@empty
+  \cslet{blx@fakesetplist@\the\c@refsection}\@empty}
 
 \apptocmd{\blx@bbl@set@i}
   {\ifcsundef{blx@isfakeset@\the\c@refsection @\abx@field@entrykey}
@@ -407,7 +408,8 @@
         \settoggle{blx@skipbib}{true}%
         \settoggle{blx@skipbiblist}{true}%
         \settoggle{blx@skiplab}{true}}
-       {}}
+       {\listcsxadd{blx@fakesetplist@\the\c@refsection}{%
+          \abx@field@entrykey}}}
     {}%
    \ifcsundef{blx@setc@\the\c@refsection @\abx@field@entrykey}}
   {}
@@ -449,10 +451,16 @@
     {\blx@citation@set{#1}}
     {\blx@citation@entry{#1}}}
 
+\def\blx@appentrydatato#1#2{%
+  \ifdef#2
+    {\appto#1{%
+       \def\noexpand#2{\expandonce#2}}}
+    {}}
 
 % if we have a fakeset, load the real @set to get the right entrykey
 % if we have a real @set, load the fakeset for all entry data
 % but make sure that the entrykey fits
+% in any case copy over some label data from its first child
 \def\blx@getdata#1{%
   \csuse{blx@data@\the\c@refsection @\blx@refcontext@context @#1}%
   \ifcsundef{blx@isfakeset@\the\c@refsection @#1}
@@ -465,10 +473,76 @@
      \csuse{blx@data@\the\c@refsection @\blx@refcontext@context
             @\csuse{blx@getfakeset@\the\c@refsection @#1}}%
      \let\abx@field@entrykey\blx@real@abx@field@entrykey}%
+  \ifcsundef{blx@setp@\the\c@refsection @\abx@field@entrykey}
+    {}
+    {\begingroup
+     \expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\def
+     \expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\blx@tempa
+     \expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter{%
+       \expandafter\expandafter\expandafter\blx@grabfirstcsvitem
+         \csname blx@setp@\the\c@refsection
+           @\abx@field@entrykey\endcsname,\blx@grabfirstcsvitem@end}%
+     \let\blx@tempb\@empty
+     \blx@ifdata{\blx@tempa}
+       {\blx@getdata{\blx@tempa}%
+        \blx@appentrydatato\blx@tempb\abx@field@labelyear
+        \blx@appentrydatato\blx@tempb\abx@field@labelendyear
+        \blx@appentrydatato\blx@tempb\abx@field@labelmonth
+        \blx@appentrydatato\blx@tempb\abx@field@labelendmonth
+        \blx@appentrydatato\blx@tempb\abx@field@labelday
+        \blx@appentrydatato\blx@tempb\abx@field@labelendday
+        \blx@appentrydatato\blx@tempb\abx@field@labelprefix
+        \blx@appentrydatato\blx@tempb\abx@field@labelalpha
+        \blx@appentrydatato\blx@tempb\abx@field@extraalpha
+        \blx@appentrydatato\blx@tempb\abx@field@extradate}
+       {}%
+     \edef\blx@tempb{\endgroup\blx@tempb}%
+     \blx@tempb}%
   \blx@adjustyears
   \blx@getlabeldata
   \blx@aliasfields
   \blx@setcitecounter}
+
+
+\def\blx@bblend@redosetlabelwidth@i#1{%
+  \begingroup
+  \blx@ifdata{#1}
+    {\blx@getdata{#1}%
+     \nottoggle{blx@skiplab}
+       {\iftoggle{blx@labelnumber}
+          {\ifdefempty\abx@field@localnumber
+             {}
+             {\ifundef\abx@field@shorthand
+                {\blx@bbl@labelnumberwidth@numeric{}}
+                {\blx@bbl@labelnumberwidth@shorthand{}}}}
+          {}%
+        \iftoggle{blx@labelalpha}
+          {\blx@bbl@labelalpha}
+          {}%
+        \iftoggle{blx@labeltitle}
+          {\blx@bbl@labeltitle}
+          {}%
+        \iftoggle{blx@labeltitleyear}
+          {\blx@bbl@labeltitleyear}
+          {}%
+        \iftoggle{blx@labeldateparts}
+          {\blx@bbl@labeldate}
+          {}%
+        \blx@bbl@labelname}
+       {}}
+    {}
+  \endgroup
+}
+
+\def\blx@bblend@redosetlabelwidth{%
+  \forlistcsloop{\blx@bblend@redosetlabelwidth@i}
+    {blx@fakesetplist@\the\c@refsection}
+}
+
+\appto\blx@bblend{\blx@bblend@redosetlabelwidth}
 
 % categories need the correct entry key for fake sets
 \def\blx@addtocategory#1#2{%
