@@ -112,6 +112,21 @@
   unsupported patches).
   This should work with `babel` at least v3.9r (2016/04/23)
   and polyglossia `polyglossia` v1.49 (2020/04/08) or later.
+- **INCOMPATIBLE CHANGE** Removed list and name index wrappers
+  (`\DeclareIndexNameWrapperFormat`, `\DeclareIndexListWrapperFormat`
+  and friends). Those wrappers make no sense, since the indexed
+  names are not printed 'together' in any useful sense of the word
+  and were never working anyway.
+- **CRITICAL CHANGE** Generalised some keyval macros.
+  `biblatex`-related uses of `\define@key` should ideally replaced with
+  `\blx@kv@defkey`.
+  Style authors are advised not to rely too much on the internal
+  implementation of certain keyval interfaces.
+  Users who want to experiment with using a different underlying
+  keyval parser need only provide replacements of the `\blx@kv@...`
+  macros (which are defined via `\provide...` so that they will
+  not overwrite existing definitions; in particular users can define
+  those replacements before loading `biblatex`).
 
 # RELEASE NOTES FOR VERSION 3.14
 - biber from version 2.14 has extended, granular XDATA functionality to

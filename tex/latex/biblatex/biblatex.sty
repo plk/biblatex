@@ -59,6 +59,39 @@
    \endinput}
 
 
+% generalised keyval interface
+% define a new key (possibly with a default value)
+% {<family>}{<key>}[<default>]{<code>}
+\providerobustcmd*{\blx@kv@defkey}{\define@key}
+
+% globally define new key (should only be the last resort)
+% {<family>}{<key>}[<default>]{<code>}
+\providerobustcmd*{\blx@kv@gdefkey}[2]{%
+  \@ifnextchar[%
+    {\blx@kv@gdefkey@default{#1}{#2}}
+    {\blx@kv@gdefkey@nodefault{#1}{#2}}}
+
+\ifundef\blx@kv@gdefkey@nodefault
+  {\protected\def\blx@kv@gdefkey@nodefault#1#2{\csgdef{KV@#1@#2}##1}}
+  {}
+\ifundef\blx@kv@gdefkey@default
+  {\protected\def\blx@kv@gdefkey@default#1#2[#3]{%
+     \csgdef{KV@#1@#2@default}{\csuse{KV@#1@#2}{#3}}%
+     \csgdef{KV@#1@#2}##1}}
+  {}
+
+% test if key is undefined
+% {<family>}{<key>}{<true>}{<false>}
+\providerobustcmd*{\blx@kv@ifkeyundef}[2]{%
+  \ifcsundef{KV@#1@#2}}
+
+% undefine key
+% {<family>}{<key>}
+\providerobustcmd*{\blx@kv@undef}[2]{\csundef{KV@#1@#2}}
+
+% {<family>}{<key-vals>}
+\providerobustcmd*{\blx@kv@setkeys}{\setkeys}
+
 %% Category codes
 
 \def\blx@docatcodes{%
@@ -622,7 +655,7 @@
      in recent versions of pdfTeX, LuaTeX and XeTeX}%
    \let\blx@generate@bbl@mdfivesum@found\relax
    \let\blx@generate@bbl@mdfivesum@notfound\relax
-   \let\aux@read@bbl@mdfivesum\@gobble
+   \let\blx@aux@read@bbl@mdfivesum\@gobble
    \let\blx@aux@write@bbl@mdfivesum\relax
    \let\blx@check@bbl@rerun@mdfivesum\relax}
   {\let\blx@filemdfivesum\pdf@filemdfivesum
@@ -633,7 +666,7 @@
    \def\blx@generate@bbl@mdfivesum@notfound{%
      \gdef\blx@bbl@mdfivesum@new{nobblfile}}
 
-   \def\aux@read@bbl@mdfivesum{%
+   \def\blx@aux@read@bbl@mdfivesum{%
      \gdef\blx@bbl@mdfivesum@old}
 
    % If we need Biber to rerun, save the hash of the current .bbl.
@@ -642,8 +675,8 @@
    \def\blx@aux@write@bbl@mdfivesum{%
      \iftoggle{blx@runbiber}
        {\blx@auxwrite\@mainaux{}{%
-          \string\aux@read@bbl@mdfivesum{\blx@bbl@mdfivesum@new}}}
-        {}}
+          \string\blx@aux@read@bbl@mdfivesum{\blx@bbl@mdfivesum@new}}}
+       {}}
 
    % There was a Biber rerun request last time (\blx@bbl@mdfivesum@old),
    % yet the bbl files are the same (as far as md5 hashes are concerned),
@@ -787,6 +820,7 @@
 \newcount\blx@parenlevel@foot
 \expandafter\newcount\csname blx@sectionciteorder@0\endcsname
 \newcount\blx@entrysetcounter
+\newcount\blx@biblioinstance
 
 \def\blx@uniquename{false}
 \def\blx@uniquelist{false}
@@ -1478,7 +1512,7 @@
 
 \protected\def\blx@warn@nostring#1{%
   \blx@warning@entry{Bibliography string '#1'
-                     \ifcsundef{KV@blx@lbx@#1}{undefined}{untranslated}}%
+                     \blx@kv@ifkeyundef{blx@lbx}{#1}{undefined}{untranslated}}%
   \abx@missing{#1}}
 
 \def\blx@warn@conflopt#1{%
@@ -2910,11 +2944,11 @@
 % These explicit nameparts are alright as they are for bibtex only
 % biber names will always have a hash generated from all nameparts in datamodel
 \def\blx@ifnamesequal@iii#1#2{%
-  \setkeys{blx@opt@name}{#1}%
-  \setkeys{blx@opt@namepart}{#2}%
+  \blx@kv@setkeys{blx@opt@name}{#1}%
+  \blx@kv@setkeys{blx@opt@namepart}{#2}%
   \ifdef\abx@field@@@hash
-    {\eappto\blx@tempc{{\abx@field@@@hash}}}
-    {\eappto\blx@tempc{{{\namepartfamily}{\namepartgiven}{\namepartprefix}{\namepartsuffix}}}}}
+    {\eappto\blx@tempa{{\abx@field@@@hash}}}
+    {\eappto\blx@tempa{{{\namepartfamily}{\namepartgiven}{\namepartprefix}{\namepartsuffix}}}}}
 
 % [<msform>][<mslang>]{<field>}{<macro>}{<true>}{<false>}
 \DeclareExpandableDocumentCommand{\blx@imc@iffieldequals}
@@ -4798,19 +4832,11 @@
   \@ifstar
     {\blx@defformat\blx@defnameformat{nwd}*}
     {\blx@defformat\blx@defnameformat{nwd}{}}}
-\newrobustcmd*{\DeclareIndexNameWrapperFormat}{%
-  \@ifstar
-    {\blx@defformat\blx@defnameformat{nxd}*}
-    {\blx@defformat\blx@defnameformat{nxd}{}}}
 
 \newrobustcmd*{\DeclareListWrapperFormat}{%
   \@ifstar
     {\blx@defformat\blx@defplainformat{lwd}*}
     {\blx@defformat\blx@defplainformat{lwd}{}}}
-\newrobustcmd*{\DeclareIndexListWrapperFormat}{%
-  \@ifstar
-    {\blx@defformat\blx@defplainformat{lxd}*}
-    {\blx@defformat\blx@defplainformat{lxd}{}}}
 
 % {<macro>}{<class>}{<*>}
 \def\blx@defformat#1#2#3{%
@@ -4922,10 +4948,8 @@
 \newrobustcmd*{\DeclareIndexFieldAlias}{\blx@defalias{fid}}
 
 \newrobustcmd*{\DeclareNameWrapperAlias}{\blx@defalias{nwd}}
-\newrobustcmd*{\DeclareIndexNameWrapperAlias}{\blx@defalias{nxd}}
 
 \newrobustcmd*{\DeclareListWrapperAlias}{\blx@defalias{lwd}}
-\newrobustcmd*{\DeclareIndexListWrapperAlias}{\blx@defalias{lxd}}
 
 % #1: internal type signature, #2: type text for warning
 %      #3         #4         #5          #6
@@ -4969,13 +4993,9 @@
 
 \newrobustcmd*{\DeprecateNameWrapperFormatWithReplacement}{%
   \blx@deprecateformat{nwd}{Name wrapper format}}
-\newrobustcmd*{\DeprecateIndexNameWrapperFormatWithReplacement}{%
-  \blx@deprecateformat{nxd}{Index name wrapper format}}
 
 \newrobustcmd*{\DeprecateListWrapperFormatWithReplacement}{%
   \blx@deprecateformat{lwd}{List wrapper format}}
-\newrobustcmd*{\DeprecateIndexListWrapperFormatWithReplacement}{%
-  \blx@deprecateformat{lxd}{Index list wrapper format}}
 
 % [<format>]{<text>}
 \newrobustcmd{\blx@imc@printtext}[2][]{%
@@ -5255,18 +5275,17 @@
   \c@uniquelist\z@
   \ifblank{#1}
     {}
-    {\setkeys{blx@opt@namelist}{#1}}%
+    {\blx@kv@setkeys{blx@opt@namelist}{#1}}%
   \def\blx@thedata{#2}}
 
 % Biber-calculated info passed back to biblatex as an option in the .bbl
 % unlike stuff defined with \DeclareBiblatexOption and
 % \blx@DeclareBackendOption these are not 'real' options
-\define@key{blx@opt@namelist}{ul}{\c@uniquelist#1\relax}
-
-\define@key{blx@opt@name}{mslang}{\def\blx@nmslang{#1}}
-\define@key{blx@opt@name}{un}{\c@uniquename#1\relax}
-\define@key{blx@opt@name}{uniquepart}{\def\abx@field@@@uniquepart{#1}}
-\define@key{blx@opt@name}{hash}{\edef\abx@field@@@hash{\detokenize{#1}}}
+\blx@kv@defkey{blx@opt@namelist}{ul}{\c@uniquelist#1\relax}
+\blx@kv@defkey{blx@opt@name}{mslang}{\def\blx@nmslang{#1}}
+\blx@kv@defkey{blx@opt@name}{un}{\c@uniquename#1\relax}
+\blx@kv@defkey{blx@opt@name}{uniquepart}{\def\abx@field@@@uniquepart{#1}}
+\blx@kv@defkey{blx@opt@name}{hash}{\edef\abx@field@@@hash{\detokenize{#1}}}
 
 \newrobustcmd*{\bibinitperiod}{\adddot}
 \newrobustcmd*{\bibinitdelim}{\addnbspace}
@@ -5293,17 +5312,14 @@
      \ifblank{#5}{}{\edef\blx@cmslang{#5}}%
      \blx@imc@ifnameundef[\blx@cmsform][\blx@cmslang]{#6}}%
     {}
-    {\blx@getformat\blx@thewrapperformat{nxd}{#1}{#6}%
-     \ifdefvoid\blx@thewrapperformat
+    {\blx@getformat\blx@theformat{nid}{#1}{#6}%
+     \ifdefvoid\blx@theformat
        {}
-       {\blx@getformat\blx@theformat{nid}{#1}{#6}%
-        \ifdefvoid\blx@theformat
-          {}
-          {\begingroup
-           \blx@namesetup{#2}{#3}{\blx@cmsform}{\blx@cmslang}{#6}%
-           \blx@indexnamesetup
-           \expandafter\blx@indexnameparser\blx@thedata{}&%
-           \endgroup}}}}
+       {\begingroup
+        \blx@namesetup{#2}{#3}{\blx@cmsform}{\blx@cmslang}{#6}%
+        \blx@indexnamesetup
+        \expandafter\blx@nameparser\blx@thedata{}&%
+        \endgroup}}}
 
 \def\blx@indexnamesetup{%
   \let\bibinitperiod\bibindexinitperiod
@@ -5334,14 +5350,14 @@
   \begingroup
   \ifblank{#1}
     {}
-    {\setkeys{blx@opt@name}{#1}}%
+    {\blx@kv@setkeys{blx@opt@name}{#1}}%
   % reset all the nameparts to empty between names
   \def\do##1{%
     \cslet{namepart##1}\@empty
     \cslet{namepart##1i}\@empty
     \cslet{namepart##1un}\@empty}%
   \expandafter\docsvlist\expandafter{\blx@datamodel@constant@nameparts}%
-  \setkeys{blx@opt@namepart}{#2}% Extract nameparts information
+  \blx@kv@setkeys{blx@opt@namepart}{#2}% Extract nameparts information
   \blx@theformat{}%
   \endgroup}
 
@@ -5365,18 +5381,18 @@
   \let\blx@nmslang\@empty
   \ifblank{#1}
     {}
-    {\setkeys{blx@opt@name}{#1}}%
+    {\blx@kv@setkeys{blx@opt@name}{#1}}%
   % reset all the nameparts to empty between names
   \def\do##1{%
     \cslet{namepart##1}\@empty
     \cslet{namepart##1i}\@empty
     \cslet{namepart##1un}\@empty}%
   \expandafter\docsvlist\expandafter{\blx@datamodel@constant@nameparts}%
-  \setkeys{blx@opt@namepart}{#2}% Extract nameparts information
+  \blx@kv@setkeys{blx@opt@namepart}{#2}% Extract nameparts information
   % Extract all alternate nameparts for use in format
   \begingroup
   \edef\blx@tempc{\endgroup
-    \noexpand\setkeys{blx@opt@nameparts}{\csuse{abx@nameparts@\currentname @\thelistcount}}}%
+    \noexpand\blx@kv@setkeys{blx@opt@nameparts}{\csuse{abx@nameparts@\currentname @\thelistcount}}}%
   \blx@tempc
   % For per-name lang switching, see name:langswitchon/off in biblatex.def
   % This is because the format wraps everything, including namelist delims like "and"
@@ -5494,16 +5510,13 @@
       \ifblank{#5}{}{\edef\blx@cmslang{#5}}%
       \blx@imc@iflistundef[\blx@cmsform][\blx@cmslang]{#6}}%
     {}
-    {\blx@getformat\blx@thewrapperformat{lxd}{#1}{#6}%
-     \ifdefvoid\blx@thewrapperformat
+    {\blx@getformat\blx@theformat{lid}{#1}{#6}%
+     \ifdefvoid\blx@theformat
        {}
-       {\blx@getformat\blx@theformat{lid}{#1}{#6}%
-        \ifdefvoid\blx@theformat
-          {}
-          {\begingroup
-           \blx@listsetup{#2}{#3}{\blx@cmsform}{\blx@cmslang}{#6}%
-           \expandafter\blx@indexlistparser\blx@thedata{}&%
-           \endgroup}}}}
+       {\begingroup
+        \blx@listsetup{#2}{#3}{\blx@cmsform}{\blx@cmslang}{#6}%
+        \expandafter\blx@listparser\blx@thedata{}&%
+        \endgroup}}}
 
 % {<item1>}{<item2>}{...}
 \long\def\blx@indexlistparser#1{%
@@ -5535,7 +5548,7 @@
           % in plain list values like \emph{} etc.
           \expandafter\expandafter\expandafter\def\expandafter\expandafter\expandafter\blx@tempb\expandafter\expandafter\expandafter{\expandafter\expandonce\csname abx@listitems@\currentlist @\thelistcount\endcsname}%
           \edef\blx@tempd{\endgroup
-            \noexpand\setkeys{blx@opt@listitems}{\blx@tempb}}%
+            \noexpand\blx@kv@setkeys{blx@opt@listitems}{\blx@tempb}}%
           \blx@tempd}
          {}%
          % per-list item lang switching is done in list:langswitchon/off in biblatex.def
@@ -6222,19 +6235,19 @@
   \forcsvlist\blx@newstring{#1}}
 
 \def\blx@newstring#1{%
-  \ifcsundef{KV@blx@lbx@#1}
+  \blx@kv@ifkeyundef{blx@lbx}{#1}
     {\gappto\abx@dostrings{\do{#1}}%
-     \csgdef{KV@blx@lbx@#1}##1{\blx@defstring{#1}{##1}}}
+     \blx@kv@gdefkey{blx@lbx}{#1}{\blx@defstring{#1}{##1}}}
     {}}
 
 % in *.cbx/bbx/tex: <key> = {<string>},
 % in *.lbx:         <key> = {{<longstring>}{<abbrevstring>}},
-\def\do#1{\define@key{blx@lbx}{#1}{\blx@defstring{#1}{##1}}}
+\def\do#1{\blx@kv@defkey{blx@lbx}{#1}{\blx@defstring{#1}{##1}}}
 \abx@dostrings
 
 % in *.cbx/bbx/tex: (implicit)
 % in *.lbx:         inherit = {<language>},
-\define@key{blx@lbx}{inherit}{%
+\blx@kv@defkey{blx@lbx}{inherit}{%
   \blx@lbxinput@strings{#1}{}{\blx@err@nolang{#1}}%
   \csuse{abx@strings@#1}}
 
@@ -6296,7 +6309,7 @@
   \def\do##1{\csundef{abx@lstr@##1}\csundef{abx@sstr@##1}}%
   \abx@dostrings
   \csuse{abx@strings@#1}%
-  \setkeys{blx@lbx}{#2}%
+  \blx@kv@setkeys{blx@lbx}{#2}%
   \let\do\blx@defbibstrings@i
   \csxdef{abx@strings@#1}{\abx@dostrings}%
   \csgappto{abx@strings@#1}{%
@@ -7429,6 +7442,10 @@
 
 % fields which can be used as labels - we auto-create some macros for these
 \def\abx@dolabelfields{\dolistloop\blx@datamodel@labelfields}
+\def\abx@dolabelwidths{%
+  \do{labelnumber}%
+  \do{labelalpha}%
+  \abx@dolabelfields}
 
 \def\abx@donames{\dolistloop\blx@datamodel@names}
 \def\abx@donameparts{\expandafter\docsvlist\expandafter{\blx@datamodel@constant@nameparts}}
@@ -7558,19 +7575,19 @@
     {\csuse{blx@defblxopt@#1opt}{#3}[]}}
 
 \long\def\blx@defblxopt@globalopt#1[#2]#3{%
-  \ifcsundef{KV@blx@opt@ldt@#1}
-    {\ifcsundef{KV@blx@opt@pre@#1}
+  \blx@kv@ifkeyundef{blx@opt@ldt}{#1}
+    {\blx@kv@ifkeyundef{blx@opt@pre}{#1}
        {\ifblank{#2}
-          {\define@key{blx@opt@pre}{#1}{#3}}
-          {\define@key{blx@opt@pre}{#1}[{#2}]{#3}}}
+          {\blx@kv@defkey{blx@opt@pre}{#1}{#3}}
+          {\blx@kv@defkey{blx@opt@pre}{#1}[{#2}]{#3}}}
        {\blx@err@optdef{#1}{pre/global}}}
     {\blx@err@optdef{#1}{ldt/global}}}
 
 \long\def\blx@defblxopt@typeentryopt#1#2[#3]#4{%
-  \ifcsundef{KV@blx@opt@#1@#2}
+  \blx@kv@ifkeyundef{blx@opt@#1}{#2}
     {\ifblank{#3}
-       {\define@key{blx@opt@#1}{#2}{#4}}
-       {\define@key{blx@opt@#1}{#2}[{#3}]{#4}}}
+       {\blx@kv@defkey{blx@opt@#1}{#2}{#4}}
+       {\blx@kv@defkey{blx@opt@#1}{#2}[{#3}]{#4}}}
     {\blx@err@optdef{#2}{#1}}}
 
 \def\blx@defblxopt@typeopt{\blx@defblxopt@typeentryopt{typ}}
@@ -8036,10 +8053,8 @@
 \def\do#1{\expandafter\newlength\expandafter{\csname #1width\endcsname}}
 \abx@dolabelfields
 
-\newlength{\locallabelnumberwidth}
-\newlength{\locallabelalphawidth}
 \def\do#1{\expandafter\newlength\expandafter{\csname local#1width\endcsname}}
-\abx@dolabelfields
+\abx@dolabelwidths
 
 \protected\def\blx@resetdata{%
   \let\blx@saved@do\do
@@ -8850,23 +8865,46 @@
 \def\blx@addkeyword#1#2{%
   \listcsxadd{blx@keyw@\the\c@refsection @\detokenize{#2}}{#1}}
 
+\newcommand*{\blx@ifcatcode@other}[1]{%
+  \ifnumequal{\catcode\number`#1}{12}}
+
 % {<options>}
 \protected\long\def\blx@bbl@options#1{%
-  \begingroup
+  \ifblank{#1}
+    {}
+    {\begingroup
+     \blx@ifcatcode@other{,}
+       {\blx@ifcatcode@other{=}}
+       {\@secondoftwo}
+     {\blx@bbl@options@check{#1}}
+     {\ifundef\blx@bbl@options@warncatcode
+        {\blx@warning@noline{%
+           Irregular catcode regime detected.\MessageBreak
+           Attempting to work around this with \string\scantokens}%
+         \global\let\blx@bbl@options@warncatcode\@empty}
+        {}%
+      \makeatletter
+      \@makeother\=
+      \@makeother\'
+      \endlinechar\m@ne
+      \scantokens\expandafter{\blx@bbl@options@check{#1}}}}}
+
+\long\def\blx@bbl@options@check#1{%
   \let\blx@tempa\@empty
-  \forcsvlist\blx@bbl@options@i{#1}%
+  \forcsvlist\blx@bbl@options@checkopt{#1}%
   \edef\blx@tempa{%
-    \endgroup
+    \endgroup % this group was opened in \blx@bbl@options
     \ifx\blx@tempa\@empty
     \else
       \def\noexpand\abx@field@@@options{\expandonce\blx@tempa}%
     \fi}%
   \blx@tempa}
 
-\long\def\blx@bbl@options@i#1{\blx@bbl@options@ii#1==&}
 
-\long\def\blx@bbl@options@ii#1=#2=#3&{%
-  \ifcsundef{KV@blx@opt@ent@#1}
+\long\def\blx@bbl@options@checkopt#1{\blx@bbl@options@checkopt@i#1==&}
+
+\long\def\blx@bbl@options@checkopt@i#1=#2=#3&{%
+  \blx@kv@ifkeyundef{blx@opt@ent}{#1}
     {\blx@warning@noline{%
        Ignoring undefined option '#1'\MessageBreak
        at entry '\abx@field@@@entrykey'}}
@@ -9063,7 +9101,7 @@
     {}
     {\begingroup
      \edef\blx@tempa{\endgroup
-       \noexpand\setkeys{blx@opt@ent}{\abx@field@@@options}}%
+       \noexpand\blx@kv@setkeys{blx@opt@ent}{\abx@field@@@options}}%
      \blx@tempa
      \blx@checkoptions@entry}}
 
@@ -9071,7 +9109,7 @@
   \ifcsdef{blx@opts@type@#1}
     {\begingroup
      \edef\blx@tempa{\endgroup
-       \noexpand\setkeys{blx@opt@typ}{\csuse{blx@opts@type@#1}}}%
+       \noexpand\blx@kv@setkeys{blx@opt@typ}{\csuse{blx@opts@type@#1}}}%
      \blx@tempa}
     {}}
 
@@ -9230,26 +9268,49 @@
   \blx@getformat\abx@tmp@theformat{ffd}{#2}{#3}%
   \csletcs{#1}{abx@tmp@theformat}}
 
+
+% {<instance (int)>}{<field>}{<length>}
+\def\abx@aux@locallabelwidth#1#2#3{%
+  \csgdef{blx@locallabelwidth@#1@#2}{#3}}
+
+\def\blx@locallabelwidth@write@length#1{%
+  \ifdimequal{\csname local#1width\endcsname}{0pt}
+    {}
+    {\blx@auxwrite\@mainaux{}
+       {\string\abx@aux@locallabelwidth
+         {\the\blx@biblioinstance}%
+         {#1}%
+         {\the\csname local#1width\endcsname}}}}
+
+\def\blx@locallabelwidth@write{%
+  \let\do\blx@locallabelwidth@write@length
+  \abx@dolabelwidths}
+
+\let\blx@locallabelwidth@finish\relax
+
 \def\blx@labelwidth@resetlocal{%
-  \locallabelnumberwidth\z@
-  \locallabelalphawidth\z@
   \def\do##1{%
     \csname local##1width\endcsname\z@}%
-  \abx@dolabelfields}
+  \abx@dolabelwidths}
+
+\def\blx@labelwidth@settolocal@length#1{%
+  \ifcsundef{blx@locallabelwidth@\the\blx@biblioinstance @#1}
+    {}
+    {\csname #1width\endcsname
+     \csname blx@locallabelwidth@\the\blx@biblioinstance @#1\endcsname
+     \space}}
 
 \def\blx@labelwidth@settolocal{%
-  \labelnumberwidth\locallabelnumberwidth
-  \labelalphawidth\locallabelalphawidth
-  \def\do##1{%
-    \csname ##1width\endcsname\csname local##1width\endcsname}%
-  \abx@dolabelfields}
+  \let\do\blx@labelwidth@settolocal@length
+  \abx@dolabelwidths}
 
-\def\blx@locallabelwidth#1{%
+\def\blx@locallabelwidth@setlengths{%
+  \global\advance\blx@biblioinstance\@ne
   \blx@labelwidth@resetlocal
-  \let\blx@do\blx@lengthitem
-  \let\blx@done\relax
-  \blx@listloop{#1}%
   \blx@labelwidth@settolocal}
+
+\let\blx@locallabelwidth@init\relax
+
 
 % {<prefix for labelwidth fields>}
 \def\blx@bbl@labelnumberwidth@numeric#1{%
@@ -10191,76 +10252,76 @@
 % We need a 2-pass structure for options in \printbibliography and
 % \printbiblist because the section has to be set before any
 % other options and this partly determines which list to use for later filtering
-\define@key{blx@bib1}{segment}{}
-\define@key{blx@bib1}{type}{}
-\define@key{blx@bib1}{nottype}{}
-\define@key{blx@bib1}{subtype}{}
-\define@key{blx@bib1}{notsubtype}{}
-\define@key{blx@bib1}{keyword}{}
-\define@key{blx@bib1}{notkeyword}{}
-\define@key{blx@bib1}{category}{}
-\define@key{blx@bib1}{notcategory}{}
-\define@key{blx@bib1}{filter}{}
-\define@key{blx@bib1}{check}{}
-\define@key{blx@bib1}{heading}{}
-\define@key{blx@bib1}{env}{}
-\define@key{blx@bib1}{title}{}
-\define@key{blx@bib1}{prenote}{}
-\define@key{blx@bib1}{postnote}{}
-\define@key{blx@bib1}{omitnumbers}[]{}
+\blx@kv@defkey{blx@bib1}{segment}{}
+\blx@kv@defkey{blx@bib1}{type}{}
+\blx@kv@defkey{blx@bib1}{nottype}{}
+\blx@kv@defkey{blx@bib1}{subtype}{}
+\blx@kv@defkey{blx@bib1}{notsubtype}{}
+\blx@kv@defkey{blx@bib1}{keyword}{}
+\blx@kv@defkey{blx@bib1}{notkeyword}{}
+\blx@kv@defkey{blx@bib1}{category}{}
+\blx@kv@defkey{blx@bib1}{notcategory}{}
+\blx@kv@defkey{blx@bib1}{filter}{}
+\blx@kv@defkey{blx@bib1}{check}{}
+\blx@kv@defkey{blx@bib1}{heading}{}
+\blx@kv@defkey{blx@bib1}{env}{}
+\blx@kv@defkey{blx@bib1}{title}{}
+\blx@kv@defkey{blx@bib1}{prenote}{}
+\blx@kv@defkey{blx@bib1}{postnote}{}
+\blx@kv@defkey{blx@bib1}{omitnumbers}[]{}
 % Here we are using the first pass to see if there is an explicit setting for resetnumbers
 % If there isn't we will use the default behaviour where if there is a labelprefix,
 % resetnumbers will default to "true"
-\define@key{blx@bib1}{resetnumbers}[true]{%
+\blx@kv@defkey{blx@bib1}{resetnumbers}[true]{%
   \toggletrue{blx@resetnumsexplicit}}
 
-\define@key{blx@bib2}{section}{}
-\define@key{blx@bib2}{sorting}{}
+\blx@kv@defkey{blx@bib2}{section}{}
+\blx@kv@defkey{blx@bib2}{sorting}{}
 
-\define@key{blx@biblist1}{segment}{}
-\define@key{blx@biblist1}{type}{}
-\define@key{blx@biblist1}{nottype}{}
-\define@key{blx@biblist1}{subtype}{}
-\define@key{blx@biblist1}{notsubtype}{}
-\define@key{blx@biblist1}{keyword}{}
-\define@key{blx@biblist1}{notkeyword}{}
-\define@key{blx@biblist1}{category}{}
-\define@key{blx@biblist1}{notcategory}{}
-\define@key{blx@biblist1}{filter}{}
-\define@key{blx@biblist1}{check}{}
-\define@key{blx@biblist1}{heading}{}
-\define@key{blx@biblist1}{env}{}
-\define@key{blx@biblist1}{title}{}
-\define@key{blx@biblist1}{prenote}{}
-\define@key{blx@biblist1}{postnote}{}
+\blx@kv@defkey{blx@biblist1}{segment}{}
+\blx@kv@defkey{blx@biblist1}{type}{}
+\blx@kv@defkey{blx@biblist1}{nottype}{}
+\blx@kv@defkey{blx@biblist1}{subtype}{}
+\blx@kv@defkey{blx@biblist1}{notsubtype}{}
+\blx@kv@defkey{blx@biblist1}{keyword}{}
+\blx@kv@defkey{blx@biblist1}{notkeyword}{}
+\blx@kv@defkey{blx@biblist1}{category}{}
+\blx@kv@defkey{blx@biblist1}{notcategory}{}
+\blx@kv@defkey{blx@biblist1}{filter}{}
+\blx@kv@defkey{blx@biblist1}{check}{}
+\blx@kv@defkey{blx@biblist1}{heading}{}
+\blx@kv@defkey{blx@biblist1}{env}{}
+\blx@kv@defkey{blx@biblist1}{title}{}
+\blx@kv@defkey{blx@biblist1}{prenote}{}
+\blx@kv@defkey{blx@biblist1}{postnote}{}
 
-\define@key{blx@biblist2}{section}{}
-\define@key{blx@biblist2}{sorting}{}
+\blx@kv@defkey{blx@biblist2}{section}{}
+\blx@kv@defkey{blx@biblist2}{sorting}{}
 
-\define@key{blx@bib1}{section}{%
+\blx@kv@defkey{blx@bib1}{section}{%
   \ifcsundef{blx@sections@#1}
     {\blx@err@nosec{#1}}
     {\c@refsection#1\relax
      \def\blx@tempe{#1}}}
 
-\define@key{blx@biblist1}{section}{%
+\blx@kv@defkey{blx@biblist1}{section}{%
   \ifcsundef{blx@sections@#1}
     {\blx@err@nosec{#1}}
     {\c@refsection#1\relax
      \def\blx@tempe{#1}}}
 
-\define@key{blx@bbg}{section}{%
+\blx@kv@defkey{blx@bbg}{section}{%
   \ifcsundef{blx@sections@#1}
     {\blx@err@nosec{#1}}
     {\c@refsection#1\relax}}
 
-\define@key{blx@bbc}{section}{%
+\blx@kv@defkey{blx@bbc}{section}{%
   \ifcsundef{blx@sections@#1}
     {\blx@err@nosec{#1}}
     {\c@refsection#1\relax}}
 
-\define@key{blx@bib2}{segment}{\blx@key@segment{#1}}
-\define@key{blx@biblist2}{segment}{\blx@key@segment{#1}}
+\blx@kv@defkey{blx@bib2}{segment}{\blx@key@segment{#1}}
+\blx@kv@defkey{blx@biblist2}{segment}{\blx@key@segment{#1}}
 
 \def\blx@key@segment#1{%
   \ifcsundef{blx@segm@\the\c@refsection @#1}
@@ -10269,8 +10330,8 @@
      \blx@printbibchecks
      \blx@filter\blx@tempa{blx@segm@\the\c@refsection @#1}}}
 
-\define@key{blx@bib2}{type}{\blx@key@type{#1}}
-\define@key{blx@biblist2}{type}{\blx@key@type{#1}}
+\blx@kv@defkey{blx@bib2}{type}{\blx@key@type{#1}}
+\blx@kv@defkey{blx@biblist2}{type}{\blx@key@type{#1}}
 
 \def\blx@key@type#1{%
   \ifcsundef{blx@type@\the\c@refsection @#1}
@@ -10288,8 +10349,8 @@
            hence some options may not be used twice.\MessageBreak
            Use 'filter' and '\string\defbibfilter' with OR conjunctions}}}}
 
-\define@key{blx@bib2}{nottype}{\blx@key@nottype{#1}}
-\define@key{blx@biblist2}{nottype}{\blx@key@nottype{#1}}
+\blx@kv@defkey{blx@bib2}{nottype}{\blx@key@nottype{#1}}
+\blx@kv@defkey{blx@biblist2}{nottype}{\blx@key@nottype{#1}}
 
 \def\blx@key@nottype#1{%
   \ifcsundef{blx@type@\the\c@refsection @#1}
@@ -10297,8 +10358,8 @@
     {\blx@printbibchecks
      \blx@notfilter\blx@tempa{blx@type@\the\c@refsection @#1}}}
 
-\define@key{blx@bib2}{subtype}{\blx@key@subtype{#1}}
-\define@key{blx@biblist2}{subtype}{\blx@key@subtype{#1}}
+\blx@kv@defkey{blx@bib2}{subtype}{\blx@key@subtype{#1}}
+\blx@kv@defkey{blx@biblist2}{subtype}{\blx@key@subtype{#1}}
 
 \def\blx@key@subtype#1{%
   \ifcsundef{blx@subt@\the\c@refsection @#1}
@@ -10316,8 +10377,8 @@
            hence some options may not be used twice.\MessageBreak
            Use 'filter' and '\string\defbibfilter' with OR conjunctions}}}}
 
-\define@key{blx@bib2}{notsubtype}{\blx@key@notsubtype{#1}}
-\define@key{blx@biblist2}{notsubtype}{\blx@key@notsubtype{#1}}
+\blx@kv@defkey{blx@bib2}{notsubtype}{\blx@key@notsubtype{#1}}
+\blx@kv@defkey{blx@biblist2}{notsubtype}{\blx@key@notsubtype{#1}}
 
 \def\blx@key@notsubtype#1{%
   \ifcsundef{blx@subt@\the\c@refsection @#1}
@@ -10325,8 +10386,8 @@
     {\blx@printbibchecks
      \blx@notfilter\blx@tempa{blx@subt@\the\c@refsection @#1}}}
 
-\define@key{blx@bib2}{keyword}{\blx@key@keyword{#1}}
-\define@key{blx@biblist2}{keyword}{\blx@key@keyword{#1}}
+\blx@kv@defkey{blx@bib2}{keyword}{\blx@key@keyword{#1}}
+\blx@kv@defkey{blx@biblist2}{keyword}{\blx@key@keyword{#1}}
 
 \def\blx@key@keyword#1{%
   \ifcsundef{blx@keyw@\the\c@refsection @\detokenize{#1}}
@@ -10335,8 +10396,8 @@
     {\blx@printbibchecks
      \blx@filter\blx@tempa{blx@keyw@\the\c@refsection @\detokenize{#1}}}}
 
-\define@key{blx@bib2}{notkeyword}{\blx@key@notkeyword{#1}}
-\define@key{blx@biblist2}{notkeyword}{\blx@key@notkeyword{#1}}
+\blx@kv@defkey{blx@bib2}{notkeyword}{\blx@key@notkeyword{#1}}
+\blx@kv@defkey{blx@biblist2}{notkeyword}{\blx@key@notkeyword{#1}}
 
 \def\blx@key@notkeyword#1{%
   \ifcsundef{blx@keyw@\the\c@refsection @\detokenize{#1}}
@@ -10344,8 +10405,8 @@
     {\blx@printbibchecks
      \blx@notfilter\blx@tempa{blx@keyw@\the\c@refsection @\detokenize{#1}}}}
 
-\define@key{blx@bib2}{category}{\blx@key@category{#1}}
-\define@key{blx@biblist2}{category}{\blx@key@category{#1}}
+\blx@kv@defkey{blx@bib2}{category}{\blx@key@category{#1}}
+\blx@kv@defkey{blx@biblist2}{category}{\blx@key@category{#1}}
 
 \def\blx@key@category#1{%
   \ifcsundef{blx@catg@\detokenize{#1}}
@@ -10354,8 +10415,8 @@
     {\blx@printbibchecks
      \blx@filter\blx@tempa{blx@catg@\detokenize{#1}}}}
 
-\define@key{blx@bib2}{notcategory}{\blx@key@notcategory{#1}}
-\define@key{blx@biblist2}{notcategory}{\blx@key@notcategory{#1}}
+\blx@kv@defkey{blx@bib2}{notcategory}{\blx@key@notcategory{#1}}
+\blx@kv@defkey{blx@biblist2}{notcategory}{\blx@key@notcategory{#1}}
 
 \def\blx@key@notcategory#1{%
   \ifcsundef{blx@catg@#1}
@@ -10363,8 +10424,8 @@
     {\blx@printbibchecks
      \blx@notfilter\blx@tempa{blx@catg@#1}}}
 
-\define@key{blx@bib2}{filter}{\blx@key@filter{#1}}
-\define@key{blx@biblist2}{filter}{\blx@key@filter{#1}}
+\blx@kv@defkey{blx@bib2}{filter}{\blx@key@filter{#1}}
+\blx@kv@defkey{blx@biblist2}{filter}{\blx@key@filter{#1}}
 
 \def\blx@key@filter#1{%
   \ifcsdef{blx@filter@#1}
@@ -10376,8 +10437,8 @@
        {The filter '#1' could not be found.\MessageBreak
         Use \string\defbibfilter\space to define it}}}
 
-\define@key{blx@bib2}{check}{\blx@key@bibcheck{#1}}
-\define@key{blx@biblist2}{check}{\blx@key@bibcheck{#1}}
+\blx@kv@defkey{blx@bib2}{check}{\blx@key@bibcheck{#1}}
+\blx@kv@defkey{blx@biblist2}{check}{\blx@key@bibcheck{#1}}
 
 % empty bibcheck does nothing
 \cslet{blx@bibcheck@}\relax
@@ -10391,17 +10452,17 @@
         Use \string\defbibcheck\space to define it}}}
 
 \def\blx@default@theheading{bibliography}
-\define@key{blx@bibdefaults}{heading}{%
+\blx@kv@defkey{blx@bibdefaults}{heading}{%
   \blx@key@heading{\blx@default@theheading}{#1}}
-\define@key{blx@bhd}{heading}{%
+\blx@kv@defkey{blx@bhd}{heading}{%
   \blx@key@heading{\blx@theheading}{#1}}
-\define@key{blx@bib2}{heading}{%
+\blx@kv@defkey{blx@bib2}{heading}{%
   \blx@key@heading{\blx@theheading}{#1}}
-\define@key{blx@biblist2}{heading}{%
+\blx@kv@defkey{blx@biblist2}{heading}{%
   \blx@key@heading{\blx@theheading}{#1}}
-\define@key{blx@bbs}{heading}{%
+\blx@kv@defkey{blx@bbs}{heading}{%
   \blx@key@heading{\blx@theheading}{#1}}
-\define@key{blx@bbg}{heading}{%
+\blx@kv@defkey{blx@bbg}{heading}{%
   \blx@key@heading{\blx@theheading}{#1}}
 
 \def\blx@key@heading#1#2{%
@@ -10413,13 +10474,13 @@
      {\def#1{#2}}}
 
 \def\blx@default@theenv{bibliography}
-\define@key{blx@bibdefaults}{env}{%
+\blx@kv@defkey{blx@bibdefaults}{env}{%
   \blx@key@env{\blx@default@theenv}{#1}}
-\define@key{blx@bib2}{env}{\blx@key@env{\blx@theenv}{#1}}
-\define@key{blx@biblist2}{env}{\blx@key@env{\blx@theenv}{#1}}
-\define@key{blx@bbs}{env}{\blx@key@env{\blx@theenv}{#1}}
-\define@key{blx@bbg}{env}{\blx@key@env{\blx@theenv}{#1}}
-\define@key{blx@bbc}{env}{\blx@key@env{\blx@theenv}{#1}}
+\blx@kv@defkey{blx@bib2}{env}{\blx@key@env{\blx@theenv}{#1}}
+\blx@kv@defkey{blx@biblist2}{env}{\blx@key@env{\blx@theenv}{#1}}
+\blx@kv@defkey{blx@bbs}{env}{\blx@key@env{\blx@theenv}{#1}}
+\blx@kv@defkey{blx@bbg}{env}{\blx@key@env{\blx@theenv}{#1}}
+\blx@kv@defkey{blx@bbc}{env}{\blx@key@env{\blx@theenv}{#1}}
 
 \def\blx@key@env#1#2{%
   \ifcsundef{blx@env@#2}
@@ -10430,11 +10491,11 @@
      {\def#1{#2}}}
 
 \let\blx@default@thetitle\@empty
-\define@key{blx@bibdefaults}{title}{%
+\blx@kv@defkey{blx@bibdefaults}{title}{%
   \def\blx@default@thetitle{#1}}
-\define@key{blx@bhd}{title}{\def\blx@thetitle{#1}}
-\define@key{blx@bib2}{title}{\def\blx@thetitle{#1}}
-\define@key{blx@biblist2}{title}{\def\blx@thetitle{#1}}
+\blx@kv@defkey{blx@bhd}{title}{\def\blx@thetitle{#1}}
+\blx@kv@defkey{blx@bib2}{title}{\def\blx@thetitle{#1}}
+\blx@kv@defkey{blx@biblist2}{title}{\def\blx@thetitle{#1}}
 
 \cslet{blx@note@}\@empty
 \def\blx@key@bibnote#1#2{%
@@ -10446,49 +10507,51 @@
     {\def#1{#2}}}
 
 \let\blx@default@theprenote\@empty
-\define@key{blx@bibdefaults}{prenote}{%
+\blx@kv@defkey{blx@bibdefaults}{prenote}{%
   \blx@key@bibnote{\blx@default@theprenote}{#1}}
-\define@key{blx@bib2}{prenote}{%
+\blx@kv@defkey{blx@bib2}{prenote}{%
   \blx@key@bibnote{\blx@theprenote}{#1}}
-\define@key{blx@biblist2}{prenote}{%
+\blx@kv@defkey{blx@biblist2}{prenote}{%
   \blx@key@bibnote{\blx@theprenote}{#1}}
-\define@key{blx@bbs}{prenote}{%
+\blx@kv@defkey{blx@bbs}{prenote}{%
   \blx@key@bibnote{\blx@theprenote}{#1}}
-\define@key{blx@bbg}{prenote}{%
+\blx@kv@defkey{blx@bbg}{prenote}{%
   \blx@key@bibnote{\blx@theprenote}{#1}}
-\define@key{blx@bbc}{prenote}{%
+\blx@kv@defkey{blx@bbc}{prenote}{%
   \blx@key@bibnote{\blx@theprenote}{#1}}
 
 \let\blx@default@thepostnote\@empty
-\define@key{blx@bibdefaults}{postnote}{%
+\blx@kv@defkey{blx@bibdefaults}{postnote}{%
   \blx@key@bibnote{\blx@default@thepostnote}{#1}}
-\define@key{blx@bib2}{postnote}{%
+\blx@kv@defkey{blx@bib2}{postnote}{%
   \blx@key@bibnote{\blx@thepostnote}{#1}}
-\define@key{blx@biblist2}{postnote}{%
+\blx@kv@defkey{blx@biblist2}{postnote}{%
   \blx@key@bibnote{\blx@thepostnote}{#1}}
-\define@key{blx@bbs}{postnote}{%
+\blx@kv@defkey{blx@bbs}{postnote}{%
   \blx@key@bibnote{\blx@thepostnote}{#1}}
-\define@key{blx@bbg}{postnote}{%
+\blx@kv@defkey{blx@bbg}{postnote}{%
   \blx@key@bibnote{\blx@thepostnote}{#1}}
-\define@key{blx@bbc}{postnote}{%
+\blx@kv@defkey{blx@bbc}{postnote}{%
   \blx@key@bibnote{\blx@thepostnote}{#1}}
 
-\let\abx@default@locallabelwidth\@gobble
-\define@key{blx@bibdefaults}{locallabelwidth}{%
-  \blx@key@locallabelwidth{\abx@default@locallabelwidth}{#1}}
-\define@key{blx@bib1}{locallabelwidth}[]{}
-\define@key{blx@biblist1}{locallabelwidth}[]{}
-\define@key{blx@bib2}{locallabelwidth}[true]{%
-  \blx@key@locallabelwidth{\abx@locallabelwidth}{#1}}
-\define@key{blx@biblist2}{locallabelwidth}[true]{%
-  \blx@key@locallabelwidth{\abx@locallabelwidth}{#1}}
 
-\def\blx@key@locallabelwidth#1#2{%
-  \ifstrequal{#2}{true}
-    {\def#1{\blx@locallabelwidth}}
-    {\let#1\@gobble}}
+\blx@kv@defkey{blx@bibdefaults}{locallabelwidth}{%
+  \blx@key@locallabelwidth{#1}}
+\blx@kv@defkey{blx@bib1}{locallabelwidth}[]{}
+\blx@kv@defkey{blx@biblist1}{locallabelwidth}[]{}
+\blx@kv@defkey{blx@bib2}{locallabelwidth}[true]{%
+  \blx@key@locallabelwidth{#1}}
+\blx@kv@defkey{blx@biblist2}{locallabelwidth}[true]{%
+  \blx@key@locallabelwidth{#1}}
 
-\define@key{blx@bib2}{resetnumbers}[true]{%
+\def\blx@key@locallabelwidth#1{%
+  \ifstrequal{#1}{true}
+    {\let\blx@locallabelwidth@init\blx@locallabelwidth@setlengths
+     \let\blx@locallabelwidth@finish\blx@locallabelwidth@write}
+    {\let\blx@locallabelwidth@init\relax
+     \let\blx@locallabelwidth@finish\relax}}
+
+\blx@kv@defkey{blx@bib2}{resetnumbers}[true]{%
   \iftoggle{blx@defernumbers}
     {\ifstrequal{#1}{true}
        {\csnumdef{blx@labelnumber@\the\c@refsection}{0}}
@@ -10499,7 +10562,7 @@
        Option 'resetnumbers' requires 'defernumbers=true'.\MessageBreak
        Ignoring 'resetnumbers=true'}}}
 
-\define@key{blx@bib2}{omitnumbers}[true]{%
+\blx@kv@defkey{blx@bib2}{omitnumbers}[true]{%
   \ifstrequal{#1}{true}
     {\iftoggle{blx@defernumbers}
        {\toggletrue{blx@omitnumbers}}
@@ -10510,7 +10573,7 @@
 
 
 \newrobustcmd*{\DeclarePrintbibliographyDefaults}{%
-  \setkeys{blx@bibdefaults}}
+  \blx@kv@setkeys{blx@bibdefaults}}
 
 % [<options>]
 \newrobustcmd*{\printbibheading}{%
@@ -10524,7 +10587,7 @@
   \let\blx@theheading\blx@default@theheading
   \let\blx@thetitle\blx@default@thetitle
   \blx@safe@actives
-  \setkeys{blx@bhd}{#1}%
+  \blx@kv@setkeys{blx@bhd}{#1}%
   \blx@rest@actives
   \blx@bibheading\blx@theheading\blx@thetitle
   \endgroup}
@@ -10556,7 +10619,7 @@
   \edef\blx@tempe{\the\c@refsection}% default refsection is current
   \blx@safe@actives
   \togglefalse{blx@resetnumsexplicit}%
-  \setkeys{blx@bib1}{#1}% First pass options keys - section and resetnumbers
+  \blx@kv@setkeys{blx@bib1}{#1}% First pass options keys - section and resetnumbers
   % Is there a user-specified option for resetnumbers? If so, this overrides the default
   % "labelprefix implies resetnumbers" behaviour
   \iftoggle{blx@resetnumsexplicit}
@@ -10565,7 +10628,7 @@
       {\ifdefempty\blx@refcontext@labelprefix@real}
       {\@secondoftwo}
       {}
-      {\setkeys{blx@bib2}{resetnumbers}}}%
+      {\blx@kv@setkeys{blx@bib2}{resetnumbers}}}%
   \blx@rest@actives
   \ifcsvoid{blx@dlist@entry@\blx@tempe @\blx@refcontext@context}
     {}
@@ -10575,7 +10638,7 @@
   % \printbibliography following one with this set will inherit any
   % previous "true" value
   \togglefalse{blx@omitnumbers}%
-  \setkeys{blx@bib2}{#1}% ... now we have correct \blx@tempa, set rest of options
+  \blx@kv@setkeys{blx@bib2}{#1}% ... now we have correct \blx@tempa, set rest of options
   \blx@rest@actives
   % Add datalist to list of seen datalists to prevent duplicates
   \xifinlist{\blx@refcontext@context @\blx@tempe @entry}\blx@dlistnames
@@ -10607,7 +10670,7 @@
   \let\blx@thetitle\blx@default@thetitle
   \c@refsection\z@
   \blx@safe@actives
-  \setkeys{blx@bbs}{#1}%
+  \blx@kv@setkeys{blx@bbs}{#1}%
   \blx@rest@actives
   \togglefalse{blx@tempa}%
   \blx@refsections}
@@ -10646,7 +10709,7 @@
   \let\blx@thetitle\blx@default@thetitle
   \c@refsegment\@ne
   \blx@safe@actives
-  \setkeys{blx@bbg}{#1}%
+  \blx@kv@setkeys{blx@bbg}{#1}%
   \blx@rest@actives
   \togglefalse{blx@tempa}%
   \blx@refsegments}
@@ -10690,7 +10753,7 @@
   \let\blx@thetitle\blx@default@thetitle
   \c@refsection\z@
   \blx@safe@actives
-  \setkeys{blx@bbc}{#1}%
+  \blx@kv@setkeys{blx@bbc}{#1}%
   \blx@rest@actives
   \togglefalse{blx@tempa}%
   \forlistloop\blx@bibcategory\blx@categories
@@ -10714,7 +10777,7 @@
   \endgroup}
 
 % {<entrykey>,...}
-\def\blx@bibliography#1{%
+\def\blx@bibliography{%
   \blx@bibheading\blx@theheading\blx@thetitle
   \blx@bibnote\blx@theprenote
   \begingroup
@@ -10727,17 +10790,18 @@
   \ifnum\bibnamesep=\z@
     \let\blx@namesep\relax
   \fi
-  \abx@locallabelwidth{#1}%
+  \blx@locallabelwidth@init
   \csuse{blx@env@\blx@theenv}%
   \csuse{blx@hook@bibinit}%
   \csuse{blx@hook@bibinit@next}%
   \let\blx@do\blx@bibitem
   \let\blx@done\blx@endbibliography
-  \blx@listloop{#1}}
+  \blx@listloop}
 
 \def\blx@endbibliography{%
   \csuse{blx@endenv@\blx@theenv}%
   \blx@noitem
+  \blx@locallabelwidth@finish
   \endgroup
   \blx@bibnote\blx@thepostnote
   \endgroup}
@@ -10779,25 +10843,6 @@
   \csuse{blx@bibsetup}}
 
 % {<entrykey>}
-\def\blx@lengthitem#1{%
-  \blx@ifdata{#1}
-    {\begingroup
-     \blx@getdata{#1}%
-     \blx@bibcheck
-     \iftoggle{blx@skipentry}{}{%
-       \iftoggle{blx@labelnumber}
-         {\blx@bbl@locallabelnumberwidth}
-         {}%
-       \iftoggle{blx@labelalpha}
-         {\blx@bbl@locallabelalphawidth}
-         {}%
-       \nottoggle{blx@skipbiblist}
-         {\blx@bbl@locallabelfields}
-         {}}%
-     \endgroup}
-    {}}
-
-% {<entrykey>}
 % output a bib item, this is why \blx@thelabelnumber is here so that
 % labelnumber is deferred if defernumbers=true
 \def\blx@bibitem#1{%
@@ -10812,6 +10857,15 @@
        \blx@setoptions@entry
        \blx@thelabelnumber
        \addtocounter{instcount}\@ne
+       \iftoggle{blx@labelnumber}
+         {\blx@bbl@locallabelnumberwidth}
+         {}%
+       \iftoggle{blx@labelalpha}
+         {\blx@bbl@locallabelalphawidth}
+         {}%
+       \nottoggle{blx@skipbiblist}
+         {\blx@bbl@locallabelfields}
+         {}%
        \csuse{blx@item@\blx@theenv}\relax
        \blx@initsep
        \blx@namesep
@@ -10973,8 +11027,8 @@
 
 \appto\blx@mknohyperref{\let\blx@anchor\relax}
 
-\define@key{blx@biblist2}{driver}{\blx@key@driver{#1}}
-\define@key{blx@biblist1}{driver}{}
+\blx@kv@defkey{blx@biblist2}{driver}{\blx@key@driver{#1}}
+\blx@kv@defkey{blx@biblist1}{driver}{}
 
 \def\blx@key@driver#1{%
   \def\blx@thebiblistdriver{#1}}
@@ -11003,12 +11057,15 @@
     \ifcsdef{blx@sortingtemplate@#2}
       {#2}
       {\blx@refcontext@sortingtemplatename}}%
-    % locally define this since we want to fetch data from the datalist named
-    % after the list we are printing rather than the data in refcontext list
-    % Note that the name must be unique so we prepend "#2:" because the combination of
-    % options might not generate a unique name since sortschemename has a fallback to the
-    % refcontext scheme if there is no sortscheme named after the list
-    \blx@edef@refcontext{#2:\blx@tempc/%
+    % locally define this since we want to fetch data from the datalist
+    % name after the list we are printing rather than the data in
+    % refcontext list.
+    % Note that the name must be unique so we prepend any filter name
+    % because the combination of options might not generate a unique name
+    % since sortschemename has a fallback to the refcontext scheme if there
+    % is no sortscheme named after the list
+    \blx@kv@setkeys{blx@biblist1}{#1}% Set section and biblistfilter only, if present ...
+    \blx@edef@refcontext{\blx@thebiblistfilter :\blx@tempc/%
       \blx@refcontext@sortingnamekeytemplatename/%
       \blx@refcontext@labelprefix/%
       \blx@refcontext@uniquenametemplatename/%
@@ -11026,13 +11083,12 @@
     {}
     {\listxadd\blx@biblists\blx@tempc}%
   \blx@auxwrite\@mainaux{}{\string\abx@aux@biblist{\blx@tempc}}%
-  \setkeys{blx@biblist1}{#1}% Set section only, if present ...
   \blx@rest@actives
   \ifcsvoid{blx@dlist@list@\blx@tempe @\blx@refcontext@context}
     {}
     {\letcs\blx@tempa{blx@dlist@list@\blx@tempe @\blx@refcontext@context}}%
   \blx@safe@actives
-  \setkeys{blx@biblist2}{#1}% ... now we have correct \blx@tempa, set rest of options
+  \blx@kv@setkeys{blx@biblist2}{#1}% ... now we have correct \blx@tempa, set rest of options
   \ifundef\blx@bibcheck
     {\ifcsdef{blx@bibcheck@#2}
       {\letcs\blx@bibcheck{blx@bibcheck@#2}}
@@ -11058,7 +11114,7 @@
        {\global\let\blx@printbibchecks\relax}}}
 
 % {<entrykey>,...}
-\def\blx@biblist#1{%
+\def\blx@biblist{%
   \if@twocolumn
     \@restonecoltrue\onecolumn
   \else
@@ -11070,16 +11126,17 @@
   \blx@bibinit
   \let\@noitemerr\@empty
   \def\blx@noitem{\blx@warn@biblistempty{\blx@thebiblist}}%
-  \abx@locallabelwidth{#1}%
+  \blx@locallabelwidth@init
   \csuse{blx@env@\blx@theenv}%
   \csuse{blx@hook@biblistinit@\blx@thebiblist}%
   \let\blx@do\blx@biblistitem
   \let\blx@done\blx@endbiblist
-  \blx@listloop{#1}}
+  \blx@listloop}
 
 \def\blx@endbiblist{%
   \csuse{blx@endenv@\blx@theenv}%
   \blx@noitem
+  \blx@locallabelwidth@finish
   \endgroup
   \blx@bibnote\blx@thepostnote
   \endgroup
@@ -11103,6 +11160,15 @@
        \blx@setoptions@type\abx@field@@@entrytype
        \blx@setoptions@entry
        \addtocounter{instcount}\@ne
+       \iftoggle{blx@labelnumber}
+         {\blx@bbl@locallabelnumberwidth}
+         {}%
+       \iftoggle{blx@labelalpha}
+         {\blx@bbl@locallabelalphawidth}
+         {}%
+       \nottoggle{blx@skipbiblist}
+         {\blx@bbl@locallabelfields}
+         {}%
        \csuse{blx@item@\blx@theenv}\relax
        \csuse{blx@hook@biblistitem@\blx@thebiblist}%
        \blx@execute
@@ -11151,11 +11217,12 @@
      % Set refcontext from named refcontext, if given
      \ifblank{#2}
        {}
-       {\edef\z{%
-          \noexpand\setkeys{blx@refcontext}{\csuse{blx@refcontext@name@#2}}}%
-        \z}%
+       {\begingroup
+        \edef\blx@tempa{\endgroup%
+          \noexpand\blx@kv@setkeys{blx@refcontext}{\csuse{blx@refcontext@name@#2}}}%
+        \blx@tempa}%
      % Override with explicit refcontext keyvals, if given
-     \setkeys{blx@refcontext}{#1}%
+     \blx@kv@setkeys{blx@refcontext}{#1}%
      % Add the sortingtemplate to the list of sortingtemplates so we can track
      % special cases like sorting=none which need cite order change detection
      \xifinlist\blx@refcontext@sortingtemplatename\blx@sortingtemplatenames
@@ -11202,17 +11269,17 @@
     \blx@refcontext@labelalphanametemplatename}}
 
 % Meta option to set all name template options
-\define@key{blx@refcontext}{nametemplates}{%
+\blx@kv@defkey{blx@refcontext}{nametemplates}{%
   \gdef\blx@refcontext@sortingnamekeytemplatename{#1}%
   \gdef\blx@refcontext@uniquenametemplatename{#1}%
   \gdef\blx@refcontext@labelalphanametemplatename{#1}}
 
-\define@key{blx@refcontext}{msform}{\def\blx@msform{#1}}
-\define@key{blx@refcontext}{mslang}{\def\blx@mslang{#1}}
-\define@key{blx@refcontext}{sorting}{\gdef\blx@refcontext@sortingtemplatename{#1}}
-\define@key{blx@refcontext}{sortingnamekeytemplatename}{\gdef\blx@refcontext@sortingnamekeytemplatename{#1}}
-\define@key{blx@refcontext}{uniquenametemplatename}{\gdef\blx@refcontext@uniquenametemplatename{#1}}
-\define@key{blx@refcontext}{labelalphanametemplatename}{\gdef\blx@refcontext@labelalphanametemplatename{#1}}
+\blx@kv@defkey{blx@refcontext}{msform}{\def\blx@msform{#1}}
+\blx@kv@defkey{blx@refcontext}{mslang}{\def\blx@mslang{#1}}
+\blx@kv@defkey{blx@refcontext}{sorting}{\gdef\blx@refcontext@sortingtemplatename{#1}}
+\blx@kv@defkey{blx@refcontext}{sortingnamekeytemplatename}{\gdef\blx@refcontext@sortingnamekeytemplatename{#1}}
+\blx@kv@defkey{blx@refcontext}{uniquenametemplatename}{\gdef\blx@refcontext@uniquenametemplatename{#1}}
+\blx@kv@defkey{blx@refcontext}{labelalphanametemplatename}{\gdef\blx@refcontext@labelalphanametemplatename{#1}}
 
 % labelprefix cannot be used as is because it is used to construct the internal
 % refcontext name which is referenced/expanded a lot all over the place. So,
@@ -11220,7 +11287,7 @@
 % But that is not enough since the MD5 hash function expands the argument all
 % the way and so unexpandable content like \dag breaks.
 % Unexpandable content should be protected with \detokenize.
-\define@key{blx@refcontext}{labelprefix}{%
+\blx@kv@defkey{blx@refcontext}{labelprefix}{%
   \xdef\blx@refcontext@labelprefix{\blx@mdfivesum{#1}}%
   \gdef\blx@refcontext@labelprefix@real{#1}%
   \iftoggle{blx@defernumbers}
@@ -11243,7 +11310,7 @@
   \let\blx@tempc\@empty%
   \def\blx@tempd{global}%
   \def\blx@tempe{global}%
-  \setkeys{blx@assignrefcontext}{#2}%
+  \blx@kv@setkeys{blx@assignrefcontext}{#2}%
   \def\do##1{%
     \listxadd\blx@assignedrefcontextkeywlist{##1}%
     \csxdef{blx@assignedrefcontextkeyws#1@\the\c@refsection @##1}%
@@ -11262,7 +11329,7 @@
   \let\blx@tempc\@empty%
   \def\blx@tempd{global}%
   \def\blx@tempe{global}%
-  \setkeys{blx@assignrefcontext}{#2}%
+  \blx@kv@setkeys{blx@assignrefcontext}{#2}%
   \def\do##1{%
     \listxadd\blx@assignedrefcontextcatlist{##1}%
     \csxdef{blx@assignedrefcontextcats#1@\the\c@refsection @##1}%
@@ -11281,24 +11348,24 @@
   \let\blx@tempc\@empty%
   \def\blx@tempd{global}%
   \def\blx@tempe{global}%
-  \setkeys{blx@assignrefcontext}{#2}%
+  \blx@kv@setkeys{blx@assignrefcontext}{#2}%
   \def\do##1{%
     \csxdef{blx@assignedrefcontextkeys#1@\the\c@refsection @##1}%
       {\blx@tempa/\blx@tempb/\blx@tempc/\blx@tempd/\blx@tempe}}%
   \docsvlist{#3}}
 
 % Meta option to set all name template options
-\define@key{blx@assignrefcontext}{nametemplates}{%
+\blx@kv@defkey{blx@assignrefcontext}{nametemplates}{%
   \def\blx@tempb{#1}%
   \def\blx@tempd{#1}%
   \def\blx@tempe{#1}}
 
-\define@key{blx@assignrefcontext}{sorting}{\def\blx@tempa{#1}}
-\define@key{blx@assignrefcontext}{sortingnamekeytemplatename}{\def\blx@tempb{#1}}
-\define@key{blx@assignrefcontext}{labelprefix}{%
+\blx@kv@defkey{blx@assignrefcontext}{sorting}{\def\blx@tempa{#1}}
+\blx@kv@defkey{blx@assignrefcontext}{sortingnamekeytemplatename}{\def\blx@tempb{#1}}
+\blx@kv@defkey{blx@assignrefcontext}{labelprefix}{%
   \edef\blx@tempc{\blx@mdfivesum{#1}}}
-\define@key{blx@assignrefcontext}{uniquenametemplatename}{\def\blx@tempd{#1}}
-\define@key{blx@assignrefcontext}{labelalphanametemplatename}{\def\blx@tempe{#1}}
+\blx@kv@defkey{blx@assignrefcontext}{uniquenametemplatename}{\def\blx@tempd{#1}}
+\blx@kv@defkey{blx@assignrefcontext}{labelalphanametemplatename}{\def\blx@tempe{#1}}
 
 % Reference sections
 \newrobustcmd*{\newrefsection}{%
@@ -11826,7 +11893,7 @@
   \def\blx@tempc{local}%
   \undef\blx@tempd
   \let\blx@tempe\@empty
-  \setkeys{blx@addbib}{#2}%
+  \blx@kv@setkeys{blx@addbib}{#2}%
   \blx@xsanitizeafter{#1}{#3}%
   \endgroup}
 
@@ -11837,11 +11904,11 @@
   \catcode`\{=\@ne
   \catcode`\}=\tw@}
 
-\define@key{blx@addbib}{type}{\def\blx@tempa{#1}}
-\define@key{blx@addbib}{datatype}{\def\blx@tempb{#1}}
-\define@key{blx@addbib}{location}{\def\blx@tempc{#1}}
-\define@key{blx@addbib}{label}{\edef\blx@tempd{\detokenize{#1}}}
-\define@key{blx@addbib}{bibencoding}{\def\blx@tempe{#1}}
+\blx@kv@defkey{blx@addbib}{type}{\def\blx@tempa{#1}}
+\blx@kv@defkey{blx@addbib}{datatype}{\def\blx@tempb{#1}}
+\blx@kv@defkey{blx@addbib}{location}{\def\blx@tempc{#1}}
+\blx@kv@defkey{blx@addbib}{label}{\edef\blx@tempd{\detokenize{#1}}}
+\blx@kv@defkey{blx@addbib}{bibencoding}{\def\blx@tempe{#1}}
 
 % \blx@res@type@<resource>      resource -> type
 % \blx@res@data@<resource>      resource -> datatype
@@ -14497,7 +14564,7 @@
   \let\blx@dm@datatype\@empty
   \let\blx@member@field\@empty
   \let\blx@tempb\@empty
-  \setkeys{blx@datafieldsets@member}{#1}%
+  \blx@kv@setkeys{blx@datafieldsets@member}{#1}%
   \eappto\blx@tempa{%
     \blx@xml@datafieldsets@member{\blx@tempb}}%
   \ifdefempty\blx@member@field
@@ -14522,13 +14589,13 @@
            \listcsxadd{blx@datafieldset@\blx@setname}{##1}}
           \dolistcsloop{blx@datamodelfields@datatypes@\blx@dm@datatype}}}}
 
-\define@key{blx@datafieldsets@member}{datatype}{% characters
+\blx@kv@defkey{blx@datafieldsets@member}{datatype}{% characters
   \appto\blx@tempb{ datatype="#1"}%
   \def\blx@dm@datatype{#1}}
-\define@key{blx@datafieldsets@member}{fieldtype}{% characters
+\blx@kv@defkey{blx@datafieldsets@member}{fieldtype}{% characters
   \appto\blx@tempb{ fieldtype="#1"}%
   \def\blx@dm@fieldtype{#1}}
-\define@key{blx@datafieldsets@member}{field}{% characters
+\blx@kv@defkey{blx@datafieldsets@member}{field}{% characters
   \appto\blx@tempb{ field="#1"}%
   \def\blx@member@field{#1}}
 
@@ -14564,8 +14631,8 @@
   \let\map\blx@sourcemap@map
   #2%
   \ifblank{#1}
-    {\setkeys{blx@sourcemap@maps}{datatype=bibtex, level=driver}}
-    {\setkeys{blx@sourcemap@maps}{#1, level=driver}}%
+    {\blx@kv@setkeys{blx@sourcemap@maps}{datatype=bibtex, level=driver}}
+    {\blx@kv@setkeys{blx@sourcemap@maps}{#1, level=driver}}%
   \eappto\blx@tempa{%
     \blx@xml@sourcemap@maps{\blx@tempb}{\blx@tempc}}%
   \csxdef{blx@sourcemap@defaults@\blx@tempd}{\blx@tempa}%
@@ -14577,8 +14644,8 @@
   \let\blx@tempc\@empty
   \let\map\blx@sourcemap@map
   \ifblank{#1}
-    {\setkeys{blx@sourcemap@maps}{datatype=bibtex, level=user}}
-    {\setkeys{blx@sourcemap@maps}{#1, level=user}}%
+    {\blx@kv@setkeys{blx@sourcemap@maps}{datatype=bibtex, level=user}}
+    {\blx@kv@setkeys{blx@sourcemap@maps}{#1, level=user}}%
   #2%
   \eappto\blx@tempa{%
     \blx@xml@sourcemap@maps{\blx@tempb}{\blx@tempc}}}
@@ -14588,20 +14655,20 @@
   \let\blx@tempc\@empty
   \let\map\blx@sourcemap@map
   \ifblank{#1}
-    {\setkeys{blx@sourcemap@maps}{datatype=bibtex, level=style}}
-    {\setkeys{blx@sourcemap@maps}{#1, level=style}}%
+    {\blx@kv@setkeys{blx@sourcemap@maps}{datatype=bibtex, level=style}}
+    {\blx@kv@setkeys{blx@sourcemap@maps}{#1, level=style}}%
   #2%
   \eappto\blx@tempa{%
     \blx@xml@sourcemap@maps{\blx@tempb}{\blx@tempc}}}
 
-\define@key{blx@sourcemap@maps}{datatype}{% characters
+\blx@kv@defkey{blx@sourcemap@maps}{datatype}{% characters
   \eappto\blx@tempb{ datatype="#1"}%
   \eappto\blx@tempd{#1}}
-\define@key{blx@sourcemap@maps}{overwrite}[true]{% true|false
+\blx@kv@defkey{blx@sourcemap@maps}{overwrite}[true]{% true|false
   \ifstrequal{#1}{true}
     {\appto\blx@tempb{ map\string_overwrite="1"}}
     {}}
-\define@key{blx@sourcemap@maps}{level}{% user|style|driver
+\blx@kv@defkey{blx@sourcemap@maps}{level}{% user|style|driver
     \appto\blx@tempb{ level="#1"}}
 
 \newcommand*{\blx@sourcemap@map}[2][]{%
@@ -14613,18 +14680,18 @@
   \let\step\blx@sourcemap@step
   \ifblank{#1}
     {}
-    {\setkeys{blx@sourcemap@map}{#1}}%
+    {\blx@kv@setkeys{blx@sourcemap@map}{#1}}%
   #2%
   \eappto\blx@tempc{%
     \blx@xml@sourcemap@map{\blx@tempm}{\blx@tempe}}}
 
-\define@key{blx@sourcemap@map}{overwrite}[true]{% true|false
+\blx@kv@defkey{blx@sourcemap@map}{overwrite}[true]{% true|false
   \ifstrequal{#1}{true}
     {\appto\blx@tempm{ map\string_overwrite="1"}}
     {}}
-\define@key{blx@sourcemap@map}{foreach}{% characters
+\blx@kv@defkey{blx@sourcemap@map}{foreach}{% characters
   \eappto\blx@tempm{ map\string_foreach="#1"}}
-\define@key{blx@sourcemap@map}{refsection}{% integer
+\blx@kv@defkey{blx@sourcemap@map}{refsection}{% integer
   \eappto\blx@tempm{ refsection="#1"}}
 
 \newcommand*{\blx@sourcemap@perdatasource}[1]{%
@@ -14641,104 +14708,104 @@
 
 \newcommand*{\blx@sourcemap@step}[1][2]{%
   \let\blx@tempf\@empty
-  \setkeys{blx@sourcemap@step}{#1}%
+  \blx@kv@setkeys{blx@sourcemap@step}{#1}%
   \eappto\blx@tempe{%
     \blx@xml@sourcemap@step{\blx@tempf}}}
 
-\define@key{blx@sourcemap@step}{typesource}{% characters
+\blx@kv@defkey{blx@sourcemap@step}{typesource}{% characters
   \eappto\blx@tempf{ map\string_type\string_source="#1"}}
-\define@key{blx@sourcemap@step}{typetarget}{% characters
+\blx@kv@defkey{blx@sourcemap@step}{typetarget}{% characters
   \eappto\blx@tempf{ map\string_type\string_target="#1"}}
-\define@key{blx@sourcemap@step}{final}[true]{% true|false
+\blx@kv@defkey{blx@sourcemap@step}{final}[true]{% true|false
   \ifstrequal{#1}{true}
     {\appto\blx@tempf{ map\string_final="1"}}
     {}}
-\define@key{blx@sourcemap@step}{cited}[true]{% true|false
+\blx@kv@defkey{blx@sourcemap@step}{cited}[true]{% true|false
   \ifstrequal{#1}{true}
     {\appto\blx@tempf{ map\string_entrykey\string_cited="1"}}
     {}}
-\define@key{blx@sourcemap@step}{nocited}[true]{% true|false
+\blx@kv@defkey{blx@sourcemap@step}{nocited}[true]{% true|false
   \ifstrequal{#1}{true}
     {\appto\blx@tempf{ map\string_entrykey\string_nocited="1"}}
     {}}
-\define@key{blx@sourcemap@step}{citedornocited}[true]{% true|false
+\blx@kv@defkey{blx@sourcemap@step}{citedornocited}[true]{% true|false
   \ifstrequal{#1}{true}
     {\appto\blx@tempf{ map\string_entrykey\string_citedornocited="1"}}
     {}}
-\define@key{blx@sourcemap@step}{allnocited}[true]{% true|false
+\blx@kv@defkey{blx@sourcemap@step}{allnocited}[true]{% true|false
   \ifstrequal{#1}{true}
     {\appto\blx@tempf{ map\string_entrykey\string_allnocited="1"}}
     {}}
-\define@key{blx@sourcemap@step}{fieldsource}{% characters
+\blx@kv@defkey{blx@sourcemap@step}{fieldsource}{% characters
   \eappto\blx@tempf{ map\string_field\string_source="#1"}}
-\define@key{blx@sourcemap@step}{fieldsourcemsform}{% characters
+\blx@kv@defkey{blx@sourcemap@step}{fieldsourcemsform}{% characters
   \eappto\blx@tempf{ map\string_field\string_source\string_form="#1"}}
-\define@key{blx@sourcemap@step}{fieldsourcemslang}{% characters
+\blx@kv@defkey{blx@sourcemap@step}{fieldsourcemslang}{% characters
   \eappto\blx@tempf{ map\string_field\string_source\string_lang="#1"}}
-\define@key{blx@sourcemap@step}{notfield}{% characters
+\blx@kv@defkey{blx@sourcemap@step}{notfield}{% characters
   \eappto\blx@tempf{ map\string_notfield="#1"}}
-\define@key{blx@sourcemap@step}{fieldtarget}{% characters
+\blx@kv@defkey{blx@sourcemap@step}{fieldtarget}{% characters
   \eappto\blx@tempf{ map\string_field\string_target="#1"}}
-\define@key{blx@sourcemap@step}{fieldtargetmsform}{% characters
+\blx@kv@defkey{blx@sourcemap@step}{fieldtargetmsform}{% characters
   \eappto\blx@tempf{ map\string_field\string_target\string_form="#1"}}
-\define@key{blx@sourcemap@step}{fieldtargetmslang}{% characters
+\blx@kv@defkey{blx@sourcemap@step}{fieldtargetmslang}{% characters
   \eappto\blx@tempf{ map\string_field\string_target\string_lang="#1"}}
-\define@key{blx@sourcemap@step}{fieldset}{% characters
+\blx@kv@defkey{blx@sourcemap@step}{fieldset}{% characters
   \eappto\blx@tempf{ map\string_field\string_set="#1"}}
 % We are sanitising the XML here as it's the value of an attribute which
 % might contain quotes or ampersands (URLs, for example)
-\define@key{blx@sourcemap@step}{fieldvalue}{% characters
+\blx@kv@defkey{blx@sourcemap@step}{fieldvalue}{% characters
   \blx@xmlsanitizeafter{\def\blx@temps}{#1}%
   \eappto\blx@tempf{ map\string_field\string_value="\blx@temps"}}
-\define@key{blx@sourcemap@step}{append}[true]{% true|false
+\blx@kv@defkey{blx@sourcemap@step}{append}[true]{% true|false
   \ifstrequal{#1}{true}
     {\appto\blx@tempf{ map\string_append="1"}}
     {}}
-\define@key{blx@sourcemap@step}{appendstrict}[true]{% true|false
+\blx@kv@defkey{blx@sourcemap@step}{appendstrict}[true]{% true|false
   \ifstrequal{#1}{true}
     {\appto\blx@tempf{ map\string_appendstrict="1"}}
     {}}
-\define@key{blx@sourcemap@step}{null}[true]{% true|false
+\blx@kv@defkey{blx@sourcemap@step}{null}[true]{% true|false
   \ifstrequal{#1}{true}
     {\appto\blx@tempf{ map\string_null="1"}}
     {}}
-\define@key{blx@sourcemap@step}{entrynull}[true]{% true|false
+\blx@kv@defkey{blx@sourcemap@step}{entrynull}[true]{% true|false
   \ifstrequal{#1}{true}
     {\appto\blx@tempf{ map\string_entry\string_null="1"}}
     {}}
-\define@key{blx@sourcemap@step}{entrynocite}[true]{% true|false
+\blx@kv@defkey{blx@sourcemap@step}{entrynocite}[true]{% true|false
   \ifstrequal{#1}{true}
     {\appto\blx@tempf{ map\string_entry\string_nocite="1"}}
     {}}
-\define@key{blx@sourcemap@step}{entrynew}{% characters
+\blx@kv@defkey{blx@sourcemap@step}{entrynew}{% characters
   \appto\blx@tempf{ map\string_entry\string_new="#1"}}
-\define@key{blx@sourcemap@step}{entrynewtype}{% characters
+\blx@kv@defkey{blx@sourcemap@step}{entrynewtype}{% characters
   \appto\blx@tempf{ map\string_entry\string_newtype="#1"}}
-\define@key{blx@sourcemap@step}{entrytarget}{% characters
+\blx@kv@defkey{blx@sourcemap@step}{entrytarget}{% characters
   \appto\blx@tempf{ map\string_entrytarget="#1"}}
-\define@key{blx@sourcemap@step}{entryclone}{% characters
+\blx@kv@defkey{blx@sourcemap@step}{entryclone}{% characters
   \appto\blx@tempf{ map\string_entry\string_clone="#1"}}
-\define@key{blx@sourcemap@step}{origfield}[true]{% true|false
+\blx@kv@defkey{blx@sourcemap@step}{origfield}[true]{% true|false
   \ifstrequal{#1}{true}
     {\appto\blx@tempf{ map\string_origfield="1"}}
     {}}
-\define@key{blx@sourcemap@step}{origfieldval}[true]{% true|false
+\blx@kv@defkey{blx@sourcemap@step}{origfieldval}[true]{% true|false
   \ifstrequal{#1}{true}
     {\appto\blx@tempf{ map\string_origfieldval="1"}}
     {}}
-\define@key{blx@sourcemap@step}{origentrytype}[true]{% true|false
+\blx@kv@defkey{blx@sourcemap@step}{origentrytype}[true]{% true|false
   \ifstrequal{#1}{true}
     {\appto\blx@tempf{ map\string_origentrytype="1"}}
     {}}
-\define@key{blx@sourcemap@step}{match}{% characters
+\blx@kv@defkey{blx@sourcemap@step}{match}{% characters
   \appto\blx@tempf{ map\string_match="#1"}}
-\define@key{blx@sourcemap@step}{matchi}{% characters
+\blx@kv@defkey{blx@sourcemap@step}{matchi}{% characters
   \appto\blx@tempf{ map\string_matchi="#1"}}
-\define@key{blx@sourcemap@step}{notmatch}{% characters
+\blx@kv@defkey{blx@sourcemap@step}{notmatch}{% characters
   \appto\blx@tempf{ map\string_notmatch="#1"}}
-\define@key{blx@sourcemap@step}{notmatchi}{% characters
+\blx@kv@defkey{blx@sourcemap@step}{notmatchi}{% characters
   \appto\blx@tempf{ map\string_notmatchi="#1"}}
-\define@key{blx@sourcemap@step}{replace}{% characters
+\blx@kv@defkey{blx@sourcemap@step}{replace}{% characters
   \eappto\blx@tempf{ map\string_replace="#1"}}
 
 % [<specname>]{<spec>}
@@ -14767,29 +14834,29 @@
   \let\blx@tempc\@empty
   \ifblank{#1}
     {}
-    {\setkeys{blx@lantem@namepart}{#1}}%
+    {\blx@kv@setkeys{blx@lantem@namepart}{#1}}%
   \eappto\blx@tempa{%
     \blx@xml@labelalphanametemplatenamepart{\blx@tempe}{\blx@tempc}{#2}}}
 
-\define@key{blx@lantem@namepart}{use}[true]{% use* option for namepart true|false
+\blx@kv@defkey{blx@lantem@namepart}{use}[true]{% use* option for namepart true|false
   \ifstrequal{#1}{true}
     {\appto\blx@tempc{ use="1"}}
     {}}
 
-\define@key{blx@lantem@namepart}{pre}[true]{% pre option for namepart true|false
+\blx@kv@defkey{blx@lantem@namepart}{pre}[true]{% pre option for namepart true|false
   \ifstrequal{#1}{true}
     {\appto\blx@tempc{ pre="1"}}
     {}}
 
-\define@key{blx@lantem@namepart}{compound}[true]{% base option for namepart true|false
+\blx@kv@defkey{blx@lantem@namepart}{compound}[true]{% base option for namepart true|false
   \ifstrequal{#1}{true}
     {\appto\blx@tempc{ substring\string_compound="1"}}
     {}}
 
-\define@key{blx@lantem@namepart}{strwidth}{% integer
+\blx@kv@defkey{blx@lantem@namepart}{strwidth}{% integer
   \eappto\blx@tempc{ substring\string_width="#1"}}
 
-\define@key{blx@lantem@field}{strside}{% left|right
+\blx@kv@defkey{blx@lantem@field}{strside}{% left|right
   \ifstrequal{#1}{right}
     {\eappto\blx@tempc{ substring\string_side="right"}}
     {\eappto\blx@tempc{ substring\string_side="left"}}}
@@ -14835,60 +14902,60 @@
   \let\blx@tempc\@empty
   \ifblank{#1}
     {}
-    {\setkeys{blx@latem@field}{#1}}%
+    {\blx@kv@setkeys{blx@latem@field}{#1}}%
   \eappto\blx@tempb{%
     \blx@xml@labelalpha@part{\blx@tempc}{#2}}}
 
-\define@key{blx@latem@field}{form}{% string
+\blx@kv@defkey{blx@latem@field}{form}{% string
   \appto\blx@tempc{ form="#1"}}
-\define@key{blx@latem@field}{lang}{% string
+\blx@kv@defkey{blx@latem@field}{lang}{% string
   \appto\blx@tempc{ lang="#1"}}
-\define@key{blx@latem@field}{uppercase}[true]{% true|false
+\blx@kv@defkey{blx@latem@field}{uppercase}[true]{% true|false
   \ifstrequal{#1}{true}
     {\appto\blx@tempc{ uppercase="1"}}
     {}}
-\define@key{blx@latem@field}{lowercase}[true]{% true|false
+\blx@kv@defkey{blx@latem@field}{lowercase}[true]{% true|false
   \ifstrequal{#1}{true}
     {\appto\blx@tempc{ lowercase="1"}}
     {}}
-\define@key{blx@latem@field}{final}[true]{% true|false
+\blx@kv@defkey{blx@latem@field}{final}[true]{% true|false
   \ifstrequal{#1}{true}
     {\appto\blx@tempc{ final="1"}}
     {}}
-\define@key{blx@latem@field}{strwidth}{% integer
+\blx@kv@defkey{blx@latem@field}{strwidth}{% integer
     \eappto\blx@tempc{ substring\string_width="#1"}}
-\define@key{blx@latem@field}{varwidth}[true]{% "v"
+\blx@kv@defkey{blx@latem@field}{varwidth}[true]{% "v"
   \ifstrequal{#1}{true}
     {\appto\blx@tempc{ substring\string_width="v"}}
     {}}
-\define@key{blx@latem@field}{varwidthnorm}[true]{% "vf"
+\blx@kv@defkey{blx@latem@field}{varwidthnorm}[true]{% "vf"
   \ifstrequal{#1}{true}
     {\appto\blx@tempc{ substring\string_width="vf"}}
     {}}
-\define@key{blx@latem@field}{varwidthlist}[true]{% "l"
+\blx@kv@defkey{blx@latem@field}{varwidthlist}[true]{% "l"
   \ifstrequal{#1}{true}
     {\appto\blx@tempc{ substring\string_width="l"}}
     {}}
-\define@key{blx@latem@field}{strfixedcount}{%
+\blx@kv@defkey{blx@latem@field}{strfixedcount}{%
     \eappto\blx@tempc{ substring\string_fixed\string_threshold="#1"}}
-\define@key{blx@latem@field}{strwidthmax}{%
+\blx@kv@defkey{blx@latem@field}{strwidthmax}{%
     \eappto\blx@tempc{ substring\string_width\string_max="#1"}}
-\define@key{blx@latem@field}{strside}{% left|right
+\blx@kv@defkey{blx@latem@field}{strside}{% left|right
   \ifstrequal{#1}{right}
     {\eappto\blx@tempc{ substring\string_side="right"}}
     {\eappto\blx@tempc{ substring\string_side="left"}}}
-\define@key{blx@latem@field}{namessep}{%
+\blx@kv@defkey{blx@latem@field}{namessep}{%
     \eappto\blx@tempc{ namessep="#1"}}
-\define@key{blx@latem@field}{ifnames}{%
+\blx@kv@defkey{blx@latem@field}{ifnames}{%
     \eappto\blx@tempc{ ifnames="#1"}}
-\define@key{blx@latem@field}{names}{%
+\blx@kv@defkey{blx@latem@field}{names}{%
     \eappto\blx@tempc{ names="#1"}}
-\define@key{blx@latem@field}{noalphaothers}[true]{%
+\blx@kv@defkey{blx@latem@field}{noalphaothers}[true]{%
     \eappto\blx@tempc{ noalphaothers="1"}}
-\define@key{blx@latem@field}{padchar}{%
+\blx@kv@defkey{blx@latem@field}{padchar}{%
   \blx@xmlsanitizeafter{\def\blx@temps}{#1}%
   \eappto\blx@tempc{ pad\string_char="\expandafter\regexp\expandafter{\blx@temps}"}}
-\define@key{blx@latem@field}{padside}{% left|right
+\blx@kv@defkey{blx@latem@field}{padside}{% left|right
   \ifstrequal{#1}{left}
     {\eappto\blx@tempc{ pad\string_side="left"}}
     {\eappto\blx@tempc{ pad\string_side="right"}}}
@@ -14899,7 +14966,7 @@
   \let\blx@tempf\@empty
   \ifblank{#2}
     {}
-    {\setkeys{blx@inherit@default}{#2}}%
+    {\blx@kv@setkeys{blx@inherit@default}{#2}}%
   \edef\blx@tempa{\space
     inherit\string_all="\iftoggle{blx@inherit@all}{true}{false}"\space
     override\string_target="\iftoggle{blx@inherit@override}{true}{false}"%
@@ -14915,11 +14982,11 @@
 \newtoggle{blx@inherit@all}
 \newtoggle{blx@inherit@override}
 
-\define@key{blx@inherit@default}{all}[true]{% true|false
+\blx@kv@defkey{blx@inherit@default}{all}[true]{% true|false
   \settoggle{blx@inherit@all}{#1}}
-\define@key{blx@inherit@default}{override}[true]{% true|false
+\blx@kv@defkey{blx@inherit@default}{override}[true]{% true|false
   \settoggle{blx@inherit@override}{#1}}
-\define@key{blx@inherit@default}{ignore}{% csv list
+\blx@kv@defkey{blx@inherit@default}{ignore}{% csv list
   \edef\blx@tempf{ ignore="#1"}}
 
 % {<source>}{<target>}{<options>}
@@ -14927,15 +14994,15 @@
   \let\blx@tempc\@empty
   \ifblank{#3}
     {}
-    {\setkeys{blx@inherit@except}{#3}}%
+    {\blx@kv@setkeys{blx@inherit@except}{#3}}%
   \eappto\blx@tempb{%
     \blx@xml@inherit@type{#1}{#2}{\blx@tempc}}}
 
-\define@key{blx@inherit@except}{all}[true]{% true|false
+\blx@kv@defkey{blx@inherit@except}{all}[true]{% true|false
   \eappto\blx@tempc{ inherit\string_all="#1"}}
-\define@key{blx@inherit@except}{override}[true]{% true|false
+\blx@kv@defkey{blx@inherit@except}{override}[true]{% true|false
   \eappto\blx@tempc{ override\string_target="#1"}}
-\define@key{blx@inherit@except}{ignore}{% csv list
+\blx@kv@defkey{blx@inherit@except}{ignore}{% csv list
   \eappto\blx@tempc{ ignore="#1"}}
 
 % {<type,type,...>}{<type,type,...>}{<spec>}
@@ -14945,7 +15012,7 @@
   \let\blx@tempf\@empty
   \ifblank{#1}
     {}
-    {\setkeys{blx@inherit}{#1}}%
+    {\blx@kv@setkeys{blx@inherit}{#1}}%
   \forcsvlist{\blx@inherit@i{#3}}{#2}%
   \let\blx@tempb\@empty
   \let\inherit\blx@inherit@field
@@ -14971,17 +15038,17 @@
   \let\blx@tempc\@empty
   \ifblank{#1}
     {}
-    {\setkeys{blx@inherit@field}{#1}}%
+    {\blx@kv@setkeys{blx@inherit@field}{#1}}%
   \eappto\blx@tempb{%
     \blx@xml@inherit@field{#2}{#3}{\blx@tempc}}}
 
 \newcommand*{\blx@inherit@block}[1]{%
   \eappto\blx@tempb{\blx@xml@inherit@block{#1}}}
 
-\define@key{blx@inherit}{ignore}{% csv list
+\blx@kv@defkey{blx@inherit}{ignore}{% csv list
   \edef\blx@tempf{ ignore="#1"}}
 
-\define@key{blx@inherit@field}{override}[true]{% true|false
+\blx@kv@defkey{blx@inherit@field}{override}[true]{% true|false
   \ifstrequal{#1}{true}
     {\edef\blx@tempc{ override\string_target="true"}}
     {\edef\blx@tempc{ override\string_target="false"}}}
@@ -15009,21 +15076,21 @@
 \newcommand*{\blx@biblistfilter}[1][2]{%
   \let\blx@tempc\@empty
   \let\blx@tempd\@empty
-  \setkeys{blx@biblistfilter@filter}{#1}%
+  \blx@kv@setkeys{blx@biblistfilter@filter}{#1}%
   \eappto\blx@tempa{%
     \blx@xml@dlistfilter{\blx@tempc}{\blx@tempd}}}
 
-\define@key{blx@biblistfilter@filter}{type}{%
+\blx@kv@defkey{blx@biblistfilter@filter}{type}{%
   \def\blx@tempc{#1}}
-\define@key{blx@biblistfilter@filter}{filter}{%
+\blx@kv@defkey{blx@biblistfilter@filter}{filter}{%
   \def\blx@tempd{#1}}
 
 % Predefine filters for label fields
 \def\do#1{\DeclareBiblistFilter{#1}{\filter[type=field,filter=#1]}}
 \abx@dolabelfields
 
-\define@key{blx@biblist2}{biblistfilter}{\blx@key@biblistfilter{#1}}
-\define@key{blx@biblist1}{biblistfilter}{}
+\blx@kv@defkey{blx@biblist1}{biblistfilter}{\blx@key@biblistfilter{#1}}
+\blx@kv@defkey{blx@biblist2}{biblistfilter}{}
 
 \def\blx@key@biblistfilter#1{%
   \ifcsundef{blx@biblistfilters@#1}
@@ -15082,21 +15149,21 @@
   \let\blx@tempc\@empty
   \ifblank{#1}
     {}
-    {\setkeys{blx@untemp@namepart}{#1}}%
+    {\blx@kv@setkeys{blx@untemp@namepart}{#1}}%
   \eappto\blx@tempa{%
     \blx@xml@uniquenametemplatenamepart{\blx@tempe}{\blx@tempc}{#2}}}
 
-\define@key{blx@untemp@namepart}{use}[true]{% use* option for namepart true|false
+\blx@kv@defkey{blx@untemp@namepart}{use}[true]{% use* option for namepart true|false
   \ifstrequal{#1}{true}
     {\appto\blx@tempc{ use="1"}}
     {}}
 
-\define@key{blx@untemp@namepart}{base}[true]{% base option for namepart true|false
+\blx@kv@defkey{blx@untemp@namepart}{base}[true]{% base option for namepart true|false
   \ifstrequal{#1}{true}
     {\appto\blx@tempc{ base="1"}}
     {}}
 
-\define@key{blx@untemp@namepart}{disambiguation}{% disambiguation option for namepart none|inits|full|fullonly
+\blx@kv@defkey{blx@untemp@namepart}{disambiguation}{% disambiguation option for namepart none|inits|full|fullonly
   \appto\blx@tempc{ disambiguation="#1"}}
 
 % [<templatename>]{<template>}
@@ -15151,16 +15218,16 @@
   \let\blx@tempc\@empty
   \ifblank{#1}
     {}
-    {\setkeys{blx@sortnk@namepart}{#1}}%
+    {\blx@kv@setkeys{blx@sortnk@namepart}{#1}}%
   \eappto\blx@tempb{%
     \blx@xml@sortingnamekeynamepart{\blx@tempe}{\blx@tempc}{#2}}}
 
-\define@key{blx@sortnk@namepart}{use}[true]{% use* option for namepart true|false
+\blx@kv@defkey{blx@sortnk@namepart}{use}[true]{% use* option for namepart true|false
   \ifstrequal{#1}{true}
     {\appto\blx@tempc{ use="1"}}
     {\appto\blx@tempc{ use="0"}}}
 
-\define@key{blx@sortnk@namepart}{inits}[true]{% initials only option for namepart true|false
+\blx@kv@defkey{blx@sortnk@namepart}{inits}[true]{% initials only option for namepart true|false
   \ifstrequal{#1}{true}
     {\appto\blx@tempc{ inits="1"}}
     {\appto\blx@tempc{ inits="0"}}}
@@ -15169,7 +15236,7 @@
 \newrobustcmd*{\DeclareSortingTemplate}[3][]{%
   \ifblank{#1}
     {}
-    {\setkeys{blx@sortdef@sorting}{#1}%
+    {\blx@kv@setkeys{blx@sortdef@sorting}{#1}%
      \csxdef{blx@sortdef@locale@#2}{\blx@templ}}%
   \begingroup
   \def\name{%LEGACY(<2.0)
@@ -15192,7 +15259,7 @@
 \@onlypreamble\DeclareSortingTemplate
 \blx@DeclareBackendOption{global}[xml]{sortingtemplate}
 
-\define@key{blx@sortdef@sorting}{locale}{% locale name
+\blx@kv@defkey{blx@sortdef@sorting}{locale}{% locale name
   \def\blx@templ{#1}}
 
 \newcommand*{\blx@sortdef@sort}[2][]{%
@@ -15202,27 +15269,27 @@
   \edef\blx@tempc{order="\the\blx@tempcnta"}%
   \ifblank{#1}
     {}
-    {\setkeys{blx@sortdef@sort}{#1}}%
+    {\blx@kv@setkeys{blx@sortdef@sort}{#1}}%
   \let\do\@firstofone
   #2%
   \eappto\blx@tempa{%
     \blx@xml@sort{\blx@tempc}{\blx@tempb}}}
 
-\define@key{blx@sortdef@sort}{locale}{% locale name
+\blx@kv@defkey{blx@sortdef@sort}{locale}{% locale name
   \eappto\blx@tempc{ locale="#1"}}
-\define@key{blx@sortdef@sort}{direction}{% ascending|descending
+\blx@kv@defkey{blx@sortdef@sort}{direction}{% ascending|descending
   \ifstrequal{#1}{ascending}
     {\eappto\blx@tempc{ sort\string_direction="ascending"}}
     {\eappto\blx@tempc{ sort\string_direction="descending"}}}
-\define@key{blx@sortdef@sort}{final}[true]{% true|false
+\blx@kv@defkey{blx@sortdef@sort}{final}[true]{% true|false
   \ifstrequal{#1}{true}
     {\appto\blx@tempc{ final="1"}}
     {}}
-\define@key{blx@sortdef@sort}{sortcase}[true]{% true|false
+\blx@kv@defkey{blx@sortdef@sort}{sortcase}[true]{% true|false
   \ifstrequal{#1}{true}
     {\appto\blx@tempc{ sortcase="1"}}
     {\appto\blx@tempc{ sortcase="0"}}}
-\define@key{blx@sortdef@sort}{sortupper}[true]{% true|false
+\blx@kv@defkey{blx@sortdef@sort}{sortupper}[true]{% true|false
   \ifstrequal{#1}{true}
     {\appto\blx@tempc{ sortupper="1"}}
     {\appto\blx@tempc{ sortupper="0"}}}
@@ -15232,29 +15299,29 @@
   \edef\blx@tempd{order="\the\blx@tempcntb"}%
   \ifblank{#1}
     {}
-    {\setkeys{blx@sortdef@field}{#1}}%
+    {\blx@kv@setkeys{blx@sortdef@field}{#1}}%
   \eappto\blx@tempb{%
     \blx@xml@sortitem{\blx@tempd}{#2}}}
 
-\define@key{blx@sortdef@field}{form}{% string
-  \appto\blx@tempd{ form="#1"}}
-\define@key{blx@sortdef@field}{lang}{% string
-  \appto\blx@tempd{ lang="#1"}}
-\define@key{blx@sortdef@field}{padside}{% left|right
+\blx@kv@defkey{blx@sortdef@field}{form}{% string
+  \eappto\blx@tempd{ form="#1"}}
+\blx@kv@defkey{blx@sortdef@field}{lang}{% string
+  \eappto\blx@tempd{ lang="#1"}}
+\blx@kv@defkey{blx@sortdef@field}{padside}{% left|right
   \ifstrequal{#1}{right}
-    {\appto\blx@tempd{ pad\string_side="right"}}
-    {\appto\blx@tempd{ pad\string_side="left"}}}
-\define@key{blx@sortdef@field}{padwidth}{% integer
-  \appto\blx@tempd{ pad\string_width="#1"}}
-\define@key{blx@sortdef@field}{padchar}{% character
+    {\eappto\blx@tempd{ pad\string_side="right"}}
+    {\eappto\blx@tempd{ pad\string_side="left"}}}
+\blx@kv@defkey{blx@sortdef@field}{padwidth}{% integer
+  \eappto\blx@tempd{ pad\string_width="#1"}}
+\blx@kv@defkey{blx@sortdef@field}{padchar}{% character
   \blx@xmlsanitizeafter{\def\blx@tempe}{#1}%
-  \appto\blx@tempd{ pad\string_char="\blx@tempe"}}
-\define@key{blx@sortdef@field}{strside}{% left|right
+  \eappto\blx@tempd{ pad\string_char="\blx@tempe"}}
+\blx@kv@defkey{blx@sortdef@field}{strside}{% left|right
   \ifstrequal{#1}{right}
-    {\appto\blx@tempd{ substring\string_side="right"}}
-    {\appto\blx@tempd{ substring\string_side="left"}}}
-\define@key{blx@sortdef@field}{strwidth}{% integer
-  \appto\blx@tempd{ substring\string_width="#1"}}
+    {\eappto\blx@tempd{ substring\string_side="right"}}
+    {\eappto\blx@tempd{ substring\string_side="left"}}}
+\blx@kv@defkey{blx@sortdef@field}{strwidth}{% integer
+  \eappto\blx@tempd{ substring\string_width="#1"}}
 
 \def\blx@sortdef@literal#1{%
   \advance\blx@tempcntb\@ne
@@ -15397,7 +15464,7 @@
   \let\blx@tempc\@empty
   \ifblank{#1}
     {}
-    {\setkeys{blx@ordered@field}{#1}}%
+    {\blx@kv@setkeys{blx@ordered@field}{#1}}%
   \advance\blx@tempcnta\@ne
   \ifdefempty{\blx@tempa}
     {\csxappto{blx@bcf@\blx@tempb}{%
@@ -15412,7 +15479,7 @@
   \let\blx@tempc\@empty
   \ifblank{#1}
     {}
-    {\setkeys{blx@ordered@field}{#1}}%
+    {\blx@kv@setkeys{blx@ordered@field}{#1}}%
   \advance\blx@tempcnta\@ne
   \ifdefempty{\blx@tempa}
     {\csxappto{blx@bcf@\blx@tempb}{%
@@ -15440,7 +15507,7 @@
 
 \newrobustcmd*{\ExecuteBibliographyOptions}[2][]{%
   \ifblank{#1}
-    {\setkeys{blx@opt@pre}{#2}}
+    {\blx@kv@setkeys{blx@opt@pre}{#2}}
     {\forcsvlist{\blx@typeoptions{#2}}{#1}}}
 \@onlypreamble\ExecuteBibliographyOptions
 
@@ -15461,9 +15528,9 @@
 
 % Have to have a dummy for this as it's set much earlier but is passed
 % through to here where we just ignore it
-\define@key{blx@opt@ldt}{datamodel}{}
+\blx@kv@defkey{blx@opt@ldt}{datamodel}{}
 
-\define@key{blx@opt@ldt}{backend}{%
+\blx@kv@defkey{blx@opt@ldt}{backend}{%
   \ifstrequal{#1}{biber}
     {}
     {\ifboolexpr{
@@ -15477,23 +15544,23 @@
           {}}%
        {\blx@err@invopt{backend=#1}{}}}}
 
-\define@key{blx@opt@ldt}{style}{%
+\blx@kv@defkey{blx@opt@ldt}{style}{%
   \def\blx@cbxfile{#1}%
   \def\blx@bbxfile{#1}}
 
-\define@key{blx@opt@ldt}{bibstyle}{%
+\blx@kv@defkey{blx@opt@ldt}{bibstyle}{%
   \def\blx@bbxfile{#1}}
 
-\define@key{blx@opt@ldt}{citestyle}{%
+\blx@kv@defkey{blx@opt@ldt}{citestyle}{%
   \def\blx@cbxfile{#1}}
 
-\define@key{blx@opt@ldt}{natbib}[true]{%
+\blx@kv@defkey{blx@opt@ldt}{natbib}[true]{%
   \settoggle{blx@natbib}{#1}}
 
-\define@key{blx@opt@ldt}{mcite}[true]{%
+\blx@kv@defkey{blx@opt@ldt}{mcite}[true]{%
   \settoggle{blx@mcite}{#1}}
 
-\define@key{blx@opt@ldt}{noerroretextools}[true]{%
+\blx@kv@defkey{blx@opt@ldt}{noerroretextools}[true]{%
   \blx@warning@noline{%
     The option 'noerroretextools' is deprecated.\MessageBreak
     Define the control sequence '\string\blx@noerroretextools'\MessageBreak
@@ -15553,7 +15620,7 @@
 % unlikely to be corrected as "sorting" is an obvious name for biblatex users
 % "sorting" is used in the .bcf for the actual sorting template definitions and is
 % an XML format option
-\define@key{blx@opt@pre}{sorting}{%
+\blx@kv@defkey{blx@opt@pre}{sorting}{%
   \def\blx@sorting{#1}%
   \def\blx@refcontext@sortingtemplatename{#1}}
 \blx@DeclareBackendOption{global}[string]{sortingtemplatename}
@@ -15937,13 +16004,13 @@
 \DeclareBibliographyOption[string]{block}{%
   \blx@optprocess@block{#1}}
 
-\define@key{blx@bib1}{block}{}
-\define@key{blx@bib2}{block}{\blx@optprocess@block{#1}}
-\define@key{blx@biblist1}{block}{}
-\define@key{blx@biblist2}{block}{\blx@optprocess@block{#1}}
+\blx@kv@defkey{blx@bib1}{block}{}
+\blx@kv@defkey{blx@bib2}{block}{\blx@optprocess@block{#1}}
+\blx@kv@defkey{blx@biblist1}{block}{}
+\blx@kv@defkey{blx@biblist2}{block}{\blx@optprocess@block{#1}}
 
-\define@key{blx@bbs}{block}{\blx@optprocess@block{#1}}
-\define@key{blx@bbg}{block}{\blx@optprocess@block{#1}}
+\blx@kv@defkey{blx@bbs}{block}{\blx@optprocess@block{#1}}
+\blx@kv@defkey{blx@bbg}{block}{\blx@optprocess@block{#1}}
 
 \def\blx@opt@block@none{%
   \let\blx@bibsetup\@empty
@@ -16333,7 +16400,7 @@
         {\blx@err@invopt{#1date=##1}{}}}}%
     % Default for new date fields is "comp" but this is overridden below by
     % biblatex defaults
-    \setkeys{blx@opt@pre}{#1date=comp}%
+    \blx@kv@setkeys{blx@opt@pre}{#1date=comp}%
     % Time format options
     \DeclareBibliographyOption[string]{#1time}{%
       \csdef{blx@timeformat@#1time}{##1}%
@@ -16341,7 +16408,7 @@
         {\protected\csedef{blx@imc@print#1time}{\csuse{mktimerange##1}{#1}}}
         {\blx@err@invopt{#1time=##1}{}}}%
     % Default for new time fields is "24h"
-    \setkeys{blx@opt@pre}{#1time=24h}%
+    \blx@kv@setkeys{blx@opt@pre}{#1time=24h}%
     % Boolean to determine if times are printed with dates
     \newtoggle{blx@#1dateusetime}%
     \DeclareBibliographyOption[boolean]{#1dateusetime}{%
@@ -16442,7 +16509,7 @@
   \settoggle{blx@labelnumber}{#1}%
   \iftoggle{blx@labelnumber}
     {}
-    {\setkeys{blx@opt@pre}{defernumbers=false}}}
+    {\blx@kv@setkeys{blx@opt@pre}{defernumbers=false}}}
 \DeclareBiblatexOption{type,entry}[boolean]{labelnumber}[true]{%
   \settoggle{blx@labelnumber}{#1}}
 
@@ -16519,14 +16586,14 @@
 \DeclareBibliographyOption[boolean]{defernumbers}[true]{%
   \settoggle{blx@defernumbers}{#1}%
   \iftoggle{blx@defernumbers}
-    {\setkeys{blx@opt@pre}{labelnumber}%
+    {\blx@kv@setkeys{blx@opt@pre}{labelnumber}%
      \let\blx@thelabelnumber\blx@addlabelnumber
      \let\abx@aux@number\blx@aux@number}
     {\let\blx@thelabelnumber\relax
      \let\abx@aux@number\@gobblefive}}
 
 \DeclareBibliographyOption[boolean]{locallabelwidth}[true]{%
-  \blx@key@locallabelwidth{\abx@locallabelwidth}{#1}}
+  \blx@key@locallabelwidth{#1}}
 
 
 \DeclareBibliographyOption[string]{refsection}{%
@@ -16631,11 +16698,11 @@
   \def\blx@tempa#1=#2&{#1}%
   \edef\blx@tempa{%
     \expandafter\blx@tempa\CurrentOption=&}%
-  \ifcsundef{KV@blx@opt@ldt@\blx@tempa}
+  \blx@kv@ifkeyundef{blx@opt@ldt}{\blx@tempa}
     {\endgroup
      \eappto\blx@theoptions{\CurrentOption,}}
     {\edef\blx@tempa{\endgroup
-       \noexpand\setkeys{blx@opt@ldt}{\CurrentOption}}%
+       \noexpand\blx@kv@setkeys{blx@opt@ldt}{\CurrentOption}}%
      \blx@tempa}}
 
 \def\blx@processoptions{%
@@ -16643,14 +16710,14 @@
     {}
     {\begingroup
      \edef\blx@tempa{\endgroup
-       \noexpand\setkeys{blx@opt@pre}{\blx@theoptions}}%
+       \noexpand\blx@kv@setkeys{blx@opt@pre}{\blx@theoptions}}%
      \blx@tempa}}
 
 %% Initial setup
 
 % Set defaults
-\setkeys{blx@opt@ldt}{style=numeric}
-\setkeys{blx@opt@pre}{%
+\blx@kv@setkeys{blx@opt@ldt}{style=numeric}
+\blx@kv@setkeys{blx@opt@pre}{%
   sorting=nty,sortlocale=auto,sortcase,sortupper,sortcites=false,
   maxnames=3,minnames=1,maxalphanames=3,minalphanames=1,
   maxitems=3,minitems=1,mincrossrefs=2,minxrefs=2,useauthor=true,useeditor=true,
@@ -16722,19 +16789,19 @@
        {\blx@warn@conflopt{%
           '<namepart>inits' conflicts with 'uniquename=full'.\MessageBreak
           Setting 'uniquename=init'}%
-        \setkeys{blx@opt@pre}{uniquename=init}}
+        \blx@kv@setkeys{blx@opt@pre}{uniquename=init}}
        {}%
      \ifdefstrequal\blx@uniquename\blx@opt@uniquename@allfull
        {\blx@warn@conflopt{%
           '<namepart>inits' conflicts with 'uniquename=allfull'.\MessageBreak
           Setting 'uniquename=allinit}%
-        \setkeys{blx@opt@pre}{uniquename=allinit}}
+        \blx@kv@setkeys{blx@opt@pre}{uniquename=allinit}}
        {}%
      \ifdefstrequal\blx@uniquename\blx@opt@uniquename@minfull
        {\blx@warn@conflopt{%
           '<namepart>inits' conflicts with 'uniquename=minfull'.\MessageBreak
           Setting 'uniquename=mininit}%
-        \setkeys{blx@opt@pre}{uniquename=mininit}}
+        \blx@kv@setkeys{blx@opt@pre}{uniquename=mininit}}
        {}}
     {}%
   \nottoggle{blx@labeldateparts}
@@ -16742,7 +16809,7 @@
        {\blx@warn@conflopt{%
           'uniquelist=minyear' requires 'labeldateparts'.\MessageBreak
           Setting 'uniquelist=true'}%
-        \setkeys{blx@opt@pre}{uniquelist}}
+        \blx@kv@setkeys{blx@opt@pre}{uniquelist}}
        {}}
     {}%
     \def\do#1{%
@@ -16752,36 +16819,36 @@
            {\blx@warn@conflopt{%
               '#1=iso' requires 'dateera=astronomical'.\MessageBreak
               Setting 'dateera=astronomical'}%
-            \setkeys{blx@opt@pre}{dateera=astronomical}}%
+            \blx@kv@setkeys{blx@opt@pre}{dateera=astronomical}}%
           \ifcsstring{blx@timeformat@\blx@datetype time}{24h}%
            {}
            {\blx@warn@conflopt{%
               '#1=iso' requires '\blx@datetype time=24h'.\MessageBreak
               Setting '\blx@datetype time=24h'}%
-            \setkeys{blx@opt@pre}{\blx@datetype time=24h}}%
+            \blx@kv@setkeys{blx@opt@pre}{\blx@datetype time=24h}}%
          \iftoggle{blx@julian}
            {\blx@warn@conflopt{%
               '#1=iso' requires 'julian=false'.\MessageBreak
               Setting 'julian=false'}%
-            \setkeys{blx@opt@pre}{julian=false}}
+            \blx@kv@setkeys{blx@opt@pre}{julian=false}}
            {}%
          \nottoggle{blx@datezeros}
            {\blx@warn@conflopt{%
               '#1=iso' requires 'datezeros=true'.\MessageBreak
               Setting 'datezeros=true'}%
-            \setkeys{blx@opt@pre}{datezeros=true}}
+            \blx@kv@setkeys{blx@opt@pre}{datezeros=true}}
            {}%
          \nottoggle{blx@timezeros}
            {\blx@warn@conflopt{%
               '#1=iso' requires 'timezeros=true'.\MessageBreak
               Setting 'timezeros=true'}%
-            \setkeys{blx@opt@pre}{timezeros=true}}
+            \blx@kv@setkeys{blx@opt@pre}{timezeros=true}}
            {}%
          \nottoggle{blx@seconds}
            {\blx@warn@conflopt{%
               '#1=iso' requires 'seconds=true'.\MessageBreak
               Setting 'seconds=true'}%
-            \setkeys{blx@opt@pre}{seconds=true}}
+            \blx@kv@setkeys{blx@opt@pre}{seconds=true}}
            {}}
         {}}%
     \abx@dodates
