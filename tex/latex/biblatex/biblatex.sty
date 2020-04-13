@@ -630,7 +630,7 @@
      in recent versions of pdfTeX, LuaTeX and XeTeX}%
    \let\blx@generate@bbl@mdfivesum@found\relax
    \let\blx@generate@bbl@mdfivesum@notfound\relax
-   \let\aux@read@bbl@mdfivesum\@gobble
+   \let\blx@aux@read@bbl@mdfivesum\@gobble
    \let\blx@aux@write@bbl@mdfivesum\relax
    \let\blx@check@bbl@rerun@mdfivesum\relax}
   {\let\blx@filemdfivesum\pdf@filemdfivesum
@@ -641,7 +641,7 @@
    \def\blx@generate@bbl@mdfivesum@notfound{%
      \gdef\blx@bbl@mdfivesum@new{nobblfile}}
 
-   \def\aux@read@bbl@mdfivesum{%
+   \def\blx@aux@read@bbl@mdfivesum{%
      \gdef\blx@bbl@mdfivesum@old}
 
    % If we need Biber to rerun, save the hash of the current .bbl.
@@ -650,8 +650,8 @@
    \def\blx@aux@write@bbl@mdfivesum{%
      \iftoggle{blx@runbiber}
        {\blx@auxwrite\@mainaux{}{%
-          \string\aux@read@bbl@mdfivesum{\blx@bbl@mdfivesum@new}}}
-        {}}
+          \string\blx@aux@read@bbl@mdfivesum{\blx@bbl@mdfivesum@new}}}
+       {}}
 
    % There was a Biber rerun request last time (\blx@bbl@mdfivesum@old),
    % yet the bbl files are the same (as far as md5 hashes are concerned),
@@ -795,6 +795,7 @@
 \newcount\blx@parenlevel@foot
 \expandafter\newcount\csname blx@sectionciteorder@0\endcsname
 \newcount\blx@entrysetcounter
+\newcount\blx@biblioinstance
 
 \def\blx@uniquename{false}
 \def\blx@uniquelist{false}
@@ -6682,6 +6683,10 @@
 
 % fields which can be used as labels - we auto-create some macros for these
 \def\abx@dolabelfields{\dolistloop\blx@datamodel@labelfields}
+\def\abx@dolabelwidths{%
+  \do{labelnumber}%
+  \do{labelalpha}%
+  \abx@dolabelfields}
 
 \def\abx@donames{\dolistloop\blx@datamodel@names}
 \def\abx@donameparts{\expandafter\docsvlist\expandafter{\blx@datamodel@constant@nameparts}}
@@ -7289,10 +7294,8 @@
 \def\do#1{\expandafter\newlength\expandafter{\csname #1width\endcsname}}
 \abx@dolabelfields
 
-\newlength{\locallabelnumberwidth}
-\newlength{\locallabelalphawidth}
 \def\do#1{\expandafter\newlength\expandafter{\csname local#1width\endcsname}}
-\abx@dolabelfields
+\abx@dolabelwidths
 
 \protected\def\blx@resetdata{%
   \let\blx@saved@do\do
@@ -8381,26 +8384,49 @@
   \blx@getformat\abx@tmp@theformat{ffd}{#2}{#3}%
   \csletcs{#1}{abx@tmp@theformat}}
 
+
+% {<instance (int)>}{<field>}{<length>}
+\def\abx@aux@locallabelwidth#1#2#3{%
+  \csgdef{blx@locallabelwidth@#1@#2}{#3}}
+
+\def\blx@locallabelwidth@write@length#1{%
+  \ifdimequal{\csname local#1width\endcsname}{0pt}
+    {}
+    {\blx@auxwrite\@mainaux{}
+       {\string\abx@aux@locallabelwidth
+         {\the\blx@biblioinstance}%
+         {#1}%
+         {\the\csname local#1width\endcsname}}}}
+
+\def\blx@locallabelwidth@write{%
+  \let\do\blx@locallabelwidth@write@length
+  \abx@dolabelwidths}
+
+\let\blx@locallabelwidth@finish\relax
+
 \def\blx@labelwidth@resetlocal{%
-  \locallabelnumberwidth\z@
-  \locallabelalphawidth\z@
   \def\do##1{%
     \csname local##1width\endcsname\z@}%
-  \abx@dolabelfields}
+  \abx@dolabelwidths}
+
+\def\blx@labelwidth@settolocal@length#1{%
+  \ifcsundef{blx@locallabelwidth@\the\blx@biblioinstance @#1}
+    {}
+    {\csname #1width\endcsname
+     \csname blx@locallabelwidth@\the\blx@biblioinstance @#1\endcsname
+     \space}}
 
 \def\blx@labelwidth@settolocal{%
-  \labelnumberwidth\locallabelnumberwidth
-  \labelalphawidth\locallabelalphawidth
-  \def\do##1{%
-    \csname ##1width\endcsname\csname local##1width\endcsname}%
-  \abx@dolabelfields}
+  \let\do\blx@labelwidth@settolocal@length
+  \abx@dolabelwidths}
 
-\def\blx@locallabelwidth#1{%
+\def\blx@locallabelwidth@setlengths{%
+  \global\advance\blx@biblioinstance\@ne
   \blx@labelwidth@resetlocal
-  \let\blx@do\blx@lengthitem
-  \let\blx@done\relax
-  \blx@listloop{#1}%
   \blx@labelwidth@settolocal}
+
+\let\blx@locallabelwidth@init\relax
+
 
 % {<prefix for labelwidth fields>}
 \def\blx@bbl@labelnumberwidth@numeric#1{%
@@ -9214,20 +9240,22 @@
 \blx@kv@defkey{blx@bbc}{postnote}{%
   \blx@key@bibnote{\blx@thepostnote}{#1}}
 
-\let\abx@default@locallabelwidth\@gobble
+
 \blx@kv@defkey{blx@bibdefaults}{locallabelwidth}{%
-  \blx@key@locallabelwidth{\abx@default@locallabelwidth}{#1}}
+  \blx@key@locallabelwidth{#1}}
 \blx@kv@defkey{blx@bib1}{locallabelwidth}[]{}
 \blx@kv@defkey{blx@biblist1}{locallabelwidth}[]{}
 \blx@kv@defkey{blx@bib2}{locallabelwidth}[true]{%
-  \blx@key@locallabelwidth{\abx@locallabelwidth}{#1}}
+  \blx@key@locallabelwidth{#1}}
 \blx@kv@defkey{blx@biblist2}{locallabelwidth}[true]{%
-  \blx@key@locallabelwidth{\abx@locallabelwidth}{#1}}
+  \blx@key@locallabelwidth{#1}}
 
-\def\blx@key@locallabelwidth#1#2{%
-  \ifstrequal{#2}{true}
-    {\def#1{\blx@locallabelwidth}}
-    {\let#1\@gobble}}
+\def\blx@key@locallabelwidth#1{%
+  \ifstrequal{#1}{true}
+    {\let\blx@locallabelwidth@init\blx@locallabelwidth@setlengths
+     \let\blx@locallabelwidth@finish\blx@locallabelwidth@write}
+    {\let\blx@locallabelwidth@init\relax
+     \let\blx@locallabelwidth@finish\relax}}
 
 \blx@kv@defkey{blx@bib2}{resetnumbers}[true]{%
   \iftoggle{blx@defernumbers}
@@ -9455,7 +9483,7 @@
   \endgroup}
 
 % {<entrykey>,...}
-\def\blx@bibliography#1{%
+\def\blx@bibliography{%
   \blx@bibheading\blx@theheading\blx@thetitle
   \blx@bibnote\blx@theprenote
   \begingroup
@@ -9468,17 +9496,18 @@
   \ifnum\bibnamesep=\z@
     \let\blx@namesep\relax
   \fi
-  \abx@locallabelwidth{#1}%
+  \blx@locallabelwidth@init
   \csuse{blx@env@\blx@theenv}%
   \csuse{blx@hook@bibinit}%
   \csuse{blx@hook@bibinit@next}%
   \let\blx@do\blx@bibitem
   \let\blx@done\blx@endbibliography
-  \blx@listloop{#1}}
+  \blx@listloop}
 
 \def\blx@endbibliography{%
   \csuse{blx@endenv@\blx@theenv}%
   \blx@noitem
+  \blx@locallabelwidth@finish
   \endgroup
   \blx@bibnote\blx@thepostnote
   \endgroup}
@@ -9520,25 +9549,6 @@
   \csuse{blx@bibsetup}}
 
 % {<entrykey>}
-\def\blx@lengthitem#1{%
-  \blx@ifdata{#1}
-    {\begingroup
-     \blx@getdata{#1}%
-     \blx@bibcheck
-     \iftoggle{blx@skipentry}{}{%
-       \iftoggle{blx@labelnumber}
-         {\blx@bbl@locallabelnumberwidth}
-         {}%
-       \iftoggle{blx@labelalpha}
-         {\blx@bbl@locallabelalphawidth}
-         {}%
-       \nottoggle{blx@skipbiblist}
-         {\blx@bbl@locallabelfields}
-         {}}%
-     \endgroup}
-    {}}
-
-% {<entrykey>}
 % output a bib item, this is why \blx@thelabelnumber is here so that
 % labelnumber is deferred if defernumbers=true
 \def\blx@bibitem#1{%
@@ -9553,6 +9563,15 @@
        \blx@setoptions@entry
        \blx@thelabelnumber
        \addtocounter{instcount}\@ne
+       \iftoggle{blx@labelnumber}
+         {\blx@bbl@locallabelnumberwidth}
+         {}%
+       \iftoggle{blx@labelalpha}
+         {\blx@bbl@locallabelalphawidth}
+         {}%
+       \nottoggle{blx@skipbiblist}
+         {\blx@bbl@locallabelfields}
+         {}%
        \csuse{blx@item@\blx@theenv}\relax
        \blx@initsep
        \blx@namesep
@@ -9801,7 +9820,7 @@
        {\global\let\blx@printbibchecks\relax}}}
 
 % {<entrykey>,...}
-\def\blx@biblist#1{%
+\def\blx@biblist{%
   \if@twocolumn
     \@restonecoltrue\onecolumn
   \else
@@ -9813,16 +9832,17 @@
   \blx@bibinit
   \let\@noitemerr\@empty
   \def\blx@noitem{\blx@warn@biblistempty{\blx@thebiblist}}%
-  \abx@locallabelwidth{#1}%
+  \blx@locallabelwidth@init
   \csuse{blx@env@\blx@theenv}%
   \csuse{blx@hook@biblistinit@\blx@thebiblist}%
   \let\blx@do\blx@biblistitem
   \let\blx@done\blx@endbiblist
-  \blx@listloop{#1}}
+  \blx@listloop}
 
 \def\blx@endbiblist{%
   \csuse{blx@endenv@\blx@theenv}%
   \blx@noitem
+  \blx@locallabelwidth@finish
   \endgroup
   \blx@bibnote\blx@thepostnote
   \endgroup
@@ -9846,6 +9866,15 @@
        \blx@setoptions@type\abx@field@entrytype
        \blx@setoptions@entry
        \addtocounter{instcount}\@ne
+       \iftoggle{blx@labelnumber}
+         {\blx@bbl@locallabelnumberwidth}
+         {}%
+       \iftoggle{blx@labelalpha}
+         {\blx@bbl@locallabelalphawidth}
+         {}%
+       \nottoggle{blx@skipbiblist}
+         {\blx@bbl@locallabelfields}
+         {}%
        \csuse{blx@item@\blx@theenv}\relax
        \csuse{blx@hook@biblistitem@\blx@thebiblist}%
        \blx@execute
@@ -15190,7 +15219,7 @@
      \let\abx@aux@number\@gobblefive}}
 
 \DeclareBibliographyOption[boolean]{locallabelwidth}[true]{%
-  \blx@key@locallabelwidth{\abx@locallabelwidth}{#1}}
+  \blx@key@locallabelwidth{#1}}
 
 
 \DeclareBibliographyOption[string]{refsection}{%
