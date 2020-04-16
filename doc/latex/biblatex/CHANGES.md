@@ -50,12 +50,13 @@
   ```
   \newbibmacro*{chapter+pages}{%
     \printfield{chapter}%
-    \setunit{\addcomma\space}%
+    \setunit{\bibeidpunct}%
     \printfield{eid}%
     \setunit{\bibpagespunct}%
     \printfield{pages}%
     \newunit}
   ```
+- Added `\bibeidpunct` in analogy to `\bibpagespunct`.
 - Added options `backreffloats` and `trackfloats` to enable/disable
   citation tracking and back references in floats.
   Note that citation tracking in floats can lead to undesirable
@@ -129,6 +130,7 @@
   macros (which are defined via `\provide...` so that they will
   not overwrite existing definitions; in particular users can define
   those replacements before loading `biblatex`).
+
 
 # RELEASE NOTES FOR VERSION 3.14
 - biber from version 2.14 has extended, granular XDATA functionality to
