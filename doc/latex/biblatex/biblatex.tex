@@ -3870,15 +3870,17 @@ Naturally all defaults can be overridden by options to \cmd{printbiblist} and de
 
 Bibliography lists are often used to print lists of various kinds of shorthands and this can result in duplicate entries if more than one bibliography entry has the same shorthand. For example, several journal articles in the same journal would result in duplicate entries in a list of journal shorthands. You can use the fact that such lists automatically pick up a \cmd{bibcheck} with the same name as the list to define a check to remove duplicates. If you are defining a list to print all of the journal shorthands using the \bibfield{shortjournal} field, you could define a \cmd{bibcheck} like this:
 
-\begin{ltxexample}
+\begin{ltxexample}[basicstyle=\displayverbfont\footnotesize]
 \defbibcheck{shortjournal}{%
    \iffieldundef{shortjournal}
      {\skipentry}
      {\iffieldundef{journaltitle}
        {\skipentry}
-       {\ifcsdef{\strfield{shortjournal}=\strfield{journaltitle}}
+       {\ifcsdef{sjcheck@\therefsection
+          -\strfield{shortjournal}=\strfield{journaltitle}}
          {\skipentry}
-         {\savefieldcs{journaltitle}{\strfield{shortjournal}=\strfield{journaltitle}}}}}}
+         {\savefieldcs{journaltitle}{sjcheck@\therefsection
+            -\strfield{shortjournal}=\strfield{journaltitle}}}}}}
 \end{ltxexample}
 
 \subsubsection{Bibliography Sections}
