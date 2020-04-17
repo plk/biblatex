@@ -21,6 +21,21 @@
   `\printunit` is needed instead of `\setunit` to stop subsequent
   `\setunit`s from overriding `\intitlepunct` in case of missing
   fields.
+- Unified DOI, eprint and URL printing across all entry types.
+  The fields `doi`, `eprint`, `eprintclass`, `eprinttype` and `url`
+  are now valid for all entry types.
+  `@online` and `@unpublished` now also use the bibmacro
+  `doi+eprint+url`.
+  This means `@online` now responds to the `url` option.
+  That does not mean, however, that a global `url=false,`
+  suppresses URLs for `@online` entries,  since `url=true,`
+  is set on a per-type level to ensure backwards compatibility
+  as far as possible.
+  In case eprint information should be suppressed for `@online`
+  and `@unpublished`, add
+  ```
+  \ExecuteBibliographyOptions[online,unpublished]{eprint=false}
+  ```
 - Added options `backreffloats` and `trackfloats` to enable/disable
   citation tracking and back references in floats.
   Note that citation tracking in floats can lead to undesirable
