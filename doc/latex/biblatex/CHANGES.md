@@ -57,6 +57,7 @@
     \newunit}
   ```
 - Added `\bibeidpunct` in analogy to `\bibpagespunct`.
+- Added `issuetitleaddon` and `journaltitleaddon` fields.
 - Added options `backreffloats` and `trackfloats` to enable/disable
   citation tracking and back references in floats.
   Note that citation tracking in floats can lead to undesirable
