@@ -3976,6 +3976,31 @@
        {\iffieldsequal{#1dateera}{#2dateera}}}
     {\@secondoftwo}}
 
+\def\blx@reconstruct@comparabledate#1{%
+  \thefield{#1year}-\thefield{#1month}(\thefield{#1season})-%
+    \thefield{#1day}T%
+  \thefield{#1hour}:\thefield{#1minute}:\thefield{#1second}Z%
+    \thefield{#1timezone}//%
+  e\thefield{#1dateera}E%
+  c\csuse{if#1datecirca}{T}{F}%
+  j\csuse{if#1datejulian}{T}{F}%
+  r\csuse{if#1dateuncertain}{T}{F}%
+  k\csuse{if#1dateunknown}{T}{F}%
+}
+
+\def\blx@imc@ifdatesequal#1#2{%
+  \begingroup
+    \edef\blx@tempa{\blx@reconstruct@comparabledate{#1}}%
+    \edef\blx@tempb{\blx@reconstruct@comparabledate{#2}}%
+    \edef\blx@tempc{\endgroup
+      \ifstrequal{\blx@tempa}{\blx@tempb}}%
+  \blx@tempc
+}
+
+\def\blx@imc@ifdaterangesequal#1#2{%
+  \blx@imc@ifdatesequal{#1}{#2}
+    {\blx@imc@ifdatesequal{#1end}{#2end}}
+    {\@secondoftwo}}
 
 \blx@regimcs{%
   \ifdriver \thefield \strfield \csfield \usefield \thelist \strlist
@@ -3996,7 +4021,7 @@
   \iffieldint \iffieldnum \iffieldnums \iffieldpages
   \iflabeldateisdate \ifdatehasyearonlyprecision \ifdatehastime
   \ifdateshavedifferentprecision
-  \ifdateyearsequal
+  \ifdateyearsequal \ifdatesequal \ifdaterangesequal
   \mkpageprefix \mkpagetotal
   \newblock \newunit \setunit \printunit \finentry}
 
