@@ -556,26 +556,35 @@
      {}%
 }
 
+% our copy of \addtocontents with \immediate (not @protected,
+% so a bit different, but we are only going to use it for very
+% specific input, so that doesn't matter)
+\def\blx@immediate@addtocontents#1#2{%
+  \blx@auxwrite\@auxout
+    {\let\label\@gobble \let\index\@gobble \let\glossary\@gobble}%
+    {\string\@writefile{#1}{#2}}}
+
+\AtBeginDocument{%
+  \blx@immediate@addtocontents{toc}{%
+     \boolfalse{citerequest}%
+     \boolfalse{citetracker}%
+     \boolfalse{pagetracker}%
+     \boolfalse{backtracker}\relax}%
+  \blx@immediate@addtocontents{lof}{%
+     \boolfalse{citerequest}%
+     \boolfalse{citetracker}%
+     \boolfalse{pagetracker}%
+     \boolfalse{backtracker}\relax}%
+  \blx@immediate@addtocontents{lot}{%
+     \boolfalse{citerequest}%
+     \boolfalse{citetracker}%
+     \boolfalse{pagetracker}%
+     \boolfalse{backtracker}\relax}}
 
 \begingroup
 \@makeother\#
 % \relax: gobble newline -> titletoc.sty
 \AtEndPreamble{%
-  \addtocontents{toc}{%
-     \boolfalse{citerequest}%
-     \boolfalse{citetracker}%
-     \boolfalse{pagetracker}%
-     \boolfalse{backtracker}\relax}%
-  \addtocontents{lof}{%
-     \boolfalse{citerequest}%
-     \boolfalse{citetracker}%
-     \boolfalse{pagetracker}%
-     \boolfalse{backtracker}\relax}%
-  \addtocontents{lot}{%
-     \boolfalse{citerequest}%
-     \boolfalse{citetracker}%
-     \boolfalse{pagetracker}%
-     \boolfalse{backtracker}\relax}%
   \patchcmd\addtocontents
     {\string\@writefile}
     {\string\@writefile{#1}{\defcounter{refsection}{\the\c@refsection}\relax}%
@@ -583,6 +592,7 @@
     {}
     {\blx@err@patch{\string\addtocontents}}}
 \endgroup
+
 
 % trick hyperref into believing we're natbib
 \let\NAT@parse\@empty
