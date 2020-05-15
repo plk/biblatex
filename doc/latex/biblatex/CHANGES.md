@@ -21,6 +21,17 @@
   `\printunit` is needed instead of `\setunit` to stop subsequent
   `\setunit`s from overriding `\intitlepunct` in case of missing
   fields.
+- Define `volcitepages` and `multipostnote` as a field alias of `postnote`
+  and `multiprenote` as an alias of `prenote`.
+  That should make it easier to change all post- and prenote formats at once.
+  A change to `postnote` will automatically apply to `multipostnote`
+  and `volcitepages` as well. Similarly for `multiprenote`.
+  In case that is not desired, the original definitions can be restored with
+  ```
+  \DeclareFieldFormat{volcitepages}{\mkpageprefix[pagination][\mknormrange]{#1}}
+  \DeclareFieldFormat{multiprenote}{#1\isdot}
+  \DeclareFieldFormat{multipostnote}{\mkpageprefix[pagination][\mknormrange]{#1}}
+  ```
 - Unified DOI, eprint and URL printing across all entry types.
   The fields `doi`, `eprint`, `eprintclass`, `eprinttype` and `url`
   are now valid for all entry types.
