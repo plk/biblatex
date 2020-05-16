@@ -54,6 +54,54 @@
   `\printunit` is needed instead of `\setunit` to stop subsequent
   `\setunit`s from overriding `\intitlepunct` in case of missing
   fields.
+- Define `volcitepages` and `multipostnote` as a field alias of `postnote`
+  and `multiprenote` as an alias of `prenote`.
+  That should make it easier to change all post- and prenote formats at once.
+  A change to `postnote` will automatically apply to `multipostnote`
+  and `volcitepages` as well. Similarly for `multiprenote`.
+  In case that is not desired, the original definitions can be restored with
+  ```
+  \DeclareFieldFormat{volcitepages}{\mkpageprefix[pagination][\mknormrange]{#1}}
+  \DeclareFieldFormat{multiprenote}{#1\isdot}
+  \DeclareFieldFormat{multipostnote}{\mkpageprefix[pagination][\mknormrange]{#1}}
+  ```
+- Unified DOI, eprint and URL printing across all entry types.
+  The fields `doi`, `eprint`, `eprintclass`, `eprinttype` and `url`
+  are now valid for all entry types.
+  `@online` and `@unpublished` now also use the bibmacro
+  `doi+eprint+url`.
+  This means `@online` now responds to the `url` option.
+  That does not mean, however, that a global `url=false,`
+  suppresses URLs for `@online` entries,  since `url=true,`
+  is set on a per-type level to ensure backwards compatibility
+  as far as possible.
+  In case eprint information should be suppressed for `@online`
+  and `@unpublished`, add
+  ```
+  \ExecuteBibliographyOptions[online,unpublished]{eprint=false}
+  ```
+- Added `eid` to more entry types.
+  To avoid issues with backwards compatibility of widely used bibmacros,
+  the bibmacro `chapter+pages` was redefined from
+  ```
+  \newbibmacro*{chapter+pages}{%
+    \printfield{chapter}%
+    \setunit{\bibpagespunct}%
+    \printfield{pages}%
+    \newunit}
+  ```
+  to
+  ```
+  \newbibmacro*{chapter+pages}{%
+    \printfield{chapter}%
+    \setunit{\bibeidpunct}%
+    \printfield{eid}%
+    \setunit{\bibpagespunct}%
+    \printfield{pages}%
+    \newunit}
+  ```
+- Added `\bibeidpunct` in analogy to `\bibpagespunct`.
+- Added `issuetitleaddon` and `journaltitleaddon` fields.
 - Added options `backreffloats` and `trackfloats` to enable/disable
   citation tracking and back references in floats.
   Note that citation tracking in floats can lead to undesirable
@@ -127,6 +175,7 @@
   macros (which are defined via `\provide...` so that they will
   not overwrite existing definitions; in particular users can define
   those replacements before loading `biblatex`).
+
 
 # RELEASE NOTES FOR VERSION 3.14
 - biber from version 2.14 has extended, granular XDATA functionality to

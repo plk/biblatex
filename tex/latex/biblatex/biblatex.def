@@ -175,6 +175,7 @@
 \newcommand*{\subtitlepunct}{\newunitpunct}
 \newcommand*{\intitlepunct}{\addcolon\space}
 \newcommand*{\bibpagespunct}{\addcomma\space}
+\newcommand*{\bibeidpunct}{\addcomma\space}
 \newcommand*{\bibpagerefpunct}{\addspace}
 \newcommand*{\revsdnamepunct}{\addcomma}
 \newcommand*{\bibnamedash}{%
@@ -473,15 +474,15 @@
 \DeclareFieldFormat{prenote}{#1\isdot}
 \DeclareFieldFormat{postnote}{\mkpageprefix[pagination][\mknormrange]{#1}}
 \DeclareFieldFormat{volcitevolume}{\bibstring{volume}\ppspace#1}
-\DeclareFieldFormat{volcitepages}{\mkpageprefix[pagination][\mknormrange]{#1}}
+\DeclareFieldAlias{volcitepages}{postnote}
 \DeclareFieldFormat{volcitenote}{\mkvolcitenote#1}
 \newrobustcmd*{\mkvolcitenote}[2]{%
   \printtext[volcitevolume]{#1}%
   \ifblank{#2}{}{\volcitedelim\printtext[volcitepages]{#2}}}
 
 % multicite commands
-\DeclareFieldFormat{multiprenote}{#1\isdot}
-\DeclareFieldFormat{multipostnote}{\mkpageprefix[pagination][\mknormrange]{#1}}
+\DeclareFieldAlias{multiprenote}{prenote}
+\DeclareFieldAlias{multipostnote}{postnote}
 
 % Used by \citeurl
 
@@ -1802,6 +1803,7 @@
 \DeclareDataInheritance{periodical}{article,suppperiodical}{%
   \inherit{title}{journaltitle}
   \inherit{subtitle}{journalsubtitle}
+  \inherit{titleaddon}{journaltitleaddon}
   \noinherit{shorttitle}
   \noinherit{sorttitle}
   \noinherit{indextitle}
@@ -2912,6 +2914,9 @@
      \newunit}%
   \printfield{maintitleaddon}}
 
+% The \iffieldundef{journaltitleaddon} is usually not necessary.
+% We need it to ensure that a \setunit* after this macro does the right thing
+% for backwards compatibility.
 \newbibmacro*{journal}{%
   \ifboolexpr{
     test {\iffieldundef{journaltitle}}
@@ -2922,8 +2927,14 @@
     {\printtext[journaltitle]{%
        \printfield[titlecase]{journaltitle}%
        \setunit{\subtitlepunct}%
-       \printfield[titlecase]{journalsubtitle}}}}
+       \printfield[titlecase]{journalsubtitle}}%
+     \newunit}%
+  \iffieldundef{journaltitleaddon}
+    {}
+    {\printfield{journaltitleaddon}}}
 
+% Re \iffieldundef{titleaddon} see the comment about
+% \iffieldundef{journaltitleaddon} above.
 \newbibmacro*{periodical}{%
   \ifboolexpr{
     test {\iffieldundef{title}}
@@ -2934,7 +2945,11 @@
     {\printtext[title]{%
        \printfield[titlecase]{title}%
        \setunit{\subtitlepunct}%
-       \printfield[titlecase]{subtitle}}}}
+       \printfield[titlecase]{subtitle}}%
+     \newunit}%
+  \iffieldundef{titleaddon}
+    {}
+    {\printfield{titleaddon}}}
 
 \newbibmacro*{issue}{%
   \ifboolexpr{
@@ -2946,7 +2961,9 @@
     {\printtext[issuetitle]{%
        \printfield[titlecase]{issuetitle}%
        \setunit{\subtitlepunct}%
-       \printfield[titlecase]{issuesubtitle}}}}
+       \printfield[titlecase]{issuesubtitle}}%
+     \newunit}%
+  \printfield{issuetitleaddon}}
 
 \newbibmacro*{in:}{%
   \bibstring{in}%
