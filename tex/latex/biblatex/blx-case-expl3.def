@@ -71,6 +71,9 @@
 % Helper macro to avoid unnecessary repetition of the same structure
 % {<case [lowercase|uppercase|titlecase|titlecase_first]>}
 % {<babel language>}{<text>}
+% We use that \prop_item:Nn is empty if the item is not present
+% and that \text_...:nn becomes \text_...:n if the first argument
+% is empty.
 \cs_new_protected:Npn \__biblatex_text_makeconverter:nnn #1 #2 #3
   {
     \group_begin:
@@ -82,16 +85,8 @@
         {
           % should we raise an error or at least issue a warning here?
         }
-      \prop_if_in:NnTF \l__biblatex_babel_to_pseudobcp_prop  {#2}
-        {
-          \use:c { text_#1:nn }
-            { \prop_item:Nn
-                \l__biblatex_babel_to_pseudobcp_prop {#2} }
-            {#3}
-        }
-        {
-          \use:c { text_#1:n } {#3}
-        }
+      \use:c { text_#1:nn }
+        { \prop_item:Nn \l__biblatex_babel_to_pseudobcp_prop {#2} } {#3}
     \group_end:
   }
 
