@@ -153,6 +153,8 @@
 
 % BibTeX to expl3 case protection code by Joseph Wright
 % https://github.com/plk/biblatex/issues/960#issuecomment-578435859
+% and Bruno Le Floch
+% https://github.com/moewew/biblatex/commit/c485f1b8079d56497b17343d7883b8fcd42f961a#r39225533
 \tl_put_right:Nn \l_text_expand_exclude_tl { \NoCaseChange }
 
 \tl_put_right:Nn \l_text_case_exclude_arg_tl { \NoCaseChange }
@@ -160,50 +162,27 @@
 \cs_new:Npn \biblatex_text_bibtex_to_expl:n #1
   {
     \__biblatex_text_bibtex_loop:w #1
-      \q_recursion_tail \q_recursion_stop
+    { \q_recursion_tail } \q_recursion_stop
   }
 
-\cs_new:Npn \__biblatex_text_bibtex_loop:w #1 \q_recursion_stop
+\cs_new:Npn \__biblatex_text_bibtex_loop:w #1 #
   {
-    \tl_if_head_is_N_type:nTF {#1}
-      { \__biblatex_text_bibtex_N_type:N }
-      {
-        \tl_if_head_is_group:nTF {#1}
-          { \__biblatex_text_bibtex_group:n }
-          { \__biblatex_text_bibtex_space:w }
-      }
-    #1 \q_recursion_stop
-  }
-
-\cs_new:Npn \__biblatex_text_bibtex_N_type:N #1
-  {
-    \quark_if_recursion_tail_stop:N #1
     \exp_not:n {#1}
-    \__biblatex_text_bibtex_loop:w
+    \__biblatex_text_bibtex_group:n
   }
 
 \cs_new:Npn \__biblatex_text_bibtex_group:n #1
   {
+    \quark_if_recursion_tail_stop:n {#1}
     {
       \bool_lazy_and:nnTF
         { \tl_if_head_is_N_type_p:n {#1} }
-        {
-          \exp_after:wN \token_if_cs_p:N
-          \exp_after:wN { \tl_head:w #1 \q_stop }
-        }
+        { \exp_after:wN \token_if_cs_p:N \tl_head:w #1 \q_stop }
         { \exp_not:n {#1} }
         { \exp_not:n { \NoCaseChange {#1} } }
       }
     \__biblatex_text_bibtex_loop:w
   }
-
-\exp_last_unbraced:NNo
-  \cs_new:Npn \__biblatex_text_bibtex_space:w \c_space_tl
-  {
-    \c_space_tl
-    \__biblatex_text_bibtex_loop:w
-  }
-
 
 \cs_new_eq:NN \biblatex_text_sentencecase_preprocess:n
               \biblatex_text_bibtex_to_expl:n
