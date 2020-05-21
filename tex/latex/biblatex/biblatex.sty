@@ -2153,8 +2153,15 @@
 \providerobustcmd*{\nohyphenation}{%
   \language\blx@langwohyphens}
 
-\providerobustcmd*{\textnohyphenation}[1]{%
-  \bgroup\nohyphenation#1\egroup}
+% work around odd XeTeX/babel-french behaviour
+% https://github.com/plk/biblatex/issues/979
+% fix by Ulrike Fischer
+% https://tex.stackexchange.com/a/544914/
+\ifundef\XeTeXrevision
+  {\providerobustcmd*{\textnohyphenation}[1]{%
+     \bgroup\nohyphenation#1\egroup}}
+  {\providerobustcmd*{\textnohyphenation}[1]{%
+     \bgroup\nohyphenation#1\egroup^^^^200b}}
 
 \blx@regimcs{%
   \setpunctfont \resetpunctfont \ifcapital \autocap \ifpunctmark
