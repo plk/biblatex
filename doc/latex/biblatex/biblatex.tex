@@ -2056,6 +2056,10 @@ Loads compatibility module which provides aliases for the citation commands of t
 
 Loads a citation module which provides \sty{mcite}\slash\sty{mciteplus}-like citation commands. See \secref{use:cit:mct} for details.
 
+\optitem[auto]{casechanger}{\opt{auto}, \opt{latex2e}, \opt{expl3}}
+
+This option selects the implementation of \biblatex's case changing functions, most prominently \cmd{MakeSentenceCase*}. \opt{expl3} selects the new implementation based on the \latex3 module \sty{l3text}. \opt{latex2e} selects the original implementation, which has tricky brace protection behaviour and some shortcomings when dealing with non-ASCII characters. The default \opt{auto} selects the case changing code based on the available \sty{expl3} version (\opt{expl3} is selected if \sty{expl3} is at least version 2020-04-06).
+
 \end{optionlist}
 
 \subsubsection{Preamble Options}
@@ -2542,6 +2546,10 @@ Sets the minimum number of cross references to \prm{integer} when requesting a b
 \intitem[2]{minxrefs}
 
 As \opt{mincrossrefs} but for \bibfield{xref} fields.
+
+\boolitem[true]{bibtexcaseprotection}
+
+This option only has an effect when the \sty{expl3} implementation of the case changing functions is selected. If the option is set to \opt{true}, \cmd{MakeSentenceCase*} supports brace protection of words from case change as in classical \bibtex. If the option is set to \opt{false}, pairs of braces no longer imply case protection, which can now be enforced by wrapping the relevant word in \cmd{NoCaseChange}---this makes for a less confusing, if more verbose, markup of case protection.
 
 \end{optionlist}
 
@@ -10617,7 +10625,11 @@ Similar to \cmd{MakeUppercase} but only converts the first printable character i
 \cmditem{MakeSentenceCase}{text}
 \cmditem*{MakeSentenceCase*}{text}
 
-Converts its \prm{text} argument to sentence case, \ie the first word is capitalized and the remainder of the string is converted to lowercase. This command is robust. The starred variant differs from the regular version in that it considers the language of the entry, as specified in the \bibfield{langid} field. If the \bibfield{langid} field is defined and holds a language declared with \cmd{DeclareCaseLangs} (see below)\footnote{By default, converting to sentence case is enabled for the following language identifiers: \texttt{american}, \texttt{british}, \texttt{canadian}, \texttt{english}, \texttt{australian}, \texttt{newzealand} as well as the aliases \texttt{USenglish} and \texttt{UKenglish}. Use \cmd{DeclareCaseLangs} to extend or change this list.}, then the sentence case conversion is performed. If the \bibfield{langid} field is undefined, then the language list declared with \cmd{DeclareCaseLangs} is checked for the presence of the main document language derived from the \opt{language} option. If found, sentence case conversion is performed, if not, the \prm{text} is not altered in any way. It is recommended to use \cmd{MakeSentenceCase*} rather than the regular variant in formatting directives. Both variants support the traditional \bibtex convention for \file{bib} files that anything wrapped in a pair of curly braces is not modified when changing the case. For example:
+Converts its \prm{text} argument to sentence case, \ie the first word is capitalized and the remainder of the string is converted to lowercase. This command is robust. The starred variant differs from the regular version in that it considers the language of the entry, as specified in the \bibfield{langid} field. If the \bibfield{langid} field is defined and holds a language declared with \cmd{DeclareCaseLangs} (see below)\footnote{By default, converting to sentence case is enabled for the following language identifiers: \texttt{american}, \texttt{british}, \texttt{canadian}, \texttt{english}, \texttt{australian}, \texttt{newzealand} as well as the aliases \texttt{USenglish} and \texttt{UKenglish}. Use \cmd{DeclareCaseLangs} to extend or change this list.}, then the sentence case conversion is performed. If the \bibfield{langid} field is undefined, then the language list declared with \cmd{DeclareCaseLangs} is checked for the presence of the main document language derived from the \opt{language} option. If found, sentence case conversion is performed, if not, the \prm{text} is not altered in any way. It is recommended to use \cmd{MakeSentenceCase*} rather than the regular variant in formatting directives.
+
+Depending on the option \opt{casechanger} \cmd{MakeCaseChange} and \cmd{MakeCaseChange*} are either implemented using the \sty{expl3} module \sty{l3text} or original \LaTeXe code.
+
+Both variants support the traditional \bibtex convention for \file{bib} files that anything wrapped in a pair of curly braces is not modified when changing the case. For example:
 
 \begin{ltxexample}
 \MakeSentenceCase{an Introduction to LaTeX}
@@ -10642,14 +10654,18 @@ Macros in titles must also be protected with braces
 \begin{lstlisting}[style=bibtex]{}
 title = {The {\TeX book}},
 \end{lstlisting}
+
 %
-Unlike \bibtex's built-in case changing function \texttt{change.case\$} \biblatex's \cmd{MakeSentenceCase} is implemented in \latex, it may therefore behave differently in certain situations and is more fragile.
-Currently \cmd{MakeSentenceCase} behaves as follows.
+The behaviour of \cmd{MakeSentenceCase} differs slightly between the \opt{latex2e} and \opt{expl3} implementation. Generally speaking, the \opt{expl3} code is closer to the \bibtex behaviour of \texttt{change.case\$}. It is also better equipped to deal with non-ASCII input and macros than the \opt{latex2e} implementation. \cmd{MakeSentenceCase} behaves as follows.
 \begin{itemize}\setlength{\labelsep}{1em}
-  \item The first letter of its argument is capitalised with \cmd{MakeUppercase}. This is different from \bibtex's \texttt{change.case\$}, which does not touch the first letter of its argument. Note that a pair of braces that starts with a control sequence will be treated as one character for capitalisation purposes. This means that the entire argument of a command protected with a single pair of braces is capitalised.
-  \item Expandable commands are expanded before the case change, which means that the case change applies to the replacement text. Unexpandable commands are not touched. \bibtex does not interpret macros and therefore passes commands through unchanged (this does not necessarily apply to the \emph{arguments} of those commands).
-  \item Text wrapped in one or more pairs of braces is protected from case change unless it starts with a control sequence. This is the same behaviour as with \bibtex. Note that the braces could either be explicit groups or argument delimiters.
-  \item Text in a single pair of braces that starts with a control sequence is not protected and will be subject to case changes. Note that this need not apply to braces that are argument delimiters, in fact the implementation of \cmd{MakeSentenceCase} may in some cases produce an error or otherwise undesirable output if the argument of a command starts with a control sequence. \bibtex's case change function does not differentiate between argument delimiters and brace groups and always subjects text at brace level~1 to case change if it starts with a control sequence.
+  \item The first letter of its argument is capitalised with \cmd{MakeUppercase}. This is different from \bibtex's \texttt{change.case\$}, which does not touch the first letter of its argument.
+  
+  Note that with the \opt{latex2e} code a pair of braces that starts with a control sequence will be treated as a single character for capitalisation purposes. This means that the entire argument of a command protected with a single pair of braces is capitalised.
+  \item With the \opt{latex2e} code expandable commands are expanded before the case change, which means that the case change applies to the replacement text. Unexpandable commands are not touched.
+  
+  \bibtex does not interpret macros and therefore passes commands through unchanged (this does not necessarily apply to the \emph{arguments} of those commands). The \opt{expl3} implementation also does not expand commands and only applies case change to the arguments.
+  \item Text wrapped in one or more pairs of braces is protected from case change \emph{unless} it starts with a control sequence. This is the same behaviour as with \bibtex. Note that the braces could either be explicit groups or argument delimiters.
+  \item Text in a single pair of braces that starts with a control sequence is not protected and will be subject to case changes. Note that this need not apply to braces that are argument delimiters, in fact the \opt{latex2e} implementation of \cmd{MakeSentenceCase} may in some cases produce an error or otherwise undesirable output if the argument of a command starts with a control sequence. \bibtex's case change function does not differentiate between argument delimiters and brace groups and always subjects text at brace level~1 to case change if it starts with a control sequence.
 \end{itemize}
 
 For most intents and purposes the following rules should give a sensible result.
@@ -10662,17 +10678,25 @@ For most intents and purposes the following rules should give a sensible result.
   \end{itemize}
   \item While it is possible to protect words from case change at the beginning of a field with a pair of braces, it is not possible to undo the case protection that a command automatically implies by wrapping it in braces in that position. In that case work-arounds are necessary.
 \end{itemize}
-
-
+%
 \begin{lstlisting}[style=bibtex]{}
-title   = {The Story of {HMS} \emph{Erebus} in {\emph{Really}} Strong Wind},
+title = {The Story of {HMS} \emph{Erebus}
+         in {\emph{Really}} Strong Wind},
 \end{lstlisting}
 would be converted to sentence case by \cmd{MakeSentenceCase} as
 \begin{quote}
 The story of HMS \emph{Erebus} in {\emph{really}} strong wind
 \end{quote}
 
-Due to its complex implementation this command can not accept arbitrary input, it only safely operates on raw text or field data. In the standard styles the \bibfield{title} and other \bibfield{title}-like field formats do not work together with \cmd{MakeSentenceCase} because of their argument structure, so the standard styles offer a dedicated \texttt{titlecase} field format to apply this command. To enable sentence casing in standard styles for languages that support it you would use:
+If the \sty{expl3} implementation of the case changing functions is selected, the \bibtex case protection behaviour can be exchanged for a slightly simpler version. When \opt{bibtexcaseprotection} set to \opt{false}, braces no longer automatically imply case protection. Instead words can be protected from case change with \cmd{NoCaseChange}. The examples from above would then read
+\begin{lstlisting}[style=bibtex]{}
+title = {An Introduction to \NoCaseChange{LaTeX}},
+title = {The Story of \NoCaseChange{HMS \emph{Erebus}}
+         in \emph{Really} Strong Wind},
+\end{lstlisting}
+Generally, this option should allow for a saner case protection input, because curly braces are no longer overloaded with different levels of meaning, but it is a big departure from the standard case protection input that has been with the \latex world for a long time.
+
+Due to its complex implementation \cmd{MakeSentenceCase} can not accept arbitrary input, it only safely operates on raw text or field data. In the standard styles the \bibfield{title} and other \bibfield{title}-like field formats do not work together with \cmd{MakeSentenceCase} because of their argument structure, so the standard styles offer a dedicated \texttt{titlecase} field format to apply this command. To enable sentence casing in standard styles for languages that support it you would use:
 \begin{ltxexample}
 \DeclareFieldFormat{titlecase}{<<\MakeSentenceCase*{#1}>>}
 \end{ltxexample}
@@ -14228,8 +14252,10 @@ backrefsetstyle                   &\+&\+&\_&\_&\_&\_&\_\\
 backrefstyle                      &\+&\+&\_&\_&\_&\_&\_\\
 bibencoding                       &\+&\+&\_&\_&\_&\_&\_\\
 bibstyle                          &\+&\_&\_&\_&\_&\_&\_\\
+bibtexcaseprotection              &\+&\+&\_&\+&\+&\_&\_\\
 bibwarn                           &\+&\+&\_&\_&\_&\_&\_\\
 block                             &\+&\+&\_&\_&\_&\_&\_\\
+casechanger                       &\+&\_&\_&\_&\_&\_&\_\\
 citecounter                       &\+&\+&\_&\_&\_&\_&\_\\
 citereset                         &\+&\+&\_&\_&\_&\_&\_\\
 citestyle                         &\+&\_&\_&\_&\_&\_&\_\\
@@ -14351,6 +14377,9 @@ This revision history is a list of changes relevant to users of this package. Ch
       \cmd{multicitesubentryrangedelim}, \cmd{superciterangedelim},
       \cmd{supercitesubentrydelim}, \cmd{supercitesubentryrangedelim}%
       \see{use:fmt:fmt}
+\item Implemented \opt{expl3} case changing functions\see{aut:aux:msc}
+\item Added \opt{casechanger} option\see{use:opt:ldt}
+\item Added \opt{bibtexcaseprotection} option\see{use:opt:pre:gen}
 \item Added \cmd{mautocite} and \cmd{Mautocite}\see{use:cit:mct}
 \item Added \opt{trackfloats} and \opt{backreffloats}\see{use:opt:pre:gen}
 \item Added \opt{block} option to \cmd{printbibliography} and friends\see{use:bib:bib}
