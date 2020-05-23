@@ -106,6 +106,31 @@
   the set entries.
   The two-pass structure means that the compilation sequence becomes
   LaTeX, BibTeX, LaTeX, BibTeX, LaTeX, LaTeX.
+- **CRITICAL CHANGE**
+  The case change functions now make use of the `expl3` module `l3text`
+  if the available `expl3` version is recent enough.
+  If `expl3` is too old the old LaTeX2e implementation is used.
+  If desired the implementation of the case changing functions
+  can be selected at load-time with the `casechanger` option, which
+  accepts the values `expl3`, `latex2e` and `auto` (which selects
+  `expl3` if the `expl3` version not older than 2020-04-06, this
+  is the default).
+  
+  The `expl3` implementation of the case changer is slightly more
+  robust than the home-grown `latex2e` code.
+- The option `bibtexcaseprotection` can be used to turn off the
+  case protection via curly braces. This allows for a saner approach
+  to case protection where text is protected solely via a macro
+  like `\NoCaseChange`, e.g.
+  ```
+  title = {The Story of \NoCaseChange{HMS \emph{Erebus}}
+           in \emph{Really} Strong Wind},
+  ```
+  instead of
+  ```
+  title = {The Story of {HMS} \emph{Erebus}
+           in {\emph{Really}} Strong Wind},
+  ```
 - `biblatex` now tests if a requested backend (re)run happened by
   comparing the MD5 hashes of the new and old `.bbl` files.
 - Added file hooks `\blx@filehook@preload@<filename>`,
