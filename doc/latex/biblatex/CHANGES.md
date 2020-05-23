@@ -74,13 +74,6 @@
   Note that citation tracking in floats can lead to undesirable
   results in case the float objects floats too far from its "natural"
   position.
-- Added `\mautocite` and `\Mautocite`.
-- Added `\NumsCheckSetup` and `\PagesCheckSetup` for finer control
-  of the `\ifnumerals` and `\ifpages` checks.
-- **INCOMPATIBLE CHANGE**
-  `biblatex` no longer falls back to English for unknown languages.
-  Warnings will be triggered if undefined language strings or extras
-  are used.
 - **INCOMPATIBLE CHANGE** `numeric-comp` compresses subentry set
   references now.
   This behaviour can be disabled with `subentrycomp=false`.
@@ -131,6 +124,13 @@
   title = {The Story of {HMS} \emph{Erebus}
            in {\emph{Really}} Strong Wind},
   ```
+- Added `\mautocite` and `\Mautocite`.
+- Added `\NumsCheckSetup` and `\PagesCheckSetup` for finer control
+  of the `\ifnumerals` and `\ifpages` checks.
+- **INCOMPATIBLE CHANGE**
+  `biblatex` no longer falls back to English for unknown languages.
+  Warnings will be triggered if undefined language strings or extras
+  are used.
 - `biblatex` now tests if a requested backend (re)run happened by
   comparing the MD5 hashes of the new and old `.bbl` files.
 - Added file hooks `\blx@filehook@preload@<filename>`,
