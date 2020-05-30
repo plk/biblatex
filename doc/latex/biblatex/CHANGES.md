@@ -127,6 +127,8 @@
 - Added `\mautocite` and `\Mautocite`.
 - Added `\NumsCheckSetup` and `\PagesCheckSetup` for finer control
   of the `\ifnumerals` and `\ifpages` checks.
+- Deprecate the starred `\DeclareDelimAlias*` in favour of
+  `\DeclareDelimAlias` with optional arguments.
 - **INCOMPATIBLE CHANGE**
   `biblatex` no longer falls back to English for unknown languages.
   Warnings will be triggered if undefined language strings or extras

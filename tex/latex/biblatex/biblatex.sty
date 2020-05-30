@@ -3734,13 +3734,65 @@
     \csdef{#1##1}{#4}}%
   \forcsvlist{\do@i}{#3}}
 
-% *[<alias context, ...>]{<alias>}[<delim context>]{<delim>}
+% [<alias context, ...>]{<alias>}[<delim context>]{<delim>}
+% deprecated: *[<alias context, ...>]{<alias>}[<delim context>]{<delim>}
+% the starred version is only implemented for backwards compatibility
+% the only difference is that a missing first argument
+%  implies the global/empty context
 \newrobustcmd*{\DeclareDelimAlias}{%
   \@ifstar
-    {\blx@declaredelimalias@expl}
-    {\blx@declaredelimalias@auto}}
+    {\blx@declaredelimalias@s}
+    {\blx@declaredelimalias@a}}
 
-\newrobustcmd*{\blx@declaredelimalias@auto}[2]{%
+\def\blx@declaredelimalias@s{%
+  \blx@warning{%
+    The starred command '\string\DeclareDelimAlias*' is\MessageBreak
+    deprecated.%
+    \MessageBreak
+    Use the unstarred version '\string\DeclareDelimAlias'\MessageBreak
+    instead}%
+  \@ifnextchar[%]
+    {\blx@declaredelimalias@om}
+    {\blx@declaredelimalias@om[]}}
+
+\def\blx@declaredelimalias@a{%
+  \@ifnextchar[%]
+    {\blx@declaredelimalias@om}
+    {\blx@declaredelimalias@m}}
+
+\def\blx@declaredelimalias@m#1{%
+  \@ifnextchar[%]
+    {\blx@declaredelimalias@mom{#1}}
+    {\blx@declaredelimalias@mm{#1}}}
+
+\def\blx@declaredelimalias@mm{%
+  \blx@declaredelimalias@auto}
+
+\def\blx@declaredelimalias@mom{%
+  \blx@declaredelimalias@omom[]}
+    
+\def\blx@declaredelimalias@om[#1]#2{%
+  \@ifnextchar[%]
+    {\blx@declaredelimalias@omom[{#1}]{#2}}
+    {\blx@declaredelimalias@omm[{#1}]{#2}}}
+
+\def\blx@declaredelimalias@omom[#1]#2[#3]#4{%
+  \ifstrequal{#1}{*}
+    {\ifstrequal{#3}{*}
+       {\blx@declaredelimalias@auto{#2}{#4}}
+       {\blx@cleardelim{#1}%
+        \blx@declaredelimalias@manual{}{#2}{#3}{#4}}}
+    {\def\do##1{\blx@declaredelimalias@manual{##1}{#2}{#3}{#4}}%
+     \docsvlist{#1}}}
+
+\def\blx@declaredelimalias@omm[#1]#2#3{%
+  \ifstrequal{#1}{*}
+    {\blx@declaredelimalias@auto{#2}{#3}}
+    {\def\do##1{\blx@declaredelimalias@manual{##1}{#2}{##1}{#3}}%
+     \docsvlist{#1}}}
+
+% {<alias>}{<source>}
+\def\blx@declaredelimalias@auto#1#2{%
   \blx@cleardelim{#1}%
   \blx@declaredelimalias@def{}{#1}{}{#2}%
   \ifcsvoid{blx@declaredelimcontexts@#2}
@@ -3750,37 +3802,15 @@
          {blx@printdelim@##1@}{#1}{blx@printdelim@##1@}{#2}}%
      \dolistcsloop{blx@declaredelimcontexts@#2}}}
 
-\def\blx@declaredelimalias@expl{%
-  \@ifnextchar[%]
-    {\blx@declaredelimalias@expl@i}
-    {\blx@declaredelimalias@expl@i[]}}
-
-\def\blx@declaredelimalias@expl@i[#1]#2{%
-  \@ifnextchar[%]
-    {\blx@declaredelimalias@expl@iii{#1}{#2}}
-    {\blx@declaredelimalias@expl@ii{#1}{#2}}}
-
-\def\blx@declaredelimalias@expl@ii#1#2#3{%
-  \ifblank{#1}
-    {\blx@declaredelimalias@def{}{#2}{}{#3}}
-    {\def\do##1{%
-       \blx@declaredelimalias@def
-         {blx@printdelim@##1@}{#2}{blx@printdelim@##1@}{#3}}%
-     \docsvlist{#1}}}
-
-\def\blx@declaredelimalias@expl@iii#1#2[#3]#4{%
+% {<alias context>}{<alias>}{<source context>}{<source>}
+\def\blx@declaredelimalias@manual#1#2#3#4{%
   \ifblank{#1}
     {\ifblank{#3}
        {\blx@declaredelimalias@def{}{#2}{}{#4}}
        {\blx@declaredelimalias@def{}{#2}{blx@printdelim@#3@}{#4}}}
     {\ifblank{#3}
-       {\def\do##1{%
-          \blx@declaredelimalias@def
-            {blx@printdelim@##1@}{#2}{}{#4}}}
-       {\def\do##1{%
-          \blx@declaredelimalias@def
-            {blx@printdelim@##1@}{#2}{blx@printdelim@#3@}{#4}}}%
-     \docsvlist{#1}}}
+       {\blx@declaredelimalias@def{blx@printdelim@#1@}{#2}{}{#4}}}
+       {\blx@declaredelimalias@def{blx@printdelim@#1@}{#2}{blx@printdelim@#3@}{#4}}}
 
 \def\blx@declaredelimalias@def#1#2#3#4{%
   \ifcsdef{#1#2}
