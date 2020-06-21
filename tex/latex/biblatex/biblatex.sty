@@ -6290,26 +6290,36 @@
 
 % {<language>}{<strings>}
 \def\blx@maplang@babel#1#2{%
-  \csgappto{extras#1}{%
-    \blx@resetpunct
-    \csuse{abx@extras@#2}%
-    \csuse{abx@strings@#2}}%
-  \csgappto{noextras#1}{%
-    \blx@resetpunct
-    \csuse{abx@noextras@#2}}}
+  \ifdefstring{\blx@langhook}{captions}
+    {\csgappto{captions#1}{%
+       \blx@resetpunct
+       \csuse{abx@extras@#2}%
+       \csuse{abx@strings@#2}}}
+    {\csgappto{extras#1}{%
+       \blx@resetpunct
+       \csuse{abx@extras@#2}%
+       \csuse{abx@strings@#2}}%
+     \csgappto{noextras#1}{%
+       \blx@resetpunct
+       \csuse{abx@noextras@#2}}}}
 
 \def\blx@maplang@polyglossia#1#2{%
-  \csgappto{blockextras@bbl@#1}{%
-    \blx@resetpunct
-    \csuse{abx@extras@#2}%
-    \csuse{abx@strings@#2}}%
-  \csgappto{inlineextras@bbl@#1}{%
-    \blx@resetpunct
-    \csuse{abx@extras@#2}%
-    \csuse{abx@strings@#2}}%
-  \csgappto{noextras@bbl@#1}{%
-    \blx@resetpunct
-    \csuse{abx@noextras@#2}}}
+  \ifdefstring{\blx@langhook}{captions}
+    {\csgappto{captions@bbl@#1}{%
+       \blx@resetpunct
+       \csuse{abx@extras@#2}%
+       \csuse{abx@strings@#2}}}
+    {\csgappto{blockextras@bbl@#1}{%
+       \blx@resetpunct
+       \csuse{abx@extras@#2}%
+       \csuse{abx@strings@#2}}%
+     \csgappto{inlineextras@bbl@#1}{%
+       \blx@resetpunct
+       \csuse{abx@extras@#2}%
+       \csuse{abx@strings@#2}}%
+     \csgappto{noextras@bbl@#1}{%
+       \blx@resetpunct
+       \csuse{abx@noextras@#2}}}}
 
 %% babel/polyglossia interface
 \def\blx@beglang{\blx@clearlang\begingroup}
@@ -14351,6 +14361,14 @@
   \def\blx@hook@initlang{\@quotereset\@ne}%
   \def\blx@hook@endlang{\blx@postpunct}}
 
+\DeclareBibliographyOption[string]{langhook}{%
+  \ifstrequal{#1}{captions}
+    {\@firstoftwo}
+    {\ifstrequal{#1}{extras}}
+    {\def\blx@langhook{#1}}
+    {\blx@err@invopt{langhook=#1}{}}}
+
+
 \DeclareBiblatexOption{global,type,entry}[string]{indexing}[true]{%
   \blx@opt@index{#1}}
 \def\blx@opt@index#1{%
@@ -15215,13 +15233,16 @@
 \blx@kv@setkeys{blx@opt@pre}{%
   sorting=nty,sortlocale=auto,sortcase,sortupper,sortcites=false,
   maxnames=3,minnames=1,maxalphanames=3,minalphanames=1,
-  maxitems=3,minitems=1,mincrossrefs=2,minxrefs=2,useauthor=true,useeditor=true,
-  usetranslator=false,indexing=false,abbreviate=true,dateabbrev=true,dateera=astronomical,
+  maxitems=3,minitems=1,mincrossrefs=2,minxrefs=2,
+  useauthor=true,useeditor=true,usetranslator=false,
+  indexing=false,abbreviate=true,dateabbrev=true,dateera=astronomical,
   backref=false,backrefsetstyle=setonly,backreffloats=true,
   pagetracker=false,
   ibidtracker=false,idemtracker=false,opcittracker=false,loccittracker=false,
   citetracker=false,trackfloats=false,
-  citecounter=false,block=none,language=autobib,clearlang=true,autolang=none,
+  citecounter=false,
+  block=none,
+  language=autobib,clearlang=true,autolang=none,langhook=captions,
   date=comp,labeldate=year,origdate=comp,eventdate=comp,urldate=short,
   autopunct=true,punctfont=false,defernumbers=false,timezeros=true,
   refsection=none,refsegment=none,citereset=none,hyperref=auto,
