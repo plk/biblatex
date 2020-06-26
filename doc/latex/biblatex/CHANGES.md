@@ -108,7 +108,7 @@
   accepts the values `expl3`, `latex2e` and `auto` (which selects
   `expl3` if the `expl3` version not older than 2020-04-06, this
   is the default).
-  
+
   The `expl3` implementation of the case changer is slightly more
   robust than the home-grown `latex2e` code.
 - The option `bibtexcaseprotection` can be used to turn off the
@@ -143,16 +143,6 @@
   The new default is to write to `\captions<language>`
   (i.e. `langhook=captions`).
   The previous behaviour can be restored with `langhook=extras`.
-  
-  There is no `\captions...`-equivalent for `\noextras...`,
-  so with `langhook=captions` `\UndeclareBibliographyExtras`
-  and `\UndefineBibliographyExtras{<language>}` are ignored.
-  For all standard uses of these commands that is not an issue,
-  since everything these commands reset is already reset by the grouping
-  implied by the language switching commands.
-  If there have global assignments in the bibliography extras,
-  then the missing `\noextras...` would be an issue.
-  In that case the solution is to go back to `langhook=extras`.
 - `biblatex` now tests if a requested backend (re)run happened by
   comparing the MD5 hashes of the new and old `.bbl` files.
 - Added file hooks `\blx@filehook@preload@<filename>`,
