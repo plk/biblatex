@@ -169,6 +169,10 @@
   macros (which are defined via `\provide...` so that they will
   not overwrite existing definitions; in particular users can define
   those replacements before loading `biblatex`).
+- Deprecate `\ifkomabibtotoc` and `\ifkomabibtotocnumbered`.
+  With newer versions of KOMA-Script these tests are no longer used
+  and their implementation was always a bit shifty (they would only pick
+  up globally set options).
 
 
 # RELEASE NOTES FOR VERSION 3.14

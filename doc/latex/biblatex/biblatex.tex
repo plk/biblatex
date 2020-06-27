@@ -268,20 +268,31 @@ Apart from the above resources, \biblatex also requires the standard \latex pack
 \subsubsection{Recommended Packages}
 \label{int:pre:rec}
 
-The packages listed in this section are not required for \biblatex to function, but they provide recommended additional functions or enhance existing features. The package loading order usually does not matter.
+The packages listed in this section are not strictly required for \biblatex to function, but they provide recommended additional functions or enhance existing features.
 
 \begin{marglist}
 
 \item[babel/polyglossia]
 The \sty{babel} and \sty{polyglossia} packages provides the core architecture for multilingual typesetting. If you are writing in a language other than American English, using one of these packages is strongly recommended. You should load \sty{babel} or \sty{polyglossia} before \biblatex and then \biblatex will detect \sty{babel} or \sty{polyglossia} automatically. (While \sty{babel} may be loaded after \biblatex if so desired, \sty{polyglossia} must always be loaded before \biblatex.)
 
-\biblatex has only limited support for \sty{polyglossia} versions prior to~v1.45. Additional useful features for \biblatex were added in version~1.49. If \sty{polyglossia} is used, it should be updated to version~1.49 (2020/04/08) or above.
+\biblatex has only limited support for \sty{polyglossia} versions prior to~v1.45 (2019/10/27). Additional useful features for \biblatex were added in version~1.49. If \sty{polyglossia} is used, it should be updated to version~1.49 (2020/04/08) or above.
+
+The minimum supported \sty{babel} version is~v3.9r (2016/04/23).
 
 \item[csquotes]
 If this package is available, \biblatex will use its language sensitive quotation facilities to enclose certain titles in quotation marks. If not, \biblatex uses quotes suitable for American English as a fallback. When writing in a language other than American English, loading \sty{csquotes} is strongly recommended.\fnurl{https://ctan.org/pkg/csquotes/}
 
+\end{marglist}
+
+\subsubsection{Additional Useful Packages}
+\label{int:pre:add}
+
+The packages listed in this section are not required for \biblatex to function, but provide additional specialist functions or enhance existing features. These packages generally only need to be loaded if their functionality is explicitly desired. The package loading order usually does not matter.
+
+\begin{marglist}
+
 \item[xpatch]
-The \sty{xpatch} package extends the patching commands of \sty{etoolbox} to \biblatex bibliography macros, drivers and formatting directives.\fnurl{https://ctan.org/pkg/xpatch/}
+The \sty{xpatch} package extends the patching commands of \sty{etoolbox} to \biblatex bibliography macros, drivers and formatting directives.\fnurl{https://ctan.org/pkg/xpatch/} Its commands are useful to apply surgical-precision changes to bibliography macros, drivers or formatting directives without having to restate the whole definition to change it. The \biblatex core does not need or use these patching commands and styles that make use of them should load the package themselves.
 
 \end{marglist}
 
@@ -303,6 +314,8 @@ When using the \sty{memoir} class, the default bibliography headings are adapted
 
 \item[\acr{KOMA}-Script]
 When using any of the \sty{scrartcl}, \sty{scrbook}, or \sty{scrreprt} classes, the default bibliography headings are adapted such that they blend with the default layout of these classes. See \secref{use:cav:scr} for further usage hints.
+
+If available \biblatex makes use of some of the more recent of \acr{KOMA}-Script's \emph{do-hooks}. The relevant hooks are present from version~3.27 (2019/10/12) onwards, which is therefore the minimum version recommendation.
 
 \end{marglist}
 
@@ -6120,17 +6133,19 @@ This section provides additional usage hints and addresses some common problems 
 \subsubsection{Usage with \acr{KOMA}-Script Classes}
 \label{use:cav:scr}
 
-When using \biblatex in conjunction with one of the \sty{scrbook}, \sty{scrreprt}, or \sty{scrartcl} classes, the headings \texttt{bibliography} and \texttt{biblist} from \secref{use:bib:hdg} are responsive to the bibliography"=related options of these classes.\footnote{This applies to the traditional syntax of these options (\opt{bibtotoc} and \opt{bibtotocnumbered}) as well as to the \keyval syntax introduced in \acr{KOMA}-Script 3.x, \ie to \kvopt{bibliography}{nottotoc}, \kvopt{bibliography}{totoc}, and \kvopt{bibliography}{totocnumbered}. The global \kvopt{toc}{bibliography} and \kvopt{toc}{bibliographynumbered} options as well as their aliases are detected as well. In any case, the options must be set globally in the optional argument to \cmd{documentclass}.} You can override the default headings by using the \opt{heading} option of \cmd{printbibliography}, \cmd{printbibheading} and \cmd{printbiblist}. See \secref{use:bib:bib, use:bib:biblist, use:bib:hdg} for details. All default headings are adapted at load-time such that they blend with the behavior of these classes. If one of the above classes is detected, \biblatex will also provide the following additional tests which may be useful in custom heading definitions:
+When used in conjunction with a recent version\footnote{At least \acr{KOMA}-Script 3.25 (2018/03/30).} one of the \sty{scrbook}, \sty{scrreprt}, or \sty{scrartcl} classes, \biblatex passes control over the (default) headings \texttt{bibliography} and \texttt{biblist} from \secref{use:bib:hdg} to the class. Hence, bibliography-heading-related class options can be used as usual. You can override the default headings by using the \opt{heading} option of \cmd{printbibliography}, \cmd{printbibheading} and \cmd{printbiblist}. See \secref{use:bib:bib, use:bib:biblist, use:bib:hdg} for details.
+
+\biblatex also tries to detect bibliography-related class options and settings itself.\footnote{This applies to the traditional syntax of these options (\opt{bibtotoc} and \opt{bibtotocnumbered}) as well as to the \keyval syntax introduced in \acr{KOMA}-Script 3.x, \ie to \kvopt{bibliography}{nottotoc}, \kvopt{bibliography}{totoc}, and \kvopt{bibliography}{totocnumbered}. The global \kvopt{toc}{bibliography} and \kvopt{toc}{bibliographynumbered} options as well as their aliases are detected as well. In any case, the options must be set globally in the optional argument to \cmd{documentclass}.} This was required to be able to adapt the bibliography headings to the class settings in older versions of \acr{KOMA}-Script. If one of the above classes is detected, \biblatex will provide the following additional tests which may be useful in custom heading definitions. Since these tests rely on the error-prone external detection of \acr{KOMA}-Script settings and are no longer used with newer \acr{KOMA}-Script versions, these tests are deprecated and should no longer be used.
 
 \begin{ltxsyntax}
 
-\cmditem{ifkomabibtotoc}{true}{false}
+\cmditem{ifkomabibtotoc}{true}{false}\DeprecatedMark
 
-Expands to \prm{true} if the class would add the bibliography to the table of contents, and to \prm{false} otherwise.
+Expands to \prm{true} if the class would add the bibliography to the table of contents, and to \prm{false} otherwise. This test is deprecated.
 
-\cmditem{ifkomabibtotocnumbered}{true}{false}
+\cmditem{ifkomabibtotocnumbered}{true}{false}\DeprecatedMark
 
-Expands to \prm{true} if the class would add the bibliography to the table of contents as a numbered section, and to \prm{false} otherwise. If this test yields \prm{true}, \cmd{ifkomabibtotoc} will always yield \prm{true} as well, but not vice versa.
+Expands to \prm{true} if the class would add the bibliography to the table of contents as a numbered section, and to \prm{false} otherwise. If this test yields \prm{true}, \cmd{ifkomabibtotoc} will always yield \prm{true} as well, but not vice versa. This test is deprecated.
 
 \end{ltxsyntax}
 
@@ -14426,6 +14441,7 @@ This revision history is a list of changes relevant to users of this package. Ch
 \item Added Serbian localisation (Andrej Radović)
 \item Added Turkish localisation (Abdulkerim Gok)
 \item Added file hooks\see{aut:fmt:hok:fil}
+\item Deprecated \cmd{ifkomabibtotoc} and \cmd{ifkomabibtotocnumbered}\see{use:cav:scr}
 \end{release}
 \begin{release}{3.14}{2019-12-01}
 \item Added new mapping verbs for citation sources\see{aut:ctm:map}
