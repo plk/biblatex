@@ -108,7 +108,7 @@
   accepts the values `expl3`, `latex2e` and `auto` (which selects
   `expl3` if the `expl3` version not older than 2020-04-06, this
   is the default).
-  
+
   The `expl3` implementation of the case changer is slightly more
   robust than the home-grown `latex2e` code.
 - The option `bibtexcaseprotection` can be used to turn off the
@@ -133,6 +133,16 @@
   `biblatex` no longer falls back to English for unknown languages.
   Warnings will be triggered if undefined language strings or extras
   are used.
+- **INCOMPATIBLE CHANGE**
+  Bibliography strings and bibliography extras can now be written
+  either to `\captions<language>` or to `\extras<language>`
+  (this is controlled with the `langhook` option).
+  Previously, they were written to `\extras<language>`, but upon
+  reflection `\captions<language>` appears to be a more sensible
+  place for these definitions.
+  The new default is to write to `\captions<language>`
+  (i.e. `langhook=captions`).
+  The previous behaviour can be restored with `langhook=extras`.
 - `biblatex` now tests if a requested backend (re)run happened by
   comparing the MD5 hashes of the new and old `.bbl` files.
 - Added file hooks `\blx@filehook@preload@<filename>`,

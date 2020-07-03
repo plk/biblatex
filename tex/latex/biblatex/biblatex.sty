@@ -542,8 +542,13 @@
   \iftoggle{blx@autolangcite}
     {\let\blx@beglangcite\blx@beglang}
     {}%
+  % babel/polyglossia has loaded the (main document) language already,
+  % so we need to explicitly enable our captions (abx@strings@)
+  % and extras (abx@extras@) now
+  \toggletrue{blx@lang@captions@\blx@languagename}%
   \csuse{abx@extras@\blx@languagename}%
   \csuse{abx@strings@\blx@languagename}%
+  % avoid accidental re-initialization
   \undef\blx@mkautolangbabel
   \undef\blx@mkautolangpoly
   \undef\blx@mknoautolang
@@ -3776,7 +3781,7 @@
 
 \def\blx@declaredelimalias@mom{%
   \blx@declaredelimalias@omom[]}
-    
+
 \def\blx@declaredelimalias@om[#1]#2{%
   \@ifnextchar[%]
     {\blx@declaredelimalias@omom[{#1}]{#2}}
@@ -6294,28 +6299,65 @@
 % User macro for retrieving currrent language
 \def\currentlang{\blx@languagename}
 
+% We need to be able to prefix \providetoggle with \global,
+% plus we don't need the testing from \providetoggle anway.
+% This uses internal implementation details of etoolbox's
+% toggles, so is a bit meh, but it's better than rolling our own
+% version of toggles just for that.
+\newcommand*{\blx@etb@inittoggle}[1]{\cslet{etb@tgl@#1}\@secondoftwo}
+
+% There is no \nocaptions..., so if we send everything to \captions...
+% we need to find a way to call our noextras only in situations where
+% \noextras... is called to clean up \extras... AND \captions...
+% and not just \extras...
+% We detect this by setting a toggle in the \captions...
+
 % {<language>}{<strings>}
 \def\blx@maplang@babel#1#2{%
-  \csgappto{extras#1}{%
-    \blx@resetpunct
-    \csuse{abx@extras@#2}%
-    \csuse{abx@strings@#2}}%
-  \csgappto{noextras#1}{%
-    \blx@resetpunct
-    \csuse{abx@noextras@#2}}}
+  \global\blx@etb@inittoggle{blx@lang@captions@#2}%
+  \ifdefstring{\blx@langhook}{captions}
+    {\csgappto{captions#1}{%
+       \toggletrue{blx@lang@captions@#2}%
+       \blx@resetpunct
+       \csuse{abx@extras@#2}%
+       \csuse{abx@strings@#2}}%
+     \csgappto{noextras#1}{%
+       \iftoggle{blx@lang@captions@#2}
+         {\blx@resetpunct
+          \csuse{abx@noextras@#2}}
+         {}}}
+    {\csgappto{extras#1}{%
+       \blx@resetpunct
+       \csuse{abx@extras@#2}%
+       \csuse{abx@strings@#2}}%
+     \csgappto{noextras#1}{%
+       \blx@resetpunct
+       \csuse{abx@noextras@#2}}}}
 
 \def\blx@maplang@polyglossia#1#2{%
-  \csgappto{blockextras@bbl@#1}{%
-    \blx@resetpunct
-    \csuse{abx@extras@#2}%
-    \csuse{abx@strings@#2}}%
-  \csgappto{inlineextras@bbl@#1}{%
-    \blx@resetpunct
-    \csuse{abx@extras@#2}%
-    \csuse{abx@strings@#2}}%
-  \csgappto{noextras@bbl@#1}{%
-    \blx@resetpunct
-    \csuse{abx@noextras@#2}}}
+  \global\blx@etb@inittoggle{blx@lang@captions@#2}%
+  \ifdefstring{\blx@langhook}{captions}
+    {\csgappto{captions@bbl@#1}{%
+       \toggletrue{blx@lang@captions@#2}%
+       \blx@resetpunct
+       \csuse{abx@extras@#2}%
+       \csuse{abx@strings@#2}}%
+     \csgappto{noextras@bbl@#1}{%
+       \iftoggle{blx@lang@captions@#2}
+         {\blx@resetpunct
+          \csuse{abx@noextras@#2}}
+         {}}}
+    {\csgappto{blockextras@bbl@#1}{%
+       \blx@resetpunct
+       \csuse{abx@extras@#2}%
+       \csuse{abx@strings@#2}}%
+     \csgappto{inlineextras@bbl@#1}{%
+       \blx@resetpunct
+       \csuse{abx@extras@#2}%
+       \csuse{abx@strings@#2}}%
+     \csgappto{noextras@bbl@#1}{%
+       \blx@resetpunct
+       \csuse{abx@noextras@#2}}}}
 
 %% babel/polyglossia interface
 \def\blx@beglang{\blx@clearlang\begingroup}
@@ -6347,7 +6389,12 @@
       {No default 'babel' language defined}
       {You must define a default language for 'babel'}}
     {\let\blx@main@language\bbl@main@language}%
-  \AddBabelHook{biblatex@langsetup}{beforeextras}{%
+  % use afterreset to get in a bit earlier
+  % we want to be there before \captions... is issued
+  % beforeextras is before extras, but captions come before extras
+  % afterreset was added in 3.9i (~2014-03-16)
+  % way before 3.9r (2016-04-23), which we require
+  \AddBabelHook{biblatex@langsetup}{afterreset}{%
     \expandafter\blx@langsetup\expandafter{\languagename}}%
   \ifdef\blx@thelangenv
     {\def\blx@beglang{%
@@ -14362,6 +14409,14 @@
   \def\blx@hook@initlang{\@quotereset\@ne}%
   \def\blx@hook@endlang{\blx@postpunct}}
 
+\DeclareBibliographyOption[string]{langhook}{%
+  \ifstrequal{#1}{captions}
+    {\@firstoftwo}
+    {\ifstrequal{#1}{extras}}
+    {\def\blx@langhook{#1}}
+    {\blx@err@invopt{langhook=#1}{}}}
+
+
 \DeclareBiblatexOption{global,type,entry}[string]{indexing}[true]{%
   \blx@opt@index{#1}}
 \def\blx@opt@index#1{%
@@ -15226,13 +15281,16 @@
 \blx@kv@setkeys{blx@opt@pre}{%
   sorting=nty,sortlocale=auto,sortcase,sortupper,sortcites=false,
   maxnames=3,minnames=1,maxalphanames=3,minalphanames=1,
-  maxitems=3,minitems=1,mincrossrefs=2,minxrefs=2,useauthor=true,useeditor=true,
-  usetranslator=false,indexing=false,abbreviate=true,dateabbrev=true,dateera=astronomical,
+  maxitems=3,minitems=1,mincrossrefs=2,minxrefs=2,
+  useauthor=true,useeditor=true,usetranslator=false,
+  indexing=false,abbreviate=true,dateabbrev=true,dateera=astronomical,
   backref=false,backrefsetstyle=setonly,backreffloats=true,
   pagetracker=false,
   ibidtracker=false,idemtracker=false,opcittracker=false,loccittracker=false,
   citetracker=false,trackfloats=false,
-  citecounter=false,block=none,language=autobib,clearlang=true,autolang=none,
+  citecounter=false,
+  block=none,
+  language=autobib,clearlang=true,autolang=none,langhook=captions,
   date=comp,labeldate=year,origdate=comp,eventdate=comp,urldate=short,
   autopunct=true,punctfont=false,defernumbers=false,timezeros=true,
   refsection=none,refsegment=none,citereset=none,hyperref=auto,
