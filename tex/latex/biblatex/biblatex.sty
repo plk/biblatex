@@ -2563,17 +2563,26 @@
     {\@secondoftwo}
     {\ifcsundef{abx@name@#2}
        {\@secondoftwo}
-       {\blx@ifnamesequal{#1}{#2}}}}
+       {\blx@ifnamesequalcscs{abx@name@#1}{abx@name@#2}}}}
 
-\def\blx@ifnamesequal#1#2{%
+\def\blx@ifnamesequalcscs#1#2{%
+  \expandafter\expandafter\expandafter\blx@ifnamesequaldefdef
+  \expandafter\expandafter\expandafter{%
+    \expandafter\csname\expandafter #1\expandafter\endcsname
+  \expandafter}%
+  \expandafter{\csname #2\endcsname}}
+
+\def\blx@ifnamesequalcsdef#1#2{%
+  \expandafter\blx@ifnamesequaldefdef\expandafter{%
+    \csname #1\endcsname}{#2}}
+
+\def\blx@ifnamesequaldefdef#1#2{%
   \begingroup
   \let\blx@tempa\@empty
-  \expandafter\expandafter
-  \expandafter\blx@ifnamesequal@i\csname abx@name@#2\endcsname
+  \expandafter\blx@ifnamesequal@i#2%
   \let\blx@tempb\blx@tempa
   \let\blx@tempa\@empty
-  \expandafter\expandafter
-  \expandafter\blx@ifnamesequal@i\csname abx@name@#1\endcsname
+  \expandafter\blx@ifnamesequal@i#1%
   \expandafter\endgroup
   \ifx\blx@tempa\blx@tempb
     \expandafter\@firstoftwo
@@ -2599,41 +2608,91 @@
     {\eappto\blx@tempa{{\abx@field@hash}}}
     {\eappto\blx@tempa{{{\namepartfamily}{\namepartgiven}{\namepartprefix}{\namepartsuffix}}}}}
 
-% {<field>}{<macro>}{<true>}{<false>}
-\def\blx@imc@iffieldequals#1#2{%
-  \blx@imc@iffieldundef{#1}
-    {\@secondoftwo}
-    {\ifundef#2%
+% {<csname1>}{<csname2>}{<true>}{<false>}
+\newcommand*{\blx@ifcsequalorbothundef}[2]{%
+  \ifcsundef{#1}
+    {\ifcsundef{#2}}
+    {\ifcsundef{#2}
        {\@secondoftwo}
-       {\expandafter\ifx\csname abx@field@#1\endcsname#2%
+       {\expandafter\ifx
+        \csname#1\expandafter\endcsname
+        \csname#2\endcsname
           \expandafter\@firstoftwo
         \else
           \expandafter\@secondoftwo
         \fi}}}
+
+% {<field1>}{<field2>}{<true>}{<false>}
+\def\blx@imc@iffieldsequalorbothundef#1#2{%
+  \blx@ifcsequalorbothundef{abx@field@#1}{abx@field@#2}}
+
+% {<plainlist1>}{<plainlist2>}{<true>}{<false>}
+\def\blx@imc@iflistsequalorbothundef#1#2{%
+  \blx@ifcsequalorbothundef{abx@list@#1}{abx@list@#2}}
+
+% {<namelist1>}{<namelist2>}{<true>}{<false>}
+\def\blx@imc@ifnamesequalorbothundef#1#2{%
+  \ifcsundef{abx@name@#1}
+    {\ifcsundef{abx@name@#2}}
+    {\ifcsundef{abx@name@#2}
+       {\@secondoftwo}
+       {\blx@ifnamesequalcscs{abx@name@#1}{abx@name@#2}}}}
+
+% {<csname>}{<def>}{<true>}{<false>}
+\newcommand*{\blx@ifcsdefequal}[2]{%
+  \ifcsundef{#1}
+    {\@secondoftwo}
+    {\ifundef#2%
+       {\@secondoftwo}
+       {\expandafter\ifx\csname#1\expandafter\endcsname#2%
+          \expandafter\@firstoftwo
+        \else
+          \expandafter\@secondoftwo
+        \fi}}}
+
+% {<field>}{<macro>}{<true>}{<false>}
+\def\blx@imc@iffieldequals#1#2{%
+  \blx@ifcsdefequal{abx@field@#1}{#2}}
 
 % {<plainlist>}{<macro>}{<true>}{<false>}
 \def\blx@imc@iflistequals#1#2{%
-  \blx@imc@iflistundef{#1}
-    {\@secondoftwo}
-    {\ifundef#2%
-       {\@secondoftwo}
-       {\expandafter\ifx\csname abx@list@#1\endcsname#2%
-          \expandafter\@firstoftwo
-        \else
-          \expandafter\@secondoftwo
-        \fi}}}
+  \blx@ifcsdefequal{abx@list@#1}{#2}}
 
 % {<namelist>}{<macro>}{<true>}{<false>}
-\def\blx@imc@ifnameequals#1#2{% FIXME
+\def\blx@imc@ifnameequals#1#2{%
   \blx@imc@ifnameundef{#1}
     {\@secondoftwo}
     {\ifundef#2%
        {\@secondoftwo}
-       {\expandafter\ifx\csname abx@name@#1\endcsname#2%
+       {\blx@ifnamesequalcsdef{abx@name@#1}{#2}}}}
+
+% {<csname>}{<def>}{<true>}{<false>}
+\newcommand*{\blx@ifcsdefequalorbothundef}[2]{%
+  \ifcsundef{#1}
+    {\ifundef#2}
+    {\ifundef#2%
+       {\@secondoftwo}
+       {\expandafter\ifx\csname#1\expandafter\endcsname#2%
           \expandafter\@firstoftwo
         \else
           \expandafter\@secondoftwo
         \fi}}}
+
+% {<field>}{<macro>}{<true>}{<false>}
+\def\blx@imc@iffieldequalsorbothundef#1#2{%
+  \blx@ifcsdefequalorbothundef{abx@field@#1}{#2}}
+
+% {<plainlist>}{<macro>}{<true>}{<false>}
+\def\blx@imc@iflistequalsorbothundef#1#2{%
+  \blx@ifcsdefequalorbothundef{abx@list@#1}{#2}}
+
+% {<namelist>}{<macro>}{<true>}{<false>}
+\def\blx@imc@ifnameequalsorbothundef#1#2{%
+  \blx@imc@ifnameundef{#1}
+    {\ifundef#2}
+    {\ifundef#2%
+       {\@secondoftwo}
+       {\blx@ifnamesequalcsdef{abx@name@#1}{#2}}}}
 
 % {<field>}{<csname>}{<true>}{<false>}
 \def\blx@imc@iffieldequalcs#1{%
@@ -2644,8 +2703,28 @@
   \ifcsequal{abx@list@#1}}
 
 % {<namelist>}{<csname>}{<true>}{<false>}
-\def\blx@imc@ifnameequalcs#1{% FIXME
-  \ifcsequal{abx@name@#1}}
+\def\blx@imc@ifnameequalcs#1#2{%
+  \blx@imc@ifnameundef{#1}
+    {\@secondoftwo}
+    {\ifcsundef{#2}
+       {\@secondoftwo}
+       {\blx@ifnamesequalcscs{abx@name@#1}{#2}}}}
+
+% {<field>}{<csname>}{<true>}{<false>}
+\def\blx@imc@iffieldequalcsorbothundef#1{%
+  \blx@ifcsequalorbothundef{abx@field@#1}}
+
+% {<plainlist>}{<csname>}{<true>}{<false>}
+\def\blx@imc@iflistequalcsorbothundef#1{%
+  \blx@ifcsequalorbothundef{abx@list@#1}}
+
+% {<namelist>}{<csname>}{<true>}{<false>}
+\def\blx@imc@ifnameequalcsorbothundef#1#2{%
+  \blx@imc@ifnameundef{#1}
+    {\ifcsundef{#2}}
+    {\ifcsundef{#2}
+       {\@secondoftwo}
+       {\blx@ifnamesequalcscs{abx@name@#1}{#2}}}}
 
 % {<field>}{<string>}{<true>}{<false>}
 \protected\long\def\blx@imc@iffieldequalstr#1#2{%
@@ -4073,14 +4152,24 @@
   \clearfield \clearlist \clearname \restorefield \restorelist \restorename
   \ifcategory \ifkeyword
   \ifciteseen  \ifciteibid \ifciteidem \ifopcit \ifloccit
-  \ifcurrentfield \ifcurrentlist \ifcurrentname \ifentrytype
-  \iffieldequalcs \iffieldequals \iffieldequalstr \iffieldsequal
-  \iffieldundef \iffieldxref \iflistequalcs \iflistequals
-  \iflistsequal \iflistundef \iflistxref
+  \ifcurrentfield \ifcurrentlist \ifcurrentname
+  \ifentrytype
+  \iffieldundef
+  \iffieldsequal             \iffieldequals            \iffieldequalcs
+  \iffieldsequalorbothundef  \iffieldequalsorbothundef \iffieldequalcsorbothundef
+  \iffieldequalstr \iffieldxref
+  \iflistundef
+  \iflistsequal            \iflistequals            \iflistequalcs
+  \iflistsequalorbothundef \iflistequalsorbothundef \iflistequalcsorbothundef
+  \iflistxref
   \ifmorenames \ifmoreitems \iffirstcitekey \iflastcitekey
-  \ifnameequalcs \ifnameequals \ifnamesequal \ifnameundef \ifnamexref
+  \ifnameundef
+  \ifnamesequal            \ifnameequals            \ifnameequalcs
+  \ifnamesequalorbothundef \ifnameequalsorbothundef \ifnameequalcsorbothundef
+  \ifnamexref
+  \savelistcs \savename \savenamecs
   \iffirstonpage \ifsamepage \savefield \savefieldcs \savelist
-  \savelistcs \savename \savenamecs \usedriver
+  \usedriver
   \ifinteger \ifnumeral \ifnumerals \ifpages
   \iffieldint \iffieldnum \iffieldnums \iffieldpages
   \iflabeldateisdate \ifdatehasyearonlyprecision \ifdatehastime
@@ -12057,14 +12146,34 @@
     \def\ifcurrentname#1{\blx@TE{\blx@imc@ifcurrentname{#1}}}%
     \def\ifentrytype#1{\blx@TE{\blx@imc@ifentrytype{#1}}}%
     \def\iffieldequalcs#1#2{\blx@TE{\blx@imc@iffieldequalcs{#1}{#2}}}%
+    \def\iffieldequalcsorbothundef#1#2{%
+      \blx@TE{\blx@imc@iffieldequalcsorbothundef{#1}{#2}}}%
     \def\iffieldequals#1#2{\blx@TE{\blx@imc@iffieldequals{#1}{#2}}}%
-    \def\iffieldequalstr#1#2{\blx@TE{\blx@imc@iffieldequalstr{#1}{#2}}}%
+    \def\iffieldequalsorbothundef#1#2{%
+      \blx@TE{\blx@imc@iffieldequalsorbothundef{#1}{#2}}}%
     \def\iffieldsequal#1#2{\blx@TE{\blx@imc@iffieldsequal{#1}{#2}}}%
+    \def\iffieldsequalorbothundef#1#2{%
+      \blx@TE{\blx@imc@iffieldsequalorbothundef{#1}{#2}}}%
+    \def\iflistequalcs#1#2{\blx@TE{\blx@imc@iflistequalcs{#1}{#2}}}%
+    \def\iflistequalcsorbothundef#1#2{%
+      \blx@TE{\blx@imc@iflistequalcsorbothundef{#1}{#2}}}%
+    \def\iflistequals#1#2{\blx@TE{\blx@imc@iflistequals{#1}{#2}}}%
+    \def\iflistequalsorbothundef#1#2{%
+      \blx@TE{\blx@imc@iflistequalsorbothundef{#1}{#2}}}%
+    \def\iflistsequal#1#2{\blx@TE{\blx@imc@iflistsequal{#1}{#2}}}%
+    \def\iflistsequalorbothundef#1#2{%
+      \blx@TE{\blx@imc@iflistsequalorbothundef{#1}{#2}}}%
     \def\ifbibmacroundef#1{\blx@TE{\blx@imc@ifbibmacroundef{#1}}}%
     \def\iffieldundef#1{\blx@TE{\blx@imc@iffieldundef{#1}}}%
     \def\ifnameequalcs#1#2{\blx@TE{\blx@imc@ifnameequalcs{#1}{#2}}}%
+    \def\ifnameequalcsorbothundef#1#2{%
+      \blx@TE{\blx@imc@ifnameequalcsorbothundef{#1}{#2}}}%
     \def\ifnameequals#1#2{\blx@TE{\blx@imc@ifnameequals{#1}{#2}}}%
+    \def\ifnameequalsorbothundef#1#2{%
+      \blx@TE{\blx@imc@ifnameequalsorbothundef{#1}{#2}}}%
     \def\ifnamesequal#1#2{\blx@TE{\blx@imc@ifnamesequal{#1}{#2}}}%
+    \def\ifnamesequalorbothundef#1#2{%
+      \blx@TE{\blx@imc@ifnamesequalorbothundef{#1}{#2}}}%
     \def\ifnameundef#1{\blx@TE{\blx@imc@ifnameundef{#1}}}%
     \def\ifcategory#1{\blx@TE{\blx@imc@ifcategory{#1}}}%
     \def\ifkeyword#1{\blx@TE{\blx@imc@ifkeyword{#1}}}%
