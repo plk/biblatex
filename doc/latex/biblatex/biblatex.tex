@@ -10698,10 +10698,10 @@ title = {The {\TeX book}},
 The behaviour of \cmd{MakeSentenceCase} differs slightly between the \opt{latex2e} and \opt{expl3} implementation. Generally speaking, the \opt{expl3} code is closer to the \bibtex behaviour of \texttt{change.case\$}. It is also better equipped to deal with non-ASCII input and macros than the \opt{latex2e} implementation. \cmd{MakeSentenceCase} behaves as follows.
 \begin{itemize}\setlength{\labelsep}{1em}
   \item The first letter of its argument is capitalised with \cmd{MakeUppercase}. This is different from \bibtex's \texttt{change.case\$}, which does not touch the first letter of its argument.
-  
+
   Note that with the \opt{latex2e} code a pair of braces that starts with a control sequence will be treated as a single character for capitalisation purposes. This means that the entire argument of a command protected with a single pair of braces is capitalised.
   \item With the \opt{latex2e} code expandable commands are expanded before the case change, which means that the case change applies to the replacement text. Unexpandable commands are not touched.
-  
+
   \bibtex does not interpret macros and therefore passes commands through unchanged (this does not necessarily apply to the \emph{arguments} of those commands). The \opt{expl3} implementation also does not expand commands and only applies case change to the arguments.
   \item Text wrapped in one or more pairs of braces is protected from case change \emph{unless} it starts with a control sequence. This is the same behaviour as with \bibtex. Note that the braces could either be explicit groups or argument delimiters.
   \item Text in a single pair of braces that starts with a control sequence is not protected and will be subject to case changes. Note that this need not apply to braces that are argument delimiters, in fact the \opt{latex2e} implementation of \cmd{MakeSentenceCase} may in some cases produce an error or otherwise undesirable output if the argument of a command starts with a control sequence. \bibtex's case change function does not differentiate between argument delimiters and brace groups and always subjects text at brace level~1 to case change if it starts with a control sequence.
@@ -11361,6 +11361,51 @@ Similar to \cmd{bibxstring} but always uses the short string, ignoring the \opt{
 Switches from the current language to the main document language. This can be used the \prm{wrapper} argument in the localisation string commands above.
 
 \end{ltxsyntax}
+
+It is possible to add bibliography strings to a bibliography string class to apply additional formatting.
+
+\begin{ltxsyntax}
+
+\cmditem{DeclareBibstringClass}{class}{key, \dots}
+
+This commands assigns all \prm{key}s to the bibliography string class \prm{class}.
+
+\cmditem{UndeclareBibstringClass}{class}
+
+Remove the bibliography string class \prm{class}. Any formatting definitions will also be cleared.
+
+\cmditem{UndeclareBibstringClasses}
+
+Remove all existing bibliography string classes with \cmd{UndeclareBibstringClass}.
+
+\cmditem{DeclareBibstringClassFormat}{class}{code}
+
+Defines the bibliography string format for \prm{class}. The format works exactly like an additional \prm{wrapper} format for \cmd{bibstring}. \prm{code} is executed whenever a bibliography string of \prm{class} is printed. The text of the bibliography string is passed to \prm{code} as first and only argument.
+
+\cmditem{UneclareBibstringClassFormat}{class}
+
+Remove any bibliography string class format defined for \prm{class}.
+
+\end{ltxsyntax}
+
+Bibliography string classes can be useful to apply additional formatting to a number of bibliography strings at the same time. These commands are intended for use in language modules. For example in French typography it is customary to italicise Latin terms. The French language module can define a new bibliography string class called \texttt{latin} for all lating strings and apply additional formatting only to these strings. It is not recommended to apply the formatting dierctly in the bibliography string definitions, since that can interfere with the capitalisation function. Assuming that the French language \texttt{.lbx} file only defines two Latin strings, \texttt{andothers} and \texttt{andothers}, the \texttt{.lbx} file would contain.
+
+\begin{ltxexample}[escapeinside={(*@}{@*)}]
+\DeclareBibliographyExtras{%
+  (*@\dots@*)
+  \DeclareBibstringClass{latin}{andothers,ibidem}%
+  \DeclareBibstringClassFormat{latin}{\mkbibemph{#1}}%
+  (*@\dots@*)
+}
+
+\UndeclareBibliographyExtras{%
+  (*@\dots@*)
+  \UndeclareBibstringClass{latin}%
+  (*@\dots@*)
+}
+\end{ltxexample}
+Note that the defined classes should be undeclared after use to avoid side effects for other languages.
+
 
 \subsection{Localization Modules}
 \label{aut:lng}
@@ -14444,6 +14489,7 @@ This revision history is a list of changes relevant to users of this package. Ch
 \item Added \cmd{AtEveryEntrykey}\see{aut:fmt:hok}
 \item Added \cmd{ifdatesequal} and \cmd{ifdaterangesequal}\see{aut:aux:tst}
 \item Clarified \cmd{ifuniqueprimaryauthor} semantics\see{aut:aux:tst}
+\item Added \cmd{DeclareBibstringClass}, \cmd{DeclareBibstringClassFormat} etc.\see{aut:str}
 \item Added \cmd{bibncpstring}, \cmd{bibncplstring} and \cmd{bibncpsstring}\see{aut:str}
 \item Added Lithuanian localisation (Valdemaras Klumbys)
 \item Added Serbian localisation (Andrej Radović)
