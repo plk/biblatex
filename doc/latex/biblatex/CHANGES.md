@@ -143,6 +143,20 @@
   The new default is to write to `\captions<language>`
   (i.e. `langhook=captions`).
   The previous behaviour can be restored with `langhook=extras`.
+- **INCOMPATIBLE CHANGE** Moved `\delimcontext{bib}` to `\AtUsedriver`,
+  this makes it easier to override the delimiter context in `\usedriver`
+  calls. `\AtUsedriver*` calls may have to be amended to include
+  `\delimcontext{bib}`. The new default is
+  ```
+  \AtUsedriver{%
+    \delimcontext{bib}%
+    \let\finentry\blx@finentry@usedrv
+    \let\newblock\relax
+    \let\abx@macro@bibindex\@empty
+    \let\abx@macro@pageref\@empty}
+  ```
+  Note that this definition is backwards compatible
+  and can be used in older versions as well (down to v3.4 2016-05-10).
 - `biblatex` now tests if a requested backend (re)run happened by
   comparing the MD5 hashes of the new and old `.bbl` files.
 - Added file hooks `\blx@filehook@preload@<filename>`,
