@@ -2563,17 +2563,26 @@
     {\@secondoftwo}
     {\ifcsundef{abx@name@#2}
        {\@secondoftwo}
-       {\blx@ifnamesequal{#1}{#2}}}}
+       {\blx@ifnamesequalcscs{abx@name@#1}{abx@name@#2}}}}
 
-\def\blx@ifnamesequal#1#2{%
+\def\blx@ifnamesequalcscs#1#2{%
+  \expandafter\expandafter\expandafter\blx@ifnamesequaldefdef
+  \expandafter\expandafter\expandafter{%
+    \expandafter\csname\expandafter #1\expandafter\endcsname
+  \expandafter}%
+  \expandafter{\csname #2\endcsname}}
+
+\def\blx@ifnamesequalcsdef#1#2{%
+  \expandafter\blx@ifnamesequaldefdef\expandafter{%
+    \csname #1\endcsname}{#2}}
+
+\def\blx@ifnamesequaldefdef#1#2{%
   \begingroup
   \let\blx@tempa\@empty
-  \expandafter\expandafter
-  \expandafter\blx@ifnamesequal@i\csname abx@name@#2\endcsname
+  \expandafter\blx@ifnamesequal@i#2%
   \let\blx@tempb\blx@tempa
   \let\blx@tempa\@empty
-  \expandafter\expandafter
-  \expandafter\blx@ifnamesequal@i\csname abx@name@#1\endcsname
+  \expandafter\blx@ifnamesequal@i#1%
   \expandafter\endgroup
   \ifx\blx@tempa\blx@tempb
     \expandafter\@firstoftwo
@@ -2599,41 +2608,33 @@
     {\eappto\blx@tempa{{\abx@field@hash}}}
     {\eappto\blx@tempa{{{\namepartfamily}{\namepartgiven}{\namepartprefix}{\namepartsuffix}}}}}
 
-% {<field>}{<macro>}{<true>}{<false>}
-\def\blx@imc@iffieldequals#1#2{%
-  \blx@imc@iffieldundef{#1}
+% {<csname>}{<def>}{<true>}{<false>}
+\newcommand*{\blx@ifcsdefequal}[2]{%
+  \ifcsundef{#1}
     {\@secondoftwo}
     {\ifundef#2%
        {\@secondoftwo}
-       {\expandafter\ifx\csname abx@field@#1\endcsname#2%
+       {\expandafter\ifx\csname#1\expandafter\endcsname#2%
           \expandafter\@firstoftwo
         \else
           \expandafter\@secondoftwo
         \fi}}}
+
+% {<field>}{<macro>}{<true>}{<false>}
+\def\blx@imc@iffieldequals#1#2{%
+  \blx@ifcsdefequal{abx@field@#1}{#2}}
 
 % {<plainlist>}{<macro>}{<true>}{<false>}
 \def\blx@imc@iflistequals#1#2{%
-  \blx@imc@iflistundef{#1}
-    {\@secondoftwo}
-    {\ifundef#2%
-       {\@secondoftwo}
-       {\expandafter\ifx\csname abx@list@#1\endcsname#2%
-          \expandafter\@firstoftwo
-        \else
-          \expandafter\@secondoftwo
-        \fi}}}
+  \blx@ifcsdefequal{abx@list@#1}{#2}}
 
 % {<namelist>}{<macro>}{<true>}{<false>}
-\def\blx@imc@ifnameequals#1#2{% FIXME
+\def\blx@imc@ifnameequals#1#2{%
   \blx@imc@ifnameundef{#1}
     {\@secondoftwo}
     {\ifundef#2%
        {\@secondoftwo}
-       {\expandafter\ifx\csname abx@name@#1\endcsname#2%
-          \expandafter\@firstoftwo
-        \else
-          \expandafter\@secondoftwo
-        \fi}}}
+       {\blx@ifnamesequalcsdef{abx@name@#1}{#2}}}}
 
 % {<field>}{<csname>}{<true>}{<false>}
 \def\blx@imc@iffieldequalcs#1{%
@@ -2644,8 +2645,12 @@
   \ifcsequal{abx@list@#1}}
 
 % {<namelist>}{<csname>}{<true>}{<false>}
-\def\blx@imc@ifnameequalcs#1{% FIXME
-  \ifcsequal{abx@name@#1}}
+\def\blx@imc@ifnameequalcs#1#2{%
+  \blx@imc@ifnameundef{#1}
+    {\@secondoftwo}
+    {\ifcsundef{#2}
+       {\@secondoftwo}
+       {\blx@ifnamesequalcscs{abx@name@#1}{#2}}}}
 
 % {<field>}{<string>}{<true>}{<false>}
 \protected\long\def\blx@imc@iffieldequalstr#1#2{%
@@ -12060,6 +12065,9 @@
     \def\iffieldequals#1#2{\blx@TE{\blx@imc@iffieldequals{#1}{#2}}}%
     \def\iffieldequalstr#1#2{\blx@TE{\blx@imc@iffieldequalstr{#1}{#2}}}%
     \def\iffieldsequal#1#2{\blx@TE{\blx@imc@iffieldsequal{#1}{#2}}}%
+    \def\iflistequalcs#1#2{\blx@TE{\blx@imc@iflistequalcs{#1}{#2}}}%
+    \def\iflistequals#1#2{\blx@TE{\blx@imc@iflistequals{#1}{#2}}}%
+    \def\iflistsequal#1#2{\blx@TE{\blx@imc@iflistsequal{#1}{#2}}}%
     \def\ifbibmacroundef#1{\blx@TE{\blx@imc@ifbibmacroundef{#1}}}%
     \def\iffieldundef#1{\blx@TE{\blx@imc@iffieldundef{#1}}}%
     \def\ifnameequalcs#1#2{\blx@TE{\blx@imc@ifnameequalcs{#1}{#2}}}%
