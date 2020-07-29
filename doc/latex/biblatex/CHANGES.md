@@ -178,9 +178,9 @@
   of the `\ifnumerals` and `\ifpages` checks.
 - Deprecate the starred `\DeclareDelimAlias*` in favour of
   `\DeclareDelimAlias` with optional arguments.
-- Added `\DeclareBibstringClass`, `\DeclareBibstringClassFormat` etc.
-  to allow injecting additional formatting for a class of bibstrings.
-  Classes can be defined arbitrarily. These commands are primarily
+- Added `\DeclareBibstringSet`, `\DeclareBibstringSetFormat` etc.
+  to allow injecting additional formatting for a set of bibstrings.
+  Sets can be defined arbitrarily. These commands are primarily
   intended for use in localisation modules.
 - **INCOMPATIBLE CHANGE**
   `biblatex` no longer falls back to English for unknown languages.
