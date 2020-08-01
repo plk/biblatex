@@ -269,20 +269,31 @@ Apart from the above resources, \biblatex also requires the standard \latex pack
 \subsubsection{Recommended Packages}
 \label{int:pre:rec}
 
-The packages listed in this section are not required for \biblatex to function, but they provide recommended additional functions or enhance existing features. The package loading order usually does not matter.
+The packages listed in this section are not strictly required for \biblatex to function, but they provide recommended additional functions or enhance existing features.
 
 \begin{marglist}
 
 \item[babel/polyglossia]
 The \sty{babel} and \sty{polyglossia} packages provides the core architecture for multilingual typesetting. If you are writing in a language other than American English, using one of these packages is strongly recommended. You should load \sty{babel} or \sty{polyglossia} before \biblatex and then \biblatex will detect \sty{babel} or \sty{polyglossia} automatically. (While \sty{babel} may be loaded after \biblatex if so desired, \sty{polyglossia} must always be loaded before \biblatex.)
 
-\biblatex has only limited support for \sty{polyglossia} versions prior to~v1.45. Additional useful features for \biblatex were added in version~1.49. If \sty{polyglossia} is used, it should be updated to version~1.49 (2020/04/08) or above.
+\biblatex has only limited support for \sty{polyglossia} versions prior to~v1.45 (2019/10/27). Additional useful features for \biblatex were added in version~1.49. If \sty{polyglossia} is used, it should be updated to version~1.49 (2020/04/08) or above.
+
+The minimum supported \sty{babel} version is~v3.9r (2016/04/23).
 
 \item[csquotes]
 If this package is available, \biblatex will use its language sensitive quotation facilities to enclose certain titles in quotation marks. If not, \biblatex uses quotes suitable for American English as a fallback. When writing in a language other than American English, loading \sty{csquotes} is strongly recommended.\fnurl{https://ctan.org/pkg/csquotes/}
 
+\end{marglist}
+
+\subsubsection{Additional Useful Packages}
+\label{int:pre:add}
+
+The packages listed in this section are not required for \biblatex to function, but provide additional specialist functions or enhance existing features. These packages generally only need to be loaded if their functionality is explicitly desired. The package loading order usually does not matter.
+
+\begin{marglist}
+
 \item[xpatch]
-The \sty{xpatch} package extends the patching commands of \sty{etoolbox} to \biblatex bibliography macros, drivers and formatting directives.\fnurl{https://ctan.org/pkg/xpatch/}
+The \sty{xpatch} package extends the patching commands of \sty{etoolbox} to \biblatex bibliography macros, drivers and formatting directives.\fnurl{https://ctan.org/pkg/xpatch/} Its commands are useful to apply surgical-precision changes to bibliography macros, drivers or formatting directives without having to restate the whole definition to change it. The \biblatex core does not need or use these patching commands and styles that make use of them should load the package themselves.
 
 \end{marglist}
 
@@ -304,6 +315,8 @@ When using the \sty{memoir} class, the default bibliography headings are adapted
 
 \item[\acr{KOMA}-Script]
 When using any of the \sty{scrartcl}, \sty{scrbook}, or \sty{scrreprt} classes, the default bibliography headings are adapted such that they blend with the default layout of these classes. See \secref{use:cav:scr} for further usage hints.
+
+If available \biblatex makes use of some of the more recent of \acr{KOMA}-Script's \emph{do-hooks}. The relevant hooks are present from version~3.27 (2019/10/12) onwards, which is therefore the minimum version recommendation.
 
 \end{marglist}
 
@@ -360,7 +373,11 @@ The \sty{splitbib} package provides support for bibliographies subdivided by top
 The \sty{titlesec} package redefines user-level document division commands such as \cmd{chapter} or \cmd{section}. This approach is not compatible with internal command changes applied by the \biblatex \opt{refsection}, \opt{refsegment} and \opt{citereset} option settings described in \secref{use:opt:pre:gen}.
 
 \item[ucs]
-The \sty{ucs} package provides support for \utf encoded input. Either use \sty{inputenc}'s standard \file{utf8} module or a Unicode enabled engine such as \xetex or \luatex instead.
+The \sty{ucs} package provides support for \utf encoded input, but it does so in a way incompatible with \biblatex.
+
+If you get an error about \sty{ucs} being loaded, but you don't load it explicitly in your preamble, check that you don't load \sty{inputenc}'s \file{utf8x} module: \verb|\usepackage[utf8x]{inputenc}| will also load \sty{ucs}.
+
+Instead of \sty{ucs}/\file{utf8x} use a Unicode engine such as \xetex or \luatex if you want full Unicode support. If you use \pdftex or \tex, the Unicode characters predefined by the \latex format are usually enough for many use cases (this is true for \latex from April 2018 or later, in older versions load \sty{inputenc} with the \file{utf8} module) and missing characters can be defined using \cmd{DeclareUnicodeCharacter} or \sty{newunicodechar}'s \cmd{newunicodechar}.
 
 \item[etextools]
 The \sty{etextools} package provides enhancements to list macros defined by \sty{etoolbox} and a few other tools for command definitions.
@@ -662,7 +679,7 @@ An alias for \bibtype{online}, provided for \sty{jurabib} compatibility.
 \subsubsection{Non-standard Types}
 \label{bib:typ:ctm}
 
-The types in this section are similar to the custom types \bibtype{custom[a--f]}, \ie the standard bibliography styles provide no bibliography drivers for these types. When using the standard styles, they will therefore generally be treated as \bibtype{misc} entries---exceptions to this rule are noted in the descriptions below. The types are known to the default data model and will be happily accepted by \biber.
+The types in this section are similar to the custom types \bibtype{custom[a--f]}, \ie the standard bibliography styles provide no bibliography drivers for these types. In the standard styles they will use the bibliography driver for \bibtype{misc} entries---exceptions to this rule are noted in the descriptions below. The types are known to the default data model and will be happily accepted by \biber.
 
 \begin{typelist}
 
@@ -2200,12 +2217,16 @@ Enclose the entry in a \env{hyphenrules} environment. This will load hyphenation
 Enclose the entry in an \env{otherlanguage} environment. This will load hyphenation patterns for the specified language, enable all extra definitions which \sty{babel}/\sty{polyglossia} and \biblatex provide for the respective language, and translate key terms such as <editor> and <volume>. The extra definitions include localisations of the date format, of ordinals, and similar things.
 
 \item[other*]
-Enclose the entry in an \env{otherlanguage*} environment. Please note that \biblatex treats \env{otherlanguage*} like \env{otherlanguage} but other packages may make a distinction in this case.
+Enclose the entry in an \env{otherlanguage*} environment. Please note that \biblatex treats \env{otherlanguage*} like \env{otherlanguage} if \opt{langhook} is set to \opt{extras}.
 
 \item[langname]
 \sty{polyglossia} only. Enclose the entry in a \env{$<$languagename$>$} environment. The benefit of this option value for \sty{polyglossia} users is that it takes note of the \bibfield{langidopts} field so that you can add per-language options to an entry (like selecting a language variant). When using \sty{babel}, this option does the same as the \opt{other} option value.
 
 \end{valuelist}
+
+\optitem[captions]{langhook}{\opt{captions}, \opt{extras}}
+
+This option controls whether bibliography strings and extras are written to \cmd{captions$<$language$>$} or \cmd{extras$<$language$>$}. The exact effect of this option depend on the language package (\sty{babel}/\sty{polyglossia}). Broadly speaking, the language switching environments provided by those packages (except \env{hyphenrules}) either switch language captions and extras or only language extras. Hence, if this option is set to \opt{extras}, all language switches will affect \biblatex, whereas with \opt{captions} only language switches that also switch other parts of the document language affect \biblatex.
 
 \optitem[none]{autofieldlang}{\opt{none}, \opt{hyphen}, \opt{other}, \opt{other*}, \opt{langname}}
 
@@ -5001,7 +5022,11 @@ This command should be used with \cmd{bibnamedelimd} as a reversed-name separato
 The dash to be used as a replacement for recurrent authors or editors in the bibliography. The default is an <em> or an <en> dash, depending on the indentation of the list of references.
 
 \csitem{labelnamepunct}\DeprecatedMark
-A separator to be printed after the name used for alphabetizing in the bibliography (\bibfield{author} or \bibfield{editor}, if the \bibfield{author} field is undefined) instead of \cmd{newunitpunct}. The default is \cmd{newunitpunct}, \ie it is not handled differently from regular unit punctuation but permits convenient reconfiguration. This punctuation command is deprecated and has been superseded by the context-sensitive \cmd{nametitledelim} (see \secref{use:fmt:csd}). For backwards compatibility reasons, however, \cmd{nametitledelim} still defaults to \cmd{labelnamepunct} in the \texttt{bib} and \texttt{biblist} contexts. Style authors may want to consider replacing \cmd{labelnampunct} with \texttt{\textbackslash printdelim\{nametitledelim\}} and users may want to prefer modifying the context-sensitive \texttt{nametitledelim} with \cmd{DeclareDelimFormat} over redefining \cmd{labelnamepunct}.
+A separator to be printed after the name used for alphabetizing in the bibliography (\bibfield{author} or \bibfield{editor}, if the \bibfield{author} field is undefined) instead of \cmd{newunitpunct}. The default is \cmd{newunitpunct}, \ie it is not handled differently from regular unit punctuation but permits convenient reconfiguration. This punctuation command is deprecated and has been superseded by the context-sensitive \cmd{nametitledelim} (see \secref{use:fmt:csd}). For backwards compatibility reasons, however, \cmd{nametitledelim} still defaults to \cmd{labelnamepunct} in the \texttt{bib} and \texttt{biblist} contexts. Style authors may want to consider replacing \cmd{labelnampunct} with \texttt{\textbackslash printdelim\{nametitledelim\}} and users may want to prefer modifying the context-sensitive \texttt{nametitledelim} in the \texttt{bib} context with \cmd{DeclareDelimFormat} over redefining \cmd{labelnamepunct}, e.g.
+\begin{ltxexample}
+\DeclareDelimFormat[bib]{nametitledelim}{%
+  \addcolon\space}
+\end{ltxexample}
 
 \csitem{subtitlepunct}
 The separator printed between the fields \bibfield{title} and \bibfield{subtitle}, \bibfield{booktitle} and \bibfield{booksubtitle}, as well as \bibfield{maintitle} and \bibfield{mainsubtitle}. With the default styles, this separator replaces \cmd{newunitpunct} at this location. The default definition is \cmd{newunitpunct}, \ie it is not handled differently from regular unit punctuation.
@@ -5239,23 +5264,28 @@ The delimiters described in \secref{use:fmt:fmt} are globally defined. That is, 
 
 Declares the delimiter macros in the comma"=separated list \prm{names} with the replacement text \prm{code}. If the optional comma"=separated list of \prm{contexts} is given, declare the \prm{names} only for those contexts. \prm{names} defined without any \prm{contexts} behave just like the global delimiter definitions which \cmd{newcommand} gives---just a plain macro with a replacement which can be used as \cmd{name}. However, you can also call delimiter macros defined in this way by using \cmd{printdelim}, which is context-aware. The starred version clears all \prm{context} specific declarations for all \prm{names} first.
 
-\cmditem{DeclareDelimAlias}{alias}{delim}
-\cmditem*{DeclareDelimAlias}*[alias context, \dots]{alias}[delim context]{delim}
+\cmditem{DeclareDelimAlias}[alias context, \dots]{alias}[delim context]{delim}
 
-Declares \prm{alias} to be an alias for the delimiter \prm{delim}. The assigment is performed for all existing contexts of the target \prm{delim}.
-The starred version assigns the alias for specific contexts only. The first optional argument \prm{alias context} holds a list of contexts for which the assignment is going to be performed. If it is empty or missing the global/empty context is assumed. The second optional argument \prm{delim context} specifies the context of the target delimiter. This argument may not be a list, it can only hold one context. If it is missing the \prm{alias context} is assumed (if \prm{alias context} is a list, the assignment is performed separately for each list item), if it is empty the global context is used.
+Declares \prm{alias} to be an alias for the delimiter \prm{delim}. If the optional \prm{alias context, \dots} nor \prm{delim context} are given, the assigment is performed for all existing contexts of the target \prm{delim} separately, so that \prm{alias} becomes an exact copy of \prm{delim} in all contexts. If only the second optional argument \prm{delim context} is given, all existing contexts of \prm{alias} will be cleared and the global/empty context becomes an alias of \prm{delim} in the context \prm{delim context}. The first optional argument \prm{alias context, \dots} may hold a list of contexts for which the alias is assigned. In that case the second optional argument \prm{delim context} specifies the context of the target delimiter. This argument may not be a list, it can only hold one context. If it is missing, the \prm{alias context} is assumed (if \prm{alias context} is a list, the assignment is performed separately for each list item), if it is empty the global context is used.
+
 
 \begin{ltxexample}[style=latex]
-\DeclareDelimAlias*[bib,biblist]{finalnamedelim}[]{multinamedelim}
+\DeclareDelimAlias[bib,biblist]{finalnamedelim}[]{multinamedelim}
 \end{ltxexample}
 %
 Defines the \opt{bib} and \opt{biblist} contexts of \cmd{finalnamedelim} as aliases of \cmd{multinamedelim} in global context.
 On the other hand
 \begin{ltxexample}[style=latex]
-\DeclareDelimAlias*[bib,biblist]{finalnamedelim}{multinamedelim}
+\DeclareDelimAlias[bib,biblist]{finalnamedelim}{multinamedelim}
 \end{ltxexample}
 %
 defines \cmd{finalnamedelim} in the context \opt{bib} to be an alias of \cmd{multinamedelim} in the \opt{bib} context and defines \cmd{finalnamedelim} in \opt{biblist} context to be an alias of \cmd{multinamedelim} in \opt{biblist}.
+
+\cmditem*{DeclareDelimAlias}*[alias context, \dots]{alias}[delim context]{delim}\DeprecatedMark
+
+The starred version of \cmd{DeclareDelimAlias} is deprecated in favour of using unstarred \cmd{DeclareDelimAlias} with optional arguments.
+
+It assigns the delimiter alias for specific contexts only. The first optional argument \prm{alias context} holds a list of contexts for which the assignment is going to be performed. If it is empty or missing the global/empty context is assumed. The second optional argument \prm{delim context} specifies the context of the target delimiter. This argument may not be a list, it can only hold one context. If it is missing the \prm{alias context} is assumed (if \prm{alias context} is a list, the assignment is performed separately for each list item), if it is empty the global context is used.
 
 \cmditem{printdelim}[context]{name}
 
@@ -6147,17 +6177,19 @@ This section provides additional usage hints and addresses some common problems 
 \subsubsection{Usage with \acr{KOMA}-Script Classes}
 \label{use:cav:scr}
 
-When using \biblatex in conjunction with one of the \sty{scrbook}, \sty{scrreprt}, or \sty{scrartcl} classes, the headings \texttt{bibliography} and \texttt{biblist} from \secref{use:bib:hdg} are responsive to the bibliography"=related options of these classes.\footnote{This applies to the traditional syntax of these options (\opt{bibtotoc} and \opt{bibtotocnumbered}) as well as to the \keyval syntax introduced in \acr{KOMA}-Script 3.x, \ie to \kvopt{bibliography}{nottotoc}, \kvopt{bibliography}{totoc}, and \kvopt{bibliography}{totocnumbered}. The global \kvopt{toc}{bibliography} and \kvopt{toc}{bibliographynumbered} options as well as their aliases are detected as well. In any case, the options must be set globally in the optional argument to \cmd{documentclass}.} You can override the default headings by using the \opt{heading} option of \cmd{printbibliography}, \cmd{printbibheading} and \cmd{printbiblist}. See \secref{use:bib:bib, use:bib:biblist, use:bib:hdg} for details. All default headings are adapted at load-time such that they blend with the behavior of these classes. If one of the above classes is detected, \biblatex will also provide the following additional tests which may be useful in custom heading definitions:
+When used in conjunction with a recent version\footnote{At least \acr{KOMA}-Script 3.25 (2018/03/30).} one of the \sty{scrbook}, \sty{scrreprt}, or \sty{scrartcl} classes, \biblatex passes control over the (default) headings \texttt{bibliography} and \texttt{biblist} from \secref{use:bib:hdg} to the class. Hence, bibliography-heading-related class options can be used as usual. You can override the default headings by using the \opt{heading} option of \cmd{printbibliography}, \cmd{printbibheading} and \cmd{printbiblist}. See \secref{use:bib:bib, use:bib:biblist, use:bib:hdg} for details.
+
+\biblatex also tries to detect bibliography-related class options and settings itself.\footnote{This applies to the traditional syntax of these options (\opt{bibtotoc} and \opt{bibtotocnumbered}) as well as to the \keyval syntax introduced in \acr{KOMA}-Script 3.x, \ie to \kvopt{bibliography}{nottotoc}, \kvopt{bibliography}{totoc}, and \kvopt{bibliography}{totocnumbered}. The global \kvopt{toc}{bibliography} and \kvopt{toc}{bibliographynumbered} options as well as their aliases are detected as well. In any case, the options must be set globally in the optional argument to \cmd{documentclass}.} This was required to be able to adapt the bibliography headings to the class settings in older versions of \acr{KOMA}-Script. If one of the above classes is detected, \biblatex will provide the following additional tests which may be useful in custom heading definitions. Since these tests rely on the error-prone external detection of \acr{KOMA}-Script settings and are no longer used with newer \acr{KOMA}-Script versions, these tests are deprecated and should no longer be used.
 
 \begin{ltxsyntax}
 
-\cmditem{ifkomabibtotoc}{true}{false}
+\cmditem{ifkomabibtotoc}{true}{false}\DeprecatedMark
 
-Expands to \prm{true} if the class would add the bibliography to the table of contents, and to \prm{false} otherwise.
+Expands to \prm{true} if the class would add the bibliography to the table of contents, and to \prm{false} otherwise. This test is deprecated.
 
-\cmditem{ifkomabibtotocnumbered}{true}{false}
+\cmditem{ifkomabibtotocnumbered}{true}{false}\DeprecatedMark
 
-Expands to \prm{true} if the class would add the bibliography to the table of contents as a numbered section, and to \prm{false} otherwise. If this test yields \prm{true}, \cmd{ifkomabibtotoc} will always yield \prm{true} as well, but not vice versa.
+Expands to \prm{true} if the class would add the bibliography to the table of contents as a numbered section, and to \prm{false} otherwise. If this test yields \prm{true}, \cmd{ifkomabibtotoc} will always yield \prm{true} as well, but not vice versa. This test is deprecated.
 
 \end{ltxsyntax}
 
@@ -8258,7 +8290,7 @@ Defines source data modification (mapping) rules which can be used to perform an
 \item Add new fields to an entry
 \item Remove fields from an entry
 \item Modify the contents of a field using standard Perl regular expression
-  match and replace
+  match and replace\footnote{See for example \url{https://perldoc.perl.org/perlretut.html}, \url{https://perldoc.perl.org/perlrequick.html} and \url{https://perldoc.perl.org/perlre.html}. There are many more resources available about regular expessions in Perl.}
 \item Restrict any of the above operations to entries coming from
   particular datasources which you defined in \cmd{addresource} macros
 \item Restrict any of the above operations to entries only of a certain
@@ -8360,6 +8392,7 @@ A mapping step. Each step is applied sequentially to every relevant entry where 
 \boolitem[false]{nocited}
 \boolitem[false]{citedornocited}
 \boolitem[false]{allnocited}
+\boolitem[false]{starnocited}
 \boolitem[false]{entrynocite}
 \boolitem[false]{entrynull}
 \boolitem[false]{append}
@@ -8374,18 +8407,18 @@ For all boolean \cmd{step} options, the short form \opt{option} is equivalent to
 
 \renewcommand{\labelitemii}{$\circ$}
 
-Note that the options \opt{cited}, \opt{nocited}, \opt{citedornocited} and
-\opt{allnocited} are unique in that they can make the results of a
-sourcemap differ depending on the refsection. This is because a datasource
-to which source mapping applies may be used in several refsections and
-source mappings are applied when fetching the data from the datasources for
-a refsection. Citation commands are local to a refsection and therefore may
-differ for the same entry from refsection to refsection. For example, the same
-entry may be \cmd{cite}d in one refsection but \cmd{nocite}d in another,
-resulting in different source map results and therefore data between the
-refsections. This can be avoided if desired, by limiting source maps to
-specific refsections only (see \opt{refsection} option to the \cmd{map}
-command above).
+Note that the options \opt{cited}, \opt{nocited}, \opt{citedornocited},
+\opt{allnocited} and \opt{starnocited} are unique in that they can make the
+results of a sourcemap differ depending on the refsection. This is because
+a datasource to which source mapping applies may be used in several
+refsections and source mappings are applied when fetching the data from the
+datasources for a refsection. Citation commands are local to a refsection
+and therefore may differ for the same entry from refsection to refsection.
+For example, the same entry may be \cmd{cite}d in one refsection but
+\cmd{nocite}d in another, resulting in different source map results and
+therefore data between the refsections. This can be avoided if desired, by
+limiting source maps to specific refsections only (see \opt{refsection}
+option to the \cmd{map} command above).
 
 \begin{itemize}
 \item If \texttt{entrynew} is set, a new entry is created with the entry key \texttt{entrynewkey} and the entry type given in the option \texttt{entrynewtype}. This
@@ -8418,6 +8451,9 @@ command above).
   of an entry was specifically cited via \cmd{cite} or specifically nocited via \cmd{nocite}.
 \item If \texttt{allnocited} is used then only apply the step if the entry key
   of an entry was included via \cmd{nocite\{*\}}.
+\item If \texttt{starnocited} is used then only apply the step if the entry key
+  of an entry was included solely because of \cmd{nocite\{*\}}. This
+  implies that the entry was neither explicitly \cmd{cite}ed nor explicitly \cmd{nocite}ed.
 \item Change the \texttt{typesource} \prm{entrytype} to the
   \texttt{typetarget} \prm{entrytype}, if defined. If
   \texttt{final} is \texttt{true} then if the \prm{entrytype} of the entry is not \texttt{typesource}, processing of the parent \cmd{map} immediately terminates.
@@ -13277,6 +13313,7 @@ The default setting is:
 
 \begin{ltxexample}
 \AtUsedriver{%
+  \delimcontext{bib}%
   \let\finentry\blx@finentry@usedrv
   \let\newblock\relax
   \let\abx@macro@bibindex\@empty
@@ -14996,6 +15033,7 @@ This revision history is a list of changes relevant to users of this package. Ch
 \end{release}
 
 \begin{release}{3.15}{2020-??-??}
+\item Added \opt{starnocited} option to sourcemaps\see{aut:ctm:map}
 \item Added the \opt{glob} option to \cmd{addbibresource}\see{use:bib:res}
 \item Added \bibfield{eid} to more entry types\see{bib:typ:blx}
 \item Added \cmd{bibeidpunct}\see{use:fmt:fmt}
@@ -15021,6 +15059,7 @@ This revision history is a list of changes relevant to users of this package. Ch
 \item Added Serbian localisation (Andrej Radović)
 \item Added Turkish localisation (Abdulkerim Gok)
 \item Added file hooks\see{aut:fmt:hok:fil}
+\item Deprecated \cmd{ifkomabibtotoc} and \cmd{ifkomabibtotocnumbered}\see{use:cav:scr}
 \end{release}
 \begin{release}{3.14}{2019-12-01}
 \item Added new mapping verbs for citation sources\see{aut:ctm:map}

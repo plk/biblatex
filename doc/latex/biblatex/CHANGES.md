@@ -141,7 +141,7 @@
   accepts the values `expl3`, `latex2e` and `auto` (which selects
   `expl3` if the `expl3` version not older than 2020-04-06, this
   is the default).
-  
+
   The `expl3` implementation of the case changer is slightly more
   robust than the home-grown `latex2e` code.
 - The option `bibtexcaseprotection` can be used to turn off the
@@ -160,10 +160,36 @@
 - Added `\mautocite` and `\Mautocite`.
 - Added `\NumsCheckSetup` and `\PagesCheckSetup` for finer control
   of the `\ifnumerals` and `\ifpages` checks.
+- Deprecate the starred `\DeclareDelimAlias*` in favour of
+  `\DeclareDelimAlias` with optional arguments.
 - **INCOMPATIBLE CHANGE**
   `biblatex` no longer falls back to English for unknown languages.
   Warnings will be triggered if undefined language strings or extras
   are used.
+- **INCOMPATIBLE CHANGE**
+  Bibliography strings and bibliography extras can now be written
+  either to `\captions<language>` or to `\extras<language>`
+  (this is controlled with the `langhook` option).
+  Previously, they were written to `\extras<language>`, but upon
+  reflection `\captions<language>` appears to be a more sensible
+  place for these definitions.
+  The new default is to write to `\captions<language>`
+  (i.e. `langhook=captions`).
+  The previous behaviour can be restored with `langhook=extras`.
+- **INCOMPATIBLE CHANGE** Moved `\delimcontext{bib}` to `\AtUsedriver`,
+  this makes it easier to override the delimiter context in `\usedriver`
+  calls. `\AtUsedriver*` calls may have to be amended to include
+  `\delimcontext{bib}`. The new default is
+  ```
+  \AtUsedriver{%
+    \delimcontext{bib}%
+    \let\finentry\blx@finentry@usedrv
+    \let\newblock\relax
+    \let\abx@macro@bibindex\@empty
+    \let\abx@macro@pageref\@empty}
+  ```
+  Note that this definition is backwards compatible
+  and can be used in older versions as well (down to v3.4 2016-05-10).
 - `biblatex` now tests if a requested backend (re)run happened by
   comparing the MD5 hashes of the new and old `.bbl` files.
 - Added file hooks `\blx@filehook@preload@<filename>`,
@@ -200,6 +226,10 @@
   macros (which are defined via `\provide...` so that they will
   not overwrite existing definitions; in particular users can define
   those replacements before loading `biblatex`).
+- Deprecate `\ifkomabibtotoc` and `\ifkomabibtotocnumbered`.
+  With newer versions of KOMA-Script these tests are no longer used
+  and their implementation was always a bit shifty (they would only pick
+  up globally set options).
 
 
 # RELEASE NOTES FOR VERSION 3.14
