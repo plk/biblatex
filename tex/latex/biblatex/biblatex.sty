@@ -9840,15 +9840,22 @@
   \begingroup
   \def\do#1{\ifinlist{#1}\blx@cites{}{\blx@logreq@active{}}\relax}%
   \dolistloop\blx@lastcites
-  % Special case - if we are using sortingtemplate "none" anywhere, then changes
-  % in citation order matter and we need to re-run biber. So a special test
-  % to see if the cites from last run are identical in order. We have
-  % already tested for more or less cites between runs by now, we are
+  % Special case - if we are using sortingtemplate with \citeorder anywhere,
+  % then changes in citation order matter and we need to re-run biber.
+  % So a special test to see if the cites from last run are identical in order.
+  % We have already tested for more or less cites between runs by now, we are
   % testing here for exactly the same cites by treating the cite and
   % lastcite lists as strings and comparing them. This doesn't apply
   % to biblist sortingtemplates as nobody wants to sort biblists with
   % "none", since it makes no sense
-  \ifinlist{none}\blx@sortingtemplatenames
+  \togglefalse{blx@tempa}%
+  \def\do#1{%
+    \ifcsundef{blx@sortingtemplate@citeorder@relevant@#1}
+      {}
+      {\toggletrue{blx@tempa}%
+       \listbreak}}%
+  \dolistloop\blx@sortingtemplatenames
+  \iftoggle{blx@tempa}
     {\ifdefstrequal{\blx@cites}{\blx@lastcites}
       {}
       {\blx@logreq@active{}}}
@@ -15138,7 +15145,10 @@
   \let\sort\blx@sortdef@sort
   \let\field\blx@sortdef@field
   \let\literal\blx@sortdef@literal
-  \def\citeorder{\blx@sortdef@field{citeorder}}%
+  \global\csundef{blx@sortingtemplate@citeorder@relevant@#2}%
+  \def\citeorder{%
+    \global\cslet{blx@sortingtemplate@citeorder@relevant@#2}\@empty
+    \blx@sortdef@field{citeorder}}%
   \blx@tempcnta\z@
   \let\blx@tempa\@empty
   #3%
@@ -15455,7 +15465,7 @@
     before loading biblatex instead}%
   \ifstrequal{#1}{true}
     {\global\cslet{blx@noerroretextools}\@empty}
-    {\csgundef{blx@noerroretextools}}}
+    {\global\csundef{blx@noerroretextools}}}
 
 % load-time and preamble
 
