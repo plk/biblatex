@@ -1,4 +1,4 @@
-# RELEASE NOTES FOR VERSION 3.15b
+# RELEASE NOTES FOR VERSION 3.16
 - Fixed an infinite loop caused by excessive aliasing of the `volcitepages`
   format.
   Reverted the alias `\DeclareFieldAlias{volcitepages}{postnote}`
@@ -12,6 +12,7 @@
   are recorded in the `.aux` file and loaded on the next run.
   This may require a further LaTeX run in some situations, but now we can be
   sure when `.lbx` files are read.
+- Added `label` option to `\printbibliography`.
 
 # RELEASE NOTES FOR VERSION 3.15a
 - Fixed bug with long argument for `\DeclareFieldFormat` and friends.
