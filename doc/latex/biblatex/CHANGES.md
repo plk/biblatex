@@ -1,3 +1,6 @@
+# RELEASE NOTES FOR VERSION 3.15a
+- Fixed bug with long argument for `\DeclareFieldFormat` and friends.
+
 # RELEASE NOTES FOR VERSION 3.15
 - Fixed a long-standing issue with `\intitlepunct`.
   The old definition
