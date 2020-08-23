@@ -31,6 +31,9 @@
    <namelist><msform><mslang>bibnamehash or
    <namelist><msform><mslang>fullhash and biber 4.0+ always generates specific
    name hashes in this format.
+# RELEASE NOTES FOR VERSION 3.15a
+- Fixed bug with long argument for `\DeclareFieldFormat` and friends.
+
 # RELEASE NOTES FOR VERSION 3.15
 - Fixed a long-standing issue with `\intitlepunct`.
   The old definition
