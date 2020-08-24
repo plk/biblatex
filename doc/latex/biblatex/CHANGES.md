@@ -1,3 +1,13 @@
+# RELEASE NOTES FOR VERSION 3.15b
+- Fixed an infinite loop caused by excessive aliasing of the `volcitepages`
+  format.
+  Reverted the alias `\DeclareFieldAlias{volcitepages}{postnote}`
+  and again define
+  ```
+  \DeclareFieldFormat{volcitepages}{\mkpageprefix[pagination][\mknormrange]{#1}}
+  ```
+  explicitly.
+
 # RELEASE NOTES FOR VERSION 3.15a
 - Fixed bug with long argument for `\DeclareFieldFormat` and friends.
 
@@ -35,6 +45,10 @@
   \DeclareFieldFormat{multiprenote}{#1\isdot}
   \DeclareFieldFormat{multipostnote}{\mkpageprefix[pagination][\mknormrange]{#1}}
   ```
+  
+  **NB** The definition of `volcitepages` caused an infinite loop and was
+  reverted in v3.15b.
+  This means that only `multiprenote` and `multipostnote` are aliased.
 - Unified DOI, eprint and URL printing across all entry types.
   The fields `doi`, `eprint`, `eprintclass`, `eprinttype` and `url`
   are now valid for all entry types.
