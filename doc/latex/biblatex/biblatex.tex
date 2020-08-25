@@ -3121,7 +3121,7 @@ Whether the default data model name part <prefix> (von, van, of, da, de, della, 
 \end{itemize}
 %
 For example, if this option is enabled, \biblatex precedes the family name with the prefix---Ludwig van Beethoven would be cited as «van Beethoven» and alphabetized as «Van Beethoven, Ludwig». If this option is disabled (the default), he is cited as «Beethoven» and alphabetized as «Beethoven, Ludwig van» instead.
-This option is also settable on a per-type scope. With \biblatexml datasources and the \bibtex extended name format supported by \biber, this is also settable on per-namelist and per-name scopes.
+This option is also settable on a per-type scope. With \biblatexml datasources and the \bibtex extended name format supported by \biber (see \secref{use:enf}), this is also settable on per-namelist and per-name scopes.
 
 \optitem{indexing}{\opt{true}, \opt{false}, \opt{cite}, \opt{bib}}
 
@@ -3332,6 +3332,64 @@ This style prints all bibliographic data in tabular format. It is intended for d
 
 \end{marglist}
 
+\subsection{Extended Name Format}
+\label{use:enf}
+The parsing rules for \bibtex names are rather archaic and not suited to
+many international name formats. \biber supports an extended name format
+which allows explicit specification of the parts of names. This allows the
+use of custom name parts apart from the four standard \bibtex parts. Extended
+name formats are supported in all name fields and can be used along with
+the usual \bibtex name format. Recognition of extended name format can be
+disabled with the \biber option \opt{--noxname} in case you do not need the
+extended format and the auto-detection causes problems with normal name
+parsing. The separator \verb+=+ which comes between the namepart names and
+values is customisable with the \biber option \opt{--xnamesep}. Here is an
+example:
+
+\begin{lstlisting}[style=bibtex]{}
+AUTHOR = {Hans Harman and Simon de Beumont}
+AUTHOR = {given=Hans, family=Harman and given=Simon, prefix=de, family=Beumont}
+\end{lstlisting}
+% 
+These two name specifications are equivalent but the extended format
+explicitly names the parts. The supported parts are those specified by the
+\biblatex data mode constant \opt{nameparts}, see \secref{aut:bbx:drv}. As
+with traditional \bibtex name parsing, initials are automatically generated
+but it is also possible to specify these explicitly:
+
+\begin{lstlisting}[style=bibtex]{}
+AUTHOR = {given=Jean, prefix=de la, prefix-i=d, family=Rousse}
+AUTHOR = {given={Jean Pierre Simon}, given-i=JPS}
+\end{lstlisting}
+% 
+Initials are specified by adding the suffix \verb+-i+ to the namepart name.
+Compound parts may be protected with braces:
+
+\begin{lstlisting}[style=bibtex]{}
+AUTHOR = {given={Jean Pierre}}
+\end{lstlisting}
+% 
+If a namepart contains a comma, the whole namepart should be protected with
+quotes:
+
+\begin{lstlisting}[style=bibtex]{}
+AUTHOR = {"family={Robert and Sons, Inc.}"}
+\end{lstlisting}
+% 
+Traditional \bibtex name formats and the extended form may be used together:
+
+\begin{lstlisting}[style=bibtex]{}
+AUTHOR = {Hans Harman and given=Simon, prefix=de, family=Beumont}
+\end{lstlisting}
+% 
+Per-namelist and per-name options may be specified in the extended name
+format, see \secref{use:opt:bib:hyb}:
+
+\begin{lstlisting}[style=bibtex]{}
+AUTHOR = {nosortothers=true and Hans Harman and
+          given=Simon, family=Beumont, prefix=de, useprefix=true}
+\end{lstlisting}
+      
 \subsection{Related Entries}
 \label{use:rel}
 
@@ -7014,7 +7072,7 @@ Names depend on the datamodel constant <nameparts> which has the default definit
                                     {prefix,family,suffix,given}
 \end{ltxexample}
 %
-This can be customised to add more name parts to deal with things like patronymics (see the example file \file{93-nameparts.tex}). This needs an extended name format for data sources since the standard \bibtex name format is very limited. \biblatexml (\secref{apx:biblatexml}) handles this natively and there is an extended name format which can handle custom nameparts when using \biber (see \biber documentation).
+This can be customised to add more name parts to deal with things like patronymics (see the example file \file{93-nameparts.tex}). This needs an extended name format for data sources since the standard \bibtex name format is very limited. \biblatexml (\secref{apx:biblatexml}) handles this natively and there is an extended name format which can handle custom nameparts when using \biber (see \secref{use:enf}).
 
 Inside name formats, the <nameparts> constant declaration makes available two or three macros for each name part defined in the datamodel:
 
@@ -9717,7 +9775,7 @@ or just a name list by using the option as a pseudo-name which will be ignored:
 \end{lstlisting}
 %
 or just a single name by passing the option as part of the extended name information
-format which \biber supports (see \biber doc):
+format which \biber supports (see \secref{use:enf}):
 
 \begin{lstlisting}[style=bibtex]{}
 @BOOK{key,
@@ -15034,6 +15092,10 @@ This revision history is a list of changes relevant to users of this package. Ch
 \end{release}
 
 \begin{release}{3.15}{2020-??-??}
+\begin{release}{3.15b}{2020-??-??}
+\item Fixed infinite loop with \bibfield{volcitepages} field format
+\item Added Extended Name Format documentation\see{use:enf}
+\end{release}
 \begin{release}{3.15a}{2020-08-23}
 \item Fixed bug with long arguments in \cmd{DeclareFieldFormat} and friends
 \end{release}
