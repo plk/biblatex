@@ -467,7 +467,7 @@
   Since `\mknormrange` acts only on page ranges as detected by
   `\ifpages`, this does not affect text other than page ranges.
   Hyphens and dashes in page ranges will be transformed to
-  `\bibrangedash`, commas and semi-colons to `\bibrangesep`.
+  `\bibrangedash`, commas and semicolons to `\bibrangesep`.
   This is analogous to Biber's treatment of page-like fields.
   If you always separated page ranges with `--` or `\bibrangedash`
   anyway, this should not change the output you get.
