@@ -13,6 +13,7 @@
   This may require a further LaTeX run in some situations, but now we can be
   sure when `.lbx` files are read.
 - Added `label` option to `\printbibliography`.
+- Added more name wrapper aliases to make name aliasing smoother.
 
 # RELEASE NOTES FOR VERSION 3.15a
 - Fixed bug with long argument for `\DeclareFieldFormat` and friends.
