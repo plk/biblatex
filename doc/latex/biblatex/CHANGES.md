@@ -7,6 +7,11 @@
   \DeclareFieldFormat{volcitepages}{\mkpageprefix[pagination][\mknormrange]{#1}}
   ```
   explicitly.
+- Fixed `.lbx` file loading behaviour. All `.lbx` files are now loaded
+  `\AtBeginDocument`. Languages that were not requested explicitly by packages
+  are recorded in the `.aux` file and loaded on the next run.
+  This may require a further LaTeX run in some situations, but now we can be
+  sure when `.lbx` files are read.
 
 # RELEASE NOTES FOR VERSION 3.15a
 - Fixed bug with long argument for `\DeclareFieldFormat` and friends.

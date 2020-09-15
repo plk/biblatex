@@ -509,8 +509,10 @@
           {\let\xpg@bloaded\xpg@loaded}}
        {}%
      \global\let\blx@maplang\blx@maplang@polyglossia
-     \def\do#1{\blx@langsetup{#1}}%
+     \def\do#1{\blx@langsetup@from@pkglist{#1}}%
      \expandafter\docsvlist\expandafter{\xpg@bloaded}%
+     \def\do#1{\blx@langsetup@from@auxlist{#1}}%
+     \dolistloop\blx@lbx@auxloadlist
      \ifboolexpr{
       not togl {blx@autolangbib}
       and
@@ -521,8 +523,10 @@
     {\global\let\blx@maplang\blx@maplang@babel
      \@ifpackageloaded{babel}
        {% This is required for languages which are never explicitly selected
-        \def\do#1{\blx@langsetup{#1}}%
+        \def\do#1{\blx@langsetup@from@pkglist{#1}}%
         \expandafter\docsvlist\expandafter{\bbl@loaded}%
+        \def\do#1{\blx@langsetup@from@auxlist{#1}}%
+        \dolistloop\blx@lbx@auxloadlist
         \ifboolexpr{
           not togl {blx@autolangbib}
           and
@@ -5503,7 +5507,7 @@
     {\blx@info@noline{... file '#1' found}%
      \csuse{blx@lbxfilehook@simple@preload@#1}%
      #3%
-     \setbox\@tempboxa=\hbox\bgroup\@@input\@filef@und\egroup
+     \@@input\@filef@und
      #4%
      \csuse{blx@lbxfilehook@simple@postload@#1}%
      #5%
@@ -5524,7 +5528,7 @@
        {\blx@info@noline{... file '#1' found}%
         \csuse{blx@lbxfilehook@once@preload@#1}%
         #3%
-        \setbox\@tempboxa=\hbox\bgroup\@@input\@filef@und\egroup
+        \@@input\@filef@und
         #4%
         \csuse{blx@lbxfilehook@once@postload@#1}%
         #5%
@@ -5595,12 +5599,48 @@
   \endgroup}
 
 % {<language>}
-\def\blx@langsetup#1{%
+\protected\def\blx@langsetup#1{%
   \blx@lbxinput{#1}
     {\edef\blx@languagename{#1}}
     {\blx@warning
        {Language '#1' not supported.\MessageBreak
         Using dummy definitions}}}
+
+\protected\def\blx@langsetup@from@pkglist#1{%
+  \global\cslet{blx@lbx@loaded@from@pkglist@#1}\@empty
+  \blx@langsetup{#1}}
+
+\protected\def\blx@langsetup@from@auxlist#1{%
+  \global\cslet{blx@lbx@loaded@from@auxlist@#1}\@empty
+  \blx@langsetup{#1}}
+
+\newcommand*{\blx@lbx@loadlist}{}
+
+\protected\def\blx@langsetup@indoc#1{%
+  \ifcsundef{blx@lbx@loaded@from@pkglist@#1}
+    {\xifinlist{#1}\blx@lbx@loadlist
+       {}
+       {\listxadd\blx@lbx@loadlist{#1}}%
+     \ifcsundef{blx@lbx@loaded@from@auxlist@#1}
+       {\ifcsundef{blx@lbx@loaded@nolistload@#1}
+          {\blx@warning@noline{%
+             No localisation for language '#1' loaded.\MessageBreak
+             Please rerun LaTeX to ensure languages can\MessageBreak
+             be requested properly}%
+           \global\cslet{blx@lbx@loaded@nolistload@#1}\@empty}
+          {}}
+       {\edef\blx@languagename{#1}}}
+    {\edef\blx@languagename{#1}}%
+}
+
+\newcommand*{\blx@lbx@auxloadlist}{}
+
+\def\abx@aux@lbx@loadrequest{%
+  \listgadd\blx@lbx@auxloadlist}
+
+\protected\def\blx@lbx@writeloaderequest#1{%
+  \blx@auxwrite\@mainaux{}{%
+    \string\abx@aux@lbx@loadrequest{#1}}}
 
 % auxiliary macros
 
@@ -6410,7 +6450,7 @@
   % afterreset was added in 3.9i (~2014-03-16)
   % way before 3.9r (2016-04-23), which we require
   \AddBabelHook{biblatex@langsetup}{afterreset}{%
-    \expandafter\blx@langsetup\expandafter{\languagename}}%
+    \expandafter\blx@langsetup@indoc\expandafter{\languagename}}%
   \ifdef\blx@thelangenv
     {\def\blx@beglang{%
        \blx@clearlang
@@ -6445,7 +6485,7 @@
     {}%
   \def\blx@imc@mainlang{%
     \expandafter\selectlanguage\expandafter{\blx@main@language}}%
-  \expandafter\blx@langsetup\expandafter{\blx@main@language}%
+  \expandafter\blx@langsetup@from@pkglist\expandafter{\blx@main@language}%
 }
 
 \def\blx@beglang@spacefactors{\frenchspacing}
@@ -6460,12 +6500,12 @@
     {\let\blx@main@language\mainbabelname}%
   \ifundef\polyglossia@language@switched
     {\apptocmd\select@language
-       {\expandafter\blx@langsetup\expandafter{\babelname}}
+       {\expandafter\blx@langsetup@indoc\expandafter{\babelname}}
        {}
        {\blx@err@patch{'polyglossia' package}%
         \blx@mknoautolang}}
     {\appto\polyglossia@language@switched{%
-       \expandafter\blx@langsetup\expandafter{\babelname}}}%
+       \expandafter\blx@langsetup@indoc\expandafter{\babelname}}}%
   \ifdef\blx@thelangenv
      {\def\blx@beglang{%
         \blx@clearlang
@@ -6508,7 +6548,7 @@
           {}}}
        {}%
   \def\blx@imc@mainlang{\select@language{\blx@main@language}}%
-  \expandafter\blx@langsetup\expandafter{\blx@main@language}}
+  \expandafter\blx@langsetup@from@pkglist\expandafter{\blx@main@language}}
 
 \def\blx@mknoautolang{%
   \blx@lbxinput{\blx@languagename}
@@ -8610,9 +8650,16 @@
       {\def\do#1{\blx@auxwrite\@mainaux{}{#1}}
        \dolistloop\blx@localnumaux}}
     {}%
-  % Wite md5 hash of .bbl to .aux if we need a Biber rerun.
+  % Write out missing languages we still need to load
+  \forlistloop{\blx@lbx@writeloaderequest}{\blx@lbx@loadlist}%
+  % Issue rerun warning if we need to load a language babel/polyglossia
+  % hasn't told us about and that we are not loading it already from previous
+  % runs.
+  \def\do#1{\xifinlist{#1}{\blx@lbx@auxloadlist}{}{\blx@rerun@latex\listbreak}}%
+  \dolistloop\blx@lbx@loadlist
+  % Write md5 hash of .bbl to .aux if we need a Biber rerun.
   % This needs to happen here and not in \blx@check@rerun together with
-  % the other rerun stuff, because \AfterEndBibliography would be too
+  % the other rerun stuff, because \AfterEndDocument would be too
   % late for .aux file writing.
   \blx@aux@write@bbl@mdfivesum
   \endgroup}
