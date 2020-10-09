@@ -15346,33 +15346,80 @@
 
 
 \csdef{blx@opt@casechanger@auto}{%
-  \RequirePackage{expl3}[2020/04/06]%
-  \@ifpackagelater{expl3}{2020/04/06}
-    {\blx@info{expl3\MessageBreak\csuse{ver@expl3.sty}\MessageBreak
-       is new enough (at least 2020/04/06),\MessageBreak
-       setting 'casechanger=expl3'}%
-     \csuse{blx@opt@casechanger@expl3}}
-    {\blx@info{expl3\MessageBreak\csuse{ver@expl3.sty}\MessageBreak
-       is too old (older than 2020/04/06),\MessageBreak
-       setting 'casechanger=latex2e'}%
+  \ifdefstring{\blx@texencoding}{utf8}
+    {\blx@info@noline{Document encoding is UTF8 ...}%
+     \RequirePackage{expl3}[2020/04/06]%
+     \@ifpackagelater{expl3}{2020/04/06}
+       {\blx@info@noline{... and expl3\MessageBreak\csuse{ver@expl3.sty}\MessageBreak
+          is new enough (at least 2020/04/06),\MessageBreak
+          setting 'casechanger=expl3'}%
+        \csuse{blx@opt@casechanger@expl3}}
+       {\blx@info@noline{... but expl3\MessageBreak\csuse{ver@expl3.sty}\MessageBreak
+          is too old (older than 2020/04/06),\MessageBreak
+          setting 'casechanger=latex2e'}%
+        \csuse{blx@opt@casechanger@latex2e}}}
+    {\blx@info@noline{%
+       Document encoding not detected as UTF8.\MessageBreak
+       Setting 'casechanger=latex2e'}%
      \csuse{blx@opt@casechanger@latex2e}}}
 
 \csdef{blx@opt@casechanger@latex2e}{%
   \blx@inputonce{blx-case-latex2e.def}
     {LaTeX2e (legacy) case changing code}
-    {}{}{}{}}
+    {\makeatletter}{\makeatother}{}{}}
 \csletcs{blx@opt@casechanger@2e}{blx@opt@casechanger@latex2e}
 
 % Apparently neither \input nor \blx@inputonce ever pops the
 % \ExplSyntaxOff from \ProvidesExplFile, so we do that ourselves.
 \csdef{blx@opt@casechanger@expl3}{%
+  \ifdefstring{\blx@texencoding}{utf8}
+    {}
+    {\blx@warning@noline{%
+       The expl3 case changer code should only be used\MessageBreak
+       with UTF-8 encoding.\MessageBreak
+       But the document encoding was detected as
+       '\blx@texencoding'.\MessageBreak
+       Case changing macros may break\MessageBreak
+       if used with non-ASCII characters}}%
   \blx@inputonce{blx-case-expl3.def}
     {expl3 case changing code}
-    {}{\ExplSyntaxOff}{}{}}
+    {\makeatletter}{\ExplSyntaxOff\makeatother}{}{}}
 \csletcs{blx@opt@casechanger@3}{blx@opt@casechanger@expl3}
 
 % default to auto
 \csletcs{blx@deferoption@casechanger}{blx@opt@casechanger@auto}
+
+% This is a bit unfortunate, but we need some more definitions after
+% loading the case changing code.
+\def\blx@casechange@postload{%
+  % Language fallback, in order:
+  % * explicit option language=<lang>, which overrides everything
+  % * langid field of entry
+  % * babel/polyglossia lang
+  % * main document lang (we should never reach this)
+  % * <empty> (we should *definitely* never reach this)
+  % Everything here is expandable so that
+  % \blx@mksc@lang expands to the language name.
+  \def\blx@mksc@lang{%
+    \ifundef\blx@forcelanguagename
+      {\ifundef\abx@field@langid
+        {\ifundef\blx@languagename
+          {\ifundef\blx@main@language
+             {}
+             {\blx@main@language}}
+          {\blx@languagename}}
+        {\abx@field@langid}}
+      {\blx@forcelanguagename}}%
+  %
+  \DeclareCaseLangs{%
+    american,british,canadian,
+    english,USenglish,UKenglish,
+    australian,newzealand}%
+  % Textcase defines \NoCaseChange as \let\NoCaseChange\@firstofone
+  \ifundef\NoCaseChange
+    {\let\NoCaseChange\@firstofone}
+    {}}
+% That's it for the case change code
 
 % Set defaults
 \blx@kv@setkeys{blx@opt@ldt}{style=numeric}
@@ -15414,43 +15461,6 @@
 % Process load-time options
 \ProcessOptions*
 
-% this ultimately loads either
-% blx-case-expl3.def or blx-case-latex2e.def
-\blx@deferoption@casechanger
-
-% This is a bit unfortunate, but we need some more definitions here.
-
-% Language fallback, in order:
-% * explicit option language=<lang>, which overrides everything
-% * langid field of entry
-% * babel/polyglossia lang
-% * main document lang (we should never reach this)
-% * <empty> (we should *definitely* never reach this)
-% Everything here is expandable so that
-% \blx@mksc@lang expands to the language name.
-\def\blx@mksc@lang{%
-  \ifundef\blx@forcelanguagename
-    {\ifundef\abx@field@langid
-      {\ifundef\blx@languagename
-        {\ifundef\blx@main@language
-           {}
-           {\blx@main@language}}
-        {\blx@languagename}}
-      {\abx@field@langid}}
-    {\blx@forcelanguagename}}
-
-\DeclareCaseLangs{%
-  american,british,canadian,
-  english,USenglish,UKenglish,
-  australian,newzealand}
-
-
-% Textcase defines \NoCaseChange as \let\NoCaseChange\@firstofone
-\ifundef\NoCaseChange
-  {\let\NoCaseChange\@firstofone}
-  {}
-
-% That's it for the case change code
 
 % Switch to BibTeX support if requested
 \iftoggle{blx@bibtex}
@@ -15616,6 +15626,10 @@
 \AtBeginDocument{%
   \blx@auxwrite\@mainaux{}{\string\abx@aux@refcontext{\blx@refcontext@context}}
   \blx@checkencoding
+  % this ultimately loads either
+  % blx-case-expl3.def or blx-case-latex2e.def
+  \blx@deferoption@casechanger
+  \blx@casechange@postload
   \if@filesw
     \blx@ctrlwrite
   \fi
