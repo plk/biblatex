@@ -1,6 +1,41 @@
 \ProvidesFile{blx-case-latex2e.def}
 [\abx@cptid]
 
+% auxiliary macros
+% babel's \languagename has weird catcodes,
+% so we \detokenize our language names
+
+\def\blx@listgadd@switched#1#2{\listgadd{#2}{#1}}
+
+\ifundef\expanded
+  {\protected\def\blx@deifinlist#1{%
+     \begingroup
+     \edef\blx@tempa{\endgroup
+       \blx@deifinlist@i{#1}}%
+     \blx@tempa}%
+   \protected\def\blx@deifinlist@i#1{%
+     \expandafter\ifinlist\expandafter{\detokenize{#1}}}%
+   %
+   \protected\def\blx@listdxadd@switched#1{%
+     \begingroup
+     \edef\blx@tempa{\endgroup
+       \blx@listdxadd@switched@i{#1}}%
+     \blx@tempa}%
+   \protected\def\blx@listdxadd@switched@i#1{%
+     \expandafter\blx@listgadd@switched\expandafter{\detokenize{#1}}}}
+  {\def\blx@deifinlist#1{%
+     \expandafter\expandafter\expandafter\ifinlist
+     \expandafter\expandafter\expandafter{%
+       \expandafter\detokenize\expandafter{\expanded{#1}}}}%
+   %
+   \def\blx@listdxadd@switched#1{%
+     \expandafter\expandafter\expandafter\blx@listgadd@switched
+     \expandafter\expandafter\expandafter{%
+       \expandafter\detokenize\expandafter{\expanded{#1}}}}}
+
+\def\blx@listdxadd#1#2{\blx@listdxadd@switched{#2}{#1}}
+
+
 % we don't have l3text's (pseudo)BCP47 language codes here
 \newrobustcmd*{\DeclareBabelToExplLanguageMapping}[2]{%
   \blx@warning{The command '\string\DeclareBabelToExplLanguageMapping'%
@@ -108,10 +143,11 @@
 \newrobustcmd*{\MakeSentenceCase}{%
   \@ifstar\blx@mksc@i\blx@mksc@ii}
 
+
 % \blx@cmksc@lang is defined in biblatex.sty
 % it expands to the applicable language for the title field
 \def\blx@mksc@i{%
-  \xifinlist\blx@mksc@lang\blx@cmksc@lang
+  \blx@deifinlist\blx@mksc@lang\blx@cmksc@lang
     {\blx@mksc@ii}
     {\@firstofone}}
 
@@ -280,11 +316,11 @@
 \def\blx@defcaselangs#1{%
   \ifblank{#1}
     {}
-    {\forcsvlist{\listgadd\blx@cmksc@lang}{#1}}}
+    {\forcsvlist{\blx@listdxadd\blx@cmksc@lang}{#1}}}
 
 % \DeclareCaseLangs invocation is in biblatex.sty
 
 \newrobustcmd*{\ifcaselang}[1][\blx@languagename]{%
-  \xifinlist{#1}\blx@cmksc@lang}
+  \blx@deifinlist{#1}\blx@cmksc@lang}
 
 \endinput
