@@ -14,6 +14,9 @@
   sure when `.lbx` files are read.
 - Added `label` option to `\printbibliography`.
 - Added more name wrapper aliases to make name aliasing smoother.
+- Deprecate `\mainlang` switch in favour of the text macro `\textmainlang`.
+- Deprecate `\mkrelatedstring` (which is defined as `\mainlang`)
+  in favour of `\mkrelatestringtext` (defined as `\textmainlang`).
 
 # RELEASE NOTES FOR VERSION 3.15a
 - Fixed bug with long argument for `\DeclareFieldFormat` and friends.

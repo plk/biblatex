@@ -6424,6 +6424,7 @@
 \let\blx@hook@endlang\@empty
 \let\blx@hook@initlang\@empty
 \let\blx@imc@mainlang\@empty
+\let\blx@imc@textmainlang\@firstofone
 \def\blx@hyphenreset{%
   \blx@ifhyphenationundef{\blx@languagename}
     {}
@@ -6484,7 +6485,19 @@
            {}}}
     {}%
   \def\blx@imc@mainlang{%
+    \ifundef\blx@warn@mainlang
+      {\blx@warning@noline{%
+         '\string\mainlang' is deprecated in favour of\MessageBreak
+         '\string\textmainlang'.%
+         \MessageBreak
+         Please consider using the new command,\MessageBreak
+         but note that the syntax is different.\MessageBreak
+         Using the old, problematic definition}%
+       \global\let\blx@warn@mainlang\@empty}
+      {}%
     \expandafter\selectlanguage\expandafter{\blx@main@language}}%
+  \def\blx@imc@textmainlang##1{%
+    {{\expandafter\selectlanguage\expandafter{\blx@main@language}##1}}}%
   \expandafter\blx@langsetup@from@pkglist\expandafter{\blx@main@language}%
 }
 
@@ -6547,7 +6560,19 @@
               \blx@beglang@spacefactors}}
           {}}}
        {}%
-  \def\blx@imc@mainlang{\select@language{\blx@main@language}}%
+  \def\blx@imc@mainlang{%
+    \ifundef\blx@warn@mainlang
+      {\blx@warning@noline{%
+         '\string\mainlang' is deprecated in favour of\MessageBreak
+         '\string\textmainlang'.%
+         \MessageBreak
+         Please consider using the new command,\MessageBreak
+         but note that the syntax is different.\MessageBreak
+         Using the old, problematic definition}%
+       \global\let\blx@warn@mainlang\@empty}
+      {}%
+    \select@language{\blx@main@language}}%
+  \def\blx@imc@textmainlang##1{{{\select@language{\blx@main@language}##1}}}%
   \expandafter\blx@langsetup@from@pkglist\expandafter{\blx@main@language}}
 
 \def\blx@mknoautolang{%
@@ -6555,7 +6580,7 @@
     {}
     {\blx@err@nolang{\blx@languagename}}}
 
-\blx@regimcs{\mainlang}
+\blx@regimcs{\mainlang \textmainlang}
 
 \newrobustcmd*{\DeclareRedundantLanguages}[2]{%
   \begingroup
