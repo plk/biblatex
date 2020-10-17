@@ -31,7 +31,7 @@
    <namelist><msform><mslang>bibnamehash or
    <namelist><msform><mslang>fullhash and biber 4.0+ always generates specific
    name hashes in this format.
-# RELEASE NOTES FOR VERSION 3.15b
+# RELEASE NOTES FOR VERSION 3.16
 - Fixed an infinite loop caused by excessive aliasing of the `volcitepages`
   format.
   Reverted the alias `\DeclareFieldAlias{volcitepages}{postnote}`
@@ -40,6 +40,17 @@
   \DeclareFieldFormat{volcitepages}{\mkpageprefix[pagination][\mknormrange]{#1}}
   ```
   explicitly.
+# RELEASE NOTES FOR VERSION 3.15b
+- Fixed `.lbx` file loading behaviour. All `.lbx` files are now loaded
+  `\AtBeginDocument`. Languages that were not requested explicitly by packages
+  are recorded in the `.aux` file and loaded on the next run.
+  This may require a further LaTeX run in some situations, but now we can be
+  sure when `.lbx` files are read.
+- Added `label` option to `\printbibliography`.
+- Added more name wrapper aliases to make name aliasing smoother.
+- Deprecate `\mainlang` switch in favour of the text macro `\textmainlang`.
+- Deprecate `\mkrelatedstring` (which is defined as `\mainlang`)
+  in favour of `\mkrelatestringtext` (defined as `\textmainlang`).
 
 # RELEASE NOTES FOR VERSION 3.15a
 - Fixed bug with long argument for `\DeclareFieldFormat` and friends.
@@ -500,7 +511,7 @@
   Since `\mknormrange` acts only on page ranges as detected by
   `\ifpages`, this does not affect text other than page ranges.
   Hyphens and dashes in page ranges will be transformed to
-  `\bibrangedash`, commas and semi-colons to `\bibrangesep`.
+  `\bibrangedash`, commas and semicolons to `\bibrangesep`.
   This is analogous to Biber's treatment of page-like fields.
   If you always separated page ranges with `--` or `\bibrangedash`
   anyway, this should not change the output you get.
