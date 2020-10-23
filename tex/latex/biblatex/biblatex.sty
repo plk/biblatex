@@ -52,6 +52,21 @@
       This is a fatal error. I'm aborting now}%
    \endinput}
 
+% The new hook management system in LaTeX 2020-10-01 and above
+% no longer guarantees that \AtBeginDocument/AfterPreamble
+% are executed in order of use.
+% Instead each use of those commands gets a 'label'
+% and code for the same label is chunked together.
+% We give our \AfterPreamble invocations a new label and set up a rule to
+% have it executed after all normal biblatex \AtBeginDocument stuff.
+% Note that begindocument is a one-time hook, so we are guaranteed
+% immediate execution when inside \begin{document}...\end{document}.
+\providecommand\IfFormatAtLeastTF{\@ifl@t@r\fmtversion}
+\IfFormatAtLeastTF{2020/10/01}
+  {\def\blx@AfterPreamble{\AddToHook{begindocument}[biblatex/afterpreamble]}%
+   \DeclareHookRule{begindocument}{biblatex/afterpreamble}{after}{biblatex}}
+  {\let\blx@AfterPreamble\AfterPreamble}
+
 
 % generalised keyval interface
 % define a new key (possibly with a default value)
@@ -10507,7 +10522,7 @@
     {\blx@error
        {Category '#1' not declared}
        {Use \string\DeclareBibliographyCategory\space to declare}}
-    {\AfterPreamble{%
+    {\blx@AfterPreamble{%
        \blx@xsanitizeafter{\forcsvlist{\blx@addtocategory{#1}}}{#2}}}}
 
 % {<category>}{<entrykey>,...}
@@ -10845,7 +10860,7 @@
            I'm ignoring the new definition}}}
     {\global\cslet{blx@set@\the\c@refsection @\blx@tempa}\blx@tempb
      \edef\blx@tempa{%
-       \AfterPreamble{\blx@setreq{\blx@tempa}{\blx@tempb}}}%
+       \blx@AfterPreamble{\blx@setreq{\blx@tempa}{\blx@tempb}}}%
      \blx@tempa}%
   \endgroup
   \@esphack}
@@ -11567,7 +11582,7 @@
 
 \def\blx@nocite#1{%
   \@bsphack
-  \AfterPreamble{%
+  \blx@AfterPreamble{%
     \ifstrequal{*}{#1}
       {\blx@nocitation@all}
       {\blx@xsanitizeafter{\forcsvlist\blx@nocite@do}{#1}}}%
