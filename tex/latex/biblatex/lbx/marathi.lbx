@@ -3,22 +3,116 @@
 % व वाङ्मयविद्या परिभाषा कोश तसेच ग्रंथालयशास्त्र परिभाषा कोश
 % ह्या दोन परिभाषा कोशांचा संदर्भ घेतला आहे.
 % ह्यात सुधारणा सुचवण्याकरिता ह्या कोशांचा आधार जरूर
-% घेण्यात यावा. भाषा संचालनालयाच्या कोशांतील शब्दांचे 
+% घेण्यात यावा. भाषा संचालनालयाच्या कोशांतील शब्दांचे
 % शोधसुकर अर्थ पुढील संकेतस्थळावरून शोधता येऊ शकतात.
 % https://shabdakosh.marathi.gov.in/
 
 \ProvidesFile{marathi.lbx}
 [\abx@lbxid]
 
-\lbx@ifutfinput 
-{} 
-{\PackageError{biblatex} 
-    {Marathi requires UTF-8 support} 
-    {The file 'marathi.lbx' requires UTF-8 encoding but you 
-        seem\MessageBreak to be using a different encoding. 
-        This is a fatal error. I will\MessageBreak abort loading 
-        marathi.lbx now.}% 
-    \endinput} 
+\lbx@ifutfinput
+  {}
+  {\PackageError{biblatex}
+    {Marathi requires UTF-8 support}
+    {The file 'marathi.lbx' requires UTF-8 encoding but you
+        seem\MessageBreak to be using a different encoding.
+        This is a fatal error. I will\MessageBreak abort loading
+        marathi.lbx now.}%
+    \endinput}
+
+\NewBibliographyString{rangephrase}
+
+\DeclareBibliographyExtras{%
+  \protected\def\bibrangedash{-}%
+  \savecommand\bibdaterangesep
+  \protected\def\bibdaterangesep{\addspace\bibstring{rangephrase}\addspace}%
+  \let\finalandcomma=\empty
+  \protected\def\mkbibordinal#1{%
+    \begingroup
+    \@tempcnta0#1\relax\number\@tempcnta
+    \ifcase\@tempcnta व\or ल\or र\or र\or थ\else व\fi
+    \endgroup}%
+  \protected\def\mkbibmascord#1{\mkbibordinal{#1}ा}%
+  \protected\def\mkbibfemord#1{\mkbibordinal{#1}ी}%
+  \protected\def\mkbibneutord#1{\mkbibordinal{#1}े}%
+  \savecommand\mkbibordedition
+  \savecommand\mkbibordseries
+  \def\mkbibordedition{\mkbibfemord}%
+  \def\mkbibordseries{\mkbibfemord}%
+  \protected\def\mkbibdatelong#1#2#3{%
+    \iffieldundef{#3}
+      {}
+      {\mkdayzeros{\thefield{#3}}%
+       \iffieldundef{#2}{}{\nobreakspace}}%
+    \iffieldundef{#2}
+      {}
+      {\mkbibmonth{\thefield{#2}}%
+       \iffieldundef{#1}{}{\iffieldundef{#3}{}{\addcomma}\space}}%
+    \iffieldbibstring{#1}
+      {\bibstring{\thefield{#1}}}
+      {\dateeraprintpre{#1}\stripzeros{\thefield{#1}}}}%
+  \protected\def\mkbibdateshort#1#2#3{%
+    \iffieldundef{#3}
+      {}
+      {\mkdayzeros{\thefield{#3}}%
+       \iffieldundef{#2}{}{/}}%
+    \iffieldundef{#2}
+      {}
+      {\mkmonthzeros{\thefield{#2}}%
+       \iffieldundef{#1}{}{/}}%
+    \iffieldbibstring{#1}
+      {\bibstring{\thefield{#1}}}
+      {\dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}}}%
+  \expandafter\protected\expandafter\def\csname mkbibtime24h\endcsname#1#2#3#4{%
+      \iffieldundef{#1}
+        {}
+        {\mktimezeros{\thefield{#1}}%
+         \iffieldundef{#2}{}{\bibtimesep}}%
+      \iffieldundef{#2}
+        {}
+        {\mktimezeros{\thefield{#2}}%
+         \iffieldundef{#3}{}{\bibtimesep}}%
+      \iffieldundef{#3}
+        {}
+        {\mktimezeros{\thefield{#3}}}%
+      \iffieldundef{#4}{}
+        {\bibtimezonesep
+         \mkbibtimezone{\thefield{#4}}}}%
+  \expandafter\protected\expandafter\def\csname mkbibtime12h\endcsname#1#2#3#4{%
+      \ifnumless{\thefield{#1}}{12}
+         {\bibstring{am}}
+         {\bibstring{pm}}%
+      \space
+      \stripzeros{\mktimehh{\thefield{#1}}}%
+      \bibtimesep
+      \mktimezeros{\thefield{#2}}%
+      \iffieldundef{#3}{}
+        {\bibtimesep
+         \mktimezeros{\thefield{#3}}}%
+      \iffieldundef{#4}{}
+       {\space\bibtimezonesep
+        \parentext{\mkbibtimezone{\thefield{#4}}}}}%
+  \protected\def\mkbibseasondateshort#1#2{%
+    \mkbibseason{\thefield{#2}}%
+    \iffieldundef{#1}{}{\space}%
+    \dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}}%
+  \protected\def\mkbibseasondatelong#1#2{%
+    \mkbibseason{\thefield{#2}}%
+    \iffieldundef{#1}{}{\space}%
+    \dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}}%
+  \savefieldformat{url}%
+  \DeclareFieldFormat{url}{\bibstring{url}\addcolon\space\url{#1}}%
+  \savefieldformat{urldate}%
+  \DeclareFieldFormat{urldate}{\mkbibparens{#1\addspace\bibstring{urlseen}}}%
+}
+
+\UndeclareBibliographyExtras{%
+  \restorecommand\mkbibordedition
+  \restorecommand\mkbibordseries
+  \restorecommand\bibdaterangesep
+  \restorefieldformat{url}%
+  \restorefieldformat{urldate}%
+}
 
 \DeclareBibliographyStrings{%
     bibliography     = {{संदर्भसूची}{संदर्भसूची}},
@@ -329,5 +423,6 @@
     winter           = {{हिवाळा}{हिवाळा}},
     am               = {{मध्यान्हपूर्व}{म.पू\adddot}},
     pm               = {{मध्यान्होत्तर}{म.उ\adddot}},
+    rangephrase      = {{ते}{ते}},
 }
 \endinput
