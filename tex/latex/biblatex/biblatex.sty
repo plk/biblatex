@@ -67,7 +67,6 @@
    \DeclareHookRule{begindocument}{biblatex/afterpreamble}{after}{biblatex}}
   {\let\blx@AfterPreamble\AfterPreamble}
 
-
 % generalised keyval interface
 % define a new key (possibly with a default value)
 % {<family>}{<key>}[<default>]{<code>}
@@ -944,6 +943,9 @@
 % Used to track default refcontexts for citations
 \cslet{blx@defaultrefcontexts@0}\@empty
 \listadd\blx@allrefsections{0}
+
+% Used to track defernumbers from .aux
+\global\let\blx@localnumbers\@empty
 
 % Used to track sorting name key specifications
 \global\let\blx@sortingnamekeytemplates\@empty
@@ -8638,13 +8640,18 @@
   % any citations or add/remove any sorting templates, we need to re-run
   % biber. Also, if we have to re-run biber, we need to defer writing
   % the defernumbers .aux information because it will not yet be correct.
-  %
+  \begingroup
+  % Test to see if there are any .aux entries with defernums (localnum)
+  % information which are no longer in the .bbl. This is to catch
+  % when .bib entries are removed when using \nocite{*}. In this case,
+  % We need another run to remove the .aux localnumber info
+  \def\do#1{\xifinlist{#1}\blx@entries{}{\blx@rerun@latex}}%
+  \dolistloop\blx@localnumbers
   % Test to see if we *removed* any citations since last run
   % (adding citations is dealt with naturally in \blx@citation@entry)
   % If so, give a rerun biber message. This also sets the
   % rerun biber toggle so defernums doesn't consume the localnumbers
   % in the .aux but instead, re-writes them, which is what we need.
-  \begingroup
   \def\do#1{\ifinlist{#1}\blx@cites{}{\blx@logreq@active{}}\relax}%
   \dolistloop\blx@lastcites
   % Special case - if we are using sortingtemplate with \citeorder anywhere,
@@ -8710,7 +8717,8 @@
 \protected\def\blx@aux@number#1#2#3#4#5{%
   \blx@bbl@addentryfield{\detokenize{#2}}{#3}{localnumber}{#4}{#5}%
   \blx@bbl@addentryfield{\detokenize{#2}}{#3}{labelnumber}{#4}{#5}%
-  \csgdef{blx@localnumber@#3@#2}{#5}%
+  \csgdef{blx@localnumber@#3@\detokenize{#2}}{#5}%
+  \xifinlist{\detokenize{#2}}\blx@localnumbers{}{\listxadd\blx@localnumbers{\detokenize{#2}}}%
   \global\toggletrue{blx@localnumber}%
   \ifblank{#5}
     {}
@@ -8751,9 +8759,9 @@
           % and was not yet recorded in the .aux. We will have generated a localnumber
           % for such a case above and now we need to re-run to make sure it's in the .aux
           % for the next run
-          \ifboolexpr { not test {\ifcsdef{blx@localnumber@\the\c@refsection @\abx@field@entrykey}}
-                       and 
-                       test {\ifinlist{*}\blx@nocites} }
+          \ifboolexpr { test {\ifinlist{*}\blx@nocites}
+                        and
+                        not test {\ifcsdef{blx@localnumber@\the\c@refsection @\abx@field@entrykey}} }
             {\blx@rerun@latex}
             {}%
           % If localnumbers were already in the .aux, add them
