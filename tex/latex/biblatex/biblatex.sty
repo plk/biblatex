@@ -8817,7 +8817,12 @@
   \begingroup
   \blx@bblstart
   \blx@ifsigned{\jobname}{bbl}
-    {\InputIfFileExists{\jobname.bbl}
+    % We also test for \blx@lastrefcontexts as this should be set whenever
+    % a biblatex .aux has been read. If it's not set, the .aux was empty or missing
+    % and so we want to revert to regenerating the .bbl and .aux
+    {\ifboolexpr {test {\InputIfFileExists{\jobname.bbl}}
+                  and
+                  not test {\ifdefempty\blx@lastrefcontexts}}
        {\blx@info@noline{... file '\jobname.bbl' found}%
         \global\toggletrue{blx@bbldone}%
         \blx@generate@bbl@mdfivesum@found}
