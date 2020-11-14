@@ -8675,6 +8675,7 @@
       {\def\do#1{\blx@auxwrite\@mainaux{}{#1}}
        \dolistloop\blx@localnumaux}}
     {}%
+
   % Write out missing languages we still need to load
   \forlistloop{\blx@lbx@writeloaderequest}{\blx@lbx@loadlist}%
   % Issue rerun warning if we need to load a language babel/polyglossia
@@ -8693,6 +8694,7 @@
 \protected\def\blx@aux@number#1#2#3#4#5{%
   \blx@bbl@addentryfield{\detokenize{#2}}{#3}{localnumber}{#4}{#5}%
   \blx@bbl@addentryfield{\detokenize{#2}}{#3}{labelnumber}{#4}{#5}%
+  \csgdef{blx@localnumber@#3@#2}{#5}%
   \global\toggletrue{blx@localnumber}%
   \ifblank{#5}
     {}
@@ -8711,9 +8713,14 @@
          % Also, don't want to regenerate localnumber for any key in a
          % refsection which we've already seen because this has the nasty
          % side-effect of incrementing the localnum counter
-         {\ifboolexpr { not togl {blx@localnumber}
-                        and
-                        not test {\ifcsdef{blx@defer@\the\c@refsection @\blx@refcontext@context @\abx@field@entrykey}} }
+         % Also, have to create localnumber again if \nocite{*} as items
+         % could have been added to the .bib file without changing the cite
+         % information in the .tex
+         {\ifboolexpr { (not togl {blx@localnumber}
+                         or
+                         test {\ifinlist{*}\blx@nocites})
+                         and
+                         not test {\ifcsdef{blx@defer@\the\c@refsection @\blx@refcontext@context @\abx@field@entrykey}} }
             {\iftoggle{blx@omitnumbers}
                {\let\abx@field@localnumber\@empty}
                {\csnumgdef{blx@labelnumber@\the\c@refsection}{%
@@ -8721,7 +8728,17 @@
                 \edef\abx@field@localnumber{%
                   \csuse{blx@labelnumber@\the\c@refsection}}%
                 \blx@bbl@addentryfield{\abx@field@entrykey}{\the\c@refsection}%
-                    {localnumber}{\blx@refcontext@context}{\abx@field@localnumber}}}
+                {localnumber}{\blx@refcontext@context}{\abx@field@localnumber}}}
+            {}%
+          % Issue re-run message if there was no localnumber in the .aux and
+          % \nocite{*} was used because this means that an entry was added to the .bib
+          % and was not yet recorded in the .aux. We will have generated a localnumber
+          % for such a case above and now we need to re-run to make sure it's in the .aux
+          % for the next run
+          \ifboolexpr { not test {\ifcsdef{blx@localnumber@\the\c@refsection @\abx@field@entrykey}}
+                       and 
+                       test {\ifinlist{*}\blx@nocites} }
+            {\blx@rerun@latex}
             {}%
           % If localnumbers were already in the .aux, add them
           % again from the .aux. This prevents some cycling
@@ -8732,8 +8749,8 @@
           \ifcsundef{blx@defer@\the\c@refsection @\blx@refcontext@context @\abx@field@entrykey}
             {\ifundef\abx@field@localnumber
                {}
-                {\listxadd\blx@localnumaux{%
-                   \string\abx@aux@number%
+               {\listxadd\blx@localnumaux{%
+                  \string\abx@aux@number%
                      {\the\c@instcount}%
                      {\abx@field@entrykey}%
                      {\the\c@refsection}%
