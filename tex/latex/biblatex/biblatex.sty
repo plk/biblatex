@@ -52,6 +52,21 @@
       This is a fatal error. I'm aborting now}%
    \endinput}
 
+% The new hook management system in LaTeX 2020-10-01 and above
+% no longer guarantees that \AtBeginDocument/AfterPreamble
+% are executed in order of use.
+% Instead each use of those commands gets a 'label'
+% and code for the same label is chunked together.
+% We give our \AfterPreamble invocations a new label and set up a rule to
+% have it executed after all normal biblatex \AtBeginDocument stuff.
+% Note that begindocument is a one-time hook, so we are guaranteed
+% immediate execution when inside \begin{document}...\end{document}.
+\providecommand\IfFormatAtLeastTF{\@ifl@t@r\fmtversion}
+\IfFormatAtLeastTF{2020/10/01}
+  {\def\blx@AfterPreamble{\AddToHook{begindocument}[biblatex/afterpreamble]}%
+   \DeclareHookRule{begindocument}{biblatex/afterpreamble}{after}{biblatex}}
+  {\let\blx@AfterPreamble\AfterPreamble}
+
 
 % generalised keyval interface
 % define a new key (possibly with a default value)
@@ -5210,6 +5225,7 @@
   \do{november}%
   \do{december}%
   \do{langamerican}%
+  \do{langbasque}%
   \do{langbrazilian}%
   \do{langbulgarian}%
   \do{langcatalan}%
@@ -5242,6 +5258,7 @@
   \do{langturkish}%
   \do{langukrainian}%
   \do{fromamerican}%
+  \do{frombasque}%
   \do{frombrazilian}%
   \do{frombulgarian}%
   \do{fromcatalan}%
@@ -10524,7 +10541,7 @@
     {\blx@error
        {Category '#1' not declared}
        {Use \string\DeclareBibliographyCategory\space to declare}}
-    {\AfterPreamble{%
+    {\blx@AfterPreamble{%
        \blx@xsanitizeafter{\forcsvlist{\blx@addtocategory{#1}}}{#2}}}}
 
 % {<category>}{<entrykey>,...}
@@ -10862,7 +10879,7 @@
            I'm ignoring the new definition}}}
     {\global\cslet{blx@set@\the\c@refsection @\blx@tempa}\blx@tempb
      \edef\blx@tempa{%
-       \AfterPreamble{\blx@setreq{\blx@tempa}{\blx@tempb}}}%
+       \blx@AfterPreamble{\blx@setreq{\blx@tempa}{\blx@tempb}}}%
      \blx@tempa}%
   \endgroup
   \@esphack}
@@ -11584,7 +11601,7 @@
 
 \def\blx@nocite#1{%
   \@bsphack
-  \AfterPreamble{%
+  \blx@AfterPreamble{%
     \ifstrequal{*}{#1}
       {\blx@nocitation@all}
       {\blx@xsanitizeafter{\forcsvlist\blx@nocite@do}{#1}}}%
@@ -15406,13 +15423,9 @@
      \csuse{blx@opt@casechanger@latex2e}}}
 
 \csdef{blx@opt@casechanger@latex2e}{%
-  \blx@inputonce{blx-case-latex2e.def}
-    {LaTeX2e (legacy) case changing code}
-    {\makeatletter}{\makeatother}{}{}}
+  \RequirePackage{blx-case-latex2e}}
 \csletcs{blx@opt@casechanger@2e}{blx@opt@casechanger@latex2e}
 
-% Apparently neither \input nor \blx@inputonce ever pops the
-% \ExplSyntaxOff from \ProvidesExplFile, so we do that ourselves.
 \csdef{blx@opt@casechanger@expl3}{%
   \ifdefstring{\blx@texencoding}{utf8}
     {}
@@ -15423,9 +15436,7 @@
        '\blx@texencoding'.\MessageBreak
        Case changing macros may break\MessageBreak
        if used with non-ASCII characters}}%
-  \blx@inputonce{blx-case-expl3.def}
-    {expl3 case changing code}
-    {\makeatletter}{\ExplSyntaxOff\makeatother}{}{}}
+  \RequirePackage{blx-case-expl3}}
 \csletcs{blx@opt@casechanger@3}{blx@opt@casechanger@expl3}
 
 % default to auto
