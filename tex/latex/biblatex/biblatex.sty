@@ -658,6 +658,7 @@
      in recent versions of pdfTeX, LuaTeX and XeTeX}}
   {\let\blx@mdfivesum\pdf@mdfivesum}
 
+\newtoggle{blx@bbl@rerun@requested}
 
 \ifundef\pdf@filemdfivesum
   {\blx@warning@noline{Command '\string\pdf@filemdfivesum' undefined.\MessageBreak
@@ -666,7 +667,8 @@
      in recent versions of pdfTeX, LuaTeX and XeTeX}%
    \let\blx@generate@bbl@mdfivesum@found\relax
    \let\blx@generate@bbl@mdfivesum@notfound\relax
-   \let\blx@aux@read@bbl@mdfivesum\@gobble
+   \let\abx@aux@read@bblrerun\relax
+   \let\abx@aux@read@bbl@mdfivesum\@gobble
    \let\blx@aux@write@bbl@mdfivesum\relax
    \let\blx@check@bbl@rerun@mdfivesum\relax}
   {\let\blx@filemdfivesum\pdf@filemdfivesum
@@ -674,19 +676,26 @@
    \def\blx@generate@bbl@mdfivesum@found{%
      \xdef\blx@bbl@mdfivesum@new{\blx@filemdfivesum{\jobname.bbl}}}
 
+   % 'nobblfile' can never be equal to any md5 hash
    \def\blx@generate@bbl@mdfivesum@notfound{%
      \gdef\blx@bbl@mdfivesum@new{nobblfile}}
 
-   \def\blx@aux@read@bbl@mdfivesum{%
+   \def\abx@aux@read@bblrerun{\global\toggletrue{blx@bbl@rerun@requested}}
+
+   \def\abx@aux@read@bbl@mdfivesum{%
      \gdef\blx@bbl@mdfivesum@old}
 
    % If we need Biber to rerun, save the hash of the current .bbl.
    % That way we can detect if the Biber rerun really happened when
    % we run LaTeX the next time.
    \def\blx@aux@write@bbl@mdfivesum{%
+     \blx@auxwrite\@mainaux{}{%
+       \string\abx@aux@read@bbl@mdfivesum{%
+         \ifundef\blx@bbl@mdfivesum@old
+           {nohash}
+           {\blx@bbl@mdfivesum@new}}}%
      \iftoggle{blx@runbiber}
-       {\blx@auxwrite\@mainaux{}{%
-          \string\blx@aux@read@bbl@mdfivesum{\blx@bbl@mdfivesum@new}}}
+       {\blx@auxwrite\@mainaux{}{\string\abx@aux@read@bblrerun}}
        {}}
 
    % There was a Biber rerun request last time (\blx@bbl@mdfivesum@old),
@@ -694,9 +703,11 @@
    % that means *no* Biber rerun happened.
    % So we need to re-request a rerun.
    \def\blx@check@bbl@rerun@mdfivesum{%
-     \ifdefstrequal\blx@bbl@mdfivesum@old\blx@bbl@mdfivesum@new
-       {\blx@logreq@active{}}
-       {}}}
+     \iftoggle{blx@bbl@rerun@requested}
+       {\ifdefstrequal\blx@bbl@mdfivesum@old\blx@bbl@mdfivesum@new}
+       {\@secondoftwo}
+     {\blx@logreq@active{}}
+     {}}}
 
 
 % xstring replacements
@@ -8824,18 +8835,12 @@
   \begingroup
   \blx@bblstart
   \blx@ifsigned{\jobname}{bbl}
-    % We also test for \blx@lastrefcontexts as this should be set whenever
-    % a biblatex .aux has been read. If it's not set, the .aux was empty or missing
-    % and so we want to revert to regenerating the .bbl and .aux
-    {\ifboolexpr {test {\InputIfFileExists{\jobname.bbl}}
-                  and
-                  not test {\ifdefempty\blx@lastrefcontexts}}
-      {\blx@info@noline{... file '\jobname.bbl' found}%
+    {\InputIfFileExists{\jobname.bbl}
+       {\blx@info@noline{... file '\jobname.bbl' found}%
         \global\toggletrue{blx@bbldone}%
         \blx@generate@bbl@mdfivesum@found}
        {\blx@info@noline{... file '\jobname.bbl' not found}%
         \typeout{No file \jobname.bbl.}%
-        % 'nobblfile' can never be equal to any mdfivehash
         \blx@generate@bbl@mdfivesum@notfound}}
     {\blx@generate@bbl@mdfivesum@notfound}%
   \blx@bblend
