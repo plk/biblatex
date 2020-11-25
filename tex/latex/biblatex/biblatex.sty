@@ -58,6 +58,20 @@
       This is a fatal error. I'm aborting now}%
    \endinput}
 
+% The new hook management system in LaTeX 2020-10-01 and above
+% no longer guarantees that \AtBeginDocument/AfterPreamble
+% are executed in order of use.
+% Instead each use of those commands gets a 'label'
+% and code for the same label is chunked together.
+% We give our \AfterPreamble invocations a new label and set up a rule to
+% have it executed after all normal biblatex \AtBeginDocument stuff.
+% Note that begindocument is a one-time hook, so we are guaranteed
+% immediate execution when inside \begin{document}...\end{document}.
+\providecommand\IfFormatAtLeastTF{\@ifl@t@r\fmtversion}
+\IfFormatAtLeastTF{2020/10/01}
+  {\def\blx@AfterPreamble{\AddToHook{begindocument}[biblatex/afterpreamble]}%
+   \DeclareHookRule{begindocument}{biblatex/afterpreamble}{after}{biblatex}}
+  {\def\blx@AfterPreamble{\AfterPreamble}}
 
 % generalised keyval interface
 % define a new key (possibly with a default value)
@@ -670,6 +684,7 @@
      in recent versions of pdfTeX, LuaTeX and XeTeX}}
   {\let\blx@mdfivesum\pdf@mdfivesum}
 
+\newtoggle{blx@bbl@rerun@requested}
 
 \ifundef\pdf@filemdfivesum
   {\blx@warning@noline{Command '\string\pdf@filemdfivesum' undefined.\MessageBreak
@@ -678,7 +693,8 @@
      in recent versions of pdfTeX, LuaTeX and XeTeX}%
    \let\blx@generate@bbl@mdfivesum@found\relax
    \let\blx@generate@bbl@mdfivesum@notfound\relax
-   \let\blx@aux@read@bbl@mdfivesum\@gobble
+   \let\abx@aux@read@bblrerun\relax
+   \let\abx@aux@read@bbl@mdfivesum\@gobble
    \let\blx@aux@write@bbl@mdfivesum\relax
    \let\blx@check@bbl@rerun@mdfivesum\relax}
   {\let\blx@filemdfivesum\pdf@filemdfivesum
@@ -686,19 +702,26 @@
    \def\blx@generate@bbl@mdfivesum@found{%
      \xdef\blx@bbl@mdfivesum@new{\blx@filemdfivesum{\jobname.bbl}}}
 
+   % 'nobblfile' can never be equal to any md5 hash
    \def\blx@generate@bbl@mdfivesum@notfound{%
      \gdef\blx@bbl@mdfivesum@new{nobblfile}}
 
-   \def\blx@aux@read@bbl@mdfivesum{%
+   \def\abx@aux@read@bblrerun{\global\toggletrue{blx@bbl@rerun@requested}}
+
+   \def\abx@aux@read@bbl@mdfivesum{%
      \gdef\blx@bbl@mdfivesum@old}
 
    % If we need Biber to rerun, save the hash of the current .bbl.
    % That way we can detect if the Biber rerun really happened when
    % we run LaTeX the next time.
    \def\blx@aux@write@bbl@mdfivesum{%
+     \blx@auxwrite\@mainaux{}{%
+       \string\abx@aux@read@bbl@mdfivesum{%
+         \ifundef\blx@bbl@mdfivesum@old
+           {nohash}
+           {\blx@bbl@mdfivesum@new}}}%
      \iftoggle{blx@runbiber}
-       {\blx@auxwrite\@mainaux{}{%
-          \string\blx@aux@read@bbl@mdfivesum{\blx@bbl@mdfivesum@new}}}
+       {\blx@auxwrite\@mainaux{}{\string\abx@aux@read@bblrerun}}
        {}}
 
    % There was a Biber rerun request last time (\blx@bbl@mdfivesum@old),
@@ -706,9 +729,11 @@
    % that means *no* Biber rerun happened.
    % So we need to re-request a rerun.
    \def\blx@check@bbl@rerun@mdfivesum{%
-     \ifdefstrequal\blx@bbl@mdfivesum@old\blx@bbl@mdfivesum@new
-       {\blx@logreq@active{}}
-       {}}}
+     \iftoggle{blx@bbl@rerun@requested}
+       {\ifdefstrequal\blx@bbl@mdfivesum@old\blx@bbl@mdfivesum@new}
+       {\@secondoftwo}
+     {\blx@logreq@active{}}
+     {}}}
 
 
 % xstring replacements
@@ -960,6 +985,9 @@
 % Used to track default refcontexts for citations
 \cslet{blx@defaultrefcontexts@0}\@empty
 \listadd\blx@allrefsections{0}
+
+% Used to track defernumbers from .aux
+\global\let\blx@localnumbers\@empty
 
 % Used to track sorting name key specifications
 \global\let\blx@sortingnamekeytemplates\@empty
@@ -5960,6 +5988,7 @@
   \do{november}%
   \do{december}%
   \do{langamerican}%
+  \do{langbasque}%
   \do{langbrazilian}%
   \do{langbulgarian}%
   \do{langcatalan}%
@@ -5992,6 +6021,7 @@
   \do{langturkish}%
   \do{langukrainian}%
   \do{fromamerican}%
+  \do{frombasque}%
   \do{frombrazilian}%
   \do{frombulgarian}%
   \do{fromcatalan}%
@@ -9906,13 +9936,18 @@
   % any citations or add/remove any sorting templates, we need to re-run
   % biber. Also, if we have to re-run biber, we need to defer writing
   % the defernumbers .aux information because it will not yet be correct.
-
+  \begingroup
+  % Test to see if there are any .aux entries with defernums (localnum)
+  % information which are no longer in the .bbl. This is to catch
+  % when .bib entries are removed when using \nocite{*}. In this case,
+  % We need another run to remove the .aux localnumber info
+  \def\do#1{\xifinlist{#1}\blx@entries{}{\blx@rerun@latex}}%
+  \dolistloop\blx@localnumbers
   % Test to see if we *removed* any citations since last run
   % (adding citations is dealt with naturally in \blx@citation@entry)
   % If so, give a rerun biber message. This also sets the
   % rerun biber toggle so defernums doesn't consume the localnumbers
   % in the .aux but instead, re-writes them, which is what we need.
-  \begingroup
   \def\do#1{\ifinlist{#1}\blx@cites{}{\blx@logreq@active{}}\relax}%
   \dolistloop\blx@lastcites
   % Special case - if we are using sortingtemplate with \citeorder anywhere,
@@ -9978,6 +10013,8 @@
 \protected\def\blx@aux@number#1#2#3#4#5{%
   \blx@bbl@addentryfield{\detokenize{#2}}{#3}{localnumber}{#4}{#5}%
   \blx@bbl@addentryfield{\detokenize{#2}}{#3}{labelnumber}{#4}{#5}%
+  \csgdef{blx@localnumber@#3@\detokenize{#2}}{#5}%
+  \xifinlist{\detokenize{#2}}\blx@localnumbers{}{\listxadd\blx@localnumbers{\detokenize{#2}}}%
   \global\toggletrue{blx@localnumber}%
   \ifblank{#5}
     {}
@@ -9996,9 +10033,14 @@
          % Also, don't want to regenerate localnumber for any key in a
          % refsection which we've already seen because this has the nasty
          % side-effect of incrementing the localnum counter
-         {\ifboolexpr { not togl {blx@localnumber}
-                        and
-                        not test {\ifcsdef{blx@defer@\the\c@refsection @\blx@refcontext@context @\abx@field@@@entrykey}} }
+         % Also, have to create localnumber again if \nocite{*} as items
+         % could have been added to the .bib file without changing the cite
+         % information in the .tex
+         {\ifboolexpr { (not togl {blx@localnumber}
+                         or
+                         test {\ifinlist{*}\blx@nocites})
+                         and
+                         not test {\ifcsdef{blx@defer@\the\c@refsection @\blx@refcontext@context @\abx@field@@@entrykey}} }
             {\iftoggle{blx@omitnumbers}
                {\let\abx@field@@@localnumber\@empty}
                {\csnumgdef{blx@labelnumber@\the\c@refsection}{%
@@ -10006,7 +10048,17 @@
                 \edef\abx@field@@@localnumber{%
                   \csuse{blx@labelnumber@\the\c@refsection}}%
                 \blx@bbl@addentryfield{\abx@field@@@entrykey}{\the\c@refsection}%
-                    {localnumber}{\blx@refcontext@context}{\abx@field@@@localnumber}}}
+                {localnumber}{\blx@refcontext@context}{\abx@field@@@localnumber}}}
+            {}%
+          % Issue re-run message if there was no localnumber in the .aux and
+          % \nocite{*} was used because this means that an entry was added to the .bib
+          % and was not yet recorded in the .aux. We will have generated a localnumber
+          % for such a case above and now we need to re-run to make sure it's in the .aux
+          % for the next run
+          \ifboolexpr { test {\ifinlist{*}\blx@nocites}
+                        and
+                        not test {\ifcsdef{blx@localnumber@\the\c@refsection @\abx@field@@@entrykey}} }
+            {\blx@rerun@latex}
             {}%
           % If localnumbers were already in the .aux, add them
           % again from the .aux. This prevents some cycling
@@ -10017,8 +10069,8 @@
           \ifcsundef{blx@defer@\the\c@refsection @\blx@refcontext@context @\abx@field@@@entrykey}
             {\ifundef\abx@field@@@localnumber
                {}
-                {\listxadd\blx@localnumaux{%
-                   \string\abx@aux@number%
+               {\listxadd\blx@localnumaux{%
+                  \string\abx@aux@number%
                      {\the\c@instcount}%
                      {\abx@field@@@entrykey}%
                      {\the\c@refsection}%
@@ -10074,7 +10126,6 @@
         \blx@generate@bbl@mdfivesum@found}
        {\blx@info@noline{... file '\jobname.bbl' not found}%
         \typeout{No file \jobname.bbl.}%
-        % 'nobblfile' can never be equal to any mdfivehash
         \blx@generate@bbl@mdfivesum@notfound}}
     {\blx@generate@bbl@mdfivesum@notfound}%
   \blx@bblend
@@ -11286,6 +11337,7 @@
   \let\blx@tempc\@empty%
   \def\blx@tempd{global}%
   \def\blx@tempe{global}%
+  \blx@kv@setkeys{blx@assignrefcontextmeta}{#2}%
   \blx@kv@setkeys{blx@assignrefcontext}{#2}%
   \def\do##1{%
     \listxadd\blx@assignedrefcontextkeywlist{##1}%
@@ -11305,6 +11357,7 @@
   \let\blx@tempc\@empty%
   \def\blx@tempd{global}%
   \def\blx@tempe{global}%
+  \blx@kv@setkeys{blx@assignrefcontextmeta}{#2}%
   \blx@kv@setkeys{blx@assignrefcontext}{#2}%
   \def\do##1{%
     \listxadd\blx@assignedrefcontextcatlist{##1}%
@@ -11324,22 +11377,38 @@
   \let\blx@tempc\@empty%
   \def\blx@tempd{global}%
   \def\blx@tempe{global}%
+  \blx@kv@setkeys{blx@assignrefcontextmeta}{#2}%
   \blx@kv@setkeys{blx@assignrefcontext}{#2}%
   \def\do##1{%
     \csxdef{blx@assignedrefcontextkeys#1@\the\c@refsection @##1}%
       {\blx@tempa/\blx@tempb/\blx@tempc/\blx@tempd/\blx@tempe}}%
   \docsvlist{#3}}
 
+% This makes sure that named refcontexts set options first
+% Note that the docs say that "name=default" selects the global default
+% refcontext and this is because this won't set anything and the defaults
+% in the above macros will take effect.
+\blx@kv@defkey{blx@assignrefcontextmeta}{name}{%
+  \begingroup
+  \edef\blx@tempf{\endgroup%
+  \noexpand\blx@kv@setkeys{blx@assignrefcontext}{\csuse{blx@refcontext@name@#1}}}%
+  \blx@tempf}
+\blx@kv@defkey{blx@assignrefcontextmeta}{nametemplates}{}
+\blx@kv@defkey{blx@assignrefcontextmeta}{sorting}{}
+\blx@kv@defkey{blx@assignrefcontextmeta}{sortingnamekeytemplatename}{}
+\blx@kv@defkey{blx@assignrefcontextmeta}{labelprefix}{}
+\blx@kv@defkey{blx@assignrefcontextmeta}{uniquenametemplatename}{}
+\blx@kv@defkey{blx@assignrefcontextmeta}{labelalphanametemplatename}{}
+
 % Meta option to set all name template options
+\blx@kv@defkey{blx@assignrefcontext}{name}{}
 \blx@kv@defkey{blx@assignrefcontext}{nametemplates}{%
   \def\blx@tempb{#1}%
   \def\blx@tempd{#1}%
   \def\blx@tempe{#1}}
-
 \blx@kv@defkey{blx@assignrefcontext}{sorting}{\def\blx@tempa{#1}}
 \blx@kv@defkey{blx@assignrefcontext}{sortingnamekeytemplatename}{\def\blx@tempb{#1}}
-\blx@kv@defkey{blx@assignrefcontext}{labelprefix}{%
-  \edef\blx@tempc{\blx@mdfivesum{#1}}}
+\blx@kv@defkey{blx@assignrefcontext}{labelprefix}{\edef\blx@tempc{\blx@mdfivesum{#1}}}
 \blx@kv@defkey{blx@assignrefcontext}{uniquenametemplatename}{\def\blx@tempd{#1}}
 \blx@kv@defkey{blx@assignrefcontext}{labelalphanametemplatename}{\def\blx@tempe{#1}}
 
@@ -11794,7 +11863,7 @@
     {\blx@error
        {Category '#1' not declared}
        {Use \string\DeclareBibliographyCategory\space to declare}}
-    {\AfterPreamble{%
+    {\blx@AfterPreamble{%
        \blx@xsanitizeafter{\forcsvlist{\blx@addtocategory{#1}}}{#2}}}}
 
 % {<category>}{<entrykey>,...}
@@ -12078,6 +12147,7 @@
   \blx@citation@all}
 
 \def\blx@citation@all{%
+  \blx@auxwrite\@mainaux{}{\string\abx@aux@nociteall}%
   \ifbool{citerequest}
     {\blx@bibreq{*}%
      \global\csletcs
@@ -12087,6 +12157,9 @@
        {\blx@logreq@active{}}
        {}}
     {}}
+
+\def\abx@aux@nociteall{%
+  \listgadd\blx@nocites{*}}
 
 \protected\def\blx@bibreq#1{%
   \begingroup
@@ -12132,7 +12205,7 @@
            I'm ignoring the new definition}}}
     {\global\cslet{blx@set@\the\c@refsection @\blx@tempa}\blx@tempb
      \edef\blx@tempa{%
-       \AfterPreamble{\blx@setreq{\blx@tempa}{\blx@tempb}}}%
+       \blx@AfterPreamble{\blx@setreq{\blx@tempa}{\blx@tempb}}}%
      \blx@tempa}%
   \endgroup
   \@esphack}
@@ -12854,7 +12927,7 @@
 
 \def\blx@nocite#1{%
   \@bsphack
-  \AfterPreamble{%
+  \blx@AfterPreamble{%
     \ifstrequal{*}{#1}
       {\blx@nocitation@all}
       {\blx@xsanitizeafter{\forcsvlist\blx@nocite@do}{#1}}}%
@@ -16751,13 +16824,9 @@
      \csuse{blx@opt@casechanger@latex2e}}}
 
 \csdef{blx@opt@casechanger@latex2e}{%
-  \blx@inputonce{blx-case-latex2e.def}
-    {LaTeX2e (legacy) case changing code}
-    {\makeatletter}{\makeatother}{}{}}
+  \RequirePackage{blx-case-latex2e}}
 \csletcs{blx@opt@casechanger@2e}{blx@opt@casechanger@latex2e}
 
-% Apparently neither \input nor \blx@inputonce ever pops the
-% \ExplSyntaxOff from \ProvidesExplFile, so we do that ourselves.
 \csdef{blx@opt@casechanger@expl3}{%
   \ifdefstring{\blx@texencoding}{utf8}
     {}
@@ -16768,9 +16837,7 @@
        '\blx@texencoding'.\MessageBreak
        Case changing macros may break\MessageBreak
        if used with non-ASCII characters}}%
-  \blx@inputonce{blx-case-expl3.def}
-    {expl3 case changing code}
-    {\makeatletter}{\ExplSyntaxOff\makeatother}{}{}}
+  \RequirePackage{blx-case-expl3}}
 \csletcs{blx@opt@casechanger@3}{blx@opt@casechanger@expl3}
 
 % default to auto

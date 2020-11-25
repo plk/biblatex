@@ -201,6 +201,7 @@ Boruvka and Joseph Wright who helped with the transition of ownership in
 2012 and following years.
 
 The language modules of this package are made possible thanks to the following contributors:\\
+Ander Zarketa-Astigarraga (Basque);
 Augusto Ritter Stoffel, Mateus Araújo, Gustavo Barros (Brazilian);
 Kaloyan Ganev (Bulgarian);
 Sebastià Vila-Marta (Catalan);
@@ -1255,6 +1256,7 @@ The gender of the author or the gender of the editor, if there is no author. The
 \multicolumn{1}{@{}H}{Region/Dialect} &
 \multicolumn{1}{@{}H}{Identifiers} \\
 \cmidrule(r){1-1}\cmidrule(r){2-2}\cmidrule{3-3}
+Basque       & France, Spain  & \opt{basque} \\
 Bulgarian    & Bulgaria       & \opt{bulgarian} \\
 Catalan      & Spain, France, Andorra, Italy & \opt{catalan} \\
 Croatian     & Croatia, Bosnia and Herzegovina, Serbia & \opt{croatian} \\
@@ -4424,7 +4426,7 @@ At the beginning of the document, there is always a global context containing gl
 \cmditem{assignrefcontextentries*}[key=value, \dots]{*}
 
 \end{ltxsyntax}
-These commands automate putting citations into refcontexts when the default behaviour is not sufficient. The \prm{key=value} options are as for \cmd{DeclareRefcontext}. The default behaviour is that the data for a citation is drawn from the refcontext of the most recently processed bibliography in which it was printed\footnote{This does not always mean what one might think. In a document containing multiple bibliographies, the last bibliography will be the context for any citations \emph{before} the first bibliography because all bibliographies are processed when the \file{.bbl} is read.}. For citations that are used in some way but not printed in a bibliography or bibliography list, they default to drawing their data from the global refcontext established at the beginning of the document. To override this behaviour, instead of manually wrapping citation commands in \env{refcontext} environments, which might be error-prone and tedious, you can register a comma"=separated list of \prm{keywords}, \prm{categories} or \prm{entrykeys} which, respectively, make the entries with any of the specified keywords, entries in any of the specified categories (see \secref{use:use:div}) or entries with any of the specified citation keys draw their data from a particular refcontext specified by the \prm{refcontext key/values} which are parsed as the per the corresponding \env{refcontext} options. Such refcontext auto-assignments are specific to the current refsection. You may specify the same citation key in any of these commands but be aware that assignment is done in the order \prm{keywords}, \prm{categories}, \prm{entrykeys} with the later specifications overriding the earlier. \cmd{assignrefcontextentries} accepts a single asterisk instead of a list of entrykeys which allows the assignment of all keys in a refsection to a refcontext with having to explicitly list them. An example:
+These commands automate putting citations into refcontexts when the default behaviour is not sufficient. The \prm{key=value} options are as for \cmd{DeclareRefcontext} with the addition of the \kvopt{name}{refcontextname} option which sets all options from those defined for the named refcontext \prm{refcontextname}. Use \kvopt{name}{default} to use the global default refcontext options. The specific \keyval options override those set by any named \prm{refcontextname}. The default behaviour is that the data for a citation is drawn from the refcontext of the most recently processed bibliography in which it was printed\footnote{This does not always mean what one might think. In a document containing multiple bibliographies, the last bibliography will be the context for any citations \emph{before} the first bibliography because all bibliographies are processed when the \file{.bbl} is read.}. For citations that are used in some way but not printed in a bibliography or bibliography list, they default to drawing their data from the global refcontext established at the beginning of the document. To override this behaviour, instead of manually wrapping citation commands in \env{refcontext} environments, which might be error-prone and tedious, you can register a comma"=separated list of \prm{keywords}, \prm{categories} or \prm{entrykeys} which, respectively, make the entries with any of the specified keywords, entries in any of the specified categories (see \secref{use:use:div}) or entries with any of the specified citation keys draw their data from a particular named refcontext and/or specified \prm{refcontext key/values}. Such refcontext auto-assignments are specific to the current refsection. You may specify the same citation key in any of these commands but be aware that assignment is done in the order \prm{keywords}, \prm{categories}, \prm{entrykeys} with the later specifications overriding the earlier. \cmd{assignrefcontextentries} accepts a single asterisk instead of a list of entrykeys which allows the assignment of all keys in a refsection to a refcontext with having to explicitly list them. An example:
 
 \begin{ltxexample}[style=latex]
 \assignrefcontextentries[labelprefix=A]{key2}
@@ -4446,6 +4448,28 @@ The starred versions do not override a local refcontext and so with:
 \end{ltxexample}
 %
 the data for the citation of \bibfield{key2} will be drawn from refcontext \opt{labelprefix=B}. Note that these commands are rarely necessary unless you have multiple bibliographies in which the same citations occur and \biblatex\ cannot by default tell which bibliography list a citation should refer to. See the example file \file{94-labelprefix.tex} for more details.
+
+\begin{ltxexample}[style=latex]
+\DeclareRefcontext{testrc}{labelprefix=A}
+\assignrefcontextentries[name=testrc]{key2}
+\cite{key1}
+\begin{refcontext}[labelprefix=B]
+\cite{key2}
+\end{refcontext}
+\end{ltxexample}
+%
+Here, the data for the citation of \bibfield{key2} will be drawn from the refcontext named <testrc> which has \opt{labelprefix=A} and not \opt{labelprefix=B} (resulting in a label with prefix <A> and not <B>).
+
+\begin{ltxexample}[style=latex]
+\DeclareRefcontext{testrc}{labelprefix=A}
+\assignrefcontextentries[name=testrc,labelprefix=C]{key2}
+\cite{key1}
+\begin{refcontext}[labelprefix=B]
+\cite{key2}
+\end{refcontext}
+\end{ltxexample}
+%
+Here, the data for the citation of \bibfield{key2} will be drawn from refcontext with \opt{labelprefix=C} and not \opt{labelprefix=A} since the explicit options override the named refcontext (resulting in a label with prefix <C> and not <A> or <B>).
 
 \subsubsection{Dynamic Entry Sets}
 \label{use:bib:set}
@@ -4821,7 +4845,7 @@ Similar to \cmd{psq} but indicates an open-ended page range. See \secref{use:cav
 
 \cmditem{pnfmt}{text}
 
-This command formats is argument \prm{text} in the same format as \bibfield{postnote}. The command can be used to format a page range while adding additional text in the postnote argument of a cite command.
+This command formats its argument \prm{text} in the same format as \bibfield{postnote}. The command can be used to format a page range while adding additional text in the postnote argument of a cite command.
 
 \begin{ltxexample}
 \autocite[\pnfmt{378-381, 383} and more]{sigfridsson}
@@ -12412,6 +12436,7 @@ Other expressions frequently used in citations:
 
 \begin{keymarglist}
 \item[langamerican] The language <American> or <American English>.
+\item[langbasque] The language <Basque>.
 \item[langbrazilian] The language <Brazilian> or <Brazilian Portuguese>.
 \item[langbulgarian] The language <Bulgarian>.
 \item[langcatalan] The language <Catalan>.
@@ -12448,6 +12473,7 @@ The following strings are intended for use in phrases like <translated from [the
 
 \begin{keymarglist}
 \item[fromamerican] The expression <from [the] American> or <from [the] American English>.
+\item[frombasque] The expression <from [the] Basque>.
 \item[frombrazilian] The expression <from [the] Brazilian> or <from [the] Brazilian Portuguese>.
 \item[frombulgarian] The expression <from [the] Bulgarian>.
 \item[fromcatalan] The expression <from [the] Catalan>.
@@ -15099,10 +15125,12 @@ This revision history is a list of changes relevant to users of this package. Ch
 \item Multiscript support\see{use:multiscript}
 \end{release}
 \begin{release}{3.16}{20??-??-??}
+\item Added named refcontext support to \cmd{assignrefcontext*}\see{use:bib:context}
 \item Fixed infinite loop with \bibfield{volcitepages} field format
 \item Added Extended Name Format documentation\see{use:enf}
 \item Added \opt{label} option to \cmd{printbibliography}\see{use:bib:bib}
 \item Deprecate \cmd{mainlang} in favour of \cmd{textmainlang}\see{aut:str}
+\item Added Basque localisation (Ander Zarketa-Astigarraga)
 \end{release}
 \begin{release}{3.15a}{2020-08-23}
 \item Fixed bug with long arguments in \cmd{DeclareFieldFormat} and friends
