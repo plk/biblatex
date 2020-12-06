@@ -27,6 +27,13 @@ jobs:
            echo "TEXMFSYSVAR=$RUNNER_WORKSPACE/texlive/2020/texmf-var" >> $GITHUB_ENV
            echo "TEXMFSYSCONFIG=$RUNNER_WORKSPACE/texlive/2020/texmf-config" >> $GITHUB_ENV                                            
 
+       - name: Upload a Build Artifact
+          uses: actions/upload-artifact@v2.2.1
+          with:
+            name: tlprofile
+            path: tl.profile
+            if-no-files-found: error
+    
        - name: Install TeXLive
          run: |
            echo Downloading and compiling in [$PWD] from [$TLURL]
@@ -36,7 +43,7 @@ jobs:
            tar -xf $(basename $TLURL) --strip-components=1 --directory=tl
 
            pushd tl
-           perl install-tl -scheme medium
+           perl install-tl -profile
            popd
 
 #       - name: Checkout DEV
