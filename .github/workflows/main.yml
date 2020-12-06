@@ -17,22 +17,20 @@ jobs:
     steps:
        - name: Set ENV
          run: |
-           echo "TEXLIVE_INSTALL_PREFIX=$RUNNER_WORKSPACE/texlive" >> $GITHUB_ENV
-           echo "TEXLIVE_INSTALL_TEXDIR=$RUNNER_WORKSPACE/texlive/2020" >> $GITHUB_ENV
-           echo "TEXLIVE_INSTALL_TEXMFLOCAL=$RUNNER_WORKSPACE/texlive/texmf-local" >> $GITHUB_ENV
-           echo "TEXLIVE_INSTALL_TEXMFSYSVAR=$RUNNER_WORKSPACE/texlive/2020/texmf-var" >> $GITHUB_ENV
-           echo "TEXLIVE_INSTALL_TEXMFSYSCONFIG=$RUNNER_WORKSPACE/texlive/2020/texmf-config" >> $GITHUB_ENV
            echo "TEXDIR=$RUNNER_WORKSPACE/texlive/2020" >> $GITHUB_ENV
            echo "TEXMFLOCAL=$RUNNER_WORKSPACE/texlive/texmf-local" >> $GITHUB_ENV
            echo "TEXMFSYSVAR=$RUNNER_WORKSPACE/texlive/2020/texmf-var" >> $GITHUB_ENV
            echo "TEXMFSYSCONFIG=$RUNNER_WORKSPACE/texlive/2020/texmf-config" >> $GITHUB_ENV                                            
 
-       - name: Upload a Build Artifact
-          uses: actions/upload-artifact@v2.2.1
-          with:
-            name: tlprofile
-            path: tl.profile
-            if-no-files-found: error
+       - name: Create TL install Profile
+         run: |
+           echo <<EOF
+             selected_scheme scheme-medium
+             TEXDIR $RUNNER_WORKSPACE/texlive/2020
+             TEXMFLOCAL $RUNNER_WORKSPACE/texlive/texmf-local
+             TEXMFSYSCONFIG $RUNNER_WORKSPACE/texlive/2020/texmf-config
+             TEXMFSYSVAR $RUNNER_WORKSPACE/texlive/2020/texmf-var
+           EOF  > $RUNNER_WORKSPACE/tl.profile
     
        - name: Install TeXLive
          run: |
