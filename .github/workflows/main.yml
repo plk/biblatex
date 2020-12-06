@@ -2,15 +2,6 @@ name: BibLaTeX CI
 
 env:
   TLURL: http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz
-  TEXLIVE_INSTALL_PREFIX: $RUNNER_WORKSPACE/texlive
-  TEXLIVE_INSTALL_TEXDIR: $RUNNER_WORKSPACE/texlive/2020
-  TEXLIVE_INSTALL_TEXMFLOCAL: $RUNNER_WORKSPACE/texlive/texmf-local
-  TEXLIVE_INSTALL_TEXMFSYSVAR: $RUNNER_WORKSPACE/texlive/2020/texmf-var
-  TEXLIVE_INSTALL_TEXMFSYSCONFIG: $RUNNER_WORKSPACE/texlive/2020/texmf-config
-  TEXDIR: $RUNNER_WORKSPACE/texlive/2020
-  TEXMFLOCAL: $RUNNER_WORKSPACE/texlive/texmf-local
-  TEXMFSYSVAR: $RUNNER_WORKSPACE/texlive/2020/texmf-var
-  TEXMFSYSCONFIG: $RUNNER_WORKSPACE/texlive/2020/texmf-config
   
 # Controls when the action will run. 
 on:
@@ -18,12 +9,24 @@ on:
    - cron: "0 2 * * *"
 
   # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
+  workflow_dispatch: 1
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+       - name: Set ENV
+         run: |
+           echo "TEXLIVE_INSTALL_PREFIX=$RUNNER_WORKSPACE/texlive" >> $GITHUB_ENV
+           echo "TEXLIVE_INSTALL_TEXDIR=$RUNNER_WORKSPACE/texlive/2020" >> $GITHUB_ENV
+           echo "TEXLIVE_INSTALL_TEXMFLOCAL=$RUNNER_WORKSPACE/texlive/texmf-local" >> $GITHUB_ENV
+           echo "TEXLIVE_INSTALL_TEXMFSYSVAR=$RUNNER_WORKSPACE/texlive/2020/texmf-var" >> $GITHUB_ENV
+           echo "TEXLIVE_INSTALL_TEXMFSYSCONFIG=$RUNNER_WORKSPACE/texlive/2020/texmf-config" >> $GITHUB_ENV
+           echo "TEXDIR=$RUNNER_WORKSPACE/texlive/2020" >> $GITHUB_ENV
+           echo "TEXMFLOCAL=$RUNNER_WORKSPACE/texlive/texmf-local" >> $GITHUB_ENV
+           echo "TEXMFSYSVAR=$RUNNER_WORKSPACE/texlive/2020/texmf-var" >> $GITHUB_ENV
+           echo "TEXMFSYSCONFIG=$RUNNER_WORKSPACE/texlive/2020/texmf-config" >> $GITHUB_ENV                                            
+
        - name: Install TeXLive
          run: |
            echo Downloading and compiling in [$PWD] from [$TLURL]
@@ -35,11 +38,6 @@ jobs:
            pushd tl
            perl install-tl -scheme medium
            popd
-
-#       - name: Set ENV
-#         run: |
-#           echo "$RUNNER_WORKSPACE/localperl/bin" >> $GITHUB_PATH
-#           echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$RUNNER_WORKSPACE/localperl/lib" >> $GITHUB_ENV
 
 #       - name: Checkout DEV
 #         uses: actions/checkout@v2
