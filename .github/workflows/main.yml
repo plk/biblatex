@@ -1,4 +1,7 @@
 name: BibLaTeX CI
+
+env:
+  TLURL: http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz
   
 # Controls when the action will run. 
 on:
@@ -14,14 +17,30 @@ jobs:
     steps:
        - name: Install TeXLive
          run: |
-           sudo apt-get install texlive-full
+           echo Downloading and compiling in [$PWD] from [$TLURL]
 
-       - name: Set ENV
-         run: |
+           mkdir tl
+           wget -nc $TLURL
+           tar -xf $(basename $TLURL) --strip-components=1 --directory=tl
 
-       - name: Checkout DEV
-         uses: actions/checkout@v2
+           pushd tl
+           perl install-tl -scheme small
+           popd
 
-       - name: Run biblatex tests
-         run: |
-           
+#       - name: Set ENV
+#         run: |
+#           echo "$RUNNER_WORKSPACE/localperl/bin" >> $GITHUB_PATH
+#           echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$RUNNER_WORKSPACE/localperl/lib" >> $GITHUB_ENV
+
+#       - name: Checkout DEV
+#         uses: actions/checkout@v2
+
+ #      - name: Install Biber Dependencies Without Test
+ #        run: |
+ #          cpan -T Module::Build
+ #          perl Build.PL
+ #          ./Build installdeps --cpan_client "cpan -T"
+
+#       - name: Run biber tests
+#         run: |
+#           ./Build test
