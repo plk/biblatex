@@ -215,6 +215,7 @@
 
 \patchcmd{\blx@bblinput}{\blx@bblfile}{\blx@bblfile\blx@bblsecs}{}{}
 
+
 \def\blx@bblfile{%
   \blx@secinit
   \begingroup
@@ -227,13 +228,18 @@
   \blx@ifsigned{\blx@auxfile}{bbl}
     {\InputIfFileExists{\blx@auxfile.bbl}
        {\blx@info@noline{... file '\blx@auxfile.bbl' found}%
-        \global\toggletrue{blx@bbldone}}
+        \global\toggletrue{blx@bbldone}%
+        \blx@generate@bbl@mdfivesum@found{\blx@auxfile.bbl}}
        {\blx@info@noline{... file '\blx@auxfile.bbl' not found}%
         \typeout{No file \blx@auxfile.bbl.}%
-        \global\togglefalse{blx@bbldone}}}
+        \global\togglefalse{blx@bbldone}%
+        \blx@generate@bbl@mdfivesum@notfound}}
     {}%
   \blx@bblend
   \endgroup
+  % Check if Biber rerun was not carried out.
+  % If so, ask for it again.
+  \blx@check@bbl@rerun@mdfivesum
   \csnumgdef{blx@labelnumber@\the\c@refsection}{0}}
 
 \def\blx@bblsecs{%
