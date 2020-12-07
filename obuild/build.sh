@@ -370,7 +370,8 @@ $TEXENGINE errors/warnings
       fi
     done
   fi
-  cd ../../.. || exit $ERRORS
+  cd ../../..
+  exit $ERRORS
 fi
 
 if [[ "$1" == "testoutput" ]]
