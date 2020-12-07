@@ -72,6 +72,7 @@ fi
 declare VERSION=$2
 declare VERSIONM=$(echo -n "$VERSION" | perl -nE 'say s/^(\d+\.\d+)[a-z]/$1/r')
 declare DATE=$(date '+%Y/%m/%d')
+declare ERRORS=0
 
 if [[ "$1" == "uninstall" ]]
 then
@@ -286,6 +287,7 @@ PDFLaTeX errors/warnings
       echo >> ../example_errs_bibtex.txt
       if $bibtexflag 
       then
+          ERRORS=1
           echo -e "\033[0;31mERRORS\033[0m"
       else
         echo "OK"
@@ -361,13 +363,14 @@ $TEXENGINE errors/warnings
       echo >> ../example_errs_biber.txt
       if $biberflag 
       then
+          ERRORS=1
           echo -e "\033[0;31mERRORS\033[0m"
       else
         echo "OK"
       fi
     done
   fi
-  cd ../../.. || exit
+  cd ../../.. || exit $ERRORS
 fi
 
 if [[ "$1" == "testoutput" ]]
@@ -380,7 +383,9 @@ then
     then
       echo "PASS"
     else
-      echo -e "\033[0;31mFAIL\033[0m"
+        ERRORS=1
+        echo -e "\033[0;31mFAIL\033[0m"
     fi
   done
+  exit $ERRORS
 fi
