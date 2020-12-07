@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -x
+
 usage () {
 echo "Usage:
 
@@ -272,7 +272,8 @@ PDFLaTeX errors/warnings
 ------------------------"  >> ../example_errs_bibtex.txt
       # Use GNU grep to get PCREs as we want to ignore the legacy bibtex
       # warning in 3.4+
-      /opt/local/bin/grep -P '(?:[Ee]rror|[Ww]arning): (?!Using fall-back|prefixnumbers option|Empty biblist)' ${f%.tex}.log >> ../example_errs_bibtex.txt
+      grep
+      -P '(?:[Ee]rror|[Ww]arning): (?!Using fall-back|prefixnumbers option|Empty biblist|Font shape|Command \\mark)' ${f%.tex}.log >> ../example_errs_bibtex.txt
       if [[ $? -eq 0 ]]; then bibtexflag=true; fi
       grep -E -A 3 '^!' ${f%.tex}.log >> ../example_errs_bibtex.txt
       if [[ $? -eq 0 ]]; then bibtexflag=true; fi
@@ -280,7 +281,7 @@ PDFLaTeX errors/warnings
       echo "BibTeX errors/warnings" >> ../example_errs_bibtex.txt
       echo "---------------------" >> ../example_errs_bibtex.txt
       # Glob as we need to check all .blgs in case of refsections
-      grep -E -i -e "(error|warning)[^\$]" ${f%.tex}*.blg >> ../example_errs_bibtex.txt
+      grep -i -e "(error|warning)[^\$]" ${f%.tex}*.blg >> ../example_errs_bibtex.txt
       if [[ $? -eq 0 ]]; then bibtexflag=true; fi
       echo "==============================" >> ../example_errs_bibtex.txt
       echo >> ../example_errs_bibtex.txt
@@ -348,14 +349,14 @@ Test file: $f
 
 $TEXENGINE errors/warnings
 ------------------------"  >> ../example_errs_biber.txt
-      /opt/local/bin/grep -P '(?:[Ee]rror|[Ww]arning):(?:(?! Overwriting file))' ${f%.tex}.log >> ../example_errs_biber.txt
+      grep -P '(?:[Ee]rror|[Ww]arning):(?:(?! Overwriting file))' ${f%.tex}.log >> ../example_errs_biber.txt
       if [[ $? -eq 0 ]]; then biberflag=true; fi
       grep -E -A 3 '^!' ${f%.tex}.log >> ../example_errs_biber.txt
       if [[ $? -eq 0 ]]; then biberflag=true; fi
       echo >> ../example_errs_biber.txt
       echo "Biber errors/warnings" >> ../example_errs_biber.txt
       echo "---------------------" >> ../example_errs_biber.txt
-      grep -E -i "(error|warn)" ${f%.tex}.blg >> ../example_errs_biber.txt
+      grep -i -e "(error|warn)" ${f%.tex}.blg >> ../example_errs_biber.txt
       if [[ $? -eq 0 ]]; then biberflag=true; fi
       echo "==============================" >> ../example_errs_biber.txt
       echo >> ../example_errs_biber.txt
