@@ -22,18 +22,18 @@ jobs:
     steps:
        - name: Set ENV
          run: |
-           echo "TEXDIR=$RUNNER_WORKSPACE/biblatex/texlive/2020" >> $GITHUB_ENV
-           echo "TEXMFLOCAL=$RUNNER_WORKSPACE/biblatex/texlive/texmf-local" >> $GITHUB_ENV
-           echo "TEXMFSYSVAR=$RUNNER_WORKSPACE/biblatex/texlive/2020/texmf-var" >> $GITHUB_ENV
-           echo "TEXMFSYSCONFIG=$RUNNER_WORKSPACE/biblatex/texlive/2020/texmf-config" >> $GITHUB_ENV                                            
+           echo "TEXDIR=$RUNNER_WORKSPACE/texlive/2020" >> $GITHUB_ENV
+           echo "TEXMFLOCAL=$RUNNER_WORKSPACE/texlive/texmf-local" >> $GITHUB_ENV
+           echo "TEXMFSYSVAR=$RUNNER_WORKSPACE/texlive/2020/texmf-var" >> $GITHUB_ENV
+           echo "TEXMFSYSCONFIG=$RUNNER_WORKSPACE/texlive/2020/texmf-config" >> $GITHUB_ENV                                            
 
        - name: Create TL install Profile
          run: |
            echo "selected_scheme scheme-medium
-             TEXDIR $RUNNER_WORKSPACE/biblatex/texlive/2020
-             TEXMFLOCAL $RUNNER_WORKSPACE/biblatex/texlive/texmf-local
-             TEXMFSYSCONFIG $RUNNER_WORKSPACE/biblatex/texlive/2020/texmf-config
-             TEXMFSYSVAR $RUNNER_WORKSPACE/biblatex/texlive/2020/texmf-var" > $RUNNER_WORKSPACE/tl.profile
+             TEXDIR $RUNNER_WORKSPACE/texlive/2020
+             TEXMFLOCAL $RUNNER_WORKSPACE/texlive/texmf-local
+             TEXMFSYSCONFIG $RUNNER_WORKSPACE/texlive/2020/texmf-config
+             TEXMFSYSVAR $RUNNER_WORKSPACE/texlive/2020/texmf-var" > $RUNNER_WORKSPACE/tl.profile
     
        - name: Install TeXLive
          run: |
@@ -49,9 +49,9 @@ jobs:
 
        - name: Set ENV
          run: |
-           echo "$RUNNER_WORKSPACE/biblatex/biber" >> $GITHUB_PATH
-           echo "$RUNNER_WORKSPACE/biblatex/diff-pdf/bin" >> $GITHUB_PATH
-           echo "$RUNNER_WORKSPACE/biblatex/texlive/2020/bin/x86_64-linux" >> $GITHUB_PATH
+           echo "$RUNNER_WORKSPACE/biber" >> $GITHUB_PATH
+           echo "$RUNNER_WORKSPACE/diff-pdf/bin" >> $GITHUB_PATH
+           echo "$RUNNER_WORKSPACE/texlive/2020/bin/x86_64-linux" >> $GITHUB_PATH
 
        - name: Install missing (from medium scheme) and update TeXLive packages
          run: |
@@ -72,7 +72,7 @@ jobs:
 
        - name: Install biblatex
          run: |
-           obuild/build.sh install 1 $RUNNER_WORKSPACE/biblatex/texlive/texmf-local
+           obuild/build.sh install 1 $RUNNER_WORKSPACE/texlive/texmf-local
            texhash
            kpsewhich biblatex.sty
            
@@ -82,16 +82,14 @@ jobs:
            git clone https://github.com/vslavik/diff-pdf.git
            pushd diff-pdf
            ./bootstrap
-           ./configure --prefix $RUNNER_WORKSPACE/biblatex/diff-pdf
+           ./configure --prefix $RUNNER_WORKSPACE/diff-pdf
            make
            make install
            popd
            
        - name: Run biblatex tests
          run: |
-           echo $PATH
-           which biber
-           ls -l $RUNNER_WORKSPACE/biblatex/biber
+           ls -l $RUNNER_WORKSPACE/*
            obuild/build.sh test
            if [ $? -ne 0 ]
            then
