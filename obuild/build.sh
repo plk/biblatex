@@ -376,6 +376,7 @@ fi
 
 if [[ "$1" == "testoutput" ]]
 then
+  mkdir -p obuild/failedpdfs
   for f in obuild/test/examples/*.pdf
   do
     echo -n "Checking `basename $f` ... "
@@ -385,6 +386,7 @@ then
       echo "PASS"
     else
         ERRORS=1
+        cp $f obuild/failedpdfs/
         echo -e "\033[0;31mFAIL\033[0m"
     fi
   done
