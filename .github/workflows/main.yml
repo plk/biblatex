@@ -60,7 +60,7 @@ jobs:
        - name: Install missing (from medium scheme) and update TeXLive packages
          run: |
            tlmgr update --self --all
-           tlmgr install csquotes logreq imakeidx libertine ctex babel-russian
+           tlmgr install csquotes logreq imakeidx libertine ctex collection-langcyrillic
 
        - name: Get DEV biber
          run: |
@@ -88,22 +88,26 @@ jobs:
            make install
            popd
            
-       - name: Run biblatex tests
-         continue-on-error: true
+       - name: Run biblatex test compile
          run: |
            obuild/build.sh test
-           if [ $? -ne 0 ]
-           then
-             cat obuild/test/example_errs_bibtex.txt
-             cat obuild/test/example_errs_biber.txt
-             exit 1
-           fi
-           obuild/build.sh testoutput        
-
-       - name: Upload failed PDFs
-         uses: actions/upload-artifact@v2.2.1
+           
+       - name: Show errors if compile failed
          if: failure()
+         run: |
+           cat obuild/test/example_errs_bibtex.txt
+           cat obuild/test/example_errs_biber.txt
+           exit 1
+
+       - name: Run biblatex test PDF output
+         run: |
+           obuild/build.sh testoutput
+           
+       - name: Upload failed PDFs
+         if: failure()
+         uses: actions/upload-artifact@v2.2.1
          with: 
            name: FailedPDFs
            path: obuild/failedpdfs
+           if-no-files-found: error
 
