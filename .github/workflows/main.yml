@@ -29,7 +29,10 @@ jobs:
            echo "TEXDIR=$GITHUB_WORKSPACE/CI/texlive/2020" >> $GITHUB_ENV
            echo "TEXMFLOCAL=$GITHUB_WORKSPACE/CI/texlive/texmf-local" >> $GITHUB_ENV
            echo "TEXMFSYSVAR=$GITHUB_WORKSPACE/CI/texlive/2020/texmf-var" >> $GITHUB_ENV
-           echo "TEXMFSYSCONFIG=$GITHUB_WORKSPACE/CI/texlive/2020/texmf-config" >> $GITHUB_ENV                                            
+           echo "TEXMFSYSCONFIG=$GITHUB_WORKSPACE/CI/texlive/2020/texmf-config" >> $GITHUB_ENV
+           echo "$GITHUB_WORKSPACE/CI/biber" >> $GITHUB_PATH
+           echo "$GITHUB_WORKSPACE/CI/diff-pdf/bin" >> $GITHUB_PATH
+           echo "$GITHUB_WORKSPACE/CI/texlive/2020/bin/x86_64-linux" >> $GITHUB_PATH                                         
 
        - name: Create TL install Profile
          run: |
@@ -40,13 +43,7 @@ jobs:
              TEXMFSYSVAR $GITHUB_WORKSPACE/CI/texlive/2020/texmf-var
              option_src 0
              option_doc 0" > $GITHUB_WORKSPACE/CI/tl.profile
-
-       - name: Set ENV
-         run: |
-           echo "$GITHUB_WORKSPACE/CI/biber" >> $GITHUB_PATH
-           echo "$GITHUB_WORKSPACE/CI/diff-pdf/bin" >> $GITHUB_PATH
-           echo "$GITHUB_WORKSPACE/CI/texlive/2020/bin/x86_64-linux" >> $GITHUB_PATH
-           
+        
        - name: Get date
          id: get-date
          run: |
@@ -56,7 +53,7 @@ jobs:
          id: cachetl
          uses: actions/cache@v2
          with:
-           path: $GITHUB_WORKSPACE/CI/texlive
+           path: CI/texlive
            key: tl-${{ steps.get-date.outputs.date }}
 
        - name: Install TeXLive
