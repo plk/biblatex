@@ -40,7 +40,13 @@ jobs:
              TEXMFSYSVAR $GITHUB_WORKSPACE/CI/texlive/2020/texmf-var
              option_src 0
              option_doc 0" > $GITHUB_WORKSPACE/CI/tl.profile
-             
+
+       - name: Set ENV
+         run: |
+           echo "$GITHUB_WORKSPACE/CI/biber" >> $GITHUB_PATH
+           echo "$GITHUB_WORKSPACE/CI/diff-pdf/bin" >> $GITHUB_PATH
+           echo "$GITHUB_WORKSPACE/CI/texlive/2020/bin/x86_64-linux" >> $GITHUB_PATH
+           
        - name: Get date
          id: get-date
          run: |
@@ -52,7 +58,6 @@ jobs:
          with:
            path: $GITHUB_WORKSPACE/CI/texlive
            key: texlive-${{ steps.get-date.outputs.date }}
-           restore-keys: texlive-
 
        - name: Install TeXLive
          if: steps.cachetl.outputs.cache-hit != 'true'
@@ -66,15 +71,6 @@ jobs:
            pushd tl
            perl install-tl -profile $GITHUB_WORKSPACE/CI/tl.profile
            popd
-
-       - name: Set ENV
-         run: |
-           echo "$GITHUB_WORKSPACE/CI/biber" >> $GITHUB_PATH
-           echo "$GITHUB_WORKSPACE/CI/diff-pdf/bin" >> $GITHUB_PATH
-           echo "$GITHUB_WORKSPACE/CI/texlive/2020/bin/x86_64-linux" >> $GITHUB_PATH
-
-       - name: Install missing (from medium scheme) and update TeXLive packages
-         run: |
            tlmgr option -- autobackup 0
            tlmgr update --self --all
            tlmgr install csquotes logreq imakeidx libertine ctex hyphen-russian
