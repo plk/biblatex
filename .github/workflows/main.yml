@@ -3,8 +3,8 @@ name: BibLaTeX CI
 env:
   TLURL: http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz
   BIBERURL: https://sourceforge.net/projects/biblatex-biber/files/biblatex-biber/development/binaries/Linux/biber-linux_x86_64.tar.gz
-  
-# Controls when the action will run. 
+
+# Controls when the action will run.
 on:
   schedule:
    - cron: "0 2 * * *"
@@ -22,41 +22,28 @@ jobs:
     steps:
        - name: Checkout biblatex
          uses: actions/checkout@v2
-         
+
        - name: Set ENV
          run: |
            mkdir CI
-           echo "TEXDIR=$GITHUB_WORKSPACE/CI/texlive/2020" >> $GITHUB_ENV
-           echo "TEXMFLOCAL=$GITHUB_WORKSPACE/CI/texlive/texmf-local" >> $GITHUB_ENV
-           echo "TEXMFSYSVAR=$GITHUB_WORKSPACE/CI/texlive/2020/texmf-var" >> $GITHUB_ENV
-           echo "TEXMFSYSCONFIG=$GITHUB_WORKSPACE/CI/texlive/2020/texmf-config" >> $GITHUB_ENV
-           echo "$GITHUB_WORKSPACE/CI/biber" >> $GITHUB_PATH
            echo "$GITHUB_WORKSPACE/CI/diff-pdf/bin" >> $GITHUB_PATH
-           echo "$GITHUB_WORKSPACE/CI/texlive/2020/bin/x86_64-linux" >> $GITHUB_PATH                                         
-
-       - name: Create TL install Profile
-         run: |
-           echo "selected_scheme scheme-medium
-             TEXDIR $GITHUB_WORKSPACE/CI/texlive/2020
-             TEXMFLOCAL $GITHUB_WORKSPACE/CI/texlive/texmf-local
-             TEXMFSYSCONFIG $GITHUB_WORKSPACE/CI/texlive/2020/texmf-config
-             TEXMFSYSVAR $GITHUB_WORKSPACE/CI/texlive/2020/texmf-var
-             option_src 0
-             option_doc 0" > $GITHUB_WORKSPACE/CI/tl.profile
-        
+           echo "$GITHUB_WORKSPACE/CI/texlive/bin/x86_64-linux" >> $GITHUB_PATH
+           echo "$GITHUB_WORKSPACE/CI/biber" >> $GITHUB_PATH
+           
        - name: Get date
          id: get-date
          run: |
            echo "::set-output name=date::$(/bin/date -u "+%Y%m%d")"
-             
-       - name: Cache TeXLive
+
+       - name: Cache TeX Live
          id: cachetl
          uses: actions/cache@v2
          with:
            path: CI/texlive
            key: tl-${{ steps.get-date.outputs.date }}
+           restore-keys: tl-
 
-       - name: Install TeXLive
+       - name: Install TeX Live
          if: steps.cachetl.outputs.cache-hit != 'true'
          run: |
            echo Downloading and compiling in [$PWD] from [$TLURL]
@@ -65,20 +52,72 @@ jobs:
            wget -nc $TLURL
            tar -xf $(basename $TLURL) --strip-components=1 --directory=tl
 
+           echo "selected_scheme scheme-infraonly
+             TEXDIR $GITHUB_WORKSPACE/CI/texlive
+             TEXMFLOCAL $GITHUB_WORKSPACE/CI/texlive/texmf-local
+             TEXMFSYSCONFIG $GITHUB_WORKSPACE/CI/texlive/texmf-config
+             TEXMFSYSVAR $GITHUB_WORKSPACE/CI/texlive/texmf-var
+             option_src 0
+             option_doc 0" > $GITHUB_WORKSPACE/CI/tl.profile
+
            pushd tl
            perl install-tl -profile $GITHUB_WORKSPACE/CI/tl.profile
            popd
+
+       - name: Install TeX Live packages
+         run: |
            tlmgr option -- autobackup 0
-           tlmgr update --self --all
-           tlmgr install csquotes logreq imakeidx libertine ctex hyphen-russian
+           tlmgr update --self
+           tlmgr install l3build
+           tlmgr install latex-bin luahbtex tex
+           tlmgr install metafont mfware texlive-scripts
+           tlmgr install latex amsmath graphics tools
+           tlmgr install ctex
+           tlmgr install    \
+              babel          \
+              babel-english  \
+              hyphen-english \
+              babel-french   \
+              hyphen-french  \
+              babel-german   \
+              hyphen-german  \
+              hyphen-latin   \
+              hyphen-spanish \
+              hyphen-russian \
+              bibtex         \
+              booktabs       \
+              csquotes       \
+              ec             \
+              cm-super       \
+              etoolbox       \
+              index          \
+              imakeidx       \
+              makeindex      \
+              iftex          \
+              hyperref       \
+              logreq         \
+              libertine      \
+              atveryend      \
+              infwarerr      \
+              hycolor        \
+              lm             \
+              lm-math        \
+              psnfss         \
+              unicode-math   \
+              xkeyval
+           tlmgr list --only-installed
+
+       - name: Update TeX Live
+         run: tlmgr update --self --all --no-auto-install
 
        - name: Get DEV biber
          run: |
            mkdir -p CI/biber
            pushd CI/biber
            wget -nc $BIBERURL
-           tar -xf $(basename $BIBERURL)
+           tar -xzvf $(basename $BIBERURL)
            popd
+           which biber
            biber -v
 
        - name: Install biblatex
@@ -86,7 +125,7 @@ jobs:
            obuild/build.sh install 1 $GITHUB_WORKSPACE/CI/texlive/texmf-local
            texhash
            kpsewhich biblatex.sty
-           
+
        - name: Install diff-pdf
          run: |
            sudo apt-get install libpoppler-glib-dev poppler-utils libwxgtk3.0-dev
@@ -97,11 +136,11 @@ jobs:
            make
            make install
            popd
-           
+
        - name: Run biblatex test compile
          run: |
            obuild/build.sh test
-           
+
        - name: Show errors if compile failed
          if: failure()
          run: |
@@ -112,11 +151,11 @@ jobs:
        - name: Run biblatex test PDF output
          run: |
            obuild/build.sh testoutput
-           
+
        - name: Upload failed PDFs
          if: failure()
          uses: actions/upload-artifact@v2.2.1
-         with: 
+         with:
            name: FailedPDFs
            path: obuild/failedpdfs
            if-no-files-found: error
