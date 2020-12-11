@@ -44,25 +44,26 @@ jobs:
            restore-keys: tl-
 
        - name: Install TeX Live
-         if: steps.cachetl.outputs.cache-hit != 'true'
          run: |
-           echo Downloading and compiling in [$PWD] from [$TLURL]
+           if ! command -v texlua > /dev/null; then
+               echo Downloading and compiling in [$PWD] from [$TLURL]
 
-           mkdir tl
-           wget -nc $TLURL
-           tar -xf $(basename $TLURL) --strip-components=1 --directory=tl
+               mkdir tl
+               wget -nc $TLURL
+               tar -xf $(basename $TLURL) --strip-components=1 --directory=tl
 
-           echo "selected_scheme scheme-infraonly
-             TEXDIR $GITHUB_WORKSPACE/CI/texlive
-             TEXMFLOCAL $GITHUB_WORKSPACE/CI/texlive/texmf-local
-             TEXMFSYSCONFIG $GITHUB_WORKSPACE/CI/texlive/texmf-config
-             TEXMFSYSVAR $GITHUB_WORKSPACE/CI/texlive/texmf-var
-             option_src 0
-             option_doc 0" > $GITHUB_WORKSPACE/CI/tl.profile
+               echo "selected_scheme scheme-infraonly
+                 TEXDIR $GITHUB_WORKSPACE/CI/texlive
+                 TEXMFLOCAL $GITHUB_WORKSPACE/CI/texlive/texmf-local
+                 TEXMFSYSCONFIG $GITHUB_WORKSPACE/CI/texlive/texmf-config
+                 TEXMFSYSVAR $GITHUB_WORKSPACE/CI/texlive/texmf-var
+                 option_src 0
+                 option_doc 0" > $GITHUB_WORKSPACE/CI/tl.profile
 
-           pushd tl
-           perl install-tl -profile $GITHUB_WORKSPACE/CI/tl.profile
-           popd
+               pushd tl
+               perl install-tl -profile $GITHUB_WORKSPACE/CI/tl.profile
+               popd
+           fi
 
        - name: Install TeX Live packages
          run: |
