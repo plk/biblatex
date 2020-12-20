@@ -1,3 +1,21 @@
+# RELEASE NOTES FOR VERSION 3.17
+- Added helper macros to enable calculations with non-ASCII numerals.
+  This is necessary to properly support languages like Marathi.
+  At the moment the 'translation' is very basic and uses a one-to-one
+  correspondence of US-ASCII (Arabic) digits and non-ASCII digits.
+  The translation also needs additional post-processing steps.
+  Use `\blx@defcomputableequivalent{<numeral digit>}{<ASCII digit>}` to
+  make `<numeral digit>` an equivalent of `<ASCII digit>`
+  (presumably this command will be used in `.lbx` files if the language
+  requires it).
+  `\hascomputableequivalent{<string>}` can be used to check if `<string>`
+  is a number that can be converted to a number with ASCII digits.
+  `\getcomputableequivalent{<string>}{<macro>}` does the conversion
+  and saves the number in `<macro>`.
+  There is `\ifiscomputable{<string>}` to check if a `<string>`
+  is an ASCII number OR has a computable equivalent.
+  There are analogous macros for fields instead of strings.
+
 # RELEASE NOTES FOR VERSION 3.16
 - Fixed an infinite loop caused by excessive aliasing of the `volcitepages`
   format.

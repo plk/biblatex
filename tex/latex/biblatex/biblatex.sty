@@ -3145,12 +3145,68 @@
   \fi
   \endgroup}
 
+% {\<non-ASCII numeral>}{\<ASCII number>}
+\protected\def\blx@defcomputableequivalent#1#2{%
+  \appto\blx@dononasciicomputablenumerals{\do#1}%
+  \appto\blx@initcomputableequivs{\uccode`#1=`#2}}
+
+% {<string>}{<true>}{<false>}
+\protected\long\def\blx@imc@hascomputableequivalent#1{%
+  \begingroup
+  \def\do##1{\uccode`##1=`\%}%
+  \blx@dononasciicomputablenumerals
+  \catcode`\@=11
+  \catcode`\%=9
+  \endlinechar\m@ne
+  \uppercase{\scantokens{\def\blx@tempa{#1}}}%
+  \ifx\blx@tempa\@empty
+    \aftergroup\@firstoftwo
+  \else
+    \aftergroup\@secondoftwo
+  \fi
+  \endgroup}
+
+% {<string>}{<true>}{<false>}
+\protected\long\def\blx@imc@ifiscomputable#1{%
+  \blx@imc@ifinteger{#1}
+    {\@firstofone}
+    {\blx@imc@hascomputableequivalent{#1}}}
+
+% {<string>}{<macro>}
+\protected\long\def\blx@imc@getcomputableequivalent#1#2{%
+  \blx@imc@hascomputableequivalent{#1}
+    {\begingroup
+     \blx@initcomputableequivs
+     \uppercase{\def\blx@tempa{#1}}%
+     \edef\blx@tempb{\endgroup
+       \noexpand\def\noexpand#2{\expandonce{\blx@tempa}}}%
+      \blx@tempb}
+    {\def#2{#1}}}
+
 % {<field>}{<true>}{<false>}
 \protected\def\blx@imc@iffieldint#1{%
   \blx@imc@iffieldundef{#1}
     {\@secondoftwo}
     {\expandafter\expandafter
      \expandafter\blx@imc@ifinteger
+     \expandafter\expandafter
+     \expandafter{\csname abx@field@#1\endcsname}}}
+
+% {<field>}{<true>}{<false>}
+\protected\def\blx@imc@fieldhascomputableequivalent#1{%
+  \blx@imc@iffieldundef{#1}
+    {\@secondoftwo}
+    {\expandafter\expandafter
+     \expandafter\blx@imc@hascomputableequivalent
+     \expandafter\expandafter
+     \expandafter{\csname abx@field@#1\endcsname}}}
+
+% {<field>}{<true>}{<false>}
+\protected\def\blx@imc@iffieldiscomputable#1{%
+  \blx@imc@iffieldundef{#1}
+    {\@secondoftwo}
+    {\expandafter\expandafter
+     \expandafter\blx@imc@hascomputableequivalent
      \expandafter\expandafter
      \expandafter{\csname abx@field@#1\endcsname}}}
 
@@ -3184,11 +3240,14 @@
   \fi
   \endgroup}
 
+\let\lbx@dononasciinumerals\relax
+
 \def\blx@hook@ifnum{%
   \def\do##1{\uccode`##1=`\%}%
   \do\ \do\0\do\1\do\2\do\3\do\4\do\5\do\6\do\7\do\8\do\9%
   \do\i\do\v\do\x\do\l\do\c\do\d\do\m
   \do\I\do\V\do\X\do\L\do\C\do\D\do\M
+  \lbx@dononasciinumerals
   \blx@donumchars
   \let\RN\@firstofone
   \let\Rn\@firstofone}
@@ -4121,8 +4180,10 @@
   \ifnameequalcs \ifnameequals \ifnamesequal \ifnameundef \ifnamexref
   \iffirstonpage \ifsamepage \savefield \savefieldcs \savelist
   \savelistcs \savename \savenamecs \usedriver
-  \ifinteger \ifnumeral \ifnumerals \ifpages
-  \iffieldint \iffieldnum \iffieldnums \iffieldpages
+  \ifinteger \hascomputableequivalent \ifiscomputable \getcomputableequivalent
+  \ifnumeral \ifnumerals \ifpages
+  \iffieldint \fieldhascomputableequivalent \iffieldiscomputable
+  \iffieldnum \iffieldnums \iffieldpages
   \iflabeldateisdate \ifdatehasyearonlyprecision \ifdatehastime
   \ifdateshavedifferentprecision
   \ifdateyearsequal \ifdatesequal \ifdaterangesequal
