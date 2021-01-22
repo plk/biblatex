@@ -14,12 +14,12 @@
 \lbx@ifutfinput
   {}
   {\PackageError{biblatex}
-    {Marathi requires UTF-8 support}
-    {The file 'marathi.lbx' requires UTF-8 encoding but you
-        seem\MessageBreak to be using a different encoding.
-        This is a fatal error. I will\MessageBreak abort loading
-        marathi.lbx now.}%
-    \endinput}
+     {Marathi requires UTF-8 support}
+     {The file 'marathi.lbx' requires UTF-8 encoding but you
+      seem\MessageBreak to be using a different encoding.
+      This is a fatal error. I will\MessageBreak abort loading
+      marathi.lbx now.}%
+   \endinput}
 
 
 \DeclareBibliographyExtras{%
@@ -100,6 +100,48 @@
     \blx@imc@ifiscomputable{#1}
       {\mkbibordedition{#1}~\bibstring{edition}}
       {#1\isdot}}%
+  \savecommand\mknumalph
+  \protected\def\mknumalph#1{%
+    \begingroup
+    \blx@imc@getcomputableequivalent{#1}{\blx@tempa}%
+    \blx@tempcnta=\blx@tempa\relax
+    \blx@numalph\blx@tempcnta
+    \endgroup}%
+  \savecommand\blx@numalph
+  \def\blx@numalph#1{%
+    \ifcase#1\relax\blx@warning@entry{Value \number#1 out of range}\number#1\or
+    अ\or आ\or इ\or ई\or उ\or ऊ\or ए\or ऐ\or ओ\or औ\or अं\or अः\or क\or
+    ख\or ग\or घ\or ङ\or च\or छ\or ज\or झ\or ञ\or ट\or ठ\or ड\or ढ\or
+    ण\or त\or थ\or द\or ध\or न\or प\or फ\or ब\or भ\or म\or य\or र\or
+    ल\or व\or श\or ष\or स\or ह\or ळ\or क्ष\or ज्ञ\else
+    \blx@warning@entry{Value \number#1 out of range}\number#1\fi}%
+  \savecommand\mkbibmonth
+  \protected\def\mkbibmonth#1{%
+    \begingroup
+      \begingroup
+      \edef\blx@tempb{\endgroup
+        \noexpand\blx@imc@getcomputableequivalent
+          {#1}
+          {\noexpand\blx@tempa}}%
+      \blx@tempb
+      \ifcase0\blx@tempa\relax
+        \blx@warning@entry{Month out of range or not an integer}%
+      \or\abx@bibmonth{january}%
+      \or\abx@bibmonth{february}%
+      \or\abx@bibmonth{march}%
+      \or\abx@bibmonth{april}%
+      \or\abx@bibmonth{may}%
+      \or\abx@bibmonth{june}%
+      \or\abx@bibmonth{july}%
+      \or\abx@bibmonth{august}%
+      \or\abx@bibmonth{september}%
+      \or\abx@bibmonth{october}%
+      \or\abx@bibmonth{november}%
+      \or\abx@bibmonth{december}%
+      \else
+        \blx@warning@entry{Month out of range}#1%
+      \fi
+    \endgroup}%
   \protected\def\mkbibdatelong#1#2#3{%
     \iffieldundef{#3}
       {}
@@ -174,6 +216,9 @@
   \restorecommand\blx@comprange@check
   \restorecommand\mkbibordedition
   \restorecommand\mkbibordseries
+  \restorecommand\mknumalph
+  \restorecommand\blx@numalph
+  \restorecommand\mkbibmonth
   \restorefieldformat{url}%
   \restorefieldformat{urldate}%
   \restorefieldformat[article]{series}%
