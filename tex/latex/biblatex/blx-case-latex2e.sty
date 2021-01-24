@@ -1,0 +1,326 @@
+\ProvidesPackage{blx-case-latex2e}
+[\abx@cptid]
+
+% auxiliary macros
+% babel's \languagename has weird catcodes,
+% so we \detokenize our language names
+
+\def\blx@listgadd@switched#1#2{\listgadd{#2}{#1}}
+
+\ifundef\expanded
+  {\protected\def\blx@deifinlist#1{%
+     \begingroup
+     \edef\blx@tempa{\endgroup
+       \blx@deifinlist@i{#1}}%
+     \blx@tempa}%
+   \protected\def\blx@deifinlist@i#1{%
+     \expandafter\ifinlist\expandafter{\detokenize{#1}}}%
+   %
+   \protected\def\blx@listdxadd@switched#1{%
+     \begingroup
+     \edef\blx@tempa{\endgroup
+       \blx@listdxadd@switched@i{#1}}%
+     \blx@tempa}%
+   \protected\def\blx@listdxadd@switched@i#1{%
+     \expandafter\blx@listgadd@switched\expandafter{\detokenize{#1}}}}
+  {\def\blx@deifinlist#1{%
+     \expandafter\expandafter\expandafter\ifinlist
+     \expandafter\expandafter\expandafter{%
+       \expandafter\detokenize\expandafter{\expanded{#1}}}}%
+   %
+   \def\blx@listdxadd@switched#1{%
+     \expandafter\expandafter\expandafter\blx@listgadd@switched
+     \expandafter\expandafter\expandafter{%
+       \expandafter\detokenize\expandafter{\expanded{#1}}}}}
+
+\def\blx@listdxadd#1#2{\blx@listdxadd@switched{#2}{#1}}
+
+
+% we don't have l3text's (pseudo)BCP47 language codes here
+\newrobustcmd*{\DeclareBabelToExplLanguageMapping}[2]{%
+  \blx@warning{The command '\string\DeclareBabelToExplLanguageMapping'%
+    \MessageBreak
+    is only available with the expl3 case changing\MessageBreak
+    implementation ('casechanger=expl3').\MessageBreak
+    Ignoring}}
+
+\newrobustcmd*{\UndeclareBabelToExplLanguageMapping}[1]{%
+  \blx@warning{The command '\string\UndeclareBabelToExplLanguageMapping'%
+    \MessageBreak
+    is only available with the expl3 case changing\MessageBreak
+    implementation ('casechanger=expl3').\MessageBreak
+    Ignoring}}
+
+\def\blx@maketext@lowercase{\MakeLowercase}
+
+\def\blx@maketext@uppercase{\MakeUppercase}
+
+\def\blx@maketext@makecapital{\MakeCapital}
+
+% {<text>}
+\newrobustcmd{\MakeCapital}[1]{%
+  \begingroup
+  \blx@mkcp@init
+  \protected@edef\blx@tempa{#1}%
+  \expandafter\blx@mkcp@parse\blx@tempa\@empty\blx@mkcp@end}
+
+\def\blx@mkcp@init{%
+  \def\blx@mkcp@iec{\noexpand\blx@mkcp@iec\noexpand}%
+  \def\blx@mkcp@bbl{\noexpand\blx@mkcp@bbl\noexpand}%
+  \def\blx@mkcp@sgl{\noexpand\blx@mkcp@sgl\noexpand}%
+  \def\blx@mkcp@dbl{\noexpand\blx@mkcp@dbl\noexpand}%
+  \def\do##1{\def##1{\blx@mkcp@sgl##1}}\abx@dosingleaccents
+  \def\do##1{\def##1{\blx@mkcp@dbl##1}}\abx@dodoubleaccents
+  \def\IeC##1{\blx@mkcp@iec\IeC{##1}}%
+  \def\@tabacckludge##1{%
+    \expandafter\blx@mkcp@sgl\csname\string##1\endcsname}}
+
+\begingroup
+\catcode`\"=\active
+\gappto\blx@mkcp@init{%
+  \ifnum\catcode`\"=\active
+    \def"#1{\blx@mkcp@bbl"\noexpand#1}%
+  \fi}
+\endgroup
+
+\def\blx@mkcp@parse{%
+  \futurelet\@let@token\blx@mkcp@eval}
+
+\long\def\blx@mkcp@eval{%
+  \ifx\@let@token\blx@mkcp@iec
+    \expandafter\blx@mkcp@getiec
+  \fi
+  \ifx\@let@token\blx@mkcp@bbl
+    \expandafter\blx@mkcp@gettwo
+  \fi
+  \ifx\@let@token\blx@mkcp@sgl
+    \expandafter\blx@mkcp@gettwo
+  \fi
+  \ifx\@let@token\blx@mkcp@dbl
+    \expandafter\blx@mkcp@getthree
+  \fi
+  \blx@mkcp@case}
+
+\def\blx@mkcp@getiec#1\blx@mkcp@case#2#3#4{%
+  \blx@mkcp@case{#2#3{#4}}}
+
+\def\blx@mkcp@gettwo#1\blx@mkcp@case#2#3#4{%
+  \blx@mkcp@case{#2#3#4}}
+
+\def\blx@mkcp@getthree#1\blx@mkcp@case#2#3#4#5{%
+  \blx@mkcp@case{#2#3#4#5}}
+
+\long\def\blx@mkcp@case#1{%
+  \begingroup
+  \def\i{I}\def\j{J}%
+  \def\do##1##2{\let##1##2\do}%
+  \expandafter\do\@uclclist\relax{\relax\@gobble}%
+  \uppercase{\protected@edef\blx@tempa{\endgroup\blx@mkcp@end#1}}%
+  \blx@tempa}
+
+\protected\long\def\blx@mkcp@end#1\blx@mkcp@end{%
+  \let\blx@mkcp@iec\noexpand
+  \let\blx@mkcp@bbl\noexpand
+  \let\blx@mkcp@sgl\noexpand
+  \let\blx@mkcp@dbl\noexpand
+  \protected@edef\blx@tempa{\endgroup#1}%
+  \blx@tempa}
+
+
+\DeclareBiblatexOption{global,type,entry}[boolean]{bibtexcaseprotection}[true]{%
+  \ifstrequal{#1}{true}
+    {}
+    {\ifstrequal{#1}{false}
+       {\blx@warning
+          {The option 'bibtexcaseprotection=false' is only\MessageBreak
+           available with expl3}}
+       {\blx@err@invopt{bibtexcaseprotection=#1}
+          {Valid values for 'bibtexcaseprotection' are 'true' and
+           'false'\MessageBreak
+           (but 'false' only works with expl3 code)}}}}
+
+% {<text>}
+\newrobustcmd*{\MakeSentenceCase}{%
+  \@ifstar\blx@mksc@i\blx@mksc@ii}
+
+
+% \blx@cmksc@lang is defined in biblatex.sty
+% it expands to the applicable language for the title field
+\def\blx@mksc@i{%
+  \blx@deifinlist\blx@mksc@lang\blx@cmksc@lang
+    {\blx@mksc@ii}
+    {\@firstofone}}
+
+\long\def\blx@mksc@ii#1{%
+  \begingroup
+  \let\blx@tempa\@empty
+  \let\blx@tempb\@empty
+  \blx@mksc@init
+  \protected@edef\@tempa{#1}%
+  \expandafter\blx@mksc@parse\@tempa\blx@mksc@end}
+
+\def\blx@mksc@init{%
+  \blx@mkcp@init
+  \def\blx@mkcp@nil{\noexpand\blx@mkcp@nil\noexpand}%
+  \def\i{\blx@mkcp@nil\i}\def\j{\blx@mkcp@nil\j}%
+  \def\do##1{%
+    \ifx##1\relax
+    \else
+      \def##1{\blx@mkcp@nil##1}%
+      \expandafter\do
+    \fi}%
+  \expandafter\do\@uclclist\relax}
+
+\def\blx@mksc@parse{%
+  \futurelet\@let@token\blx@mksc@eval}
+
+\let\blx@asttoken=*
+
+\def\blx@mksc@eval{%
+  \ifx\@let@token\blx@mksc@end
+    \expandafter\blx@mksc@end
+  \fi
+  \ifx\@let@token\bgroup
+    \expandafter\blx@mksc@group
+  \fi
+  \ifx\@let@token\@sptoken
+    \expandafter\blx@mksc@space
+  \fi
+  \ifx\@let@token\blx@mkcp@nil
+    \expandafter\blx@mksc@getone
+  \fi
+  \ifx\@let@token\blx@mkcp@iec
+    \expandafter\blx@mksc@getiec
+  \fi
+  \ifx\@let@token\blx@mkcp@bbl
+    \expandafter\blx@mksc@gettwo
+  \fi
+  \ifx\@let@token\blx@mkcp@sgl
+    \expandafter\blx@mksc@gettwo
+  \fi
+  \ifx\@let@token\blx@mkcp@dbl
+    \expandafter\blx@mksc@getthree
+  \fi
+  \ifx\@let@token\blx@asttoken
+    \expandafter\blx@mksc@cs
+  \fi
+  \if\noexpand\@let@token\relax
+    \expandafter\blx@mksc@cs
+  \fi
+  \blx@mksc@other}
+
+\def\blx@mksc@end#1\blx@mksc@end{%
+  \blx@mksc@eject
+  \let\blx@mkcp@nil\noexpand
+  \let\blx@mkcp@iec\noexpand
+  \let\blx@mkcp@bbl\noexpand
+  \let\blx@mkcp@sgl\noexpand
+  \let\blx@mkcp@dbl\noexpand
+  \let\MakeUppercase\relax
+  \let\MakeLowercase\relax
+  \protected@edef\blx@tempa{\endgroup\blx@tempa}%
+  \blx@tempa}
+
+\long\def\blx@mksc@group#1\blx@mksc@other#2{%
+  \futurelet\@let@token\blx@mksc@ingroup#2&{#2}%
+  \blx@mksc@endhead
+  \blx@mksc@parse}
+
+\long\def\blx@mksc@ingroup#1&#2{%
+  \if\noexpand\@let@token\relax
+    \ifx\@let@token\blx@mkcp@sgl
+      \blx@mksc@nocase{{#2}}%
+    \else
+      \ifx\@let@token\blx@mkcp@dbl
+        \blx@mksc@nocase{{#2}}%
+      \else
+        \blx@mksc@locase{{#2}}%
+      \fi
+    \fi
+  \else
+    \blx@mksc@nocase{{#2}}%
+  \fi}
+
+\def\blx@mksc@space{\def\blx@mksc@space##1\blx@mksc@other}
+\csuse{blx@mksc@space} {%
+  \blx@mksc@anycase{ }%
+  \blx@mksc@endhead
+  \blx@mksc@parse}
+
+\long\def\blx@mksc@cs#1\blx@mksc@other#2{%
+  \ifcat\noexpand~\noexpand#2%
+    \blx@mksc@locase{#2}%
+  \else
+    \blx@mksc@nocase{#2}%
+  \fi
+  \blx@mksc@endhead
+  \blx@mksc@parse}
+
+\def\blx@mksc@getiec#1\blx@mksc@other#2#3#4{%
+  \blx@mksc@other{#2#3{#4}}}
+
+\def\blx@mksc@getone#1\blx@mksc@other#2#3{%
+  \blx@mksc@other{#2#3}}
+
+\def\blx@mksc@gettwo#1\blx@mksc@other#2#3#4{%
+  \blx@mksc@other{#2#3#4}}
+
+\def\blx@mksc@getthree#1\blx@mksc@other#2#3#4#5{%
+  \blx@mksc@other{#2#3#4#5}}
+
+\long\def\blx@mksc@other#1{%
+  \blx@mksc@locase{#1}%
+  \blx@mksc@endhead
+  \blx@mksc@parse}
+
+\def\blx@mksc@locase{%
+  \appto\blx@tempb}
+
+\def\blx@mksc@nocase{%
+  \blx@mksc@eject
+  \appto\blx@tempa}
+
+\def\blx@mksc@anycase{%
+  \ifx\blx@tempb\@empty
+    \expandafter\appto
+    \expandafter\blx@tempa
+  \else
+    \expandafter\appto
+    \expandafter\blx@tempb
+  \fi}
+
+\def\blx@mksc@eject{%
+  \ifx\blx@tempb\@empty
+  \else
+    \eappto\blx@tempa{\noexpand\MakeLowercase{\expandonce\blx@tempb}}%
+    \let\blx@tempb\@empty
+  \fi}
+
+\def\blx@mksc@endhead{%
+  \ifx\blx@tempb\@empty
+  \else
+    \eappto\blx@tempa{\noexpand\MakeCapital{\expandonce\blx@tempb}}%
+    \let\blx@tempb\@empty
+  \fi
+  \let\blx@mksc@endhead\relax}
+
+
+
+% {<language,language,...>}
+\newrobustcmd*{\DeclareCaseLangs}{%
+  \@ifstar
+    {\blx@defcaselangs}
+    {\global\let\blx@cmksc@lang\@empty
+     \blx@defcaselangs}}
+
+\def\blx@defcaselangs#1{%
+  \ifblank{#1}
+    {}
+    {\forcsvlist{\blx@listdxadd\blx@cmksc@lang}{#1}}}
+
+% \DeclareCaseLangs invocation is in biblatex.sty
+
+\newrobustcmd*{\ifcaselang}[1][\blx@languagename]{%
+  \blx@deifinlist{#1}\blx@cmksc@lang}
+
+\endinput

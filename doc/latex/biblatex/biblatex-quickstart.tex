@@ -59,6 +59,9 @@
 \MakeAutoQuote*{<}{>}
 \MakeShortVerb{\|}
 
+\newrobustcmd*{\msecpref}[1]{%
+  \leavevmode\marginpar{\msecref{#1}}}
+
 \newcommand*{\msecref}[1]{B\zref{#1}}
 
 \titlepage{%
@@ -118,18 +121,16 @@
 \label{int}
 \biblatex is a bibliography system for \latex users. It surpasses the facilities provided by \bibtex and provides a very large feature set which can be somewhat overwhelming to the new user. This quick start guide aims to demonstrate the basic setup of \biblatex along with a selection of «how to» guides for common things which users typically need to do.
 
+In what follows, references to the main \biblatex documentation are given
+as <B$<$ref$>$>.
+
 \biblatex tracks the citations made in a document and the options set to control how the citations are managed. It passes these to a backend processor \biber\footnote{At time of writing, \biblatex supports two backend processors, \biber and legacy \bibtex. New users, who are the focus audience for this guide, should use \biber.} which performs some tasks and then writes out a sorted representation of the bibliography data. \biblatex then uses this information on subsequent runs of \latex to format and print a bibliography. You can see the general workflow in figure \ref{fig1}.
 
-See the appendix \secref{apx:hist} for some history about how \biblatex started, and how it differs from \bibtex. References to the main \biblatex documentation file are formatted as follows below: \msecref{int}.
+See the appendix \secref{apx:hist} for some history about how \biblatex started, and how it differs from \bibtex.
 
 \section{Getting Started}
 
-Firstly, it is important to mention the user community
-\url{http://tex.stackexchange.com}. \biblatex has its own question tag, is
-in the top ten of active question areas and the developers visit it
-regularly. There is a large body of already answered questions there which
-will cover many of the issues which beginning users face and new questions
-are always welcome.
+Firstly, it is important to mention the user community \url{http://tex.stackexchange.com}. \biblatex has its own question tag, is in the top ten of active question areas and the developers visit it regularly. There is a large body of already answered questions there which will cover many of the issues which beginning users face and new questions are always welcome.
 
 Using \biblatex is easy. Here is a basic example:
 
@@ -174,12 +175,11 @@ latex test.tex
 %
 Many people will be using \latex editing applications which hide these commands from the user anyway and which will be activated by keyboard shortcuts or menu items.
 
-One thing that \biblatex is good at is \emph{localisation}, that is, knowing what to do when switching between languages. If using a language other than basic English, loading \sty{inputenc} (\texttt{pdflatex}) or \sty{fontspec} (\texttt{xelatex} or \texttt{lualatex}) is recommended and then one or other of the \sty{babel} or \sty{polyglossia} packages for multi-language support. \biblatex knows how to connect with \sty{babel} and \sty{polyglossia} and can use their facilities for switching language handling and even font scripts dynamically in the bibliography and in citations. For example if writing in French, using \texttt{lualatex} as the engine and \sty{polyglossia} as the language support package, the basic document would look like this:
+One thing that \biblatex is good at is \emph{localisation}, that is, knowing what to do when  switching between languages. If using a language other than basic English, loading \sty{inputenc} (\texttt{pdflatex}) or \sty{fontspec} (\texttt{xelatex} or \texttt{lualatex}) is recommended and then one or other of the \sty{babel} or \sty{polyglossia} packages for multi-language support. \biblatex knows how to connect with \sty{babel} and \sty{polyglossia} and can use their facilities for switching language handling and even font scripts dynamically in the bibliography and in citations. For example if writing in French, using \texttt{lualatex} as the engine and \sty{babel} as the language support package, the basic document would look like this:
 
 \begin{ltxexample}[style=latex]{}
 \documentclass{article}
-\usepackage{polyglossia}
-\setdefaultlanguage{french}
+\usepackage[french]{babel}
 \usepackage{fontspec}
 \usepackage{biblatex}
 \addbibresource{refs.bib}
@@ -195,12 +195,14 @@ in \cite{work1} and also in \cite{work2}.
 %
 Language packages like \sty{babel} and \sty{polyglossia} should be loaded \emph{before} \biblatex so that it can detect which one is being used.
 
-It is also recommended to use the \sty{csquotes} package as this integrates with \biblatex to provide sophisticated combined citation/quotation macros are also multi-lingual aware. A document skeleton for biblatex use with \texttt{xelatex} or \texttt{lualatex} might look like this:
+It is also recommended to use the \sty{csquotes} package as this integrates
+with \biblatex to provide sophisticated combined citation/quotation macros
+which are also multi-lingual aware. A document skeleton for biblatex use
+with \texttt{xelatex} or \texttt{lualatex} might look like this:
 
 \begin{ltxexample}[style=latex]{}
 \documentclass{article}
-\usepackage{polyglossia}
-\setdefaultlanguage{english}
+\usepackage[english]{babel}
 \usepackage{fontspec}
 \usepackage{biblatex}
 \usepackage{csquotes}
@@ -219,8 +221,7 @@ Or with \texttt{pdflatex}, like this:
 
 \begin{ltxexample}[style=latex]{}
 \documentclass{article}
-\usepackage{polyglossia}
-\setdefaultlanguage{english}
+\usepackage[english]{babel}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{biblatex}
@@ -237,7 +238,7 @@ in \cite{work1} and also in \cite{work2}.
 %
 See \msecref{int:pre} for details about required, recommended or incompatible packages. \biblatex comes with many example files which are placed in the \path{doc/latex/biblatex/examples} subdirectory of the \file{texmf} tree. These are annotated and very useful for learning how to do various things.
 
-\section{Changing Things \ldots}
+\section{Basics}
 
 The \biblatex package options are detailed in the \biblatex manual (\msecref{use}).
 
@@ -264,17 +265,17 @@ You may have separate styles for the bibliograpy and citations by using the \opt
 
 \subsection{Sorting the bibliography}
 
-One of the main purposes of a bibliography system is to sort the bibliography correctly. This might be by author names in a humanties paper or by a label or number for a physical sciences paper, for example. Sorting with \biblatex is completely customisable and very sophisticated, supporting full Unicode\footnote{Using an implementation of the Unicode Collation Algorithm (UCA) with Common Locale Data Repository (CLDR) tailoring.} Sorting is done by defining a sorting «scheme», which is given a name. The scheme name is then used as the value of the sorting options. To set the default, global sorting scheme, use the \opt{sorting} package option:
+One of the main purposes of a bibliography system is to sort the bibliography correctly. This might be by author names in a humanties paper or by a label or number for a physical sciences paper, for example. Sorting with \biblatex is completely customisable and very sophisticated, supporting full Unicode\footnote{Using an implementation of the Unicode Collation Algorithm (UCA) with Common Locale Data Repository (CLDR) tailoring.}. Sorting is done by defining a sorting «template», which is given a name. The template name is then used as the value of the sorting options. To set the default, global sorting template, use the \opt{sorting} package option:
 
 \begin{ltxexample}[style=latex]{}
 \usepackage[sorting=ynt]{biblatex}
 \end{ltxexample}
 %
-There are several pre-defined sorting schemes (\msecref{use:opt:pre:gen}). It is possible to define custom sorting schemes (\msecref{aut:ctm:srt}) or override the global sorting scheme and use different sorting schemes for different bibliography lists (\msecref{use:bib:context}). Most custom styles will automatically use a particular sorting scheme mandated by the style.
+There are several pre-defined sorting templates (\msecref{use:opt:pre:gen}). It is possible to define custom sorting templates (\msecref{aut:ctm:srt}) or override the global sorting template and use different sorting templates for different bibliography lists (\msecref{use:bib:context}). Most custom styles will automatically use a particular sorting template mandated by the style. It is also possible to customise in great detail specifically how names of authors sort and this is completely integrated with the fine-grained control users have over the construction and parsing of names. Users are not limited to Western first/middle/last style names; it is possible to customise \biblatex to comprehensively support arbitrary name parts such as patronymics, papponymics etc. See (\msecref{aut:bbx:drv}).
 
 \subsection{Citations}
 
-Citations are fundamental to a bibliography system. \biblatex has a rich set of such commands described in \msecref{use:cit} and also allows the user to define custom citation commands. Typically the chosen style will dictate which type of citation and therefore which citation command should be used. Commands for citing multiple works in the same citation with local or global pre/postnotes are provided. To begin with, it is recommended to try the style-independent \cmd{autocite} command and its variants will suffice as these make switching between styles easier. If something more specific is needed, look into \cmd{parencite}, \cmd{textcite} and \cmd{footcite} and their variants.
+Citations are fundamental to a bibliography system. \biblatex has a rich set of such commands described in \msecref{use:cit} and also allows the user to define custom citation commands. Typically the chosen style will dictate which type of citation and therefore which citation command should be used. Commands for citing multiple works in the same citation with local or global pre/postnotes are provided. To begin with, it is recommended to try the style-independent \cmd{autocite} command and its variants as it will help to  make switching between styles easier. If something more specific is needed, look into \cmd{parencite}, \cmd{textcite} and \cmd{footcite} and their variants.
 
 \subsection{Printing the bibliography}
 
@@ -298,12 +299,129 @@ The general layout of the bibliography is controlled by a «bibliography environ
 %
 Bibliographies may be filtered and split so that, for example, it is possible to have separate bibliographies for books vs articles, primary vs secondary sources etc. The filtering can be done using various criteria and complex custom filters can be defined (\msecref{use:bib:flt}). There are several interfaces for bibliography filtering, depending on the use-case. See \msecref{use:use:mlt} for examples.
 
+\section{Delving Deeper}
+
+\biblatex has a \emph{lot} of options and is extremely customisable. The
+reference documentation for \biblatex is 300 pages which seems daunting for
+a new user but in fact, the plethora of options has developed to
+accommodate a very diverse array of requirements, most of which any one
+individual user will never need to use. So, the rest of this guide is
+structured as a list of useful tasks and options with pointers to the main
+documentation where you will find comprehensive documentation and examples.
+In most \TeX distributions, you can type \cmd{texdoc biblatex} at a command
+prompt to view the main \biblatex PDF manual.
+
+Please note that \biber has its own PDF documentation which
+is useful if you need to know about \biber specific things like the format
+of the XML-based \biber configuration file. With most \TeX distributions,
+you should be able to type \cmd{texdoc biber} at a command prompt to view
+the \biber manual. Running \cmd{biber --help} from the command line is the
+best source of information about the options which \biber supports.
+
+In what follows, \biber is presupposed as the backend processor as
+explained above. No example are given as the main documentation has many
+examples--this guide is intended as a quick pointer into the larger
+documentation file.
+\subsection{How do I ...?}
+
+\subsubsection{Use multiple bibliography data sources?\msecpref{use:bib:res}}
+
+Bibliographic data can be kept in any number of files (commonly,
+\file{.bib} files) and as many as you like can be used. Full BSD0-style
+file pattern globs are recognised.
+  
+\subsubsection{Use remote data sources?\msecpref{use:bib:res}}
+
+Remote datasources can be fetched via HTTP(S) or FTP(S). The remote source
+only has to return text of the expected format (\file{.bib} for
+example)--this might be a literal web page or a web service returning the
+data.
+
+\subsubsection{Manipulate the bibliographic data without changing the
+  source files?\msecpref{aut:ctm:map}}
+
+It is possible to change source data in almost arbitrary ways as it is read,
+without modifying the data files. This is useful, for example for
+normalisation and also in situations where you do not control the data
+files. This is done by <source mapping> which \biber applies as it reads
+the data files. Source maps are defined with the \cmd{DeclareSourcemap}
+macro. Many data manipulation operations are possible--regular expression
+matching and replace, entry and field cloning, deletion of entries or
+fields, appending to fields etc.
+
+\end{ltxexample}
+
+\subsubsection{Customise Sorting the Bibliography?\msecpref{aut:ctm:srt}}
+
+Sorting is one of the main strengths of \biber and uses a full Unicode
+engine with tailoring for specific languages. \biblatex comes with
+several pre-defined sorting templates to sort the bibliography in standard
+ways\msecpref{use:opt:pre:gen} but users can define their own sorting
+templates with the \cmd{DeclareSortingTemplate} command. Sorting is
+completely customisable and it is possible to sort on any fields, in any
+order with a choice, per-field, of ascending/descending, case-sensitiviy,
+language locale etc. It is also possible to ignore specific parts of any data
+for sorting purposes (for example <The> in titles or particular diacritics
+preceding names in some languages)\msecpref{aut:ctm:nosort}.
+
+\subsubsection{Truncate long name lists?\msecpref{use:opt:pre:gen}}
+
+See the \opt{maxnames/minnames} options and their sub-options. Name lists
+can be explicitly truncated with <et al.> to a desired explicit length.
+There is also a powerful automated option \opt{uniquelist} which will
+automatically truncate name lists to the point of no ambiguity.
+
+\subsubsection{Disambiguate ambiguous names?\msecpref{use:opt:pre:gen}}
+
+See the \opt{uniquename} option. This has various settings to allow the
+user to choose how potentially ambiguous names in a name list are
+disambiguated. Names can be disambiguated by adding initials or the full
+text of other nameparts to the basic name part (usually the family name) in
+order to disambiguate names. 
+
+\subsubsection{Handle names for non-Western languages?\msecpref{aut:bbx:drv}}
+
+See the \opt{nameparts} constant. By default, this adheres to the standard
+\bibtex name model of <prefix, family, suffix, given> but this can be
+customised to support arbitrary name parts such as patronymics,
+papponymics etc. \biber supports an extended name format in \bibtex data
+sources which allows names to be specified in a completely extensible way
+and is not limited to the restrictive \bibtex model. \biblatex takes care
+of automatically creating all of the formatting commands required to work
+with any nameparts defined using the \opt{nameparts} constant. The main
+documentation contains references to example files (which come with
+\biblatex) demonstrating all aspects of customised name handling.
+
+\subsubsection{Handle date and time information?\msecpref{bib:use:dat}}
+
+\biblatex has comprehensive support for \acr{ISO8601-2} Extended Format
+specification level 1 date/times in the bibliography. Input and
+customisable output for unspecified and uncertain dates, Julian dates,
+BCE/BC eras, approximate dates, negative dates and data ranges are fully
+supported.
+
+\subsubsection{Handle crossreferences and data inheritance between entries?\msecpref{bib:cav:ref}}
+
+Entries can reference other entries and inherit data from them in a
+completely customisable and cascading manner. See the
+\cmd{DeclareDataInheritance} command\msecpref{bib:cav:ref}.
+
+\subsubsection{Deal with different file encodings?\msecpref{bib:cav:enc:enc}}
+
+\biber is completely UTF-8 (NFD) internally. It decodes and encodes in
+input/output as required and will automatically convert \tex macros in the
+bibliographic data into UTF-8 on reading data to aid sorting and can
+re-encode to arbitrary encodings on output.
 
 
 % \begin{lstlisting}[style=bibtex]{}
 % \end{lstlisting}
 
+% \begin{ltxexample}[style=latex]{}
+% \end{ltxexample}
 
+
+\newpage
 \appendix
 \section*{Appendix}
 \addcontentsline{toc}{section}{Appendix}

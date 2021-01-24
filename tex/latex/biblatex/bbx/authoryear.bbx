@@ -9,7 +9,7 @@
      \renewbibmacro*{bbx:savehash}{\savefield{fullhash}{\bbx@lasthash}}}
     {\renewbibmacro*{bbx:savehash}{}}}
 
-\DeclareBibliographyOption[boolean]{mergedate}[true]{%
+\DeclareBiblatexOption{global,type,entry}[boolean]{mergedate}[true]{%
   \ifcsdef{bbx@opt@mergedate@#1}
     {\csuse{bbx@opt@mergedate@#1}}
     {\PackageError{biblatex}
@@ -24,6 +24,13 @@
     Using 'date+extradate' instead}%
   \usebibmacro{date+extradate}}
 
+\newbibmacro*{bbx:ifmergeddate}{\@secondoftwo}
+
+\renewbibmacro*{date}{%
+  \usebibmacro{bbx:ifmergeddate}
+    {}
+    {\printdate}}%
+
 \def\bbx@opt@mergedate@true{\bbx@opt@mergedate@compact}
 
 % merge date/issue with date label
@@ -37,12 +44,9 @@
             \setunit*{\addspace}%
             \printdateextra}
            {\printlabeldateextra}}}}%
-  \renewbibmacro*{date}{%
-    \iflabeldateisdate
-      {}
-      {\printdate}}%
+  \renewbibmacro*{bbx:ifmergeddate}{\iflabeldateisdate}%
   \renewbibmacro*{issue+date}{%
-    \iflabeldateisdate
+    \usebibmacro{bbx:ifmergeddate}
       {}
       {\printtext[parens]{%
          \printfield{issue}%
@@ -58,20 +62,18 @@
          \iflabeldateisdate
            {\printdateextra}
            {\printlabeldateextra}}}}%
-  \renewbibmacro*{date}{%
-    \iflabeldateisdate
-      {}
-      {\printdate}}%
+  \renewbibmacro*{bbx:ifmergeddate}{\iflabeldateisdate}%
   \renewbibmacro*{issue+date}{%
-    \ifboolexpr{not test {\iffieldundef{issue}}
-                or not test {\iflabeldateisdate}}
+    \ifboolexpr{test {\usebibmacro{bbx:ifmergeddate}}
+                and
+                test {\iffieldundef{issue}}}
+      {}
       {\printtext[parens]{%
          \printfield{issue}%
          \setunit*{\addspace}%
-         \iflabeldateisdate
+         \usebibmacro{bbx:ifmergeddate}
            {}
-           {\printdate}}}
-      {}%
+           {\printdate}}}%
     \newunit}}
 
 % merge year-only date with date label
@@ -80,19 +82,16 @@
     \iffieldundef{labelyear}
       {}
       {\printtext[parens]{\printlabeldateextra}}}%
-  \renewbibmacro*{date}{%
+  \renewbibmacro*{bbx:ifmergeddate}{%
     \ifboolexpr{
       test {\iflabeldateisdate}
       and
       not test {\ifdateshavedifferentprecision{label}{}}
-    }
-      {}
-      {\printdate}}%
+    }%
+  }%
   \renewbibmacro*{issue+date}{%
     \ifboolexpr{
-      test {\iflabeldateisdate}
-      and
-      not test {\ifdateshavedifferentprecision{label}{}}
+      test {\usebibmacro{bbx:ifmergeddate}}
       and
       test {\iffieldundef{issue}}
     }
@@ -109,23 +108,18 @@
     \iffieldundef{labelyear}
       {}
       {\printtext[parens]{\printlabeldateextra}}}%
-  \renewbibmacro*{date}{%
+  \renewbibmacro*{bbx:ifmergeddate}{%
     \ifboolexpr{
       test {\iflabeldateisdate}
       and
       not test {\ifdateshavedifferentprecision{label}{}}
       and
       test {\iffieldundef{extradate}}
-    }
-      {}
-      {\printdate}}%
+    }%
+  }%
   \renewbibmacro*{issue+date}{%
     \ifboolexpr{
-      test {\iflabeldateisdate}
-      and
-      not test {\ifdateshavedifferentprecision{label}{}}
-      and
-      test {\iffieldundef{extradate}}
+      test {\usebibmacro{bbx:ifmergeddate}}
       and
       test {\iffieldundef{issue}}
     }
@@ -142,7 +136,7 @@
     \iffieldundef{labelyear}
       {}
       {\printtext[parens]{\printlabeldateextra}}}%
-  \renewbibmacro*{date}{\printdate}%
+  \renewbibmacro*{bbx:ifmergeddate}{\@secondoftwo}%
   \renewbibmacro*{issue+date}{%
     \printtext[parens]{%
       \printfield{issue}%
@@ -158,6 +152,10 @@
 \DeclareNameAlias{author}{sortname}
 \DeclareNameAlias{editor}{sortname}
 \DeclareNameAlias{translator}{sortname}
+
+\DeclareNameWrapperAlias{author}{sortname}
+\DeclareNameWrapperAlias{editor}{sortname}
+\DeclareNameWrapperAlias{translator}{sortname}
 
 \defbibenvironment{bibliography}
   {\list

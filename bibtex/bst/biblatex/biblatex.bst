@@ -16,6 +16,7 @@
 
 ENTRY {
     % special fields
+    fakeset
     entryset
     entrysubtype
     execute
@@ -168,7 +169,10 @@ ENTRY {
     warningmsg }
 
 INTEGERS { ctrl.debug ctrl.bibtex8 ctrl.maxline ctrl.sorting ctrl.cssort
-           ctrl.maxnames ctrl.minnames ctrl.maxalphanames ctrl.minalphanames
+           ctrl.maxcitenames ctrl.mincitenames
+           ctrl.maxsortnames ctrl.minsortnames
+           ctrl.nohashothers ctrl.nosortothers
+           ctrl.maxalphanames ctrl.minalphanames
            ctrl.useauthor ctrl.useeditor ctrl.usetranslator
            ctrl.useprefix ctrl.labelalpha ctrl.singletitle
            ctrl.labeldate citecount
@@ -180,7 +184,7 @@ STRINGS  { ctrl.alphaothers ctrl.sortalphaothers ctrl.sortstr
            last.name last.hash last.year last.extra }
 
 FUNCTION {initialize} {
-  "$Revision: 3.11 $"
+  "$Revision: 3.16 $"
   #12 entry.max$ substring$
   #-3 entry.max$ substring$
   "Biblatex version: " swap$ * top$
@@ -193,8 +197,12 @@ FUNCTION {initialize} {
    #1   'ctrl.useeditor :=
    #0   'ctrl.usetranslator :=
    #0   'ctrl.useprefix :=
-   #1   'ctrl.minnames :=
-  #99   'ctrl.maxnames :=
+  #99   'ctrl.maxcitenames :=
+   #1   'ctrl.mincitenames :=
+  #99   'ctrl.maxsortnames :=
+   #1   'ctrl.minsortnames :=
+   #0   'ctrl.nohashothers :=
+   #0   'ctrl.nosortothers :=
    #1   'ctrl.minalphanames :=
    #3   'ctrl.maxalphanames :=
   #79   'ctrl.maxline :=
@@ -250,16 +258,11 @@ FUNCTION {ctrl:set} {
   type$ "set" =
 }
 
-FUNCTION {ctrl:skiplos} {
-  ctrl:control skiplos or
-  ctrl:set not
-  and
-}
 
 FUNCTION {ctrl:skiplab} {
   ctrl:control skiplab or
-  ctrl:set not
-  and
+  ctrl:set %  fakeset empty$ and
+  or
 }
 
 FUNCTION {ctrl:labelalpha} {
@@ -551,8 +554,8 @@ FUNCTION {shortname:hash} {
   tempctrc #0 =
     { tempctrb 'tempctrc := }
     { tempctrb tempctrc >
-        { ctrl.minnames 'tempctrc := }
-        { ctrl.maxnames 'tempctrc := }
+        { ctrl.mincitenames 'tempctrc := }
+        { ctrl.maxcitenames 'tempctrc := }
       if$
     }
   if$
@@ -568,6 +571,8 @@ FUNCTION {shortname:hash} {
   templist andothers
   tempctrb #0 >
   or
+  ctrl.nohashothers not
+  and
     { "+" * }
     'skip$
   if$
@@ -580,7 +585,7 @@ FUNCTION {push:name:namehash} {
         'skip$
       if$
     }
-    { ctrl.maxnames shortname:hash }
+    { ctrl.maxcitenames shortname:hash }
   if$
 }
 
@@ -687,7 +692,9 @@ FUNCTION {format:name:part} {
 }
 
 FUNCTION {format:name:initials} {
+  ".-" "\bibinithyphendelim " str:replace
   ".~" "\bibinitperiod\bibinitdelim " str:replace
+  ". " "\bibinitperiod\bibinitdelim " str:replace
   "." "\bibinitperiod" str:replace
 }
 
@@ -901,9 +908,9 @@ FUNCTION {sortkey:name:format} {
     { tempctrb #1 - 'tempctrb := }
     'skip$
   if$
-  tempctrb ctrl.maxnames >
-    { ctrl.minnames 'tempctrc := }
-    { ctrl.maxnames 'tempctrc := }
+  tempctrb ctrl.maxsortnames >
+    { ctrl.minsortnames 'tempctrc := }
+    { ctrl.maxsortnames 'tempctrc := }
   if$
   ""
   { duplicate$ text.length$ entry.max$ #50 - <
@@ -942,6 +949,8 @@ FUNCTION {sortkey:name:format} {
   templist andothers
   tempctrb #0 >
   or
+  ctrl.nosortothers not
+  and
     { delimiter.2 * "zzzz" * }
     'skip$
   if$
@@ -1114,11 +1123,15 @@ FUNCTION {output:indent:subfield:keyval} {
   if$
 }
 
+FUNCTION {output:write:field:maybeempty} {
+  swap$ "\field" swap$ wrap:braces *
+  swap$ wrap:braces * output:indent:field
+}
+
 FUNCTION {output:write:field} {
   duplicate$ empty$
     { pop$ pop$ }
-    { swap$ "\field" swap$ wrap:braces *
-      swap$ wrap:braces * output:indent:field }
+    { output:write:field:maybeempty }
   if$
 }
 
@@ -1312,6 +1325,11 @@ FUNCTION {output:write:name} {
       templist andothers
         { tempctrb #1 - 'tempctrb :=
           "more" tempstrga * #1 output:write:bool
+          % not actually required, biblatex should resolve this
+          tempstrga push:labelname =
+            { "morelabelname" #1 output:write:bool }
+            'skip$
+          if$
         }
         'skip$
       if$
@@ -1391,6 +1409,14 @@ FUNCTION {output:write:list} {
 }
 
 FUNCTION {output:specials} {
+  fakeset empty$
+    'skip$
+    { ctrl:set
+        { "\fakeset" fakeset wrap:braces * output:indent:field  }
+        { "fakeset can only be used for @set entries" warning * }
+      if$
+    }
+  if$
   entryset empty$
     'skip$
     { ctrl:set
@@ -1437,23 +1463,27 @@ FUNCTION {output:specials} {
     'skip$
   if$
   ctrl:labeldate
-  dateyear empty$ not
-  and
-    { "labelyear" dateyear output:write:field
-      dateendyear empty$
-        'skip$
-        { dateyear dateendyear =
+    { dateyear empty$ not
+        { "labelyear" dateyear output:write:field
+          dateendyear empty$
             'skip$
-            { dateendyear open.ended =
+            { dateyear dateendyear =
                 'skip$
-                { "labelendyear" dateendyear output:write:field }
+                { dateendyear open.ended =
+                    'skip$
+                    { "labelendyear" dateendyear output:write:field }
+                  if$
+                }
               if$
             }
           if$
+          "extradate"   extradate       output:write:field
+          "labeldatesource" ""          output:write:field:maybeempty
+        }
+        { "extradate"   extradate       output:write:field
+          "labeldatesource" "nodate"    output:write:field
         }
       if$
-      "extradate"   extradate       output:write:field
-      "labeldatesource" "year"      output:write:field
     }
     'skip$
   if$
@@ -1893,18 +1923,18 @@ FUNCTION {input:control:options} {
   input:control:parse str.to.int
 }
 
-% This version corresponds to the .bbl version, *not* the biblatex version!
+% This version corresponds to the .bcf version, *not* the biblatex version!
 FUNCTION {input:control:version} {
   input:control:parse
-  "$Revision: 3.0 $"
+  "$Revision: 3.7 $"
   #12 entry.max$ substring$
   #-3 entry.max$ substring$
   'tempstrga :=
   duplicate$ tempstrga =
     { pop$ }
-    { "bbl version mismatch: biblatex.bst has " tempstrga *
+    { "bcf version mismatch: biblatex.bst has " tempstrga *
       ", but biblatex.sty has " * swap$ * warning$
-      "         The bbl version need not be the same as the biblatex version."
+      "         The bcf version need not be the same as the biblatex version."
       top$
       pop$ "" }
   if$
@@ -1927,8 +1957,12 @@ FUNCTION {input:control} {
           input:control:options 'ctrl.labeldate :=
           input:control:options 'ctrl.singletitle :=
           input:control:options 'ctrl.sorting :=
-          input:control:options 'ctrl.maxnames :=
-          input:control:options 'ctrl.minnames :=
+          input:control:options 'ctrl.maxcitenames :=
+          input:control:options 'ctrl.mincitenames :=
+          input:control:options 'ctrl.maxsortnames :=
+          input:control:options 'ctrl.minsortnames :=
+          input:control:options 'ctrl.nohashothers :=
+          input:control:options 'ctrl.nosortothers :=
           input:control:options 'ctrl.maxalphanames :=
           input:control:options 'ctrl.minalphanames :=
           input:control:options 'ctrl.maxline :=
@@ -2123,9 +2157,9 @@ FUNCTION {makelabel:name:format} {
     { tempctrb #1 - 'tempctrb := }
     'skip$
   if$
-  tempctrb ctrl.maxnames >
-    { ctrl.minnames 'tempctrc := }
-    { ctrl.maxnames 'tempctrc := }
+  tempctrb ctrl.maxcitenames >
+    { ctrl.mincitenames 'tempctrc := }
+    { ctrl.maxcitenames 'tempctrc := }
   if$
   ""
   { duplicate$ text.length$ entry.max$ #50 - <
@@ -2155,10 +2189,13 @@ FUNCTION {makelabel:name:format} {
   templist andothers
   tempctrb #0 >
   or
+  ctrl.nohashothers not
+  and
     { delimiter.2 * "zzzz" * }
     'skip$
   if$
 }
+
 
 FUNCTION {makelabel:name:full} {
   duplicate$ num.names$ #1 =
@@ -2233,9 +2270,9 @@ FUNCTION {makelabel:hash:format} {
     { tempctrb #1 - 'tempctrb := }
     'skip$
   if$
-  tempctrb ctrl.maxnames >
-    { ctrl.minnames 'tempctrc := }
-    { ctrl.maxnames 'tempctrc := }
+  tempctrb ctrl.maxcitenames >
+    { ctrl.mincitenames 'tempctrc := }
+    { ctrl.maxcitenames 'tempctrc := }
   if$
   ""
   { tempctra tempctrc > not
@@ -2254,6 +2291,8 @@ FUNCTION {makelabel:hash:format} {
   templist andothers
   tempctrb #0 >
   or
+  ctrl.nohashothers not
+  and
     { "+" * }
     'skip$
   if$
@@ -2280,6 +2319,8 @@ FUNCTION {makelabel:hash:format:full} {
     }
   while$
   templist andothers
+  ctrl.nohashothers not
+  and
     { "+" * }
     'skip$
   if$
@@ -2728,7 +2769,7 @@ SORT
 % This version corresponds to the .bbl version, *not* the biblatex version!
 FUNCTION {output:main:begin} {
   "% $ biblatex auxiliary file $"                               write$ newline$
-  "% $ biblatex bbl format version " "$Revision: 3.0 $"
+  "% $ biblatex bbl format version " "$Revision: 3.1 $"
   #12 entry.max$ substring$ #-3 entry.max$ substring$ * " $" *  write$ newline$
   "% Do not modify the above lines!"                            write$ newline$
   "%"                                                           write$ newline$

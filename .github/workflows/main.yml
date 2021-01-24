@@ -1,0 +1,163 @@
+name: BibLaTeX CI
+
+env:
+  TLURL: http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz
+  BIBERURL: https://sourceforge.net/projects/biblatex-biber/files/biblatex-biber/development/binaries/Linux/biber-linux_x86_64.tar.gz
+
+# Controls when the action will run.
+on:
+  schedule:
+   - cron: "0 2 * * *"
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+       - name: Checkout biblatex
+         uses: actions/checkout@v2
+
+       - name: Set ENV
+         run: |
+           mkdir CI
+           echo "$GITHUB_WORKSPACE/CI/diff-pdf/bin" >> $GITHUB_PATH
+           echo "$GITHUB_WORKSPACE/CI/texlive/bin/x86_64-linux" >> $GITHUB_PATH
+           echo "$GITHUB_WORKSPACE/CI/biber" >> $GITHUB_PATH
+           
+       - name: Get date
+         id: get-date
+         run: |
+           echo "::set-output name=date::$(/bin/date -u "+%Y%m%d")"
+
+       - name: Cache TeX Live
+         id: cachetl
+         uses: actions/cache@v2
+         with:
+           path: CI/texlive
+           key: tlcache-${{ steps.get-date.outputs.date }}
+           restore-keys: tlcache-
+
+       - name: Install TeX Live
+         run: |
+           if ! command -v texlua > /dev/null; then
+               echo Downloading and compiling in [$PWD] from [$TLURL]
+
+               mkdir tl
+               wget -nc $TLURL
+               tar -xf $(basename $TLURL) --strip-components=1 --directory=tl
+
+               echo "selected_scheme scheme-infraonly
+                 TEXDIR $GITHUB_WORKSPACE/CI/texlive
+                 TEXMFLOCAL $GITHUB_WORKSPACE/CI/texlive/texmf-local
+                 TEXMFSYSCONFIG $GITHUB_WORKSPACE/CI/texlive/texmf-config
+                 TEXMFSYSVAR $GITHUB_WORKSPACE/CI/texlive/texmf-var
+                 option_src 0
+                 option_doc 0" > $GITHUB_WORKSPACE/CI/tl.profile
+
+               pushd tl
+               perl install-tl -profile $GITHUB_WORKSPACE/CI/tl.profile
+               popd
+           fi
+
+       - name: Install TeX Live packages
+         run: |
+           tlmgr option -- autobackup 0
+           tlmgr update --self
+           tlmgr install l3build
+           tlmgr install latex-bin luahbtex tex
+           tlmgr install metafont mfware texlive-scripts
+           tlmgr install latex amsmath graphics tools
+           tlmgr install ctex
+           tlmgr install    \
+              babel          \
+              babel-english  \
+              hyphen-english \
+              babel-french   \
+              hyphen-french  \
+              babel-german   \
+              hyphen-german  \
+              hyphen-latin   \
+              hyphen-spanish \
+              hyphen-russian \
+              bibtex         \
+              booktabs       \
+              csquotes       \
+              ec             \
+              cm-super       \
+              etoolbox       \
+              index          \
+              imakeidx       \
+              makeindex      \
+              iftex          \
+              hyperref       \
+              logreq         \
+              libertine      \
+              atveryend      \
+              infwarerr      \
+              hycolor        \
+              lm             \
+              lm-math        \
+              psnfss         \
+              unicode-math   \
+              xkeyval
+           tlmgr list --only-installed
+
+       - name: Update TeX Live
+         run: tlmgr update --self --all --no-auto-install
+
+       - name: Get DEV biber
+         run: |
+           mkdir -p CI/biber
+           pushd CI/biber
+           wget -nc $BIBERURL
+           tar -xzvf $(basename $BIBERURL)
+           popd
+           which biber
+           biber -v
+
+       - name: Install biblatex
+         run: |
+           obuild/build.sh install 1 $GITHUB_WORKSPACE/CI/texlive/texmf-local
+           texhash
+           kpsewhich biblatex.sty
+
+       - name: Install diff-pdf
+         run: |
+           sudo apt-get install libpoppler-glib-dev poppler-utils libwxgtk3.0-dev
+           git clone https://github.com/vslavik/diff-pdf.git
+           pushd diff-pdf
+           ./bootstrap
+           ./configure --prefix $GITHUB_WORKSPACE/CI/diff-pdf
+           make
+           make install
+           popd
+
+       - name: Run biblatex test compile
+         run: |
+           obuild/build.sh test
+
+       - name: Show errors if compile failed
+         if: failure()
+         run: |
+           cat obuild/test/example_errs_bibtex.txt
+           cat obuild/test/example_errs_biber.txt
+           exit 1
+
+       - name: Run biblatex test PDF output
+         run: |
+           obuild/build.sh testoutput
+
+       - name: Upload failed PDFs
+         if: failure()
+         uses: actions/upload-artifact@v2.2.1
+         with:
+           name: FailedPDFs
+           path: obuild/failedpdfs
+           if-no-files-found: error
+

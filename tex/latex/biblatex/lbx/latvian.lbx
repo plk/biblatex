@@ -69,13 +69,17 @@
          {}
          {\adddot}}}%
   \expandafter\protected\expandafter\def\csname mkbibtime24h\endcsname#1#2#3#4{%
-      \iffieldundef{#1}{}
-        {\printtext{\mktimezeros{\thefield{#1}}}\setunit{\bibtimesep}}%
-      \iffieldundef{#2}{}
-        {\printtext{\mktimezeros{\thefield{#2}}}\setunit{\bibtimesep}}%
-      \iffieldundef{#3}{}
-        {\printtext{\mktimezeros{\thefield{#3}}}}%
-      \setunit{}%
+      \iffieldundef{#1}
+        {}
+        {\mktimezeros{\thefield{#1}}%
+         \iffieldundef{#2}{}{\bibtimesep}}%
+      \iffieldundef{#2}
+        {}
+        {\mktimezeros{\thefield{#2}}%
+         \iffieldundef{#3}{}{\bibtimesep}}%
+      \iffieldundef{#3}
+        {}
+        {\mktimezeros{\thefield{#3}}}%
       \iffieldundef{#4}{}
         {\bibtimezonesep
          \mkbibtimezone{\thefield{#4}}}}%
@@ -84,7 +88,7 @@
       \forcezerosmdt{\thefield{#2}}%
       \iffieldundef{#3}{}
         {\bibtimesep
-         \forcezeros{\thefield{#3}}}%
+         \forcezerosmdt{\thefield{#3}}}%
        \space
        \ifnumless{\thefield{#1}}{12}
          {\bibstring{am}}
@@ -123,6 +127,67 @@
     \expandafter\lbx@lv@makewhendate@i
     \expandafter{\lbx@lv@whendate@formats}}%
   %\lbx@lv@makewhendate{eventdate}%
+  \def\lbx@lv@mkdottednormrange@i#1{%
+    \ifinteger{#1}
+      {\mkbibordinal{#1}}
+      {#1}}
+  \protected\def\lbx@lv@mkdottednormrange#1{%
+    \mknormrange*[\@firstofone][\lbx@lv@mkdottednormrange@i]{#1}}%
+  % this redefines \mkpageprefix to put the page number as suffix
+  \savecommand\blx@mkpageprefix
+  \protected\long\def\blx@mkpageprefix#1[#2]#3{%
+    \blx@mkpageprefix@i[{#2}]{#3}%
+    \ifnumeral{#3}
+      {\ppspace\bibstring{#1}}
+      {\ifnumerals{#3}
+         {\ppspace\bibstring{#1s}}
+         {\def\pno{\bibstring{#1}}%
+          \def\ppno{\bibstring{#1s}}}}}%
+  % NOTE: a few field formats are redefined here, this overrides
+  % corresponding style and preamble definitions.
+  % If you want to overwrite the changes made here, use
+  % \DefineBibliographyExtras{magyar}{...}
+  % Do not forget to make these changes undone with
+  % \UndefineBibliographyExtras{magyar}{...}
+  % to avoid them spilling out later.
+  \savefieldformat{pages}%
+  \DeclareFieldFormat{pages}{%
+    \mkpageprefix[bookpagination][\lbx@lv@mkdottednormrange]{#1}}%
+  \savefieldformat{postnote}%
+  \DeclareFieldFormat{postnote}{%
+    \mkpageprefix[bookpagination][\lbx@lv@mkdottednormrange]{#1}}%
+  \savefieldformat{volcitepages}%
+  \DeclareFieldFormat{volcitepages}{%
+    \mkpageprefix[pagination][\lbx@lv@mkdottednormrange]{#1}}%
+  \savefieldformat{multipostnote}%
+  \DeclareFieldFormat{multipostnote}{%
+    \mkpageprefix[pagination][\lbx@lv@mkdottednormrange]{#1}}%
+  \savefieldformat{chapter}%
+  \DeclareFieldFormat{chapter}{%
+    \ifnumerals{#1}{\mkbibordinal{#1}}{#1}
+    \addnbspace
+    \bibstring{chapter}}%
+  \savefieldformat{volume}%
+  \DeclareFieldFormat{volume}{%
+    \ifnumerals{#1}{\mkbibordinal{#1}}{#1}
+    \addnbspace
+    \bibstring{volume}}%
+  \savefieldformat{part}%
+  \DeclareFieldFormat{part}{%
+    \addcomma\space% <- this is *really* bad, don't try this at home
+    % In general leading or trailing punctuation in field formats should be
+    % avoided and should instead be dealt with in the appropriate bibmacros.
+    % The part field is special because its standard definition is '.#1'.
+    % Additionally, \printfield{part} is called all over the place, so we
+    % can't simply redefine a macro here.
+    \ifnumerals{#1}{\mkbibordinal{#1}}{#1}%
+    \addnbspace
+    \bibstring{part}}%
+  \savefieldformat{version}%
+  \DeclareFieldFormat{version}{%
+    \ifnumerals{#1}{\mkbibordinal{#1}}{#1}
+    \addnbspace
+    \bibstring{version}}%
 }
 
 \UndeclareBibliographyExtras{%
@@ -138,6 +203,16 @@
   %\lbx@lv@restorewhendate{eventdate}%
   \restorecommand\mkdaterangecomp
   \restorecommand\mkdaterangecompextra
+  \restorecommand\mknormrange
+  \restorecommand\blx@mkpageprefix
+  \restorefieldformat{pages}%
+  \restorefieldformat{postnote}%
+  \restorefieldformat{volcitepages}%
+  \restorefieldformat{multipostnote}%
+  \restorefieldformat{chapter}%
+  \restorefieldformat{volume}%
+  \restorefieldformat{part}%
+  \restorefieldformat{version}%
 }
 
 \DeclareBibliographyStrings{%
@@ -518,6 +593,7 @@
   langgalician     = {{galsie\v{s}u}{galsie\v{s}u}},
   langgerman       = {{v\={a}cu}{v\={a}cu}},
   langgreek        = {{grie\c{k}u}{grie\c{k}u}},
+  langhungarian    = {{ung\={a}ru}{ung\={a}ru}},
   langitalian      = {{it\={a}\c{l}u}{it\={a}\c{l}u}},
   langjapanese     = {{jap\={a}\c{n}u}{jap\={a}\c{n}u}},
   langlatin        = {{lat\={\i}\c{n}u}{lat\={\i}\c{n}u}},
@@ -546,6 +622,7 @@
   fromgalician     = {{no galsie\v{s}u}{no galsie\v{s}u}},
   fromgerman       = {{no v\={a}cu}{no v\={a}cu}},
   fromgreek        = {{no grie\c{k}u}{no grie\c{k}u}},
+  fromhungarian    = {{no ung\={a}ru}{no ung\={a}ru}},
   fromitalian      = {{no it\={a}\c{l}u}{no it\={a}\c{l}u}},
   fromjapanese     = {{no jap\={a}\c{n}u}{no jap\={a}\c{n}u}},
   fromlatin        = {{no lat\={\i}\c{n}u}{no lat\={\i}\c{n}u}},
@@ -620,11 +697,16 @@
   \fi}%
 
 \protected\gdef\lbx@lv@mkdaterangetrunc@long#1#2{%
+  \blx@if@printanytimes{#2}
+    {\mkdaterangefull{#1}{#2}}
+    {\lbx@lv@mkdaterangetrunc@long@i{#1}{#2}}}
+
+\protected\gdef\lbx@lv@mkdaterangetrunc@long@i#1#2{%
   \begingroup
     \blx@metadateinfo{#2}%
     \iffieldundef{#2year}
-      {}
-      {\printtext[#2date]{%
+      {\blx@nounit}
+      {\printtext[{#2date}]{%
          \datecircaprint
          \iffieldundef{#2season}
            {\ifdateyearsequal{#2}{#2end}
@@ -653,11 +735,16 @@
   \endgroup}
 
 \protected\gdef\lbx@lv@mkdaterangetruncextra@long#1#2{%
+  \blx@if@printanytimes{#2}
+    {\mkdaterangefullextra{#1}{#2}}
+    {\lbx@lv@mkdaterangetruncextra@long@i{#1}{#2}}}
+
+\protected\gdef\lbx@lv@mkdaterangetruncextra@long@i#1#2{%
   \begingroup
     \blx@metadateinfo{#2}%
     \iffieldundef{#2year}
-      {}
-      {\printtext[#2date]{%
+      {\blx@nounit}
+      {\printtext[{#2date}]{%
          \datecircaprint
          \iffieldundef{#2season}
            {\ifdateyearsequal{#2}{#2end}

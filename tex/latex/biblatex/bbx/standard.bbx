@@ -7,18 +7,20 @@
 \newtoggle{bbx:eprint}
 \newtoggle{bbx:related}
 
-\DeclareBibliographyOption[boolean]{isbn}[true]{%
+\DeclareBiblatexOption{global,type,entry}[boolean]{isbn}[true]{%
   \settoggle{bbx:isbn}{#1}}
-\DeclareBibliographyOption[boolean]{url}[true]{%
+\DeclareBiblatexOption{global,type,entry}[boolean]{url}[true]{%
   \settoggle{bbx:url}{#1}}
-\DeclareBibliographyOption[boolean]{doi}[true]{%
+\DeclareBiblatexOption{global,type,entry}[boolean]{doi}[true]{%
   \settoggle{bbx:doi}{#1}}
-\DeclareBibliographyOption[boolean]{eprint}[true]{%
+\DeclareBiblatexOption{global,type,entry}[boolean]{eprint}[true]{%
   \settoggle{bbx:eprint}{#1}}
-\DeclareBibliographyOption[boolean]{related}[true]{%
+\DeclareBiblatexOption{global,type,entry}[boolean]{related}[true]{%
   \settoggle{bbx:related}{#1}}
 
 \ExecuteBibliographyOptions{isbn,url,doi,eprint,related}
+% @online url is shown even if url=false, globally
+\ExecuteBibliographyOptions[online]{url=true}
 
 \newbibmacro*{begentry}{}
 \newbibmacro*{finentry}{\finentry}
@@ -343,6 +345,45 @@
     {}%
   \usebibmacro{finentry}}
 
+\DeclareBibliographyDriver{dataset}{%
+  \usebibmacro{bibindex}%
+  \usebibmacro{begentry}%
+  \usebibmacro{author/editor+others/translator+others}%
+  \setunit{\printdelim{nametitledelim}}\newblock
+  \usebibmacro{title}%
+  \newunit
+  \printlist{language}%
+  \newunit\newblock
+  \usebibmacro{byauthor}%
+  \newunit\newblock
+  \usebibmacro{byeditor+others}%
+  \newunit\newblock
+  \printfield{type}%
+  \newunit
+  \printfield{edition}%
+  \newunit
+  \printfield{version}%
+  \newunit\newblock
+  \usebibmacro{series+number}%
+  \newunit\newblock
+  \printfield{note}%
+  \newunit\newblock
+  \printlist{organization}%
+  \newunit
+  \usebibmacro{publisher+location+date}%
+  \newunit\newblock
+  \usebibmacro{doi+eprint+url}%
+  \newunit\newblock
+  \usebibmacro{addendum+pubstate}%
+  \setunit{\bibpagerefpunct}\newblock
+  \usebibmacro{pageref}%
+  \newunit\newblock
+  \iftoggle{bbx:related}
+    {\usebibmacro{related:init}%
+     \usebibmacro{related}}
+    {}%
+  \usebibmacro{finentry}}
+
 \DeclareBibliographyDriver{manual}{%
   \usebibmacro{bibindex}%
   \usebibmacro{begentry}%
@@ -446,11 +487,7 @@
   \newunit\newblock
   \usebibmacro{date}%
   \newunit\newblock
-  \iftoggle{bbx:eprint}
-    {\usebibmacro{eprint}}
-    {}%
-  \newunit\newblock
-  \usebibmacro{url+urldate}%
+  \usebibmacro{doi+eprint+url}%
   \newunit\newblock
   \usebibmacro{addendum+pubstate}%
   \setunit{\bibpagerefpunct}\newblock
@@ -676,9 +713,7 @@
   \newunit\newblock
   \usebibmacro{location+date}%
   \newunit\newblock
-  \iftoggle{bbx:url}
-    {\usebibmacro{url+urldate}}
-    {}%
+  \usebibmacro{doi+eprint+url}%
   \newunit\newblock
   \usebibmacro{addendum+pubstate}%
   \setunit{\bibpagerefpunct}\newblock
@@ -713,6 +748,7 @@
 \DeclareBibliographyAlias{inreference}{incollection}
 \DeclareBibliographyAlias{suppperiodical}{article}
 \DeclareBibliographyAlias{review}{article}
+\DeclareBibliographyAlias{software}{misc}
 \DeclareBibliographyAlias{*}{misc}
 
 \newbibmacro*{maintitle+title}{%
@@ -764,7 +800,7 @@
   \printfield{volume}%
   \setunit*{\adddot}%
   \printfield{number}%
-  \setunit{\addcomma\space}%
+  \setunit{\bibeidpunct}%
   \printfield{eid}}
 
 \newbibmacro*{title+issuetitle}{%
@@ -851,6 +887,8 @@
 \newbibmacro*{chapter+pages}{%
   \printfield{chapter}%
   \setunit{\bibpagespunct}%
+  \printfield{eid}%
+  \setunit{\bibpagespunct}%
   \printfield{pages}%
   \newunit}
 
@@ -921,7 +959,11 @@
           \ifnumgreater{\value{bbx:relatedcount}}{1}
             {\ifcsundef{relateddelim\strfield{relatedtype}}
               {\printunit{\relateddelim}}
-              {\printunit{\csuse{relateddelim\strfield{relatedtype}}}}}
+              {\expandafter\expandafter\expandafter\expandafter\expandafter
+               \expandafter\expandafter\printunit
+               \expandafter\expandafter\expandafter\expandafter\expandafter
+               \expandafter\expandafter{%
+                 \csuse{relateddelim\strfield{relatedtype}}}}}
             {}}%
         \ifbibmacroundef{related:\strfield{relatedtype}}
           {\appto{\do}{\usebibmacro{related:default}}}
@@ -941,14 +983,14 @@
                test {\ifbibxstring{\thefield{relatedtype}s}}
              }
                {\printtext[\bbx@tempb]{%
-                  \bibstring[\mkrelatedstring]{\thefield{relatedtype}s}}}
+                  \bibstring[\mkrelatedstringtext]{\thefield{relatedtype}s}}}
                {\iffieldbibstring{relatedtype}
                   {\printtext[\bbx@tempb]{%
-                     \bibstring[\mkrelatedstring]{\thefield{relatedtype}}}}
+                     \bibstring[\mkrelatedstringtext]{\thefield{relatedtype}}}}
                   {}}}
             {\iffieldbibstring{relatedstring}
                {\printtext[\bbx@tempb]{%
-                  \bibstring[\mkrelatedstring]{\thefield{relatedstring}}}}
+                  \bibstring[\mkrelatedstringtext]{\thefield{relatedstring}}}}
                {\printfield[\bbx@tempb]{relatedstring}}}%
           \docsvfield{related}%
           \usebibmacro{endrelatedloop}}}%

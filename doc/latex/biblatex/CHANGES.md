@@ -1,4 +1,374 @@
+# RELEASE NOTES FOR VERSION 3.17
+- Added helper macros to enable calculations with non-ASCII numerals.
+  This is necessary to properly support languages like Marathi.
+  At the moment the 'translation' is very basic and uses a one-to-one
+  correspondence of US-ASCII (Arabic) digits and non-ASCII digits.
+  The translation also needs additional post-processing steps.
+  Use `\blx@defcomputableequivalent{<numeral digit>}{<ASCII digit>}` to
+  make `<numeral digit>` an equivalent of `<ASCII digit>`
+  (presumably this command will be used in `.lbx` files if the language
+  requires it).
+  `\hascomputableequivalent{<string>}` can be used to check if `<string>`
+  is a number that can be converted to a number with ASCII digits.
+  `\getcomputableequivalent{<string>}{<macro>}` does the conversion
+  and saves the number in `<macro>`.
+  There is `\ifiscomputable{<string>}` to check if a `<string>`
+  is an ASCII number OR has a computable equivalent.
+  There are analogous macros for fields instead of strings.
+
+# RELEASE NOTES FOR VERSION 3.16
+- Fixed an infinite loop caused by excessive aliasing of the `volcitepages`
+  format.
+  Reverted the alias `\DeclareFieldAlias{volcitepages}{postnote}`
+  and again define
+  ```
+  \DeclareFieldFormat{volcitepages}{\mkpageprefix[pagination][\mknormrange]{#1}}
+  ```
+  explicitly.
+- Fixed `.lbx` file loading behaviour. All `.lbx` files are now loaded
+  `\AtBeginDocument`. Languages that were not requested explicitly by packages
+  are recorded in the `.aux` file and loaded on the next run.
+  This may require a further LaTeX run in some situations, but now we can be
+  sure when `.lbx` files are read.
+- Added `label` option to `\printbibliography`.
+- Added more name wrapper aliases to make name aliasing smoother.
+- Deprecate `\mainlang` switch in favour of the text macro `\textmainlang`.
+- Deprecate `\mkrelatedstring` (which is defined as `\mainlang`)
+  in favour of `\mkrelatestringtext` (defined as `\textmainlang`).
+
+# RELEASE NOTES FOR VERSION 3.15a
+- Fixed bug with long argument for `\DeclareFieldFormat` and friends.
+
+# RELEASE NOTES FOR VERSION 3.15
+- Fixed a long-standing issue with `\intitlepunct`.
+  The old definition
+  ```
+  \newbibmacro*{in:}{%
+    \printtext{%
+      \bibstring{in}\intitlepunct}}
+  ```
+  would print `\intitlepunct` directly and not via the punctuation
+  buffer. Since the `\add...` punctuation macros guard against
+  undesired double punctuation, this would usually not show as an
+  issue (except in edge cases https://tex.stackexchange.com/q/175730/,
+  https://github.com/plk/biblatex/issues/943).
+  The new definition uses the punctuation tracker to print
+  `\intitlepunct`.
+  ```
+  \newbibmacro*{in:}{%
+    \bibstring{in}%
+    \printunit{\intitlepunct}}
+  ```
+  `\printunit` is needed instead of `\setunit` to stop subsequent
+  `\setunit`s from overriding `\intitlepunct` in case of missing
+  fields.
+- Define `volcitepages` and `multipostnote` as a field alias of `postnote`
+  and `multiprenote` as an alias of `prenote`.
+  That should make it easier to change all post- and prenote formats at once.
+  A change to `postnote` will automatically apply to `multipostnote`
+  and `volcitepages` as well. Similarly for `multiprenote`.
+  In case that is not desired, the original definitions can be restored with
+  ```
+  \DeclareFieldFormat{volcitepages}{\mkpageprefix[pagination][\mknormrange]{#1}}
+  \DeclareFieldFormat{multiprenote}{#1\isdot}
+  \DeclareFieldFormat{multipostnote}{\mkpageprefix[pagination][\mknormrange]{#1}}
+  ```
+  
+  **NB** The definition of `volcitepages` caused an infinite loop and was
+  reverted in v3.15b.
+  This means that only `multiprenote` and `multipostnote` are aliased.
+- Unified DOI, eprint and URL printing across all entry types.
+  The fields `doi`, `eprint`, `eprintclass`, `eprinttype` and `url`
+  are now valid for all entry types.
+  `@online` and `@unpublished` now also use the bibmacro
+  `doi+eprint+url`.
+  This means `@online` now responds to the `url` option.
+  That does not mean, however, that a global `url=false,`
+  suppresses URLs for `@online` entries,  since `url=true,`
+  is set on a per-type level to ensure backwards compatibility
+  as far as possible.
+  In case eprint information should be suppressed for `@online`
+  and `@unpublished`, add
+  ```
+  \ExecuteBibliographyOptions[online,unpublished]{eprint=false}
+  ```
+- Added `eid` to more entry types.
+  To avoid issues with backwards compatibility of widely used bibmacros,
+  the bibmacro `chapter+pages` was redefined from
+  ```
+  \newbibmacro*{chapter+pages}{%
+    \printfield{chapter}%
+    \setunit{\bibpagespunct}%
+    \printfield{pages}%
+    \newunit}
+  ```
+  to
+  ```
+  \newbibmacro*{chapter+pages}{%
+    \printfield{chapter}%
+    \setunit{\bibeidpunct}%
+    \printfield{eid}%
+    \setunit{\bibpagespunct}%
+    \printfield{pages}%
+    \newunit}
+  ```
+- Added `\bibeidpunct` in analogy to `\bibpagespunct`.
+- Added `issuetitleaddon` and `journaltitleaddon` fields.
+- Added options `backreffloats` and `trackfloats` to enable/disable
+  citation tracking and back references in floats.
+  Note that citation tracking in floats can lead to undesirable
+  results in case the float objects floats too far from its "natural"
+  position.
+- **INCOMPATIBLE CHANGE** `numeric-comp` compresses subentry set
+  references now.
+  This behaviour can be disabled with `subentrycomp=false`.
+- Added `subentrycomp` option to `numeric-comp` citation style.
+  The option is only relevant with `subentry=true`.
+  With `subentrycomp=true` set citations will be compressed
+  to "1a-c" instead of "1a; 1b; 1c".
+  The option is mainly intended for backwards compatibility;
+  the behaviour of previous `biblatex` versions can be restored
+  with `subentrycomp=false`.
+- Added `\multiciterangedelim`, `\multicitesubentrydelim`,
+  `\multicitesubentryrangedelim`, `\superciterangedelim`,
+  `\supercitesubentrydelim`, and `\supercitesubentryrangedelim` for
+  finer control over (compressed) subentry citations in `numeric-comp`.
+- **CRITICAL CHANGE** The structure of the bibmacros in `numeric-comp`
+  has been reworked to make it easier to customise the printed output.
+  Documents that relied on patching internal bibmacros or heavily
+  redefined them may have to adapt.
+- **CRITICAL CHANGE**
+  Implemented better `@set` support for BibTeX, `@set`s should now
+  sort properly.
+  This is achieved with a two-pass structure and (hidden) copies of
+  the set entries.
+  The two-pass structure means that the compilation sequence becomes
+  LaTeX, BibTeX, LaTeX, BibTeX, LaTeX, LaTeX.
+- **CRITICAL CHANGE**
+  The case change functions now make use of the `expl3` module `l3text`
+  if the available `expl3` version is recent enough.
+  If `expl3` is too old the old LaTeX2e implementation is used.
+  If desired the implementation of the case changing functions
+  can be selected at load-time with the `casechanger` option, which
+  accepts the values `expl3`, `latex2e` and `auto` (which selects
+  `expl3` if the `expl3` version not older than 2020-04-06, this
+  is the default).
+
+  The `expl3` implementation of the case changer is slightly more
+  robust than the home-grown `latex2e` code.
+- The option `bibtexcaseprotection` can be used to turn off the
+  case protection via curly braces. This allows for a saner approach
+  to case protection where text is protected solely via a macro
+  like `\NoCaseChange`, e.g.
+  ```
+  title = {The Story of \NoCaseChange{HMS \emph{Erebus}}
+           in \emph{Really} Strong Wind},
+  ```
+  instead of
+  ```
+  title = {The Story of {HMS} \emph{Erebus}
+           in {\emph{Really}} Strong Wind},
+  ```
+- Added `\mautocite` and `\Mautocite`.
+- Added `\NumsCheckSetup` and `\PagesCheckSetup` for finer control
+  of the `\ifnumerals` and `\ifpages` checks.
+- Deprecate the starred `\DeclareDelimAlias*` in favour of
+  `\DeclareDelimAlias` with optional arguments.
+- **INCOMPATIBLE CHANGE**
+  `biblatex` no longer falls back to English for unknown languages.
+  Warnings will be triggered if undefined language strings or extras
+  are used.
+- **INCOMPATIBLE CHANGE**
+  Bibliography strings and bibliography extras can now be written
+  either to `\captions<language>` or to `\extras<language>`
+  (this is controlled with the `langhook` option).
+  Previously, they were written to `\extras<language>`, but upon
+  reflection `\captions<language>` appears to be a more sensible
+  place for these definitions.
+  The new default is to write to `\captions<language>`
+  (i.e. `langhook=captions`).
+  The previous behaviour can be restored with `langhook=extras`.
+- **INCOMPATIBLE CHANGE** Moved `\delimcontext{bib}` to `\AtUsedriver`,
+  this makes it easier to override the delimiter context in `\usedriver`
+  calls. `\AtUsedriver*` calls may have to be amended to include
+  `\delimcontext{bib}`. The new default is
+  ```
+  \AtUsedriver{%
+    \delimcontext{bib}%
+    \let\finentry\blx@finentry@usedrv
+    \let\newblock\relax
+    \let\abx@macro@bibindex\@empty
+    \let\abx@macro@pageref\@empty}
+  ```
+  Note that this definition is backwards compatible
+  and can be used in older versions as well (down to v3.4 2016-05-10).
+- `biblatex` now tests if a requested backend (re)run happened by
+  comparing the MD5 hashes of the new and old `.bbl` files.
+- Added file hooks `\blx@filehook@preload@<filename>`,
+  `\blx@filehook@postload@<filename>`
+  and `\blx@filehook@failure@<filename>`
+  to execute hooks before or after a file is loaded
+  or if the loading fails.
+  `\blx@lbxfilehook@simple@preload@<filename>`,
+  `\blx@lbxfilehook@simple@postload@<filename>`
+  and `\blx@lbxfilehook@simple@failure@<filename>`
+  as well as
+  `\blx@lbxfilehook@once@preload@<filename>`,
+  `\blx@lbxfilehook@once@postload@<filename>`
+  and `\blx@lbxfilehook@once@failure@<filename>`
+  are the equivalents for `.lbx` loading, where
+  files may be loaded several times in some situations.
+- Added limited support for 'nodate' with BibTeX.
+- Improved `babel` and `polyglossia` interfacing (avoids more or less
+  unsupported patches).
+  This should work with `babel` at least v3.9r (2016/04/23)
+  and polyglossia `polyglossia` v1.49 (2020/04/08) or later.
+- **INCOMPATIBLE CHANGE** Removed list and name index wrappers
+  (`\DeclareIndexNameWrapperFormat`, `\DeclareIndexListWrapperFormat`
+  and friends). Those wrappers make no sense, since the indexed
+  names are not printed 'together' in any useful sense of the word
+  and were never working anyway.
+- **CRITICAL CHANGE** Generalised some keyval macros.
+  `biblatex`-related uses of `\define@key` should ideally replaced with
+  `\blx@kv@defkey`.
+  Style authors are advised not to rely too much on the internal
+  implementation of certain keyval interfaces.
+  Users who want to experiment with using a different underlying
+  keyval parser need only provide replacements of the `\blx@kv@...`
+  macros (which are defined via `\provide...` so that they will
+  not overwrite existing definitions; in particular users can define
+  those replacements before loading `biblatex`).
+- Deprecate `\ifkomabibtotoc` and `\ifkomabibtotocnumbered`.
+  With newer versions of KOMA-Script these tests are no longer used
+  and their implementation was always a bit shifty (they would only pick
+  up globally set options).
+
+
+# RELEASE NOTES FOR VERSION 3.14
+- biber from version 2.14 has extended, granular XDATA functionality to
+  allow referencing from and to parts of fields. This makes XDATA entries into
+  more general data sharing containers.
+- Biber applies Perl's Unicode case folding to normalise the
+  capitalisation of field names and entry types when reading from the
+  `.bib` file. The output in the `.bbl` (what comes out on the
+  `biblatex` side uses the capitalisation from the data model; the only
+  exception are unknown entry types which are passed on *exactly*
+  as they are given in the `.bib` file - of course it is strongly
+  recommended to define all entry types one intends to use in the
+  data model).
+- `biblatex` now interfaces with `polyglossia` much better and can deal
+  with language variants.
+  Note that `polyglossia` v1.45 (2019/10/27) is required for this
+  to work properly, it is strongly recommended to update `polyglossia`
+  to this or a later (current) version.
+
+# RELEASE NOTES FOR VERSION 3.13
+- **INCOMPATIBLE CHANGE** Any custom per-entry options in datasources must
+  be defined with `\DeclareEntryOption` in order for biber to recognise
+  them and pass them out in the `.bbl`.
+  This should not adversely affect any code using the documented
+  `\Decalare...Option` interface, so should be uncritical for most users.
+- Added `\DeclareBiblatexOption` as a convenient interface to declare the same
+  option in different scopes. This should help avoid code duplication.
+  For example
+  ```
+  \DeclareBibliographyOption[boolean]{noroman}[true]{%
+    \settoggle{blx@noroman}{#1}}
+  \DeclareTypeOption[boolean]{noroman}[true]{%
+    \settoggle{blx@noroman}{#1}}
+  \DeclareEntryOption[boolean]{noroman}[true]{%
+    \settoggle{blx@noroman}{#1}}
+  ```
+  can be replaced with
+  ```
+  \DeclareBiblatexOption{global,type,entry}[boolean]{noroman}[true]{%
+    \settoggle{blx@noroman}{#1}}
+  ```
+- Following the introduction of `\DeclareBiblatexOption` extend the scope
+  of a few options (`abbreviate`, `citetracker`, `clearlang`, `dataonly`,
+  `dateabbrev`, `<namepart>inits`, `ibidtracker`, `idemtracker`, `labelalpha`,
+  `labelnumber`, `labeltitle`, `labeltitleyear`, `labeldateparts`,
+  `loccittracker`, `opcittracker`, `singletitle`, `skipbib`, `skipbiblist`,
+  `skipbiblab` `terseinits`, `uniquelist`, `uniquename`, `uniquetitle`,
+  `uniquebaretitle`, `uniquework`, `uniqueprimaryauthor`).
+- Furthermore, the standard style options `doi`, `eprint`, `isbn`, `url`,
+  `related` are now available also on a per-type and per-entry level.
+  The same holds for `mergedate`, `subentry` and the options of `reading.bbx`.
+  This change has the potential to clash with custom styles that already define
+  the standard options at these scopes.
+- Promote `@software` to regular entry type and define `@dataset`.
+  `@software` is aliased to the `@misc` driver,
+  `@dataset` has a dedicated driver.
+- Add `\ifvolcite` test to check if the current citation is in a `\volcite`
+  context.
+- Add the special fields `volcitevolume` and `volcitepages` for finer control
+  over the `\volcite` postnote.
+- Add `\AtVolcite` hook to initialise `\volcite` commands.
+- Add `\mkbibcompletename` as well as `\mkbibcompletename<formatorder>`
+  to format complete names.
+  The commands are analogous to `\mkbibname<namepart>` but apply to
+  the entire name printed in format order `<formatorder>`.
+  By default the predefined macros all expand to `\mkbibcompletename`.
+- Add `multiprenotedelim` and `multipostnotedelim` and make all
+ `(pre|post)notedelim`-like commands context sensitive.
+- Add rudimentary support for `labelprefix` with BibTeX backend.
+  Biber implements `labelprefix` via `refcontext`s, but BibTeX does not
+  actually support `refcontext`s. The user interface is retained, but BibTeX's
+  "`refcontext`s" support only the emulation of `labelprefix` and nothing more.
+  There might be subtle differences between Biber's and BibTeX's
+  `labelprefix` behaviour, but it should be better than nothing.
+  If you need full `labelprefix` support, please consider switching to Biber.
+- Add `\thefirstlistitem`, `\strfirstlistitem` and `\usefirstlistitem` to
+  grab and use the first item of a field.
+- Add `\isdot` to the format for `journaltitle` so that `.`s at the end of the
+  `journal(title)` field are automatically treated as abbreviation dots and not
+  sentence-ending periods. To restore the old behaviour add
+  ```
+  \DeclareFieldFormat{journaltitle}{\mkbibemph{#1}}
+  ```
+  to the preamble.
+- Add second optional item post processing argument to `\mkcomprange`,
+  `\mknormrange` and `\mkfirstpage`. It can be used to post process
+  every number item in the formatted range separately. It can for
+  example turn cardinal ranges into ordinal ranges (this is done in
+  the Latvian localisation module).
+- Add further customisation options for strings typeset with `url`'s `\url`
+  command (mainly URLs and DOIs). It is now possible to add a bit of
+  stretchable space after characters with `biburlnumskip`, `biburlucskip`
+  and `biburlucskip`. The previously hard-coded (stretacheble) space
+  `\biburlbigskip` as well as the penalties `biburlbigbreakpenalty` and
+  `biburlbreakpenalty` are also configurable now.
+- Add `\DeclarePrintbibliographyDefaults` to set default values for some
+  option keys to `\printbibliography` and friends.
+- `\nocite` is now enabled in the bibliography (previously it was
+  deactivated in the bibliography).
+  Please report any issues that this may cause.
+- The internals macros `\abx@aux@cite`, `\abx@aux@refcontext`
+  and `\abx@aux@biblist` are now called every time an entry is cite
+  (and appears in a bibliography or biblist, respectively).
+  This helps to avoid unwanted side-effects when writing to aux files
+  is disabled.
+- `\nohyphenation` and `\textnohyphenation` now rely on a (fake)
+  language without hyphenation patterns instead of `\lefthyphenmin`,
+  which means that the command can now be used anywhere in a paragraph,
+  see also <https://texfaq.org/FAQ-hyphoff>.
+  Note that switching languages with `babel` *within* those commands
+  removes the hyphenation protection.
+- Allow `doi` field for `@online` entries. This field was previously
+  not printed in the `@online` driver. In case DOIs appear where
+  they should not appear the output of earlier versions can be
+  recreated with
+  ```
+  \ExecuteBibliographyOptions[online]{doi=false}
+  ```
+  since the `doi` option is now available on a per-type level.
+
+
 # RELEASE NOTES FOR VERSION 3.12
+- **INCOMPATIBLE CHANGE** The syntax for defining data annotations in the
+  BibLaTeXML data source format has changed to accommodate named
+  annotations. Annotations are no longer attributes but are fully-fledged
+  elements. It is not expected that this will impact any current users.
 - **INCOMPATIBLE CHANGE** The field/fieldset argument to the `\translit`
   command is now  mandatory to allow for a new optional argument which
   restricts transliteration to entries with particular `langid` fields.
@@ -21,6 +391,23 @@
   consider using a custom data model to turn `number` back into an integer type
   field, since sorting integers as literals has performance implications and
   might lead to undesired sorting such as "1", "10", "2".
+- **INCOMPATIBLE CHANGE** Removed the 'semi-hidden' option `noerroretextools`.
+  If you want to load `noerroretextools` now, you need to define the macro
+  `\blx@noerroretextools` instead. This can for example be done with
+  ```
+  \usepackage{etoolbox}
+  \cslet{blx@noerroretextools}\empty
+  \usepackage{biblatex}
+  ```
+  or
+  ```
+  \makeatletter
+  \let\blx@noerroretextools\@empty
+  \makeatother
+  \usepackage{biblatex}
+  ```
+  You still need to make sure that all macros used by `biblatex` are restored
+  to their `etoolbox` definitions before loading `biblatex`.
 - New macro `\abx@missing@entry` to style missing entrykeys in citations.
 - Added field format deprecation macros `\DeprecateFieldFormatWithReplacement`
   and friends.
@@ -30,7 +417,74 @@
   `\iffieldequals{#1year}{#2year}` to compare years. The latter can lead to
   undesired results if the years have opposite signs, but are otherwise the
   same.
-  
+- New values `part+`, `chapter+`, `section+` and `subsection+` for 'section'-
+  valued options `refsection`, `refsegment` and `citereset`. These options
+  are then executed at not only the specified level of sectioning, but also
+  all higher levels.
+- Add second optional argument to `\DeclareDelimAlias*`.
+- Allow keywords for dataonly/skipped entries as well.
+- Added `maxcitecounter`.
+- Deprecate `\labelnamepunct` in favour of the context-sensitive
+  `nametitledelim`.
+  For compatibility reasons `\labelnamepunct` still pops up in the code here
+  and there, but `nametitledelim` should be preferred now.
+- The `xstring` package is not loaded by default any more.
+  Style developers whose styles make use of that package should load it
+  explicitly.
+- `authoryear.bbx` now has a macro `bbx:ifmergeddate` that can be used to
+  check whether the date has been printed at the beginning of an entry
+  and can thus be suppressed later in the `date` and `issue+date` macros.
+  The macro works like a test and expands to the `<true>` branch if the date
+  has been merged and can be suppressed, it expands to `<false>` if the date
+  has not been merged. In practice `\printdate` should then be issued
+  if and only if the test yields false.
+
+  This change means that the definition of the `date` macro can be the same for
+  all mergedate settings and that only `bbx:ifmergeddate` is redefined for
+  each different value. No backwards compatibility issues are expected,
+  but style authors are encouraged to test the changes and see if the new
+  macro could be useful for their styles.
+- For a long time `biblatex` has defined `\enquote` if `csquotes` was not
+  loaded. This behaviour was not documented, the official command intended
+  for quotation marks was always `\mkbibquote`. Because `biblatex` should not
+  (re)define user-level commands that are not primarily associated with
+  citations or the bibliography, from this release on `\enquote` is not defined
+  any more, instead the internal command `\blx@enquote` is defined and used.
+  The same holds for `\initoquote`, `\initiquote`, `\textooquote`,
+  `\textcoquote`, `\textoiquote`, `\textciquote`.
+  `biblatex` still defines the internal commands `\@quotelevel`, `\@quotereset`
+  and `\@setquotesfcodes` if `csquotes` is not loaded.
+
+  Users are encouraged to use `csquotes` for proper quotation marks, but can
+  get back the old behaviour with
+  ```
+  \makeatletter
+  \providerobustcmd*{\enquote}{\blx@enquote}
+  \makeatother
+  ```
+  or
+  ```
+  \newrobustcmd*{\enquote}{\mkbibquote}
+  ```
+- Add new list wrapper and name wrapper formats (`\DeclareListWrapperFormat`,
+  `\DeclareNameWrapperFormat`) to style a (name) lists in its entirety.
+  This is useful because name and lists formats normally style only one
+  particular item of the list. The wrapper format can be used to easily format
+  the entire list in italics, for example.
+- `\DeclareCitePunctuationPosition` can be used to configure the punctuation
+  position for citation commands similar to the optional `position` argument
+  of `\DeclareAutoCiteCommand`.
+- If the `\pdfmdfivesum` primitive is available (via `pdftexcmds`'
+  `\pdf@mdfivesum`) the `labelprefix` value is hashed for internal use, making
+  it safer for construction of macro names and the like. If you don't like
+  that you can turn off the behaviour by redefining `\blx@mdfivesum`. The
+  fallback in case `\pdf@mdfivesum` is unavailable is
+  ```
+  \let\blx@mdfivesum\@firstofone
+  ```
+
+  As before the labelprefix value is fully expanded before use. If its contents
+  are unexpandable you need to avoid expansion with `\detokenize`.
 
 # RELEASE NOTES FOR VERSION 3.11
 - `\printbiblist` now supports `driver` and `biblistfilter` options
@@ -41,7 +495,7 @@
   Since `\mknormrange` acts only on page ranges as detected by
   `\ifpages`, this does not affect text other than page ranges.
   Hyphens and dashes in page ranges will be transformed to
-  `\bibrangedash`, commas and semi-colons to `\bibrangesep`.
+  `\bibrangedash`, commas and semicolons to `\bibrangesep`.
   This is analogous to Biber's treatment of page-like fields.
   If you always separated page ranges with `--` or `\bibrangedash`
   anyway, this should not change the output you get.
