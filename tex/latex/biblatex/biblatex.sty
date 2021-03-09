@@ -6543,6 +6543,7 @@
 \let\blx@hook@initlang\@empty
 \let\blx@imc@mainlang\@empty
 \let\blx@imc@textmainlang\@firstofone
+\let\blx@imc@textouterlang\@firstofone
 \def\blx@hyphenreset{%
   \blx@ifhyphenationundef{\blx@languagename}
     {}
@@ -6563,6 +6564,7 @@
       {No default 'babel' language defined}
       {You must define a default language for 'babel'}}
     {\let\blx@main@language\bbl@main@language}%
+  \let\blx@outer@language\blx@main@language
   % use afterreset to get in a bit earlier
   % we want to be there before \captions... is issued
   % beforeextras is before extras, but captions come before extras
@@ -6574,6 +6576,11 @@
     {\def\blx@beglang{%
        \blx@clearlang
        \begingroup
+       % track outer language (i.e. language not selected by biblatex)
+       \ifundef\blx@outer@language@set
+         {\let\blx@outer@language\blx@languagename
+          \let\blx@outer@language@set\@empty}
+         {}%
          % Need to override all entries, regardless of if there is a
          % langid if language=<language> option is given
          \ifboolexpr { test {\ifdef\abx@field@langid }
@@ -6616,6 +6623,8 @@
     \expandafter\selectlanguage\expandafter{\blx@main@language}}%
   \def\blx@imc@textmainlang##1{%
     {{\expandafter\selectlanguage\expandafter{\blx@main@language}##1}}}%
+  \def\blx@imc@textouterlang##1{%
+    {{\expandafter\selectlanguage\expandafter{\blx@outer@language}##1}}}%
   \expandafter\blx@langsetup@from@pkglist\expandafter{\blx@main@language}%
 }
 
@@ -6629,6 +6638,7 @@
           {You must define a default language for 'polyglossia'}}
        {\let\blx@main@language\bbl@main@language}}
     {\let\blx@main@language\mainbabelname}%
+  \let\blx@outer@language\blx@main@language
   \ifundef\polyglossia@language@switched
     {\apptocmd\select@language
        {\expandafter\blx@langsetup@indoc\expandafter{\babelname}}
@@ -6641,6 +6651,11 @@
      {\def\blx@beglang{%
         \blx@clearlang
         \begingroup
+        % track outer language (i.e. language not selected by biblatex)
+        \ifundef\blx@outer@language@set
+          {\let\blx@outer@language\blx@languagename
+           \let\blx@outer@language@set\@empty}
+          {}%
         % Need to override all entries, regardless of if there is a
         % langid if language=<language> option is given
         \ifboolexpr { test {\ifdef\abx@field@langid }
@@ -6691,6 +6706,7 @@
       {}%
     \select@language{\blx@main@language}}%
   \def\blx@imc@textmainlang##1{{{\select@language{\blx@main@language}##1}}}%
+  \def\blx@imc@textouterlang##1{{{\select@language{\blx@outer@language}##1}}}%
   \expandafter\blx@langsetup@from@pkglist\expandafter{\blx@main@language}}
 
 \def\blx@mknoautolang{%
@@ -6698,7 +6714,7 @@
     {}
     {\blx@err@nolang{\blx@languagename}}}
 
-\blx@regimcs{\mainlang \textmainlang}
+\blx@regimcs{\mainlang \textmainlang \textouterlang}
 
 \newrobustcmd*{\DeclareRedundantLanguages}[2]{%
   \begingroup
