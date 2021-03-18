@@ -15,6 +15,10 @@
   There is `\ifiscomputable{<string>}` to check if a `<string>`
   is an ASCII number OR has a computable equivalent.
   There are analogous macros for fields instead of strings.
+- Added `\textouterlang` to select the last active language that
+  was not selected by `biblatex` itself.
+  This may help in multilingual setups where `biblatex` also changes the
+  language quite heavily.
 
 # RELEASE NOTES FOR VERSION 3.16
 - Fixed an infinite loop caused by excessive aliasing of the `volcitepages`
