@@ -206,6 +206,14 @@
   {\global\cslet{blx@pkgloaded@polyglossia}\@empty}
   {}
 
+\@ifpackageloaded{inputenc}
+  {\global\cslet{blx@pkgloaded@inputenc}\@empty}
+  {}
+
+\@ifpackageloaded{inputenx}
+  {\global\cslet{blx@pkgloaded@inputenx}\@empty}
+  {}
+
 % this part is deferred to \AtEndPreamble
 \def\blx@packageincompatibility@endpreambleonly{%
   % people should not be abusing noerroretextools,
@@ -218,6 +226,17 @@
           but 'etextools' is not loaded.\MessageBreak
           Please do not define '\string\blx@noerroretextools'\MessageBreak
           unless you really need it}}}
+    {}%
+  \@ifpackageloaded{inputenc}
+    {\ifcsundef{blx@pkgloaded@inputenc}
+       {\blx@warning@noline{Load 'inputenc' before biblatex}}
+       {}}
+    {}%
+  \@ifpackageloaded{inputenx}
+    {\ifcsundef{blx@pkgloaded@inputenx}
+       {}
+       {\blx@warning@noline{Load 'inputenx' before biblatex}}
+       {}}
     {}%
   % polyglossia pretends to be babel, so the nested structure helps
   % to make sure that babel really is babel
@@ -637,7 +656,7 @@
   \begingroup
     \def\blx@tempa{\endgroup
       \@secondoftwo}%
-    \renewcommand*{\do}[1]{%
+    \def\do##1{%
       \ifstrequal{##1}{#1}
         {\def\blx@tempa{\endgroup
            \@firstoftwo}%
@@ -3963,6 +3982,9 @@
 \newcommand*{\DeclareDelimcontextAlias}[2]{%
   \csdef{blx@delimcontextalias@#1}{#2}}
 
+\newcommand*{\UndeclareDelimcontextAlias}[1]{%
+  \csundef{blx@delimcontextalias@#1}}
+
 \newrobustcmd*{\AtUsedriver}{%
   \@ifstar
     {\global\undef\blx@hook@usedriver
@@ -6521,6 +6543,7 @@
 \let\blx@hook@initlang\@empty
 \let\blx@imc@mainlang\@empty
 \let\blx@imc@textmainlang\@firstofone
+\let\blx@imc@textouterlang\@firstofone
 \def\blx@hyphenreset{%
   \blx@ifhyphenationundef{\blx@languagename}
     {}
@@ -6541,6 +6564,7 @@
       {No default 'babel' language defined}
       {You must define a default language for 'babel'}}
     {\let\blx@main@language\bbl@main@language}%
+  \let\blx@outer@language\blx@main@language
   % use afterreset to get in a bit earlier
   % we want to be there before \captions... is issued
   % beforeextras is before extras, but captions come before extras
@@ -6552,6 +6576,11 @@
     {\def\blx@beglang{%
        \blx@clearlang
        \begingroup
+       % track outer language (i.e. language not selected by biblatex)
+       \ifundef\blx@outer@language@set
+         {\let\blx@outer@language\blx@languagename
+          \let\blx@outer@language@set\@empty}
+         {}%
          % Need to override all entries, regardless of if there is a
          % langid if language=<language> option is given
          \ifboolexpr { test {\ifdef\abx@field@langid }
@@ -6594,6 +6623,8 @@
     \expandafter\selectlanguage\expandafter{\blx@main@language}}%
   \def\blx@imc@textmainlang##1{%
     {{\expandafter\selectlanguage\expandafter{\blx@main@language}##1}}}%
+  \def\blx@imc@textouterlang##1{%
+    {{\expandafter\selectlanguage\expandafter{\blx@outer@language}##1}}}%
   \expandafter\blx@langsetup@from@pkglist\expandafter{\blx@main@language}%
 }
 
@@ -6607,6 +6638,7 @@
           {You must define a default language for 'polyglossia'}}
        {\let\blx@main@language\bbl@main@language}}
     {\let\blx@main@language\mainbabelname}%
+  \let\blx@outer@language\blx@main@language
   \ifundef\polyglossia@language@switched
     {\apptocmd\select@language
        {\expandafter\blx@langsetup@indoc\expandafter{\babelname}}
@@ -6619,6 +6651,11 @@
      {\def\blx@beglang{%
         \blx@clearlang
         \begingroup
+        % track outer language (i.e. language not selected by biblatex)
+        \ifundef\blx@outer@language@set
+          {\let\blx@outer@language\blx@languagename
+           \let\blx@outer@language@set\@empty}
+          {}%
         % Need to override all entries, regardless of if there is a
         % langid if language=<language> option is given
         \ifboolexpr { test {\ifdef\abx@field@langid }
@@ -6669,6 +6706,7 @@
       {}%
     \select@language{\blx@main@language}}%
   \def\blx@imc@textmainlang##1{{{\select@language{\blx@main@language}##1}}}%
+  \def\blx@imc@textouterlang##1{{{\select@language{\blx@outer@language}##1}}}%
   \expandafter\blx@langsetup@from@pkglist\expandafter{\blx@main@language}}
 
 \def\blx@mknoautolang{%
@@ -6676,7 +6714,7 @@
     {}
     {\blx@err@nolang{\blx@languagename}}}
 
-\blx@regimcs{\mainlang \textmainlang}
+\blx@regimcs{\mainlang \textmainlang \textouterlang}
 
 \newrobustcmd*{\DeclareRedundantLanguages}[2]{%
   \begingroup
@@ -14409,8 +14447,8 @@
 
 \DeclareBibliographyOption[string]{texencoding}{%
   \ifstrequal{#1}{auto}
-    {\undef\blx@texencoding}
-    {\def\blx@texencoding{#1}}}
+    {\undef\blx@texencoding@fromoption}
+    {\def\blx@texencoding@fromoption{#1}}}
 
 \DeclareBibliographyOption[string]{bibencoding}{%
   \ifcsdef{blx@bibenc@#1}
@@ -15617,7 +15655,6 @@
 % Process load-time options
 \ProcessOptions*
 
-
 % Switch to BibTeX support if requested
 \iftoggle{blx@bibtex}
   {\blx@inputonce{blx-bibtex.def}{BibTeX backend compatibility}{}{}{}{}}
@@ -15639,6 +15676,41 @@
 
 % Process preamble options
 \blx@processoptions
+
+% first stab at guessing the file encoding
+\def\blx@guesstexencoding{%
+  \ifdef\blx@texencoding@fromoption
+    {\let\blx@texencoding\blx@texencoding@fromoption
+     \blx@info@noline{%
+       Input encoding '\blx@texencoding' specified}}
+    {\ifundef\inputencodingname
+       {\ifundef\XeTeXrevision
+          {\ifundef\luatexversion
+             {\def\blx@texencoding{ascii}%
+              \blx@info@noline{%
+                No input encoding detected.\MessageBreak
+                Assuming '\blx@texencoding'}}
+             {\def\blx@texencoding{utf8}%
+              \blx@info@noline{%
+                LuaTeX detected.\MessageBreak
+                Assuming input encoding '\blx@texencoding'}}}
+          {\def\blx@texencoding{utf8}%
+           \blx@info@noline{%
+             XeTeX detected.\MessageBreak
+             Assuming input encoding '\blx@texencoding'}}}
+       {\ifcsdef{blx@inpenc@\inputencodingname}
+          {\letcs\blx@texencoding{blx@inpenc@\inputencodingname}}
+          {\let\blx@texencoding\inputencodingname}%
+        \blx@info@noline{%
+          Input encoding '\blx@texencoding' detected}}}}
+
+\blx@guesstexencoding
+\let\blx@texencoding@firstguess\blx@texencoding
+
+% this ultimately loads either
+% blx-case-expl3.def or blx-case-latex2e.def
+\blx@deferoption@casechanger
+\blx@casechange@postload
 
 % Deferred setup at end of preamble
 \AtEndPreamble{%
@@ -15720,30 +15792,18 @@
     \abx@dodates
     \do{labeldate}}
 
+
+
 \def\blx@checkencoding{%
-  \ifdef\blx@texencoding
-    {\blx@info@noline{%
-       Input encoding '\blx@texencoding' specified}}
-    {\ifundef\inputencodingname
-       {\ifundef\XeTeXrevision
-          {\ifundef\luatexversion
-             {\def\blx@texencoding{ascii}%
-              \blx@info@noline{%
-                No input encoding detected.\MessageBreak
-                Assuming '\blx@texencoding'}}
-             {\def\blx@texencoding{utf8}%
-              \blx@info@noline{%
-                LuaTeX detected.\MessageBreak
-                Assuming input encoding '\blx@texencoding'}}}
-          {\def\blx@texencoding{utf8}%
-           \blx@info@noline{%
-             XeTeX detected.\MessageBreak
-             Assuming input encoding '\blx@texencoding'}}}
-       {\ifcsdef{blx@inpenc@\inputencodingname}
-          {\letcs\blx@texencoding{blx@inpenc@\inputencodingname}}
-          {\let\blx@texencoding\inputencodingname}%
-        \blx@info@noline{%
-          Input encoding '\blx@texencoding' detected}}}%
+  \blx@guesstexencoding
+  \ifdefstrequal\blx@texencoding@firstguess\blx@texencoding
+    {}
+    {\blx@warning@noline{%
+      Initial guess for file encoding (\blx@texencoding@firstguess)\MessageBreak
+      and new guess (\blx@texencoding) do not match.\MessageBreak
+      Please set up your document encoding *before*\MessageBreak
+      loading biblatex.\MessageBreak
+      The case changing code might not work as expected}}%
   \ifdef\blx@bibencoding
     {\ifdefstring\blx@bibencoding{ascii}
        {\blx@info@noline{%
@@ -15782,10 +15842,6 @@
 \AtBeginDocument{%
   \blx@auxwrite\@mainaux{}{\string\abx@aux@refcontext{\blx@refcontext@context}}
   \blx@checkencoding
-  % this ultimately loads either
-  % blx-case-expl3.def or blx-case-latex2e.def
-  \blx@deferoption@casechanger
-  \blx@casechange@postload
   \if@filesw
     \blx@ctrlwrite
   \fi
