@@ -601,43 +601,33 @@
      {}%
 }
 
-% our copy of \addtocontents with \immediate (not @protected,
-% so a bit different, but we are only going to use it for very
-% specific input, so that doesn't matter)
-\def\blx@immediate@addtocontents#1#2{%
-  \blx@auxwrite\@auxout
-    {\let\label\@gobble \let\index\@gobble \let\glossary\@gobble}%
-    {\string\@writefile{#1}{#2}}}
 
-\AtBeginDocument{%
-  \blx@immediate@addtocontents{toc}{%
-     \boolfalse{citerequest}%
-     \boolfalse{citetracker}%
-     \boolfalse{pagetracker}%
-     \boolfalse{backtracker}\relax}%
-  \blx@immediate@addtocontents{lof}{%
-     \boolfalse{citerequest}%
-     \boolfalse{citetracker}%
-     \boolfalse{pagetracker}%
-     \boolfalse{backtracker}\relax}%
-  \blx@immediate@addtocontents{lot}{%
-     \boolfalse{citerequest}%
-     \boolfalse{citetracker}%
-     \boolfalse{pagetracker}%
-     \boolfalse{backtracker}\relax}}
+\def\blx@citecmds{}
+% \autocite and \autocites are not defined via \DeclareCiteCommand
+\listadd\blx@citecmds{autocite}
+\listadd\blx@citecmds{autocites}
 
-\begingroup
-\@makeother\#
-% \relax: gobble newline -> titletoc.sty
-\AtEndPreamble{%
-  \patchcmd\addtocontents
-    {\string\@writefile}
-    {\string\@writefile{#1}{\defcounter{refsection}{\the\c@refsection}\relax}%
-     \string\@writefile}
-    {}
-    {\blx@err@patch{\string\addtocontents}}}
-\endgroup
+\newcommand*{\blx@contentssafe@citecommands}{%
+  \forlistloop{\blx@mkcitecmd@contentssafe}{\blx@citecmds}}
 
+\def\blx@mkcitecmd@contentssafe#1{%
+  \csdef{#1}{%
+    \blx@tocontentsinit{\the\c@refsection}%
+    \noexpand\csuse{#1}}}
+
+\protected\def\blx@tocontentsinit#1{%
+  \boolfalse{citerequest}%
+  \boolfalse{citetracker}%
+  \boolfalse{pagetracker}%
+  \boolfalse{backtracker}%
+  \defcounter{refsection}{#1}}
+
+\patchcmd\addtocontents
+  {\let\glossary\@gobble}
+  {\let\glossary\@gobble
+   \blx@contentssafe@citecommands}
+  {}
+  {\blx@err@patch{\addtocontents}}
 
 % trick hyperref into believing we're natbib
 \let\NAT@parse\@empty
@@ -11865,6 +11855,7 @@
   \blx@tempa}
 
 \def\blx@defcitecmd@i#1#2{%
+  \listadd\blx@citecmds{#2}%
   \blx@checkcitecmd{#2}{#1}%
   \protected\csdef{#2}{%
     \blx@citecmdinit
@@ -12013,6 +12004,7 @@
   \begingroup
   \escapechar\m@ne
   \edef\blx@tempa{\endgroup
+    \listadd\noexpand\blx@citecmds{\string#1}%
     \protected\def\noexpand#1{%
       \blx@citecmdinit
       \noexpand\@ifstar
@@ -12032,7 +12024,8 @@
         {\unexpanded{#2}}%
         {\string#3####1}%
         {\unexpanded{#4}}}%
-    \protected\long\csdef{blx@mcitei@\string#1}}%
+    \protected\long\csdef{blx@mcitei@\string#1}%
+  }%
   \blx@tempa##1##2##3{##1{##2}##3\endgroup}}
 
 % {<command>}{<wrapper>}{<citecmd>}{<delimiter>} =>
