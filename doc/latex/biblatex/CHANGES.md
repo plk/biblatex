@@ -19,6 +19,10 @@
   was not selected by `biblatex` itself.
   This may help in multilingual setups where `biblatex` also changes the
   language quite heavily.
+- Added `\DeclareBibstringSet`, `\DeclareBibstringSetFormat` etc.
+  to allow injecting additional formatting for a set of bibstrings.
+  Sets can be defined arbitrarily. These commands are primarily
+  intended for use in localisation modules.
 
 # RELEASE NOTES FOR VERSION 3.16
 - Fixed an infinite loop caused by excessive aliasing of the `volcitepages`
@@ -178,10 +182,6 @@
   of the `\ifnumerals` and `\ifpages` checks.
 - Deprecate the starred `\DeclareDelimAlias*` in favour of
   `\DeclareDelimAlias` with optional arguments.
-- Added `\DeclareBibstringSet`, `\DeclareBibstringSetFormat` etc.
-  to allow injecting additional formatting for a set of bibstrings.
-  Sets can be defined arbitrarily. These commands are primarily
-  intended for use in localisation modules.
 - **INCOMPATIBLE CHANGE**
   `biblatex` no longer falls back to English for unknown languages.
   Warnings will be triggered if undefined language strings or extras
