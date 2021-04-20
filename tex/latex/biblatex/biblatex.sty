@@ -4611,7 +4611,7 @@
 \newrobustcmd*{\bibnamedelimb}{\addlowpenspace}
 \newrobustcmd*{\bibnamedelimc}{\addhighpenspace}
 \newrobustcmd*{\bibnamedelimd}{\addlowpenspace}
-\newrobustcmd*{\bibnamedelimi}{\addnbspace}
+\newrobustcmd*{\bibnamedelimi}{\isdot\addnbspace}
 
 % [<format>][<start>-<stop>]{<namelist>}
 \protected\def\blx@imc@indexnames{%
@@ -4834,6 +4834,44 @@
   \printtext \printfield \printlist \printnames \printfile
   \indexfield \indexlist \indexnames \entrydata \entryset}
 
+\let\blx@bibstringsets\@empty
+
+% {<set>}{<bibstring_1>,...,<bibstring_n>}
+\newrobustcmd*{\DeclareBibstringSet}[1]{%
+  \listadd\blx@bibstringsets{#1}%
+  \def\do##1{%
+    \csdef{blx@bibstringset@string@##1}{#1}%
+    \listcsadd{blx@bibstringset@set@#1}{##1}}%
+  \docsvlist}
+
+% {<set>}
+\newrobustcmd*{\UndeclareBibstringSet}[1]{%
+  \def\do##1{\csundef{blx@bibstringset@string@##1}}%
+  \dolistcsloop{blx@bibstringset@set@#1}%
+  \csundef{blx@bibstringset@set@#1}%
+  \UndeclareBibstringSetFormat{#1}}
+
+\newrobustcmd*{\UndeclareBibstringSets}{%
+  \forlistloop{\UndeclareBibstringSet}{\blx@bibstringsets}%
+  \let\blx@bibstringsets\@empty}
+
+% {<set>}{<code>}
+\newrobustcmd*{\DeclareBibstringSetFormat}[1]{%
+  \csdef{blx@bibstringsetformat@#1}##1}
+
+% {<set>}
+\newrobustcmd*{\UndeclareBibstringSetFormat}[1]{%
+  \csundef{blx@bibstringsetformat@#1}}
+
+% {<wrapper>}{<string (name)>}{<text (derived from string)>}
+\def\blx@wrapbibstring#1#2#3{%
+  \ifcsundef{blx@bibstringset@string@#2}
+    {#1{#3}}
+    {\ifcsundef{blx@bibstringsetformat@\csuse{blx@bibstringset@string@#2}}
+       {#1{#3}}
+       {#1{\csuse{blx@bibstringsetformat@\csuse{blx@bibstringset@string@#2}}
+             {#3}}}}}
+
 %% Localization
 
 % {<wrapper>}{<long/short>}{<string>}{<print code>}
@@ -4873,8 +4911,8 @@
 \protected\def\blx@bibstring#1#2#3{%
   \blx@met@bibstring{#1}{#2}{#3}
     {\blx@imc@ifcapital
-       {#1{\MakeCapital{\csuse{#2@\blx@tempa}}}}
-       {#1{\csuse{#2@\blx@tempa}}}%
+       {\blx@wrapbibstring{#1}{\blx@tempa}{\MakeCapital{\csuse{#2@\blx@tempa}}}}
+       {\blx@wrapbibstring{#1}{\blx@tempa}{\csuse{#2@\blx@tempa}}}%
      \blx@endunit}}
 
 % [<wrapper>]{<string>}
@@ -4889,7 +4927,7 @@
 
 \protected\def\blx@bibncpstring#1#2#3{%
   \blx@met@bibstring{#1}{#2}{#3}
-    {#1{\csuse{#2@\blx@tempa}}%
+    {\blx@wrapbibstring{#1}{\blx@tempa}{\csuse{#2@\blx@tempa}}%
      \blx@endunit}}
 
 % [<wrapper>]{<string>}
@@ -4904,7 +4942,7 @@
 
 \protected\def\blx@bibcpstring#1#2#3{%
   \blx@met@bibstring{#1}{#2}{#3}
-    {#1{\MakeCapital{\csuse{#2@\blx@tempa}}}%
+    {\blx@wrapbibstring{#1}{\blx@tempa}{\MakeCapital{\csuse{#2@\blx@tempa}}}%
      \blx@endunit}}
 
 % [<wrapper>]{<string>}
@@ -4919,7 +4957,7 @@
 
 \protected\def\blx@biblcstring#1#2#3{%
   \blx@met@bibstring{#1}{#2}{#3}
-    {#1{\blx@maketext@lowercase{\csuse{#2@\blx@tempa}}}%
+    {\blx@wrapbibstring{#1}{\blx@tempa}{\blx@maketext@lowercase{\csuse{#2@\blx@tempa}}}%
      \blx@endunit}}
 
 % [<wrapper>]{<string>}
@@ -4934,7 +4972,7 @@
 
 \protected\def\blx@bibucstring#1#2#3{%
   \blx@met@bibstring{#1}{#2}{#3}
-    {#1{\blx@maketext@uppercase{\csuse{#2@\blx@tempa}}}%
+    {\blx@wrapbibstring{#1}{\blx@tempa}{\blx@maketext@uppercase{\csuse{#2@\blx@tempa}}}%
      \blx@endunit}}
 
 % {<string>}

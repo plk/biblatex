@@ -19,6 +19,13 @@
   was not selected by `biblatex` itself.
   This may help in multilingual setups where `biblatex` also changes the
   language quite heavily.
+- Added `\DeclareBibstringSet`, `\DeclareBibstringSetFormat` etc.
+  to allow injecting additional formatting for a set of bibstrings.
+  Sets can be defined arbitrarily. These commands are primarily
+  intended for use in localisation modules.
+- Changed the definition of `\bibnamedelimi` to `\isdot\addnbspace`.
+  Previously the definition was just `\addnbspace`, which meant the `.`
+  would be treated as a period/full stop.
 
 # RELEASE NOTES FOR VERSION 3.16
 - Fixed an infinite loop caused by excessive aliasing of the `volcitepages`

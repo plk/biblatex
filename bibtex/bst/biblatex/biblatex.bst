@@ -692,10 +692,12 @@ FUNCTION {format:name:part} {
 }
 
 FUNCTION {format:name:initials} {
+  "\." "[[[DOT ACCENT]]]" str:replace
   ".-" "\bibinithyphendelim " str:replace
   ".~" "\bibinitperiod\bibinitdelim " str:replace
   ". " "\bibinitperiod\bibinitdelim " str:replace
   "." "\bibinitperiod" str:replace
+  "[[[DOT ACCENT]]]" "\." str:replace
 }
 
 FUNCTION {is.number} {

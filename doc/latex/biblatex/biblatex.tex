@@ -11509,6 +11509,51 @@ Locally switches from the current language to the surrounding language (which wa
 
 \end{ltxsyntax}
 
+It is possible to add bibliography strings to a bibliography string set to apply additional formatting.
+
+\begin{ltxsyntax}
+
+\cmditem{DeclareBibstringSet}{setname}{key, \dots}
+
+This commands assigns all \prm{key}s to the bibliography string set \prm{setname}.
+
+\cmditem{UndeclareBibstringSet}{setname}
+
+Remove the bibliography string set \prm{setname}. Any formatting definitions will also be cleared.
+
+\cmditem{UndeclareBibstringSets}
+
+Remove all existing bibliography string sets with \cmd{UndeclareBibstringSet}.
+
+\cmditem{DeclareBibstringSetFormat}{setname}{code}
+
+Defines the bibliography string format for \prm{setname}. The format works exactly like an additional \prm{wrapper} format for \cmd{bibstring}. \prm{code} is executed whenever a bibliography string of \prm{setname} is printed. The text of the bibliography string is passed to \prm{code} as first and only argument.
+
+\cmditem{UneclareBibstringSetFormat}{setname}
+
+Remove any bibliography string set format defined for \prm{setname}.
+
+\end{ltxsyntax}
+
+Bibliography string sets can be useful to apply additional formatting to a number of bibliography strings at the same time. These commands are intended for use in language modules. For example in French typography it is customary to italicise Latin terms. The French language module can define a new bibliography string set called \texttt{latin} for all Latin strings and apply additional formatting only to these strings. It is not recommended to apply the formatting dierctly in the bibliography string definitions, since that can interfere with the capitalisation function. Assuming that the French language \texttt{.lbx} file only defines two Latin strings, \texttt{andothers} and \texttt{andothers}, the \texttt{.lbx} file would contain.
+
+\begin{ltxexample}[escapeinside={(*@}{@*)}]
+\DeclareBibliographyExtras{%
+  (*@\dots@*)
+  \DeclareBibstringSet{latin}{andothers,ibidem}%
+  \DeclareBibstringSetFormat{latin}{\mkbibemph{#1}}%
+  (*@\dots@*)
+}
+
+\UndeclareBibliographyExtras{%
+  (*@\dots@*)
+  \UndeclareBibstringSet{latin}%
+  (*@\dots@*)
+}
+\end{ltxexample}
+Note that the defined sets should be undeclared after use to avoid side effects for other languages.
+
+
 \subsection{Localization Modules}
 \label{aut:lng}
 
@@ -14579,6 +14624,7 @@ This revision history is a list of changes relevant to users of this package. Ch
 \begin{release}{3.17}{2021-??-??}
 \item Added \cmd{textouterlang}\see{aut:str}
 \item Added \cmd{UndeclareDelimcontextAlias}\see{use:fmt:csd}
+\item Added \cmd{DeclareBibstringSet}, \cmd{DeclareBibstringSetFormat} etc.\see{aut:str}
 \item Added Marathi localisation (\devanagarifont{निरंजन})
 \item Added Romanian localisation (Patrick Danilevici)
 \item Added some support for calculating with non-\acr{US-ASCII} numerals\see{aut:aux:tst}
