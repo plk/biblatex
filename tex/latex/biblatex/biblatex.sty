@@ -22,12 +22,12 @@
 % This is not updated by build script as the control file version
 % does not necessarily change with the package version.
 % This is used when writing the .bcf
-\def\blx@bcfversion{3.7}
+\def\blx@bcfversion{3.8}
 
 % This is not updated by build script as the bbl version
 % does not necessarily change with the package version.
 % This is used when checking the .bbl
-\def\blx@bblversion{3.1}
+\def\blx@bblversion{3.2}
 
 \NeedsTeXFormat{LaTeX2e}[2005/12/01]
 \ProvidesPackage{biblatex}
@@ -4135,7 +4135,7 @@
     {\ifcsstring{blx@dateformat@#1date}{year}
        {\@firstoftwo}
        {\iffieldundef{#1month}
-          {\iffieldundef{#1season}}
+          {\iffieldundef{#1yeardivision}}
           {\@secondoftwo}}}}
 
 \def\blx@imc@ifdatehastime#1{%
@@ -4163,7 +4163,7 @@
     {\@secondoftwo}}
 
 \def\blx@reconstruct@comparabledate#1{%
-  \thefield{#1year}-\thefield{#1month}(\thefield{#1season})-%
+  \thefield{#1year}-\thefield{#1month}(\thefield{#1yeardivision})-%
     \thefield{#1day}T%
   \thefield{#1hour}:\thefield{#1minute}:\thefield{#1second}Z%
     \thefield{#1timezone}//%
@@ -5456,6 +5456,23 @@
   \do{summer}%
   \do{autumn}%
   \do{winter}%
+  \do{springN}%
+  \do{summerN}%
+  \do{autumnN}%
+  \do{winterN}%
+  \do{springS}%
+  \do{summerS}%
+  \do{autumnS}%
+  \do{winterS}%
+  \do{Q1}%
+  \do{Q2}%
+  \do{Q3}%
+  \do{Q4}%
+  \do{QD1}%
+  \do{QD2}%
+  \do{QD3}%
+  \do{S1}%
+  \do{S2}%
   \do{am}%
   \do{pm}%
 }
@@ -5926,13 +5943,13 @@
       {\blx@nounit}
       {\printtext[{#2date}]{%
          \datecircaprint
-         % Such a season component can only come from an ISO8601 season which replaces
+         % Such a year division component can only come from an ISO8601 year division which replaces
          % a normal month so if it exists, we know that a normal date print is ruled out
-         \iffieldundef{#2season}
+         \iffieldundef{#2yeardivision}
            {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
             % Optionally print the time after the date
             \blx@printtime{#2}{}}
-           {\csuse{mkbibseasondate#1}{#2year}{#2season}}%
+           {\csuse{mkbibyeardivisiondate#1}{#2year}{#2yeardivision}}%
          \dateuncertainprint
          \dateeraprint{#2year}%
          \iffieldundef{#2endyear}
@@ -5941,11 +5958,11 @@
               {\mbox{\bibdaterangesep}}
               {\bibdaterangesep
                \enddatecircaprint
-               \iffieldundef{#2endseason}
+               \iffieldundef{#2endyeardivision}
                  {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}%
                   % Optionally print the time after the date
                   \blx@printtime{#2}{end}}
-                 {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}%
+                 {\csuse{mkbibyeardivisiondate#1}{#2endyear}{#2endyeardivision}}%
                \enddateuncertainprint
                \dateeraprint{#2endyear}}}}}%
   \endgroup}
@@ -5957,13 +5974,13 @@
       {\blx@nounit}
       {\printtext[{#2date}]{%
          \datecircaprint
-         % Such a season component can only come from an ISO8601 season which replaces
+         % Such a year division component can only come from an ISO8601 year division which replaces
          % a normal month so if it exists, we know that a normal date print is ruled out
-         \iffieldundef{#2season}
+         \iffieldundef{#2yeardivision}
            {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
             % Optionally print the time after the date
             \blx@printtime{#2}{}}
-           {\csuse{mkbibseasondate#1}{#2year}{#2season}}%
+           {\csuse{mkbibyeardivisiondate#1}{#2year}{#2yeardivision}}%
          \dateuncertainprint
          \dateeraprint{#2year}%
          \iffieldundef{#2endyear}
@@ -5973,11 +5990,11 @@
                \mbox{\bibdaterangesep}}
               {\bibdaterangesep
                \enddatecircaprint
-               \iffieldundef{#2endseason}
+               \iffieldundef{#2endyeardivision}
                  {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}%
                   % Optionally print the time after the date
                   \blx@printtime{#2}{end}}
-                 {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}}%
+                 {\csuse{mkbibyeardivisiondate#1}{#2endyear}{#2endyeardivision}}}%
                \printfield{extradate}%
                \enddateuncertainprint
                \dateeraprint{#2endyear}}}}%
@@ -5995,9 +6012,9 @@
       {\blx@nounit}
       {\printtext[{#2date}]{%
          \datecircaprint
-         % Such a season component can only come from an ISO8601 season which replaces
+         % Such a year division component can only come from an ISO8601 year division which replaces
          % a normal month so if it exists, we know that a normal date print is ruled out
-         \iffieldundef{#2season}
+         \iffieldundef{#2yeardivision}
            {\ifdateyearsequal{#2}{#2end}
               {\iffieldsequal{#2month}{#2endmonth}
                  {\csuse{mkbibdate#1}{}{}{#2day}}
@@ -6006,8 +6023,8 @@
                \iffieldsequal{#2dateera}{#2enddateera}{}
                  {\dateeraprint{#2year}}}}
            {\ifdateyearsequal{#2}{#2end}
-             {\csuse{mkbibseasondate#1}{}{#2season}}
-             {\csuse{mkbibseasondate#1}{#2year}{#2season}%
+             {\csuse{mkbibyeardivisiondate#1}{}{#2yeardivision}}
+             {\csuse{mkbibyeardivisiondate#1}{#2year}{#2yeardivision}%
               \iffieldsequal{#2dateera}{#2enddateera}{}
                 {\dateeraprint{#2year}}}}%
          \dateuncertainprint
@@ -6017,9 +6034,9 @@
               {\mbox{\bibdaterangesep}}
               {\bibdaterangesep
                \enddatecircaprint
-               \iffieldundef{#2endseason}
+               \iffieldundef{#2endyeardivision}
                  {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}
-                 {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}%
+                 {\csuse{mkbibyeardivisiondate#1}{#2endyear}{#2endyeardivision}}%
                \enddateuncertainprint
                \dateeraprint{#2endyear}}}}}%
   \endgroup}
@@ -6036,9 +6053,9 @@
       {\blx@nounit}
       {\printtext[{#2date}]{%
          \datecircaprint
-         % Such a season component can only come from an ISO8601 season which replaces
+         % Such a year division component can only come from an ISO8601 year division which replaces
          % a normal month so if it exists, we know that a normal date print is ruled out
-         \iffieldundef{#2season}
+         \iffieldundef{#2yeardivision}
            {\ifdateyearsequal{#2}{#2end}
               {\iffieldsequal{#2month}{#2endmonth}
                  {\csuse{mkbibdate#1}{}{}{#2day}}
@@ -6047,8 +6064,8 @@
                \iffieldsequal{#2dateera}{#2enddateera}{}
                  {\dateeraprint{#2year}}}}
            {\ifdateyearsequal{#2}{#2end}
-             {\csuse{mkbibseasondate#1}{}{#2season}}
-             {\csuse{mkbibseasondate#1}{#2year}{#2season}%
+             {\csuse{mkbibyeardivisiondate#1}{}{#2yeardivision}}
+             {\csuse{mkbibyeardivisiondate#1}{#2year}{#2yeardivision}%
               \iffieldsequal{#2dateera}{#2enddateera}{}
                 {\dateeraprint{#2year}}}}%
          \dateuncertainprint
@@ -6059,9 +6076,9 @@
                \mbox{\bibdaterangesep}}
               {\bibdaterangesep
                \enddatecircaprint
-               \iffieldundef{#2endseason}
+               \iffieldundef{#2endyeardivision}
                  {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}
-                 {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}}%
+                 {\csuse{mkbibyeardivisiondate#1}{#2endyear}{#2endyeardivision}}}%
                \printfield{extradate}%
                \enddateuncertainprint
                \dateeraprint{#2endyear}}}}%
@@ -6069,14 +6086,14 @@
 
 \newrobustcmd*{\mkdaterangeyear}[1]{%
   \begingroup
-    \blx@imc@clearfield{#1season}%
+    \blx@imc@clearfield{#1yeardivision}%
     \blx@imc@clearfield{#1month}%
     \blx@imc@clearfield{#1day}%
     \blx@imc@clearfield{#1hour}%
     \blx@imc@clearfield{#1minute}%
     \blx@imc@clearfield{#1second}%
     \blx@imc@clearfield{#1timezone}%
-    \blx@imc@clearfield{#1endseason}%
+    \blx@imc@clearfield{#1endyeardivision}%
     \blx@imc@clearfield{#1endmonth}%
     \blx@imc@clearfield{#1endday}%
     \blx@imc@clearfield{#1endhour}%
@@ -6097,13 +6114,13 @@
       {\blx@nounit}
       {\printtext[{#1date}]{%
          \datecircaprint
-         % Such a season component can only come from an  ISO8601 season which replaces
+         % Such a year division component can only come from an ISO8601 year division which replaces
          % a normal month so if it exists, we know that a normal date print is ruled out
-         \iffieldundef{#1season}
+         \iffieldundef{#1yeardivision}
            {\blx@ymddate{#1}{}%
             % Optionally print the time after the date
             \blx@printtime{#1}{}}
-           {\csuse{mkbibseasondateshort}{#1year}{#1season}}%
+           {\csuse{mkbibyeardivisiondateshort}{#1year}{#1yeardivision}}%
          \dateuncertainprint
          \dateeraprint{#1year}%
          \iffieldundef{#1endyear}
@@ -6112,11 +6129,11 @@
               {\mbox{\bibdaterangesep}}
               {\bibdaterangesep
                \enddatecircaprint
-               \iffieldundef{#1season}
+               \iffieldundef{#1yeardivision}
                  {\blx@ymddate{#1}{end}%
                   % Optionally print the time after the date
                   \blx@printtime{#1}{end}}
-                 {\csuse{mkbibseasondateshort}{#1endyear}{#1endseason}}%
+                 {\csuse{mkbibyeardivisiondateshort}{#1endyear}{#1endyeardivision}}%
                \enddateuncertainprint
                \dateeraprint{#1endyear}}}}}%
   \endgroup}
@@ -6129,13 +6146,13 @@
       {\blx@nounit}
       {\printtext[{#1date}]{%
          \datecircaprint
-         % Such a season component can only come from an ISO8601 season which replaces
+         % Such a year division component can only come from an ISO8601 year division which replaces
          % a normal month so if it exists, we know that a normal date print is ruled out
-         \iffieldundef{#1season}
+         \iffieldundef{#1yeardivision}
            {\blx@ymddate[extradate]{#1}{}%
             % Optionally print the time after the date
             \blx@printtime{#1}{}}
-           {\csuse{mkbibseasondateshort}{#1year}{#1season}}%
+           {\csuse{mkbibyeardivisiondateshort}{#1year}{#1yeardivision}}%
          \dateuncertainprint
          \dateeraprint{#1year}%
          \iffieldundef{#1endyear}
@@ -6144,11 +6161,11 @@
               {\mbox{\bibdaterangesep}}
               {\bibdaterangesep
                \enddatecircaprint
-               \iffieldundef{#1season}
+               \iffieldundef{#1yeardivision}
                  {\blx@ymddate{#1}{end}%
                   % Optionally print the time after the date
                   \blx@printtime{#1}{end}}
-                 {\csuse{mkbibseasondateshort}{#1endyear}{#1endseason}}}%
+                 {\csuse{mkbibyeardivisiondateshort}{#1endyear}{#1endyeardivision}}}%
                \enddateuncertainprint
                \dateeraprint{#1endyear}}}}%
   \endgroup}
@@ -6162,14 +6179,14 @@
 
 \newrobustcmd*{\mkdaterangeyearextra}[1]{%
   \begingroup
-    \blx@imc@clearfield{#1season}%
+    \blx@imc@clearfield{#1yeardivision}%
     \blx@imc@clearfield{#1month}%
     \blx@imc@clearfield{#1day}%
     \blx@imc@clearfield{#1hour}%
     \blx@imc@clearfield{#1minute}%
     \blx@imc@clearfield{#1second}%
     \blx@imc@clearfield{#1timezone}%
-    \blx@imc@clearfield{#1endseason}%
+    \blx@imc@clearfield{#1endyeardivision}%
     \blx@imc@clearfield{#1endmonth}%
     \blx@imc@clearfield{#1endday}%
     \blx@imc@clearfield{#1endhour}%
@@ -6250,14 +6267,14 @@
 \newrobustcmd*{\blx@isodate}[3][]{%
   \dateeraprintpre{#2#3year}%
   \blx@imc@forcezerosy{\thefield{#2#3year}}\ifblank{#1}{}{\printfield{#1}}%
-  % Such a season component can only come from an ISO8601 season which replaces
+  % Such a year division component can only come from an ISO8601 year division which replaces
   % a normal month so if it exists, we know that a normal date print is ruled out
-  \iffieldundef{#2#3season}
+  \iffieldundef{#2#3yeardivision}
     {\iffieldundef{#2#3month}{}{\hyphen\blx@imc@forcezerosmdt{\thefield{#2#3month}}}%
      \iffieldundef{#2#3day}{}{\hyphen\blx@imc@forcezerosmdt{\thefield{#2#3day}}}}
-    {\hyphen\blx@seasonmap{\thefield{#2#3season}}}}
+    {\hyphen\blx@yeardivisionmap{\thefield{#2#3yeardivision}}}}
 
-\def\blx@seasonmap#1{%
+\def\blx@yeardivisionmap#1{%
   \blx@xifstrequal{#1}{spring}{21}
     {\blx@xifstrequal{#1}{summer}{22}
       {\blx@xifstrequal{#1}{autumn}{23}
@@ -6385,29 +6402,39 @@
      {\space\bibtimezonesep
       \mkbibparens{\mkbibtimezone{\thefield{#4}}}}}
 
-\newrobustcmd*{\mkbibseasondateshort}[2]{%
+\newrobustcmd*{\mkbibyeardivisiondateshort}[2]{%
   \blx@warning@noline{%
-    Using fallback definition for \string\mkbibseasondateshort.\MessageBreak
+    Using fallback definition for \string\mkbibyeardivisiondateshort.\MessageBreak
     The command should be defined in the .lbx file.\MessageBreak
     If you see this message, the .lbx file could not be\MessageBreak
     loaded, is faulty or does not contain a definition\MessageBreak
-    for \string\mkbibseasondateshort
+    for \string\mkbibyeardivisiondateshort
   }%
-  \mkbibseason{\thefield{#2}}%
+  \mkbibyeardivision{\thefield{#2}}%
   \iffieldundef{#1}{}{\space}%
   \dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}}
+\def\mkbibseasondateshort{% LEGACY
+  \blx@warning@noline{%
+    '\string\mkbibseasondateshort' is deprecated in favour of\MessageBreak
+         '\string\mkbibyeardivisiondateshort'}%
+  \mkbibyeardivisiondateshort}
 
-\newrobustcmd*{\mkbibseasondatelong}[2]{%
+\newrobustcmd*{\mkbibyeardivisiondatelong}[2]{%
   \blx@warning@noline{%
-    Using fallback definition for \string\mkbibseasondatelong.\MessageBreak
+    Using fallback definition for \string\mkbibyeardivisiondatelong.\MessageBreak
     The command should be defined in the .lbx file.\MessageBreak
     If you see this message, the .lbx file could not be\MessageBreak
     loaded, is faulty or does not contain a definition\MessageBreak
-    for \string\mkbibseasondatelong
+    for \string\mkbibyeardivisiondatelong
   }%
-  \mkbibseason{\thefield{#2}}%
+  \mkbibyeardivision{\thefield{#2}}%
   \iffieldundef{#1}{}{\space}%
   \dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}}
+\def\mkbibseasondatelong{% LEGACY
+  \blx@warning@noline{%
+    '\string\mkbibseasondatelong' is deprecated in favour of\MessageBreak
+         '\string\mkbibyeardivisiondatelong'}%
+  \mkbibyeardivisiondatelong}
 
 \newrobustcmd*{\bibdatedash}{\bibrangedash}
 \newrobustcmd*{\finalandcomma}{}
@@ -6426,7 +6453,12 @@
 \newrobustcmd*{\mkbibfemord}{\mkbibordinal}
 \newrobustcmd*{\mkbibneutord}{\mkbibordinal}
 % the following is usually not redefined in an .lbx
-\newrobustcmd*{\mkbibseason}[1]{\abx@bibseason{#1}}
+\newrobustcmd*{\mkbibyeardivision}[1]{\abx@bibyeardivision{#1}}
+\def\mkbibseason{% LEGACY
+  \blx@warning@noline{%
+    '\string\mkbibseason' is deprecated in favour of\MessageBreak
+         '\string\mkbibyeardivision'}%
+  \mkbibyeardivision}
 \newrobustcmd*{\mkbibmonth}[1]{%
   \ifcase0#1\relax
     \blx@warning@entry{Month out of range or not an integer}%
@@ -7145,8 +7177,8 @@
   \do{labelendsecond}%
   \do{labeltimezone}%
   \do{labelendtimezone}%
-  \do{labelseason}%
-  \do{labelendseason}%
+  \do{labelyeardivision}%
+  \do{labelendyeardivision}%
   \do{entrykey}%
   \do{entryset}%
   \do{entrysetcount}%
@@ -8262,8 +8294,8 @@
         \letcs\abx@field@labelendsecond{abx@field@\abx@field@labeldatesource endsecond}%
         \letcs\abx@field@labeltimezone{abx@field@\abx@field@labeldatesource timezone}%
         \letcs\abx@field@labelendtimezone{abx@field@\abx@field@labeldatesource endtimezone}%
-        \letcs\abx@field@labelseason{abx@field@\abx@field@labeldatesource season}%
-        \letcs\abx@field@labelendseason{abx@field@\abx@field@labeldatesource endseason}%
+        \letcs\abx@field@labelyeardivision{abx@field@\abx@field@labeldatesource yeardivision}%
+        \letcs\abx@field@labelendyeardivision{abx@field@\abx@field@labeldatesource endyeardivision}%
         \letcs\abx@field@labeldateunspecified{abx@field@\abx@field@labeldatesource dateunspecified}%
         \letcs\etb@tgl@abx@bool@labeldatecirca{etb@tgl@abx@bool@\abx@field@labeldatesource datecirca}%
         \letcs\etb@tgl@abx@bool@labelenddatecirca{etb@tgl@abx@bool@\abx@field@labeldatesource enddatecirca}%
@@ -14670,9 +14702,9 @@
 \DeclareBiblatexOption{global,type,entry}[boolean]{dateabbrev}[true]{%
   \ifstrequal{#1}{true}
     {\let\abx@bibmonth\blx@imc@bibsstring
-     \let\abx@bibseason\blx@imc@bibsstring}
+     \let\abx@bibyeardivision\blx@imc@bibsstring}
     {\let\abx@bibmonth\blx@imc@biblstring
-     \let\abx@bibseason\blx@imc@biblstring}}
+     \let\abx@bibyeardivision\blx@imc@biblstring}}
 
 \DeclareBibliographyOption[string]{sortlocale}{%
   \edef\blx@sortlocale{\detokenize{#1}}}
