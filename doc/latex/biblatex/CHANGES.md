@@ -26,6 +26,12 @@
 - Changed the definition of `\bibnamedelimi` to `\isdot\addnbspace`.
   Previously the definition was just `\addnbspace`, which meant the `.`
   would be treated as a period/full stop.
+- **CRITICAL CHANGE**
+  Generalised `season` date part to `yeardivision`. It can now also
+  hold quarter, quadrimester, semestral or seasons with hemisphere
+  designation.
+  Helper macros have been renamed accordingly. Limited backwards
+  compatibility is in place.
 
 # RELEASE NOTES FOR VERSION 3.16
 - Fixed an infinite loop caused by excessive aliasing of the `volcitepages`
