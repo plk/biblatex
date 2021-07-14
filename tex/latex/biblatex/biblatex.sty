@@ -15683,8 +15683,15 @@
   \edef\blx@tempa{%
     \expandafter\blx@tempa\CurrentOption=&}%
   \blx@kv@ifkeyundef{blx@opt@ldt}{\blx@tempa}
-    {\endgroup
-     \eappto\blx@theoptions{\CurrentOption,}}
+    {% now it becomes messy,
+     % we need to intercept the bibtexcaseprotection option
+     % because it is only defined by the case changing code
+     % which is loaded after load-time options are processed
+     \ifdefstring\blx@tempa{bibtexcaseprotection}
+       {\endgroup
+        \edef\blx@deferoption@bibtexcaseprotection{\CurrentOption}}
+       {\endgroup
+        \eappto\blx@theoptions{\CurrentOption,}}}
     {\edef\blx@tempa{\endgroup
        \noexpand\blx@kv@setkeys{blx@opt@ldt}{\CurrentOption}}%
      \blx@tempa}}
@@ -15775,7 +15782,16 @@
   % Textcase defines \NoCaseChange as \let\NoCaseChange\@firstofone
   \ifundef\NoCaseChange
     {\let\NoCaseChange\@firstofone}
-    {}}
+    {}%
+  % we also need to defer the bibtexcaseprotection option until after we load
+  % the case changing code
+  \ifundef\blx@deferoption@bibtexcaseprotection
+    {}
+    {\begingroup
+     \edef\blx@tempa{\endgroup
+       \noexpand\blx@kv@setkeys{blx@opt@pre}{%
+         \blx@deferoption@bibtexcaseprotection}}%
+     \blx@tempa}}
 % That's it for the case change code
 
 % Set defaults
@@ -15874,6 +15890,7 @@
 % blx-case-expl3.def or blx-case-latex2e.def
 \blx@deferoption@casechanger
 \blx@casechange@postload
+
 
 % Deferred setup at end of preamble
 \AtEndPreamble{%
