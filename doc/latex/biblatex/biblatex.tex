@@ -9772,6 +9772,35 @@ Or if you wanted to ignore «The» at the beginning of any title field:
 }
 \end{ltxexample}
 
+\subsubsection{Fine Tuning hashing and uniquename}
+\label{aut:ctm:nonamestring}
+
+\cmditem{DeclareNonamestring}{specification}
+
+Defines regular expressions to strip from name fields when
+generating \bibfield{fullhash} and \bibfield{uniquename}. The \prm{specification} is an undelimited list of \cmd{nonamestring} directives which specify the regular expressions to remove from particular name fields. Spaces, tabs and line endings may be used freely to visually arrange the \prm{specification}. Blank lines are not permissible. This command may only be used in the preamble.
+
+\cmditem{nonamestring}{namefield}{regexp}
+
+Any number of \cmd{nonamestring} commands can be given each of which specifies to remove the \prm{regexp} from the \prm{namefield}. Since regular expressions usually contain special characters, it is best to enclose them in the provided \cmd{regexp} macro as shown---this will pass the expression through to \biber correctly.
+
+\end{ltxsyntax}
+
+Suppose you wanted to ignore square brackets in names in the
+\bibfield{author} name field and treat <D[onald] Knuth> the same as <Donald
+Knuth> for purposes \bibfield{uniquename} and hashing so that both variants
+appeared together in a dashed bibliography style and were also treated the
+same when calculating \bibfield{uniquename}:
+
+\begin{ltxexample}
+\DeclareNonamestring{
+  \nonamestring{<<author>>}{\regexp{<<[\[\]]>>}}
+}
+\end{ltxexample}
+%
+For consistency, it is often desirable to use the same regexp in \cmd{DeclareNosort}.
+
+
 \subsubsection{Special Fields}
 \label{aut:ctm:fld}
 
@@ -14712,6 +14741,7 @@ This revision history is a list of changes relevant to users of this package. Ch
 
 \begin{changelog}
 \begin{release}{3.17}{2021-??-??}
+\item Added \cmd{DeclareNonamestring} \see{aut:ctm:nonamestring}
 \item Added new \cmd{citecount} sort option and associated default sorting scheme\see{aut:ctm:srt} and \see{use:opt:pre:gen}
 \item Added new sourcemap verbs \texttt{matches} and \texttt{matchesi}\see{aut:ctm:map}
 \item Deprecated season fields and macros in favour of generalised year

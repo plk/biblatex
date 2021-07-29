@@ -13039,6 +13039,13 @@
 \xdef\blx@xml@nosort#1#2{%
   ~~~~<bcf:nosort field="#1" value="#2"/>\blx@nl}
 
+\xdef\blx@xml@nonamestrings#1{%
+  ~~<bcf:nonamestrings>\blx@nl
+  #1%
+  ~~</bcf:nonamestrings>\blx@nl}
+\xdef\blx@xml@nonamestring#1#2{%
+  ~~~~<bcf:nonamestring field="#1" value="#2"/>\blx@nl}
+
 \xdef\blx@xml@noinits#1{%
   ~~<bcf:noinits>\blx@nl
   #1%
@@ -13427,6 +13434,13 @@
       \blx@xml@nosorts{%
         \csuse{blx@nosort}}}}%
     {}%
+  % nonamestrings
+  \ifcsdef{blx@nonamestring}
+    {\eappto\blx@tempa{%
+      \blx@xml@comment{NONAMESTRING}%
+      \blx@xml@nonamestrings{%
+        \csuse{blx@nonamestring}}}}%
+    {}%
   % transliteration
   \ifdefempty\blx@translits
     {}
@@ -13547,6 +13561,20 @@
 \newcommand*{\blx@nosort@setup}[2]{%
   \eappto\blx@tempa{%
     \blx@xml@nosort{#1}{#2}}}
+
+% nonamestring
+\newrobustcmd*{\DeclareNonamestring}[1]{%
+  \begingroup
+  \let\nonamestring\blx@nonamestring@setup
+  \let\blx@tempa\@empty
+  #1%
+  \global\let\blx@nonamestring\blx@tempa
+  \endgroup}
+\@onlypreamble\DeclareNonamestring
+
+\newcommand*{\blx@nonamestring@setup}[2]{%
+  \eappto\blx@tempa{%
+    \blx@xml@nonamestring{#1}{#2}}}
 
 % noinit
 \newrobustcmd*{\DeclareNoinit}[1]{%
