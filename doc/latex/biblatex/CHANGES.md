@@ -32,6 +32,12 @@
   designation.
   Helper macros have been renamed accordingly. Limited backwards
   compatibility is in place.
+- **BREAKING CHANGE**
+  `\DeclareDelimFormat` no longer accepts a list of names as argument.
+  It only accepts a single delimiter name.
+  A list of contexts is still supported.
+  Note that previously the optional argument would not work correctly
+  with a list of names.
 
 # RELEASE NOTES FOR VERSION 3.16
 - Fixed an infinite loop caused by excessive aliasing of the `volcitepages`

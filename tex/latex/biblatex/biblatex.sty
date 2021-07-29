@@ -3824,7 +3824,7 @@
 
 % Delimiter interface
 
-% [<contextname, ...>]{<name, ...>}{<code>}
+% [<contextname, ...>]{<name>}{<code>}
 \newrobustcmd*{\DeclareDelimFormat}{%
   \@ifstar
     {\blx@declaredelimclear}
@@ -3852,12 +3852,10 @@
      \docsvlist{#1}}}%
 
 \def\blx@declaredelim@i#1#2#3#4{%
-  \def\do@i##1{%
-    \ifcsdef{#1##1}
-      {\blx@inf@delimdeclare{##1}{#2}}
-      {}%
-    \csdef{#1##1}{#4}}%
-  \forcsvlist{\do@i}{#3}}
+  \ifcsdef{#1#3}
+    {\blx@inf@delimdeclare{#3}{#2}}
+    {}%
+  \csdef{#1#3}{#4}}
 
 % [<alias context, ...>]{<alias>}[<delim context>]{<delim>}
 % deprecated: *[<alias context, ...>]{<alias>}[<delim context>]{<delim>}
@@ -3925,34 +3923,40 @@
 % {<alias>}{<source>}
 \def\blx@declaredelimalias@auto#1#2{%
   \blx@cleardelim{#1}%
-  \blx@declaredelimalias@def{}{#1}{}{#2}%
+  \blx@declaredelimalias@manual{}{#1}{}{#2}%
   \ifcsvoid{blx@declaredelimcontexts@#2}
     {}
     {\def\do##1{%
-       \blx@declaredelimalias@def
-         {blx@printdelim@##1@}{#1}{blx@printdelim@##1@}{#2}}%
+       \blx@declaredelimalias@manual{##1}{#1}{##1}{#2}}%
      \dolistcsloop{blx@declaredelimcontexts@#2}}}
 
 % {<alias context>}{<alias>}{<source context>}{<source>}
 \def\blx@declaredelimalias@manual#1#2#3#4{%
+  \begingroup
   \ifblank{#1}
-    {\ifblank{#3}
-       {\blx@declaredelimalias@def{}{#2}{}{#4}}
-       {\blx@declaredelimalias@def{}{#2}{blx@printdelim@#3@}{#4}}}
-    {\ifblank{#3}
-       {\blx@declaredelimalias@def{blx@printdelim@#1@}{#2}{}{#4}}}
-       {\blx@declaredelimalias@def{blx@printdelim@#1@}{#2}{blx@printdelim@#3@}{#4}}}
+    {\def\blx@tempa{{}{}}}
+    {\def\blx@tempa{{blx@printdelim@#1@}{#1}}}%
+  \ifblank{#3}
+    {\def\blx@tempb{{}{}}}
+    {\def\blx@tempb{{blx@printdelim@#3@}{#3}}}%
+  \edef\blx@tempc{\endgroup
+    \noexpand\blx@declaredelimalias@def%
+    \expandonce\blx@tempa {\unexpanded{#2}}%
+    \expandonce\blx@tempb {\unexpanded{#4}}}%
+  \blx@tempc}
 
-\def\blx@declaredelimalias@def#1#2#3#4{%
-  \ifcsdef{#1#2}
-    {\blx@inf@delimdeclare{#2}{#1}}
+% {<alias context internal id>}{<alias context name>}{<alias>}
+% {<source context internal id>}{<source context name>}{<source>}
+\def\blx@declaredelimalias@def#1#2#3#4#5#6{%
+  \ifcsdef{#1#3}
+    {\blx@inf@delimdeclare{#3}{#2}}
     {}%
-  \ifblank{#1}
+  \ifblank{#2}
     {}
-    {\ifinlistcs{#1}{blx@declaredelimcontexts@#2}
+    {\ifinlistcs{#2}{blx@declaredelimcontexts@#3}
        {}
-       {\listcsadd{blx@declaredelimcontexts@#2}{#1}}}%
-  \csdef{#1#2}{\ifcsundef{#3#4}{\csuse{#4}}{\csuse{#3#4}}}}
+       {\listcsadd{blx@declaredelimcontexts@#3}{#2}}}%
+  \csdef{#1#3}{\ifcsundef{#4#6}{\csuse{#6}}{\csuse{#4#6}}}}
 
 \def\blx@delimcontext{none}
 \newcommand*{\printdelim}[2][]{%
