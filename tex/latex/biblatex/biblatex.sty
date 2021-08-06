@@ -10441,15 +10441,17 @@
     \blx@auxwrite\blx@bcfout{}{\blx@xml@citekey{##1}{}{\expandafter\the\csname blx@sectionciteorder@\the\c@refsection\endcsname}}}%
   \dolistcsloop{blx@keyaliases@\the\c@refsection}%
   % output key counts (for \citecount sorting) if citecounter option is not false
-  \ifundef\blx@citecounter
+  \ifcsundef{blx@cites@\the\c@refsection}
     {}
-    {\def\do##1{%
-      \ifcsundef{blx@currcount@\the\c@refsection @##1}
-        {\csdef{blx@currcount@\the\c@refsection @##1}{0}}
-        {}%
-      \blx@auxwrite\blx@bcfout{}
-        {\blx@xml@citekeycount{##1}{\csuse{blx@currcount@\the\c@refsection @##1}}}}}%
-  \dolistcsloop{blx@cites@\the\c@refsection}%
+    {\ifundef\blx@citecounter
+       {}
+       {\def\do##1{%
+         \ifcsundef{blx@currcount@\the\c@refsection @##1}
+           {\csdef{blx@currcount@\the\c@refsection @##1}{0}}
+           {}%
+         \blx@auxwrite\blx@bcfout{}
+           {\blx@xml@citekeycount{##1}{\csuse{blx@currcount@\the\c@refsection @##1}}}}}%
+     \dolistcsloop{blx@cites@\the\c@refsection}}%
   \ifnum\c@refsection>\z@
     \blx@auxwrite\blx@bcfout{}{%
       \blx@xml@endsection\blx@nl
@@ -12351,6 +12353,7 @@
     \expandafter{\blx@autopunct}}%
   \endgroup}
 
+\listadd\blx@citecmds{citename}
 % [<prenote>][<postnote>]{<entrykey>,...}[<format>]{<namelist>}<punct>
 \newrobustcmd*{\citename}{\blx@citexpunct{citename}}
 \long\csdef{blx@cite@citename}#1#2#3#4#5#6{%
@@ -12379,6 +12382,8 @@
   \blx@citeloop{#3}%
   \endgroup}
 
+
+\listadd\blx@citecmds{citelist}
 % [<prenote>][<postnote>]{<entrykey>,...}[<format>]{<list>}<punct>
 \newrobustcmd*{\citelist}{\blx@citexpunct{citelist}}
 \long\csdef{blx@cite@citelist}#1#2#3#4#5#6{%
@@ -12407,6 +12412,7 @@
   \blx@citeloop{#3}%
   \endgroup}
 
+\listadd\blx@citecmds{citefield}
 % [<prenote>][<postnote>]{<entrykey>,...}[<format>]{<field>}<punct>
 
 \newrobustcmd*{\citefield}{\blx@citexpunct{citefield}}
