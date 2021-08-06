@@ -27,6 +27,12 @@
   Previously the definition was just `\addnbspace`, which meant the `.`
   would be treated as a period/full stop.
 - **CRITICAL CHANGE**
+  `biblatex` no longer writes tracking and refsection initialisation code
+  to aux files.
+  Instead the `\...cite` commands are redefined locally to do that on demand.
+  This should keep the auxiliary files much cleaner of `biblatex`
+  intervention.
+- **CRITICAL CHANGE**
   Generalised `season` date part to `yeardivision`. It can now also
   hold quarter, quadrimester, semestral or seasons with hemisphere
   designation.
