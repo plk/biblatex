@@ -877,8 +877,6 @@
 \newlength{\bibparsep}
 \newlength{\bibhang}
 
-\newbool{refcontextdefaults}
-\booltrue{refcontextdefaults}%
 \newbool{sourcemap}
 \newbool{citetracker}
 \newbool{pagetracker}
@@ -9844,29 +9842,25 @@
 % bibliography list in standard cases where entries are not listed in
 % multiple bibliographies
 \def\blx@setdefaultrefcontext#1{%
-  \ifbool{refcontextdefaults}
-    {\blx@rerun@latex}%
-    {}%
   \ifinlistcs{#1}{blx@defaultrefcontexts@\the\c@refsection}
     {}
     {\listcsgadd{blx@defaultrefcontexts@\the\c@refsection}{#1}}%
-  \csxdef{blx@assignedrefcontextbib@\the\c@refsection @#1}{\blx@refcontext@context}}
+  \ifcsequal
+    {blx@assignedrefcontextbib@\the\c@refsection @#1}
+    {blx@refcontext@context}
+    {}
+    {\blx@rerun@latex
+     \global\cslet{blx@assignedrefcontextbib@\the\c@refsection @#1}%
+       \blx@refcontext@context}}
 % <refsection><key><refcontext>
 \def\abx@aux@defaultrefcontext#1#2#3{%
-  \global\boolfalse{refcontextdefaults}%
   \csxdef{blx@assignedrefcontextbib@#1@#2}{\detokenize{#3}}}
-\def\abx@aux@refcontextdefaultsdone{%
-  \global\boolfalse{refcontextdefaults}}
 % \abx@aux@defaultlabelprefix is a dummy only used by BibTeX to implement a
 % simple labelprefix not based on full refcontexts, which BibTeX does not
 % support.
 \let\abx@aux@defaultlabelprefix\@gobblethree
 
 \AtEndDocument{%
-  % write the .aux to say we don't need to re-run to consume refcontext defaults
-  \ifbool{refcontextdefaults}
-    {}
-    {\blx@auxwrite\@mainaux{}{\string\abx@aux@refcontextdefaultsdone}}%
   % always add default refcontext declarations to .aux after biber run
   \iftoggle{blx@bbldone}
     {\def\do#1{%
