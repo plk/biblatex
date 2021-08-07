@@ -9845,16 +9845,11 @@
   \ifinlistcs{#1}{blx@defaultrefcontexts@\the\c@refsection}
     {}
     {\listcsgadd{blx@defaultrefcontexts@\the\c@refsection}{#1}}%
-  \ifcsequal
-    {blx@assignedrefcontextbib@\the\c@refsection @#1}
-    {blx@refcontext@context}
-    {}
-    {\blx@rerun@latex
-     \global\cslet{blx@assignedrefcontextbib@\the\c@refsection @#1}%
-       \blx@refcontext@context}}
+  \global\cslet{blx@assignedrefcontextbib@\the\c@refsection @#1}%
+    \blx@refcontext@context}
 % <refsection><key><refcontext>
 \def\abx@aux@defaultrefcontext#1#2#3{%
-  \csxdef{blx@assignedrefcontextbib@#1@#2}{\detokenize{#3}}}
+  \csxdef{blx@assignedrefcontextbib@aux@#1@#2}{\detokenize{#3}}}
 % \abx@aux@defaultlabelprefix is a dummy only used by BibTeX to implement a
 % simple labelprefix not based on full refcontexts, which BibTeX does not
 % support.
@@ -9866,7 +9861,12 @@
     {\def\do#1{%
        \begingroup
        \def\do##1{%
-         \blx@auxwrite\@mainaux{}{\string\abx@aux@defaultrefcontext{#1}{##1}{\csuse{blx@assignedrefcontextbib@#1@##1}}}}%
+         \blx@auxwrite\@mainaux{}{\string\abx@aux@defaultrefcontext{#1}{##1}{%
+           \csuse{blx@assignedrefcontextbib@#1@##1}}}%
+         \ifcsequal{blx@assignedrefcontextbib@#1@##1}
+                   {blx@assignedrefcontextbib@aux@#1@##1}
+           {}
+           {\blx@rerun@latex}}%
        \dolistcsloop{blx@defaultrefcontexts@#1}%
        \endgroup}
      \dolistloop\blx@allrefsections}
@@ -11236,8 +11236,8 @@
   % made (a bit strangely but some styles do this) inside a biblist
   % which never appear in any printed bib/biblist and therefore have no default
   % refcontext defined
-  \ifcsdef{blx@assignedrefcontextbib@\the\c@refsection @#1}
-    {\letcs\blx@refcontext@context{blx@assignedrefcontextbib@\the\c@refsection @#1}}
+  \ifcsdef{blx@assignedrefcontextbib@aux@\the\c@refsection @#1}
+    {\letcs\blx@refcontext@context{blx@assignedrefcontextbib@aux@\the\c@refsection @#1}}
     {\blx@edef@refcontext{\blx@sorting/global//global/global}}%
   % assignment via keyword list
   \ifdef\blx@assignedrefcontextkeywlist
