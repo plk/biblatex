@@ -10425,6 +10425,7 @@
   % entry key, biber won't put \keyalias{}in the .bbl on subsequent runs
   % and biblatex will report a missing citekey
   \def\do##1{%
+    \blx@xmlsanitizeafter{\def\blx@tempa}{##1}%
     % Make sure this counter exists. Sometimes it might not when using, e.g:
     % refsection=chapter and \includeonly to put in the chapters or when
     % inserting citations into table of contents
@@ -10432,7 +10433,9 @@
       {}
       {\expandafter\newcount\csname blx@sectionciteorder@\the\c@refsection\endcsname}%
     \global\advance\csname blx@sectionciteorder@\the\c@refsection\endcsname\@ne
-    \blx@auxwrite\blx@bcfout{}{\blx@xml@citekey{##1}{}{\expandafter\the\csname blx@sectionciteorder@\the\c@refsection\endcsname}}}%
+    \blx@auxwrite\blx@bcfout{}{%
+      \blx@xml@citekey{\blx@tempa}{}
+      {\expandafter\the\csname blx@sectionciteorder@\the\c@refsection\endcsname}}}%
   \dolistcsloop{blx@keyaliases@\the\c@refsection}%
   % output key counts (for \citecount sorting) if citecounter option is not false
   \ifcsundef{blx@cites@\the\c@refsection}
