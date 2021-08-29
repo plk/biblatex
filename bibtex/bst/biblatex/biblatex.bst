@@ -184,7 +184,7 @@ STRINGS  { ctrl.alphaothers ctrl.sortalphaothers ctrl.sortstr
            last.name last.hash last.year last.extra }
 
 FUNCTION {initialize} {
-  "$Revision: 3.16 $"
+  "$Revision: 3.17 $"
   #12 entry.max$ substring$
   #-3 entry.max$ substring$
   "Biblatex version: " swap$ * top$
@@ -692,10 +692,12 @@ FUNCTION {format:name:part} {
 }
 
 FUNCTION {format:name:initials} {
+  "\." "[[[DOT ACCENT]]]" str:replace
   ".-" "\bibinithyphendelim " str:replace
   ".~" "\bibinitperiod\bibinitdelim " str:replace
   ". " "\bibinitperiod\bibinitdelim " str:replace
   "." "\bibinitperiod" str:replace
+  "[[[DOT ACCENT]]]" "\." str:replace
 }
 
 FUNCTION {is.number} {
