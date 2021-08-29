@@ -1,4 +1,12 @@
 # RELEASE NOTES FOR VERSION 3.17
+- **INCOMPATIBLE CHANGE**
+  The behaviour of index-less granular xdata references to list fields has
+  changed. Before, a reference to an XDATA list field would select the
+  first element in the XDATA field list if no index was given but now this
+  will splice in all elements of the XDATA list field. To ensure the
+  previous behaviour, simply add "-1" (assuming the default value of "-"
+  for the biber 'xdatasep' option) to the end of all granaular list
+  XDATA references.
 - Added helper macros to enable calculations with non-ASCII numerals.
   This is necessary to properly support languages like Marathi.
   At the moment the 'translation' is very basic and uses a one-to-one
@@ -162,7 +170,8 @@
   `\multicitesubentryrangedelim`, `\superciterangedelim`,
   `\supercitesubentrydelim`, and `\supercitesubentryrangedelim` for
   finer control over (compressed) subentry citations in `numeric-comp`.
-- **CRITICAL CHANGE** The structure of the bibmacros in `numeric-comp`
+- **CRITICAL CHANGE**
+  The structure of the bibmacros in `numeric-comp`
   has been reworked to make it easier to customise the printed output.
   Documents that relied on patching internal bibmacros or heavily
   redefined them may have to adapt.
