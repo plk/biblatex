@@ -47,7 +47,7 @@
   Helper macros have been renamed accordingly. Limited backwards
   compatibility is in place.
 - **(Possibly) CRITICAL CHANGE**
-  `\nocitecite` and friends no longer issue an explicit `\nocite`.
+  `\notecite` and friends no longer issue an explicit `\nocite`.
   Since the commands are defined with `\DeclareCiteCommand`, they
   already issue a normal cite request.
   The additional `\nocite` from the loop code was superfluous
