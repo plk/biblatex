@@ -1,0 +1,668 @@
+\ProvidesFile{thai.lbx}
+[\abx@lbxid]
+
+\DeclareRedundantLanguages{thai}{thai}
+
+% I [[yoink]] this line since Thai use utf-8 encoding
+% Plus, I can't manage to test this due to Thai font that not printed in the output file
+\lbx@ifutfinput
+  {}
+  {\PackageError{biblatex}
+     {Thai requires UTF-8 support}
+     {The 'thai.lbx' file requires UTF-8 encoding but you
+      seem\MessageBreak to be using a different encoding.
+      This is a fatal error. I will\MessageBreak abort loading
+      thai.lbx now.}%
+   \endinput
+}
+% 35-50
+    % \textendash or hyphen, no space (same as English then)
+% 1st January-3rd Febuary
+    % \textendash or hyphen, no space (same as English then)
+% apples oranges [and] cherries
+    % no comma (but have space (noted that normally, Thai have no space between words))
+% 1. 2. 3. 4. 5. ... [Gender insensitive]
+% There's no gender. (same as English then)
+% There's no gender. (same as English then)
+%
+    % {วันที่} DD MM A.D. YYYY (or DD MM YYYY)
+    % {เดือน}MM A.D. YYYY (or MM YYYY)
+    % A.D. YYYY
+    % non-breakable, thin space
+    % 1-6 Febuary 2010, 1 Febuary-6 March 2010, 1 Febuary 2010-6 Febuary 2010
+% Noted that use [BuddistEra] instead of [Annodomini] (BE = AD + 543 yrs)
+%
+    % 31 Jan 09
+    % Jan 09
+    % YYYY
+    % non-breakable, thin space
+    % 1-6 Febuary 2010, 1 Febuary-6 March 2010, 1 Febuary 2010-6 Febuary 2010
+% Noted that use [BuddistEra] instead of [Annodomini] (BE = AD + 543 yrs)
+% There's no capitalization. (same as English then)
+% 24h time format
+% Summer 2010 (There's no such notation (Thailand also have just 3 seasons: winter summer and rainny))
+\DeclareBibliographyExtras{
+    \protected\def\bibrangedash{
+        \textendash\penalty\hyphenpenalty}% breakable dash
+    \def\finalandcomma{\addcomma}
+    \def\finalandsemicolon{\addsemicolon}
+    \protected\def\mkbibordinal#1{
+        \begingroup
+        \@tempcnta0#1\relax\number\@tempcnta
+        \@whilenum\@tempcnta>100\do{\advance\@tempcnta-100\relax}
+        \ifnum\@tempcnta>20
+            \@whilenum\@tempcnta>9\do{\advance\@tempcnta-10\relax}
+        \fi
+        \ifcase\@tempcnta th\or st\or nd\or rd\else th\fi
+        \endgroup}
+    \protected\def\mkbibmascord{\mkbibordinal}
+    \protected\def\mkbibfemord{\mkbibordinal}
+    \protected\def\mkbibneutord{\mkbibordinal}
+    \protected\def\mkbibdatelong#1#2#3{
+        \iffieldundef{#2}
+        {}
+        {\mkbibmonth{\thefield{#2}}
+            \iffieldundef{#3}
+            {\iffieldundef{#1}{}{\space}}
+            {\nobreakspace}}
+        \iffieldundef{#3}
+        {}
+        {\stripzeros{\thefield{#3}}
+            \iffieldundef{#1}{}{,\space}}
+        \iffieldbibstring{#1}
+        {\bibstring{\thefield{#1}}}
+        {\dateeraprintpre{#1}\stripzeros{\thefield{#1}}}}
+    \protected\def\mkbibdateshort#1#2#3{
+        \iffieldundef{#2}
+        {}
+        {\mkmonthzeros{\thefield{#2}}
+            \iffieldundef{#3}
+            {\iffieldundef{#1}{}{/}}
+            {/}}
+        \iffieldundef{#3}
+        {}
+        {\mkdayzeros{\thefield{#3}}
+            \iffieldundef{#1}{}{/}}
+        \iffieldbibstring{#1}
+        {\bibstring{\thefield{#1}}}
+        {\dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}}}
+    \expandafter\protected\expandafter\def\csname mkbibtime24h\endcsname#1#2#3#4{
+        \iffieldundef{#1}
+        {}
+        {\mktimezeros{\thefield{#1}}
+            \iffieldundef{#2}{}{\bibtimesep}}
+        \iffieldundef{#2}
+        {}
+        {\mktimezeros{\thefield{#2}}
+            \iffieldundef{#3}{}{\bibtimesep}}
+        \iffieldundef{#3}
+        {}
+        {\mktimezeros{\thefield{#3}}}
+        \iffieldundef{#4}{}
+        {\bibtimezonesep
+            \mkbibtimezone{\thefield{#4}}}}
+    \expandafter\protected\expandafter\def\csname mkbibtime12h\endcsname#1#2#3#4{
+        \stripzeros{\mktimehh{\thefield{#1}}}
+        \bibtimesep
+        \forcezerosmdt{\thefield{#2}}
+        \iffieldundef{#3}{}
+        {\bibtimesep
+            \forcezerosmdt{\thefield{#3}}}
+        \space
+        \ifnumless{\thefield{#1}}{12}
+        {\bibstring{am}}
+        {\bibstring{pm}}
+        \iffieldundef{#4}{}
+        {\space\bibtimezonesep
+            \parentext{\mkbibtimezone{\thefield{#4}}}}}
+    \protected\def\mkbibyeardivisiondateshort#1#2{
+        \mkbibyeardivision{\thefield{#2}}
+        \iffieldundef{#1}{}{\space}
+        \dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}}
+    \protected\def\mkbibyeardivisiondatelong#1#2{
+        \mkbibyeardivision{\thefield{#2}}
+        \iffieldundef{#1}{}{\space}
+        \dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}}
+    \savecommand\mkdaterangecomp
+    \savecommand\mkdaterangecompextra
+    \savecommand\mkdaterangeterse
+    \savecommand\mkdaterangeterseextra
+    \protected\def\mkdaterangecomp{
+        \lbx@us@mkdaterangetrunc@long{long}}
+    \protected\def\mkdaterangeterse{
+        \lbx@us@mkdaterangetrunc@short{short}}
+    \protected\def\mkdaterangecompextra{
+        \lbx@us@mkdaterangetruncextra@long{long}}
+    \protected\def\mkdaterangeterseextra{
+        \lbx@us@mkdaterangetruncextra@short{short}}
+}
+
+
+\UndeclareBibliographyExtras{
+    \restorecommand\mkdaterangecomp
+    \restorecommand\mkdaterangecompextra
+    \restorecommand\mkdaterangeterse
+    \restorecommand\mkdaterangeterseextra
+}
+
+\DeclareBibliographyStrings{
+    bibliography     = {{บรรณานุกรม}{บรรณานุกรม}},
+    references       = {{อ้างอิง}{อ้างอิง}},
+    shorthands       = {{คำอธิบายสัญลักษณ์และคำย่อ}{สัญลลักษณ์และคำย่อ}},
+    editor           = {{บรรณาธิการ}{บ\adddot ก\adddot}},
+    editors          = {{บรรณาธิการ}{บ\adddot ก\adddot}},
+    compiler         = {{ผู้รวบรวม}{ผู้รวบรวม}},
+    compilers        = {{ผู้รวบรวม}{ผู้รวบรวม}},
+    redactor         = {{ผู้เรียบเรียง}{ผู้เรียบเรียง}},
+    redactors        = {{ผู้เรียบเรียง}{ผู้เรียบเรียง}},
+    % reviser          = {{}{}}, %FIXME: missing
+    % revisers         = {{}{}}, %FIXME: missing
+    % founder          = {{}{}}, %FIXME: missing
+    % founders         = {{}{}}, %FIXME: missing
+    % continuator      = {{}{}}, %FIXME: missing
+    % continuators     = {{}{}}, %FIXME: missing
+    % collaborator     = {{}{}}, %FIXME: missing
+    % collaborators    = {{}{}}, %FIXME: missing
+    translator       = {{ผู้แปล}{แปล}},
+    translators      = {{ผู้แปล}{แปล}},
+    % commentator      = {{}{}}, %FIXME: missing
+    % commentators     = {{}{}}, %FIXME: missing
+    % annotator        = {{}{}}, %FIXME: missing
+    % annotators       = {{}{}}, %FIXME: missing
+    % commentary       = {{}{}}, %FIXME: missing
+    % annotations      = {{}{}}, %FIXME: missing
+    introduction     = {{บทนำ}{บทนำ}},
+    foreword         = {{คำนำ}{คำนำ}},
+    afterword        = {{บันทึกผู้แต่ง}{บันทึกผู้แต่ง}},
+    % editortr         = {{}{}}, %FIXME: missing
+    % editorstr        = {{}{}}, %FIXME: missing
+    % editorco         = {{}{}}, %FIXME: missing
+    % editorsco        = {{}{}}, %FIXME: missing
+    % editoran         = {{}{}}, %FIXME: missing
+    % editorsan        = {{}{}}, %FIXME: missing
+    % editorin         = {{}{}}, %FIXME: missing
+    % editorsin        = {{}{}}, %FIXME: missing
+    % editorfo         = {{}{}}, %FIXME: missing
+    % editorsfo        = {{}{}}, %FIXME: missing
+    % editoraf         = {{}{}}, %FIXME: missing
+    % editorsaf        = {{}{}}, %FIXME: missing
+    % editortrco       = {{}{}}, %FIXME: missing
+    % editorstrco      = {{}{}}, %FIXME: missing
+    % editortran       = {{}{}}, %FIXME: missing
+    % editorstran      = {{}{}}, %FIXME: missing
+    % editortrin       = {{}{}}, %FIXME: missing
+    % editorstrin      = {{}{}}, %FIXME: missing
+    % editortrfo       = {{}{}}, %FIXME: missing
+    % editorstrfo      = {{}{}}, %FIXME: missing
+    % editortraf       = {{}{}}, %FIXME: missing
+    % editorstraf      = {{}{}}, %FIXME: missing
+    % editorcoin       = {{}{}}, %FIXME: missing
+    % editorscoin      = {{}{}}, %FIXME: missing
+    % editorcofo       = {{}{}}, %FIXME: missing
+    % editorscofo      = {{}{}}, %FIXME: missing
+    % editorcoaf       = {{}{}}, %FIXME: missing
+    % editorscoaf      = {{}{}}, %FIXME: missing
+    % editoranin       = {{}{}}, %FIXME: missing
+    % editorsanin      = {{}{}}, %FIXME: missing
+    % editoranfo       = {{}{}}, %FIXME: missing
+    % editorsanfo      = {{}{}}, %FIXME: missing
+    % editoranaf       = {{}{}}, %FIXME: missing
+    % editorsanaf      = {{}{}}, %FIXME: missing
+    % editortrcoin     = {{}{}}, %FIXME: missing
+    % editorstrcoin    = {{}{}}, %FIXME: missing
+    % editortrcofo     = {{}{}}, %FIXME: missing
+    % editorstrcofo    = {{}{}}, %FIXME: missing
+    % editortrcoaf     = {{}{}}, %FIXME: missing
+    % editorstrcoaf    = {{}{}}, %FIXME: missing
+    % editortranin     = {{}{}}, %FIXME: missing
+    % editorstranin    = {{}{}}, %FIXME: missing
+    % editortranfo     = {{}{}}, %FIXME: missing
+    % editorstranfo    = {{}{}}, %FIXME: missing
+    % editortranaf     = {{}{}}, %FIXME: missing
+    % editorstranaf    = {{}{}}, %FIXME: missing
+    % translatorco     = {{}{}}, %FIXME: missing
+    % translatorsco    = {{}{}}, %FIXME: missing
+    % translatoran     = {{}{}}, %FIXME: missing
+    % translatorsan    = {{}{}}, %FIXME: missing
+    % translatorin     = {{}{}}, %FIXME: missing
+    % translatorsin    = {{}{}}, %FIXME: missing
+    % translatorfo     = {{}{}}, %FIXME: missing
+    % translatorsfo    = {{}{}}, %FIXME: missing
+    % translatoraf     = {{}{}}, %FIXME: missing
+    % translatorsaf    = {{}{}}, %FIXME: missing
+    % translatorcoin   = {{}{}}, %FIXME: missing
+    % translatorscoin  = {{}{}}, %FIXME: missing
+    % translatorcofo   = {{}{}}, %FIXME: missing
+    % translatorscofo  = {{}{}}, %FIXME: missing
+    % translatorcoaf   = {{}{}}, %FIXME: missing
+    % translatorscoaf  = {{}{}}, %FIXME: missing
+    % translatoranin   = {{}{}}, %FIXME: missing
+    % translatorsanin  = {{}{}}, %FIXME: missing
+    % translatoranfo   = {{}{}}, %FIXME: missing
+    % translatorsanfo  = {{}{}}, %FIXME: missing
+    % translatoranaf   = {{}{}}, %FIXME: missing
+    % translatorsanaf  = {{}{}}, %FIXME: missing
+    % organizer        = {{}{}}, %FIXME: missing
+    % organizers       = {{}{}}, %FIXME: missing
+    % byorganizer      = {{}{}}, %FIXME: missing
+    byauthor         = {{เขียนโดย}{เขียนโดย}}, %FIXME: unsure
+    % byeditor         = {{}{}}, %FIXME:missing
+    bycompiler       = {{รวบรวมโดย}{รวบรวมโดย}}, %FIXME: unsure
+    byredactor       = {{เรียบเรียงโดย}{เรียบเรียงโดย}}, %FIXME: unsure
+    % byreviser        = {{}{}}, %FIXME: missing
+    % byreviewer       = {{}{}}, %FIXME: missing
+    % byfounder        = {{}{}}, %FIXME: missing
+    % bycontinuator    = {{}{}}, %FIXME: missing
+    % bycollaborator   = {{}{}}, %FIXME: missing
+    bytranslator     = {{แปล\lbx@lfromlang โดย}{แปล\lbx@sfromlang โดย}},
+    % bycommentator    = {{}{}}, %FIXME: missing
+    % byannotator      = {{}{}}, %FIXME: missing
+    % withcommentator  = {{}{}}, %FIXME: missing
+    % withannotator    = {{}{}}, %FIXME: missing
+    % withintroduction = {{}{}}, %FIXME: missing
+    % withforeword     = {{}{}}, %FIXME: missing
+    % withafterword    = {{}{}}, %FIXME: missing
+    % byeditortr       = {{}{}}, %FIXME: missing
+    % byeditorco       = {{}{}}, %FIXME: missing
+    % byeditoran       = {{}{}}, %FIXME: missing
+    % byeditorin       = {{}{}}, %FIXME: missing
+    % byeditorfo       = {{}{}}, %FIXME: missing
+    % byeditoraf       = {{}{}}, %FIXME: missing
+    % byeditortrco     = {{}{}}, %FIXME: missing
+    % byeditortran     = {{}{}}, %FIXME: missing
+    % byeditortrin     = {{}{}}, %FIXME: missing
+    % byeditortrfo     = {{}{}}, %FIXME: missing
+    % byeditortraf     = {{}{}}, %FIXME: missing
+    % byeditorcoin     = {{}{}}, %FIXME: missing
+    % byeditorcofo     = {{}{}}, %FIXME: missing
+    % byeditorcoaf     = {{}{}}, %FIXME: missing
+    % byeditoranin     = {{}{}}, %FIXME: missing
+    % byeditoranfo     = {{}{}}, %FIXME: missing
+    % byeditoranaf     = {{}{}}, %FIXME: missing
+    % byeditortrcoin   = {{}{}}, %FIXME: missing
+    % byeditortrcofo   = {{}{}}, %FIXME: missing
+    % byeditortrcoaf   = {{}{}}, %FIXME: missing
+    % byeditortranin   = {{}{}}, %FIXME: missing
+    % byeditortranfo   = {{}{}}, %FIXME: missing
+    % byeditortranaf   = {{}{}}, %FIXME: missing
+    % bytranslatorco   = {{}{}}, %FIXME: missing
+    % bytranslatoran   = {{}{}}, %FIXME: missing
+    % bytranslatorin   = {{}{}}, %FIXME: missing
+    % bytranslatorfo   = {{}{}}, %FIXME: missing
+    % bytranslatoraf   = {{}{}}, %FIXME: missing
+    % bytranslatorcoin = {{}{}}, %FIXME: missing
+    % bytranslatorcofo = {{}{}}, %FIXME: missing
+    % bytranslatorcoaf = {{}{}}, %FIXME: missing
+    % bytranslatoranin = {{}{}}, %FIXME: missing
+    % bytranslatoranfo = {{}{}}, %FIXME: missing
+    % bytranslatoranaf = {{}{}}, %FIXME: missing
+    and              = {{และ}{และ}},
+    andothers        = {{และคนอื่น ๆ}{และคนอื่น ๆ}}, %FIXME: unsure
+    andmore          = {{และคณะ}{และคณะ}}, %FIXME: unsure
+    volume           = {{ปี}{ปี}}, %FIXME: unsure
+    volumes          = {{ปี}{ปี}}, %FIXME: unsure
+    involumes        = {{ใน}{ใน}}, %FIXME: unsure
+    jourvol          = {{ฉบับ}{ฉบับ}}, %FIXME: unsure
+    % jourser          = {{}{}}, %FIXME: missing
+    book             = {{หนังสือ}{หนังสือ}},
+    part             = {{ส่วน}{ส่วน}}, %FIXME: unsure
+    issue            = {{ฉบับ}{ฉบับ}}, %FIXME: unsure
+    % newseries        = {{}{}}, %FIXME: missing
+    % oldseries        = {{}{}}, %FIXME: missing
+    edition          = {{พิมพ์ครั้งที่}{ed\adddot}},
+    % reprint          = {{}{}}, %FIXME: missing
+    % reprintof        = {{}{}}, %FIXME: missing
+    % reprintas        = {{}{}}, %FIXME: missing
+    % reprintfrom      = {{}{}}, %FIXME: missing
+    % reviewof         = {{}{}}, %FIXME: missing
+    % translationof    = {{}{}}, %FIXME: missing
+    translationas    = {{แปลเป็น}{แปลเป็น}},
+    translationfrom  = {{แปลจาก}{แปลจาก}},
+    % origpubas        = {{}{}}, %FIXME: missing
+    % origpubin        = {{}{}}, %FIXME: missing
+    astitle          = {{เป็น}{เป็น}}, %FIXME: unsure
+    bypublisher      = {{จัดพิมพ์โดย}{โดย}},
+    nodate           = {{ไม่ปรากฎปีพิมพ์}{ม\adddot ป\adddot ป\adddot}},
+    page             = {{หน้า}{{}น\adddot}},
+    pages            = {{หน้า}{{}น\adddot}},
+    column           = {{คอลัมภ์}{คอลัมภ์}},
+    columns          = {{คอลัมภ์}{คอลัมภ์}},
+    line             = {{บรรทัด}{บรรทัด}},
+    lines            = {{บรรทัด}{บรรทัด}},
+    % verse            = {{}{}}, %FIXME: missing
+    % verses           = {{}{}}, %FIXME: missing
+    section          = {{ตอน}{ตอน}},
+    sections         = {{ตอน}{ตอน}},
+    paragraph        = {{ย่อหน้า}{ย่อหน้า}},
+    paragraphs       = {{ย่อหน้า}{ย่อหน้า}},
+    pagetotal        = {{หน้า}{น\adddot}},
+    pagetotals       = {{หน้า}{น\adddot}},
+    columntotal      = {{คอลัมภ์}{คอลัมภ์}},
+    columntotals     = {{คอลัมภ์}{คอลัมภ์}},
+    linetotal        = {{บรรทัด}{บรรทัด}},
+    linetotals       = {{บรรทัด}{บรรทัด}},
+    % versetotal       = {{}{}}, %FIXME: missing
+    % versetotals      = {{}{}}, %FIXME: missing
+    sectiontotal     = {{ตอน}{ตอน}}, %FIXME: unsure
+    sectiontotals    = {{ตอน}{ตอน}}, %FIXME: unsure
+    paragraphtotal   = {{ย่อหน้า}{ย่อหน้า}},
+    paragraphtotals  = {{ย่อหน้า}{ย่อหน้า}},
+    in               = {{ใน}{ใน}},
+    inseries         = {{ใน}{ใน}},
+    ofseries         = {{ของ}{ของ}},
+    number           = {{ฉบับที่}{ฉบับที่}},
+    chapter          = {{บทที่}{บทที่}},
+    bathesis         = {{ปริญญานิพนธ์ปริญญาบัณฑิต}{ปริญญานิพนธ์ปริญญาบัณฑิต}},
+    mathesis         = {{วิทยานิพนธ์ปริญญามหาบัณฑิต}{วิทยานิพนธ์ปริญญามหาบัณฑิต}},
+    phdthesis        = {{ปริญญานิพนธ์ปริญญาดุษฎีบัณฑิต}{ปริญญานิพนธ์ปริญญาดุษฎีบัณฑิต}},
+    % candthesis       = {{}{}}, %FIXME: missing
+    resreport        = {{รายงานผลการวิจัย}{รายงานผลการวิจัย}},
+    techreport       = {{รายงานทางวิชาการ}{รายงานทางวิชาการ}},
+    software         = {{ซอฟต์แวร์คอมพิวเตอร์}{ซอฟต์แวร์คอมพิวเตอร์}},
+    datacd           = {{ซีดีรอม}{ซีดีรอม}},
+    audiocd          = {{ซีดีเสียง}{ซีดีเสียง}},
+    version          = {{รุ่น}{รุ่น}}, %FIXME: unsure
+    url              = {{ที่อยู่}{ที่อยู่}},
+    urlfrom          = {{สืบค้นจาก}{สืบค้นจาก}},
+    urlseen          = {{สืบค้นเมื่อ}{สืบค้นเมื่อ}},
+    inpreparation    = {{กำลังเตรียมการ}{กำลังเตรียมการ}}, %FIXME: unsure
+    submitted        = {{ส่งเพื่อตีพิมพ์แล้ว}{ส่งเพื่อตีพิมพ์แล้ว}}, %FIXME: unsure
+    forthcoming      = {{กำลังจะตีพิมพ์}{กำลังจะตีพิมพ์}}, %FIXME: unsure
+    inpress          = {{รอตีพิมพ์}{รอตีพิมพ์}},
+    prepublished     = {{ตีพิมพ์ล่วงหน้า}{ตีพิมพ์ล่วงหน้า}}, %FIXME: unsure
+    citedas          = {{จากนี้ไปเรียกว่า}{จากนี้ไปเรียกว่า}},
+    thiscite         = {{โดยเฉพาะ}{โดยเฉพาะ}},
+    seenote          = {{ดูหมายเหตุ}{ดูหมายเหตุ}},
+    quotedin         = {{อ้างใน}{อ้างใน}},
+    idem             = {{ผู้แต่งเดียวกัน}{ผู้แต่งเดียวกัน}},
+    idemsm           = {{ผู้แต่งเดียวกัน}{ผู้แต่งเดียวกัน}},
+    idemsf           = {{ผู้แต่งเดียวกัน}{ผู้แต่งเดียวกัน}},
+    idemsn           = {{ผู้แต่งเดียวกัน}{ผู้แต่งเดียวกัน}},
+    idempm           = {{ผู้แต่งเดียวกัน}{ผู้แต่งเดียวกัน}},
+    idempf           = {{ผู้แต่งเดียวกัน}{ผู้แต่งเดียวกัน}},
+    idempn           = {{ผู้แต่งเดียวกัน}{ผู้แต่งเดียวกัน}},
+    idempp           = {{ผู้แต่งเดียวกัน}{ผู้แต่งเดียวกัน}},
+    ibidem           = {{เรื่องเดียวกัน}{เรื่องเดียวกัน}},
+    opcit            = {{เรื่องเดิม}{เรื่องเดิม}},
+    loccit           = {{เรื่องเดียวกัน หน้าเดียวกัน}{เรื่องเดียวกัน หน้าเดียวกัน}},
+    confer           = {{เปรียบเทียบกับ}{เปรียบเทียบกับ}}, %FIXME: unsure
+    sequens          = {{หน้าต่อไป}{หน้าต่อไป}}, %FIXME: unsure
+    sequentes        = {{หน้าต่อ ๆ ไป}{หน้าต่อ ๆ ไป}}, %FIXME: unsure
+    passim           = {{ปรากฎอยู่หลายที่}{ปรากฎอยู่หลายที่}}, %FIXME: unsure
+    see              = {{ดู}{ดู}},
+    seealso          = {{ดูเพิ่มเติม}{ดูเพิ่มเติม}}, %FIXME: unsure
+    backrefpage      = {{อ้างถึงในหน้า}{อ้างถึงในหน้า}}, %FIXME: unsure
+    backrefpages     = {{อ้างถึงในหน้า}{อ้างถึงในหน้า}}, %FIXME: unsure
+    january          = {{มกราคม}{ม\adddot ค\adddot}},
+    february         = {{กุมภาพันธ์}{ก\adddot พ\adddot}},
+    march            = {{มีนาคม}{มี\adddot ย\adddot}},
+    april            = {{เมษายน}{เม\adddot ย\adddot}},
+    may              = {{พฤษพาคม}{พ\adddot ค\adddot}},
+    june             = {{มิถุนายน}{มิ\adddot ย\adddot}},
+    july             = {{กรกฎาคม}{ก\adddot ค\adddot}},
+    august           = {{สิงหาคม}{ส\adddot ค\adddot}},
+    september        = {{กันยายน}{ก\adddot ย\adddot}},
+    october          = {{ตุลาคม}{ต\adddot ค\adddot}},
+    november         = {{พฤษจิกายน}{พ\adddot ย\adddot}},
+    december         = {{ธันวาคม}{ธ\adddot ค\adddot}},
+    langamerican     = {{ภาษาอเมริกัน}{ภาษาอเมริกัน}},
+    langbasque       = {{ภาษาบาสก์}{ภาษาบาสก์}},
+    langbrazilian    = {{ภาษาบราซิล}{ภาษาบราซิล}},
+    langbulgarian    = {{ภาษาบัลแกเรีย}{ภาษาบัลแกเรีย}},
+    langcatalan      = {{ภาษาคาตาลัน}{ภาษาคาตาลัน}},
+    langcroatian     = {{ภาษาโครเอเชีย}{ภาษาโครเอเชีย}},
+    langczech        = {{ภาษาเช็ค}{ภาษาเช็ค}},
+    langdanish       = {{ภาษาเดนมาร์ก}{ภาษาเดนมาร์ก}},
+    langdutch        = {{ภาษาดัทช์}{ภาษาดัทช์}},
+    langenglish      = {{ภาษาอังกฤษ}{ภาษาอังกฤษ}},
+    langestonian     = {{ภาษาเอสโตเนีย}{ภาษาเอสโตเนีย}},
+    langfinnish      = {{ภาษาฟินแลนด์}{ภาษาฟินแลนด์}},
+    langfrench       = {{ภาษาฝรั่งเศษ}{ภาษาฝรั่งเศษ}},
+    langgalician     = {{ภาษากาลิเซียน}{ภาษากาลิเซียน}},
+    langgerman       = {{ภาษาเยอรมัน}{ภาษาเยอรมัน}},
+    langgreek        = {{ภาษากรีก}{ภาษากรีก}},
+    langhungarian    = {{ภาษาฮังการี}{ภาษาฮังการี}},
+    langitalian      = {{ภาษาอิตาลี}{ภาษาอิตาลี}},
+    langjapanese     = {{ภาษาญี่ปุ่น}{ภาษาญี่ปุ่น}},
+    langlatin        = {{ภาษาละติน}{ภาษาละติน}},
+    langlatvian      = {{ภาษาลัตเวีย}{ภาษาลัตเวีย}},
+    langlithuanian   = {{ภาษาลิทัวเนีย}{ภาษาลิทัวเนีย}},
+    langmarathi      = {{ภาษามราฐิ}{ภาษามราฐิ}},
+    langnorwegian    = {{ภาษานอร์เวย์}{ภาษานอร์เวย์}},
+    langpolish       = {{ภาษาโปแลนด์}{ภาษาโปแลนด์}},
+    langportuguese   = {{ภาษาโปรตุเกส}{ภาษาโปรตุเกส}},
+    langrussian      = {{ภาษารัสเซีย}{ภาษารัสเซีย}},
+    langserbian      = {{ภาษาเซอร์เบีย}{ภาษาเซอร์เบีย}},
+    langslovak       = {{ภาษาสโลวัก}{ภาษาสโลวัก}},
+    langslovene      = {{ภาษาสโลวีเนีย}{ภาษาสโลวีเนีย}},
+    langspanish      = {{ภาษาสเปน}{ภาษาสเปน}},
+    langswedish      = {{ภาษาสวีเดน}{ภาษาสวีเดน}},
+    langturkish      = {{ภาษาตุรกี}{ภาษาตุรกี}},
+    % langthai         = {{ภาษาไทย}{ภาษาไทย}},
+    langukrainian    = {{ภาษายูเครน}{ภาษายูเครน}},
+    fromamerican     = {{จากภาษาอเมริกัน}{จากภาษาอเมริกัน}},
+    frombasque       = {{จากภาษาบาสก์}{จากภาษาบาสก์}},
+    frombrazilian    = {{จากภาษาบราซิล}{จากภาษาบราซิล}},
+    frombulgarian    = {{จากภาษาบัลแกเรีย}{จากภาษาบัลแกเรีย}},
+    fromcatalan      = {{จากภาษาคาตาลัน}{จากภาษาคาตาลัน}},
+    fromcroatian     = {{จากภาษาโครเอเชีย}{จากภาษาโครเอเชีย}},
+    fromczech        = {{จากภาษาเช็ค}{จากภาษาเช็ค}},
+    fromdanish       = {{จากภาษาเดนมาร์ก}{จากภาษาเดนมาร์ก}},
+    fromdutch        = {{จากภาษาดัทช์}{จากภาษาดัทช์}},
+    fromenglish      = {{จากภาษาอังกฤษ}{จากภาษาอังกฤษ}},
+    fromestonian     = {{จากภาษาเอสโตเนีย}{จากภาษาเอสโตเนีย}},
+    fromfinnish      = {{จากภาษาฟินแลนด์}{จากภาษาฟินแลนด์}},
+    fromfrench       = {{จากภาษาฝรั่งเศษ}{จากภาษาฝรั่งเศษ}},
+    fromgalician     = {{จากภาษากาลิเซียน}{จากภาษากาลิเซียน}},
+    fromgerman       = {{จากภาษาเยอรมัน}{จากภาษาเยอรมัน}},
+    fromgreek        = {{จากภาษากรีก}{จากภาษากรีก}},
+    fromhungarian    = {{จากภาษาฮังการี}{จากภาษาฮังการี}},
+    fromitalian      = {{จากภาษาอิตาลี}{จากภาษาอิตาลี}},
+    fromjapanese     = {{จากภาษาญี่ปุ่น}{จากภาษาญี่ปุ่น}},
+    fromlatin        = {{จากภาษาละติน}{จากภาษาละติน}},
+    fromlatvian      = {{จากภาษาลัตเวีย}{จากภาษาลัตเวีย}},
+    fromlithuanian   = {{จากภาษาลิทัวเนีย}{จากภาษาลิทัวเนีย}},
+    frommarathi      = {{จากภาษามราฐิ}{จากภาษามราฐิ}},
+    fromnorwegian    = {{จากภาษานอร์เวย์}{จากภาษานอร์เวย์}},
+    frompolish       = {{จากภาษาโปแลนด์}{จากภาษาโปแลนด์}},
+    fromportuguese   = {{จากภาษาโปรตุเกส}{จากภาษาโปรตุเกส}},
+    fromrussian      = {{จากภาษารัสเซีย}{จากภาษารัสเซีย}},
+    fromserbian      = {{จากภาษาเซอร์เบีย}{จากภาษาเซอร์เบีย}},
+    fromslovak       = {{จากภาษาสโลวัก}{จากภาษาสโลวัก}},
+    fromslovene      = {{จากภาษาสโลวีเนีย}{จากภาษาสโลวีเนีย}},
+    fromspanish      = {{จากภาษาสเปน}{จากภาษาสเปน}},
+    fromswedish      = {{จากภาษาสวีเดน}{จากภาษาสวีเดน}},
+    fromturkish      = {{จากภาษาตุรกี}{จากภาษาตุรกี}},
+    % fromthai         = {{จากภาษาไทย}{จากภาษาไทย}},
+    fromukrainian    = {{จากภาษายูเครน}{จากภาษายูเครน}},
+    countryde        = {{เยอรมัน}{DE}},
+    countryeu        = {{สหภาพยุโรป}{EU}},
+    countryep        = {{รัฐสภายุโรป}{EP}},
+    countryfr        = {{ฝรั่งเศษ}{FR}},
+    countryuk        = {{สหราชอาณาจักร}{UK}},
+    countryus        = {{สหรัฐอเมริกา}{US}},
+    patent           = {{สิทธิบัตร}{สิทธิบัตร}},
+    patentde         = {{สิทธิบัตรเยอรมัน}{สิทธิบัตรเยอรมัน}},
+    patenteu         = {{สิทธิบัตรยุโรป}{สิทธิบัตรยุโรป}},
+    patentfr         = {{สิทธิบัตรฝรั่งเศษ}{สิทธิบัตรฝรั่งเศษ}},
+    patentuk         = {{สิทธิบัตรอังกฤษ}{สิทธิบัตรอังกฤษ}},
+    patentus         = {{สิทธิบัตรสหรัฐอเมริกา}{สิทธิบัตรสหรัฐอเมริกา}},
+    % patreq           = {{}{}}, %FIXME: missing
+    % patreqde         = {{}{}}, %FIXME: missing
+    % patreqeu         = {{}{}}, %FIXME: missing
+    % patreqfr         = {{}{}}, %FIXME: missing
+    % patrequk         = {{}{}}, %FIXME: missing
+    % patrequs         = {{}{}}, %FIXME: missing
+    file             = {{เอกสาร}{เอกสาร}}, %FIXME: unsure
+    library          = {{ห้องสมุด}{ห้องสมุด}},
+    abstract         = {{บทคัดย่อ}{บทคัดย่อ}},
+    % annotation       = {{}{}}, %FIXME: missing
+    commonera        = {{สากลศักราช}{ส\adddot ศ\adddot}},
+    beforecommonera  = {{ก่อนสากลศักราช}{ก่อน ส\adddot ศ\adddot}},
+    % buddistera        = {{พุทธศักราช}{พ\adddot ศ\adddot}},
+    % beforebuddistera  = {{ก่อนพุทธศักราช}{ก่อน พ\adddot ศ\adddot}},
+    annodomini       = {{คริสต์ศักราช}{ค\adddot ศ\adddot}},
+    beforechrist     = {{ก่อนคริสตกาล}{ก่อน ค\adddot ศ\adddot}},
+    circa            = {{ประมาณ}{ประมาณ}},
+    spring           = {{ฤดูใบไม้ผลิ}{ฤดูใบไม้ผลิ}},
+    summer           = {{ฤดูร้อน}{ฤดูร้อน}},
+    autumn           = {{ฤดูใบไม้ร่วง}{ฤดูใบไม้ร่วง}},
+    winter           = {{ฤดูหนาว}{ฤดูหนาว}},
+    springN          = {{ฤดูใบไม้ผลิ (ซีกโลกเหนือ)}{ฤดูใบไม้ผลิ (ซีกโลกเหนือ)}},
+    summerN          = {{ฤดูร้อน (ซีกโลกเหนือ)}{ฤดูร้อน (ซีกโลกเหนือ)}},
+    autumnN          = {{ฤดูใบไม้ร่วง (ซีกโลกเหนือ)}{ฤดูใบไม้ร่วง (ซีกโลกเหนือ)}},
+    winterN          = {{ฤดูหนาว (ซีกโลกเหนือ)}{ฤดูหนาว (ซีกโลกเหนือ)}},
+    springS          = {{ฤดูใบไม้ผลิ (ซีกโลกใต้)}{ฤดูใบไม้ผลิ (ซีกโลกใต้)}},
+    summerS          = {{ฤดูร้อน (ซีกโลกใต้)}{ฤดูร้อน (ซีกโลกใต้)}},
+    autumnS          = {{ฤดูใบไม้ร่วง (ซีกโลกใต้)}{ฤดูใบไม้ร่วง (ซีกโลกใต้)}},
+    winterS          = {{ฤดูหนาว (ซีกโลกใต้)}{ฤดูหนาว (ซีกโลกใต้)}},
+    Q1               = {{ไตรมาสที่ 1}{ไตรมาสที่ 1}},
+    Q2               = {{ไตรมาสที่ 2}{ไตรมาสที่ 2}},
+    Q3               = {{ไตรมาสที่ 3}{ไตรมาสที่ 3}},
+    Q4               = {{ไตรมาสที่ 4}{ไตรมาสที่ 4}},
+    % QD1              = {{}{}}, $FIXME: misssing
+    % QD2              = {{}{}}, %FIXME: missing
+    % QD3              = {{}{}}, %FIXME: missing
+    S1               = {{ภาคเรียนที่ 1}{ภาคเรียนที่ 1}}, %FIXME: unsure
+    S2               = {{ภาคเรียนที่ 2}{ภาคเรียนที่ 2}}, %FIXME: unsure
+    am               = {{ก่อนเที่ยง}{AM}},
+    pm               = {{หลังเที่ยง}{PM}},
+}
+
+\protected\gdef\lbx@us@mkdaterangetrunc@long#1#2{
+    \blx@if@printanytimes{#2}
+    {\mkdaterangefull{#1}{#2}}
+    {\lbx@us@mkdaterangetrunc@long@i{#1}{#2}}}
+
+\protected\gdef\lbx@us@mkdaterangetrunc@long@i#1#2{
+    \begingroup
+    \blx@metadateinfo{#2}
+    \iffieldundef{#2year}
+    {\blx@nounit}
+    {\printtext[{#2date}]{
+            \datecircaprint
+            \iffieldundef{#2yeardivision}
+            {\ifdateyearsequal{#2}{#2end}
+                {\csuse{mkbibdate#1}{}{#2month}{#2day}}
+                {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}    \dateeraprint{#2year}}}
+            {\ifdateyearsequal{#2}{#2end}
+                {\csuse{mkbibyeardivisiondate#1}{}{#2yeardivision}}
+                {\csuse{mkbibyeardivisiondate#1}{#2year}{#2yeardivision}    \dateeraprint{#2year}}}
+            \dateuncertainprint
+            \iffieldundef{#2endyear}
+            {}
+            {\iffieldequalstr{#2endyear}{}
+                {\mbox{\bibdaterangesep}}
+                {\bibdaterangesep
+                    \enddatecircaprint
+                    \iffieldundef{#2endyeardivision}
+                    {\ifdateyearsequal{#2}{#2end}
+                        {\iffieldsequal{#2month}{#2endmonth}
+                            {\csuse{mkbibdate#1}{#2endyear}{}{#2endday}}
+                            {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}}
+                        {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}}
+                    {\csuse{mkbibyeardivisiondate#1}{#2endyear}{#2endyeardivision}}    \enddateuncertainprint
+                    \dateeraprint{#2endyear}}}}}
+    \endgroup}
+
+\protected\gdef\lbx@us@mkdaterangetrunc@short#1#2{
+    \blx@if@printanytimes{#2}
+    {\mkdaterangefull{#1}{#2}}
+    {\lbx@us@mkdaterangetrunc@short@i{#1}{#2}}}
+
+\protected\gdef\lbx@us@mkdaterangetrunc@short@i#1#2{
+    \begingroup
+    \blx@metadateinfo{#2}
+    \iffieldundef{#2year}
+    {\blx@nounit}
+    {\printtext[{#2date}]{
+            \datecircaprint
+            \iffieldundef{#2yeardivision}
+            {\ifdateyearsequal{#2}{#2end}
+                {\csuse{mkbibdate#1}{}{#2month}{#2day}}
+                {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}    \dateeraprint{#2year}}}
+            {\ifdateyearsequal{#2}{#2end}
+                {\csuse{mkbibyeardivisiondate#1}{}{#2yeardivision}}
+                {\csuse{mkbibyeardivisiondate#1}{#2year}{#2yeardivision}    \dateeraprint{#2year}}}
+            \dateuncertainprint
+            \iffieldundef{#2endyear}
+            {}
+            {\iffieldequalstr{#2endyear}{}
+                {\mbox{\bibdaterangesep}}
+                {\bibdaterangesep
+                    \enddatecircaprint
+                    \iffieldundef{#2endyeardivision}
+                    {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}
+                    {\csuse{mkbibyeardivisiondate#1}{#2endyear}{#2endyeardivision}}    \enddateuncertainprint
+                    \dateeraprint{#2endyear}}}}}
+    \endgroup}
+
+\protected\gdef\lbx@us@mkdaterangetruncextra@long#1#2{
+    \blx@if@printanytimes{#2}
+    {\mkdaterangefullextra{#1}{#2}}
+    {\lbx@us@mkdaterangetruncextra@long@i{#1}{#2}}}
+
+\protected\gdef\lbx@us@mkdaterangetruncextra@long@i#1#2{
+    \begingroup
+    \blx@metadateinfo{#2}
+    \iffieldundef{#2year}
+    {\blx@nounit}
+    {\printtext[{#2date}]{
+            \datecircaprint
+            \iffieldundef{#2yeardivision}
+            {\ifdateyearsequal{#2}{#2end}
+                {\csuse{mkbibdate#1}{}{#2month}{#2day}}
+                {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}    \dateeraprint{#2year}}}
+            {\ifdateyearsequal{#2}{#2end}
+                {\csuse{mkbibyeardivisiondate#1}{}{#2yeardivision}}
+                {\csuse{mkbibyeardivisiondate#1}{#2year}{#2yeardivision}    \dateeraprint{#2year}}}
+            \dateuncertainprint
+            \iffieldundef{#2endyear}
+            {\printfield{extradate}}
+            {\iffieldequalstr{#2endyear}{}
+                {\printfield{extradate}    \mbox{\bibdaterangesep}}
+                {\bibdaterangesep
+                    \enddatecircaprint
+                    \iffieldundef{#2endyeardivision}
+                    {\ifdateyearsequal{#2}{#2end}
+                        {\iffieldsequal{#2month}{#2endmonth}
+                            {\csuse{mkbibdate#1}{#2endyear}{}{#2endday}}
+                            {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}}
+                        {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}}
+                    {\csuse{mkbibyeardivisiondate#1}{#2endyear}{#2endyeardivision}}    \printfield{extradate}    \enddateuncertainprint
+                    \dateeraprint{#2endyear}}}}}
+    \endgroup}
+
+\protected\gdef\lbx@us@mkdaterangetruncextra@short#1#2{
+    \blx@if@printanytimes{#2}
+    {\mkdaterangefullextra{#1}{#2}}
+    {\lbx@us@mkdaterangetruncextra@short@i{#1}{#2}}}
+
+\protected\gdef\lbx@us@mkdaterangetruncextra@short@i#1#2{
+    \begingroup
+    \blx@metadateinfo{#2}
+    \iffieldundef{#2year}
+    {\blx@nounit}
+    {\printtext[{#2date}]{
+            \datecircaprint
+            \iffieldundef{#2yeardivision}
+            {\ifdateyearsequal{#2}{#2end}
+                {\csuse{mkbibdate#1}{}{#2month}{#2day}}
+                {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}    \dateeraprint{#2year}}}
+            {\ifdateyearsequal{#2}{#2end}
+                {\csuse{mkbibyeardivisiondate#1}{}{#2yeardivision}}
+                {\csuse{mkbibyeardivisiondate#1}{#2year}{#2yeardivision}    \dateeraprint{#2year}}}
+            \dateuncertainprint
+            \iffieldundef{#2endyear}
+            {\printfield{extradate}}
+            {\iffieldequalstr{#2endyear}{}
+                {\printfield{extradate}    \mbox{\bibdaterangesep}}
+                {\bibdaterangesep
+                    \enddatecircaprint
+                    \iffieldundef{#2endyeardivision}
+                    {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}
+                    {\csuse{mkbibyeardivisiondate#1}{#2endyear}{#2endyeardivision}}    \printfield{extradate}    \enddateuncertainprint
+                    \dateeraprint{#2endyear}}}}}
+    \endgroup}
+
+\endinput
