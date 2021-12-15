@@ -64,8 +64,10 @@
 \providecommand\IfFormatAtLeastTF{\@ifl@t@r\fmtversion}
 \IfFormatAtLeastTF{2020/10/01}
   {\def\blx@AfterPreamble{\AddToHook{begindocument}[biblatex/afterpreamble]}%
-   \DeclareHookRule{begindocument}{biblatex/afterpreamble}{after}{biblatex}}
-  {\def\blx@AfterPreamble{\AfterPreamble}}
+   \DeclareHookRule{begindocument}{biblatex/afterpreamble}{after}{biblatex}%
+   \def\blx@AtEndDocument{\AddToHook{enddocument/afterlastpage}}}
+  {\def\blx@AfterPreamble{\AfterPreamble}%
+   \def\blx@AtEndDocument{\AtEndDocument}}
 
 % generalised keyval interface
 % define a new key (possibly with a default value)
@@ -1621,7 +1623,7 @@
 
 \def\blx@addchecksum{\blx@checksum\blx@checksum@old}
 \def\blx@addpagesum{\blx@checksum\blx@pagesum@old}
-\AtEndDocument{%
+\blx@AtEndDocument{%
   \def\blx@addchecksum{\blx@checksum\blx@checksum@new}%
   \def\blx@addpagesum{\blx@checksum\blx@pagesum@new}}
 
@@ -8812,7 +8814,7 @@
 % .aux file as this means that deferred numbering is
 % complete. Otherwise we get in an endless rerun loop because the
 % checksum due to number changes is always different.
-\AtEndDocument{%
+\blx@AtEndDocument{%
   \def\abx@aux@number#1#2#3#4#5{%
     \ifblank{#5}
       {}
@@ -8820,7 +8822,7 @@
          {\blx@addchecksum{#1}{#5}}
          {}}}}
 
-\AtEndDocument{%
+\blx@AtEndDocument{%
   % Here we run some tests to decide if we need to issue re-run
   % messages in certain circumstances. In general, if we add/remove
   % any citations or add/remove any sorting templates, we need to re-run
@@ -9862,7 +9864,7 @@
 % support.
 \let\abx@aux@defaultlabelprefix\@gobblethree
 
-\AtEndDocument{%
+\blx@AtEndDocument{%
   % always add default refcontext declarations to .aux after biber run
   \iftoggle{blx@bbldone}
     {\def\do#1{%
@@ -9948,7 +9950,7 @@
   \fi
   \blx@addpagesum{#1}{#2}}
 
-\AtEndDocument{%
+\blx@AtEndDocument{%
   \def\abx@aux@page#1#2{\blx@addpagesum{#1}{#2}}%
   \def\abx@aux@fnpage#1#2{\blx@addpagesum{#1}{#2}}}
 
@@ -10466,7 +10468,7 @@
   \fi
   \global\c@refsection\z@}
 
-\AtEndDocument{%
+\blx@AtEndDocument{%
   \endrefcontext
   % close non-0 refsection if active
   \ifnum\c@refsection>\z@
@@ -10830,7 +10832,7 @@
     {}
     {\listcsxadd{blx@catg@#1}{\detokenize{#2}}}}
 
-\AtEndDocument{\let\abx@aux@category\@gobbletwo}
+\blx@AtEndDocument{\let\abx@aux@category\@gobbletwo}
 
 % [<options>]{<resource>,...}
 \renewrobustcmd*{\bibliography}[1]{%
@@ -11416,7 +11418,7 @@
 \let\abx@curr@count\@gobbletwo
 \let\abx@curr@fncount\@gobbletwo
 
-\AtEndDocument{%
+\blx@AtEndDocument{%
   \let\abx@aux@count\@gobbletwo
   \let\abx@aux@fncount\@gobbletwo
   \let\abx@curr@count\@gobbletwo
@@ -11823,7 +11825,7 @@
     {\listcsgadd{blx@pref@#3@\detokenize{#2}}{#4}}%
   \blx@addpagesum{#1}{#5}}
 
-\AtEndDocument{%
+\blx@AtEndDocument{%
   \def\abx@aux@backref#1#2#3#4#5{\blx@addpagesum{#1}{#5}}}
 
 % {<true>}{<false>}
@@ -12750,7 +12752,7 @@
 \protected\def\blx@errormark{%
   \rule[0.25ex]{1.25ex}{1.25ex}}
 
-\AtEndDocument{%
+\blx@AtEndDocument{%
   \unless\ifnum\blx@parenlevel@text=\z@
     \blx@err@matchparen{%
       Unbalanced parentheses or brackets in the document body}%
