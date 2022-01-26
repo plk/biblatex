@@ -10,6 +10,7 @@ build.sh build <version>
 build.sh builddist|builddocs|build <version>
 build.sh testbibtex [file]|testbiber [file]|test [file]|testoutput 
 build.sh upload <version> [ \"DEV\" ]
+build.sh showdiff <filewithissues>
 
 With the \"DEV\" argument, uploads to the SourceForge development
 folder instead of the <version> numbered folder
