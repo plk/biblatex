@@ -191,8 +191,8 @@ if [[ "$1" == "builddist" || "$1" == "build" ]]
 then
   \rm -f obuild/biblatex-$VERSION.tds.tgz
   \rm -f obuild/biblatex-$VERSION.tgz
-  tar zcf obuild/biblatex-$VERSION.tds.tgz -C obuild/tds bibtex biber doc tex
-  tar zcf obuild/biblatex-$VERSION.tgz -C obuild/flat biblatex
+  gnutar zcf obuild/biblatex-$VERSION.tds.tgz -C obuild/tds bibtex biber doc tex
+  gnutar zcf obuild/biblatex-$VERSION.tgz -C obuild/flat biblatex
 
   echo "Created packages (flat and TDS) ..."
 fi
