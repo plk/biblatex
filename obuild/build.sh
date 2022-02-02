@@ -179,7 +179,6 @@ then
 
   mv biblatex.tex.bak biblatex.tex
 
-  cp biblatex.pdf ../../../obuild/tds/doc/
   cp biblatex.pdf ../../../obuild/flat/biblatex/doc/
   cd ../../.. || exit
 
