@@ -604,10 +604,10 @@
 }
 
 
-\protected\def\blx@providecounter#1{%
-  \ifltxcounter{#1}
+\protected\def\blx@providecount#1{%
+  \ifcscounter{#1}
     {}
-    {\newcounter{#1}}}
+    {\expandafter\newcount\csname #1\endcsname}}
 
 \def\blx@citecmds{}
 % \autocite and \autocites are not defined via \DeclareCiteCommand
@@ -853,11 +853,11 @@
 \newcount\blx@tempcntc
 \newcounter{blx@maxsection}
 \def\theblx@maxsection{\the\c@blx@maxsection}
-\newcounter{blx@maxsegment@0}
+\expandafter\newcount\csname blx@maxsegment@0\endcsname
 \newcount\blx@notetype
 \newcount\blx@parenlevel@text
 \newcount\blx@parenlevel@foot
-\newcounter{blx@sectionciteorder@0}
+\expandafter\newcount\csname blx@sectionciteorder@0\endcsname
 \newcount\blx@entrysetcounter
 \newcount\blx@biblioinstance
 
@@ -9651,7 +9651,7 @@
   \begingroup
   \delimcontext{bib}%
   \edef\on@line{\on@line}%
-  \ifnum\csname c@blx@maxsegment@\the\c@refsection\endcsname=\z@
+  \ifnum\csname blx@maxsegment@\the\c@refsection\endcsname=\z@
     \blx@warning{No reference segments found}%
   \fi
   \@ifnextchar[%]
@@ -9683,7 +9683,7 @@
        {\letcs\blx@tempa{blx@dlist@entry@\the\c@refsection @\blx@refcontext@context}}%
      \blx@filter\blx@tempa{blx@segm@\the\c@refsection @\the\c@refsegment}%
      \blx@bibliography\blx@tempa}%
-  \ifnum\c@refsegment<\csname c@blx@maxsegment@\the\c@refsection\endcsname
+  \ifnum\c@refsegment<\csname blx@maxsegment@\the\c@refsection\endcsname
     \advance\c@refsegment\@ne
     \expandafter\blx@refsegments
   \else
@@ -10395,8 +10395,8 @@
   \ifcsdef{blx@defaultrefcontexts@\the\c@refsection}
     {}
     {\global\cslet{blx@defaultrefcontexts@\the\c@refsection}\@empty}%
-  \blx@providecounter{blx@maxsegment@\the\c@refsection}%
-  \blx@providecounter{blx@sectionciteorder@\the\c@refsection}%
+  \blx@providecount{blx@maxsegment@\the\c@refsection}%
+  \blx@providecount{blx@sectionciteorder@\the\c@refsection}%
   \blx@inf@refsec
   \blx@secinit
   \if@filesw
@@ -10444,7 +10444,7 @@
 
 \def\blx@endrefsection{%
   \blx@endrefsegment
-  \blx@providecounter{blx@sectionciteorder@\the\c@refsection}%
+  \blx@providecount{blx@sectionciteorder@\the\c@refsection}%
   % make sure we always output aliases to the .bcf otherwise after their
   % first resolution by biber, they will be invisible to subsequent biber
   % runs since biblatex will resolve the \keyalias{} macro to the main
@@ -10455,10 +10455,10 @@
     % Make sure this counter exists. Sometimes it might not when using, e.g:
     % refsection=chapter and \includeonly to put in the chapters or when
     % inserting citations into table of contents
-    \stepcounter{blx@sectionciteorder@\the\c@refsection}%
+    \global\advance\csname blx@sectionciteorder@\the\c@refsection\endcsname\@ne
     \blx@auxwrite\blx@bcfout{}{%
       \blx@xml@citekey{\blx@tempa}{}
-      {\expandafter\the\csname c@blx@sectionciteorder@\the\c@refsection\endcsname}}}%
+      {\expandafter\the\csname blx@sectionciteorder@\the\c@refsection\endcsname}}}%
   \ifcsundef{blx@keyaliases@\the\c@refsection}
     {}
     {\dolistcsloop{blx@keyaliases@\the\c@refsection}}%
@@ -10512,8 +10512,8 @@
     \blx@err@nestenv{refsegment}%
     \blx@endrefsegment
   \fi
-  \stepcounter{blx@maxsegment@\the\c@refsection}%
-  \setcounter{refsegment}{\value{blx@maxsegment@\the\c@refsection}}%
+  \global\advance\csname blx@maxsegment@\the\c@refsection\endcsname\@ne
+  \setcounter{refsegment}{\csuse{blx@maxsegment@\the\c@refsection}}%
   \blx@inf@refseg
   \blx@info{Setting label 'refsegment:\the\c@refsection\the\c@refsegment'}%
   \label{refsegment:\the\c@refsection\the\c@refsegment}%
@@ -11139,7 +11139,7 @@
   \ifstrequal{*}{#1}
     {\blx@auxwrite\blx@bcfout{}{\blx@xml@citekey{\blx@tempa}{\blx@tempb}{0}}}
     {\blx@auxwrite\blx@bcfout{}{\blx@xml@citekey{\blx@tempa}{\blx@tempb}{%
-       \expandafter\the\csname c@blx@sectionciteorder@\the\c@refsection\endcsname}}}%
+       \expandafter\the\csname blx@sectionciteorder@\the\c@refsection\endcsname}}}%
   \endgroup}
 
 % {<set>}{<key1,key2,key3>}
@@ -11194,8 +11194,8 @@
   % Make sure this counter exists. Sometimes it might not when using, e.g:
   % refsection=chapter and \includeonly to put in the chapters or when
   % inserting citations into table of contents
-  \blx@providecounter{blx@sectionciteorder@\the\c@refsection}%
-  \stepcounter{blx@sectionciteorder@\the\c@refsection}%
+  \blx@providecount{blx@sectionciteorder@\the\c@refsection}%
+  \global\advance\csname blx@sectionciteorder@\the\c@refsection\endcsname\@ne
   \blx@tempcnta\z@
   \blx@tempcntb\z@
   \let\blx@tempa\@empty
@@ -11913,8 +11913,8 @@
     % Make sure this counter exists. Sometimes it might not when using, e.g:
     % refsection=chapter and \includeonly to put in the chapters or when
     % inserting citations into table of contents
-  \blx@providecounter{blx@sectionciteorder@\the\c@refsection}%
-  \stepcounter{blx@sectionciteorder@\the\c@refsection}%
+  \blx@providecount{blx@sectionciteorder@\the\c@refsection}%
+  \global\advance\csname blx@sectionciteorder@\the\c@refsection\endcsname\@ne
   \blx@nocitation{#1}\blx@msg@cundef}
 
 % {<macro>}[<arg1>][<arg2>]{<arg3>}
