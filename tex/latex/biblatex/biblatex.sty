@@ -150,6 +150,14 @@
     \PackageWarning{biblatex}{#1}%
     \endgroup}}
 
+\def\blx@err@patch#1{%
+  \blx@error
+    {Patching #1 failed}
+    {This is an internal issue typically caused by a
+     conflict\MessageBreak between biblatex and some
+     other package. Modifying\MessageBreak the package
+     loading order may fix the problem}}
+
 %% Compatibility
 % this hook is executed once at the beginning of loading the package
 % just a few lines down
@@ -328,6 +336,26 @@
        {}}
     {}%
   \appto\TE@hook{\blx@TE@hook}%
+  % we need to patch \addtocontents
+  \toggletrue{blx@tempa}%
+  % kernel definition
+  \patchcmd\addtocontents
+    {\let\glossary\@gobble}
+    {\let\glossary\@gobble
+     \blx@contentssafe@citecommands}
+    {}
+    {\togglefalse{blx@tempa}}%
+  % try tag.sto's definition
+  \iftoggle{blx@tempa}
+    {}
+    {\patchcmd\addtocontents
+       {\let\glossary\Gobble}
+       {\let\glossary\Gobble
+        \blx@contentssafe@citecommands}
+       {}
+       {% give up
+       \blx@err@patch{\string\addtocontents}}}%
+  % patch footnote
   \toggletrue{blx@tempa}%
   \def\do#1{%
     \patchcmd#1%
@@ -628,13 +656,6 @@
   \boolfalse{pagetracker}%
   \boolfalse{backtracker}%
   \defcounter{refsection}{#1}}
-
-\patchcmd\addtocontents
-  {\let\glossary\@gobble}
-  {\let\glossary\@gobble
-   \blx@contentssafe@citecommands}
-  {}
-  {\blx@err@patch{\addtocontents}}
 
 % trick hyperref into believing we're natbib
 \let\NAT@parse\@empty
@@ -1345,13 +1366,6 @@
 \protected\def\abx@missing#1{%
   \mbox{\reset@font\bfseries#1}}
 
-\def\blx@err@patch#1{%
-  \blx@error
-    {Patching #1 failed}
-    {This is an internal issue typically caused by a
-     conflict\MessageBreak between biblatex and some
-     other package. Modifying\MessageBreak the package
-     loading order may fix the problem}}
 
 \def\blx@err@nolang#1{%
   \blx@error
