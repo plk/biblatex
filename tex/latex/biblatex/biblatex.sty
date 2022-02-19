@@ -13107,9 +13107,9 @@
 \xdef\blx@xml@uniquenametemplatenamepart#1#2#3{%
   ~~~~<bcf:namepart #1#2>#3</bcf:namepart>\blx@nl}
 
-\xdef\blx@xml@sortingnamekeytemplate#1#2{%
-  ~~<bcf:sortingnamekeytemplate name="#1">\blx@nl%
-  #2%
+\xdef\blx@xml@sortingnamekeytemplate#1#2#3{%
+  ~~<bcf:sortingnamekeytemplate name="#1" visibility="#2">\blx@nl%
+  #3%
   ~~</bcf:sortingnamekeytemplate>\blx@nl}
 
 \xdef\blx@xml@sortingnamekeykeypart#1#2{%
@@ -13490,7 +13490,7 @@
   \eappto\blx@tempa{\blx@xml@comment{SORTING NAME KEY TEMPLATES}}%
   \def\do##1{%
     \eappto\blx@tempa{%
-      \blx@xml@sortingnamekeytemplate{##1}{\csuse{blx@sortingnamekeytemplate@##1}}}}%
+      \blx@xml@sortingnamekeytemplate{##1}{\csuse{blx@sortingnamekeytemplatesvisibility@##1}}{\csuse{blx@sortingnamekeytemplate@##1}}}}%
   \dolistloop\blx@sortingnamekeytemplates
   % presort/sorting excludes/sorting includes
   \def\do##1{%
@@ -14173,7 +14173,7 @@
          Use '\string\DeclareBiblistFilter' to define it}}
     {\def\blx@thebiblistfilter{#1}}}
 
-% [<langids>][<entrytype>]{translitsource}{translittarget}
+% [<entrytype>]{specification}
 \newrobustcmd*{\DeclareSortTranslit}[2][]{%
   \begingroup
   \ifblank{#1}
@@ -14190,6 +14190,7 @@
 \@onlypreamble\DeclareSortTranslit
 \blx@DeclareBackendOption{global,type}[xml]{translit}
 
+% [<langids>]{<field or set>}{translitsource}{translittarget}
 \newcommand*{\blx@translit@setup}[4][]{%
   \eappto\blx@tempb{%
     \ifblank{#1}
@@ -14248,6 +14249,8 @@
   \let\namepart\blx@sortnk@namepart
   \let\keypart\blx@sortnk@keypart
   \let\literal\blx@sortnk@literal
+  \let\visibility\blx@sortnk@visibility
+  \global\cslet{blx@sortingnamekeytemplatesvisibility@\blx@snkname}{sort}% default
   \let\blx@tempa\@empty
   \blx@tempcnta\z@
   #2%
@@ -14284,6 +14287,9 @@
   \let\blx@tempc\@empty
   \eappto\blx@tempb{%
     \blx@xml@sortingnamekeyliteral{\blx@tempe}{#1}}}
+
+\newcommand*{\blx@sortnk@visibility}[1]{%
+  \global\cslet{blx@sortingnamekeytemplatesvisibility@\blx@snkname}{#1}}
 
 \newcommand*{\blx@sortnk@namepart}[2][]{%
   \advance\blx@tempcntb\@ne
