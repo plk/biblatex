@@ -68,7 +68,7 @@
   url={\biblatexhome},
   author={Philip Kime, Moritz Wemheuer, Philipp Lehman},
   email={},
-  revision={3.17},
+  revision={3.18},
   date={\today}}
 
 \hypersetup{%
@@ -4453,6 +4453,12 @@ Here, the data for the citation of \bibfield{key2} will be drawn from the refcon
 \end{ltxexample}
 %
 Here, the data for the citation of \bibfield{key2} will be drawn from refcontext with \opt{labelprefix=C} and not \opt{labelprefix=A} since the explicit options override the named refcontext (resulting in a label with prefix <C> and not <A> or <B>).
+
+\begin{ltxsyntax}
+\cmditem{GenRefcontextData}{key=value, \dots}
+
+This command takes the same key/value options as \cmd{DeclareRefcontext}. It forces the currently active refcontext, optionally modified by the key/value options, to be written to the \file{.bcf} so that \biber will create a sorted data list for the specified refcontext. Normally this is automatic when \cmd{printbibliography}/\cmd{prinbiblist} is used in a reference context but there are situations where the data for a refcontext will be needed but no reference list is generated in that context e.g. to sort citations with the \opt{sortcites} option when the sorting of citations requires a different refcontext to that used for the actual reference list.
+\end{ltxsyntax}
 
 \subsubsection{Dynamic Entry Sets}
 \label{use:bib:set}
@@ -9465,7 +9471,49 @@ By default there is only a global template which has the following \prm{specific
 }
 \end{ltxexample}
 %
-This means that the key is constructed by concatenating, in order, the name prefix (only if the \opt{useprefix} option is true) with the family name(s), the given names(s), the name suffix and then the name prefix (only if the \opt{useprefix} option is false).
+This means that the key is constructed by concatenating, in order, the name prefix (only if the \opt{useprefix} option is true) with the family name(s), the given names(s), the name suffix and then the name prefix (only if the \opt{useprefix} option is false). The visible number of names in the name list used to construct the key is the default sorting visibility, see below.
+
+\cmditem{visibility}{visibilityscope}
+
+\prm{visibilityscope} determines which visibility settings to use for the name list. This determines how many names in the name list are visible to the sorting algorithm. This is by default set to <sort>, which is the standard visibility for sorting determined by the \opt{max*/min*names} and \opt{uniquelist} options. \cmd{visibility} can be omitted entirely if this default is desired. The only other scope is <cite> which forces the sorting algorithm to use the name list visibility of the citations rather than that of the reference list sorting. This is useful when using the \opt{sortcites} option in the situation when a style has different name list truncation rules for citations than it has for the reference list. Citations can then be forced to sort using a different reference context that uses a modified sorting name key template that enforces the correct name list truncation for citation sorting with:
+
+\begin{ltxexample}
+\DeclareSortingNamekeyTemplate[mycitesorttemplate]{
+  \visibilty{cite}
+  .
+  .
+  .
+\end{ltxexample}
+%
+and then force this to be used with e.g.:
+
+\begin{ltxexample}
+  \newrefcontext[sortingnamekeytemplate=mycitesorttemplate]
+  \cite{a,b,c}
+\end{ltxexample}
+%
+One thing to note is that a reference context will not be written to the \file{.bcf} if no \cmd{printbibliography} or \cmd{printbiblist} occurs within it which will mean that \biber will not generate any sorted data for the refcontext. Therefore if the requirement is to just correctly sort citations using this refcontext, you will need to force the writing of the refcontext using \cmd{GenRefcontextData} (see \secref{use:bib:context}):
+
+\begin{ltxexample}
+  % make sure sorting data using this template is
+  % generated since no \printbibliography/\printbiblist
+  % occurs in the refcontext with
+  % sortingnamekeytemplatename=mycitesorttemplate,
+  % this won't happen by default
+  \GenRefcontextData{sortingnamekeytemplatename=mycitesorttemplate}
+  % Switch to this refcontext to use the correct
+  % sorted data using the sorting name key template
+  % which uses "cite" visibility for the name lists
+  \newrefcontext[sortingnamekeytemplate=mycitesorttemplate]
+  % citations are correctly sorted
+  \cite{a,b,c}
+  % Switch to the default sorting name key template
+  % for the actual list of references which uses the
+  % default sorting visibility for the name lists
+  \newrefcontext[sortingnamekeytemplate=global]
+  % references are correctly sorted
+  \printbibliography
+\end{ltxexample}
 
 \cmditem{keypart}{part}
 
@@ -9497,7 +9545,7 @@ constructing the sorting specification.
 As an example, suppose you wanted to be able to sort names by given name rather than family name, you could define a sorting name key template like this:
 
 \begin{ltxexample}
-\DeclareSortingNamekeyTemplate[givenfirst]{
+\DeclareNamekeyTemplate[givenfirst]{
   \keypart{
     \namepart{<<given>>}
   }
@@ -13178,6 +13226,10 @@ The name of the name list currently being processed by \cmd{printnames}. This in
 
 \begin{ltxsyntax}
 
+\cmditem{AtBeginRefsection}{code}
+
+Appends the \prm{code} to an internal hook executed at the beginning of every reference section. The \prm{code} is executed just after setting the reference section number. This command may only be used in the preamble.
+
 \cmditem{AtBeginBibliography}{code}
 
 Appends the \prm{code} to an internal hook executed at the beginning of the bibliography. The \prm{code} is executed at the beginning of the list of references, immediately after the \prm{begin code} of \cmd{defbibenvironment}. This command may only be used in the preamble.
@@ -13236,6 +13288,10 @@ The default setting is:
 \cmditem{AtEveryCite}{code}
 
 Appends the \prm{code} to an internal hook executed at the beginning of every citation command. The \prm{code} is executed immediately before the \prm{precode} of the command (see \secref{aut:cbx:cbx}). No bibliographic data is available at this point. This command may only be used in the preamble.
+
+\cmditem{AfterEveryCite}{code}
+
+Appends the \prm{code} to an internal hook executed at the end of every citation command. No bibliographic data is available at this point. This command may only be used in the preamble.
 
 \cmditem{AtEveryCitekey}{code}
 
@@ -14766,6 +14822,12 @@ use$<$name$>$                     &\+&\+&\_&\+&\+&\_&\_\\
 This revision history is a list of changes relevant to users of this package. Changes of a more technical nature which do not affect the user interface or the behavior of the package are not included in the list. More technical details are to be found in the \file{CHANGES.md} file. The numbers on the right indicate the relevant section of this manual.
 
 \begin{changelog}
+\begin{release}{3.18}{2022-}
+\item Added \cmd{visibility} option to \cmd{DeclareSortingNamekeyTemplate}\see{aut:ctm:srt}
+\item Added \cmd{GenRefcontextData}\see{use:bib:context}
+\item Added \cmd{AtBeginRefsection}\see{aut:fmt:hok}
+\item Added \cmd{AfterEveryCite}\see{aut:fmt:hok}
+\end{release}
 \begin{release}{3.17}{2022-01-25}
 \item Changed behaviour of index-less granular XDATA references\see{use:use:xdat}
 \item Added \cmd{DeclareNonamestring} \see{aut:ctm:nonamestring}

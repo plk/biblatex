@@ -22,7 +22,7 @@
 % This is not updated by build script as the control file version
 % does not necessarily change with the package version.
 % This is used when writing the .bcf
-\def\blx@bcfversion{3.8}
+\def\blx@bcfversion{3.9}
 
 % This is not updated by build script as the bbl version
 % does not necessarily change with the package version.
@@ -10410,6 +10410,9 @@
        {}}}
 
 % Reference sections
+\newrobustcmd*{\AtBeginRefsection}{\gappto\blx@hook@refsectioninit}
+\@onlypreamble\AtBeginRefsection
+
 \newrobustcmd*{\newrefsection}{%
   \endrefcontext
   \ifnum\c@refsection>\z@
@@ -10442,6 +10445,7 @@
   \endgroup
   \stepcounter{blx@maxsection}%
   \setcounter{refsection}{\value{blx@maxsection}}%
+  \csuse{blx@hook@refsectioninit}%
   \xifinlist{\the\c@refsection}\blx@allrefsections
     {}
     {\listxadd\blx@allrefsections{\the\c@refsection}}%
@@ -11032,9 +11036,11 @@
 %% Citations
 
 \newrobustcmd*{\AtEveryCite}{\gappto\blx@hook@cite}
+\newrobustcmd*{\AfterEveryCite}{\gappto\blx@hook@citeafter}
 \newrobustcmd*{\AtEveryCitekey}{\gappto\blx@hook@citekey}
 \newrobustcmd*{\AtEveryMultiCite}{\gappto\blx@hook@mcite}
 \@onlypreamble\AtEveryCite
+\@onlypreamble\AfterEveryCite
 \@onlypreamble\AtEveryCitekey
 \@onlypreamble\AtEveryMultiCite
 
@@ -11045,7 +11051,6 @@
 \newrobustcmd*{\AtEveryEntrykey}{%
   \apptocmd{\blx@hook@entrykey}}
 \@onlypreamble\AtEveryEntrykey
-
 
 \def\blx@imc@UseEveryCiteHook{\csuse{blx@hook@cite}}
 \def\blx@imc@UseEveryCitekeyHook{\csuse{blx@hook@citekey}}
@@ -12151,6 +12156,7 @@
     \def\blx@postcode{#5}%
     \def\blx@postpunct@saved{##4}%
     \blx@citeloop{##3}%
+    \csuse{blx@hook@citeafter}%
     \endgroup}}
 
 % {<type>}{<name>}{*}
@@ -16130,6 +16136,7 @@
   \fi
   \blx@bblinput
   \setcounter{blx@maxsection}{0}%
+  \csuse{blx@hook@refsectioninit}%
   \csuse{abx@preamble}%
   \blx@inf@refsec
   \blx@inf@refseg}
