@@ -9614,7 +9614,7 @@
   \xifinlist{\blx@refcontext@context @\blx@tempe @entry}\blx@dlistnames
     {}
     {\listxadd\blx@dlistnames{\blx@refcontext@context @\blx@tempe @entry}%
-     \csxappto{blx@dlists}{%
+     \xappto\blx@dlists\{%
        \blx@xml@dlist{\blx@refcontext@context}{entry}{\blx@tempe}{\blx@xml@dlist@refcontext{\blx@refcontext@sortingtemplatename}{\blx@refcontext@sortingnamekeytemplatename}{\blx@refcontext@labelprefix@real}{\blx@refcontext@uniquenametemplatename}{\blx@refcontext@labelalphanametemplatename}}{}}}%
   \ifdefvoid\blx@tempa
     {\blx@warn@bibempty\endgroup}
@@ -10369,6 +10369,45 @@
 \blx@kv@defkey{blx@assignrefcontext}{labelprefix}{\edef\blx@tempc{\blx@mdfivesum{#1}}}
 \blx@kv@defkey{blx@assignrefcontext}{uniquenametemplatename}{\def\blx@tempd{#1}}
 \blx@kv@defkey{blx@assignrefcontext}{labelalphanametemplatename}{\def\blx@tempe{#1}}
+
+% Manually force a refcontext datalist in the .bcf
+\newcommand*{\GenRefcontextData}[1]{%
+  \begingroup
+  \edef\blx@tempb{\the\c@refsection}%
+  \def\blx@tempc{global}%
+  \def\blx@tempd{global}%
+  \def\blx@tempe{global}%
+  \let\blx@tempf\blx@sorting%
+  \let\blx@tempg\@empty%
+  \ifblank{#1}
+    {}
+    {\blx@kv@setkeys{blx@refcontextmanual}{#1}}%
+  \def\blx@tempa{\blx@tempf/\blx@tempc/\blx@tempg/\blx@tempd/\blx@tempe}
+  \xifinlist{\blx@tempa @\blx@tempb @entry}\blx@dlistnames
+    {}
+    {\listxadd\blx@dlistnames{\blx@tempa @\blx@tempb @entry}%
+     \xappto\blx@dlists{%
+       \blx@xml@dlist{\blx@tempa}{entry}{\blx@tempb}{\blx@xml@dlist@refcontext{\blx@tempf}{\blx@tempc}{\blx@tempg}{\blx@tempd}{\blx@tempe}}{}}}%
+   \endgroup}
+
+% Meta option to set all name template options
+\blx@kv@defkey{blx@refcontextmanual}{nametemplates}{%
+  \def\blx@tempc@sortingnamekeytemplatename{#1}%
+  \def\blx@tempd@uniquenametemplatename{#1}%
+  \def\blx@tempe@labelalphanametemplatename{#1}}
+\blx@kv@defkey{blx@refcontextmanual}{sorting}{\def\blx@tempf{#1}}
+\blx@kv@defkey{blx@refcontextmanual}{sortingnamekeytemplatename}{\def\blx@tempc{#1}}
+\blx@kv@defkey{blx@refcontextmanual}{uniquenametemplatename}{\def\blx@tempd{#1}}
+\blx@kv@defkey{blx@refcontextmanual}{labelalphanametemplatename}{\def\blx@tempe{#1}}
+\blx@kv@defkey{blx@refcontextmanual}{labelprefix}{%
+  \def\blx@tempg{#1}%
+  \iftoggle{blx@defernumbers}
+    {}%
+    {\iftoggle{blx@labelnumber}
+       {\blx@warning{%
+          Option 'labelprefix' requires global\MessageBreak
+          'defernumbers=true'}}
+       {}}}
 
 % Reference sections
 \newrobustcmd*{\newrefsection}{%
@@ -14250,7 +14289,7 @@
   \let\keypart\blx@sortnk@keypart
   \let\literal\blx@sortnk@literal
   \let\visibility\blx@sortnk@visibility
-  \global\cslet{blx@sortingnamekeytemplatesvisibility@\blx@snkname}{sort}% default
+  \csgdef{blx@sortingnamekeytemplatesvisibility@\blx@snkname}{sort}% default
   \let\blx@tempa\@empty
   \blx@tempcnta\z@
   #2%
@@ -14289,7 +14328,7 @@
     \blx@xml@sortingnamekeyliteral{\blx@tempe}{#1}}}
 
 \newcommand*{\blx@sortnk@visibility}[1]{%
-  \global\cslet{blx@sortingnamekeytemplatesvisibility@\blx@snkname}{#1}}
+  \csgdef{blx@sortingnamekeytemplatesvisibility@\blx@snkname}{#1}}
 
 \newcommand*{\blx@sortnk@namepart}[2][]{%
   \advance\blx@tempcntb\@ne
