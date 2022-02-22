@@ -184,7 +184,7 @@ STRINGS  { ctrl.alphaothers ctrl.sortalphaothers ctrl.sortstr
            last.name last.hash last.year last.extra }
 
 FUNCTION {initialize} {
-  "$Revision: 3.17 $"
+  "$Revision: 4.0 $"
   #12 entry.max$ substring$
   #-3 entry.max$ substring$
   "Biblatex version: " swap$ * top$

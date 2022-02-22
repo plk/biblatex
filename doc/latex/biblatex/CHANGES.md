@@ -67,6 +67,12 @@
 - Changed the definition of `\bibnamedelimi` to `\isdot\addnbspace`.
   Previously the definition was just `\addnbspace`, which meant the `.`
   would be treated as a period/full stop.
+- **BREAKING CHANGE**
+  `\DeclareDelimFormat` no longer accepts a list of names as argument.
+  It only accepts a single delimiter name.
+  A list of contexts is still supported.
+  Note that previously the optional argument would not work correctly
+  with a list of names.
 - **CRITICAL CHANGE**
   `biblatex` no longer writes tracking and refsection initialisation code
   to aux files.
@@ -80,11 +86,12 @@
   Helper macros have been renamed accordingly. Limited backwards
   compatibility is in place.
 - **(Possibly) CRITICAL CHANGE**
-  `\nocitecite` and friends no longer issue an explicit `\nocite`.
+  `\notecite` and friends no longer issue an explicit `\nocite`.
   Since the commands are defined with `\DeclareCiteCommand`, they
   already issue a normal cite request.
   The additional `\nocite` from the loop code was superfluous
   and would result in slightly instable `.bcf` files.
+
 
 # RELEASE NOTES FOR VERSION 3.16
 - Fixed an infinite loop caused by excessive aliasing of the `volcitepages`

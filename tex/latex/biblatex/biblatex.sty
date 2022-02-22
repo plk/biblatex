@@ -70,8 +70,10 @@
 \providecommand\IfFormatAtLeastTF{\@ifl@t@r\fmtversion}
 \IfFormatAtLeastTF{2020/10/01}
   {\def\blx@AfterPreamble{\AddToHook{begindocument}[biblatex/afterpreamble]}%
-   \DeclareHookRule{begindocument}{biblatex/afterpreamble}{after}{biblatex}}
-  {\def\blx@AfterPreamble{\AfterPreamble}}
+   \DeclareHookRule{begindocument}{biblatex/afterpreamble}{after}{biblatex}%
+   \def\blx@AtEndDocument{\AddToHook{enddocument/afterlastpage}}}
+  {\def\blx@AfterPreamble{\AfterPreamble}%
+   \def\blx@AtEndDocument{\AtEndDocument}}
 
 % generalised keyval interface
 % define a new key (possibly with a default value)
@@ -153,6 +155,14 @@
     \blx@safe@actives
     \PackageWarning{biblatex}{#1}%
     \endgroup}}
+
+\def\blx@err@patch#1{%
+  \blx@error
+    {Patching #1 failed}
+    {This is an internal issue typically caused by a
+     conflict\MessageBreak between biblatex and some
+     other package. Modifying\MessageBreak the package
+     loading order may fix the problem}}
 
 %% Compatibility
 % this hook is executed once at the beginning of loading the package
@@ -332,6 +342,26 @@
        {}}
     {}%
   \appto\TE@hook{\blx@TE@hook}%
+  % we need to patch \addtocontents
+  \toggletrue{blx@tempa}%
+  % kernel definition
+  \patchcmd\addtocontents
+    {\let\glossary\@gobble}
+    {\let\glossary\@gobble
+     \blx@contentssafe@citecommands}
+    {}
+    {\togglefalse{blx@tempa}}%
+  % try tag.sto's definition
+  \iftoggle{blx@tempa}
+    {}
+    {\patchcmd\addtocontents
+       {\let\glossary\Gobble}
+       {\let\glossary\Gobble
+        \blx@contentssafe@citecommands}
+       {}
+       {% give up
+       \blx@err@patch{\string\addtocontents}}}%
+  % patch footnote
   \toggletrue{blx@tempa}%
   \def\do#1{%
     \patchcmd#1%
@@ -628,6 +658,11 @@
 }
 
 
+\protected\def\blx@providecount#1{%
+  \ifcscounter{#1}
+    {}
+    {\expandafter\newcount\csname #1\endcsname}}
+
 \def\blx@citecmds{}
 % \autocite and \autocites are not defined via \DeclareCiteCommand
 \listadd\blx@citecmds{autocite}
@@ -647,13 +682,6 @@
   \boolfalse{pagetracker}%
   \boolfalse{backtracker}%
   \defcounter{refsection}{#1}}
-
-\patchcmd\addtocontents
-  {\let\glossary\@gobble}
-  {\let\glossary\@gobble
-   \blx@contentssafe@citecommands}
-  {}
-  {\blx@err@patch{\addtocontents}}
 
 % trick hyperref into believing we're natbib
 \let\NAT@parse\@empty
@@ -870,7 +898,8 @@
 \newcount\blx@tempcnta
 \newcount\blx@tempcntb
 \newcount\blx@tempcntc
-\newcount\blx@maxsection
+\newcounter{blx@maxsection}
+\def\theblx@maxsection{\the\c@blx@maxsection}
 \expandafter\newcount\csname blx@maxsegment@0\endcsname
 \newcount\blx@notetype
 \newcount\blx@parenlevel@text
@@ -1439,13 +1468,6 @@
 \protected\def\abx@missing#1{%
   \mbox{\reset@font\bfseries#1}}
 
-\def\blx@err@patch#1{%
-  \blx@error
-    {Patching #1 failed}
-    {This is an internal issue typically caused by a
-     conflict\MessageBreak between biblatex and some
-     other package. Modifying\MessageBreak the package
-     loading order may fix the problem}}
 
 \def\blx@err@nolang#1{%
   \blx@error
@@ -1722,7 +1744,7 @@
 
 \def\blx@addchecksum{\blx@checksum\blx@checksum@old}
 \def\blx@addpagesum{\blx@checksum\blx@pagesum@old}
-\AtEndDocument{%
+\blx@AtEndDocument{%
   \def\blx@addchecksum{\blx@checksum\blx@checksum@new}%
   \def\blx@addpagesum{\blx@checksum\blx@pagesum@new}}
 
@@ -2337,8 +2359,12 @@
 
 % {<entry type>}{<driverdef>}
 \newrobustcmd*{\DeclareBibliographyDriver}[1]{%
-  \long\csdef{blx@bbx@#1}}
+  \blx@declarebibdriver{#1}}
 \@onlypreamble\DeclareBibliographyDriver
+
+\long\def\blx@declarebibdriver#1#2{\long\csdef{blx@bbx@#1}{#2}}
+
+
 
 % {<entry type>}
 \def\blx@driver#1{%
@@ -4280,7 +4306,7 @@
 
 % Delimiter interface
 
-% [<contextname, ...>]{<name, ...>}{<code>}
+% [<contextname, ...>]{<name>}{<code>}
 \newrobustcmd*{\DeclareDelimFormat}{%
   \@ifstar
     {\blx@declaredelimclear}
@@ -4308,12 +4334,10 @@
      \docsvlist{#1}}}%
 
 \def\blx@declaredelim@i#1#2#3#4{%
-  \def\do@i##1{%
-    \ifcsdef{#1##1}
-      {\blx@inf@delimdeclare{##1}{#2}}
-      {}%
-    \csdef{#1##1}{#4}}%
-  \forcsvlist{\do@i}{#3}}
+  \ifcsdef{#1#3}
+    {\blx@inf@delimdeclare{#3}{#2}}
+    {}%
+  \csdef{#1#3}{#4}}
 
 % [<alias context, ...>]{<alias>}[<delim context>]{<delim>}
 % deprecated: *[<alias context, ...>]{<alias>}[<delim context>]{<delim>}
@@ -4381,34 +4405,40 @@
 % {<alias>}{<source>}
 \def\blx@declaredelimalias@auto#1#2{%
   \blx@cleardelim{#1}%
-  \blx@declaredelimalias@def{}{#1}{}{#2}%
+  \blx@declaredelimalias@manual{}{#1}{}{#2}%
   \ifcsvoid{blx@declaredelimcontexts@#2}
     {}
     {\def\do##1{%
-       \blx@declaredelimalias@def
-         {blx@printdelim@##1@}{#1}{blx@printdelim@##1@}{#2}}%
+       \blx@declaredelimalias@manual{##1}{#1}{##1}{#2}}%
      \dolistcsloop{blx@declaredelimcontexts@#2}}}
 
 % {<alias context>}{<alias>}{<source context>}{<source>}
 \def\blx@declaredelimalias@manual#1#2#3#4{%
+  \begingroup
   \ifblank{#1}
-    {\ifblank{#3}
-       {\blx@declaredelimalias@def{}{#2}{}{#4}}
-       {\blx@declaredelimalias@def{}{#2}{blx@printdelim@#3@}{#4}}}
-    {\ifblank{#3}
-       {\blx@declaredelimalias@def{blx@printdelim@#1@}{#2}{}{#4}}}
-       {\blx@declaredelimalias@def{blx@printdelim@#1@}{#2}{blx@printdelim@#3@}{#4}}}
+    {\def\blx@tempa{{}{}}}
+    {\def\blx@tempa{{blx@printdelim@#1@}{#1}}}%
+  \ifblank{#3}
+    {\def\blx@tempb{{}{}}}
+    {\def\blx@tempb{{blx@printdelim@#3@}{#3}}}%
+  \edef\blx@tempc{\endgroup
+    \noexpand\blx@declaredelimalias@def%
+    \expandonce\blx@tempa {\unexpanded{#2}}%
+    \expandonce\blx@tempb {\unexpanded{#4}}}%
+  \blx@tempc}
 
-\def\blx@declaredelimalias@def#1#2#3#4{%
-  \ifcsdef{#1#2}
-    {\blx@inf@delimdeclare{#2}{#1}}
+% {<alias context internal id>}{<alias context name>}{<alias>}
+% {<source context internal id>}{<source context name>}{<source>}
+\def\blx@declaredelimalias@def#1#2#3#4#5#6{%
+  \ifcsdef{#1#3}
+    {\blx@inf@delimdeclare{#3}{#2}}
     {}%
-  \ifblank{#1}
+  \ifblank{#2}
     {}
-    {\ifinlistcs{#1}{blx@declaredelimcontexts@#2}
+    {\ifinlistcs{#2}{blx@declaredelimcontexts@#3}
        {}
-       {\listcsadd{blx@declaredelimcontexts@#2}{#1}}}%
-  \csdef{#1#2}{\ifcsundef{#3#4}{\csuse{#4}}{\csuse{#3#4}}}}
+       {\listcsadd{blx@declaredelimcontexts@#3}{#2}}}%
+  \csdef{#1#3}{\ifcsundef{#4#6}{\csuse{#6}}{\csuse{#4#6}}}}
 
 \def\blx@delimcontext{none}
 \newcommand*{\printdelim}[2][]{%
@@ -10104,7 +10134,7 @@
 % .aux file as this means that deferred numbering is
 % complete. Otherwise we get in an endless rerun loop because the
 % checksum due to number changes is always different.
-\AtEndDocument{%
+\blx@AtEndDocument{%
   \def\abx@aux@number#1#2#3#4#5{%
     \ifblank{#5}
       {}
@@ -10112,7 +10142,7 @@
          {\blx@addchecksum{#1}{#5}}
          {}}}}
 
-\AtEndDocument{%
+\blx@AtEndDocument{%
   % Here we run some tests to decide if we need to issue re-run
   % messages in certain circumstances. In general, if we add/remove
   % any citations or add/remove any sorting templates, we need to re-run
@@ -10164,6 +10194,12 @@
   \iftoggle{blx@tempa}
     {\ifdefstrequal\blx@allrefsections\blx@alllastrefsections
        {\def\do#1{%
+          \ifcsundef{blx@cites@#1}
+            {\cslet{blx@cites@#1}\@empty}
+            {}%
+          \ifcsundef{blx@lastcites@#1}
+            {\cslet{blx@lastcites@#1}\@empty}
+            {}%
           \ifcsstrequal{blx@cites@#1}{blx@lastcites@#1}
             {}
             {\blx@logreq@active{}%
@@ -10397,7 +10433,10 @@
 
 % {<name>}{<text>}
 \newrobustcmd*{\defbibnote}[1]{%
-  \long\csdef{blx@note@#1}}
+  \blx@defbibnote{#1}}
+
+\long\def\blx@defbibnote#1#2{%
+  \long\csdef{blx@note@#1}{#2}}
 
 % {<name>}{<code>}
 \newrobustcmd*{\defbibfilter}[2]{%
@@ -10868,7 +10907,7 @@
   \xifinlist{\blx@refcontext@context @\blx@tempe @entry}\blx@dlistnames
     {}
     {\listxadd\blx@dlistnames{\blx@refcontext@context @\blx@tempe @entry}%
-     \csxappto{blx@dlists}{%
+     \xappto\blx@dlists{%
        \blx@xml@dlist{\blx@refcontext@context}{entry}{\blx@tempe}{\blx@xml@dlist@refcontext{\blx@refcontext@sortingtemplatename}{\blx@refcontext@sortingnamekeytemplatename}{\blx@refcontext@labelprefix@real}{\blx@refcontext@uniquenametemplatename}{\blx@refcontext@labelalphanametemplatename}}{}}}%
   \ifdefvoid\blx@tempa
     {\blx@warn@bibempty\endgroup}
@@ -10878,7 +10917,7 @@
 \newrobustcmd*{\bibbysection}{%
   \begingroup
   \delimcontext{bib}%
-  \ifnum\blx@maxsection=\z@
+  \ifnum\c@blx@maxsection=\z@
     \blx@warning{No reference sections found}%
   \fi
   \edef\on@line{\on@line}%
@@ -10906,7 +10945,7 @@
     {\toggletrue{blx@tempa}%
      \begingroup
      \expandafter\blx@bibliography\csname blx@dlist@entry@\the\c@refsection @\blx@refcontext@context\endcsname}%
-  \ifnum\c@refsection<\blx@maxsection
+  \ifnum\c@refsection<\c@blx@maxsection
     \advance\c@refsection\@ne
     \expandafter\blx@refsections
   \else
@@ -11148,7 +11187,7 @@
 % support.
 \let\abx@aux@defaultlabelprefix\@gobblethree
 
-\AtEndDocument{%
+\blx@AtEndDocument{%
   % always add default refcontext declarations to .aux after biber run
   \iftoggle{blx@bbldone}
     {\def\do#1{%
@@ -11234,7 +11273,7 @@
   \fi
   \blx@addpagesum{#1}{#2}}
 
-\AtEndDocument{%
+\blx@AtEndDocument{%
   \def\abx@aux@page#1#2{\blx@addpagesum{#1}{#2}}%
   \def\abx@aux@fnpage#1#2{\blx@addpagesum{#1}{#2}}}
 
@@ -11626,7 +11665,49 @@
 \blx@kv@defkey{blx@assignrefcontext}{uniquenametemplatename}{\def\blx@tempd{#1}}
 \blx@kv@defkey{blx@assignrefcontext}{labelalphanametemplatename}{\def\blx@tempe{#1}}
 
+% Manually force a refcontext datalist in the .bcf
+\newcommand*{\GenRefcontextData}[1]{%
+  \begingroup
+  \edef\blx@tempb{\the\c@refsection}%
+  \def\blx@tempc{global}%
+  \def\blx@tempd{global}%
+  \def\blx@tempe{global}%
+  \let\blx@tempf\blx@sorting%
+  \let\blx@tempg\@empty%
+  \ifblank{#1}
+    {}
+    {\blx@kv@setkeys{blx@refcontextmanual}{#1}}%
+  \def\blx@tempa{\blx@tempf/\blx@tempc/\blx@tempg/\blx@tempd/\blx@tempe}%
+  \xifinlist{\blx@tempa @\blx@tempb @entry}\blx@dlistnames
+    {}
+    {\listxadd\blx@dlistnames{\blx@tempa @\blx@tempb @entry}%
+     \xappto\blx@dlists{%
+       \blx@xml@dlist{\blx@tempa}{entry}{\blx@tempb}{\blx@xml@dlist@refcontext{\blx@tempf}{\blx@tempc}{\blx@tempg}{\blx@tempd}{\blx@tempe}}{}}}%
+   \endgroup}
+
+% Meta option to set all name template options
+\blx@kv@defkey{blx@refcontextmanual}{nametemplates}{%
+  \def\blx@tempc@sortingnamekeytemplatename{#1}%
+  \def\blx@tempd@uniquenametemplatename{#1}%
+  \def\blx@tempe@labelalphanametemplatename{#1}}
+\blx@kv@defkey{blx@refcontextmanual}{sorting}{\def\blx@tempf{#1}}
+\blx@kv@defkey{blx@refcontextmanual}{sortingnamekeytemplatename}{\def\blx@tempc{#1}}
+\blx@kv@defkey{blx@refcontextmanual}{uniquenametemplatename}{\def\blx@tempd{#1}}
+\blx@kv@defkey{blx@refcontextmanual}{labelalphanametemplatename}{\def\blx@tempe{#1}}
+\blx@kv@defkey{blx@refcontextmanual}{labelprefix}{%
+  \def\blx@tempg{#1}%
+  \iftoggle{blx@defernumbers}
+    {}%
+    {\iftoggle{blx@labelnumber}
+       {\blx@warning{%
+          Option 'labelprefix' requires global\MessageBreak
+          'defernumbers=true'}}
+       {}}}
+
 % Reference sections
+\newrobustcmd*{\AtBeginRefsection}{\gappto\blx@hook@refsectioninit}
+\@onlypreamble\AtBeginRefsection
+
 \newrobustcmd*{\newrefsection}{%
   \endrefcontext
   \ifnum\c@refsection>\z@
@@ -11657,16 +11738,17 @@
 
 \def\blx@refsection@i[#1]{%
   \endgroup
-  \global\advance\blx@maxsection\@ne
-  \global\c@refsection\blx@maxsection
+  \stepcounter{blx@maxsection}%
+  \setcounter{refsection}{\value{blx@maxsection}}%
+  \csuse{blx@hook@refsectioninit}%
   \xifinlist{\the\c@refsection}\blx@allrefsections
     {}
     {\listxadd\blx@allrefsections{\the\c@refsection}}%
   \ifcsdef{blx@defaultrefcontexts@\the\c@refsection}
     {}
     {\global\cslet{blx@defaultrefcontexts@\the\c@refsection}\@empty}%
-  \expandafter\newcount\csname blx@maxsegment@\the\c@refsection\endcsname
-  \expandafter\newcount\csname blx@sectionciteorder@\the\c@refsection\endcsname
+  \blx@providecount{blx@maxsegment@\the\c@refsection}%
+  \blx@providecount{blx@sectionciteorder@\the\c@refsection}%
   \blx@inf@refsec
   \blx@secinit
   \if@filesw
@@ -11714,6 +11796,7 @@
 
 \def\blx@endrefsection{%
   \blx@endrefsegment
+  \blx@providecount{blx@sectionciteorder@\the\c@refsection}%
   % make sure we always output aliases to the .bcf otherwise after their
   % first resolution by biber, they will be invisible to subsequent biber
   % runs since biblatex will resolve the \keyalias{} macro to the main
@@ -11724,14 +11807,13 @@
     % Make sure this counter exists. Sometimes it might not when using, e.g:
     % refsection=chapter and \includeonly to put in the chapters or when
     % inserting citations into table of contents
-    \ifcscounter{blx@sectionciteorder@\the\c@refsection}
-      {}
-      {\expandafter\newcount\csname blx@sectionciteorder@\the\c@refsection\endcsname}%
     \global\advance\csname blx@sectionciteorder@\the\c@refsection\endcsname\@ne
     \blx@auxwrite\blx@bcfout{}{%
       \blx@xml@citekey{\blx@tempa}{}
       {\expandafter\the\csname blx@sectionciteorder@\the\c@refsection\endcsname}}}%
-  \dolistcsloop{blx@keyaliases@\the\c@refsection}%
+  \ifcsundef{blx@keyaliases@\the\c@refsection}
+    {}
+    {\dolistcsloop{blx@keyaliases@\the\c@refsection}}%
   % output key counts (for \citecount sorting) if citecounter option is not false
   \ifcsundef{blx@cites@\the\c@refsection}
     {}
@@ -11752,7 +11834,7 @@
   \fi
   \global\c@refsection\z@}
 
-\AtEndDocument{%
+\blx@AtEndDocument{%
   \endrefcontext
   % close non-0 refsection if active
   \ifnum\c@refsection>\z@
@@ -11764,8 +11846,8 @@
 
 \protected\def\abx@aux@refsection#1#2{%
   \listgadd\blx@alllastrefsections{#1}%
-  \ifnum#1>\blx@maxsection
-    \global\blx@maxsection#1\relax
+  \ifnum#1>\c@blx@maxsection
+    \setcounter{blx@maxsection}{#1}%
   \fi
   \blx@addchecksum{#1}{#2}}
 
@@ -11783,7 +11865,7 @@
     \blx@endrefsegment
   \fi
   \global\advance\csname blx@maxsegment@\the\c@refsection\endcsname\@ne
-  \global\c@refsegment\csname blx@maxsegment@\the\c@refsection\endcsname
+  \setcounter{refsegment}{\csuse{blx@maxsegment@\the\c@refsection}}%
   \blx@inf@refseg
   \blx@info{Setting label 'refsegment:\the\c@refsection\the\c@refsegment'}%
   \label{refsegment:\the\c@refsection\the\c@refsegment}%
@@ -12116,7 +12198,7 @@
     {}
     {\listcsxadd{blx@catg@#1}{\detokenize{#2}}}}
 
-\AtEndDocument{\let\abx@aux@category\@gobbletwo}
+\blx@AtEndDocument{\let\abx@aux@category\@gobbletwo}
 
 % [<options>]{<resource>,...}
 \renewrobustcmd*{\bibliography}[1]{%
@@ -12249,9 +12331,11 @@
 %% Citations
 
 \newrobustcmd*{\AtEveryCite}{\gappto\blx@hook@cite}
+\newrobustcmd*{\AfterEveryCite}{\gappto\blx@hook@citeafter}
 \newrobustcmd*{\AtEveryCitekey}{\gappto\blx@hook@citekey}
 \newrobustcmd*{\AtEveryMultiCite}{\gappto\blx@hook@mcite}
 \@onlypreamble\AtEveryCite
+\@onlypreamble\AfterEveryCite
 \@onlypreamble\AtEveryCitekey
 \@onlypreamble\AtEveryMultiCite
 
@@ -12262,7 +12346,6 @@
 \newrobustcmd*{\AtEveryEntrykey}{%
   \apptocmd{\blx@hook@entrykey}}
 \@onlypreamble\AtEveryEntrykey
-
 
 \def\blx@imc@UseEveryCiteHook{\csuse{blx@hook@cite}}
 \def\blx@imc@UseEveryCitekeyHook{\csuse{blx@hook@citekey}}
@@ -12408,7 +12491,8 @@
   % ignores all other citekeys in the section if citeall is present
   \ifstrequal{*}{#1}
     {\blx@auxwrite\blx@bcfout{}{\blx@xml@citekey{\blx@tempa}{\blx@tempb}{0}}}
-    {\blx@auxwrite\blx@bcfout{}{\blx@xml@citekey{\blx@tempa}{\blx@tempb}{\expandafter\the\csname blx@sectionciteorder@\the\c@refsection\endcsname}}}%
+    {\blx@auxwrite\blx@bcfout{}{\blx@xml@citekey{\blx@tempa}{\blx@tempb}{%
+       \expandafter\the\csname blx@sectionciteorder@\the\c@refsection\endcsname}}}%
   \endgroup}
 
 % {<set>}{<key1,key2,key3>}
@@ -12463,9 +12547,7 @@
   % Make sure this counter exists. Sometimes it might not when using, e.g:
   % refsection=chapter and \includeonly to put in the chapters or when
   % inserting citations into table of contents
-  \ifcscounter{blx@sectionciteorder@\the\c@refsection}
-    {}
-    {\expandafter\newcount\csname blx@sectionciteorder@\the\c@refsection\endcsname}%
+  \blx@providecount{blx@sectionciteorder@\the\c@refsection}%
   \global\advance\csname blx@sectionciteorder@\the\c@refsection\endcsname\@ne
   \blx@tempcnta\z@
   \blx@tempcntb\z@
@@ -12701,7 +12783,7 @@
 \let\abx@curr@count\@gobbletwo
 \let\abx@curr@fncount\@gobbletwo
 
-\AtEndDocument{%
+\blx@AtEndDocument{%
   \let\abx@aux@count\@gobbletwo
   \let\abx@aux@fncount\@gobbletwo
   \let\abx@curr@count\@gobbletwo
@@ -13108,7 +13190,7 @@
     {\listcsgadd{blx@pref@#3@\detokenize{#2}}{#4}}%
   \blx@addpagesum{#1}{#5}}
 
-\AtEndDocument{%
+\blx@AtEndDocument{%
   \def\abx@aux@backref#1#2#3#4#5{\blx@addpagesum{#1}{#5}}}
 
 % {<true>}{<false>}
@@ -13184,9 +13266,7 @@
     % Make sure this counter exists. Sometimes it might not when using, e.g:
     % refsection=chapter and \includeonly to put in the chapters or when
     % inserting citations into table of contents
-    \ifcscounter{blx@sectionciteorder@\the\c@refsection}
-      {}
-      {\expandafter\newcount\csname blx@sectionciteorder@\the\c@refsection\endcsname}%
+  \blx@providecount{blx@sectionciteorder@\the\c@refsection}%
   \global\advance\csname blx@sectionciteorder@\the\c@refsection\endcsname\@ne
   \blx@nocitation{#1}\blx@msg@cundef}
 
@@ -13379,6 +13459,7 @@
     \def\blx@postcode{#5}%
     \def\blx@postpunct@saved{##4}%
     \blx@citeloop{##3}%
+    \csuse{blx@hook@citeafter}%
     \endgroup}}
 
 % {<type>}{<name>}{*}
@@ -14047,7 +14128,7 @@
 \protected\def\blx@errormark{%
   \rule[0.25ex]{1.25ex}{1.25ex}}
 
-\AtEndDocument{%
+\blx@AtEndDocument{%
   \unless\ifnum\blx@parenlevel@text=\z@
     \blx@err@matchparen{%
       Unbalanced parentheses or brackets in the document body}%
@@ -14378,9 +14459,9 @@
 \xdef\blx@xml@uniquenametemplatenamepart#1#2#3{%
   ~~~~<bcf:namepart #1#2>#3</bcf:namepart>\blx@nl}
 
-\xdef\blx@xml@sortingnamekeytemplate#1#2{%
-  ~~<bcf:sortingnamekeytemplate name="#1">\blx@nl%
-  #2%
+\xdef\blx@xml@sortingnamekeytemplate#1#2#3{%
+  ~~<bcf:sortingnamekeytemplate name="#1" visibility="#2">\blx@nl%
+  #3%
   ~~</bcf:sortingnamekeytemplate>\blx@nl}
 
 \xdef\blx@xml@sortingnamekeykeypart#1#2{%
@@ -14762,7 +14843,7 @@
   \eappto\blx@tempa{\blx@xml@comment{SORTING NAME KEY TEMPLATES}}%
   \def\do##1{%
     \eappto\blx@tempa{%
-      \blx@xml@sortingnamekeytemplate{##1}{\csuse{blx@sortingnamekeytemplate@##1}}}}%
+      \blx@xml@sortingnamekeytemplate{##1}{\csuse{blx@sortingnamekeytemplatesvisibility@##1}}{\csuse{blx@sortingnamekeytemplate@##1}}}}%
   \dolistloop\blx@sortingnamekeytemplates
   % presort/sorting excludes/sorting includes
   \def\do##1{%
@@ -15457,7 +15538,7 @@
          Use '\string\DeclareBiblistFilter' to define it}}
     {\def\blx@thebiblistfilter{#1}}}
 
-% [<langids>][<entrytype>]{translitsource}{translittarget}
+% [<entrytype>]{specification}
 \newrobustcmd*{\DeclareSortTranslit}[2][]{%
   \begingroup
   \ifblank{#1}
@@ -15474,6 +15555,7 @@
 \@onlypreamble\DeclareSortTranslit
 \blx@DeclareBackendOption{global,type}[xml]{translit}
 
+% [<langids>]{<field or set>}{translitsource}{translittarget}
 \newcommand*{\blx@translit@setup}[4][]{%
   \eappto\blx@tempb{%
     \ifblank{#1}
@@ -15532,6 +15614,8 @@
   \let\namepart\blx@sortnk@namepart
   \let\keypart\blx@sortnk@keypart
   \let\literal\blx@sortnk@literal
+  \let\visibility\blx@sortnk@visibility
+  \csgdef{blx@sortingnamekeytemplatesvisibility@\blx@snkname}{sort}% default
   \let\blx@tempa\@empty
   \blx@tempcnta\z@
   #2%
@@ -15568,6 +15652,9 @@
   \let\blx@tempc\@empty
   \eappto\blx@tempb{%
     \blx@xml@sortingnamekeyliteral{\blx@tempe}{#1}}}
+
+\newcommand*{\blx@sortnk@visibility}[1]{%
+  \csgdef{blx@sortingnamekeytemplatesvisibility@\blx@snkname}{#1}}
 
 \newcommand*{\blx@sortnk@namepart}[2][]{%
   \advance\blx@tempcntb\@ne
@@ -17416,7 +17503,8 @@
     \blx@ctrlwrite
   \fi
   \blx@bblinput
-  \blx@maxsection\z@
+  \setcounter{blx@maxsection}{0}%
+  \csuse{blx@hook@refsectioninit}%
   \csuse{abx@preamble}%
   \blx@inf@refsec
   \blx@inf@refseg}

@@ -6,10 +6,10 @@ echo "Usage:
 build.sh help
 build.sh install <version> <tds_root>
 build.sh uninstall <tds_root>
-build.sh build <version>
 build.sh builddist|builddocs|build <version>
 build.sh testbibtex [file]|testbiber [file]|test [file]|testoutput 
 build.sh upload <version> [ \"DEV\" | \"EXP\" ]
+build.sh showdiff <filewithissues>
 
 With the \"DEV\" argument, uploads to the SourceForge development
 folder instead of the <version> numbered folder
@@ -186,7 +186,6 @@ then
 
   mv biblatex.tex.bak biblatex.tex
 
-  cp biblatex.pdf ../../../obuild/tds/doc/
   cp biblatex.pdf ../../../obuild/flat/biblatex/doc/
   cd ../../.. || exit
 
@@ -198,8 +197,8 @@ if [[ "$1" == "builddist" || "$1" == "build" ]]
 then
   \rm -f obuild/biblatex-$VERSION.tds.tgz
   \rm -f obuild/biblatex-$VERSION.tgz
-  tar zcf obuild/biblatex-$VERSION.tds.tgz -C obuild/tds bibtex biber doc tex
-  tar zcf obuild/biblatex-$VERSION.tgz -C obuild/flat biblatex
+  gnutar zcf obuild/biblatex-$VERSION.tds.tgz -C obuild/tds bibtex biber doc tex
+  gnutar zcf obuild/biblatex-$VERSION.tgz -C obuild/flat biblatex
 
   echo "Created packages (flat and TDS) ..."
 fi
