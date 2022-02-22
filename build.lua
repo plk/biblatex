@@ -33,4 +33,3 @@ checkruns = 2
 function runtest_tasks(name)
   return "biber -q " .. name
 end
-
