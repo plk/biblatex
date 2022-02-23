@@ -29,6 +29,7 @@ packtdszip = true
 
 checkengines = {"luatex"}
 checkruns = 2
+maxprintline = 9999
 
 function runtest_tasks(name)
   return "biber -q " .. name
