@@ -1,5 +1,8 @@
 name: Automated testing
 
+env:
+  BIBERURL: https://sourceforge.net/projects/biblatex-biber/files/biblatex-biber/development/binaries/Linux/biber-linux_x86_64.tar.gz
+
 on:
   push:
   pull_request:
@@ -41,5 +44,14 @@ jobs:
           # List the required TeX Live packages in a separate file to allow reuse in
           # different workflows.
           package_file: .github/tl_packages
+      - name: Get DEV biber
+        run: |
+          mkdir -p build/biber
+          pushd build/biber
+          wget -nc $BIBERURL
+          tar -xzvf $(basename $BIBERURL)
+          popd
+          cp build/biber/biber /tmp/texlive/bin/x86_64-linux
+          biber -v
       - name: Run l3build
         run: l3build check -q -H
