@@ -3,12 +3,17 @@
 module = "biblatex"
 
 -- Detail how to set the version automatically
-tagfiles = {"tex/latex/biblatex/biblatex.sty"}
+tagfiles = {"build.lua", "./tex/latex/biblatex/biblatex.sty"}
 function update_tag(file,content,tagname,tagdate)
   tagname = string.gsub(tagname, "^v", "")
   tagdate = string.gsub(tagdate, "%-", "/")
-  return string.gsub(string.gsub(content,"%{DATE%}","{" .. tagdate .. "}"),
-    "VERSION",tagname)
+  if file == "build.lua" then
+    return string.gsub(content,
+      'local tagname = "v%d.%d+"','local tagname = "v' .. tagname .. '"')
+  else
+    return string.gsub(string.gsub(content,"%{DATE%}","{" .. tagdate .. "}"),
+      "VERSION",tagname)
+  end
 end
 
 -- TDS-based installation
