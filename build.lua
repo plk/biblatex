@@ -31,8 +31,9 @@ checkengines = {"luatex"}
 checkruns = 2
 maxprintline = 9999
 
-supportdir = "./bibtex/bib/biblatex"
-checksuppfiles = {"*.bib"}
+supportdir = docfiledir .. "/examples"
+checksuppfiles = {"*.bib", "*.dbx"}
+testsuppdir = "./bibtex/bib/biblatex"
 
 function runtest_tasks(name)
   return "biber -q " .. name
