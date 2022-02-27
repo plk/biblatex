@@ -62,14 +62,14 @@ flatten = false
 flattentds = false
 packtdszip = true
 
-checkengines = {"luatex"}
-checkruns = 2
 maxprintline = 9999
 
 supportdir = docfiledir .. "/examples"
 checksuppfiles = {"*.bib", "*.dbx"}
 testsuppdir = "./bibtex/bib/biblatex"
 
-function runtest_tasks(name)
-  return "biber -q " .. name
-end
+checkconfigs = {"testconfig-pdftex",
+                "testconfig-luatex",
+                "testconfig-xetex",
+                "testconfig-index-simple",
+                "testconfig-index-multiple"}
