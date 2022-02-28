@@ -1,6 +1,7 @@
 checkengines = {"xetex"}
 stdengine = "xetex"
 checkruns = 3
+maxprintline = 999
 
 testfiledir = "testfiles/xetex"
 
