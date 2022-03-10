@@ -11240,8 +11240,16 @@
   \endgroup}
 
 % {<entrykey>,...}
+% a crude way to check for a do-nothing argument:
+% loop over it to see what happens
 \protected\def\blx@citeloop#1{%
-  \expandafter\blx@citeloop@i\expandafter{\detokenize{#1}}}
+  \togglefalse{blx@tempa}%
+  \def\do{\toggletrue{blx@tempa}\listbreak}%
+  \expandafter\docsvlist\expandafter{\detokenize{#1}}%
+  \iftoggle{blx@tempa}
+    {\expandafter\blx@citeloop@i\expandafter{\detokenize{#1}}}
+    {\abx@missing@entry{empty citation}%
+     \@latex@warning{\blx@msg@cundefon{}}}}
 \protected\def\blx@citeloop@i#1{%
   \begingroup
   % This must be here and not after \blx@citeadd as this changes the refcontext
