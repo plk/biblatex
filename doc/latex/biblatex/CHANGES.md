@@ -1,3 +1,8 @@
+# RELEASE NOTES FOR VERSION 3.18
+- Added `\localrefcontext` as a local alternative
+  to the global `\newrefcontext`.
+  `\localrefcontext` can be nested and is only active in the current group.
+
 # RELEASE NOTES FOR VERSION 3.17
 - **INCOMPATIBLE CHANGE**
   The behaviour of index-less granular xdata references to list fields has

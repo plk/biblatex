@@ -10213,6 +10213,8 @@
           \noexpand\blx@kv@setkeys{blx@refcontext}{\csuse{blx@refcontext@name@#2}}}%
         \blx@tempa}%
      % Override with explicit refcontext keyvals, if given
+     \def\blx@gdef@or@def{\gef}%
+     \def\blx@xdef@or@edef{\xdef}%
      \blx@kv@setkeys{blx@refcontext}{#1}%
      % Add the sortingtemplate to the list of sortingtemplates so we can track
      % special cases like sorting=none which need cite order change detection
@@ -10259,16 +10261,70 @@
     \blx@refcontext@uniquenametemplatename/%
     \blx@refcontext@labelalphanametemplatename}}
 
+% local version of \newrefcontext
+\def\localrefcontext{%
+  \@ifnextchar[%]
+    {\localrefcontext@i}
+    {\localrefcontext@i[]}}
+
+\def\localrefcontext@i[#1]{%
+  \@ifnextchar\bgroup
+    {\localrefcontext@ii[{#1}]}
+    {\localrefcontext@ii[{#1}]{}}}
+
+\newcommand*{\localrefcontext@ii}[2][]{%
+  \ifblank{#2}
+    {}
+    {\begingroup
+     \edef\blx@tempa{\endgroup%
+       \noexpand\blx@kv@setkeys{blx@refcontext}{\csuse{blx@refcontext@name@#2}}}%
+     \blx@tempa}%
+  % Override with explicit refcontext keyvals, if given
+  \def\blx@gdef@or@def{\def}%
+  \def\blx@xdef@or@edef{\edef}%
+  \blx@kv@setkeys{blx@refcontext}{#1}%
+  % Add the sortingtemplate to the list of sortingtemplates so we can track
+  % special cases like sorting=none which need cite order change detection
+  \xifinlist\blx@refcontext@sortingtemplatename\blx@sortingtemplatenames
+    {}
+    {\listxadd\blx@sortingtemplatenames\blx@refcontext@sortingtemplatename}%
+  \blx@edef@refcontext{%
+    \blx@refcontext@sortingtemplatename/%
+    \blx@refcontext@sortingnamekeytemplatename/%
+    \blx@refcontext@labelprefix/%
+    \blx@refcontext@uniquenametemplatename/%
+    \blx@refcontext@labelalphanametemplatename}%
+  % Add the refcontext to the list of refcontexts so we can compare on next run
+  \xifinlist\blx@refcontext@context\blx@refcontexts
+    {}
+    {\listxadd\blx@refcontexts\blx@refcontext@context}%
+  \blx@auxwrite\@mainaux{}{\string\abx@aux@refcontext{\blx@refcontext@context}}%
+  \ifcsundef{blx@sortingtemplate@\blx@refcontext@sortingtemplatename}
+    {\blx@err@invopt{sorting=\blx@refcontext@sortingtemplatename}{}}
+    {}%
+  \ifcsundef{blx@sortingnamekeytemplate@\blx@refcontext@sortingnamekeytemplatename}
+    {\blx@err@invopt{sortingnamekeytemplate=\blx@refcontext@sortingnamekeytemplatename}{}}
+    {}%
+  \ifcsundef{blx@uniquenametemplate@\blx@refcontext@uniquenametemplatename}
+    {\blx@err@invopt{uniquenametemplate=\blx@refcontext@uniquenametemplatename}{}}
+    {}%
+  \ifcsundef{blx@labelalphanametemplate@\blx@refcontext@labelalphanametemplatename}
+    {\blx@err@invopt{labelalphanametemplate=\blx@refcontext@labelalphanametemplatename}{}}
+    {}}
+
+\def\blx@gdef@or@def{\gdef}
+\def\blx@xdef@or@edef{\xdef}
+
 % Meta option to set all name template options
 \blx@kv@defkey{blx@refcontext}{nametemplates}{%
-  \gdef\blx@refcontext@sortingnamekeytemplatename{#1}%
-  \gdef\blx@refcontext@uniquenametemplatename{#1}%
-  \gdef\blx@refcontext@labelalphanametemplatename{#1}}
+  \blx@gdef@or@def\blx@refcontext@sortingnamekeytemplatename{#1}%
+  \blx@gdef@or@def\blx@refcontext@uniquenametemplatename{#1}%
+  \blx@gdef@or@def\blx@refcontext@labelalphanametemplatename{#1}}
 
-\blx@kv@defkey{blx@refcontext}{sorting}{\gdef\blx@refcontext@sortingtemplatename{#1}}
-\blx@kv@defkey{blx@refcontext}{sortingnamekeytemplatename}{\gdef\blx@refcontext@sortingnamekeytemplatename{#1}}
-\blx@kv@defkey{blx@refcontext}{uniquenametemplatename}{\gdef\blx@refcontext@uniquenametemplatename{#1}}
-\blx@kv@defkey{blx@refcontext}{labelalphanametemplatename}{\gdef\blx@refcontext@labelalphanametemplatename{#1}}
+\blx@kv@defkey{blx@refcontext}{sorting}{\blx@gdef@or@def\blx@refcontext@sortingtemplatename{#1}}
+\blx@kv@defkey{blx@refcontext}{sortingnamekeytemplatename}{\blx@gdef@or@def\blx@refcontext@sortingnamekeytemplatename{#1}}
+\blx@kv@defkey{blx@refcontext}{uniquenametemplatename}{\blx@gdef@or@def\blx@refcontext@uniquenametemplatename{#1}}
+\blx@kv@defkey{blx@refcontext}{labelalphanametemplatename}{\blx@gdef@or@def\blx@refcontext@labelalphanametemplatename{#1}}
 
 % labelprefix cannot be used as is because it is used to construct the internal
 % refcontext name which is referenced/expanded a lot all over the place. So,
@@ -10277,8 +10333,8 @@
 % the way and so unexpandable content like \dag breaks.
 % Unexpandable content should be protected with \detokenize.
 \blx@kv@defkey{blx@refcontext}{labelprefix}{%
-  \xdef\blx@refcontext@labelprefix{\blx@mdfivesum{#1}}%
-  \gdef\blx@refcontext@labelprefix@real{#1}%
+  \blx@xdef@or@edef\blx@refcontext@labelprefix{\blx@mdfivesum{#1}}%
+  \blx@gdef@or@def\blx@refcontext@labelprefix@real{#1}%
   \iftoggle{blx@defernumbers}
     {}%
     {\iftoggle{blx@labelnumber}
@@ -10286,6 +10342,7 @@
           Option 'labelprefix' requires global\MessageBreak
           'defernumbers=true'}}
        {}}}
+
 
 % [refcontext keys]{<keyword1>,<keyword2>,...}
 \newcommand*{\assignrefcontextkeyws}{%
