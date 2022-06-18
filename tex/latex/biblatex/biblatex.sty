@@ -940,6 +940,7 @@
 \newtoggle{blx@labeltitle}
 \newtoggle{blx@labeltitleyear}
 \newtoggle{blx@labeldateparts}
+\newtoggle{blx@pluralothers}
 \newtoggle{blx@natbib}
 \newtoggle{blx@mcite}
 \newtoggle{blx@loadfiles}
@@ -4584,6 +4585,11 @@
        \c@liststop\c@minnames
        \ifnum\c@uniquelist>\c@liststop
          \c@liststop\c@uniquelist
+         \ifboolexpr{test {\iftoggle{blx@pluralothers}}
+                 and
+                 test {\ifnumcomp{\value{listtotal}-\value{uniquelist}}{=}{1}}}
+           {\c@liststop\c@listtotal}
+           {}%
        \fi
      \fi}
     {\ifnum#2>\c@listtotal
@@ -13356,6 +13362,7 @@
     \blx@xml@toggle{nohashothers}%
     \blx@xml@toggle{noroman}%
     \blx@xml@toggle{nosortothers}%
+    \blx@xml@toggle{pluralothers}%
     \blx@xml@toggle{singletitle}%
     \blx@xml@toggle{skipbib}%
     \blx@xml@toggle{skipbiblist}%
@@ -15701,6 +15708,9 @@
 \def\blx@opt@uniquelist@true{true}
 \def\blx@opt@uniquelist@minyear{minyear}
 
+\DeclareBiblatexOption{global}[boolean]{pluralothers}[true]{%
+  \settoggle{blx@pluralothers}{#1}}
+  
 \blx@DeclareBackendOption{entry,namelist}[string]{uniquelist}
 
 \DeclareBiblatexOption{global,type}[boolean]{nohashothers}[true]{%
