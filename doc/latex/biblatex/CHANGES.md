@@ -1,4 +1,6 @@
 # RELEASE NOTES FOR VERSION 3.18
+- New option `pluralothers` to force "et al" to be plural (i.e. only
+  replace two or more names). This is required for some styles (e.g. APA)
 - Added `\localrefcontext` as a local alternative
   to the global `\newrefcontext`.
   `\localrefcontext` can be nested and is only active in the current group.
