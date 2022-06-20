@@ -969,6 +969,7 @@
 \newtoggle{blx@labeltitle}
 \newtoggle{blx@labeltitleyear}
 \newtoggle{blx@labeldateparts}
+\newtoggle{blx@pluralothers}
 \newtoggle{blx@natbib}
 \newtoggle{blx@mcite}
 \newtoggle{blx@loadfiles}
@@ -2372,13 +2373,14 @@
     {\csuse{blx@bbx@#1}}
     {\ifcsdef{blx@bbx@*}
        {\blx@warning{%
-          No driver for entry type '#1'.\MessageBreak
+          No driver for '#1'.\MessageBreak
           Using fallback driver}%
         \csuse{blx@bbx@*}}
        {\blx@error
-          {No driver for '\abx@field@@@entrytype' found}
-          {I can't find a driver for the entry type
-           '\abx@field@@@entrytype'\MessageBreak
+          {No driver for '#1' found}
+          {I can't find a driver for
+           '#1'\MessageBreak
+           (entry type '\abx@field@@@entrytype')\MessageBreak
            and there is no fallback driver either}}}}
 
 % {<type>}{<true>}{<false>}
@@ -5208,6 +5210,11 @@
          \c@liststop#2\relax
        \fi
      \fi}%
+  \ifboolexpr{test {\iftoggle{blx@pluralothers}}
+              and
+              test {\ifnumcomp{\value{listtotal}-\value{liststop}}{=}{1}}}
+    {\c@liststop\c@listtotal}
+    {}%
   \blx@namecodes}
 
 \def\blx@namesetup@i#1#2#3{%
@@ -9317,16 +9324,17 @@
   \listcsxadd{blx@keyaliases@\the\c@refsection}{\detokenize{#1}}}
 
 % blx@dlist@list@<section>@<refcontext> - a list of list items in a refcontext in a
-%                                     section (for tracking bibliography lists,
-%                                     obeys skipbiblist)
+%                                         section (for tracking bibliography lists,
+%                                         obeys skipbiblist)
 % blx@dlist@entry@<section>@<list> - a list of normal entries in a list in a
-%                                      section (for tracking bibliographies,
-%                                      obeys skipbib)
+%                                    section (for tracking bibliographies,
+%                                    obeys skipbib)
 % blx@dlist@centry@<section>@<list> - a list of normal entries in a list in a
-%                                       section (for tracking citations,
-%                                       obeys skipbib). Same as @entry@ but
-%                                       with added set children
-
+%                                     section (for tracking citations,
+%                                     does not obey skipbib).
+%                                     Same as @entry@, but includes skipbib'd entries
+%                                     and set children
+%
 % {<entrykey>}{<entrytype>}{<options>}
 \protected\def\blx@bbl@entry#1#2#3{%
   \begingroup
@@ -9361,9 +9369,11 @@
      \ifdef\abx@field@@@entrysubtype
        {\listcsxadd{blx@subt@\the\c@refsection @\abx@field@@@entrysubtype}{\abx@field@@@entrykey}}
        {}%
+     \nottoggle{blx@setonly}
+       {\listcsxadd{blx@dlist@centry@\the\c@refsection @\blx@dlist@name}{\abx@field@@@entrykey}}
+       {}%
      \nottoggle{blx@skipbib}
-       {\listcsxadd{blx@dlist@entry@\the\c@refsection @\blx@dlist@name}{\abx@field@@@entrykey}%
-        \listcsxadd{blx@dlist@centry@\the\c@refsection @\blx@dlist@name}{\abx@field@@@entrykey}}
+       {\listcsxadd{blx@dlist@entry@\the\c@refsection @\blx@dlist@name}{\abx@field@@@entrykey}}
        {}}%
     {}%
   \nottoggle{blx@skipbiblist}
@@ -11502,6 +11512,8 @@
           \noexpand\blx@kv@setkeys{blx@refcontext}{\csuse{blx@refcontext@name@#2}}}%
         \blx@tempa}%
      % Override with explicit refcontext keyvals, if given
+     \def\blx@gdef@or@def{\gdef}%
+     \def\blx@xdef@or@edef{\xdef}%
      \blx@kv@setkeys{blx@refcontext}{#1}%
      % Add the sortingtemplate to the list of sortingtemplates so we can track
      % special cases like sorting=none which need cite order change detection
@@ -11548,18 +11560,72 @@
     \blx@refcontext@uniquenametemplatename/%
     \blx@refcontext@labelalphanametemplatename}}
 
+% local version of \newrefcontext
+\def\localrefcontext{%
+  \@ifnextchar[%]
+    {\localrefcontext@i}
+    {\localrefcontext@i[]}}
+
+\def\localrefcontext@i[#1]{%
+  \@ifnextchar\bgroup
+    {\localrefcontext@ii[{#1}]}
+    {\localrefcontext@ii[{#1}]{}}}
+
+\newcommand*{\localrefcontext@ii}[2][]{%
+  \ifblank{#2}
+    {}
+    {\begingroup
+     \edef\blx@tempa{\endgroup%
+       \noexpand\blx@kv@setkeys{blx@refcontext}{\csuse{blx@refcontext@name@#2}}}%
+     \blx@tempa}%
+  % Override with explicit refcontext keyvals, if given
+  \def\blx@gdef@or@def{\def}%
+  \def\blx@xdef@or@edef{\edef}%
+  \blx@kv@setkeys{blx@refcontext}{#1}%
+  % Add the sortingtemplate to the list of sortingtemplates so we can track
+  % special cases like sorting=none which need cite order change detection
+  \xifinlist\blx@refcontext@sortingtemplatename\blx@sortingtemplatenames
+    {}
+    {\listxadd\blx@sortingtemplatenames\blx@refcontext@sortingtemplatename}%
+  \blx@edef@refcontext{%
+    \blx@refcontext@sortingtemplatename/%
+    \blx@refcontext@sortingnamekeytemplatename/%
+    \blx@refcontext@labelprefix/%
+    \blx@refcontext@uniquenametemplatename/%
+    \blx@refcontext@labelalphanametemplatename}%
+  % Add the refcontext to the list of refcontexts so we can compare on next run
+  \xifinlist\blx@refcontext@context\blx@refcontexts
+    {}
+    {\listxadd\blx@refcontexts\blx@refcontext@context}%
+  \blx@auxwrite\@mainaux{}{\string\abx@aux@refcontext{\blx@refcontext@context}}%
+  \ifcsundef{blx@sortingtemplate@\blx@refcontext@sortingtemplatename}
+    {\blx@err@invopt{sorting=\blx@refcontext@sortingtemplatename}{}}
+    {}%
+  \ifcsundef{blx@sortingnamekeytemplate@\blx@refcontext@sortingnamekeytemplatename}
+    {\blx@err@invopt{sortingnamekeytemplate=\blx@refcontext@sortingnamekeytemplatename}{}}
+    {}%
+  \ifcsundef{blx@uniquenametemplate@\blx@refcontext@uniquenametemplatename}
+    {\blx@err@invopt{uniquenametemplate=\blx@refcontext@uniquenametemplatename}{}}
+    {}%
+  \ifcsundef{blx@labelalphanametemplate@\blx@refcontext@labelalphanametemplatename}
+    {\blx@err@invopt{labelalphanametemplate=\blx@refcontext@labelalphanametemplatename}{}}
+    {}}
+
+\def\blx@gdef@or@def{\gdef}
+\def\blx@xdef@or@edef{\xdef}
+
 % Meta option to set all name template options
 \blx@kv@defkey{blx@refcontext}{nametemplates}{%
-  \gdef\blx@refcontext@sortingnamekeytemplatename{#1}%
-  \gdef\blx@refcontext@uniquenametemplatename{#1}%
-  \gdef\blx@refcontext@labelalphanametemplatename{#1}}
+  \blx@gdef@or@def\blx@refcontext@sortingnamekeytemplatename{#1}%
+  \blx@gdef@or@def\blx@refcontext@uniquenametemplatename{#1}%
+  \blx@gdef@or@def\blx@refcontext@labelalphanametemplatename{#1}}
 
 \blx@kv@defkey{blx@refcontext}{msform}{\def\blx@msform{#1}}
 \blx@kv@defkey{blx@refcontext}{mslang}{\def\blx@mslang{#1}}
-\blx@kv@defkey{blx@refcontext}{sorting}{\gdef\blx@refcontext@sortingtemplatename{#1}}
-\blx@kv@defkey{blx@refcontext}{sortingnamekeytemplatename}{\gdef\blx@refcontext@sortingnamekeytemplatename{#1}}
-\blx@kv@defkey{blx@refcontext}{uniquenametemplatename}{\gdef\blx@refcontext@uniquenametemplatename{#1}}
-\blx@kv@defkey{blx@refcontext}{labelalphanametemplatename}{\gdef\blx@refcontext@labelalphanametemplatename{#1}}
+\blx@kv@defkey{blx@refcontext}{sorting}{\blx@gdef@or@def\blx@refcontext@sortingtemplatename{#1}}
+\blx@kv@defkey{blx@refcontext}{sortingnamekeytemplatename}{\blx@gdef@or@def\blx@refcontext@sortingnamekeytemplatename{#1}}
+\blx@kv@defkey{blx@refcontext}{uniquenametemplatename}{\blx@gdef@or@def\blx@refcontext@uniquenametemplatename{#1}}
+\blx@kv@defkey{blx@refcontext}{labelalphanametemplatename}{\blx@gdef@or@def\blx@refcontext@labelalphanametemplatename{#1}}
 
 % labelprefix cannot be used as is because it is used to construct the internal
 % refcontext name which is referenced/expanded a lot all over the place. So,
@@ -11568,8 +11634,8 @@
 % the way and so unexpandable content like \dag breaks.
 % Unexpandable content should be protected with \detokenize.
 \blx@kv@defkey{blx@refcontext}{labelprefix}{%
-  \xdef\blx@refcontext@labelprefix{\blx@mdfivesum{#1}}%
-  \gdef\blx@refcontext@labelprefix@real{#1}%
+  \blx@xdef@or@edef\blx@refcontext@labelprefix{\blx@mdfivesum{#1}}%
+  \blx@gdef@or@def\blx@refcontext@labelprefix@real{#1}%
   \iftoggle{blx@defernumbers}
     {}%
     {\iftoggle{blx@labelnumber}
@@ -11577,6 +11643,7 @@
           Option 'labelprefix' requires global\MessageBreak
           'defernumbers=true'}}
        {}}}
+
 
 % [refcontext keys]{<keyword1>,<keyword2>,...}
 \newcommand*{\assignrefcontextkeyws}{%
@@ -11802,30 +11869,30 @@
   % runs since biblatex will resolve the \keyalias{} macro to the main
   % entry key, biber won't put \keyalias{}in the .bbl on subsequent runs
   % and biblatex will report a missing citekey
-  \def\do##1{%
-    \blx@xmlsanitizeafter{\def\blx@tempa}{##1}%
-    % Make sure this counter exists. Sometimes it might not when using, e.g:
-    % refsection=chapter and \includeonly to put in the chapters or when
-    % inserting citations into table of contents
-    \global\advance\csname blx@sectionciteorder@\the\c@refsection\endcsname\@ne
-    \blx@auxwrite\blx@bcfout{}{%
-      \blx@xml@citekey{\blx@tempa}{}
-      {\expandafter\the\csname blx@sectionciteorder@\the\c@refsection\endcsname}}}%
-  \ifcsundef{blx@keyaliases@\the\c@refsection}
+  \ifcsempty{blx@keyaliases@\the\c@refsection}
     {}
-    {\dolistcsloop{blx@keyaliases@\the\c@refsection}}%
+    {\def\do##1{%
+       \blx@xmlsanitizeafter{\def\blx@tempa}{##1}%
+       % Make sure this counter exists. Sometimes it might not when using, e.g:
+       % refsection=chapter and \includeonly to put in the chapters or when
+       % inserting citations into table of contents
+       \global\advance\csname blx@sectionciteorder@\the\c@refsection\endcsname\@ne
+       \blx@auxwrite\blx@bcfout{}{%
+         \blx@xml@citekey{\blx@tempa}{}
+         {\expandafter\the\csname blx@sectionciteorder@\the\c@refsection\endcsname}}}%
+     \dolistcsloop{blx@keyaliases@\the\c@refsection}}%
   % output key counts (for \citecount sorting) if citecounter option is not false
   \ifcsundef{blx@cites@\the\c@refsection}
     {}
     {\ifundef\blx@citecounter
        {}
        {\def\do##1{%
-         \ifcsundef{blx@currcount@\the\c@refsection @##1}
-           {\csdef{blx@currcount@\the\c@refsection @##1}{0}}
-           {}%
-         \blx@auxwrite\blx@bcfout{}
-           {\blx@xml@citekeycount{##1}{\csuse{blx@currcount@\the\c@refsection @##1}}}}}%
-     \dolistcsloop{blx@cites@\the\c@refsection}}%
+          \ifcsundef{blx@currcount@\the\c@refsection @##1}
+            {\csdef{blx@currcount@\the\c@refsection @##1}{0}}
+            {}%
+          \blx@auxwrite\blx@bcfout{}
+            {\blx@xml@citekeycount{##1}{\csuse{blx@currcount@\the\c@refsection @##1}}}}%
+        \dolistcsloop{blx@cites@\the\c@refsection}}}%
   \ifnum\c@refsection>\z@
     \blx@auxwrite\blx@bcfout{}{%
       \blx@xml@endsection\blx@nl
@@ -12331,11 +12398,9 @@
 %% Citations
 
 \newrobustcmd*{\AtEveryCite}{\gappto\blx@hook@cite}
-\newrobustcmd*{\AfterEveryCite}{\gappto\blx@hook@citeafter}
 \newrobustcmd*{\AtEveryCitekey}{\gappto\blx@hook@citekey}
 \newrobustcmd*{\AtEveryMultiCite}{\gappto\blx@hook@mcite}
 \@onlypreamble\AtEveryCite
-\@onlypreamble\AfterEveryCite
 \@onlypreamble\AtEveryCitekey
 \@onlypreamble\AtEveryMultiCite
 
@@ -12462,7 +12527,8 @@
 \def\blx@citation@all{%
   \blx@auxwrite\@mainaux{}{\string\abx@aux@nociteall}%
   \ifbool{citerequest}
-    {\blx@bibreq{*}%
+    {\global\advance\csname blx@sectionciteorder@\the\c@refsection\endcsname\@ne
+     \blx@bibreq{*}%
      \global\csletcs
        {blx@segm@\the\c@refsection @\the\c@refsegment}
        {blx@dlist@entry@\the\c@refsection @\blx@refcontext@context}%
@@ -12487,12 +12553,14 @@
               not test {\ifinlist{#1}\blx@directcites}}
     {\def\blx@tempb{ nocite="1"}}
     {}%
+  \blx@auxwrite\blx@bcfout{}{\blx@xml@citekey{\blx@tempa}{\blx@tempb}{%
+       \expandafter\the\csname blx@sectionciteorder@\the\c@refsection\endcsname}}%
   % citeall is always order "0" - this makes no real difference as biber
   % ignores all other citekeys in the section if citeall is present
-  \ifstrequal{*}{#1}
-    {\blx@auxwrite\blx@bcfout{}{\blx@xml@citekey{\blx@tempa}{\blx@tempb}{0}}}
-    {\blx@auxwrite\blx@bcfout{}{\blx@xml@citekey{\blx@tempa}{\blx@tempb}{%
-       \expandafter\the\csname blx@sectionciteorder@\the\c@refsection\endcsname}}}%
+  % \ifstrequal{*}{#1}
+  %   {\blx@auxwrite\blx@bcfout{}{\blx@xml@citekey{\blx@tempa}{\blx@tempb}{0}}}
+  %   {\blx@auxwrite\blx@bcfout{}{\blx@xml@citekey{\blx@tempa}{\blx@tempb}{%
+  %      \expandafter\the\csname blx@sectionciteorder@\the\c@refsection\endcsname}}}%
   \endgroup}
 
 % {<set>}{<key1,key2,key3>}
@@ -12535,8 +12603,16 @@
   \endgroup}
 
 % {<entrykey>,...}
+% a crude way to check for a do-nothing argument:
+% loop over it to see what happens
 \protected\def\blx@citeloop#1{%
-  \expandafter\blx@citeloop@i\expandafter{\detokenize{#1}}}
+  \togglefalse{blx@tempa}%
+  \def\do{\toggletrue{blx@tempa}\listbreak}%
+  \expandafter\docsvlist\expandafter{\detokenize{#1}}%
+  \iftoggle{blx@tempa}
+    {\expandafter\blx@citeloop@i\expandafter{\detokenize{#1}}}
+    {\abx@missing@entry{empty citation}%
+     \@latex@warning{\blx@msg@cundefon{}}}}
 \protected\def\blx@citeloop@i#1{%
   \begingroup
   % This must be here and not after \blx@citeadd as this changes the refcontext
@@ -12716,7 +12792,7 @@
 \def\blx@citecounter@global{%
   \ifbool{@filesw}
     {\ifbool{citetracker}
-       {\abx@curr@count{\the\c@refsection}{\abx@field@entrykey}%
+       {\abx@curr@count{\the\c@refsection}{\abx@field@@@entrykey}%
         \immediate\write\@mainaux{%
           \string\abx@aux@count
           {\the\c@refsection}{\abx@field@@@entrykey}}}
@@ -12729,7 +12805,7 @@
        {\iftoggle{blx@footnote}
           {\abx@curr@fncount}
           {\abx@curr@count}
-          {\the\c@refsection}{\abx@field@entrykey}%
+          {\the\c@refsection}{\abx@field@@@entrykey}%
         \immediate\write\@mainaux{%
           \iftoggle{blx@footnote}
             {\string\abx@aux@fncount}
@@ -12860,7 +12936,9 @@
 
 \def\blx@ibidtracker@constrict{%
   \blx@ifcitesingle
-    {\blx@mpfnsave
+    {\iftoggle{blx@footnote}
+       {\blx@mpfnsave}
+       {}%
      \blx@ibidtracker@context}
     {\blx@ibidreset@context}}%
 
@@ -12906,7 +12984,9 @@
 \let\blx@idemtracker@strict\blx@idemtracker@global
 
 \def\blx@idemtracker@constrict{%
-  \blx@mpfnsave
+  \iftoggle{blx@footnote}
+    {\blx@mpfnsave}
+    {}%
   \blx@idemtracker@context}
 
 \def\blx@idemreset@force{%
@@ -12955,7 +13035,9 @@
 
 \def\blx@opcittracker@constrict{%
   \blx@ifcitesingle
-    {\blx@mpfnsave
+    {\iftoggle{blx@footnote}
+       {\blx@mpfnsave}
+       {}%
      \blx@opcittracker@context}
     {\blx@opcitreset@context}}%
 
@@ -13459,7 +13541,6 @@
     \def\blx@postcode{#5}%
     \def\blx@postpunct@saved{##4}%
     \blx@citeloop{##3}%
-    \csuse{blx@hook@citeafter}%
     \endgroup}}
 
 % {<type>}{<name>}{*}
@@ -14588,6 +14669,7 @@
     \blx@xml@toggle{nohashothers}%
     \blx@xml@toggle{noroman}%
     \blx@xml@toggle{nosortothers}%
+    \blx@xml@toggle{pluralothers}%
     \blx@xml@toggle{singletitle}%
     \blx@xml@toggle{skipbib}%
     \blx@xml@toggle{skipbiblist}%
@@ -16995,6 +17077,9 @@
 \def\blx@opt@uniquelist@true{true}
 \def\blx@opt@uniquelist@minyear{minyear}
 
+\DeclareBiblatexOption{global}[boolean]{pluralothers}[true]{%
+  \settoggle{blx@pluralothers}{#1}}
+  
 \blx@DeclareBackendOption{entry,namelist}[string]{uniquelist}
 
 \DeclareBiblatexOption{global,type}[boolean]{nohashothers}[true]{%
@@ -17275,7 +17360,7 @@
 % Set defaults
 \blx@kv@setkeys{blx@opt@ldt}{style=numeric}
 \blx@kv@setkeys{blx@opt@pre}{%
-  sorting=nty,sortlocale=auto,sortcase,sortupper,sortcites=false,
+  sorting=nty,sortlocale=auto,sortcase,sortupper,sortcites=false,pluralothers=false,
   maxnames=3,minnames=1,maxalphanames=3,minalphanames=1,
   maxitems=3,minitems=1,mincrossrefs=2,minxrefs=2,
   useauthor=true,useeditor=true,usetranslator=false,

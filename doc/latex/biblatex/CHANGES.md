@@ -31,6 +31,13 @@
    <namelist><msform><mslang>bibnamehash or
    <namelist><msform><mslang>fullhash and biber 4.0+ always generates specific
    name hashes in this format.
+# RELEASE NOTES FOR VERSION 3.18
+- New option `pluralothers` to force "et al" to be plural (i.e. only
+  replace two or more names). This is required for some styles (e.g. APA)
+- Added `\localrefcontext` as a local alternative
+  to the global `\newrefcontext`.
+  `\localrefcontext` can be nested and is only active in the current group.
+
 # RELEASE NOTES FOR VERSION 3.17
 - **INCOMPATIBLE CHANGE**
   The behaviour of index-less granular xdata references to list fields has
