@@ -905,6 +905,7 @@
 \newcount\blx@parenlevel@text
 \newcount\blx@parenlevel@foot
 \expandafter\newcount\csname blx@sectionciteorder@0\endcsname
+\expandafter\newcount\csname blx@sectionciteorderinternal@0\endcsname
 \newcount\blx@entrysetcounter
 \newcount\blx@biblioinstance
 
@@ -11879,7 +11880,7 @@
        \global\advance\csname blx@sectionciteorder@\the\c@refsection\endcsname\@ne
        \blx@auxwrite\blx@bcfout{}{%
          \blx@xml@citekey{\blx@tempa}{}
-         {\expandafter\the\csname blx@sectionciteorder@\the\c@refsection\endcsname}}}%
+         {\expandafter\the\csname blx@sectionciteorder@\the\c@refsection\endcsname}{1}}}%
      \dolistcsloop{blx@keyaliases@\the\c@refsection}}%
   % output key counts (for \citecount sorting) if citecounter option is not false
   \ifcsundef{blx@cites@\the\c@refsection}
@@ -12541,6 +12542,7 @@
   \listgadd\blx@nocites{*}}
 
 \protected\def\blx@bibreq#1{%
+  \advance\blx@tempcntc\@ne% holds internal \cite{} citation order
   \begingroup
   \blx@xmlsanitizeafter{\def\blx@tempa}{#1}%
   \let\blx@tempb\@empty
@@ -12553,8 +12555,9 @@
               not test {\ifinlist{#1}\blx@directcites}}
     {\def\blx@tempb{ nocite="1"}}
     {}%
-  \blx@auxwrite\blx@bcfout{}{\blx@xml@citekey{\blx@tempa}{\blx@tempb}{%
-       \expandafter\the\csname blx@sectionciteorder@\the\c@refsection\endcsname}}%
+  \blx@auxwrite\blx@bcfout{}{\blx@xml@citekey{\blx@tempa}{\blx@tempb}%
+      {\expandafter\the\csname blx@sectionciteorder@\the\c@refsection\endcsname}%
+      {\expandafter\the\csname blx@tempcntc\endcsname}}%
   % citeall is always order "0" - this makes no real difference as biber
   % ignores all other citekeys in the section if citeall is present
   % \ifstrequal{*}{#1}
@@ -12627,6 +12630,7 @@
   \global\advance\csname blx@sectionciteorder@\the\c@refsection\endcsname\@ne
   \blx@tempcnta\z@
   \blx@tempcntb\z@
+  \blx@tempcntc\z@
   \let\blx@tempa\@empty
   \forcsvlist\blx@citeadd{#1}% adds to \blx@tempa
   \blx@thenotecheck
@@ -14613,8 +14617,8 @@
   ~~</bcf:bibdata>\blx@nl}
 \xdef\blx@xml@datasource#1#2#3#4#5{%
   ~~~~<bcf:datasource type="#1" datatype="#2"#3#4>#5</bcf:datasource>\blx@nl}
-\xdef\blx@xml@citekey#1#2#3{%
-  ~~~~<bcf:citekey order="#3"#2>#1</bcf:citekey>}
+\xdef\blx@xml@citekey#1#2#3#4{%
+  ~~~~<bcf:citekey order="#3" intorder="#4"#2>#1</bcf:citekey>}
 \xdef\blx@xml@citeset#1#2{%
   ~~~~<bcf:citekey type="set" members="#2">#1</bcf:citekey>}
 \xdef\blx@xml@citekeycount#1#2{%
@@ -15780,6 +15784,8 @@
   \def\citeorder{%
     \global\cslet{blx@sortingtemplate@citeorder@relevant@#2}\@empty
     \blx@sortdef@field{citeorder}}%
+  \def\intciteorder{%
+    \blx@sortdef@field{intciteorder}}%
   \def\citecount{%
     \blx@sortdef@field{citecount}}%
   \blx@tempcnta\z@
