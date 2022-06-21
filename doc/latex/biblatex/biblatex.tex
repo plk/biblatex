@@ -9363,7 +9363,7 @@ The \prm{specification} is an undelimited list of \cmd{sort} directives which sp
 
 \cmditem{sort}{elements}
 
-Specifies the elements considered in the sorting process. The \prm{elements} are an undelimited list of \cmd{field}, \cmd{literal}, \cmd{citecount} and \cmd{citeorder} commands which are evaluated in the order in which they are given. If an element is defined, it is added to the sort key and the sorting routine skips to the next \cmd{sort} directive. If it is undefined, the next element is evaluated. Since literal strings are always defined, any \cmd{literal} commands should be the sole or the last element in a \cmd{sort} directive. All \prm{elements} should be the same datatype as described in \secref{bib:fld:dat} since they will be potentially compared to any of the other \prm{elements} in other entries.. The \cmd{sort} command supports the following optional arguments:
+Specifies the elements considered in the sorting process. The \prm{elements} are an undelimited list of \cmd{field}, \cmd{literal}, \cmd{citecount}, \cmd{intciteorder} and \cmd{citeorder} commands which are evaluated in the order in which they are given. If an element is defined, it is added to the sort key and the sorting routine skips to the next \cmd{sort} directive. If it is undefined, the next element is evaluated. Since literal strings are always defined, any \cmd{literal} commands should be the sole or the last element in a \cmd{sort} directive. All \prm{elements} should be the same datatype as described in \secref{bib:fld:dat} since they will be potentially compared to any of the other \prm{elements} in other entries.. The \cmd{sort} command supports the following optional arguments:
 
 \begin{optionlist*}
 
@@ -9436,7 +9436,7 @@ The \cmd{citeorder} element has a special meaning. It requests a sort based on t
 there is a distinction between the lexical order and the semantic order. Here «one» and «two» have the same semantic order but a unique lexical order. The semantic order only matters if you specify further sorting to disambiguate entries with the same semantic order. For example, this is the definition of the \opt{none} sorting template:
 
 \begin{ltxexample}
-\DeclareSortingTemplate{none}{
+\DeclareSortingTemplate{lexical}{
   \sort{\citeorder}
 }
 \end{ltxexample}
@@ -9444,13 +9444,32 @@ there is a distinction between the lexical order and the semantic order. Here «
 This sorts the bibliography purely lexically by the order of the keys in the citation commands. In the example above, it sorts «one» before «two». However, suppose that you consider «one» and «two» to have the same order (semantic order) since they are cited at the same time and want to further sort these by year. Suppose «two» has an earlier \bibfield{year} than «one»:
 
 \begin{ltxexample}
-\DeclareSortingTemplate{noneyear}{
+\DeclareSortingTemplate{lexicalyear}{
   \sort{\citeorder}
   \sort{<<year>>}
 }
 \end{ltxexample}
 %
 This sorts «two» before «one», even though lexically, «one» would sort before «two». This is possible because the semantic order can be disambiguated by the further sorting on year. With the standard \opt{none} sorting template, the lexical order and semantic order are identical because there is nothing further to disambiguate them. This means that you can use \cmd{citeorder} just like any other sorting specification element, choosing how to further sort entries cited at the same time (in the same citation command).
+
+See also \cmd{intciteorder} below.
+
+\csitem{intciteorder}
+
+The \cmd{intciteorder} element has a special meaning. It requests a sort based on the lexical order internal to the same citation command. For example:
+
+\begin{ltxexample}
+\cite{one,two}
+\end{ltxexample}
+%
+Here both citations have the same \cmd{citeorder} but different \cmd{intciteorder}. This sorting command is basically a more granular form of \cmd{citeorder} so that order can be distinguished for citations within the same citation command. So, for example, with the above example, this will guarantee sorting of <one> before <two>:
+
+\begin{ltxexample}
+\DeclareSortingTemplate{fulllexical}{
+  \sort{\citeorder}
+  \sort{\intciteorder}
+}
+\end{ltxexample}
 
 \cmditem{DeclareSortingNamekeyTemplate}[name]{specification}
 
@@ -14837,6 +14856,7 @@ This revision history is a list of changes relevant to users of this package. Ch
 
 \begin{changelog}
 \begin{release}{3.18}{2022-}
+\item Added sorting option \cmd{intciteorder}\see{aut:ctm:srt}
 \item Added global option \opt{pluralothers}\see{use:opt:pre:gen}
 \item Added \cmd{localrefcontext}\see{use:bib:context}
 \item Added \cmd{visibility} option to \cmd{DeclareSortingNamekeyTemplate}\see{aut:ctm:srt}
