@@ -11,7 +11,7 @@ build.sh testbibtex [file]|testbiber [file]|test [file]|testoutput
 build.sh upload <version> <targetfolder>
 build.sh showdiff <filewithissues>
 
-If <targetfolder> is missing, upload to folder "biblatex-<version>" folder
+If <targetfolder> is missing, upload to folder \"biblatex-<version>\" folder
 
 Examples: 
 obuild/build.sh install 3.8 ~/texmf/
