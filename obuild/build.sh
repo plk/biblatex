@@ -8,11 +8,10 @@ build.sh install <version> <tds_root>
 build.sh uninstall <tds_root>
 build.sh builddist|builddocs|build <version>
 build.sh testbibtex [file]|testbiber [file]|test [file]|testoutput 
-build.sh upload <version> [ \"DEV\" | \"EXP\" ]
+build.sh upload <version> <targetfolder>
 build.sh showdiff <filewithissues>
 
-With the \"DEV\" argument, uploads to the SourceForge development
-folder instead of the <version> numbered folder
+If <targetfolder> is missing, upload to folder "biblatex-<version>" folder
 
 With the \"EXP\" argument, uploads to the SourceForge experimental
 folder instead of the <version> numbered folder
@@ -21,8 +20,8 @@ Examples:
 obuild/build.sh install 4.0 ~/texmf/
 obuild/build.sh uninstall ~/texmf/
 obuild/build.sh build 4.0
-obuild/build.sh upload 4.0 DEV
-obuild/build.sh upload 4.0 EXP
+obuild/build.sh upload 4.0 development
+obuild/build.sh upload 4.0 multiscript
 
 \"build test\" runs all of the example files (in a temp dir) and puts errors in a log:
 
@@ -96,17 +95,13 @@ if [[ "$1" == "upload" ]]
 then
     if [[ -e obuild/biblatex-$VERSION.tds.tgz ]]
     then
-      if [[ "$3" == "DEV" ]]
+      if [ -z ${3+x} ]
       then
-        scp obuild/biblatex-"$VERSION".*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/development/
-        scp doc/latex/biblatex/CHANGES.md philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/development/
-      elif [[ "$3" == "EXP" ]]
-      then
-        scp obuild/biblatex-"$VERSION".*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/experimental/
-        scp doc/latex/biblatex/CHANGES.md philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/experimental/
-      else
         scp obuild/biblatex-"$VERSION".*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/biblatex-"$VERSIONM"/
         scp doc/latex/biblatex/CHANGES.md philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/biblatex-"$VERSIONM"/
+      else
+        scp obuild/biblatex-"$VERSION".*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/$3/
+        scp doc/latex/biblatex/CHANGES.md philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/$3/
       fi
     exit 0
   fi
