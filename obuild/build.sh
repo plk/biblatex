@@ -11,7 +11,7 @@ build.sh testbibtex [file]|testbiber [file]|test [file]|testoutput
 build.sh upload <version> <targetfolder>
 build.sh showdiff <filewithissues>
 
-If <targetfolder> is missing, upload to folder "biblatex-<version>" folder
+If <targetfolder> is missing, upload to folder \"biblatex-<version>\" folder
 
 With the \"EXP\" argument, uploads to the SourceForge experimental
 folder instead of the <version> numbered folder
