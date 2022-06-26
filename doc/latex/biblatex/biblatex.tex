@@ -10,6 +10,7 @@
 \newfontfamily\devanagarifont{Shobhika}[%
   Script=Devanagari,
   Renderer=Harfbuzz]
+\newcommand*{\textdevanagari}[1]{{\devanagarifont #1}}
 \usepackage[american]{babel}
 \usepackage[strict]{csquotes}
 \usepackage{tabularx}
@@ -67,7 +68,7 @@
   url={\biblatexhome},
   author={Philip Kime, Moritz Wemheuer, Philipp Lehman},
   email={},
-  revision={3.16},
+  revision={3.19},
   date={\today}}
 
 \hypersetup{%
@@ -221,7 +222,7 @@ Baldur Kristinsson (Icelandic);
 Enrico Gregorio, Andrea Marchitelli (Italian);
 Rihards Skuja (Latvian);
 Valdemaras Klumbys (Lithuanian);
-\devanagarifont{निरंजन} (Marathi);
+\textdevanagari{निरंजन} (Marathi);
 Håkon Malmedal, Hans Fredrik Nordhaug (Norwegian);
 Anastasia Kandulina, Yuriy Chernyshov (Polish);
 José Carlos Santos (Portuguese);
@@ -534,7 +535,7 @@ A multi"=volume \bibtype{collection}. For backwards compatibility, multi"=volume
 
 A contribution to a collection which forms a self"=contained unit with a distinct author and title. The \bibfield{author} refers to the \bibfield{title}, the \bibfield{editor} to the \bibfield{booktitle}, \ie the title of the collection.
 
-\reqitem{author, title, booktitle, year/date}
+\reqitem{author, title, editor, booktitle, year/date}
 \optitem{editor, editora, editorb, editorc, translator, annotator, commentator, introduction, foreword, afterword, subtitle, titleaddon, maintitle, mainsubtitle, maintitleaddon, booksubtitle, booktitleaddon, language, origlanguage, volume, part, edition, volumes, series, number, note, publisher, location, isbn, eid, chapter, pages, addendum, pubstate, doi, eprint, eprintclass, eprinttype, url, urldate}
 
 \typeitem{suppcollection}
@@ -662,7 +663,7 @@ Custom types for special bibliography styles. The standard styles defined no bib
 \subsubsection{Type Aliases}
 \label{bib:typ:als}
 
-The entry types listed in this section are provided for backwards compatibility with traditional \bibtex styles. These aliases are resolved by the backend as the data is processed. Bibliography styles will see the entry type the alias points to, not the alias name. This <hard alias> is unlike the <soft alias> relation in the previous subsection. The relevant mappings for the \opt{bibtex} driver can be found in~\secref{apx:maps:bibtex}.
+The entry types listed in this section are provided for backwards compatibility with traditional \bibtex styles. These aliases are resolved by the backend as the data is processed. \biblatex and the styles will see only the entry type the alias points to (the target), not the alias name (the source). In particular \biblatex-side per-type operations like type-specific formatting and filtering only work for the target type, not the source type. This <hard alias> is unlike the <soft alias> relation in the previous subsection. The relevant mappings for the \opt{bibtex} driver can be found in~\secref{apx:maps:bibtex}.
 
 \begin{typelist}
 
@@ -929,7 +930,9 @@ Similar to \bibfield{editortype} but referring to the \bibfield{editorc} field. 
 
 \fielditem{eid}{literal}
 
-The electronic identifier of an \bibtype{article} or chapter-like section of a larger work. This field may replace the \bibfield{pages} field for journals deviating from the classic pagination scheme of printed journals by only enumerating articles or papers and not pages.
+The electronic identifier of an \bibtype{article} or chapter-like section of a larger work often called <article number>, <paper number> or the like. This field may replace the \bibfield{pages} field for journals deviating from the classic pagination scheme of printed journals by only enumerating articles or papers and not pages.
+
+Not to be confused with \bibfield{number}, which for \bibtype{article}s subdivides the \bibfield{volume}.
 
 \fielditem{entrysubtype}{literal}
 
@@ -1087,6 +1090,8 @@ Miscellaneous bibliographic data which does not fit into any other field. The \b
 The number of a journal or the volume\slash number of a book in a \bibfield{series}. See also \bibfield{issue} as well as \secref{bib:use:ser, bib:use:iss, bib:use:issnum}. With \bibtype{patent} entries, this is the number or record token of a patent or patent request. Normally this field will be an integer or an integer range, but it may also be a short designator that is not entirely numeric such as «S1», «Suppl.\ 2», «3es». In these cases the output should be scrutinised carefully.
 
 Since \bibfield{number} is---maybe counterintuitively given its name---a literal field, sorting templates will not treat its contents as integers, but as literal strings, which means that «11» may sort between «1» and «2». If integer sorting is desired, the field can be declared an integer field in a custom data model (see \secref{aut:ctm:dm}). But then the sorting of non-integer values is not well defined.
+
+The <article number> or <paper number>, which can be used instead of---or along with---a page range to pinpoint a specific article within another work, goes into the \bibfield{eid} field.
 
 \listitem{organization}{literal}
 
@@ -1752,7 +1757,7 @@ Date fields such as the default data model dates \bibfield{date}, \bibfield{orig
 
 \acr{ISO8601-2} Extended Format dates are astronomical dates in which year <0> exists. When outputting dates in BCE or BC era (see the \opt{dateera} option below), note that they will typically be one year earlier since BCE/BC era do not have a year 0 (year 0 is 1 BCE/BC). This conversion is automatic. See examples in \tabref{bib:use:tab2}.
 
-Date field names \emph{must} end with the string <date>, as with the default date fields. Bear this in mind when adding new date fields to the datamodel (see \secref{aut:ctm:dm}). \biblatex will check all date fields after reading the date model and will exit with an error if it finds a date field which does not adhere to this naming convention.
+Date field names \emph{must} end with the string <date>, as with the default date fields. Bear this in mind when adding new date fields to the datamodel (see \secref{aut:ctm:dm}). \biblatex will check all date fields after reading the data model and will exit with an error if it finds a date field which does not adhere to this naming convention.
 
 \acr{ISO8601-2} supports dates before common era (BCE/BC) by way of a negative date format and supports  <approximate> (circa) and uncertain dates. Such date formats set internal markers which can be tested for so that appropriate localised markers (such as \opt{circa} or \opt{beforecommonera}) can be inserted. Also supported are <unspecified> dates (\acr{ISO8601-2} 4.3) which are automatically expanded into appropriate data ranges accompanied by a field \bibfield{$<$datetype$>$dateunspecified} which details the granularity of the unspecified data. Styles may use this information to format such dates appropriately but the standard styles do not do this. See \tabref{bib:use:tab3} on page~\pageref{bib:use:tab3} for the allowed \acr{ISO8601-2} <unspecified> formats, their range expansions and \bibfield{$<$datetype$>$dateunspecified} values (see \secref{aut:bbx:fld:gen}).
 
@@ -1802,8 +1807,8 @@ The output of <circa>, uncertainty and era information in standard styles (or cu
 1723\textasciitilde & circa 1723 & using \cmd{ifdatecirca} test\\
 1723? & 1723? & using \cmd{ifdateuncertain} test\\
 1723\% & circa 1723? & using \cmd{ifdateuncertain} and \cmd{ifdatecirca} tests\\
-2004-22 & 2004 & also, \bibfield{season} is set to the localisation string <summer>\\
-2004-24 & 2004 & also, \bibfield{season} is set to the localisation string <winter>\\
+2004-22 & 2004 & also, \bibfield{yeardivision} is set to the localisation string <summer>\\
+2004-24 & 2004 & also, \bibfield{yeardivision} is set to the localisation string <winter>\\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -1821,7 +1826,9 @@ The \bibfield{month} field is an integer field. The bibliography style converts 
 \subsubsection{Journal Numbers and Issues}
 \label{bib:use:issnum}
 
-The words <number> and <issue> are often used synonymously by journals to refer to the subdvision of a \bibfield{volume}. The fact that \biblatex's data model has fields of both names can sometimes lead to confusion about which field should be used. First and foremost the word that the journal uses for the subdivsion of a \bibfield{volume} should be of minor importance, what matters is the role in the data model. As a rule of thumb \bibfield{number} is the right field in most circumstances. In the standard styles \bibfield{number} modifies \bibfield{volume}, whereas \bibfield{issue} modifies the date (year) of the entry. Numeric identifiers and short designators that are not necessarily (entirely) numeric such as <A>, <S1>, <C2>, <Suppl.\ 3>, <4es> would go into the \bibfield{number} field, because they usually modify the \bibfield{volume}. The output of---especially longer---non-numeric input for \bibfield{number} should be checked since it could potentially look odd with some styles. The field \bibfield{issue} can be used for designations such as <Spring>, <Winter> or <Michaelmas term> if that is commonly used to refer to the journal.
+The terms <number>, <issue> and even <issue number> are often used synonymously by journals to refer to the subdvision of a \bibfield{volume}. The fact that \biblatex's data model has fields of both names can sometimes lead to confusion about which field should be used. First and foremost the word that the journal uses for the subdivsion of a \bibfield{volume} should be of minor importance, what matters is the role in the data model. As a rule of thumb \bibfield{number} is the right field in most circumstances. In the standard styles \bibfield{number} modifies \bibfield{volume}, whereas \bibfield{issue} modifies the date (year) of the entry. Numeric identifiers and short designators that are not necessarily (entirely) numeric such as <A>, <S1>, <C2>, <Suppl.\ 3>, <4es> would go into the \bibfield{number} field, because they usually modify the \bibfield{volume}. The output of---especially longer---non-numeric input for \bibfield{number} should be checked since it could potentially look odd with some styles. The field \bibfield{issue} can be used for designations such as <Spring>, <Winter> or <Michaelmas term> if that is commonly used to refer to the journal.
+
+The <article number> or <paper number>, which can be used instead of---or along with---a page range to pinpoint a specific article within another work, goes into the \bibfield{eid} field, whose placement in the standard styles is similar to the analogous \bibfield{pages} field.
 
 \subsubsection{Pagination}
 \label{bib:use:pag}
@@ -1919,7 +1926,7 @@ encodings properly.
 
 \paragraph{Specifying Encodings}
 \label{bib:cav:enc:enc}
-When using a non-\acr{US-ASCII} encoding in the \file{bib} file, it is important to understand what \biblatex can do for you and what may require manual intervention. The package takes care of the \latex side, \ie it ensures that the data imported from the \file{bbl} file is interpreted correctly, provided that the \opt{bibencoding} package option (or the datasource specific override for this, see \secref{use:bib:res}) is set properly. All of this is handled automatically and no further steps, apart from setting the \opt{bibencoding} option in certain cases, are required. Here are a few typical usage scenarios along with the relevant lines from the document preamble:
+When using a non-\acr{US-ASCII} encoding in the \file{bib} file, it is important to understand what \biblatex can do for you and what may require manual intervention. The package takes care of the \latex side, \ie it ensures that the data imported from the \file{bbl} file is interpreted correctly, provided that the \opt{bibencoding} package option (or the datasource specific override for this, see \secref{use:bib:res}) is set properly. All of this is handled automatically and no further steps, apart from setting the \opt{bibencoding} option in certain cases (namely when the encoding of the \file{bib} file differs from the encoding of the \file{tex} file), are required provided that you set up your document encoding (\ie load \sty{inputenc} or related packages if required) \emph{before} \biblatex is loaded. Here are a few typical usage scenarios along with the relevant lines from the document preamble:
 
 \begin{itemize}
 \setlength{\itemsep}{0pt}
@@ -2099,7 +2106,7 @@ The following options may be used in the optional argument to \cmd{usepackage} a
 
 \begin{optionlist}
 
-\optitem[nty]{sorting}{\opt{nty}, \opt{nyt}, \opt{nyvt}, \opt{anyt}, \opt{anyvt}, \opt{ynt}, \opt{ydnt}, \opt{none}, \opt{debug}, \prm{name}}
+\optitem[nty]{sorting}{\opt{nty}, \opt{nyt}, \opt{nyvt}, \opt{anyt}, \opt{anyvt}, \opt{ynt}, \opt{ydnt}, \opt{none}, \opt{count}, \opt{debug}, \prm{name}}
 
 The sorting order of the bibliography. Unless stated otherwise, the entries are sorted in ascending order. The following choices are available by default:
 
@@ -2112,6 +2119,7 @@ The sorting order of the bibliography. Unless stated otherwise, the entries are 
 \item[ynt] Sort by year, name, title.
 \item[ydnt] Sort by year (descending), name, title.
 \item[none] Do not sort at all. All entries are processed in citation order.
+\item[count] Sort in descending order of number of times cited
 \item[debug] Sort by entry key. This is intended for debugging only.
 \item[\prm{name}] Use \prm{name}, as defined with \cmd{DeclareSortingTemplate} (\secref{aut:ctm:srt})
 \end{valuelist}
@@ -2137,6 +2145,13 @@ Whether or not to sort citations if multiple entry keys are passed to a citation
 \boolitem[false]{sortsets}
 
 Whether or not to sort set members according to the active reference context sorting scheme. By default this is false and set members appear in the order given in the data source.
+
+\boolitem[false]{pluralothers}
+
+Controls whether the localised <and others> string (e.g. <et al>) is forced
+to be plural. If true, it will only be printed in place of two or more
+names and if there is only one name it would replace, the name itself is
+printed instead. Defaults to false.
 
 \intitem[3]{maxnames}
 
@@ -2414,7 +2429,7 @@ Similar to the \opt{date} option but controls the format of the date field selec
 
 Similar to the \opt{date} option but controls the format of the \bibfield{$<$datetype$>$date} field in the datamodel.
 
-\optitem{alldates}{\opt{year}, \opt{short}, \opt{long}, \opt{terse}, \opt{comp}, \opt{iso}}
+\optitem{alldates}{\opt{year}, \opt{short}, \opt{long}, \opt{terse}, \opt{comp}, \opt{ymd}, \opt{iso}}
 
 Sets the option for all dates in the datamodel to the same value. The date fields in the default data model are \bibfield{date}, \bibfield{origdate}, \bibfield{eventdate} and \bibfield{urldate}.
 
@@ -2444,7 +2459,7 @@ This option controls whether seconds are printed when printing times.
 
 \boolitem[true]{dateabbrev}
 
-This option controls whether \texttt{long} and \texttt{comp} dates are printed with long or abbreviated month/season names. The option is similar to the generic \opt{abbreviate} option but specific to the date formatting.
+This option controls whether \texttt{long} and \texttt{comp} dates are printed with long or abbreviated month/yeardivision names. The option is similar to the generic \opt{abbreviate} option but specific to the date formatting.
 This option is also settable on a per-type and per-entry basis.
 
 \boolitem[false]{datecirca}
@@ -2880,7 +2895,7 @@ Whether or not to provide the special field \bibfield{extratitleyear}, see \secr
 
 \boolitem[false]{labeldateparts}
 
-Whether or not to provide the special fields \bibfield{labelyear}, \bibfield{labelmonth}, \bibfield{labelday}, \bibfield{labelendyear}, \bibfield{labelendmonth}, \bibfield{labelendday}, \bibfield{labelhour}, \bibfield{labelendhour}, \bibfield{labelminute}, \bibfield{labelendminute}, \bibfield{labelsecond}, \bibfield{labelendsecond}, \bibfield{labelseason}, \bibfield{labelendseason}, \bibfield{labeltimezone}, \bibfield{labelendtimeone} and \bibfield{extradate}, see \secref{aut:bbx:fld} for details.
+Whether or not to provide the special fields \bibfield{labelyear}, \bibfield{labelmonth}, \bibfield{labelday}, \bibfield{labelendyear}, \bibfield{labelendmonth}, \bibfield{labelendday}, \bibfield{labelhour}, \bibfield{labelendhour}, \bibfield{labelminute}, \bibfield{labelendminute}, \bibfield{labelsecond}, \bibfield{labelendsecond}, \bibfield{labelyeardivision}, \bibfield{labelendyeardivision}, \bibfield{labeltimezone}, \bibfield{labelendtimeone} and \bibfield{extradate}, see \secref{aut:bbx:fld} for details.
 This option is also settable on a per-type and per-entry basis. Table \ref{use:opt:tab1} summarises the various \opt{extra*} disambiguation counters and what they track.
 
 \begin{table}
@@ -3028,23 +3043,23 @@ This option is also settable on a per-type, per-entry and per-namelist basis.
 \multicolumn{1}{@{}H}{Enabled counter} &
 \multicolumn{1}{@{}H}{Counter tracks} \\
 \cmidrule(r){1-1}\cmidrule(r){2-2}\cmidrule(r){3-3}\cmidrule{4-4}
-labelalpha      & labelalpha       & extraalpha     &  label\\
-labeldateparts  & labelyear        & extradate      &  labelname+\\
-                & labelmonth       &                &  labelyear\\
-                & labelday         &                &  \\
-                & labelendyear     &                &  \\
-                & labelendmonth    &                &  \\
-                & labelendday      &                &  \\
-                & labelhour        &                &  \\
-                & labelminute      &                &  \\
-                & labelsecond      &                &  \\
-                & labelendhour     &                &  \\
-                & labelendminute   &                &  \\
-                & labelendsecond   &                &  \\
-                & labelseason      &                &  \\
-                & labelendseason   &                &  \\
-                & labeltimezone    &                &  \\
-                & labelendtimezone &                &  \\
+labelalpha      & labelalpha           & extraalpha     &  label\\
+labeldateparts  & labelyear            & extradate      &  labelname+\\
+                & labelmonth           &                &  labelyear\\
+                & labelday             &                &  \\
+                & labelendyear         &                &  \\
+                & labelendmonth        &                &  \\
+                & labelendday          &                &  \\
+                & labelhour            &                &  \\
+                & labelminute          &                &  \\
+                & labelsecond          &                &  \\
+                & labelendhour         &                &  \\
+                & labelendminute       &                &  \\
+                & labelendsecond       &                &  \\
+                & labelyeardivision    &                &  \\
+                & labelendyeardivision &                &  \\
+                & labeltimezone        &                &  \\
+                & labelendtimezone     &                &  \\
 labeltitle      & {\rmfamily ---}  & extratitle     &  labelname+labeltitle\\
 labeltitleyear  & {\rmfamily ---}  & extratitleyear &  labeltitle+labelyear\\
 {\rmfamily ---} & {\rmfamily ---}  & extraname      &  labelname\\
@@ -4337,6 +4352,11 @@ The \opt{refcontext} environment cannot be nested and \biblatex will generate an
 \cmditem{newrefcontext}[key=value, \dots]{name}
 
 This command is similar to the \env{refcontext} environment except that it is a stand"=alone command rather than an environment. It automatically ends any previous reference context section begun with \cmd{newrefcontext} (if any) and immediately starts a new one. Note that the context section started by the last \cmd{newrefcontext} command in the document will extend to the very end of the document. Use \cmd{endrefcontext} if you want to terminate it earlier.
+
+\cmditem{localrefcontext}[key=value, \dots]{name}
+
+This command is similar to the \env{newrefcontext} command except that it sets up the reference context only locally.
+This is useful if the reference context needs to be changed within a group. There is no need to end a local reference context, it will automatically be reset once the group ends.
 \end{ltxsyntax}
 %
 At the beginning of the document, there is always a global context containing global settings for each of the reference context options. Here is an example summarising the reference contexts with various settings:
@@ -4445,6 +4465,12 @@ Here, the data for the citation of \bibfield{key2} will be drawn from the refcon
 \end{ltxexample}
 %
 Here, the data for the citation of \bibfield{key2} will be drawn from refcontext with \opt{labelprefix=C} and not \opt{labelprefix=A} since the explicit options override the named refcontext (resulting in a label with prefix <C> and not <A> or <B>).
+
+\begin{ltxsyntax}
+\cmditem{GenRefcontextData}{key=value, \dots}
+
+This command takes the same key/value options as \cmd{DeclareRefcontext}. It forces the currently active refcontext, optionally modified by the key/value options, to be written to the \file{.bcf} so that \biber will create a sorted data list for the specified refcontext. Normally this is automatic when \cmd{printbibliography}/\cmd{prinbiblist} is used in a reference context but there are situations where the data for a refcontext will be needed but no reference list is generated in that context e.g. to sort citations with the \opt{sortcites} option when the sorting of citations requires a different refcontext to that used for the actual reference list.
+\end{ltxsyntax}
 
 \subsubsection{Dynamic Entry Sets}
 \label{use:bib:set}
@@ -4745,7 +4771,7 @@ The multicite version of \cmd{avolcite} and \cmd{Avolcite}, respectively.
 \cmditem{notecite}[prenote][postnote]{key}
 \cmditem{Notecite}[prenote][postnote]{key}
 
-These commands print the \prm{prenote} and \prm{postnote} arguments but no citation. Instead, a \cmd{nocite} command is issued for every \prm{key}. This may be useful for authors who incorporate implicit citations in their writing, only giving information not mentioned before in the running text, but who still want to take advantage of the automatic \prm{postnote} formatting and the implicit \cmd{nocite} function. This is a generic, style"=independent citation command. Special citation styles may provide smarter facilities for the same purpose. The capitalized version forces capitalization (note that this is only applicable if the note starts with a command which is sensitive to \biblatex's punctuation tracker).
+These commands print the \prm{prenote} and \prm{postnote} arguments but no citation. This may be useful for authors who incorporate implicit citations in their writing, only giving information not mentioned before in the running text, but who still want to take advantage of the automatic \prm{postnote} formatting and citation tracking. This is a generic, style"=independent citation command. Special citation styles may provide smarter facilities for the same purpose. The capitalized version forces capitalization (note that this is only applicable if the note starts with a command which is sensitive to \biblatex's punctuation tracker).
 
 \cmditem{pnotecite}[prenote][postnote]{key}
 \cmditem{Pnotecite}[prenote][postnote]{key}
@@ -4998,7 +5024,7 @@ The commands and facilities presented in this section may be used to adapt the f
 \subsubsection{Generic Commands and Hooks}
 \label{use:fmt:fmt}
 
-The commands in this section may be redefined with \cmd{renewcommand} in the document preamble. Those marked as <Context Sensitive> in the margin can also be customised with \cmd{DeclareDelimFormat} and are printed with \cmd{printdelim} (\secref{use:fmt:csd}). Note that all commands starting with \cmd{mk\dots} take one argument. All of these commands are defined in \path{biblatex.def}.
+The commands in this section may be redefined with \cmd{renewcommand} in the document preamble. Those marked as <Context Sensitive> in the margin can also (and generally should) be customised with \cmd{DeclareDelimFormat} and are printed with \cmd{printdelim} (\secref{use:fmt:csd}). Note that all commands starting with \cmd{mk\dots} take one argument. All of these commands are defined in \path{biblatex.def}.
 
 \begin{ltxsyntax}
 
@@ -5084,7 +5110,7 @@ This command should be used with \cmd{bibnamedelimd} as a reversed-name separato
 The dash to be used as a replacement for recurrent authors or editors in the bibliography. The default is an <em> or an <en> dash, depending on the indentation of the list of references.
 
 \csitem{labelnamepunct}\DeprecatedMark
-A separator to be printed after the name used for alphabetizing in the bibliography (\bibfield{author} or \bibfield{editor}, if the \bibfield{author} field is undefined) instead of \cmd{newunitpunct}. The default is \cmd{newunitpunct}, \ie it is not handled differently from regular unit punctuation but permits convenient reconfiguration. This punctuation command is deprecated and has been superseded by the context-sensitive \cmd{nametitledelim} (see \secref{use:fmt:csd}). For backwards compatibility reasons, however, \cmd{nametitledelim} still defaults to \cmd{labelnamepunct} in the \texttt{bib} and \texttt{biblist} contexts. Style authors may want to consider replacing \cmd{labelnampunct} with \texttt{\textbackslash printdelim\{nametitledelim\}} and users may want to prefer modifying the context-sensitive \texttt{nametitledelim} in the \texttt{bib} context with \cmd{DeclareDelimFormat} over redefining \cmd{labelnamepunct}, e.g.
+A separator to be printed after the name used for alphabetizing in the bibliography (\bibfield{author} or \bibfield{editor}, if the \bibfield{author} field is undefined) instead of \cmd{newunitpunct}. The default is \cmd{newunitpunct}, \ie it is not handled differently from regular unit punctuation but permits convenient reconfiguration. This punctuation command is deprecated and has been superseded by the context-sensitive \cmd{nametitledelim} (see \secref{use:fmt:csd}). For backwards compatibility reasons, however, \cmd{nametitledelim} still defaults to \cmd{labelnamepunct} in the \texttt{bib} and \texttt{biblist} contexts. Style authors may want to consider replacing \cmd{labelnampunct} with \texttt{\textbackslash printdelim\{nametitledelim\}} and users may want to prefer modifying the context-sensitive \texttt{nametitledelim} in the \texttt{bib} context with \cmd{DeclareDelimFormat} over redefining \cmd{labelnamepunct}, \eg
 \begin{ltxexample}
 \DeclareDelimFormat[bib]{nametitledelim}{%
   \addcolon\space}
@@ -5317,14 +5343,15 @@ The separator between the block of related entries of type <relatedtype>. There 
 
 \subsubsection{Context-sensitive Delimiters}
 \label{use:fmt:csd}
-The delimiters described in \secref{use:fmt:fmt} are globally defined. That is, no matter where you use them, they print the same thing. This is not necessarily desirable for delimiters which you might want to print different things in different contexts. Here <context> means things like <inside a text citation> or <inside a bibliography item>. For this reason, \biblatex\ provides a more sophisticated delimiter specification and user interface alongside the standard one based on normal macros defined with \cmd{newcommand}.
+Many delimiters described in \secref{use:fmt:fmt} are globally defined. That is, no matter where you use them, they print the same thing. This is not necessarily desirable for delimiters which you might want to print different things in different contexts. Here <context> means things like <inside a text citation> or <inside a bibliography item>. For this reason, \biblatex\ provides a more sophisticated delimiter specification and user interface alongside the standard one based on normal macros defined with \cmd{newcommand}.
 
+  For backwards compatibility reasons all context-sensitive delimiters (\ie all delimiters marked as <context sensitive> in \secref{use:fmt:fmt}) can be redefined with \cmd{renewcommand} in the global context. It is, however, strongly recommended to use the interface documented below (primarily \cmd{DeclareDelimFormat}) to redefine these delimiters---even if \cmd{renewcommand} would suffice for the job at hand.
 \begin{ltxsyntax}
 
-\cmditem{DeclareDelimFormat}[context, \dots]{name, \dots}{code}
-\cmditem*{DeclareDelimFormat}*[context, \dots]{name, \dots}{code}
+\cmditem{DeclareDelimFormat}[context, \dots]{name}{code}
+\cmditem*{DeclareDelimFormat}*[context, \dots]{name}{code}
 
-Declares the delimiter macros in the comma"=separated list \prm{names} with the replacement text \prm{code}. If the optional comma"=separated list of \prm{contexts} is given, declare the \prm{names} only for those contexts. \prm{names} defined without any \prm{contexts} behave just like the global delimiter definitions which \cmd{newcommand} gives---just a plain macro with a replacement which can be used as \cmd{name}. However, you can also call delimiter macros defined in this way by using \cmd{printdelim}, which is context-aware. The starred version clears all \prm{context} specific declarations for all \prm{names} first.
+Declares the delimiter macro \prm{name} with the replacement text \prm{code}. If the optional comma"=separated list of \prm{contexts} is given, declare \prm{name} only for those contexts. \prm{name} defined without any \prm{contexts} behaves just like the global delimiter definitions which \cmd{newcommand} gives---just a plain macro with a replacement which can be used as \cmd{name}. However, you can also call delimiter macros defined in this way by using \cmd{printdelim}, which is context-aware. The starred version clears all \prm{context} specific declarations for all \prm{names} first.
 
 \cmditem{DeclareDelimAlias}[alias context, \dots]{alias}[delim context]{delim}
 
@@ -5383,6 +5410,10 @@ This (which is a default setting), makes sure that when inside the
 \cmd{cbx@textcite} citation command, the context is in fact \opt{textcite}
 as expected.
 
+\cmditem{UndeclareDelimcontextAlias}{alias}
+
+Removes the delimiter context alias declared for \prm{alias}.
+
 \end{ltxsyntax}
 %
 \biblatex\ has several default contexts which are established automatically in various places:
@@ -5408,7 +5439,7 @@ This means that \cmd{nametitledelim} is defined globally as <\cmd{addcomma}\cmd{
 \printdelim[textcite]{nametitledelim}
 \end{ltxexample}
 %
-Would print \cmd{addspace} regardless of the surrounding context of the \cmd{printdelim}. Contexts are just arbitrary strings and so you can establish them at any time, using \cmd{delimcontext}. If \cmd{printdelim} finds no special value for the delimiter \prm{name} in the current context, it simply prints \cmd{name}. This means that style authors can use \cmd{printdelim} and users expecting to be able to use \cmd{renewcommand} to redefine delimiters can do so with one caveat---such a definition won't change any context-specific delimiters which are defined:
+would print \cmd{addspace} regardless of the surrounding context of the \cmd{printdelim}. Contexts are just arbitrary strings and so you can establish them at any time, using \cmd{delimcontext}. If \cmd{printdelim} finds no special value for the delimiter \prm{name} in the current context, it simply prints \cmd{name}. This means that style authors can use \cmd{printdelim} and users expecting to be able to use \cmd{renewcommand} to redefine delimiters can do so with one caveat---such a definition won't change any context-specific delimiters which are defined:
 
 \begin{ltxexample}[style=latex]
 \DeclareDelimFormat{delima}{X}
@@ -6100,7 +6131,7 @@ More granular \bibtype{xdata} entry data may be referenced. It is not necessary 
 }
 @Book{...,
   author     = {Alan Drudge and xdata=someauthors-author-2},
-  editor     = {xdata=someauthors-author},
+  editor     = {xdata=someauthors-author and Ann Editor},
   location   = {xdata=somelocations-location-1 and Location3},
   note       = {xdata=somenotes-note}
 }
@@ -6127,7 +6158,7 @@ There are \opt{--output-*} variants of the above options for \biber tool mode ou
 \begin{lstlisting}[style=bibtex]{}
 @Book{...,
   author     = {Alan Drudge and Brian Brown},
-  editor     = {John Smith},
+  editor     = {John Smith and Brian Brown and Ann Editor},
   location   = {Location1 and Location3},
   note       = {A note}
 }
@@ -6136,11 +6167,13 @@ There are \opt{--output-*} variants of the above options for \biber tool mode ou
 Things to note with granular \bibtype{xdata} references:
 
 \begin{itemize}
-  \item References must be made only to \bibtype{xdata} fields. An warning will be generated otherwise and the reference will not be resolved
-  \item References must be made only to \bibtype{xdata} fields of the same type (list/name and datatype) as the referencing field. An warning will be generated otherwise and the reference will not be resolved
+  \item References must be made only to \bibtype{xdata} fields. A warning will be generated otherwise and the reference will not be resolved
+  \item References must be made only to \bibtype{xdata} fields of the same type (list/name and datatype) as the referencing field. A warning will be generated otherwise and the reference will not be resolved
   \item References to fields of datatype 'date' are not possible. References to legacy \bibfield{year} and \bibfield{month} fields are possible
   \item References to missing entries, fields or list/name indices will generate a warning and the reference will not be resolved
-  \item If an index is missing for a reference to a list/name field, 1 is assumed
+  \item If an index is missing for a reference to a list/name field, the
+    entire xdata name/list field will be spliced into the referencing field
+    at the desired position.
 \end{itemize}
 %
 See also \secref{bib:typ:blx,bib:fld:spc}.
@@ -6468,7 +6501,7 @@ All \latex environments enclosed in \cmd{begin} and \cmd{end} form a group. This
 <<\endrefsection>>
 \end{ltxexample}
 %
-This will not from a group, but otherwise works as usual. As far as \biblatex is concerned, it does not matter which syntax you use. The alternative syntax is also supported by the \env{refsegment} environment. Note that the commands \cmd{newrefsection} and \cmd{newrefsegment} do not form a group. See \secref{use:bib:sec, use:bib:seg} for details.
+This will not form a group, but otherwise works as usual. As far as \biblatex is concerned, it does not matter which syntax you use. The alternative syntax is also supported by the \env{refsegment} environment. Note that the commands \cmd{newrefsection} and \cmd{newrefsegment} do not form a group. See \secref{use:bib:sec, use:bib:seg} for details.
 
 \subsection{Using the fallback \bibtex\ backend}
 \label{use:bibtex}
@@ -7160,11 +7193,11 @@ will tell you if the corresponding date is defined and an open"=ended range. Ope
 date		& 1988			& day		& undefined \\
 		&			& month		& undefined \\
 		&			& year		& 1988 \\
-		&			& season  & undefined \\
+		&			& yeardivision  & undefined \\
 		&			& endday	& undefined \\
 		&			& endmonth	& undefined \\
 		&			& endyear	& undefined \\
-		&			& endseason  & undefined \\
+		&			& endyeardivision  & undefined \\
 		&			& hour	& undefined \\
 		&			& minute	& undefined \\
 		&			& second	& undefined \\
@@ -7176,11 +7209,11 @@ date		& 1988			& day		& undefined \\
 date		& 1997/			& day		& undefined \\
 		&			& month		& undefined \\
 		&			& year		& 1997 \\
-		&			& season  & undefined \\
+		&			& yeardivision  & undefined \\
 		&			& endday	& undefined \\
 		&			& endmonth	& undefined \\
 		&			& endyear	& empty \\
-		&			& endseason  & undefined \\
+		&			& endyeardivision  & undefined \\
 		&			& hour	& undefined \\
 		&			& minute	& undefined \\
 		&			& second	& undefined \\
@@ -7192,11 +7225,11 @@ date		& 1997/			& day		& undefined \\
 urldate		& 2009-01-31		& urlday	& 31 \\
 		&			& urlmonth	& 01 \\
 		&			& urlyear	& 2009 \\
-		&			& urlseason  & undefined \\
+		&			& urlyeardivision  & undefined \\
 		&			& urlendday	& undefined \\
 		&			& urlendmonth	& undefined \\
 		&			& urlendyear	& undefined \\
-		&			& urlendseason  & undefined \\
+		&			& urlendyeardivision  & undefined \\
 		&			& urlhour	& undefined \\
 		&			& urlminute	& undefined \\
 		&			& urlsecond	& undefined \\
@@ -7208,11 +7241,11 @@ urldate		& 2009-01-31		& urlday	& 31 \\
 urldate		& 2009-01-31T15:34:04Z		& urlday	& 31 \\
 		&			& urlmonth	& 01 \\
 		&			& urlyear	& 2009 \\
-		&			& urlseason  & undefined \\
+		&			& urlyeardivision  & undefined \\
 		&			& urlendday	& undefined \\
 		&			& urlendmonth	& undefined \\
 		&			& urlendyear	& undefined \\
-		&			& urlendseason  & undefined \\
+		&			& urlendyeardivision  & undefined \\
 		&			& urlhour	& 15 \\
 		&			& urlminute	& 34 \\
 		&			& urlsecond	& 04 \\
@@ -7224,11 +7257,11 @@ urldate		& 2009-01-31T15:34:04Z		& urlday	& 31 \\
 urldate		& 2009-01-31T15:34:04+05:00		& urlday	& 31 \\
 		&			& urlmonth	& 01 \\
 		&			& urlyear	& 2009 \\
-		&			& urlseason  & undefined \\
+		&			& urlyeardivision  & undefined \\
 		&			& urlendday	& undefined \\
 		&			& urlendmonth	& undefined \\
 		&			& urlendyear	& undefined \\
-		&			& urlendseason  & undefined \\
+		&			& urlendyeardivision  & undefined \\
 		&			& urlhour	& 15 \\
 		&			& urlminute	& 34 \\
 		&			& urlsecond	& 04 \\
@@ -7240,11 +7273,11 @@ urldate		& 2009-01-31T15:34:04+05:00		& urlday	& 31 \\
 urldate		& \parbox[t]{0.4\textwidth}{2009-01-31T15:34:04/\\2009-01-31T16:04:34}& urlday	& 31 \\
 		&			& urlmonth	& 1 \\
 		&			& urlyear	& 2009 \\
-		&			& urlseason  & undefined \\
+		&			& urlyeardivision  & undefined \\
 		&			& urlendday	& 31 \\
 		&			& urlendmonth	& 1 \\
 		&			& urlendyear	& 2009 \\
-		&			& urlendseason  & undefined \\
+		&			& urlendyeardivision  & undefined \\
 		&			& urlhour	& 15 \\
 		&			& urlminute	& 34 \\
 		&			& urlsecond	& 4 \\
@@ -7256,11 +7289,11 @@ urldate		& \parbox[t]{0.4\textwidth}{2009-01-31T15:34:04/\\2009-01-31T16:04:34}&
 origdate	& 2002-21/2002-23	& origday	& undefined \\
 		&			& origmonth	& 01 \\
 		&			& origyear	& 2002 \\
-		&			& origseason  & spring \\
+		&			& origyeardivision  & spring \\
 		&			& origendday	& undefined \\
 		&			& origendmonth	& 02 \\
 		&			& origendyear	& 2002 \\
-		&			& origendseason  & autumn \\
+		&			& origendyeardivision  & autumn \\
 		&			& orighour	& undefined \\
 		&			& origminute	& undefined \\
 		&			& origsecond	& undefined \\
@@ -7272,11 +7305,11 @@ origdate	& 2002-21/2002-23	& origday	& undefined \\
 eventdate	& 1995-01-31/1995-02-05	& eventday	& 31 \\
 		&			& eventmonth	& 01 \\
 		&			& eventyear	& 1995 \\
-		&			& eventseason  & undefined \\
+		&			& eventyeardivision  & undefined \\
 		&			& eventendday	& 05 \\
 		&			& eventendmonth	& 02 \\
 		&			& eventendyear	& 1995 \\
-		&			& eventendseason  & undefined \\
+		&			& eventendyeardivision  & undefined \\
 		&			& eventhour	& undefined \\
 		&			& eventminute	& undefined \\
 		&			& eventsecond	& undefined \\
@@ -7319,9 +7352,13 @@ This field is the \bibfield{month} as given in the database file or it holds the
 
 This field is the \bibfield{year} as given in the database file or it holds the year component of the \bibfield{date} field. If the date is a range, it holds the year component of the start date.
 
-\fielditem{season}{datepart}
+\fielditem{yeardivision}{datepart}
 
-This field holds the season component of the \bibfield{date} field as specified by \acr{ISO8601-2} 4.7 (\secref{bib:use:dat}). It contains a season localisation string (\secref{aut:lng:key:dt}). If the date is a range, it holds the season component of the start date.
+This field holds the year division (season, quarter, quadrimester etc.) component of the \bibfield{date} field as specified by \acr{ISO8601-2} 4.8 (\secref{bib:use:dat}). It contains a  localisation string (\secref{aut:lng:key:dt}). If the date is a range, it holds the year division component of the start date.
+
+\fielditem{season}{datepart}\DeprecatedMark
+
+This field holds the season component of the \bibfield{date} field as specified by \acr{ISO8601-2} 4.8 (\secref{bib:use:dat}). It contains a season localisation string (\secref{aut:lng:key:dt}). If the date is a range, it holds the season component of the start date. This is deprecated in favour of \bibfield{yeardivision} which is more generalised.
 
 \fielditem{endhour}{datepart}
 
@@ -7351,9 +7388,13 @@ If the date specification in the \bibfield{date} field is a range, this field ho
 
 If the date specification in the \bibfield{date} field is a range, this field holds the year component of the end date. A blank (but defined) \bibfield{endyear} component indicates an open ended \bibfield{date} range.
 
-\fielditem{endseason}{datepart}
+\fielditem{endyeardivision}{datepart}
 
-If the date specification in the \bibfield{date} field is a range, this field holds the season component of the end date as specified by \acr{ISO8601-2} 4.7 (\secref{bib:use:dat}). It contains a season localisation string (\secref{aut:lng:key:dt}). A blank (but defined) \bibfield{endseason} component indicates an open ended \bibfield{date} range.
+If the date specification in the \bibfield{date} field is a range, this field holds the year division (season, quarter, quadrimester etc.) component of the end date as specified by \acr{ISO8601-2} 4.8 (\secref{bib:use:dat}). It contains a year division localisation string (\secref{aut:lng:key:dt}). A blank (but defined) \bibfield{endyeardivision} component indicates an open ended \bibfield{date} range.
+
+\fielditem{endseason}{datepart}\DeprecatedMark
+
+If the date specification in the \bibfield{date} field is a range, this field holds the season component of the end date as specified by \acr{ISO8601-2} 4.8 (\secref{bib:use:dat}). It contains a season localisation string (\secref{aut:lng:key:dt}). A blank (but defined) \bibfield{endseason} component indicates an open ended \bibfield{date} range. This is deprecated in favour of \bibfield{endyeardivision} which is more generalised.
 
 \fielditem{orighour}{datepart}
 
@@ -7383,9 +7424,13 @@ This field holds the month component of the \bibfield{origdate} field. If the da
 
 This field holds the year component of the \bibfield{origdate} field. If the date is a range, it holds the year component of the start date.
 
-\fielditem{origseason}{datepart}
+\fielditem{origyeardivision}{datepart}
 
-This field holds the season component of the \bibfield{origdate} field as specified by \acr{ISO8601-2} 4.7 (\secref{bib:use:dat}). It contains a season localisation string (\secref{aut:lng:key:dt}). If the date is a range, it holds the season component of the start date.
+This field holds the year division (season, quarter, quadrimester etc.) component of the \bibfield{origdate} field as specified by \acr{ISO8601-2} 4.7 (\secref{bib:use:dat}). It contains a year division localisation string (\secref{aut:lng:key:dt}). If the date is a range, it holds the year division component of the start date.  This is deprecated in favour of \bibfield{origyeardivision} which is more generalised.
+
+\fielditem{origseason}{datepart}\DeprecatedMark
+
+This field holds the season component of the \bibfield{origdate} field as specified by \acr{ISO8601-2} 4.7 (\secref{bib:use:dat}). It contains a season localisation string (\secref{aut:lng:key:dt}). If the date is a range, it holds the season component of the start date.  This is deprecated in favour of \bibfield{origyeardivision} which is more generalised.
 
 \fielditem{origendhour}{datepart}
 
@@ -7415,9 +7460,13 @@ If the date specification in the \bibfield{origdate} field is a range, this fiel
 
 If the date specification in the \bibfield{origdate} field is a range, this field holds the year component of the end date. A blank (but defined) \bibfield{origendyear} component indicates an open ended \bibfield{origdate} range.
 
-\fielditem{origendseason}{datepart}
+\fielditem{origendyeardivision}{datepart}
 
-If the date specification in the \bibfield{origdate} field is a range, this field holds the season component of the end date as specified by \acr{ISO8601-2} 4.7 (\secref{bib:use:dat}). It contains a season localisation string (\secref{aut:lng:key:dt}). A blank (but defined) \bibfield{origendseason} component indicates an open ended \bibfield{origdate} range.
+If the date specification in the \bibfield{origdate} field is a range, this field holds the year division (season, quarter, quadrimester etc.) component of the end date as specified by \acr{ISO8601-2} 4.8 (\secref{bib:use:dat}). It contains a year division localisation string (\secref{aut:lng:key:dt}). A blank (but defined) \bibfield{origendyeardivision} component indicates an open ended \bibfield{origdate} range.
+
+\fielditem{origendseason}{datepart}\DeprecatedMark
+
+If the date specification in the \bibfield{origdate} field is a range, this field holds the season component of the end date as specified by \acr{ISO8601-2} 4.8 (\secref{bib:use:dat}). It contains a season localisation string (\secref{aut:lng:key:dt}). A blank (but defined) \bibfield{origendseason} component indicates an open ended \bibfield{origdate} range.  This is deprecated in favour of \bibfield{origendyeardivision} which is more generalised.
 
 \fielditem{eventhour}{datepart}
 
@@ -7447,9 +7496,13 @@ This field holds the month component of the \bibfield{eventdate} field. If the d
 
 This field holds the year component of the \bibfield{eventdate} field. If the date is a range, it holds the year component of the start date.
 
-\fielditem{eventseason}{datepart}
+\fielditem{eventyeardivision}{datepart}
 
-This field holds the season component of the \bibfield{eventdate} field as specified by \acr{ISO8601-2} 4.7 (\secref{bib:use:dat}). It contains a season localisation string (\secref{aut:lng:key:dt}). If the date is a range, it holds the season component of the start date.
+This field holds the year division (season, quarter, quadrimester etc.) component of the \bibfield{eventdate} field as specified by \acr{ISO8601-2} 4.8 (\secref{bib:use:dat}). It contains a year division localisation string (\secref{aut:lng:key:dt}). If the date is a range, it holds the year division component of the start date.
+
+\fielditem{eventseason}{datepart}\DeprecatedMark
+
+This field holds the season component of the \bibfield{eventdate} field as specified by \acr{ISO8601-2} 4.8 (\secref{bib:use:dat}). It contains a season localisation string (\secref{aut:lng:key:dt}). If the date is a range, it holds the season component of the start date.  This is deprecated in favour of \bibfield{eventyeardivision} which is more generalised.
 
 \fielditem{eventendhour}{datepart}
 
@@ -7479,9 +7532,13 @@ If the date specification in the \bibfield{eventdate} field is a range, this fie
 
 If the date specification in the \bibfield{eventdate} field is a range, this field holds the year component of the end date. A blank (but defined) \bibfield{eventendyear} component indicates an open ended \bibfield{eventdate} range.
 
-\fielditem{eventendseason}{datepart}
+\fielditem{eventendyeardivision}{datepart}
 
-If the date specification in the \bibfield{eventdate} field is a range, this field holds the season component of the end date as specified by \acr{ISO8601-2} 4.7 (\secref{bib:use:dat}). It contains a season localisation string (\secref{aut:lng:key:dt}). A blank (but defined) \bibfield{eventendseason} component indicates an open ended \bibfield{eventdate} range.
+If the date specification in the \bibfield{eventdate} field is a range, this field holds the year division (season, quarter, quadrimester etc.) component of the end date as specified by \acr{ISO8601-2} 4.8 (\secref{bib:use:dat}). It contains a year division localisation string (\secref{aut:lng:key:dt}). A blank (but defined) \bibfield{eventendyeardivision} component indicates an open ended \bibfield{eventdate} range.
+
+\fielditem{eventendseason}{datepart}\DeprecatedMark
+
+If the date specification in the \bibfield{eventdate} field is a range, this field holds the season component of the end date as specified by \acr{ISO8601-2} 4.8 (\secref{bib:use:dat}). It contains a season localisation string (\secref{aut:lng:key:dt}). A blank (but defined) \bibfield{eventendseason} component indicates an open ended \bibfield{eventdate} range.  This is deprecated in favour of \bibfield{eventendyeardivision} which is more generalised.
 
 \fielditem{urlhour}{datepart}
 
@@ -7511,9 +7568,13 @@ This field holds the month component of the \bibfield{urldate} field.
 
 This field holds the year component of the \bibfield{urldate} field.
 
-\fielditem{urlseason}{datepart}
+\fielditem{urlyeardivision}{datepart}
 
-This field holds the season component of the \bibfield{urldate} field as specified by \acr{ISO8601-2} 4.7 (\secref{bib:use:dat}). It contains a season localisation string (\secref{aut:lng:key:dt}). If the date is a range, it holds the season component of the start date.
+This field holds the year division (season, quarter, quadrimester etc.) component of the \bibfield{urldate} field as specified by \acr{ISO8601-2} 4.8 (\secref{bib:use:dat}). It contains a year division localisation string (\secref{aut:lng:key:dt}). If the date is a range, it holds the year division component of the start date.
+
+\fielditem{urlseason}{datepart}\DeprecatedMark
+
+This field holds the season component of the \bibfield{urldate} field as specified by \acr{ISO8601-2} 4.8 (\secref{bib:use:dat}). It contains a season localisation string (\secref{aut:lng:key:dt}). If the date is a range, it holds the season component of the start date.  This is deprecated in favour of \bibfield{urlyeardivision} which is more generalised.
 
 \fielditem{urlendhour}{datepart}
 
@@ -7543,9 +7604,13 @@ If the date specification in the \bibfield{urldate} field is a range, this field
 
 If the date specification in the \bibfield{urldate} field is a range, this field holds the year component of the end date. A blank (but defined) \bibfield{urlendyear} component indicates an open ended \bibfield{urldate} range.
 
-\fielditem{urlendseason}{datepart}
+\fielditem{urlendyeardivision}{datepart}
 
-If the date specification in the \bibfield{urldate} field is a range, this field holds the season component of the end date as specified by \acr{ISO8601-2} 4.7 (\secref{bib:use:dat}). It contains a season localisation string (\secref{aut:lng:key:dt}). A blank (but defined) \bibfield{urlendseason} component indicates an open ended \bibfield{urldate} range.
+If the date specification in the \bibfield{urldate} field is a range, this field holds the year division (season, quarter, quadrimester etc.) component of the end date as specified by \acr{ISO8601-2} 4.8 (\secref{bib:use:dat}). It contains a year division localisation string (\secref{aut:lng:key:dt}). A blank (but defined) \bibfield{urlendyeardivision} component indicates an open ended \bibfield{urldate} range.
+
+\fielditem{urlendseason}{datepart}\DeprecatedMark
+
+If the date specification in the \bibfield{urldate} field is a range, this field holds the season component of the end date as specified by \acr{ISO8601-2} 4.8 (\secref{bib:use:dat}). It contains a season localisation string (\secref{aut:lng:key:dt}). A blank (but defined) \bibfield{urlendseason} component indicates an open ended \bibfield{urldate} range.  This is deprecated in favour of \bibfield{urlendyeardivision} which is more generalised.
 
 \end{fieldlist}
 
@@ -7689,7 +7754,7 @@ This section introduces the main data interface of the \biblatex package. These 
 When an attempt is made to print \prm{field}, \prm{list}, \prm{name}, a
 deprecation warning is issued with the additional \prm{message}.  This aids
 style authors who are changing field names in their style. Note that the
-deprecated item must no longer be defined in the datamodel for this work;
+deprecated item must no longer be defined in the datamodel for this to work;
 \prm{field}, \prm{list} or \prm{name} cannot be listed anywhere as an
 argument to \cmd{DeclareDatamodelFields}.
 
@@ -8158,6 +8223,8 @@ A mapping step. Each step is applied sequentially to every relevant entry where 
 \valitem{matchi}{regexp}
 \valitem{notmatch}{regexp}
 \valitem{notmatchi}{regexp}
+\valitem{matches}{regexp}
+\valitem{matchesi}{regexp}
 \valitem{replace}{regexp}
 \valitem{fieldset}{entryfield}
 \valitem{fieldvalue}{string}
@@ -8244,6 +8311,7 @@ option to the \cmd{map} command above).
   \texttt{replace} is not, only apply the step if the \texttt{fieldsource} \prm{entryfield} matches the
   \texttt{match} regular expression (logic is reversed if you use \texttt{notmatch} and case-insensitive if you use the versions ending in <i>)\footnote{Regular expressions are full Perl 5.16 regular expressions. This means you may need to deal with special characters, see examples.}. You may use capture parenthesis as usual and refer to these (\$1\ldots\$9) in later \texttt{fieldvalue} specifications. This allows you to pull out parts of some fields and put these parts in other fields.
 \item Perform a regular expression match and replace on the value of the \texttt{fieldsource} \prm{entryfield} if \texttt{match} and \texttt{replace} are defined.
+\item If \texttt{matches} is defined, it should be a comma-separated list of literal strings which are replaced by corresponding locations in a comma-separated list provided in \texttt{replace}. The lists must have the same number of elements or the step will be skipped. \texttt{matchesi} is the same but case-insensitive.
 \item If \texttt{fieldset} is defined, then its value is \prm{entryfield}
   which will be set to a value specified by further options. If
   \texttt{overwrite} is false for this step and the field to set already
@@ -8286,6 +8354,14 @@ This command sets the source mappings used by a style. Such mappings are concept
 \cmditem{DeclareDriverSourcemap}[datatype=driver]{specification}
 
 This command sets the driver default source mappings for the specified \prm{driver}. Such mappings are conceptually separate from user mappings defined with \cmd{DeclareSourcemap} and style mapping defined with \cmd{DeclareStyleSourcemap}. They consist of mappings which are part of the driver setup. Users should not normally need to change these. Driver default mapping are applied after user mappings (\cmd{DeclareSourcemap}) and style mappings (\cmd{DeclareStyleSourcemap}). These defaults are described in Appendix \secref{apx:maps}. The \prm{specification} is identical to that for \cmd{DeclareSourcemap} but without the \cmd{maps} elements: the \prm{specification} is just a list of \cmd{map} elements since each \cmd{DeclareDriverSourcemap} only applies to one datatype driver. See the default definitions in Appendix \secref{apx:maps} for examples.
+
+\end{ltxsyntax}
+
+\begin{ltxsyntax}
+
+\cmditem{regexp}{PCRE}
+
+This command can be used with any command accepting a regular expression key to protect a regular expression from being interpreted by \TeX\ so that it is passed through to \biber correctly. Regular expressions often contain sequences of characters that are also valid \TeX\ commands but which should not be interpreted as such. The argument is a normal PCRE (Perl Compatible Regular Expression\fnurl{https://perldoc.perl.org/perlre}). Perl escape sequences like \cmd{t} for a tab, \cmd{n} for a newline, \cmd{A} for the start of a string or \cmd{d} for a digit can be used, without \TeX\ trying to execute them as commands, as can be special characters like \verb|^|, \verb|_| or \verb|{..}| and \verb|#|. Only the \% must be protected: to match a single \% in the bib, use \textbackslash\% in the regular expression, a \textbackslash\% is matched by \textbackslash\textbackslash\%.
 
 \end{ltxsyntax}
 
@@ -8583,6 +8659,20 @@ Any entry which is not a \bibtype{book} or \bibtype{article} will be ignored.
 \end{ltxexample}
 %
 Here, a clone of an entry from the specified data source will be created. The entry key of the clone will be the same as the original but prefixed by the value of the \texttt{entryclone} parameter. The cloned entry would still need to be cited in the document using its new entry key. This type of mapping step should be used with care as it may produce labelling problems in authoryear styles which use, for example, \opt{extradate}. One use case is for numeric styles which contain multiple bibliographies containing the same entry. In this case, you may need different bibliography number labeld for the same entry and this is very tricky when there is only one entry which needs different labels. Creating clones with different entry keys solves this problem.
+
+\begin{ltxexample}
+\DeclareSourcemap{
+  \maps[datatype=bibtex]{
+    \map{
+      \step[fieldsource=<<note>>]
+      \step[fieldset=<<usera>>, origfieldval]
+      \step[fieldsource=<<usera>>, matchesi={string1,string2,StriNg3}, replace={1,2,3}]
+    }
+  }
+}
+\end{ltxexample}
+%
+Here, any \bibfield{note} field is copied to \bibfield{usera} and then <string1>, <string2> and <string3> are matched case-insensitively in the \bibfield{usera} field and replaced with <1>, <2> and <3> respectively. The value of \texttt{matches} and \texttt{matchesi} are not regular expressions, they are CSV lists of literal strings, as is the value of \texttt{replace} when either of \texttt{matches} or \texttt{matchesi} are used. The lengths of the match/replace CSV lists must be the same. This is useful when creating a new field to sort by in a custom sorting scheme when the field you wish to sort by has a defined order which is not alphabetical or numeric, such as when sorting by level of court in legal bibliographies. Using \texttt{matches} is simply more efficient than using many individual \texttt{match} maps in serial.
 
 \biblatexml\ datasources are more structured than \bibtex\ since they are XML. Sourcemapping is possible with \biblatexml\ too but the specifications of source and target fields etc. also support XPath 1.0 paths in order to be able to work with the structured data. Fields can be specified as per the \bibtex\ examples above and these are converted into XPath 1.0 queries internally as necessary. For example:
 
@@ -9273,7 +9363,7 @@ The \prm{specification} is an undelimited list of \cmd{sort} directives which sp
 
 \cmditem{sort}{elements}
 
-Specifies the elements considered in the sorting process. The \prm{elements} are an undelimited list of \cmd{field}, \cmd{literal}, and \cmd{citeorder} commands which are evaluated in the order in which they are given. If an element is defined, it is added to the sort key and the sorting routine skips to the next \cmd{sort} directive. If it is undefined, the next element is evaluated. Since literal strings are always defined, any \cmd{literal} commands should be the sole or the last element in a \cmd{sort} directive. All \prm{elements} should be the same datatype as described in \secref{bib:fld:dat} since they will be potentially compared to any of the other \prm{elements} in other entries.. The \cmd{sort} command supports the following optional arguments:
+Specifies the elements considered in the sorting process. The \prm{elements} are an undelimited list of \cmd{field}, \cmd{literal}, \cmd{citecount}, \cmd{intciteorder} and \cmd{citeorder} commands which are evaluated in the order in which they are given. If an element is defined, it is added to the sort key and the sorting routine skips to the next \cmd{sort} directive. If it is undefined, the next element is evaluated. Since literal strings are always defined, any \cmd{literal} commands should be the sole or the last element in a \cmd{sort} directive. All \prm{elements} should be the same datatype as described in \secref{bib:fld:dat} since they will be potentially compared to any of the other \prm{elements} in other entries.. The \cmd{sort} command supports the following optional arguments:
 
 \begin{optionlist*}
 
@@ -9331,6 +9421,10 @@ The number of characters to match.
 
 The \cmd{literal} element adds a literal \prm{string} to the sorting specification. This is useful as a fallback if some fields are not available.
 
+\csitem{citecount}
+
+The \cmd{citecount} element has a special meaning. It requests a sort based on the number of times an item was cited. The standard \texttt{count} sorting template uses this to provide a sort in descending order of number of citations. Note that the option \opt{citecounter} must also be enabled for this to work. In addition, an additional \biber run is required in order to calculate the data for this option correctly and so the typical invocation sequence for this option is \emph{latex}$\rightarrow$\emph{biber}$\rightarrow$\emph{latex}$\rightarrow$\emph{latex}$\rightarrow$\emph{biber}$\rightarrow$\emph{latex}.
+
 \csitem{citeorder}
 
 The \cmd{citeorder} element has a special meaning. It requests a sort based on the lexical order of the actual citations. For entries cited within the same citation command like:
@@ -9342,7 +9436,7 @@ The \cmd{citeorder} element has a special meaning. It requests a sort based on t
 there is a distinction between the lexical order and the semantic order. Here «one» and «two» have the same semantic order but a unique lexical order. The semantic order only matters if you specify further sorting to disambiguate entries with the same semantic order. For example, this is the definition of the \opt{none} sorting template:
 
 \begin{ltxexample}
-\DeclareSortingTemplate{none}{
+\DeclareSortingTemplate{lexical}{
   \sort{\citeorder}
 }
 \end{ltxexample}
@@ -9350,13 +9444,32 @@ there is a distinction between the lexical order and the semantic order. Here «
 This sorts the bibliography purely lexically by the order of the keys in the citation commands. In the example above, it sorts «one» before «two». However, suppose that you consider «one» and «two» to have the same order (semantic order) since they are cited at the same time and want to further sort these by year. Suppose «two» has an earlier \bibfield{year} than «one»:
 
 \begin{ltxexample}
-\DeclareSortingTemplate{noneyear}{
+\DeclareSortingTemplate{lexicalyear}{
   \sort{\citeorder}
   \sort{<<year>>}
 }
 \end{ltxexample}
 %
 This sorts «two» before «one», even though lexically, «one» would sort before «two». This is possible because the semantic order can be disambiguated by the further sorting on year. With the standard \opt{none} sorting template, the lexical order and semantic order are identical because there is nothing further to disambiguate them. This means that you can use \cmd{citeorder} just like any other sorting specification element, choosing how to further sort entries cited at the same time (in the same citation command).
+
+See also \cmd{intciteorder} below.
+
+\csitem{intciteorder}
+
+The \cmd{intciteorder} element has a special meaning. It requests a sort based on the lexical order internal to the same citation command. For example:
+
+\begin{ltxexample}
+\cite{one,two}
+\end{ltxexample}
+%
+Here both citations have the same \cmd{citeorder} but different \cmd{intciteorder}. This sorting command is basically a more granular form of \cmd{citeorder} so that order can be distinguished for citations within the same citation command. So, for example, with the above example, this will guarantee sorting of <one> before <two>:
+
+\begin{ltxexample}
+\DeclareSortingTemplate{fulllexical}{
+  \sort{\citeorder}
+  \sort{\intciteorder}
+}
+\end{ltxexample}
 
 \cmditem{DeclareSortingNamekeyTemplate}[name]{specification}
 
@@ -9390,7 +9503,49 @@ By default there is only a global template which has the following \prm{specific
 }
 \end{ltxexample}
 %
-This means that the key is constructed by concatenating, in order, the name prefix (only if the \opt{useprefix} option is true) with the family name(s), the given names(s), the name suffix and then the name prefix (only if the \opt{useprefix} option is false).
+This means that the key is constructed by concatenating, in order, the name prefix (only if the \opt{useprefix} option is true) with the family name(s), the given names(s), the name suffix and then the name prefix (only if the \opt{useprefix} option is false). The visible number of names in the name list used to construct the key is the default sorting visibility, see below.
+
+\cmditem{visibility}{visibilityscope}
+
+\prm{visibilityscope} determines which visibility settings to use for the name list. This determines how many names in the name list are visible to the sorting algorithm. This is by default set to <sort>, which is the standard visibility for sorting determined by the \opt{max*/min*names} and \opt{uniquelist} options. \cmd{visibility} can be omitted entirely if this default is desired. The only other scope is <cite> which forces the sorting algorithm to use the name list visibility of the citations rather than that of the reference list sorting. This is useful when using the \opt{sortcites} option in the situation when a style has different name list truncation rules for citations than it has for the reference list. Citations can then be forced to sort using a different reference context that uses a modified sorting name key template that enforces the correct name list truncation for citation sorting with:
+
+\begin{ltxexample}
+\DeclareSortingNamekeyTemplate[mycitesorttemplate]{
+  \visibilty{cite}
+  .
+  .
+  .
+\end{ltxexample}
+%
+and then force this to be used with e.g.:
+
+\begin{ltxexample}
+  \newrefcontext[sortingnamekeytemplate=mycitesorttemplate]
+  \cite{a,b,c}
+\end{ltxexample}
+%
+One thing to note is that a reference context will not be written to the \file{.bcf} if no \cmd{printbibliography} or \cmd{printbiblist} occurs within it which will mean that \biber will not generate any sorted data for the refcontext. Therefore if the requirement is to just correctly sort citations using this refcontext, you will need to force the writing of the refcontext using \cmd{GenRefcontextData} (see \secref{use:bib:context}):
+
+\begin{ltxexample}
+  % make sure sorting data using this template is
+  % generated since no \printbibliography/\printbiblist
+  % occurs in the refcontext with
+  % sortingnamekeytemplatename=mycitesorttemplate,
+  % this won't happen by default
+  \GenRefcontextData{sortingnamekeytemplatename=mycitesorttemplate}
+  % Switch to this refcontext to use the correct
+  % sorted data using the sorting name key template
+  % which uses "cite" visibility for the name lists
+  \newrefcontext[sortingnamekeytemplate=mycitesorttemplate]
+  % citations are correctly sorted
+  \cite{a,b,c}
+  % Switch to the default sorting name key template
+  % for the actual list of references which uses the
+  % default sorting visibility for the name lists
+  \newrefcontext[sortingnamekeytemplate=global]
+  % references are correctly sorted
+  \printbibliography
+\end{ltxexample}
 
 \cmditem{keypart}{part}
 
@@ -9422,7 +9577,7 @@ constructing the sorting specification.
 As an example, suppose you wanted to be able to sort names by given name rather than family name, you could define a sorting name key template like this:
 
 \begin{ltxexample}
-\DeclareSortingNamekeyTemplate[givenfirst]{
+\DeclareNamekeyTemplate[givenfirst]{
   \keypart{
     \namepart{<<given>>}
   }
@@ -9683,7 +9838,7 @@ Defines regular expressions to strip from particular fields or types of fields w
 
 \cmditem{nosort}{field or datafield set}{regexp}
 
-Any number of \cmd{nosort} commands can be given each of which specifies to remove the \prm{regexp} from the \prm{field} or \prm{datafield set}. A \prm{datafield set} is simply a convenience grouping of semantically similar fields from which you might want to remove a regexp. See \secref{aut:ctm:dsets} for the avaiable sets, their members and customisation. Since regular expressions usually contain special characters, it is best to enclose them in the provided \cmd{regexp} macro as shown---this will pass the expression through to \biber correctly.
+Any number of \cmd{nosort} commands can be given each of which specifies to remove the \prm{regexp} from the \prm{field} or \prm{datafield set}. A \prm{datafield set} is simply a convenience grouping of semantically similar fields from which you might want to remove a regexp. See \secref{aut:ctm:dsets} for the available sets, their members and customisation. Since regular expressions usually contain special characters, it is best to enclose them in the provided \cmd{regexp} macro as shown---this will pass the expression through to \biber correctly.
 
 \end{ltxsyntax}
 
@@ -9713,6 +9868,44 @@ Or if you wanted to ignore «The» at the beginning of any title field:
   \nosort{<<settitles>>}{\regexp{<<\AThe\s+>>}}
 }
 \end{ltxexample}
+
+\subsubsection{Fine Tuning hashing and uniquename}
+\label{aut:ctm:nonamestring}
+
+\begin{ltxsyntax}
+\cmditem{DeclareNonamestring}{specification}
+
+Defines regular expressions to strip from name fields when
+generating \bibfield{fullhash} and \bibfield{uniquename}. The \prm{specification} is an undelimited list of \cmd{nonamestring} directives which specify the regular expressions to remove from particular name fields. Spaces, tabs and line endings may be used freely to visually arrange the \prm{specification}. Blank lines are not permissible. This command may only be used in the preamble.
+
+\cmditem{nonamestring}{namefield or datafield name set}{regexp}
+
+Any number of \cmd{nonamestring} commands can be given each of which
+specifies to remove the \prm{regexp} from the \prm{namefield} or
+\prm{datafield name set}. A \prm{datafield name set} is simply a
+convenience grouping of semantically similar fields from which you might
+want to remove a regexp. See \secref{aut:ctm:dsets} for the available sets,
+their members and customisation. Only set of name lists are relevant to
+this command. Since regular expressions usually contain special characters,
+it is best to enclose them in the provided \cmd{regexp} macro as
+shown---this will pass the expression through to \biber correctly.
+
+\end{ltxsyntax}
+
+Suppose you wanted to ignore square brackets in names in the
+\bibfield{author} name field and treat <D[onald] Knuth> the same as <Donald
+Knuth> for purposes \bibfield{uniquename} and hashing so that both variants
+appeared together in a dashed bibliography style and were also treated the
+same when calculating \bibfield{uniquename}:
+
+\begin{ltxexample}
+\DeclareNonamestring{
+  \nonamestring{<<author>>}{\regexp{<<[\[\]]>>}}
+}
+\end{ltxexample}
+%
+For consistency, it is often desirable to use the same regexp in \cmd{DeclareNosort}.
+
 
 \subsubsection{Special Fields}
 \label{aut:ctm:fld}
@@ -10755,6 +10948,21 @@ These commands save and restore the formatting directive \prm{format}, as define
 
 Expands to \prm{true} if the bibliography macro \prm{name} is undefined, and to \prm{false} otherwise.
 
+This bibliography macro can be used in the following idiom to make a bibliography macro more type specific.
+%
+\begin{ltxexample}
+\letbibmacro{cite:*}{cite}
+\newbibmacro{cite:patent}{%
+  \printtext{\color{red}%
+    Some citation format specific to patents}}
+
+\renewbibmacro*{cite}{%
+  \ifbibmacroundef{cite:\thefield{entrytype}}
+    {\usebibmacro{cite:*}}
+    {\usebibmacro*{cite:\thefield{entrytype}}}%
+}
+\end{ltxexample}
+
 \cmditem{iffieldformatundef}[entry type]{name}{true}{false}
 \cmditem{iflistformatundef}[entry type]{name}{true}{false}
 \cmditem{ifnameformatundef}[entry type]{name}{true}{false}
@@ -11499,7 +11707,56 @@ Switches from the current language to the main document language. This command i
 
 Locally switches from the current language to the main document language to typeset \prm{text}. This can be used the \prm{wrapper} argument in the localisation string commands above.
 
+\cmditem{texouterlang}{text}
+
+Locally switches from the current language to the surrounding language (which was not selected by \sty{biblatex}) to typeset \prm{text}. This can be used the \prm{wrapper} argument in the localisation string commands above.
+
 \end{ltxsyntax}
+
+It is possible to add bibliography strings to a bibliography string set to apply additional formatting.
+
+\begin{ltxsyntax}
+
+\cmditem{DeclareBibstringSet}{setname}{key, \dots}
+
+This commands assigns all \prm{key}s to the bibliography string set \prm{setname}.
+
+\cmditem{UndeclareBibstringSet}{setname}
+
+Remove the bibliography string set \prm{setname}. Any formatting definitions will also be cleared.
+
+\cmditem{UndeclareBibstringSets}
+
+Remove all existing bibliography string sets with \cmd{UndeclareBibstringSet}.
+
+\cmditem{DeclareBibstringSetFormat}{setname}{code}
+
+Defines the bibliography string format for \prm{setname}. The format works exactly like an additional \prm{wrapper} format for \cmd{bibstring}. \prm{code} is executed whenever a bibliography string of \prm{setname} is printed. The text of the bibliography string is passed to \prm{code} as first and only argument.
+
+\cmditem{UneclareBibstringSetFormat}{setname}
+
+Remove any bibliography string set format defined for \prm{setname}.
+
+\end{ltxsyntax}
+
+Bibliography string sets can be useful to apply additional formatting to a number of bibliography strings at the same time. These commands are intended for use in language modules. For example in French typography it is customary to italicise Latin terms. The French language module can define a new bibliography string set called \texttt{latin} for all Latin strings and apply additional formatting only to these strings. It is not recommended to apply the formatting dierctly in the bibliography string definitions, since that can interfere with the capitalisation function. Assuming that the French language \texttt{.lbx} file only defines two Latin strings, \texttt{andothers} and \texttt{andothers}, the \texttt{.lbx} file would contain.
+
+\begin{ltxexample}[escapeinside={(*@}{@*)}]
+\DeclareBibliographyExtras{%
+  (*@\dots@*)
+  \DeclareBibstringSet{latin}{andothers,ibidem}%
+  \DeclareBibstringSetFormat{latin}{\mkbibemph{#1}}%
+  (*@\dots@*)
+}
+
+\UndeclareBibliographyExtras{%
+  (*@\dots@*)
+  \UndeclareBibstringSet{latin}%
+  (*@\dots@*)
+}
+\end{ltxexample}
+Note that the defined sets should be undeclared after use to avoid side effects for other languages.
+
 
 \subsection{Localization Modules}
 \label{aut:lng}
@@ -12210,13 +12467,30 @@ Abbreviation strings for <circa> dates:
 \item[circa] The string <circa>
 \end{keymarglist}
 
-Abbreviation strings for seasons parsed from \acr{ISO8601-2} Extended Format dates:
+Abbreviation strings for year divisions parsed from \acr{ISO8601-2} Extended Format dates:
 
 \begin{keymarglist}
 \item[spring] The string <spring>
 \item[summer] The string <summer>
 \item[autumn] The string <autumn>
 \item[winter] The string <winter>
+\item[springN] The string <spring (Northern Hemisphere)>
+\item[summerN] The string <summer (Northern Hemisphere)>
+\item[autumnN] The string <autumn (Northern Hemisphere)>
+\item[winterN] The string <winter (Northern Hemisphere)>
+\item[springS] The string <spring (Southern Hemisphere)>
+\item[summerS] The string <summer (Southern Hemisphere)>
+\item[autumnS] The string <autumn (Southern Hemisphere)>
+\item[winterS] The string <winter (Southern Hemisphere)>
+\item[Q1] The string <Quarter 1>
+\item[Q2] The string <Quarter 2>
+\item[Q3] The string <Quarter 3>
+\item[Q4] The string <Quarter 3>
+\item[QD1] The string <Quadrimester 1>
+\item[QD2] The string <Quadrimester 2>
+\item[QD3] The string <Quadrimester 3>
+\item[S1] The string <Semestral 1>
+\item[S2] The string <Semestral 2>
 \end{keymarglist}
 
 Abbreviation strings for AM/PM:
@@ -12313,7 +12587,12 @@ The punctuation to be printed between the given and family name parts when a nam
 The dash to be used as a replacement for recurrent authors or editors in the bibliography. The default is an <em> or an <en> dash, depending on the indentation of the list of references.
 
 \csitem{labelnamepunct}\DeprecatedMark
-A separator to be printed after the name used for alphabetizing in the bibliography (\bibfield{author} or \bibfield{editor}, if the \bibfield{author} field is undefined) instead of \cmd{newunitpunct}. The default is \cmd{newunitpunct}, \ie it is not handled differently from regular unit punctuation but permits convenient reconfiguration. This punctuation command is deprecated and has been superseded by the context-sensitive \cmd{nametitledelim} (see \secref{use:fmt:csd}). For backwards compatibility reasons, however, \cmd{nametitledelim} still defaults to \cmd{labelnamepunct} in the \texttt{bib} and \texttt{biblist} contexts. Style authors may want to consider replacing \cmd{labelnampunct} with \texttt{\textbackslash printdelim\{nametitledelim\}} and users may want to prefer modifying the context-sensitive \texttt{nametitledelim} with \cmd{DeclareDelimFormat} over redefining \cmd{labelnamepunct}.
+A separator to be printed after the name used for alphabetizing in the bibliography (\bibfield{author} or \bibfield{editor}, if the \bibfield{author} field is undefined) instead of \cmd{newunitpunct}. The default is \cmd{newunitpunct}, \ie it is not handled differently from regular unit punctuation but permits convenient reconfiguration. This punctuation command is deprecated and has been superseded by the context-sensitive \cmd{nametitledelim} (see \secref{use:fmt:csd}). For backwards compatibility reasons, however, \cmd{nametitledelim} still defaults to \cmd{labelnamepunct} in the \texttt{bib} and \texttt{biblist} contexts. Style authors may want to consider replacing \cmd{labelnampunct} with \texttt{\textbackslash printdelim\{nametitledelim\}} and users may want to prefer modifying the context-sensitive \texttt{nametitledelim} with \cmd{DeclareDelimFormat} over redefining \cmd{labelnamepunct}, \eg
+\begin{ltxexample}
+\DeclareDelimFormat[bib]{nametitledelim}{%
+  \addcolon\space}
+\end{ltxexample}
+
 
 \csitem{subtitlepunct}
 The separator to be printed between the fields \bibfield{title} and \bibfield{subtitle}, \bibfield{booktitle} and \bibfield{booksubtitle}, as well as \bibfield{maintitle} and \bibfield{mainsubtitle}. Use this separator instead of \cmd{newunitpunct} at this location. The default is \cmd{newunitpunct}, \ie it is not handled differently from regular unit punctuation but permits convenient reconfiguration.
@@ -12382,16 +12661,16 @@ Similar to \cmd{multicitedelim}, but intended for citation styles that <compress
 Similar to \cmd{multicitedelim}, but intended for \cmd{textcite} and related commands (\secref{use:cit:cbx}). The default is a comma plus an interword space. The standard styles modify this provisional definition to ensure that the delimiter before the final citation is the localised term <and>, separated by interword spaces.
 
 \csitem{nametitledelim}\CSdelimMark
-The delimiter to be printed between the author\slash editor and the title. This command should be incorporated in the definition of all citation commands of author-title and some verbose citation styles and in the bibliography drivers---in author-year bibliographies \cs{nametitledelim} may be printed between the author\slash editor-year block and the title. The default definition inside bibliographies is the now deprecated \cmd{labelnamepunct} (for backwrds compatibility reasons) and is a comma plus an interword space otherwise.
+The delimiter to be printed between the author\slash editor and the title. This command should be incorporated in the definition of all citation commands of author-title and some verbose citation styles and in the bibliography drivers---in author-year bibliographies \cs{nametitledelim} may be printed between the author\slash editor-year block and the title. The default definition inside bibliographies (\ie in the \texttt{bib} and \texttt{biblist} contexts) is the now deprecated \cmd{labelnamepunct} (for backwards compatibility reasons), in \texttt{textcite} context it is a space and it is a comma plus an interword space otherwise.
 
 \csitem{nameyeardelim}\CSdelimMark
-The delimiter to be printed between the author\slash editor and the year. This command should be incorporated in the definition of all citation commands of author-year citation styles and in the bibliography drivers. The default definition is an interword space.
+The delimiter to be printed between the author\slash editor and the year. This command should be incorporated in the definition of all citation commands of author-year citation styles and in the bibliography drivers. The default definition is an interword space. For backwards compatibility reasons there are separate definitions in the \texttt{bib}, \texttt{biblist}, \texttt{textcite} and global context.
 
 \csitem{namelabeldelim}\CSdelimMark
 The delimiter printed between the name\slash title and the label. This command should be incorporated in the definition of all citation commands of alphabetic and numeric citation styles. The default definition is an interword space.
 
 \csitem{nonameyeardelim}\CSdelimMark
-The delimiter printed between the substitute for the labelname when it does not exist (usually the label or title in standard styles) and the year citation styles and the bibliography drivers. This command should be incorporated in the definition of all citation commands of author-year citation styles and in the bibliography drivers. The default definition is an interword space.
+The delimiter printed between the substitute for the labelname when it does not exist (usually the label or title in standard styles) and the year citation styles and the bibliography drivers. This command should be incorporated in the definition of all citation commands of author-year citation styles and in the bibliography drivers. The default definition is an interword space. For backwards compatibility reasons there are separate definitions in the \texttt{bib}, \texttt{biblist}, \texttt{textcite} and global context.
 
 \csitem{authortypedelim}\CSdelimMark
 The delimiter printed between the author and the \texttt{authortype}. The default is a comma followed by a space.
@@ -12763,7 +13042,11 @@ A generic command which prints its argument as superscripted text. This is a sim
 
 This command takes an integer argument and prints it as a month name. Even though the output of this command is language specific, its definition is not, hence it is normally not redefined in localisation modules.
 
-\cmditem{mkbibseason}{string}
+\cmditem{mkbibyeardivision}{string}\DeprecatedMark
+
+This command takes a year division localisation string and prints the version of the string corresponding to the setting of the \opt{dateabbrev} package option. Even though the output of this command is language specific, its definition is not, hence it is normally not redefined in localisation modules.
+
+\cmditem{mkbibseason}{string}\DeprecatedMark
 
 This command takes a season localisation string and prints the version of the string corresponding to the setting of the \opt{dateabbrev} package option. Even though the output of this command is language specific, its definition is not, hence it is normally not redefined in localisation modules.
 
@@ -12979,6 +13262,10 @@ The name of the name list currently being processed by \cmd{printnames}. This in
 \label{aut:fmt:hok}
 
 \begin{ltxsyntax}
+
+\cmditem{AtBeginRefsection}{code}
+
+Appends the \prm{code} to an internal hook executed at the beginning of every reference section. The \prm{code} is executed just after setting the reference section number. This command may only be used in the preamble.
 
 \cmditem{AtBeginBibliography}{code}
 
@@ -14568,10 +14855,29 @@ use$<$name$>$                     &\+&\+&\_&\+&\+&\_&\_\\
 This revision history is a list of changes relevant to users of this package. Changes of a more technical nature which do not affect the user interface or the behavior of the package are not included in the list. More technical details are to be found in the \file{CHANGES.md} file. The numbers on the right indicate the relevant section of this manual.
 
 \begin{changelog}
-\begin{release}{3.17}{2021-??-??}
-\item Added Marathi localisation (\devanagarifont{निरंजन})
+\begin{release}{3.18}{2022-06-22}
+\item Added sorting option \cmd{intciteorder}\see{aut:ctm:srt}
+\item Added global option \opt{pluralothers}\see{use:opt:pre:gen}
+\item Added \cmd{localrefcontext}\see{use:bib:context}
+\item Added \cmd{visibility} option to \cmd{DeclareSortingNamekeyTemplate}\see{aut:ctm:srt}
+\item Added \cmd{GenRefcontextData}\see{use:bib:context}
+\item Added \cmd{AtBeginRefsection}\see{aut:fmt:hok}
+\end{release}
+\begin{release}{3.17}{2022-01-25}
+\item Changed behaviour of index-less granular XDATA references\see{use:use:xdat}
+\item Added \cmd{DeclareNonamestring} \see{aut:ctm:nonamestring}
+\item Added new \cmd{citecount} sort option and
+      associated default sorting scheme\see{aut:ctm:srt} and \see{use:opt:pre:gen}
+\item Added new sourcemap verbs \texttt{matches} and \texttt{matchesi}\see{aut:ctm:map}
+\item Deprecated season fields and macros in favour of generalised year
+      divisions\see{aut:bbx:fld:dat}
+\item Added \cmd{textouterlang}\see{aut:str}
+\item Added \cmd{UndeclareDelimcontextAlias}\see{use:fmt:csd}
+\item Added \cmd{DeclareBibstringSet}, \cmd{DeclareBibstringSetFormat} etc.\see{aut:str}
+\item Added Marathi localisation (\textdevanagari{निरंजन})
 \item Added Romanian localisation (Patrick Danilevici)
 \item Added some support for calculating with non-\acr{US-ASCII} numerals\see{aut:aux:tst}
+\item Removed list support for \prm{name} argument of \cmd{DeclareDelimFormat}\see{use:fmt:csd}
 \end{release}
 \begin{release}{3.16}{2020-12-31}
 \item Added named refcontext support to \cmd{assignrefcontext*}\see{use:bib:context}

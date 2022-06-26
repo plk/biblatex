@@ -6,19 +6,19 @@ echo "Usage:
 build.sh help
 build.sh install <version> <tds_root>
 build.sh uninstall <tds_root>
-build.sh build <version>
 build.sh builddist|builddocs|build <version>
 build.sh testbibtex [file]|testbiber [file]|test [file]|testoutput 
-build.sh upload <version> [ \"DEV\" ]
+build.sh upload <version> <targetfolder>
+build.sh showdiff <filewithissues>
 
-With the \"DEV\" argument, uploads to the SourceForge development
-folder instead of the <version> numbered folder
+If <targetfolder> is missing, upload to folder \"biblatex-<version>\" folder
 
 Examples: 
 obuild/build.sh install 3.8 ~/texmf/
 obuild/build.sh uninstall ~/texmf/
-obuild/build.sh build 3.8
-obuild/build.sh upload 3.8 DEV
+obuild/build.sh build 4.0
+obuild/build.sh upload 4.0 development
+obuild/build.sh upload 4.0 multiscript
 
 \"build test\" runs all of the example files (in a temp dir) and puts errors in a log:
 
@@ -92,13 +92,13 @@ if [[ "$1" == "upload" ]]
 then
     if [[ -e obuild/biblatex-$VERSION.tds.tgz ]]
     then
-      if [[ "$3" == "DEV" ]]
+      if [ -z ${3+x} ]
       then
-        scp obuild/biblatex-"$VERSION".*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/development/
-        scp doc/latex/biblatex/CHANGES.md philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/development/
-      else
         scp obuild/biblatex-"$VERSION".*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/biblatex-"$VERSIONM"/
         scp doc/latex/biblatex/CHANGES.md philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/biblatex-"$VERSIONM"/
+      else
+        scp obuild/biblatex-"$VERSION".*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/$3/
+        scp doc/latex/biblatex/CHANGES.md philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/$3/
       fi
     exit 0
   fi
@@ -178,7 +178,6 @@ then
 
   mv biblatex.tex.bak biblatex.tex
 
-  cp biblatex.pdf ../../../obuild/tds/doc/
   cp biblatex.pdf ../../../obuild/flat/biblatex/doc/
   cd ../../.. || exit
 
@@ -190,8 +189,8 @@ if [[ "$1" == "builddist" || "$1" == "build" ]]
 then
   \rm -f obuild/biblatex-$VERSION.tds.tgz
   \rm -f obuild/biblatex-$VERSION.tgz
-  tar zcf obuild/biblatex-$VERSION.tds.tgz -C obuild/tds bibtex biber doc tex
-  tar zcf obuild/biblatex-$VERSION.tgz -C obuild/flat biblatex
+  gnutar zcf obuild/biblatex-$VERSION.tds.tgz -C obuild/tds bibtex biber doc tex
+  gnutar zcf obuild/biblatex-$VERSION.tgz -C obuild/flat biblatex
 
   echo "Created packages (flat and TDS) ..."
 fi

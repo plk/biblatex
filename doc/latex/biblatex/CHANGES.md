@@ -1,4 +1,24 @@
+# RELEASE NOTES FOR VERSION 3.18
+- New sorting name key generation macro `\visibility` which allows
+  application of sorting name key generation to apply only to sorting
+  within citations.
+- New sorting macro `\intciteorder` which allows sorting by order internal
+  to a cite command like \cite{a,b,c}.
+- New option `pluralothers` to force "et al" to be plural (i.e. only
+  replace two or more names). This is required for some styles (e.g. APA)
+- Added `\localrefcontext` as a local alternative
+  to the global `\newrefcontext`.
+  `\localrefcontext` can be nested and is only active in the current group.
+
 # RELEASE NOTES FOR VERSION 3.17
+- **INCOMPATIBLE CHANGE**
+  The behaviour of index-less granular xdata references to list fields has
+  changed. Before, a reference to an XDATA list field would select the
+  first element in the XDATA field list if no index was given but now this
+  will splice in all elements of the XDATA list field. To ensure the
+  previous behaviour, simply add "-1" (assuming the default value of "-"
+  for the biber 'xdatasep' option) to the end of all granaular list
+  XDATA references.
 - Added helper macros to enable calculations with non-ASCII numerals.
   This is necessary to properly support languages like Marathi.
   At the moment the 'translation' is very basic and uses a one-to-one
@@ -15,6 +35,42 @@
   There is `\ifiscomputable{<string>}` to check if a `<string>`
   is an ASCII number OR has a computable equivalent.
   There are analogous macros for fields instead of strings.
+- Added `\textouterlang` to select the last active language that
+  was not selected by `biblatex` itself.
+  This may help in multilingual setups where `biblatex` also changes the
+  language quite heavily.
+- Added `\DeclareBibstringSet`, `\DeclareBibstringSetFormat` etc.
+  to allow injecting additional formatting for a set of bibstrings.
+  Sets can be defined arbitrarily. These commands are primarily
+  intended for use in localisation modules.
+- Changed the definition of `\bibnamedelimi` to `\isdot\addnbspace`.
+  Previously the definition was just `\addnbspace`, which meant the `.`
+  would be treated as a period/full stop.
+- **BREAKING CHANGE**
+  `\DeclareDelimFormat` no longer accepts a list of names as argument.
+  It only accepts a single delimiter name.
+  A list of contexts is still supported.
+  Note that previously the optional argument would not work correctly
+  with a list of names.
+- **CRITICAL CHANGE**
+  `biblatex` no longer writes tracking and refsection initialisation code
+  to aux files.
+  Instead the `\...cite` commands are redefined locally to do that on demand.
+  This should keep the auxiliary files much cleaner of `biblatex`
+  intervention.
+- **CRITICAL CHANGE**
+  Generalised `season` date part to `yeardivision`. It can now also
+  hold quarter, quadrimester, semestral or seasons with hemisphere
+  designation.
+  Helper macros have been renamed accordingly. Limited backwards
+  compatibility is in place.
+- **(Possibly) CRITICAL CHANGE**
+  `\notecite` and friends no longer issue an explicit `\nocite`.
+  Since the commands are defined with `\DeclareCiteCommand`, they
+  already issue a normal cite request.
+  The additional `\nocite` from the loop code was superfluous
+  and would result in slightly instable `.bcf` files.
+
 
 # RELEASE NOTES FOR VERSION 3.16
 - Fixed an infinite loop caused by excessive aliasing of the `volcitepages`
@@ -133,7 +189,8 @@
   `\multicitesubentryrangedelim`, `\superciterangedelim`,
   `\supercitesubentrydelim`, and `\supercitesubentryrangedelim` for
   finer control over (compressed) subentry citations in `numeric-comp`.
-- **CRITICAL CHANGE** The structure of the bibmacros in `numeric-comp`
+- **CRITICAL CHANGE**
+  The structure of the bibmacros in `numeric-comp`
   has been reworked to make it easier to customise the printed output.
   Documents that relied on patching internal bibmacros or heavily
   redefined them may have to adapt.
