@@ -158,6 +158,12 @@ then
   cp obuild/tds/bibtex/bib/biblatex/biblatex-examples$PACKAGEEXT.bib obuild/tds/doc/latex/$PACKAGENAME/examples/
   cp obuild/tds/biber/bltxml/biblatex/biblatex-examples$PACKAGEEXT.bltxml obuild/tds/doc/latex/$PACKAGENAME/examples/
 
+  # Set correct packagename in test files
+  for f in obuild/tds/doc/latex/$PACKAGENAME/examples/*.tex
+  do
+    sed -i -e "s/{$PACKAGENAME}/{$PACKAGENAME$PACKAGEEXT}/g" $f
+  done
+  
   # flat
   [[ -e obuild/flat ]] || mkdir obuild/flat
   \rm -rf obuild/flat/*
@@ -183,6 +189,12 @@ then
   copy-rename-withstructure tex/latex/biblatex/bbx obuild/flat/$PACKAGENAME/latex/bbx
   copy-rename-withstructure tex/latex/biblatex/lbx obuild/flat/$PACKAGENAME/latex/lbx
 
+  # Set correct packagename in test files
+  for f in obuild/flat/$PACKAGENAME/doc/examples/*.tex
+  do
+    sed -i -e "s/{$PACKAGENAME}/{$PACKAGENAME$PACKAGEEXT}/g" $f
+  done
+  
   perl -pi -e "s|\\\\abx\\@date\{[^\}]+\}|\\\\abx\\@date\{$DATE\}|;s|\\\\abx\\@version\{[^\}]+\}|\\\\abx\\@version\{$VERSION\}|;" obuild/tds/tex/latex/$PACKAGENAME/$PACKAGENAME$PACKAGEEXT.sty obuild/flat/$PACKAGENAME/latex/$PACKAGENAME$PACKAGEEXT.sty
 
   # Can't do in-place on windows (cygwin)
