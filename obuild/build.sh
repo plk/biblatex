@@ -6,20 +6,22 @@ echo "Usage:
 build.sh help
 build.sh install <version> <tds_root>
 build.sh uninstall <tds_root>
-build.sh builddist|builddocs|build <version>
+build.sh builddist|builddocs|build <version> <filenameaddition>
 build.sh testbibtex [file]|testbiber [file]|test [file]|testoutput 
 build.sh upload <version> <targetfolder>
 build.sh showdiff <filewithissues>
 
 If <targetfolder> is missing, upload to folder \"biblatex-<version>\" folder
+If <filenameaddition> is present, add it to the end of all files, before the extension
 
 With the \"EXP\" argument, uploads to the SourceForge experimental
 folder instead of the <version> numbered folder
 
 Examples: 
-obuild/build.sh install 4.0 ~/texmf/
+obuild/build.sh install 3.18 ~/texmf/
 obuild/build.sh uninstall ~/texmf/
-obuild/build.sh build 4.0
+obuild/build.sh build 3.18
+obuild/build.sh build 4.0 -ms
 obuild/build.sh upload 4.0 development
 obuild/build.sh upload 4.0 multiscript
 
@@ -76,7 +78,7 @@ declare VERSION=$2
 declare VERSIONM=$(echo -n "$VERSION" | perl -nE 'say s/^(\d+\.\d+)[a-z]/$1/r')
 declare DATE=$(date '+%Y/%m/%d')
 declare ERRORS=0
-declare PACKAGEEXT=""
+declare PACKAGEEXT=$4
 declare PACKAGENAME="biblatex${PACKAGEEXT}"
 
 if [[ "$1" == "uninstall" ]]
@@ -138,7 +140,7 @@ function copy-rename {
     filename="${basefile%.*}"
     cp $filepath $target/${filename}${PACKAGEEXT}.$extension
   done
-}  
+}
 
 if [[ "$1" == "builddist" || "$1" == "build" || "$1" == "install" ]]
 then
@@ -156,8 +158,8 @@ then
   cp doc/latex/biblatex/biblatex.tex obuild/tds/doc/latex/$PACKAGENAME/$PACKAGENAME.tex
   cp -r doc/latex/biblatex/examples obuild/tds/doc/latex/$PACKAGENAME/
   copy-rename-withstructure tex/latex/biblatex obuild/tds/tex/latex/$PACKAGENAME
-  cp obuild/tds/bibtex/bib/biblatex/biblatex-examples.bib obuild/tds/doc/latex/$PACKAGENAME/examples/
-  cp obuild/tds/biber/bltxml/biblatex/biblatex-examples.bltxml obuild/tds/doc/latex/$PACKAGENAME/examples/
+  cp obuild/tds/bibtex/bib/biblatex/biblatex-examples$PACKAGEEXT.bib obuild/tds/doc/latex/$PACKAGENAME/examples/
+  cp obuild/tds/biber/bltxml/biblatex/biblatex-examples$PACKAGEEXT.bltxml obuild/tds/doc/latex/$PACKAGENAME/examples/
 
   # normal
   [[ -e obuild/flat ]] || mkdir obuild/flat
@@ -214,7 +216,7 @@ then
 
   mv biblatex.tex.bak biblatex.tex
 
-  cp biblatex.pdf ../../../obuild/flat/biblatex/doc/$PACKAGENAME.pdf
+  cp biblatex.pdf ../../../obuild/flat/$PACKAGENAME/doc/$PACKAGENAME.pdf
   cd ../../.. || exit
 
   echo
@@ -226,7 +228,7 @@ then
   \rm -f obuild/biblatex-$VERSION.tds.tgz
   \rm -f obuild/biblatex-$VERSION.tgz
   gnutar zcf obuild/biblatex-$VERSION.tds.tgz -C obuild/tds bibtex biber doc tex
-  gnutar zcf obuild/biblatex-$VERSION.tgz -C obuild/flat biblatex
+  gnutar zcf obuild/biblatex-$VERSION.tgz -C obuild/flat $PACKAGENAME
 
   echo "Created packages (flat and TDS) ..."
 fi
