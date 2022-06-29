@@ -1,6 +1,6 @@
 # RELEASE NOTES FOR VERSION 4.0
  - This is a major update with support for multiscript entryfields
- - **INCOMPATIBLE CHANGE** Default name list and plan list formats declared
+ - **INCOMPATIBLE CHANGE** Default name list and plain list formats declared
     with \DeclareNameFormat and \DeclareListFormat respectively have been
     modified to support per-item language switching via the macros:
 
