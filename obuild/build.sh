@@ -160,7 +160,7 @@ then
 
   # normal
   [[ -e obuild/flat ]] || mkdir obuild/flat
-  \rm -rf obuild/flat/$PACKAGENAME/*
+  \rm -rf obuild/flat/*
   mkdir -p obuild/flat/$PACKAGENAME/bibtex/{bib,bst}
   mkdir -p obuild/flat/$PACKAGENAME/bibtex/bib/biblatex
   mkdir -p obuild/flat/$PACKAGENAME/biber/bltxml
