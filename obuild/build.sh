@@ -78,7 +78,7 @@ declare VERSION=$2
 declare VERSIONM=$(echo -n "$VERSION" | perl -nE 'say s/^(\d+\.\d+)[a-z]/$1/r')
 declare DATE=$(date '+%Y/%m/%d')
 declare ERRORS=0
-declare PACKAGEEXT=$4
+declare PACKAGEEXT=$3
 declare PACKAGENAME="biblatex${PACKAGEEXT}"
 
 if [[ "$1" == "uninstall" ]]
