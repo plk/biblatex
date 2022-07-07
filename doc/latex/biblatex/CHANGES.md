@@ -1,6 +1,10 @@
+# RELEASE NOTES FOR VERSION 3.18b
+- Reenable `\MakeUppercase`/`\MakeLowercase` "patches" for `\bibstring`
+  based on `\CaseSwitch`.
+
 # RELEASE NOTES FOR VERSION 3.18a
 - Disable `\MakeUppercase`/`\MakeLowercase` patches as emergency fix
-  for LaTeX 2022-06-01-PL compatibility.
+  for LaTeX 2022-06-01-PL4 compatibility.
 
 # RELEASE NOTES FOR VERSION 3.18
 - New sorting name key generation macro `\visibility` which allows
