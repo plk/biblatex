@@ -31,13 +31,18 @@
    <namelist><msform><mslang>bibnamehash or
    <namelist><msform><mslang>fullhash and biber 4.0+ always generates specific
    name hashes in this format.
+# RELEASE NOTES FOR VERSION 3.18a
+- Disable `\MakeUppercase`/`\MakeLowercase` patches as emergency fix
+  for LaTeX 2022-06-01-PL compatibility.
+
 # RELEASE NOTES FOR VERSION 3.18
 - New sorting name key generation macro `\visibility` which allows
   application of sorting name key generation to apply only to sorting
-  within citations.
+  within citati
+  ons.
 - New sorting macro `\intciteorder` which allows sorting by order internal
   to a cite command like \cite{a,b,c}.
-- New option `pluralothers` to force "et al" to be plural (i.e. only
+- New option `pluralothers` to force "et al." to be plural (i.e. only
   replace two or more names). This is required for some styles (e.g. APA)
 - Added `\localrefcontext` as a local alternative
   to the global `\newrefcontext`.

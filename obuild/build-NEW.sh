@@ -6,22 +6,21 @@ echo "Usage:
 build.sh help
 build.sh install <version> <tds_root>
 build.sh uninstall <tds_root>
-build.sh builddist|builddocs|build <version>
+build.sh builddist|builddocs|build <version> <filenameaddition>
 build.sh testbibtex [file]|testbiber [file]|test [file]|testoutput 
-build.sh upload <version> [ \"DEV\" ]
+build.sh upload <version> <targetfolder>
 build.sh showdiff <filewithissues>
 
-With the \"DEV\" argument, uploads to the SourceForge development
-folder instead of the <version> numbered folder
-
-With the \"EXP\" argument, uploads to the SourceForge experimental
-folder instead of the <version> numbered folder
+If <targetfolder> is missing, upload to folder \"biblatex-<version>\" folder
+If <filenameaddition> is present, add it to the end of all files, before the extension
 
 Examples: 
-obuild/build.sh install 3.8 ~/texmf/
+obuild/build.sh install 3.18 ~/texmf/
 obuild/build.sh uninstall ~/texmf/
-obuild/build.sh build 3.8
-obuild/build.sh upload 3.8 DEV
+obuild/build.sh build 3.18
+obuild/build.sh build 4.0 -ms
+obuild/build.sh upload 4.0 development
+obuild/build.sh upload 4.0 multiscript
 
 \"build test\" runs all of the example files (in a temp dir) and puts errors in a log:
 
@@ -76,18 +75,20 @@ declare VERSION=$2
 declare VERSIONM=$(echo -n "$VERSION" | perl -nE 'say s/^(\d+\.\d+)[a-z]/$1/r')
 declare DATE=$(date '+%Y/%m/%d')
 declare ERRORS=0
+declare PACKAGEEXT=$3
+declare PACKAGENAME="biblatex"
 
 if [[ "$1" == "uninstall" ]]
 then
-  \rm -f $2/biber/bltxml/biblatex/biblatex-examples.bltxml
-  \rm -f $2/bibtex/bib/biblatex/biblatex-examples.bib
-  \rm -f $2/bibtex/bst/biblatex/biblatex.bst
-  \rm -f $2/doc/latex/biblatex/README
-  \rm -f $2/doc/latex/biblatex/CHANGES.md
-  \rm -f $2/doc/latex/biblatex/biblatex.pdf
-  \rm -f $2/doc/latex/biblatex/biblatex.tex
-  \rm -rf $2/doc/latex/biblatex/examples
-  \rm -rf $2/tex/latex/biblatex
+  \rm -f $2/biber/bltxml/$PACKAGENAME/$PACKAGENAME-examples.bltxml
+  \rm -f $2/bibtex/bib/$PACKAGENAME/$PACKAGENAME-examples.bib
+  \rm -f $2/bibtex/bst/$PACKAGENAME/$PACKAGENAME.bst
+  \rm -f $2/doc/latex/$PACKAGENAME/README
+  \rm -f $2/doc/latex/$PACKAGENAME/CHANGES.md
+  \rm -f $2/doc/latex/$PACKAGENAME/$PACKAGENAME.pdf
+  \rm -f $2/doc/latex/$PACKAGENAME/$PACKAGENAME.tex
+  \rm -rf $2/doc/latex/$PACKAGENAME/examples
+  \rm -rf $2/tex/latex/$PACKAGENAME
   exit 0
 fi
 
@@ -95,18 +96,48 @@ if [[ "$1" == "upload" ]]
 then
     if [[ -e obuild/biblatex-$VERSION.tds.tgz ]]
     then
-      if [[ "$3" == "DEV" ]]
+      if [ -z ${3+x} ]
       then
-        scp obuild/biblatex-"$VERSION".*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/development/
-        scp doc/latex/biblatex/CHANGES.md philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/development/
-      else
         scp obuild/biblatex-"$VERSION".*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/biblatex-"$VERSIONM"/
         scp doc/latex/biblatex/CHANGES.md philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/biblatex-"$VERSIONM"/
+      else
+        scp obuild/biblatex-"$VERSION".*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/$3/
+        scp doc/latex/biblatex/CHANGES.md philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/$3/
       fi
     exit 0
   fi
 fi
 
+# Copy individual files, preserving directory paths and adding any
+# alternative version extension to the filename
+# This is so we can build parallel installs of the package with a different name
+function copy-rename-withstructure {
+  for filepath in $(find $1 -type file)
+  do
+    basefile=$(basename -- "$filepath")
+    dirname=$(dirname -- "$filepath" | sed "s|$1||")
+    extension="${basefile##*.}"
+    filename="${basefile%.*}"
+    mkdir -p $2/$dirname
+    cp $filepath $2/$dirname/${filename}${PACKAGEEXT}.$extension
+  done
+}  
+
+# Copy individual files, adding any
+# alternative version extension to the filename
+# This is so we can build parallel installs of the package with a different name
+function copy-rename {
+  # Last argument is target
+  local target=${@: -1}
+  # All but last argument
+  for filepath in ${@::${#@}}
+  do
+    basefile=$(basename -- "$filepath")
+    extension="${basefile##*.}"
+    filename="${basefile%.*}"
+    cp $filepath $target/${filename}${PACKAGEEXT}.$extension
+  done
+}
 
 if [[ "$1" == "builddist" || "$1" == "build" || "$1" == "install" ]]
 then
@@ -114,44 +145,57 @@ then
   # tds
   [[ -e obuild/tds ]] || mkdir obuild/tds
   \rm -rf obuild/tds/*
-  cp -r bibtex obuild/tds/
-  cp -r biber obuild/tds/
-  mkdir -p obuild/tds/doc/latex/biblatex
-  cp doc/latex/biblatex/README obuild/tds/doc/latex/biblatex/
-  cp doc/latex/biblatex/CHANGES.md obuild/tds/doc/latex/biblatex/
-  cp doc/latex/biblatex/biblatex.pdf obuild/tds/doc/latex/biblatex/ 2>/dev/null
-  cp doc/latex/biblatex/biblatex.tex obuild/tds/doc/latex/biblatex/
-  cp -r doc/latex/biblatex/examples obuild/tds/doc/latex/biblatex/
-  cp -r tex obuild/tds/
-  cp obuild/tds/bibtex/bib/biblatex/biblatex-examples.bib obuild/tds/doc/latex/biblatex/examples/
-  cp obuild/tds/biber/bltxml/biblatex/biblatex-examples.bltxml obuild/tds/doc/latex/biblatex/examples/
-  
-  # normal
-  [[ -e obuild/flat ]] || mkdir obuild/flat
-  \rm -rf obuild/flat/biblatex/*
-  mkdir -p obuild/flat/biblatex/bibtex/{bib,bst}
-  mkdir -p obuild/flat/biblatex/bibtex/bib/biblatex
-  mkdir -p obuild/flat/biblatex/biber/bltxml
-  mkdir -p obuild/flat/biblatex/doc/examples
-  mkdir -p obuild/flat/biblatex/latex/{cbx,bbx,lbx}
-  cp doc/latex/biblatex/README obuild/flat/biblatex/
-  cp doc/latex/biblatex/CHANGES.md obuild/flat/biblatex/
-  cp bibtex/bib/biblatex/biblatex-examples.bib obuild/flat/biblatex/bibtex/bib/biblatex/  
-  cp bibtex/bib/biblatex/biblatex-examples.bib obuild/flat/biblatex/doc/examples/
-  cp biber/bltxml/biblatex/biblatex-examples.bltxml obuild/flat/biblatex/biber/bltxml/
-  cp biber/bltxml/biblatex/biblatex-examples.bltxml obuild/flat/biblatex/doc/examples/
-  cp bibtex/bst/biblatex/biblatex.bst obuild/flat/biblatex/bibtex/bst/
-  cp doc/latex/biblatex/biblatex.pdf obuild/flat/biblatex/doc/ 2>/dev/null
-  cp doc/latex/biblatex/biblatex.tex obuild/flat/biblatex/doc/
-  cp -r doc/latex/biblatex/examples obuild/flat/biblatex/doc/
-  cp tex/latex/biblatex/*.def obuild/flat/biblatex/latex/
-  cp tex/latex/biblatex/*.sty obuild/flat/biblatex/latex/
-  cp tex/latex/biblatex/*.cfg obuild/flat/biblatex/latex/
-  cp -r tex/latex/biblatex/cbx obuild/flat/biblatex/latex/
-  cp -r tex/latex/biblatex/bbx obuild/flat/biblatex/latex/
-  cp -r tex/latex/biblatex/lbx obuild/flat/biblatex/latex/
+  copy-rename-withstructure bibtex obuild/tds/bibtex
+  copy-rename-withstructure biber obuild/tds/biber
+  mkdir -p obuild/tds/doc/latex/$PACKAGENAME/examples
+  mkdir -p obuild/tds/tex/latex/$PACKAGENAME
+  cp doc/latex/biblatex/README obuild/tds/doc/latex/$PACKAGENAME/README$PACKAGEEXT
+  cp doc/latex/biblatex/CHANGES.md obuild/tds/doc/latex/$PACKAGENAME/CHANGES$PACKAGEEXT.md
+  cp doc/latex/biblatex/biblatex.pdf obuild/tds/doc/latex/$PACKAGENAME/$PACKAGENAME$PACKAGEEXT.pdf 2>/dev/null
+  cp doc/latex/biblatex/biblatex.tex obuild/tds/doc/latex/$PACKAGENAME/$PACKAGENAME$PACKAGEEXT.tex
+  copy-rename-withstructure doc/latex/biblatex/examples obuild/tds/doc/latex/$PACKAGENAME/examples
+  copy-rename-withstructure tex/latex/biblatex obuild/tds/tex/latex/$PACKAGENAME
+  cp obuild/tds/bibtex/bib/biblatex/biblatex-examples$PACKAGEEXT.bib obuild/tds/doc/latex/$PACKAGENAME/examples/
+  cp obuild/tds/biber/bltxml/biblatex/biblatex-examples$PACKAGEEXT.bltxml obuild/tds/doc/latex/$PACKAGENAME/examples/
 
-  perl -pi -e "s|\\\\abx\\@date\{[^\}]+\}|\\\\abx\\@date\{$DATE\}|;s|\\\\abx\\@version\{[^\}]+\}|\\\\abx\\@version\{$VERSION\}|;" obuild/tds/tex/latex/biblatex/biblatex.sty obuild/flat/biblatex/latex/biblatex.sty
+  # Set correct packagename in test files
+  for f in obuild/tds/doc/latex/$PACKAGENAME/examples/*.tex
+  do
+    sed -i -e "s/{$PACKAGENAME}/{$PACKAGENAME$PACKAGEEXT}/g" $f
+  done
+  
+  # flat
+  [[ -e obuild/flat ]] || mkdir obuild/flat
+  \rm -rf obuild/flat/*
+  mkdir -p obuild/flat/$PACKAGENAME/bibtex/{bib,bst}
+  mkdir -p obuild/flat/$PACKAGENAME/bibtex/bib/biblatex
+  mkdir -p obuild/flat/$PACKAGENAME/biber/bltxml
+  mkdir -p obuild/flat/$PACKAGENAME/doc/examples
+  mkdir -p obuild/flat/$PACKAGENAME/latex/{cbx,bbx,lbx}
+  cp doc/latex/biblatex/README obuild/flat/$PACKAGENAME/README$PACKAGEEXT
+  cp doc/latex/biblatex/CHANGES.md obuild/flat/$PACKAGENAME/CHANGES$PACKAGEEXT.md
+  cp bibtex/bib/biblatex/biblatex-examples.bib obuild/flat/$PACKAGENAME/bibtex/bib/biblatex/biblatex-examples$PACKAGEEXT.bib
+  cp bibtex/bib/biblatex/biblatex-examples.bib obuild/flat/$PACKAGENAME/doc/examples/biblatex-examples$PACKAGEEXT.bib
+  cp biber/bltxml/biblatex/biblatex-examples.bltxml obuild/flat/$PACKAGENAME/biber/bltxml/biblatex-examples$PACKAGEEXT.bltxml
+  cp biber/bltxml/biblatex/biblatex-examples.bltxml obuild/flat/$PACKAGENAME/doc/examples/biblatex-examples$PACKAGEEXT.bltxml
+  cp bibtex/bst/biblatex/biblatex.bst obuild/flat/$PACKAGENAME/bibtex/bst/$PACKAGENAME$PACKAGEEXT.bst
+  cp doc/latex/biblatex/biblatex.pdf obuild/flat/$PACKAGENAME/doc/$PACKAGENAME$PACKAGEEXT.pdf 2>/dev/null
+  cp doc/latex/biblatex/biblatex.tex obuild/flat/$PACKAGENAME/doc/$PACKAGENAME$PACKAGEEXT.tex
+  copy-rename tex/latex/biblatex/*.def obuild/flat/$PACKAGENAME/latex
+  copy-rename tex/latex/biblatex/*.sty obuild/flat/$PACKAGENAME/latex
+  copy-rename tex/latex/biblatex/*.cfg obuild/flat/$PACKAGENAME/latex
+  copy-rename-withstructure doc/latex/biblatex/examples obuild/flat/$PACKAGENAME/doc/examples
+  copy-rename-withstructure tex/latex/biblatex/cbx obuild/flat/$PACKAGENAME/latex/cbx
+  copy-rename-withstructure tex/latex/biblatex/bbx obuild/flat/$PACKAGENAME/latex/bbx
+  copy-rename-withstructure tex/latex/biblatex/lbx obuild/flat/$PACKAGENAME/latex/lbx
+
+  # Set correct packagename in test files
+  for f in obuild/flat/$PACKAGENAME/doc/examples/*.tex
+  do
+    sed -i -e "s/{$PACKAGENAME}/{$PACKAGENAME$PACKAGEEXT}/g" $f
+  done
+  
+  perl -pi -e "s|\\\\abx\\@date\{[^\}]+\}|\\\\abx\\@date\{$DATE\}|;s|\\\\abx\\@version\{[^\}]+\}|\\\\abx\\@version\{$VERSION\}|;" obuild/tds/tex/latex/$PACKAGENAME/$PACKAGENAME$PACKAGEEXT.sty obuild/flat/$PACKAGENAME/latex/$PACKAGENAME$PACKAGEEXT.sty
 
   # Can't do in-place on windows (cygwin)
   find obuild/tds -name \*.bak -print0 | xargs -0 \rm -rf
@@ -181,7 +225,7 @@ then
 
   mv biblatex.tex.bak biblatex.tex
 
-  cp biblatex.pdf ../../../obuild/flat/biblatex/doc/
+  cp biblatex.pdf ../../../obuild/flat/$PACKAGENAME/doc/$PACKAGENAME$PACKAGEEXT.pdf
   cd ../../.. || exit
 
   echo
@@ -193,7 +237,7 @@ then
   \rm -f obuild/biblatex-$VERSION.tds.tgz
   \rm -f obuild/biblatex-$VERSION.tgz
   gnutar zcf obuild/biblatex-$VERSION.tds.tgz -C obuild/tds bibtex biber doc tex
-  gnutar zcf obuild/biblatex-$VERSION.tgz -C obuild/flat biblatex
+  gnutar zcf obuild/biblatex-$VERSION.tgz -C obuild/flat $PACKAGENAME
 
   echo "Created packages (flat and TDS) ..."
 fi
@@ -227,6 +271,12 @@ then
     fi
   done
 
+  # Set correct packagename in test files
+  for f in *.tex
+  do
+    sed -i -e "s/{$PACKAGENAME}/{$PACKAGENAME$PACKAGEEXT}/g" $f
+  done
+  
   if [[ "$1" == "testbibtex" || "$1" == "test" ]]
   then
     for f in *-bibtex.tex

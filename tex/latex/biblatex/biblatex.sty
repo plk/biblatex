@@ -44,10 +44,26 @@
 \RequirePackage{xparse}
 %\RequirePackage{trace}
 
-% Turn of xparse redefine warnings as we do this a lot
+% Turn off xparse redefine warnings as we do this a lot
 \ExplSyntaxOn
  \msg_redirect_name:nnn { LaTeX } { xparse / redefine-command } { none }
 \ExplSyntaxOff
+
+% Postfix for biblatex internal files in case this version is supposed to be installed
+% in parallel with a standard biblatex installation. This postfix will be appended to
+% all searched for files like this:
+%
+% <filename><postfix>.<extension>
+%
+% If a file with this name is found it will be used, otherwise the filename
+% without the postfix will be used. Normally, this will be empty.
+\def\abx@filespf{-ms}
+
+% Globals holding the name of the filename being resolved
+% Better to have globals to avoid messy localisation code
+% as these are used in heavily nested macros
+\let\blx@fnext\@empty
+\let\blx@fnnoext\@empty
 
 \@ifpackagelater{etoolbox}{2010/11/29}
   {}
@@ -1350,8 +1366,41 @@
   \expandafter{\detokenize\expandafter{\blx@tempb}}}
 \endgroup
 
+% Generate altername filename with any global package postfix and then test
+% for existence of file with postfix, then bare file.
+% Used to look for files in versions of biblatex which are installed in parallel
+% with the standard version. Such versions have a suffix appended to all filenames
+% which is stored in \abx@filespf
+% Returns the found filename in \blx@fnext (with extension) and \blx@fnnoext (without extension) or
+% both \@empty if no file found
+\def\blx@altfile#1{%
+  \begingroup
+  \edef\blx@tempa{#1}% filename can contain macros
+  \let\blx@tempb\@empty
+  \let\blx@tempc\@empty
+  \global\let\blx@fnext\@empty
+  \global\let\blx@fnnoext\@empty
+  % Gives everything up to extension
+  \expandafter\blx@stripfromendinto\expandafter{\blx@tempa}{.}\blx@tempb
+  % Gives the extension
+  \expandafter\expandafter\expandafter\blx@stripfromstartinto\expandafter\expandafter\expandafter{\expandafter\blx@tempa\expandafter}\expandafter{\blx@tempb.}\blx@tempc
+  \xdef\blx@fnext{\blx@tempb\abx@filespf.\blx@tempc}%
+  \xdef\blx@fnnoext{\blx@tempb\abx@filespf}%
+  \expandafter\IfFileExists\expandafter{\blx@fnext}
+    {}
+    {\expandafter\IfFileExists\expandafter{\blx@tempa}
+       {\global\let\blx@fnext\blx@tempa}
+       {\global\let\blx@fnext\@empty}}
+  \endgroup}
+
 % {<file>}{<message>}{<preload>}{<postload>}{<success>}{<failure>}
-\protected\long\def\blx@inputonce#1#2#3#4#5#6{%
+\protected\long\def\blx@inputonce#1{%
+  \blx@altfile{#1}%
+  \ifdefempty\blx@fnext
+    {\blx@inputonce@i{#1}}
+    {\expandafter\blx@inputonce@i\expandafter{\blx@fnext}}}
+
+\protected\long\def\blx@inputonce@i#1#2#3#4#5#6{%
   \ifcsundef{blx@file@#1}
     {\blx@info@noline{Trying to load #2..}%
      \IfFileExists{#1}
@@ -5813,6 +5862,9 @@
 \let\blx@hook@uc\relax
 \let\blx@hook@lc\relax
 
+\iffalse
+% disable this as emergency "fix"
+% for LaTeX 2022-06-01-PL4
 \AtEndPreamble{%
   \toggletrue{blx@tempa}%
   \toggletrue{blx@tempb}%
@@ -5851,6 +5903,7 @@
   \iftoggle{blx@tempa}{\blx@err@patch{\string\MakeUppercase}}{}%
   \iftoggle{blx@tempb}{\blx@err@patch{\string\MakeLowercase}}{}%
 }
+\fi
 
 \appto\blx@blxinit{%
   \def\blx@hook@uc{%
@@ -6288,15 +6341,15 @@
 
 % {<language>}
 \def\blx@lbxcheck#1{%
+  \begingroup
   \ifcsdef{blx@lng@#1}
-    {\expandafter\expandafter\expandafter\IfFileExists
-     \expandafter\expandafter\expandafter{%
-     \csname blx@lng@#1\endcsname.lbx}
-       {}
-       {\blx@err@nolang{#1}}}
-    {\IfFileExists{#1.lbx}
-       {}
-       {\blx@err@nolang{#1}}}}
+    {\edef\blx@tempa{\csuse{blx@lng@#1}.lbx}}
+    {\def\blx@tempa{#1.lbx}}%
+  \expandafter\blx@altfile\expandafter{\blx@tempa}%
+  \ifdefempty\blx@fnext
+    {\blx@err@nolang{#1}}
+    {}%
+  \endgroup}
 
 % {<language>}{<definitions>}
 \newrobustcmd*{\DefineBibliographyExtras}[2]{%
@@ -6436,16 +6489,37 @@
 % {<mapping>}{<language>}
 \def\blx@lbxinput@iii#1#2{%
   \global\csundef{blx@lng@#2}%
-  \IfFileExists{#1.lbx}
-    {\blx@lbxinput@iv{#2}{#1}{language '#2' -> '#1'}}
+  \blx@altfile{#1.lbx}%
+  \ifdefempty\blx@fnext
     {\ifcsdef{blx@suffmaptried@#2}
       {}
       {\blx@warning@noline{%
           File '#1.lbx' not found!\MessageBreak
           Ignoring mapping '#2' -> '#1'}%
        \global\cslet{blx@suffmaptried@#2}\@empty}%
-     \blx@lbxinput@iv{#2}{#2}{language '#2'}}}
+     \blx@lbxinput@iv{#2}{#2}{language '#2'}}
+   {\blx@lbxinput@iv{#2}{\blx@fnnoext}{language '#2' -> '#1'}}}
 
+% {<language>}{<lbxfile>}{<message>}
+\def\blx@lbxinput@iv#1#2#3{%
+  \begingroup
+    \blx@lbx@input@handler{#2.lbx}{#3}
+      {\let\InheritBibliographyStrings\@gobble
+       \let\DeclareBibliographyStrings\@gobble
+       \let\InheritBibliographyExtras\@gobble
+       \let\DeclareBibliographyExtras\@gobble
+       \let\UndeclareBibliographyExtras\@gobble
+       \blx@lbx@input@process{#1}%
+       \begingroup
+       \cslet{blx@nolbxrecurse@#1}\@empty
+       \blx@saneccodes
+       \makeatletter}
+      {\endgroup
+       \blx@lbx@input@postprocess{#1}}
+      {\aftergroup\@firstoftwo}
+      {\aftergroup\@secondoftwo}%
+  \endgroup}
+ 
 % .lbx files must be read with one of the two following commands,
 % do not use \blx@inputonce. Only the commands here make sure that the file
 % is read as many times as necessary.
@@ -6529,26 +6603,6 @@
   \blx@lbx@input@postprocess@extras{#1}%
   \csuse{blx@hook@hyph@#1}%
   \blx@maplang{#1}{#1}}
-
-% {<language>}{<lbxfile>}{<message>}
-\def\blx@lbxinput@iv#1#2#3{%
-  \begingroup
-    \blx@lbx@input@handler{#2.lbx}{#3}
-      {\let\InheritBibliographyStrings\@gobble
-       \let\DeclareBibliographyStrings\@gobble
-       \let\InheritBibliographyExtras\@gobble
-       \let\DeclareBibliographyExtras\@gobble
-       \let\UndeclareBibliographyExtras\@gobble
-       \blx@lbx@input@process{#1}%
-       \begingroup
-       \cslet{blx@nolbxrecurse@#1}\@empty
-       \blx@saneccodes
-       \makeatletter}
-      {\endgroup
-       \blx@lbx@input@postprocess{#1}}
-      {\aftergroup\@firstoftwo}
-      {\aftergroup\@secondoftwo}%
-  \endgroup}
 
 % {<language>}
 \protected\def\blx@langsetup#1{%
@@ -16348,14 +16402,15 @@
     {}}
   % If language is explicit, we do want to auto-switch but only to the
   % selected language
-  {\IfFileExists{#1.lbx}
+  {\blx@altfile{#1.lbx}%
+   \ifdefempty\blx@fnext
+    {\blx@error
+      {Language '#1' not supported}
+      {Failed to find a matching '#1.lbx' file}}}
     {\toggletrue{blx@autolangbib}%
      \toggletrue{blx@autolangcite}%
      \edef\blx@languagename{#1}%
-     \edef\blx@forcelanguagename{#1}}
-    {\blx@error
-      {Language '#1' not supported}
-      {Failed to find a matching '#1.lbx' file}}}}
+     \edef\blx@forcelanguagename{#1}}}
 
 \DeclareBiblatexOption{global,type,entry}[boolean]{clearlang}[true]{%
   \settoggle{blx@clearlang}{#1}}
