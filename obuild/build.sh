@@ -83,7 +83,14 @@ then
   \rm -f $2/doc/latex/biblatex/CHANGES.md
   \rm -f $2/doc/latex/biblatex/biblatex.pdf
   \rm -f $2/doc/latex/biblatex/biblatex.tex
-  \rm -rf $2/doc/latex/biblatex/examples
+  for file in obuild/tds/doc/latex/biblatex/examples/*
+  do
+     \rm -f $2/doc/latex/biblatex/examples/$(basename -- "$file")
+  done
+  (cd obuild/tds/tex/latex/biblatex && for file in $(find * -type f)
+  do
+     \rm -f $2/tex/latex/biblatex/$file
+  done)
   exit 0
 fi
 
