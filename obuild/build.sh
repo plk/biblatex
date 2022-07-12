@@ -84,7 +84,6 @@ then
   \rm -f $2/doc/latex/biblatex/biblatex.pdf
   \rm -f $2/doc/latex/biblatex/biblatex.tex
   \rm -rf $2/doc/latex/biblatex/examples
-  \rm -rf $2/tex/latex/biblatex
   exit 0
 fi
 
