@@ -96,6 +96,7 @@ then
   \rm -f $2/doc/latex/$PACKAGENAME/$PACKAGENAME$PACKAGEEXT.tex
   \rm -rf $2/doc/latex/$PACKAGENAME/examples/$PACKAGEEXT.{tex,pdf}
   find $2/tex/latex/$PACKAGENAME -name \*$PACKAGEEXT.\* | xargs rm -f
+  find $2/doc/latex/$PACKAGENAME/examples -name \*$PACKAGEEXT.\* | xargs rm -f
   exit 0
 fi
 
