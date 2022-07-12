@@ -29,6 +29,18 @@
 % This is used when checking the .bbl
 \def\blx@bblversion{4.0}
 
+% Postfix for biblatex internal files in case this version is supposed to be installed
+% in parallel with a standard biblatex installation. This postfix will be appended to
+% all searched for files like this:
+%
+% <filename><postfix>.<extension>
+%
+% If a file with this name is found it will be used, otherwise the filename
+% without the postfix will be used. Normally, this will be empty.
+% The build script will normally put something in here before packageing or install
+% rather than it being set manually
+\def\abx@filespf{}
+
 \NeedsTeXFormat{LaTeX2e}[2005/12/01]
 \ProvidesPackage{biblatex}
 [\abx@date\space v\abx@version\space programmable bibliographies (PK/MW)]
@@ -48,16 +60,6 @@
 \ExplSyntaxOn
  \msg_redirect_name:nnn { LaTeX } { xparse / redefine-command } { none }
 \ExplSyntaxOff
-
-% Postfix for biblatex internal files in case this version is supposed to be installed
-% in parallel with a standard biblatex installation. This postfix will be appended to
-% all searched for files like this:
-%
-% <filename><postfix>.<extension>
-%
-% If a file with this name is found it will be used, otherwise the filename
-% without the postfix will be used. Normally, this will be empty.
-\def\abx@filespf{-ms}
 
 % Globals holding the name of the filename being resolved
 % Better to have globals to avoid messy localisation code
@@ -6484,7 +6486,10 @@
     {\expandafter\expandafter\expandafter\blx@lbxinput@iii
      \expandafter\expandafter\expandafter{%
        \csname blx@lng@#1\endcsname}{#1}}
-    {\blx@lbxinput@iv{#1}{#1}{language '#1'}}}
+    {\blx@altfile{#1.lbx}%
+     \ifdefempty\blx@fnext
+       {\blx@lbxinput@iv{#1}{#1}{language '#1'}}
+       {\blx@lbxinput@iv{#1}{\blx@fnnoext}{language '#1'}}}}
 
 % {<mapping>}{<language>}
 \def\blx@lbxinput@iii#1#2{%
@@ -6519,7 +6524,7 @@
       {\aftergroup\@firstoftwo}
       {\aftergroup\@secondoftwo}%
   \endgroup}
- 
+
 % .lbx files must be read with one of the two following commands,
 % do not use \blx@inputonce. Only the commands here make sure that the file
 % is read as many times as necessary.
@@ -17358,7 +17363,7 @@
      \csuse{blx@opt@casechanger@latex2e}}}
 
 \csdef{blx@opt@casechanger@latex2e}{%
-  \RequirePackage{blx-case-latex2e}}
+  \RequirePackage{blx-case-latex2e\abx@filespf}}
 \csletcs{blx@opt@casechanger@2e}{blx@opt@casechanger@latex2e}
 
 \csdef{blx@opt@casechanger@expl3}{%
@@ -17371,7 +17376,7 @@
        '\blx@texencoding'.\MessageBreak
        Case changing macros may break\MessageBreak
        if used with non-ASCII characters}}%
-  \RequirePackage{blx-case-expl3}}
+  \RequirePackage{blx-case-expl3\abx@filespf}}
 \csletcs{blx@opt@casechanger@3}{blx@opt@casechanger@expl3}
 
 % default to auto
