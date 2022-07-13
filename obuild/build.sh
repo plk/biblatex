@@ -259,9 +259,9 @@ if [[ "$1" == "testbiber" || "$1" == "testbibtex" || "$1" == "test" ]]
 then
   [[ -e obuild/test/examples ]] || mkdir -p obuild/test/examples
   \rm -rf obuild/test/examples/*
-  cp -r doc/latex/biblatex/examples/*.tex obuild/test/examples/
-  cp -r doc/latex/biblatex/examples/*.dbx obuild/test/examples/
-  cp -r doc/latex/biblatex/examples/*.bib obuild/test/examples/
+  copy-rename doc/latex/biblatex/examples/*.tex obuild/test/examples
+  copy-rename doc/latex/biblatex/examples/*.dbx obuild/test/examples
+  copy-rename doc/latex/biblatex/examples/*.bib obuild/test/examples
   \rm -f obuild/test/example_errs_biber.txt
   \rm -f obuild/test/example_errs_bibtex.txt
   cd obuild/test/examples || exit
@@ -271,16 +271,10 @@ then
   do
     if [[ "$f" < 9* ]] # 9+*.tex examples require biber
     then
-      if [[ ! "$f" =~ -bibtex\.tex ]] # some files are already bibtex specific
-      then
-        mv $f ${f%.tex}-biber.tex
-        if [[ ! -e ${f%.tex}-bibtex.tex ]] # don't overwrite already existing bibtex specific tests
-        then
-          sed -e 's/backend=biber/backend=bibtex/g' -e 's/\\usepackage\[utf8\]{inputenc}//g' ${f%.tex}-biber.tex > ${f%.tex}-bibtex.tex
-        fi
-      fi
+      mv $f ${f%$PACKAGEEXT.tex}-biber$PACKAGEEXT.tex
+      sed -e 's/backend=biber/backend=bibtex/g' -e 's/\\usepackage\[utf8\]{inputenc}//g' ${f%$PACKAGEEXT.tex}-biber$PACKAGEEXT.tex > ${f%$PACKAGEEXT.tex}-bibtex$PACKAGEEXT.tex
     else
-      mv $f ${f%.tex}-biber.tex
+      mv $f ${f%$PACKAGEEXT.tex}-biber$PACKAGEEXT.tex
     fi
   done
 
@@ -292,7 +286,7 @@ then
   
   if [[ "$1" == "testbibtex" || "$1" == "test" ]]
   then
-    for f in *-bibtex.tex
+    for f in *-bibtex$PACKAGEEXT.tex
     do
       if [[ "$2" != "" && "$2" != "$f" ]]
       then
@@ -362,7 +356,7 @@ PDFLaTeX errors/warnings
 
   if [[ "$1" == "testbiber" || "$1" == "test" ]]
   then
-    for f in *-biber.tex
+    for f in *-biber$PACKAGEEXT.tex
     do
       if [[ "$2" != "" && "$2" != "$f" ]]
       then
@@ -375,7 +369,7 @@ PDFLaTeX errors/warnings
           declare TEXENGINE=pdflatex
           declare BIBEROPTS='--output_safechars --onlylog'
       else
-          if [[ "$f" == "93-nameparts-biber.tex" ]] # Needs xelatex
+          if [[ "$f" == "93-nameparts-biber$PACKAGEEXT.tex" ]] # Needs xelatex
           then
              declare TEXENGINE=xelatex
              declare BIBEROPTS='--onlylog'

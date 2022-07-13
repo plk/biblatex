@@ -2787,16 +2787,16 @@ FUNCTION {output:main:begin} {
   #12 entry.max$ substring$ #-3 entry.max$ substring$ * " $" *  write$ newline$
   "% Do not modify the above lines!"                            write$ newline$
   "%"                                                           write$ newline$
-  "% This is an auxiliary file used by the 'biblatex' package." write$ newline$
+  "% This is an auxiliary file used by the 'biblatex-ms' package." write$ newline$
   "% This file may safely be deleted. It will be recreated as"  write$ newline$
   "% required."                                                 write$ newline$
   "%"                                                           write$ newline$
   "\begingroup"                                                 write$ newline$
   "\makeatletter"                                               write$ newline$
-  "\@ifundefined{ver@biblatex.sty}"                             write$ newline$
+  "\@ifundefined{ver@biblatex-ms.sty}"                             write$ newline$
   "  {\@latex@error"                                            write$ newline$
-  "     {Missing 'biblatex' package}"                           write$ newline$
-  "     {The bibliography requires the 'biblatex' package.}"    write$ newline$
+  "     {Missing 'biblatex-ms' package}"                           write$ newline$
+  "     {The bibliography requires the 'biblatex-ms' package.}"    write$ newline$
   "      \aftergroup\endinput}"                                 write$ newline$
   "  {}"                                                        write$ newline$
   "\endgroup"                                                   write$ newline$
