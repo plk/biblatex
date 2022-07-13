@@ -439,7 +439,7 @@ then
   for f in obuild/test/examples/*.pdf
   do
     echo -n "Checking `basename $f` ... "
-    diff-pdf "doc/latex/biblatex/examples/`basename $f`" $f 2>/dev/null
+    diff-pdf "doc/latex/biblatex/examples/`basename ${f%$PACKAGEEXT.pdf}.pdf`" $f 2>/dev/null
     if [[ $? -eq 0 ]]
     then
       echo "PASS"
