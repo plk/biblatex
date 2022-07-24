@@ -12,7 +12,6 @@ build.sh upload <version> <targetfolder>
 build.sh showdiff <filewithissues>
 
 If <targetfolder> is missing, upload to folder \"biblatex-<version>\" folder
-If <filenameaddition> is present, add it to the end of all files, before the extension
 
 Examples: 
 obuild/build.sh install 3.18 ~/texmf/
