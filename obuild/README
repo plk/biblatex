@@ -1,4 +1,5 @@
-Release procedure:
+Release procedure
+=================
 
 * Update main doc/latex/biblatex/RELEASE file
 * Make sure doc has up to date release information at end
@@ -12,3 +13,75 @@ Release procedure:
   otherwise biblatex will report a .bbl version mismatch.
 * Tag with release tag
 * Run build.sh in root dir to create release files.
+
+
+Parallel installs
+=================
+The build/install/packaging system is set up to allow the creation of a
+parallel version of biblatex to allow significantly different versions to
+be installed in parallel. Naturally, this requires a different package name
+and all file names have to be different since they are searched for by the
+kpath library which is leaf-node search library meaning that the
+directories containing files cannot be used to indicate different packages.
+
+A parallel install of different versions of biblatex is not intended for
+normal version differences. It is only intended when a major change is
+planned and the new version should also be in CTAN for some time in order
+to gather feedback. The source files in the git tree are not changed
+themselves, the new file/package names are generated during install or
+packaging by the build script. This is to reduce confusion for developers
+and to aid merging between branches. The different version is indicated by
+a postfix attached to the package/file names, before any extension e.g:
+
+biblatex<postfix>
+filename<postfix>.<extension>
+
+The <postfix> is contained in one place in the file obuild/.FILEPOSTFIX
+
+This should contain only one line, the complete <posfix>. This is read by
+the obuild/build.sh script which uses the postfix to:
+
+* Rename files
+* Replace package loading macros (in test files for example) with the
+  modified name.
+* Replace file loading macros with the modified names
+* Insert the postfix into the \abx@filespf macro in biblatex.sty so that
+  this is available to the file handling macros.
+
+Biblatex will then, when trying to load a file <name>.<extension>, first
+look for <name><postfix>.<extension> and fall back to <name>.<extension> if
+not found. This allows custom styles to continue to load without them
+having to follow the naming convention required by the <postfix>.
+
+Biblatex itself will be loaded with:
+
+\usepackage{biblatex<postfix>}
+
+This allows it to exist as a separate package in CTAN with all of its files
+differently named so as to be completely separate from standard biblatex.
+
+For example, for the significantly different (at least internally and in
+features) "multiscript" version of biblatex, until this is merged into standard
+biblatex, the postfix is "-ms" which means that this version of biblatex
+will be loaded as:
+
+\usepackage{biblatex-ms}
+
+and all of its files will have the "-ms" postfix (e.g. "biblatex-ms.def",
+"authoryear-ms.cbx", "<language>-ms.lbx" etc.). Users will not have to take
+account of this (apart from loading biblatex as shown above) as the file
+search macros will automatically look for a file with relevant postfix
+first.
+
+The build script will automatically install/package files with the correct
+names and file loading calls according to the contents of the
+obuild/.FILEPOSTFIX file. If this file is empty, then they resulting
+install/package will be indistinguishable from a standard biblatex
+installation.
+
+In summary, from a user perspective, it will be necessary only to load the
+package that you wish to use:
+
+\usepackage{biblatex}          % standard biblatex
+\usepackage{biblatex<postfix>} % experimental version
+
