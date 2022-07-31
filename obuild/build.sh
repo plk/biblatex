@@ -119,7 +119,7 @@ fi
 # alternative version extension to the filename
 # This is so we can build parallel installs of the package with a different name
 function copy-rename-withstructure {
-  for filepath in $(find $1 -type file)
+  for filepath in $(find $1 -type f)
   do
     basefile=$(basename -- "$filepath")
     dirname=$(dirname -- "$filepath" | sed "s|$1||")
