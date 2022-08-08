@@ -5869,73 +5869,147 @@
   \ifbibstring \ifbibxstring \iffieldbibstring
   \iffieldplusstringbibstring}
 
-\let\blx@hook@uc\relax
-\let\blx@hook@lc\relax
-
-\iffalse
-% disable this as emergency "fix"
-% for LaTeX 2022-06-01-PL4
-\AtEndPreamble{%
-  \toggletrue{blx@tempa}%
-  \toggletrue{blx@tempb}%
-  \expandafter\patchcmd\csname MakeUppercase \endcsname
-    {\protected@edef}
-    {\blx@hook@uc\protected@edef}
-    {\togglefalse{blx@tempa}}
-    {}%
-  \expandafter\patchcmd\csname MakeLowercase \endcsname
-    {\protected@edef}
-    {\blx@hook@lc\protected@edef}
-    {\togglefalse{blx@tempb}}
-    {}%
-  \@ifpackageloaded{textcase}
-    {\expandafter\patchcmd\csname MakeUppercase \endcsname
-       {\def\i}
-       {\blx@hook@uc\def\i}
+% \DeclareCaseChangeEquivalent is available in
+% LaTeX 2022-06-01-PL5
+% the older code works-ish for LaTeX before 2022-06-01
+% it errors with 2022-06-01-PL4
+% but we'll not guard against this specific PL
+\ifundef\DeclareCaseChangeEquivalent
+  {\let\blx@hook@uc\relax
+   \let\blx@hook@lc\relax
+   %
+   \AtEndPreamble{%
+     \toggletrue{blx@tempa}%
+     \toggletrue{blx@tempb}%
+     \expandafter\patchcmd\csname MakeUppercase \endcsname
+       {\protected@edef}
+       {\blx@hook@uc\protected@edef}
        {\togglefalse{blx@tempa}}
        {}%
      \expandafter\patchcmd\csname MakeLowercase \endcsname
-       {\@uclcnotmath{}}
-       {\@uclcnotmath{\blx@hook@lc}}
+       {\protected@edef}
+       {\blx@hook@lc\protected@edef}
        {\togglefalse{blx@tempb}}
        {}%
-     \expandafter\patchcmd\csname MakeTextUppercase \endcsname
-       {\def\i}
-       {\blx@hook@uc\def\i}
-       {}
+     \@ifpackageloaded{textcase}
+       {\expandafter\patchcmd\csname MakeUppercase \endcsname
+          {\def\i}
+          {\blx@hook@uc\def\i}
+          {\togglefalse{blx@tempa}}
+          {}%
+        \expandafter\patchcmd\csname MakeLowercase \endcsname
+          {\@uclcnotmath{}}
+          {\@uclcnotmath{\blx@hook@lc}}
+          {\togglefalse{blx@tempb}}
+          {}%
+        \expandafter\patchcmd\csname MakeTextUppercase \endcsname
+          {\def\i}
+          {\blx@hook@uc\def\i}
+          {}
+          {}%
+        \expandafter\patchcmd\csname MakeTextLowercase \endcsname
+          {\@uclcnotmath{}}
+          {\@uclcnotmath{\blx@hook@lc}}
+          {}
+          {}}
        {}%
-     \expandafter\patchcmd\csname MakeTextLowercase \endcsname
-       {\@uclcnotmath{}}
-       {\@uclcnotmath{\blx@hook@lc}}
-       {}
-       {}}
-    {}%
-  \iftoggle{blx@tempa}{\blx@err@patch{\string\MakeUppercase}}{}%
-  \iftoggle{blx@tempb}{\blx@err@patch{\string\MakeLowercase}}{}%
-}
-\fi
-
-\appto\blx@blxinit{%
-  \def\blx@hook@uc{%
-    \def\bibstring{\blx@imc@bibucstring}%
-    \def\biblstring{\blx@imc@bibuclstring}%
-    \def\bibsstring{\blx@imc@bibucsstring}%
-    \def\biblcstring{\blx@imc@bibucstring}%
-    \def\biblclstring{\blx@imc@bibuclstring}%
-    \def\biblcsstring{\blx@imc@bibucsstring}%
-    \def\bibcpstring{\blx@imc@bibucstring}%
-    \def\bibcplstring{\blx@imc@bibuclstring}%
-    \def\bibcpsstring{\blx@imc@bibucsstring}}%
-  \def\blx@hook@lc{%
-    \def\bibstring{\blx@imc@biblcstring}%
-    \def\biblstring{\blx@imc@biblclstring}%
-    \def\bibsstring{\blx@imc@biblcsstring}%
-    \def\bibucstring{\blx@imc@biblcstring}%
-    \def\bibuclstring{\blx@imc@biblclstring}%
-    \def\bibucsstring{\blx@imc@biblcsstring}%
-    \def\bibcpstring{\blx@imc@biblcstring}%
-    \def\bibcplstring{\blx@imc@biblclstring}%
-    \def\bibcpsstring{\blx@imc@biblcsstring}}}
+     \iftoggle{blx@tempa}{\blx@err@patch{\string\MakeUppercase}}{}%
+     \iftoggle{blx@tempb}{\blx@err@patch{\string\MakeLowercase}}{}%
+   }
+   %
+   \appto\blx@blxinit{%
+     \def\blx@hook@uc{%
+       \def\bibstring{\blx@imc@bibucstring}%
+       \def\biblstring{\blx@imc@bibuclstring}%
+       \def\bibsstring{\blx@imc@bibucsstring}%
+       \def\biblcstring{\blx@imc@bibucstring}%
+       \def\biblclstring{\blx@imc@bibuclstring}%
+       \def\biblcsstring{\blx@imc@bibucsstring}%
+       \def\bibcpstring{\blx@imc@bibucstring}%
+       \def\bibcplstring{\blx@imc@bibuclstring}%
+       \def\bibcpsstring{\blx@imc@bibucsstring}}%
+     \def\blx@hook@lc{%
+       \def\bibstring{\blx@imc@biblcstring}%
+       \def\biblstring{\blx@imc@biblclstring}%
+       \def\bibsstring{\blx@imc@biblcsstring}%
+       \def\bibucstring{\blx@imc@biblcstring}%
+       \def\bibuclstring{\blx@imc@biblclstring}%
+       \def\bibucsstring{\blx@imc@biblcsstring}%
+       \def\bibcpstring{\blx@imc@biblcstring}%
+       \def\bibcplstring{\blx@imc@biblclstring}%
+       \def\bibcpsstring{\blx@imc@biblcsstring}}}}
+  {\DeclareCaseChangeEquivalent{\bibstring}{%
+     \CaseSwitch
+       {\blx@imc@bibstring}
+       {\blx@imc@bibucstring}
+       {\blx@imc@biblcstring}
+       {\blx@imc@bibcpstring}}
+   \DeclareCaseChangeEquivalent{\biblstring}{%
+     \CaseSwitch
+       {\blx@imc@biblstring}
+       {\blx@imc@bibuclstring}
+       {\blx@imc@biblclstring}
+       {\blx@imc@bibcplstring}}
+   \DeclareCaseChangeEquivalent{\bibsstring}{%
+     \CaseSwitch
+       {\blx@imc@bibsstring}
+       {\blx@imc@bibucsstring}
+       {\blx@imc@biblcsstring}
+       {\blx@imc@bibcpsstring}}
+   \DeclareCaseChangeEquivalent{\biblcstring}{%
+     \CaseSwitch
+       {\blx@imc@bibstring}
+       {\blx@imc@bibucstring}
+       {\blx@imc@biblcstring}
+       {\blx@imc@bibcpstring}}
+   \DeclareCaseChangeEquivalent{\biblclstring}{%
+     \CaseSwitch
+       {\blx@imc@biblstring}
+       {\blx@imc@bibuclstring}
+       {\blx@imc@biblclstring}
+       {\blx@imc@bibcplstring}}
+   \DeclareCaseChangeEquivalent{\biblcsstring}{%
+     \CaseSwitch
+       {\blx@imc@bibsstring}
+       {\blx@imc@bibucsstring}
+       {\blx@imc@biblcsstring}
+       {\blx@imc@bibcpsstring}}
+   \DeclareCaseChangeEquivalent{\bibucstring}{%
+     \CaseSwitch
+       {\blx@imc@bibstring}
+       {\blx@imc@bibucstring}
+       {\blx@imc@biblcstring}
+       {\blx@imc@bibcpstring}}
+   \DeclareCaseChangeEquivalent{\bibuclstring}{%
+     \CaseSwitch
+       {\blx@imc@biblstring}
+       {\blx@imc@bibuclstring}
+       {\blx@imc@biblclstring}
+       {\blx@imc@bibcplstring}}
+   \DeclareCaseChangeEquivalent{\bibucsstring}{%
+     \CaseSwitch
+       {\blx@imc@bibsstring}
+       {\blx@imc@bibucsstring}
+       {\blx@imc@biblcsstring}
+       {\blx@imc@bibcpsstring}}
+   \DeclareCaseChangeEquivalent{\bibcpstring}{%
+     \CaseSwitch
+       {\blx@imc@bibstring}
+       {\blx@imc@bibucstring}
+       {\blx@imc@biblcstring}
+       {\blx@imc@bibcpstring}}
+   \DeclareCaseChangeEquivalent{\bibcplstring}{%
+     \CaseSwitch
+       {\blx@imc@biblstring}
+       {\blx@imc@bibuclstring}
+       {\blx@imc@biblclstring}
+       {\blx@imc@bibcplstring}}
+   \DeclareCaseChangeEquivalent{\bibcpsstring}{%
+     \CaseSwitch
+       {\blx@imc@bibsstring}
+       {\blx@imc@bibucsstring}
+       {\blx@imc@biblcsstring}
+       {\blx@imc@bibcpsstring}}}
 
 \def\abx@dostrings{%
   \do{bibliography}%
@@ -12672,6 +12746,21 @@
   \blx@auxwrite\blx@bcfout{}{\blx@xml@citeset{\blx@tempa}{\blx@tempb}}%
   \endgroup}
 
+
+\def\abx@warn@emptycite{%
+  \abx@warn@emptycite@print
+  \abx@warn@emptycite@log}
+
+\def\abx@warn@emptycite@print@text{%
+  \textless empty citation\textgreater}
+
+\def\abx@warn@emptycite@print{%
+  \abx@missing@entry{\abx@warn@emptycite@print@text}}
+
+\def\abx@warn@emptycite@log{%
+  \@latex@warning{\blx@msg@cundefon{}}}
+
+
 % {<entrykey>,...}
 % a crude way to check for a do-nothing argument:
 % loop over it to see what happens
@@ -12681,8 +12770,7 @@
   \expandafter\docsvlist\expandafter{\detokenize{#1}}%
   \iftoggle{blx@tempa}
     {\expandafter\blx@citeloop@i\expandafter{\detokenize{#1}}}
-    {\abx@missing@entry{empty citation}%
-     \@latex@warning{\blx@msg@cundefon{}}}}
+    {\abx@warn@emptycite}}
 \protected\def\blx@citeloop@i#1{%
   \begingroup
   % This must be here and not after \blx@citeadd as this changes the refcontext

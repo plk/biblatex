@@ -86,16 +86,21 @@ fi
 
 if [[ "$1" == "uninstall" ]]
 then
-  \rm -f $2/biber/bltxml/$PACKAGENAME/$PACKAGENAME-examples$PACKAGEEXT.bltxml
-  \rm -f $2/bibtex/bib/$PACKAGENAME/$PACKAGENAME-examples$PACKAGEEXT.bib
-  \rm -f $2/bibtex/bst/$PACKAGENAME/$PACKAGENAME$PACKAGEEXT.bst
-  \rm -f $2/doc/latex/$PACKAGENAME/README$PACKAGEEXT
-  \rm -f $2/doc/latex/$PACKAGENAME/CHANGES$PACKAGEEXT.md
-  \rm -f $2/doc/latex/$PACKAGENAME/$PACKAGENAME$PACKAGEEXT.pdf
-  \rm -f $2/doc/latex/$PACKAGENAME/$PACKAGENAME$PACKAGEEXT.tex
-  \rm -rf $2/doc/latex/$PACKAGENAME/examples/$PACKAGEEXT.{tex,pdf}
-  find $2/tex/latex/$PACKAGENAME -name \*$PACKAGEEXT.\* | xargs rm -f
-  find $2/doc/latex/$PACKAGENAME/examples -name \*$PACKAGEEXT.\* | xargs rm -f
+  \rm -f $2/biber/bltxml/biblatex/biblatex-examples.bltxml
+  \rm -f $2/bibtex/bib/biblatex/biblatex-examples.bib
+  \rm -f $2/bibtex/bst/biblatex/biblatex.bst
+  \rm -f $2/doc/latex/biblatex/README
+  \rm -f $2/doc/latex/biblatex/CHANGES.md
+  \rm -f $2/doc/latex/biblatex/biblatex.pdf
+  \rm -f $2/doc/latex/biblatex/biblatex.tex
+  for file in obuild/tds/doc/latex/biblatex/examples/*
+  do
+     \rm -f $2/doc/latex/biblatex/examples/$(basename -- "$file")
+  done
+  (cd obuild/tds/tex/latex/biblatex && for file in $(find * -type f)
+  do
+     \rm -f $2/tex/latex/biblatex/$file
+  done)
   exit 0
 fi
 
