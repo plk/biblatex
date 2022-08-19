@@ -3047,8 +3047,8 @@ This option is also settable on a per-type, per-entry and per-namelist basis.
 \multicolumn{1}{@{}H}{Counter tracks} \\
 \cmidrule(r){1-1}\cmidrule(r){2-2}\cmidrule(r){3-3}\cmidrule{4-4}
 labelalpha      & labelalpha           & extraalpha     &  label\\
-labeldateparts  & labelyear            & extradate      &  labelname+\\
-                & labelmonth           &                &  labelyear\\
+labeldateparts  & labelyear            & extradate      &  labelname/labeltitle+labelyear\\
+                & labelmonth           &                &  \\
                 & labelday             &                &  \\
                 & labelendyear         &                &  \\
                 & labelendmonth        &                &  \\
@@ -7139,11 +7139,11 @@ The end day of the date field selected by \cmd{DeclareLabeldate} (\secref{aut:ct
 
 \fielditem{extradate}{integer}
 
-The author"=year citation scheme usually requires a letter to be appended to the year if the bibliography contains two or more works by the same author which were all published in the same year. In this case, the \bibfield{extradate} field holds an integer which may be converted to a letter with \cmd{mknumalph} or formatted in some other way. This field is undefined if there is only one work by the author in the bibliography or if all works by the author have different publication years. A complete author-year label consists of the fields \bibfield{labelyear} plus \bibfield{extradate}. Note that the \bibfield{labelyear} and \bibfield{extradate} fields need to be requested with the package option \opt{labeldateparts}, see \secref{use:opt:pre:int} for details. See also \bibfield{labelyear}. Table \ref{use:opt:tab1} summarises the various \opt{extra*} disambiguation counters and what they track.
+The author"=year citation scheme usually requires a letter to be appended to the year if the bibliography contains two or more works by the same author (or same title if there is no author) which were all published in the same year. In this case, the \bibfield{extradate} field holds an integer which may be converted to a letter with \cmd{mknumalph} or formatted in some other way. This field is undefined if there is only one work by the author (or one title when there is no author) in the bibliography or if all works by the author (or with the same title) have different publication years. A complete author-year label consists of the fields \bibfield{labelyear} plus \bibfield{extradate}. Note that the \bibfield{labelyear} and \bibfield{extradate} fields need to be requested with the package option \opt{labeldateparts}, see \secref{use:opt:pre:int} for details. See also \bibfield{labelyear} (and \bibfield{labeltitle} which is used instead of the name if there are no authors). Table \ref{use:opt:tab1} summarises the various \opt{extra*} disambiguation counters and what they track.
 
 \fielditem{extradatescope}{literal}
 
-This field contains the name of the most specific field which determined the value of \bibfield{extradate}. It is not used by the standard styles but may be useful in controlling the placement of the \bibfield{extradate} field value.
+This field contains the name of the most specific date part which determined the value of \bibfield{extradate}. It is not used by the standard styles but may be useful in controlling the placement of the \bibfield{extradate} field value. For example, if two works by the same author with dates <2020-05-04> and <2020-06-04> were disambiguated by \bibfield{extradate}, then \bibfield{extradatascope} would contain <labelyear> for both entries as the most specific difference is the (label)year. If the dates were <2020-05-04> and <2020-05-02>, then \bibdfield{extradatascope} would contain <labelmonth>. See also \cmd{DeclareExtradate} (\secref{aut:ctm:fld}) which describes how to change the scope used to track dates.
 
 \end{fieldlist}
 
@@ -9953,7 +9953,7 @@ The \bibfield{label*} fields may be customized globally or on a per-type basis. 
 
 \cmditem{DeclareExtradate}{specification}
 
-Defines how \biber tracks information used to construct the \bibfield{extradate} field. This field (see \secref{aut:bbx:fld:lab}) is printed to disambiguate works by the same author which occur in the same date scope. By default, the date scope is the year and so two works by the same author within the same year will have different \bibfield{extradate} values which are used to disambiguate the works in the bibliography in the usual manner seen in many authoryear type styles. The \prm{specification} is one or more \cmd{scope} specifications which can contain one or more \cmd{field} specifications. Within a \cmd{scope}, the existence of each \cmd{field} will be checked and if found, the first \cmd{field} is used and the rest are ignored. This allows a fallback in case certain fields are not available in all entries. All \cmd{scope}s are used to track information and \cmd{scope}s should be specified in decreasing order of generality (e.g. year then month then day etc) The default definition is:
+Defines how \biber tracks information used to construct the \bibfield{extradate} field. This field (see \secref{aut:bbx:fld:lab}) is printed to disambiguate works by the same author (or with the same title when no author is given) which occur in the same date scope. By default, the date scope is the year and so two works by the same author within the same year will have different \bibfield{extradate} values which are used to disambiguate the works in the bibliography in the usual manner seen in many authoryear type styles. The \prm{specification} is one or more \cmd{scope} specifications which can contain one or more \cmd{field} specifications. Within a \cmd{scope}, the existence of each \cmd{field} will be checked and if found, the first \cmd{field} is used and the rest are ignored. This allows a fallback in case certain fields are not available in all entries. All \cmd{scope}s are used to track information and \cmd{scope}s should be specified in decreasing order of generality (e.g. year then month then day etc) The default definition is:
 
 \begin{ltxexample}
 \DeclareExtradate{%
@@ -14860,6 +14860,7 @@ This revision history is a list of changes relevant to users of this package. Ch
 \begin{changelog}
 \begin{release}{3.19}{2022}
 \item Modified warning for using bibtex backend
+\item Enhanced \bibfield{extradate} tracking to fallback on \bibfield{labeltitle} when there is no author
 \end{release}
   \begin{release}{3.18b}{2022-07-12}
 \item Reenable \cmd{MakeUppercase}/\cmd{MakeLowercase} <patches>
