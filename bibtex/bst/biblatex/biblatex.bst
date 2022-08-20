@@ -184,7 +184,7 @@ STRINGS  { ctrl.alphaothers ctrl.sortalphaothers ctrl.sortstr
            last.name last.hash last.year last.extra }
 
 FUNCTION {initialize} {
-  "$Revision: 3.18 $"
+  "$Revision: 3.19 $"
   #12 entry.max$ substring$
   #-3 entry.max$ substring$
   "Biblatex version: " swap$ * top$
@@ -1928,7 +1928,7 @@ FUNCTION {input:control:options} {
 % This version corresponds to the .bcf version, *not* the biblatex version!
 FUNCTION {input:control:version} {
   input:control:parse
-  "$Revision: 3.9 $"
+  "$Revision: 3.10 $"
   #12 entry.max$ substring$
   #-3 entry.max$ substring$
   'tempstrga :=
