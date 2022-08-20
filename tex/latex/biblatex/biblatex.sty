@@ -14806,6 +14806,7 @@
   \blx@xml@comment{GLOBAL}%
   \blx@xml@options{biblatex}{global}{%
     \blx@xml@svalue{alphaothers}{\labelalphaothers}%
+    \blx@xml@mvalue{extradatecontext}{\blx@bcf@extradatecontext}%
     \blx@xml@toggle{labelalpha}%
     \blx@xml@mvalue{labelnamespec}{\blx@bcf@labelnamespec}%
     \blx@xml@toggle{labeltitle}%
@@ -14851,6 +14852,10 @@
 \def\blx@bcf@options@type#1{%
   \blx@xml@comment{#1}%
   \blx@xml@options{biblatex}{#1}{%
+    \blx@xml@mvalue{extradatecontext}{%
+      \ifcsdef{blx@bcf@extradatecontext@#1}
+        {\csuse{blx@bcf@extradatecontext@#1}}
+        {\blx@bcf@extradatecontext}}%
     \blx@xml@toggle{labelalpha}%
     \blx@xml@mvalue{labelnamespec}{%
       \ifcsdef{blx@bcf@labelnamespec@#1}
@@ -16101,6 +16106,21 @@
       \noexpand\blx@xml@edordered{\the\blx@tempcnta}{#1}}}
 
 % [<type,type,...>]{<field,field,...>}
+\newrobustcmd*{\DeclareExtradateContext}[2][]{%
+  \begingroup
+  \let\blx@tempa\@empty
+  \def\blx@tempb{extradatecontext}%
+  \let\field\blx@ordered@field
+  \ifblank{#1}
+    {\global\cslet{blx@bcf@extradatecontext}\@empty}
+    {\def\blx@tempa{#1}%
+     \def\do##1{\global\cslet{blx@bcf@extradatecontext@##1}\@empty}%
+     \expandafter\docsvlist\expandafter{#1}}%
+  #2%
+  \endgroup}
+\@onlypreamble\DeclareExtradateContext
+\blx@DeclareBackendOption{global,type}[xml]{extradatecontext}
+  
 \newrobustcmd*{\DeclareLabelname}[2][]{%
   \begingroup
   \let\blx@tempa\@empty
