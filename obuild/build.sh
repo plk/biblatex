@@ -371,7 +371,7 @@ PDFLaTeX errors/warnings
       if [[ "$f" < 9* ]] # 9+*.tex examples require biber and we want UTF-8 support
       then
           declare TEXENGINE=pdflatex
-          declare BIBEROPTS='--output_safechars --onlylog'
+          declare BIBEROPTS='--output-safechars --onlylog'
       else
           if [[ "$f" == "93-nameparts-biber$PACKAGEEXT.tex" ]] # Needs xelatex
           then
@@ -389,7 +389,7 @@ PDFLaTeX errors/warnings
       # using output safechars as we are using fontenc and ascii in the test files
       # so that we can use the same test files with bibtex which only likes ascii
       # biber complains when outputting ascii from it's internal UTF-8
-      biber $BIBEROPTS --onlylog ${f%.tex}
+      biber $BIBEROPTS ${f%.tex}
       $TEXENGINE --interaction=batchmode ${f%.tex}
       if [[ $f == 20-indexing-* || $f == 21-indexing-* ]]
       then
