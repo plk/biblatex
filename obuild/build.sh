@@ -285,7 +285,7 @@ then
   # Set correct packagename in test files
   for f in *.tex
   do
-    perl -pi -e "s/\{$PACKAGENAME\}/\{$PACKAGENAME$PACKAGEEXT\}/g" $f
+      perl -pi.bak -e "s/\{$PACKAGENAME\}/\{$PACKAGENAME$PACKAGEEXT\}/g" $f
   done
   
   if [[ "$1" == "testbibtex" || "$1" == "test" ]]
