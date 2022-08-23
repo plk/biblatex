@@ -161,7 +161,7 @@ then
   copy-rename-withstructure biber obuild/tds/biber
   mkdir -p obuild/tds/doc/latex/$PACKAGENAME/examples
   mkdir -p obuild/tds/tex/latex/$PACKAGENAME
-  cp doc/latex/biblatex/README obuild/tds/doc/latex/$PACKAGENAME/README$PACKAGEEXT
+  cp doc/latex/biblatex/README obuild/tds/doc/latex/$PACKAGENAME/README
   cp doc/latex/biblatex/CHANGES.md obuild/tds/doc/latex/$PACKAGENAME/CHANGES$PACKAGEEXT.md
   cp doc/latex/biblatex/biblatex.pdf obuild/tds/doc/latex/$PACKAGENAME/$PACKAGENAME$PACKAGEEXT.pdf 2>/dev/null
   cp doc/latex/biblatex/biblatex.tex obuild/tds/doc/latex/$PACKAGENAME/$PACKAGENAME$PACKAGEEXT.tex
@@ -184,7 +184,7 @@ then
   mkdir -p obuild/flat/$PACKAGENAME/biber/bltxml
   mkdir -p obuild/flat/$PACKAGENAME/doc/examples
   mkdir -p obuild/flat/$PACKAGENAME/latex/{cbx,bbx,lbx}
-  cp doc/latex/biblatex/README obuild/flat/$PACKAGENAME/README$PACKAGEEXT
+  cp doc/latex/biblatex/README obuild/flat/$PACKAGENAME/README
   cp doc/latex/biblatex/CHANGES.md obuild/flat/$PACKAGENAME/CHANGES$PACKAGEEXT.md
   cp bibtex/bib/biblatex/biblatex-examples.bib obuild/flat/$PACKAGENAME/bibtex/bib/biblatex/biblatex-examples$PACKAGEEXT.bib
   cp bibtex/bib/biblatex/biblatex-examples.bib obuild/flat/$PACKAGENAME/doc/examples/biblatex-examples$PACKAGEEXT.bib
