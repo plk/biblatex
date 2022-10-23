@@ -1,3 +1,6 @@
+# Unreleased
+- Added `\AtNextRefsection`.
+
 # RELEASE NOTES FOR VERSION 3.18b
 - Reenable `\MakeUppercase`/`\MakeLowercase` "patches" for `\bibstring`
   based on `\CaseSwitch`.
