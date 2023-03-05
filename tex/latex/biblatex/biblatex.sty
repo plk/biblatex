@@ -9483,14 +9483,16 @@
 \blx@kv@defkey{blx@biblist2}{filter}{\blx@key@filter{#1}}
 
 \def\blx@key@filter#1{%
-  \ifcsdef{blx@filter@#1}
-    {\blx@printbibchecks
-     \blx@bibfilter\blx@tempa{blx@filter@#1}}
-    {\let\blx@tempa\@empty
-     \blx@error
-       {Filter '#1' not found}
-       {The filter '#1' could not be found.\MessageBreak
-        Use \string\defbibfilter\space to define it}}}
+  \ifblank{#1}
+    {}
+    {\ifcsdef{blx@filter@#1}
+      {\blx@printbibchecks
+       \blx@bibfilter\blx@tempa{blx@filter@#1}}
+      {\let\blx@tempa\@empty
+       \blx@error
+         {Filter '#1' not found}
+         {The filter '#1' could not be found.\MessageBreak
+          Use \string\defbibfilter\space to define it}}}}
 
 \blx@kv@defkey{blx@bib2}{check}{\blx@key@bibcheck{#1}}
 \blx@kv@defkey{blx@biblist2}{check}{\blx@key@bibcheck{#1}}
@@ -9701,7 +9703,7 @@
   % \printbibliography following one with this set will inherit any
   % previous "true" value
   \togglefalse{blx@omitnumbers}%
-  \blx@key@filter{\blx@thefilter}% Can only be defaulted once \blx@tempa is set since it filters on this
+  \expandafter\blx@key@filter\expandafter{\blx@thefilter}% Can only be defaulted once \blx@tempa is set since it filters on this
   \blx@kv@setkeys{blx@bib2}{#1}% ... now we have correct \blx@tempa, set rest of options
   \blx@rest@actives
   % Add datalist to list of seen datalists to prevent duplicates
