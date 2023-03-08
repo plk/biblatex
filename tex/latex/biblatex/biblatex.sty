@@ -10832,18 +10832,23 @@
     {\blx@printbibchecks
      \blx@notfilter\blx@tempa{blx@catg@#1}}}
 
+\let\blx@default@thefilter\@empty
+\blx@kv@defkey{blx@bibdefaults}{filter}{%
+  \def\blx@default@thefilter{#1}}
 \blx@kv@defkey{blx@bib2}{filter}{\blx@key@filter{#1}}
 \blx@kv@defkey{blx@biblist2}{filter}{\blx@key@filter{#1}}
 
 \def\blx@key@filter#1{%
-  \ifcsdef{blx@filter@#1}
-    {\blx@printbibchecks
-     \blx@bibfilter\blx@tempa{blx@filter@#1}}
-    {\let\blx@tempa\@empty
-     \blx@error
-       {Filter '#1' not found}
-       {The filter '#1' could not be found.\MessageBreak
-        Use \string\defbibfilter\space to define it}}}
+  \ifblank{#1}
+    {}
+    {\ifcsdef{blx@filter@#1}
+      {\blx@printbibchecks
+       \blx@bibfilter\blx@tempa{blx@filter@#1}}
+      {\let\blx@tempa\@empty
+       \blx@error
+         {Filter '#1' not found}
+         {The filter '#1' could not be found.\MessageBreak
+          Use \string\defbibfilter\space to define it}}}}
 
 \blx@kv@defkey{blx@bib2}{check}{\blx@key@bibcheck{#1}}
 \blx@kv@defkey{blx@biblist2}{check}{\blx@key@bibcheck{#1}}
@@ -11028,6 +11033,7 @@
   \let\blx@theprenote\blx@default@theprenote
   \let\blx@thepostnote\blx@default@thepostnote
   \let\blx@thetitle\blx@default@thetitle
+  \let\blx@thefilter\blx@default@thefilter
   \undef\blx@thelabel
   % defaults
   \let\blx@tempa\@empty% before there is a .bbl, this must not be undef
@@ -11053,6 +11059,7 @@
   % \printbibliography following one with this set will inherit any
   % previous "true" value
   \togglefalse{blx@omitnumbers}%
+  \expandafter\blx@key@filter\expandafter{\blx@thefilter}% Can only be defaulted once \blx@tempa is set since it filters on this
   \blx@kv@setkeys{blx@bib2}{#1}% ... now we have correct \blx@tempa, set rest of options
   \blx@rest@actives
   % Add datalist to list of seen datalists to prevent duplicates
@@ -11083,6 +11090,7 @@
   \let\blx@theprenote\blx@default@theprenote
   \let\blx@thepostnote\blx@default@thepostnote
   \let\blx@thetitle\blx@default@thetitle
+  \let\blx@thefilter\blx@default@thefilter
   \undef\blx@thelabel
   \c@refsection\z@
   \blx@safe@actives
@@ -11123,6 +11131,7 @@
   \let\blx@theprenote\blx@default@theprenote
   \let\blx@thepostnote\blx@default@thepostnote
   \let\blx@thetitle\blx@default@thetitle
+  \let\blx@thefilter\blx@default@thefilter
   \undef\blx@thelabel
   \c@refsegment\@ne
   \blx@safe@actives
@@ -11168,8 +11177,8 @@
   \let\blx@theprenote\blx@default@theprenote
   \let\blx@thepostnote\blx@default@thepostnote
   \let\blx@thetitle\blx@default@thetitle
+  \let\blx@thefilter\blx@default@thefilter
   \undef\blx@thelabel
-  \c@refsection\z@
   \blx@safe@actives
   \blx@kv@setkeys{blx@bbc}{#1}%
   \blx@rest@actives
@@ -11469,6 +11478,7 @@
   \let\blx@theprenote\@empty
   \let\blx@thepostnote\@empty
   \let\blx@thetitle\@empty
+  \let\blx@thefilter\@empty
   \undef\blx@thelabel
   % defaults
   \let\blx@tempa\@empty% before there is a .bbl, this must not be undef
@@ -11917,6 +11927,12 @@
 \newrobustcmd*{\AtBeginRefsection}{\gappto\blx@hook@refsectioninit}
 \@onlypreamble\AtBeginRefsection
 
+\newrobustcmd*{\AtNextRefsection}{%
+  \ifundef\blx@hook@refsection@next
+    {\gdef\blx@hook@refsection@next{\global\undef\blx@hook@refsection@next}}
+    {}%
+  \gappto\blx@hook@refsection@next}
+
 \newrobustcmd*{\newrefsection}{%
   \endrefcontext
   \ifnum\c@refsection>\z@
@@ -11950,6 +11966,7 @@
   \stepcounter{blx@maxsection}%
   \setcounter{refsection}{\value{blx@maxsection}}%
   \csuse{blx@hook@refsectioninit}%
+  \csuse{blx@hook@refsection@next}%
   \xifinlist{\the\c@refsection}\blx@allrefsections
     {}
     {\listxadd\blx@allrefsections{\the\c@refsection}}%
@@ -17772,6 +17789,7 @@
   \blx@bblinput
   \setcounter{blx@maxsection}{0}%
   \csuse{blx@hook@refsectioninit}%
+  \csuse{blx@hook@refsection@next}%
   \csuse{abx@preamble}%
   \blx@inf@refsec
   \blx@inf@refseg}

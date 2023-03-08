@@ -31,6 +31,10 @@
    <namelist><msform><mslang>bibnamehash or
    <namelist><msform><mslang>fullhash and biber 4.0+ always generates specific
    name hashes in this format.
+# RELEASE NOTES FOR VERSION 3.19
+- Added `\AtNextRefsection`.
+- Added `\DeclareExtradateContext`.
+
 # RELEASE NOTES FOR VERSION 3.18b
 - Reenable `\MakeUppercase`/`\MakeLowercase` "patches" for `\bibstring`
   based on `\CaseSwitch`.
@@ -42,8 +46,7 @@
 # RELEASE NOTES FOR VERSION 3.18
 - New sorting name key generation macro `\visibility` which allows
   application of sorting name key generation to apply only to sorting
-  within citati
-  ons.
+  within citations.
 - New sorting macro `\intciteorder` which allows sorting by order internal
   to a cite command like \cite{a,b,c}.
 - New option `pluralothers` to force "et al." to be plural (i.e. only

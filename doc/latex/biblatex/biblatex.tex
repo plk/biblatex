@@ -425,6 +425,7 @@ compatibility matrix for the recent versions.
 \sffamily\bfseries\spotcolor Biber version
   & \sffamily\bfseries\spotcolor \biblatex\ version\\
 \midrule
+2.19 & 3.19\\
 2.18 & 3.18\\
 2.17 & 3.17\\
 2.16 & 3.16\\
@@ -2697,7 +2698,7 @@ The option is intended mainly for backwards compatibility, because earlier versi
 
 \boolitem[true]{dashed}
 
-This option controls whether recurrent the same author\slash editor list in the bibliography are replaced by a dash (\cmd{bibnamdeash}, see \secref{use:fmt:fmt}). If the option is enabled, subsequent mentions of the same name list at the beginning of an entry are replaced by a dash provided the entry is not the first on the current page. If the option is disabled, name lists are never replaced by a dash.
+This option controls whether recurrent the same author\slash editor list in the bibliography are replaced by a dash (\cmd{bibnamedash}, see \secref{use:fmt:fmt}). If the option is enabled, subsequent mentions of the same name list at the beginning of an entry are replaced by a dash provided the entry is not the first on the current page. If the option is disabled, name lists are never replaced by a dash.
 
 \end{optionlist}
 
@@ -4397,7 +4398,7 @@ The \opt{refcontext} environment cannot be nested and \biblatex will generate an
 
 \cmditem{newrefcontext}[key=value, \dots]{name}
 
-This command is similar to the \env{refcontext} environment except that it is a stand"=alone command rather than an environment. It automatically ends any previous reference context section begun with \cmd{newrefcontext} (if any) and immediately starts a new one. Note that the context section started by the last \cmd{newrefcontext} command in the document will extend to the very end of the document. Use \cmd{endrefcontext} if you want to terminate it earlier.
+This command is similar to the \env{refcontext} environment except that it is a stand"=alone command rather than an environment. It automatically ends any previous reference context section begun with \cmd{newrefcontext} (if any) and immediately starts a new one. Note that the context section started by the last \cmd{newrefcontext} command in the document will extend to the end of the current refsection. Use \cmd{endrefcontext} if you want to terminate it earlier.
 
 \cmditem{localrefcontext}[key=value, \dots]{name}
 
@@ -8612,6 +8613,11 @@ limiting source maps to specific refsections only (see \opt{refsection}
 option to the \cmd{map} command above).
 
 \begin{itemize}
+\item If \texttt{final} is \texttt{true} for a step then no more steps
+  after this one are run within the current map for the current entry if
+  the conditions for the step so far are not satisfied. Examples are given in
+  the descriptions for specific steps as to what this means for their
+  particular semantics.
 \item If \texttt{entrynew} is set, a new entry is created with the entry key \texttt{entrynewkey} and the entry type given in the option \texttt{entrynewtype}. This
   entry is only in-scope during the processing of the current entry and can be referenced by
   \texttt{entrytarget}.  In \texttt{entrynewkey}, you may use standard Perl regular expression
@@ -8664,15 +8670,7 @@ option to the \cmd{map} command above).
   \texttt{match} regular expression (logic is reversed if you use \texttt{notmatch} and case-insensitive if you use the versions ending in <i>)\footnote{Regular expressions are full Perl 5.16 regular expressions. This means you may need to deal with special characters, see examples.}. You may use capture parenthesis as usual and refer to these (\$1\ldots\$9) in later \texttt{fieldvalue} specifications. This allows you to pull out parts of some fields and put these parts in other fields.
 \item Perform a regular expression match and replace on the value of the \texttt{fieldsource} \prm{entryfield} if \texttt{match} and \texttt{replace} are defined.
 \item If \texttt{matches} is defined, it should be a comma-separated list of literal strings which are replaced by corresponding locations in a comma-separated list provided in \texttt{replace}. The lists must have the same number of elements or the step will be skipped. \texttt{matchesi} is the same but case-insensitive.
-\item If \texttt{fieldset} is defined, then its value is \prm{entryfield}
-  which will be set to a value specified by further options. If
-  \texttt{overwrite} is false for this step and the field to set already
-  exists then the map step is ignored. If \texttt{final} is also true for
-  this step, then processing of the parent map stops at this point. If
-  \texttt{append} is true, then the value to set is appended to the current
-  value of \prm{entryfield}. \texttt{appendstrict} only appends to
-  \prm{entryfield} if \prm{entryfield} is not empty. The value to set is
-  specified by a mandatory one and only one of the following options:
+\item If \texttt{fieldset} is defined, then its value is \prm{entryfield} which will be set to a value specified by further options. If \texttt{overwrite} is false for this step and the field to set already exists then the map step is ignored. If \texttt{final} is also true when \texttt{overwrite} is false for this step, then processing of the parent map stops at this point. If \texttt{append} is true, then the value to set is appended to the current value of \prm{entryfield}. \texttt{appendstrict} only appends to \prm{entryfield} if \prm{entryfield} is not empty. The value to set is specified by a mandatory one and only one of the following options:
   \begin{itemize}
     \item\ \texttt{fieldvalue} --- The \texttt{fieldset} \prm{entryfield} is set to the \texttt{fieldvalue} \prm{string}
     \item\ \texttt{null} --- The \texttt{fieldset} \prm{entryfield} is ignored, as if it did not exist in the datasource
@@ -13724,6 +13722,10 @@ As \cmd{currentmslangs} but for entryfield \prm{entryfield}. It is intended for 
 
 Appends the \prm{code} to an internal hook executed at the beginning of every reference section. The \prm{code} is executed just after setting the reference section number. This command may only be used in the preamble.
 
+\cmditem{AtNextRefsection}{code}
+
+Appends the \prm{code} to an internal hook executed at the beginning of the next reference section. The \prm{code} is executed just after setting the reference section number.
+
 \cmditem{AtBeginBibliography}{code}
 
 Appends the \prm{code} to an internal hook executed at the beginning of the bibliography. The \prm{code} is executed at the beginning of the list of references, immediately after the \prm{begin code} of \cmd{defbibenvironment}. This command may only be used in the preamble.
@@ -15491,6 +15493,8 @@ This revision history is a list of changes relevant to users of this package. Ch
 \item Multiscript support\see{use:multiscript}
 \end{release}
 \begin{release}{3.19}{2022}
+\begin{release}{3.19}{2023-03-05}
+\item Added \cmd{AtNextRefsection}\see{aut:fmt:hok}
 \item Added \cmd{DeclareExtradateContext} option\see{aut:ctm:fld}
 \item Modified warning for using bibtex backend
 \item Enhanced \bibfield{extradate} tracking to fallback on \bibfield{labeltitle} when there is no author
