@@ -96,14 +96,14 @@ fi
 
 if [[ "$1" == "upload" ]]
 then
-    if [[ -e obuild/biblatex-$VERSION.tds.tgz ]]
+    if [[ -e obuild/$PACKAGENAME$PACKAGEEXT-$VERSION.tds.tgz ]]
     then
       if [ -z ${3+x} ]
       then
-        scp obuild/biblatex-"$VERSION".*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/biblatex-"$VERSIONM"/
-        scp doc/latex/biblatex/CHANGES.md philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/biblatex-"$VERSIONM"/
+        scp obuild/$PACKAGENAME$PACKAGEEXT-"$VERSION".*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/biblatex-"$VERSIONM"/
+        scp doc/latex/biblatex/CHANGES.md philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/$PACKAGENAME$PACKAGEEXT-"$VERSIONM"/
       else
-        scp obuild/biblatex-"$VERSION".*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/$3/
+        scp obuild/$PACKAGENAME$PACKAGEEXT-"$VERSION".*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/$3/
         scp doc/latex/biblatex/CHANGES.md philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/$3/
       fi
     exit 0
