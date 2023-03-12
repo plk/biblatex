@@ -8,17 +8,14 @@ build.sh install <version> <tds_root>
 build.sh uninstall <tds_root>
 build.sh builddist|builddocs|build <version>
 build.sh testbibtex [file]|testbiber [file]|test [file]|testoutput 
-build.sh upload <version> [ \"DEV\" ]
+build.sh upload <version> [ <folder> ]
 build.sh showdiff <filewithissues>
-
-With the \"DEV\" argument, uploads to the SourceForge development
-folder instead of the <version> numbered folder
 
 Examples: 
 obuild/build.sh install 3.8 ~/texmf/
 obuild/build.sh uninstall ~/texmf/
 obuild/build.sh build 3.8
-obuild/build.sh upload 3.8 DEV
+obuild/build.sh upload 3.8 development
 
 \"build test\" runs all of the example files (in a temp dir) and puts errors in a log:
 
@@ -98,10 +95,10 @@ if [[ "$1" == "upload" ]]
 then
     if [[ -e obuild/biblatex-$VERSION.tds.tgz ]]
     then
-      if [[ "$3" == "DEV" ]]
+      if [[ -n "$3" ]]
       then
-        scp obuild/biblatex-"$VERSION".*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/development/
-        scp doc/latex/biblatex/CHANGES.md philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/development/
+        scp obuild/biblatex-"$VERSION".*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/$3/
+        scp doc/latex/biblatex/CHANGES.md philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/$3/
       else
         scp obuild/biblatex-"$VERSION".*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/biblatex-"$VERSIONM"/
         scp doc/latex/biblatex/CHANGES.md philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/biblatex-"$VERSIONM"/
