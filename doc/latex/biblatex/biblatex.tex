@@ -4339,9 +4339,13 @@ Specify a uniquename template defined previously with \cmd{DeclareUniquenameTemp
 
 Specify a template defined previously with \cmd{DeclareLabelalphaNameTemplate} (see \secref{aut:ctm:lab}). This template is used to construct name parts of alphabetic labels for names inside the context. The template name can also be specified (in increasing order of preference) per"=entry, per"=name list and per"=name. See \secref{apx:opt} for information on setting per"=option, per"=namelist and per"=name options.
 
+\valitem{namehashtemplatename}{name}
+
+Specify a template defined previously with \cmd{DeclareNamehashTemplate} (see \secref{aut:cav:nht}). This template is used to construct name hashes used to determine whether names refer to the same person. The template name can also be specified (in increasing order of preference) per"=entry, per"=name list and per"=name. See \secref{apx:opt} for information on setting per"=option, per"=namelist and per"=name options.
+
 \valitem{nametemplates}{name}
 
-A convenience meta-option which sets \opt{sortingnamekeytemplate}, \opt{uniquenametemplate} and \opt{labelalphanametemplate} to the same template name. This option can also be specified (in increasing order of preference) per"=entry, per"=name list and per"=name. See \secref{apx:opt} for information on setting per"=option, per"=namelist and per"=name options.
+A convenience meta-option which sets \opt{sortingnamekeytemplate}, \opt{uniquenametemplate}, \opt{labelalphanametemplate} and \opt{namehashtemplate} to the same template name. This option can also be specified (in increasing order of preference) per"=entry, per"=name list and per"=name. See \secref{apx:opt} for information on setting per"=option, per"=namelist and per"=name options.
 
 \valitem{labelprefix}{string}
 
@@ -10499,6 +10503,10 @@ Expands to \prm{true} if the \prm{string} is equal to the current in scope uniqu
 
 Expands to \prm{true} if the \prm{string} is equal to the current in scope alphabetic label name template name (see \ref{aut:ctm:srt}), and to \prm{false} otherwise.
 
+\cmditem{ifnamehashtemplatename}{string}{true}{false}
+
+Expands to \prm{true} if the \prm{string} is equal to the current in scope  name hash template name (see \ref{aut:cav:nht}), and to \prm{false} otherwise.
+
 \cmditem{iffieldundef}{field}{true}{false}
 
 Expands to \prm{true} if the \prm{field} is undefined, and to \prm{false} otherwise.
@@ -13587,7 +13595,7 @@ Name disambiguation works by taking a <base> which is composed of one or more na
 
 \cmditem{DeclareUniquenameTemplate}[name]{specification}
 
-Defines the \opt{uniquename} template \prm{name}. The \prm{name} is optional and defaults to \prm{<global>}.
+Defines the \opt{uniquename} template \prm{name}. The \prm{name} is optional and defaults to <global>.
 
 The \prm{specification} is an ordered list of \cmd{namepart} commands which define the nameparts to use in determining the uniquename information.
 
@@ -13861,6 +13869,63 @@ Vogel et al. 2001
 \end{lstlisting}
 %
 In the last citation, \kvopt{uniquelist}{minyear} does not override \opt{maxnames}\slash \opt{minnames} as the citation does not need disambiguating from the other two because the year is different.
+
+\subsubsection{Name Identity}
+\label{aut:cav:nht}
+A lot depends on whether several names in a bibliography refer to the same person or not. By default, this is determined purely syntactically by whether or not all of the full parts of a name are identical. This can be changed however by altering the algorithm that \biber uses to calculate various hashes for names via the following command:
+
+\begin{ltxsyntax}
+
+\cmditem{DeclareNamehashTemplate}[name]{specification}
+
+Defines the template \prm{name} used to construct the hashes from the parts of a name. The \prm{name} is optional and defaults to <global>.
+
+The \prm{specification} is an ordered list of \cmd{namepart} commands which define the nameparts to use in constructing name hashes.
+
+\cmditem{namepart}[options]{namepart}
+
+\prm{namepart} is one of the datamodel nameparts defined with the \cmd{DeclareDatamodelConstant} command (see \secref{aut:bbx:drv}). The \prm{options} are:
+
+\begin{optionlist*}
+
+\choitem{hashscope}{init, full}
+
+The \prm{namepart} will be used in the construction of the hash for the name and the data used from the namepart to do this is one of:
+
+\begin{description}
+\item[init]~Use only the initials of the \prm{namepart} in the hash construction
+\item[full]~Use the full \prm{namepart} in the hash construction
+\end{description}
+
+\end{optionlist*}
+
+\end{ltxsyntax}
+%
+The default namehash  template is:
+
+\begin{ltxexample}
+\DeclareNamehashTemplate{
+  \namepart[hashscope=full]{family}
+  \namepart[hashscope=full]{given}
+  \namepart[hashscope=full]{prefix}
+  \namepart[hashscope=full]{suffix}
+}
+\end{ltxexample}
+%
+This means that these nameparts (which all must be valid datamodel nameparts declared by \cmd{DeclareDatamodelConstant}) will be used in the order specified to construct name hashes. The full namepart will be used for all nameparts.
+
+If there was a bibliography including, for example, several syntactic variations of a name where sometimes the full given name was present and sometimes only the initial but these referred to the same person, you could set:
+
+\begin{ltxexample}
+\DeclareNamehashTemplate{
+  \namepart[hashscope=full]{family}
+  \namepart[hashscope=init]{given}
+  \namepart[hashscope=full]{prefix}
+  \namepart[hashscope=full]{suffix}
+}
+\end{ltxexample}
+%
+Which would generate hashes using only the initials of the given name, thus treating <John Smith> and <J. Smith> as the same person for hashing purposes. This would prevent \biblatex from treating these as different people even though based on syntax alone (which is the default), they would be.
 
 \subsubsection{Trackers in Floats and \acr{TOC}/\acr{LOT}/\acr{LOF}}
 \label{aut:cav:flt}
@@ -14828,6 +14893,7 @@ mincrossrefs                      &\+&\+&\_&\_&\_&\_&\_\\
 minxrefs                          &\+&\+&\_&\_&\_&\_&\_\\
 minitems                          &\+&\+&\_&\+&\+&\_&\_\\
 minnames                          &\+&\+&\_&\+&\+&\_&\_\\
+namehashtemplatename              &\_&\_&\+&\_&\+&\+&\+\\
 nametemplates                     &\_&\_&\+&\_&\+&\+&\+\\
 natbib                            &\+&\_&\_&\_&\_&\_&\_\\
 nohashothers                      &\+&\+&\_&\+&\+&\+&\_\\
@@ -14882,6 +14948,7 @@ This revision history is a list of changes relevant to users of this package. Ch
 \begin{changelog}
 \begin{release}{3.20}{2023-}
 \item Added \cmd{AtFollowingRefsections}\see{aut:fmt:hok}
+\item Added \cmd{DeclareNamehashTemplate}\see{aut:cav:nht}
 \end{release}
 \begin{release}{3.19}{2023-03-05}
 \item Added \cmd{AtNextRefsection}\see{aut:fmt:hok}

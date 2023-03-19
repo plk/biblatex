@@ -1,3 +1,7 @@
+# RELEASE NOTES FOR VERSION 3.20
+- Added `\DeclareNamehashTemplate` and supporting macros to allow
+  customisation of the nameparts used in name hash construction.
+
 # RELEASE NOTES FOR VERSION 3.19
 - Added `\AtNextRefsection`.
 - Added `\DeclareExtradateContext`.
