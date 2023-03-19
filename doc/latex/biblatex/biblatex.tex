@@ -3397,6 +3397,13 @@ format, see \secref{use:opt:bib:hyb}:
 AUTHOR = {nosortothers=true and Hans Harman and
           given=Simon, family=Beumont, prefix=de, useprefix=true}
 \end{lstlisting}
+%
+A special \prm{id} parameter may also be used for any name and this will be used to override the hash used to detect identical names, for example, a gender change could be handled like this (see also \secref{aut:cav:ni}):
+
+\begin{lstlisting}[style=bibtex]{}
+  AUTHOR = {id=person1, given=Simon, family=Beumont}
+  AUTHOR = {id=person1, given=Simone, family=Beumont}
+\end{lstlisting}
 
 \subsection{Related Entries}
 \label{use:rel}
@@ -4341,7 +4348,7 @@ Specify a template defined previously with \cmd{DeclareLabelalphaNameTemplate} (
 
 \valitem{namehashtemplatename}{name}
 
-Specify a template defined previously with \cmd{DeclareNamehashTemplate} (see \secref{aut:cav:nht}). This template is used to construct name hashes used to determine whether names refer to the same person. The template name can also be specified (in increasing order of preference) per"=entry, per"=name list and per"=name. See \secref{apx:opt} for information on setting per"=option, per"=namelist and per"=name options.
+Specify a template defined previously with \cmd{DeclareNamehashTemplate} (see \secref{aut:cav:ni}). This template is used to construct name hashes used to determine whether names refer to the same person. The template name can also be specified (in increasing order of preference) per"=entry, per"=name list and per"=name. See \secref{apx:opt} for information on setting per"=option, per"=namelist and per"=name options.
 
 \valitem{nametemplates}{name}
 
@@ -10505,7 +10512,7 @@ Expands to \prm{true} if the \prm{string} is equal to the current in scope alpha
 
 \cmditem{ifnamehashtemplatename}{string}{true}{false}
 
-Expands to \prm{true} if the \prm{string} is equal to the current in scope  name hash template name (see \ref{aut:cav:nht}), and to \prm{false} otherwise.
+Expands to \prm{true} if the \prm{string} is equal to the current in scope  name hash template name (see \ref{aut:cav:ni}), and to \prm{false} otherwise.
 
 \cmditem{iffieldundef}{field}{true}{false}
 
@@ -13871,7 +13878,7 @@ Vogel et al. 2001
 In the last citation, \kvopt{uniquelist}{minyear} does not override \opt{maxnames}\slash \opt{minnames} as the citation does not need disambiguating from the other two because the year is different.
 
 \subsubsection{Name Identity}
-\label{aut:cav:nht}
+\label{aut:cav:ni}
 A lot depends on whether several names in a bibliography refer to the same person or not. By default, this is determined purely syntactically by whether or not all of the full parts of a name are identical. This can be changed however by altering the algorithm that \biber uses to calculate various hashes for names via the following command:
 
 \begin{ltxsyntax}
@@ -13926,6 +13933,16 @@ If there was a bibliography including, for example, several syntactic variations
 \end{ltxexample}
 %
 Which would generate hashes using only the initials of the given name, thus treating <John Smith> and <J. Smith> as the same person for hashing purposes. This would prevent \biblatex from treating these as different people even though based on syntax alone (which is the default), they would be.
+
+\paragraph{Custom name hashed via the extended name format}
+
+Another way of customising name hash generation is by overriding completely the name hash construction algorithm by passing an identifier string for the name using the extended name format (\secref{use:enf}). This string will be turned into a hash as given and any name hash template will be ignored for this name. For example, to have <John Smith> and <J. Smith> seen as the same person for name identity purposes, an alternative to the above would be:
+
+\begin{lstlisting}[style=bibtex]{}
+  AUTHOR = {id=jshash, family=Smith, given=J. and id=jshash, family=Smith, given=John}
+\end{lstlisting}
+%
+Here, the identical \prm{id} parameters of the extended name format ensure that the hashes for the two names will be the same. This has the same effect as the above example using \cmd{DeclareNamehashTemplate} and is intended for trickier situations where people change names and there is therefore no mere syntactic difference between different name forms for the same person.
 
 \subsubsection{Trackers in Floats and \acr{TOC}/\acr{LOT}/\acr{LOF}}
 \label{aut:cav:flt}
@@ -14948,7 +14965,8 @@ This revision history is a list of changes relevant to users of this package. Ch
 \begin{changelog}
 \begin{release}{3.20}{2023-}
 \item Added \cmd{AtFollowingRefsections}\see{aut:fmt:hok}
-\item Added \cmd{DeclareNamehashTemplate}\see{aut:cav:nht}
+\item Added \cmd{DeclareNamehashTemplate}\see{aut:cav:ni}
+\item Augmented Extended Name Format to enable override of name hashes\see{use:enf}
 \end{release}
 \begin{release}{3.19}{2023-03-05}
 \item Added \cmd{AtNextRefsection}\see{aut:fmt:hok}
