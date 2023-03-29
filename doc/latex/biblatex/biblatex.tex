@@ -3431,6 +3431,13 @@ format, see \secref{use:opt:bib:hyb}:
 AUTHOR = {nosortothers=true and Hans Harman and
           given=Simon, family=Beumont, prefix=de, useprefix=true}
 \end{lstlisting}
+%
+A special \prm{id} parameter may also be used for any name and this will be used to override the hash used to detect identical names, for example, a gender change could be handled like this (see also \secref{aut:cav:ni}):
+
+\begin{lstlisting}[style=bibtex]{}
+  AUTHOR = {id=person1, given=Simon, family=Beumont}
+  AUTHOR = {id=person1, given=Simone, family=Beumont}
+\end{lstlisting}
 
 \subsection{Related Entries}
 \label{use:rel}
@@ -4382,9 +4389,13 @@ Specify a uniquename template defined previously with \cmd{DeclareUniquenameTemp
 
 Specify a template defined previously with \cmd{DeclareLabelalphaNameTemplate} (see \secref{aut:ctm:lab}). This template is used to construct name parts of alphabetic labels for names inside the context. The template name can also be specified (in increasing order of preference) per"=entry, per"=name list and per"=name. See \secref{apx:opt} for information on setting per"=option, per"=namelist and per"=name options.
 
+\valitem{namehashtemplatename}{name}
+
+Specify a template defined previously with \cmd{DeclareNamehashTemplate} (see \secref{aut:cav:ni}). This template is used to construct name hashes used to determine whether names refer to the same person. The template name can also be specified (in increasing order of preference) per"=entry, per"=name list and per"=name. See \secref{apx:opt} for information on setting per"=option, per"=namelist and per"=name options.
+
 \valitem{nametemplates}{name}
 
-A convenience meta-option which sets \opt{sortingnamekeytemplate}, \opt{uniquenametemplate} and \opt{labelalphanametemplate} to the same template name. This option can also be specified (in increasing order of preference) per"=entry, per"=name list and per"=name. See \secref{apx:opt} for information on setting per"=option, per"=namelist and per"=name options.
+A convenience meta-option which sets \opt{sortingnamekeytemplate}, \opt{uniquenametemplate}, \opt{labelalphanametemplate} and \opt{namehashtemplate} to the same template name. This option can also be specified (in increasing order of preference) per"=entry, per"=name list and per"=name. See \secref{apx:opt} for information on setting per"=option, per"=namelist and per"=name options.
 
 \valitem{labelprefix}{string}
 
@@ -5516,7 +5527,11 @@ The language specific separator to be used between multiple ranges. Defaults to 
 
 \csitem{bibdatesep}
 
-The language specific separator used between date components in terse date formats. Defaults to \cmd{hyphen}.
+The language specific separator used between date components in terse/short date formats. Defaults to \cmd{hyphen}.
+
+\csitem{bibdatendsep}
+
+The language specific separator used between date components in terse/short date formats when there is no day part of the date (usually meaning month and year only). Defaults to \cmd{hyphen}.
 
 \csitem{bibdaterangesep}
 
@@ -7331,18 +7346,15 @@ This field holds an integer indicating the position of a set member in the entry
 
 \fielditem{hash}{string}
 
-This field is special in that it is only available locally in name formatting directives. It holds a hash string which uniquely identifies individual names in a name list. This information is available for all names in all name lists. See also \bibfield{namehash} and \bibfield{fullhash}.
+This field is special in that it is only available locally in name formatting directives. It holds a hash string which uniquely identifies individual names in a name list. This information is available for all names in all name lists. See also \bibfield{namehash} and \bibfield{fullhash}. Sensitive to the hash customisations described in \secref{aut:cav:ni}.
 
 \fielditem{namehash}{string}
 
-A hash string which uniquely identifies the \bibfield{labelname} list. This is useful for recurrence checks. For example, a citation style which replaces recurrent authors or editors with a string like <idem> could save the \bibfield{namehash} field with \cmd{savefield} and use it in a comparison with \cmd{iffieldequals} later (see \secref{aut:aux:dat, aut:aux:tst}). The \bibfield{namehash} is derived from the truncated \bibfield{labelname} list, \ie it is responsive to \opt{maxcitenames} and \opt{mincitenames}. See also \bibfield{hash} and \bibfield{fullhash}.
+A hash string which uniquely identifies the \bibfield{labelname} list. This is useful for recurrence checks. For example, a citation style which replaces recurrent authors or editors with a string like <idem> could save the \bibfield{namehash} field with \cmd{savefield} and use it in a comparison with \cmd{iffieldequals} later (see \secref{aut:aux:dat, aut:aux:tst}). The \bibfield{namehash} is derived from the truncated \bibfield{labelname} list, \ie it is responsive to \opt{maxcitenames} and \opt{mincitenames}. See also \bibfield{hash} and \bibfield{fullhash}. Sensitive to the hash customisations described in \secref{aut:cav:ni}.
 
 \fielditem{bibnamehash}{string}
 
-As \bibfield{namehash} but responsive to \opt{maxbibnames} and
-\opt{minbibnames}. This is not used in standard styles but may be used to
-make tests in bibliography lists (such as those used to determine whether
-dashes should replace repeated authors) behave differently.
+As \bibfield{namehash} but responsive to \opt{maxbibnames} and \opt{minbibnames}. This is not used in standard styles but may be used to make tests in bibliography lists (such as those used to determine whether dashes should replace repeated authors) behave differently. Sensitive to the hash customisations described in \secref{aut:cav:ni}.
 
 \fielditem{$<$namelist$><$msform$><$mslang$>$namehash}{string}
 
@@ -7356,12 +7368,20 @@ As \bibfield{bibnamehash} for the name list <namelist> with multiscript form
 
 \fielditem{fullhash}{string}
 
-A hash string which uniquely identifies the \bibfield{labelname} list. This fields differs from \bibfield{namehash} in two details: 1) The \bibfield{shortauthor} and \bibfield{shorteditor} lists are ignored when generating the hash. 2) The hash always refers to the full list, ignoring \opt{maxnames} and \opt{minnames}. See also \bibfield{hash} and \bibfield{namehash}.
+A hash string which uniquely identifies the \bibfield{labelname} list. This fields differs from \bibfield{namehash} in two details: 1) The \bibfield{shortauthor} and \bibfield{shorteditor} lists are ignored when generating the hash. 2) The hash always refers to the full list, ignoring \opt{maxnames} and \opt{minnames}. See also \bibfield{hash} and \bibfield{namehash}. Sensitive to the hash customisations described in \secref{aut:cav:ni}.
+
+\fielditem{fullhashraw}{string}
+
+As \bibfield{fullhash} but not sensitive to the hash customisations described in \secref{aut:cav:ni}. Basically a hash of all of the full nameparts of a name as it appears in the data. Not used in the default styles but could be used to discriminate between the literal given glyphs of a name and the name as it is desired to be identified for name matching purposes.
 
 \fielditem{$<$namelist$><$msform$><$mslang$>$fullhash}{string}
 
 As \bibfield{fullhash} for the name list <namelist> with multiscript form
 <msform> and multiscript language <mslang>. For example <\texttt{authortranslationdefullhash}>.
+
+\fielditem{$<$namelist$>$fullhashraw}{string}
+
+As \bibfield{fullhashraw} for the name list called <namelist>.
 
 \listitem{pageref}{literal}
 
@@ -10253,7 +10273,7 @@ Or if you wanted to ignore «The» at the beginning of any title field:
 \cmditem{DeclareNonamestring}{specification}
 
 Defines regular expressions to strip from name fields when
-generating \bibfield{fullhash} and \bibfield{uniquename}. The \prm{specification} is an undelimited list of \cmd{nonamestring} directives which specify the regular expressions to remove from particular name fields. Spaces, tabs and line endings may be used freely to visually arrange the \prm{specification}. Blank lines are not permissible. This command may only be used in the preamble.
+generating \bibfield{fullhash}, \bibfield{fullhashraw} and \bibfield{uniquename}. The \prm{specification} is an undelimited list of \cmd{nonamestring} directives which specify the regular expressions to remove from particular name fields. Spaces, tabs and line endings may be used freely to visually arrange the \prm{specification}. Blank lines are not permissible. This command may only be used in the preamble.
 
 \cmditem{nonamestring}{namefield or datafield name set}{regexp}
 
@@ -10903,6 +10923,10 @@ Expands to \prm{true} if the \prm{string} is equal to the current in scope uniqu
 \cmditem{iflabelalphanametemplatename}{string}{true}{false}
 
 Expands to \prm{true} if the \prm{string} is equal to the current in scope alphabetic label name template name (see \secref{aut:ctm:srt}), and to \prm{false} otherwise.
+
+\cmditem{ifnamehashtemplatename}{string}{true}{false}
+
+Expands to \prm{true} if the \prm{string} is equal to the current in scope name hash template name (see \ref{aut:cav:ni}), and to \prm{false} otherwise.
 
 \cmditem{ifentryfieldundef}{entryfield}{true}{false}
 
@@ -11875,6 +11899,10 @@ Adds an exclamation mark unless it is preceded by any punctuation mark except fo
 
 Adds a question mark unless it is preceded by any punctuation mark except for an abbreviation dot.
 
+\csitem{addslash}
+
+Adds a breakable slash. This command differs from the \cmd{slash} command in the \latex kernel in that a linebreak after the slash is not penalized at all.
+
 \csitem{isdot}
 
 Turns a previously inserted literal period into an abbreviation dot. In contrast to \cmd{adddot}, nothing is inserted if this command is not preceded by a period.
@@ -11939,10 +11967,6 @@ Similar to \cmd{addabbrvspace} but using a thin space.
 \csitem{adddotspace}
 
 Executes \cmd{adddot} and adds a space penalized by the value of the \cnt{abbrvpenalty} counter, see \secref{use:fmt:len, aut:fmt:len} for details.
-
-\csitem{addslash}
-
-Adds a breakable slash. This command differs from the \cmd{slash} command in the \latex kernel in that a linebreak after the slash is not penalized at all.
 
 \end{ltxsyntax}
 
@@ -14028,7 +14052,7 @@ Name disambiguation works by taking a <base> which is composed of one or more na
 
 \cmditem{DeclareUniquenameTemplate}[name]{specification}
 
-Defines the \opt{uniquename} template \prm{name}. The \prm{name} is optional and defaults to \prm{<global>}.
+Defines the \opt{uniquename} template \prm{name}. The \prm{name} is optional and defaults to <global>.
 
 The \prm{specification} is an ordered list of \cmd{namepart} commands which define the nameparts to use in determining the uniquename information.
 
@@ -14302,6 +14326,73 @@ Vogel et al. 2001
 \end{lstlisting}
 %
 In the last citation, \kvopt{uniquelist}{minyear} does not override \opt{maxnames}\slash \opt{minnames} as the citation does not need disambiguating from the other two because the year is different.
+
+\subsubsection{Name Identity}
+\label{aut:cav:ni}
+A lot depends on whether several names in a bibliography refer to the same person or not. By default, this is determined purely syntactically by whether or not all of the full parts of a name are identical. This can be changed however by altering the algorithm that \biber uses to calculate various hashes for names via the following command:
+
+\begin{ltxsyntax}
+
+\cmditem{DeclareNamehashTemplate}[name]{specification}
+
+Defines the template \prm{name} used to construct the hashes from the parts of a name. The \prm{name} is optional and defaults to <global>.
+
+The \prm{specification} is an ordered list of \cmd{namepart} commands which define the nameparts to use in constructing name hashes.
+
+\cmditem{namepart}[options]{namepart}
+
+\prm{namepart} is one of the datamodel nameparts defined with the \cmd{DeclareDatamodelConstant} command (see \secref{aut:bbx:drv}). The \prm{options} are:
+
+\begin{optionlist*}
+
+\choitem{hashscope}{init, full}
+
+The \prm{namepart} will be used in the construction of the hash for the name and the data used from the namepart to do this is one of:
+
+\begin{description}
+\item[init]~Use only the initials of the \prm{namepart} in the hash construction
+\item[full]~Use the full \prm{namepart} in the hash construction
+\end{description}
+
+\end{optionlist*}
+
+\end{ltxsyntax}
+%
+The default namehash  template is:
+
+\begin{ltxexample}
+\DeclareNamehashTemplate{
+  \namepart[hashscope=full]{family}
+  \namepart[hashscope=full]{given}
+  \namepart[hashscope=full]{prefix}
+  \namepart[hashscope=full]{suffix}
+}
+\end{ltxexample}
+%
+This means that these nameparts (which all must be valid datamodel nameparts declared by \cmd{DeclareDatamodelConstant}) will be used in the order specified to construct name hashes. The full namepart will be used for all nameparts.
+
+If there was a bibliography including, for example, several syntactic variations of a name where sometimes the full given name was present and sometimes only the initial but these referred to the same person, you could set:
+
+\begin{ltxexample}
+\DeclareNamehashTemplate{
+  \namepart[hashscope=full]{family}
+  \namepart[hashscope=init]{given}
+  \namepart[hashscope=full]{prefix}
+  \namepart[hashscope=full]{suffix}
+}
+\end{ltxexample}
+%
+Which would generate hashes using only the initials of the given name, thus treating <John Smith> and <J. Smith> as the same person for hashing purposes. This would prevent \biblatex from treating these as different people even though based on syntax alone (which is the default), they would be.
+
+\paragraph{Custom name hashes via the extended name format}
+
+Another way of customising name hash generation is by overriding completely the name hash construction algorithm by passing an identifier string for the name using the extended name format (\secref{use:enf}). This string will be turned into a hash as given and any name hash template will be ignored for this name. For example, to have <John Smith> and <J. Smith> seen as the same person for name identity purposes, an alternative to the above would be:
+
+\begin{lstlisting}[style=bibtex]{}
+  AUTHOR = {id=jshash, family=Smith, given=J. and id=jshash, family=Smith, given=John}
+\end{lstlisting}
+%
+Here, the identical \prm{id} parameters of the extended name format ensure that the hashes for the two names will be the same. This has the same effect as the above example using \cmd{DeclareNamehashTemplate} and is intended for trickier situations where people change names and there is therefore no mere syntactic difference between different name forms for the same person.
 
 \subsubsection{Trackers in Floats and \acr{TOC}/\acr{LOT}/\acr{LOF}}
 \label{aut:cav:flt}
@@ -15271,6 +15362,7 @@ mincrossrefs                      &\+&\+&\_&\_&\_&\_&\_\\
 minxrefs                          &\+&\+&\_&\_&\_&\_&\_\\
 minitems                          &\+&\+&\_&\+&\+&\_&\_\\
 minnames                          &\+&\+&\_&\+&\+&\_&\_\\
+namehashtemplatename              &\_&\_&\+&\_&\+&\+&\+\\
 nametemplates                     &\_&\_&\+&\_&\+&\+&\+\\
 natbib                            &\+&\_&\_&\_&\_&\_&\_\\
 nohashothers                      &\+&\+&\_&\+&\+&\+&\_\\
@@ -15501,7 +15593,11 @@ This revision history is a list of changes relevant to users of this package. Ch
 \end{release}
 \begin{release}{3.19}{2022}
 \begin{release}{3.20}{2023-}
+\item Added \opt{bibdatendsep}\see{use:fmt:lng}
 \item Added \cmd{AtFollowingRefsections}\see{aut:fmt:hok}
+\item Added \cmd{DeclareNamehashTemplate}\see{aut:cav:ni}
+\item Added \bibfield{fullhashraw}\see{aut:bbx:fld:gen}
+\item Augmented Extended Name Format to enable override of name hashes\see{use:enf}
 \end{release}
 \begin{release}{3.19}{2023-03-05}
 \item Added \cmd{AtNextRefsection}\see{aut:fmt:hok}

@@ -1058,6 +1058,9 @@
 % Used to track uniquename templates
 \global\let\blx@untemplatespecs\@empty
 
+% Used to track namehash templates
+\global\let\blx@nhtemplatespecs\@empty
+
 % Used to track labelalphaname templates
 \global\let\blx@lantemplatespecs\@empty
 
@@ -7225,6 +7228,7 @@
 \newrobustcmd*{\bibdateeraprefix}{\ifdef\textminus\textminus\textendash}
 \newrobustcmd*{\bibdateeraendprefix}{\,\bibdateeraprefix}
 \newrobustcmd*{\bibdatesep}{\hyphen}
+\newrobustcmd*{\bibdatendsep}{\hyphen}
 \newrobustcmd*{\bibdaterangesep}{\bibrangedash}
 % date+times
 \newrobustcmd*{\bibdatetimesep}{\space}
@@ -7983,11 +7987,11 @@
 % this meta option is resolved by Biber
 \blx@DeclareBackendOption{entry,namelist,name}[string]{nametemplates}
 \gdef\blx@bcf@backendin@entry@nametemplates{sortingnamekeytemplatename,%
-  uniquenametemplatename,labelalphanametemplatename}%
+  uniquenametemplatename,labelalphanametemplatename,namehashtemplatename}%
 \gdef\blx@bcf@backendin@namelist@nametemplates{sortingnamekeytemplatename,%
-  uniquenametemplatename,labelalphanametemplatename}%
+  uniquenametemplatename,labelalphanametemplatename,namehashtemplatename}%
 \gdef\blx@bcf@backendin@name@nametemplates{sortingnamekeytemplatename,%
-  uniquenametemplatename,labelalphanametemplatename}%
+  uniquenametemplatename,labelalphanametemplatename,namehashtemplatename}%
 
 
 
@@ -8071,6 +8075,7 @@
 \def\do#1{%
   \listxadd\blx@namepartmetafields{#1namehash}%
   \listxadd\blx@namepartmetafields{#1fullhash}%
+  \listxadd\blx@namepartmetafields{#1fullhashraw}%
   \listxadd\blx@namepartmetafields{#1bibnamehash}}
 \abx@donameparts
 
@@ -8110,6 +8115,7 @@
   \do{extratitleyear}%
   \do{extradate}%
   \do{fullhash}%
+  \do{fullhashraw}%
   \do{labelalpha}%
   \do{labelnumber}%
   \do{labelprefix}%
@@ -9476,9 +9482,11 @@
 %                                     does not obey skipbib).
 %                                     Same as @entry@, but includes skipbib'd entries
 %                                     and set children
-%
-% {<entrykey>}{<entrytype>}{<options>}
-\protected\def\blx@bbl@entry#1#2#3{%
+
+% {<entrykey>}{<entrytype>}{<options>}{<citecount>}
+% citecount is just ignored as it's already calculated from actual cites
+% It's in the .bbl to force the .bbl to change when only the citecount changes.
+\protected\def\blx@bbl@entry#1#2#3#4{%
   \begingroup
   \edef\abx@field@@@entrykey{\detokenize{#1}}%
   \blx@setoptions@type{#2}%
@@ -11067,7 +11075,7 @@
     {}
     {\listxadd\blx@dlistnames{\blx@refcontext@context @\blx@tempe @entry}%
      \xappto\blx@dlists{%
-       \blx@xml@dlist{\blx@refcontext@context}{entry}{\blx@tempe}{\blx@xml@dlist@refcontext{\blx@refcontext@sortingtemplatename}{\blx@refcontext@sortingnamekeytemplatename}{\blx@refcontext@labelprefix@real}{\blx@refcontext@uniquenametemplatename}{\blx@refcontext@labelalphanametemplatename}}{}}}%
+       \blx@xml@dlist{\blx@refcontext@context}{entry}{\blx@tempe}{\blx@xml@dlist@refcontext{\blx@refcontext@sortingtemplatename}{\blx@refcontext@sortingnamekeytemplatename}{\blx@refcontext@labelprefix@real}{\blx@refcontext@uniquenametemplatename}{\blx@refcontext@labelalphanametemplatename}{\blx@refcontext@namehashtemplatename}}{}}}%
   \ifdefvoid\blx@tempa
     {\blx@warn@bibempty\endgroup}
     {\blx@bibliography\blx@tempa}}
@@ -11500,7 +11508,8 @@
       \blx@refcontext@sortingnamekeytemplatename/%
       \blx@refcontext@labelprefix/%
       \blx@refcontext@uniquenametemplatename/%
-      \blx@refcontext@labelalphanametemplatename}%
+      \blx@refcontext@labelalphanametemplatename/%
+      \blx@refcontext@namehashtemplatename}%
   \xifinlist\blx@tempc\blx@sortingtemplatenames
     {}
     {\listxadd\blx@sortingtemplatenames\blx@tempc}%
@@ -11531,7 +11540,7 @@
     {}
     {\listxadd\blx@dlistnames{\blx@refcontext@context @\blx@tempe @list}%
      \xappto\blx@dlists{%
-       \blx@xml@dlist{\blx@refcontext@context}{list}{\blx@tempe}{\blx@xml@dlist@refcontext{\blx@tempc}{\blx@refcontext@sortingnamekeytemplatename}{\blx@refcontext@labelprefix@real}{\blx@refcontext@uniquenametemplatename}{\blx@refcontext@labelalphanametemplatename}}{\csuse{blx@biblistfilters@\blx@thebiblistfilter}}}}%
+       \blx@xml@dlist{\blx@refcontext@context}{list}{\blx@tempe}{\blx@xml@dlist@refcontext{\blx@tempc}{\blx@refcontext@sortingnamekeytemplatename}{\blx@refcontext@labelprefix@real}{\blx@refcontext@uniquenametemplatename}{\blx@refcontext@labelalphanametemplatename}{\blx@refcontext@namehashtemplatename}}{\csuse{blx@biblistfilters@\blx@thebiblistfilter}}}}%
   \ifdefvoid\blx@tempa
     {\blx@warn@biblistempty{#2}\endgroup}
     {\blx@biblist\blx@tempa}}
@@ -11677,7 +11686,8 @@
        \blx@refcontext@sortingnamekeytemplatename/%
        \blx@refcontext@labelprefix/%
        \blx@refcontext@uniquenametemplatename/%
-       \blx@refcontext@labelalphanametemplatename}%
+       \blx@refcontext@labelalphanametemplatename/%
+       \blx@refcontext@namehashtemplatename}%
      % Add the refcontext to the list of refcontexts so we can compare on next run
      \xifinlist\blx@refcontext@context\blx@refcontexts
        {}
@@ -11694,6 +11704,9 @@
        {}%
      \ifcsundef{blx@labelalphanametemplate@\blx@refcontext@labelalphanametemplatename}
        {\blx@err@invopt{labelalphanametemplate=\blx@refcontext@labelalphanametemplatename}{}}
+       {}%
+     \ifcsundef{blx@namehashtemplate@\blx@refcontext@namehashtemplatename}
+       {\blx@err@invopt{namehashtemplate=\blx@refcontext@namehashtemplatename}{}}
        {}}}
 
 % Reset to global sorting etc. when we leave a ref context (since they can't be nested)
@@ -11705,12 +11718,14 @@
   \gdef\blx@refcontext@sortingnamekeytemplatename{global}%
   \gdef\blx@refcontext@uniquenametemplatename{global}%
   \gdef\blx@refcontext@labelalphanametemplatename{global}%
+  \gdef\blx@refcontext@namehashtemplatename{global}%
   \blx@xdef@refcontext{%
     \blx@refcontext@sortingtemplatename/%
     \blx@refcontext@sortingnamekeytemplatename/%
     /%
     \blx@refcontext@uniquenametemplatename/%
-    \blx@refcontext@labelalphanametemplatename}}
+    \blx@refcontext@labelalphanametemplatename/%
+    \blx@refcontext@namehashtemplatename}}
 
 % local version of \newrefcontext
 \def\localrefcontext{%
@@ -11744,7 +11759,8 @@
     \blx@refcontext@sortingnamekeytemplatename/%
     \blx@refcontext@labelprefix/%
     \blx@refcontext@uniquenametemplatename/%
-    \blx@refcontext@labelalphanametemplatename}%
+    \blx@refcontext@labelalphanametemplatename/%
+    \blx@refcontext@namehashtemplatename}%
   % Add the refcontext to the list of refcontexts so we can compare on next run
   \xifinlist\blx@refcontext@context\blx@refcontexts
     {}
@@ -11761,6 +11777,9 @@
     {}%
   \ifcsundef{blx@labelalphanametemplate@\blx@refcontext@labelalphanametemplatename}
     {\blx@err@invopt{labelalphanametemplate=\blx@refcontext@labelalphanametemplatename}{}}
+    {}%
+  \ifcsundef{blx@namehashtemplate@\blx@refcontext@namehashtemplatename}
+    {\blx@err@invopt{namehashtemplate=\blx@refcontext@namehashtemplatename}{}}
     {}}
 
 \def\blx@gdef@or@def{\gdef}
@@ -11770,7 +11789,8 @@
 \blx@kv@defkey{blx@refcontext}{nametemplates}{%
   \blx@gdef@or@def\blx@refcontext@sortingnamekeytemplatename{#1}%
   \blx@gdef@or@def\blx@refcontext@uniquenametemplatename{#1}%
-  \blx@gdef@or@def\blx@refcontext@labelalphanametemplatename{#1}}
+  \blx@gdef@or@def\blx@refcontext@labelalphanametemplatename{#1}%
+  \blx@gdef@or@def\blx@refcontext@namehashtemplatename{#1}}
 
 \blx@kv@defkey{blx@refcontext}{msform}{\def\blx@msform{#1}}
 \blx@kv@defkey{blx@refcontext}{mslang}{\def\blx@mslang{#1}}
@@ -11778,6 +11798,7 @@
 \blx@kv@defkey{blx@refcontext}{sortingnamekeytemplatename}{\blx@gdef@or@def\blx@refcontext@sortingnamekeytemplatename{#1}}
 \blx@kv@defkey{blx@refcontext}{uniquenametemplatename}{\blx@gdef@or@def\blx@refcontext@uniquenametemplatename{#1}}
 \blx@kv@defkey{blx@refcontext}{labelalphanametemplatename}{\blx@gdef@or@def\blx@refcontext@labelalphanametemplatename{#1}}
+\blx@kv@defkey{blx@refcontext}{namehashtemplatename}{\blx@gdef@or@def\blx@refcontext@namehashtemplatename{#1}}
 
 % labelprefix cannot be used as is because it is used to construct the internal
 % refcontext name which is referenced/expanded a lot all over the place. So,
@@ -11809,12 +11830,13 @@
   \let\blx@tempc\@empty%
   \def\blx@tempd{global}%
   \def\blx@tempe{global}%
+  \def\blx@tempg{global}%
   \blx@kv@setkeys{blx@assignrefcontextmeta}{#2}%
   \blx@kv@setkeys{blx@assignrefcontext}{#2}%
   \def\do##1{%
     \listxadd\blx@assignedrefcontextkeywlist{##1}%
     \csxdef{blx@assignedrefcontextkeyws#1@\the\c@refsection @##1}%
-      {\blx@tempa/\blx@tempb/\blx@tempc/\blx@tempd/\blx@tempe}}%
+      {\blx@tempa/\blx@tempb/\blx@tempc/\blx@tempd/\blx@tempe/\blx@tempg}}%
   \docsvlist{#3}}
 
 % [refcontext keys]{<category1>,<category2>,...}
@@ -11829,12 +11851,13 @@
   \let\blx@tempc\@empty%
   \def\blx@tempd{global}%
   \def\blx@tempe{global}%
+  \def\blx@tempg{global}%
   \blx@kv@setkeys{blx@assignrefcontextmeta}{#2}%
   \blx@kv@setkeys{blx@assignrefcontext}{#2}%
   \def\do##1{%
     \listxadd\blx@assignedrefcontextcatlist{##1}%
     \csxdef{blx@assignedrefcontextcats#1@\the\c@refsection @##1}%
-      {\blx@tempa/\blx@tempb/\blx@tempc/\blx@tempd/\blx@tempe}}%
+      {\blx@tempa/\blx@tempb/\blx@tempc/\blx@tempd/\blx@tempe/\blx@tempg}}%
   \docsvlist{#3}}
 
 % [refcontext keys]{<entrykey1>,<entrykey2>,...}
@@ -11849,11 +11872,12 @@
   \let\blx@tempc\@empty%
   \def\blx@tempd{global}%
   \def\blx@tempe{global}%
+  \def\blx@tempg{global}%
   \blx@kv@setkeys{blx@assignrefcontextmeta}{#2}%
   \blx@kv@setkeys{blx@assignrefcontext}{#2}%
   \def\do##1{%
     \csxdef{blx@assignedrefcontextkeys#1@\the\c@refsection @##1}%
-      {\blx@tempa/\blx@tempb/\blx@tempc/\blx@tempd/\blx@tempe}}%
+      {\blx@tempa/\blx@tempb/\blx@tempc/\blx@tempd/\blx@tempe/\blx@tempg}}%
   \docsvlist{#3}}
 
 % This makes sure that named refcontexts set options first
@@ -11871,18 +11895,21 @@
 \blx@kv@defkey{blx@assignrefcontextmeta}{labelprefix}{}
 \blx@kv@defkey{blx@assignrefcontextmeta}{uniquenametemplatename}{}
 \blx@kv@defkey{blx@assignrefcontextmeta}{labelalphanametemplatename}{}
+\blx@kv@defkey{blx@assignrefcontextmeta}{namehashtemplatename}{}
 
 % Meta option to set all name template options
 \blx@kv@defkey{blx@assignrefcontext}{name}{}
 \blx@kv@defkey{blx@assignrefcontext}{nametemplates}{%
   \def\blx@tempb{#1}%
   \def\blx@tempd{#1}%
-  \def\blx@tempe{#1}}
+  \def\blx@tempe{#1}%
+  \def\blx@tempg{#1}}
 \blx@kv@defkey{blx@assignrefcontext}{sorting}{\def\blx@tempa{#1}}
 \blx@kv@defkey{blx@assignrefcontext}{sortingnamekeytemplatename}{\def\blx@tempb{#1}}
 \blx@kv@defkey{blx@assignrefcontext}{labelprefix}{\edef\blx@tempc{\blx@mdfivesum{#1}}}
 \blx@kv@defkey{blx@assignrefcontext}{uniquenametemplatename}{\def\blx@tempd{#1}}
 \blx@kv@defkey{blx@assignrefcontext}{labelalphanametemplatename}{\def\blx@tempe{#1}}
+\blx@kv@defkey{blx@assignrefcontext}{namehashtemplatename}{\def\blx@tempg{#1}}
 
 % Manually force a refcontext datalist in the .bcf
 \newcommand*{\GenRefcontextData}[1]{%
@@ -11893,15 +11920,16 @@
   \def\blx@tempe{global}%
   \let\blx@tempf\blx@sorting%
   \let\blx@tempg\@empty%
+  \def\blx@temph{global}%
   \ifblank{#1}
     {}
     {\blx@kv@setkeys{blx@refcontextmanual}{#1}}%
-  \def\blx@tempa{\blx@tempf/\blx@tempc/\blx@tempg/\blx@tempd/\blx@tempe}%
+  \def\blx@tempa{\blx@tempf/\blx@tempc/\blx@tempg/\blx@tempd/\blx@tempe/\blx@temph}%
   \xifinlist{\blx@tempa @\blx@tempb @entry}\blx@dlistnames
     {}
     {\listxadd\blx@dlistnames{\blx@tempa @\blx@tempb @entry}%
      \xappto\blx@dlists{%
-       \blx@xml@dlist{\blx@tempa}{entry}{\blx@tempb}{\blx@xml@dlist@refcontext{\blx@tempf}{\blx@tempc}{\blx@tempg}{\blx@tempd}{\blx@tempe}}{}}}%
+       \blx@xml@dlist{\blx@tempa}{entry}{\blx@tempb}{\blx@xml@dlist@refcontext{\blx@tempf}{\blx@tempc}{\blx@tempg}{\blx@tempd}{\blx@tempe}{\blx@temph}}{}}}%
    \endgroup}
 
 % Meta option to set all name template options
@@ -11913,6 +11941,7 @@
 \blx@kv@defkey{blx@refcontextmanual}{sortingnamekeytemplatename}{\def\blx@tempc{#1}}
 \blx@kv@defkey{blx@refcontextmanual}{uniquenametemplatename}{\def\blx@tempd{#1}}
 \blx@kv@defkey{blx@refcontextmanual}{labelalphanametemplatename}{\def\blx@tempe{#1}}
+\blx@kv@defkey{blx@refcontextmanual}{namehashtemplatename}{\def\blx@temph{#1}}
 \blx@kv@defkey{blx@refcontextmanual}{labelprefix}{%
   \def\blx@tempg{#1}%
   \iftoggle{blx@defernumbers}
@@ -12873,7 +12902,7 @@
   % refcontext defined
   \ifcsdef{blx@assignedrefcontextbib@aux@\the\c@refsection @#1}
     {\letcs\blx@refcontext@context{blx@assignedrefcontextbib@aux@\the\c@refsection @#1}}
-    {\blx@edef@refcontext{\blx@sorting/global//global/global}}%
+    {\blx@edef@refcontext{\blx@sorting/global//global/global/global}}%
   % assignment via keyword list
   \ifdef\blx@assignedrefcontextkeywlist
     {\def\do##1{%
@@ -14719,6 +14748,14 @@
 \xdef\blx@xml@uniquenametemplatenamepart#1#2#3{%
   ~~~~<bcf:namepart #1#2>#3</bcf:namepart>\blx@nl}
 
+\xdef\blx@xml@namehashtemplate#1#2{%
+  ~~<bcf:namehashtemplate name="#1">\blx@nl%
+  #2%
+  ~~</bcf:namehashtemplate>\blx@nl}
+
+\xdef\blx@xml@namehashtemplatenamepart#1#2#3{%
+  ~~~~<bcf:namepart #1#2>#3</bcf:namepart>\blx@nl}
+
 \xdef\blx@xml@sortingnamekeytemplate#1#2#3{%
   ~~<bcf:sortingnamekeytemplate name="#1" visibility="#2">\blx@nl%
   #3%
@@ -14766,12 +14803,13 @@
 \xdef\blx@xml@endsection{%
   ~~</bcf:section>}
 
-\xdef\blx@xml@dlist@refcontext#1#2#3#4#5{%
+\xdef\blx@xml@dlist@refcontext#1#2#3#4#5#6{%
   ~~~~~~~~~~~~~~~~sortingtemplatename="#1"\blx@nl
   ~~~~~~~~~~~~~~~~sortingnamekeytemplatename="#2"\blx@nl
   ~~~~~~~~~~~~~~~~labelprefix="#3"\blx@nl
   ~~~~~~~~~~~~~~~~uniquenametemplatename="#4"\blx@nl
-  ~~~~~~~~~~~~~~~~labelalphanametemplatename="#5"}
+  ~~~~~~~~~~~~~~~~labelalphanametemplatename="#5"\blx@nl
+  ~~~~~~~~~~~~~~~~namehashtemplatename="#6"}
 \xdef\blx@xml@dlist#1#2#3#4#5{%
   ~~<bcf:datalist section="#3"\blx@nl
   ~~~~~~~~~~~~~~~~name="#1"\blx@nl
@@ -15105,6 +15143,12 @@
     \eappto\blx@tempa{%
       \blx@xml@uniquenametemplate{##1}{\csuse{blx@uniquenametemplate@##1}}}}%
   \dolistloop\blx@untemplatespecs
+  % namehashtemplate
+  \eappto\blx@tempa{\blx@xml@comment{NAME HASH TEMPLATES}}%
+  \def\do##1{%
+    \eappto\blx@tempa{%
+      \blx@xml@namehashtemplate{##1}{\csuse{blx@namehashtemplate@##1}}}}%
+  \dolistloop\blx@nhtemplatespecs
   % sortingnamekeytemplate
   \eappto\blx@tempa{\blx@xml@comment{SORTING NAME KEY TEMPLATES}}%
   \def\do##1{%
@@ -15533,6 +15577,11 @@
   \def\blx@refcontext@labelalphanametemplatename{#1}}
 
 \newcommand*{\blx@lantem@namepart}[2][]{%
+  \ifinlist{#2}\blx@datamodel@constants@nameparts@l
+    {}
+    {\blx@error
+      {Invalid namepart '#2'}
+      {Namepart '#2' in labelalphaname template declaration '\blx@lantname' is not defined in the data model}}%
   \advance\blx@tempcntb\@ne
   \edef\blx@tempe{order="\the\blx@tempcntb"}%
   \let\blx@tempc\@empty
@@ -15849,6 +15898,11 @@
   \def\blx@refcontext@uniquenametemplatename{#1}}
 
 \newcommand*{\blx@untemp@namepart}[2][]{%
+  \ifinlist{#2}\blx@datamodel@constants@nameparts@l
+    {}
+    {\blx@error
+      {Invalid namepart '#2'}
+      {Namepart '#2' in uniquename template declaration '\blx@untname' is not defined in the data model}}%
   \advance\blx@tempcntb\@ne
   \edef\blx@tempe{order="\the\blx@tempcntb"}%
   \let\blx@tempc\@empty
@@ -15870,6 +15924,43 @@
 
 \blx@kv@defkey{blx@untemp@namepart}{disambiguation}{% disambiguation option for namepart none|inits|full|fullonly
   \appto\blx@tempc{ disambiguation="#1"}}
+
+% [<specname>]{<spec>}
+\newrobustcmd*{\DeclareNamehashTemplate}[2][]{%
+  \begingroup
+  \ifblank{#1}
+    {\def\blx@nhtname{global}}% default
+    {\def\blx@nhtname{#1}}%
+  \let\namepart\blx@nhtemp@namepart
+  \let\blx@tempa\@empty
+  \blx@tempcnta\z@
+  #2%
+  \global\cslet{blx@namehashtemplate@\blx@nhtname}\blx@tempa
+  \xifinlist\blx@nhtname\blx@nhtemplatespecs
+    {}
+    {\listxadd\blx@nhtemplatespecs\blx@nhtname}%
+  \endgroup}
+\@onlypreamble\DeclareNamehashTemplate
+\blx@DeclareBackendOption{global}[xml]{namehashtemplate}
+\DeclareBiblatexOption{entry,namelist,name}[string]{namehashtemplatename}{%
+  \def\blx@refcontext@namehashtemplatename{#1}}
+
+\newcommand*{\blx@nhtemp@namepart}[2][]{%
+  \ifinlist{#2}\blx@datamodel@constants@nameparts@l
+    {}
+    {\blx@error
+      {Invalid namepart '#2'}
+      {Namepart '#2' in name hash template declaration '\blx@nhtname' is not defined in the data model}}%
+  \advance\blx@tempcntb\@ne
+  \edef\blx@tempe{order="\the\blx@tempcntb"}%
+  \let\blx@tempc\@empty
+  \ifblank{#1}
+    {}
+    {\blx@kv@setkeys{blx@nhtemp@namepart}{#1}}%
+  \eappto\blx@tempa{%
+    \blx@xml@namehashtemplatenamepart{\blx@tempe}{\blx@tempc}{#2}}}
+
+\blx@kv@defkey{blx@nhtemp@namepart}{hashscope}{\def\blx@tempc{ hashscope="#1"}}
 
 % [<templatename>]{<template>}
 \newrobustcmd*{\DeclareSortingNamekeyTemplate}[2][]{%
@@ -15900,6 +15991,8 @@
   \expandafter\ifstrequal\expandafter{\blx@refcontext@uniquenametemplatename}{#1}}
 \def\iflabelalphanametemplatename#1{%
   \expandafter\ifstrequal\expandafter{\blx@refcontext@labelalphanametemplatename}{#1}}
+\def\ifnamehashtemplatename#1{%
+  \expandafter\ifstrequal\expandafter{\blx@refcontext@namehashtemplatename}{#1}}
 \def\ifsortingnamekeytemplatename#1{%
   \expandafter\ifstrequal\expandafter{\blx@refcontext@sortingnamekeytemplatename}{#1}}
 
@@ -16236,7 +16329,6 @@
 %% Package options
 
 % [<entrytype,entrytype,...>]{<options>}
-
 \newrobustcmd*{\ExecuteBibliographyOptions}[2][]{%
   \ifblank{#1}
     {\blx@kv@setkeys{blx@opt@pre}{#2}}
@@ -16369,12 +16461,14 @@
   \let\blx@refcontext@labelprefix@real\@empty
   \def\blx@refcontext@uniquenametemplatename{global}%
   \def\blx@refcontext@labelalphanametemplatename{global}%
+  \def\blx@refcontext@namehashtemplatename{global}%
   \blx@xdef@refcontext{%
     \blx@refcontext@sortingtemplatename/%
     \blx@refcontext@sortingnamekeytemplatename/%
     \blx@refcontext@labelprefix/%
     \blx@refcontext@uniquenametemplatename/%
-    \blx@refcontext@labelalphanametemplatename}%
+    \blx@refcontext@labelalphanametemplatename/%
+    \blx@refcontext@namehashtemplatename}%
   \listxadd\blx@refcontexts\blx@refcontext@context}
 
 \DeclareBibliographyOption[boolean]{sortcase}[true]{%

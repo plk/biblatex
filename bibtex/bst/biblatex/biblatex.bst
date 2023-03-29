@@ -1832,6 +1832,7 @@ FUNCTION {output:entry} {
   push:cite wrap:braces *
   tempstrga wrap:braces *
   entryoptions wrap:braces *
+  "" wrap:braces *
   write$ newline$
   output:names
   output:lists
@@ -2801,7 +2802,7 @@ FUNCTION {output:main:begin} {
   "  {}"                                                        write$ newline$
   "\endgroup"                                                   write$ newline$
   newline$
-  "\datalist[entry]{" ctrl.sortstr * "/global//global/global}" *         write$
+  "\datalist[entry]{" ctrl.sortstr * "/global//global/global/global}" *         write$
 }
 
 FUNCTION {output:main:preamble} {
