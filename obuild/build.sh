@@ -8,17 +8,14 @@ build.sh install <version> <tds_root>
 build.sh uninstall <tds_root>
 build.sh builddist|builddocs|build <version>
 build.sh testbibtex [file]|testbiber [file]|test [file]|testoutput 
-build.sh upload <version> <targetfolder>
+build.sh upload <version> [ <folder> ]
 build.sh showdiff <filewithissues>
-
-If <targetfolder> is missing, upload to folder \"biblatex-<version>\" folder
 
 Examples: 
 obuild/build.sh install 3.8 ~/texmf/
 obuild/build.sh uninstall ~/texmf/
-obuild/build.sh build 4.0
-obuild/build.sh upload 4.0 development
-obuild/build.sh upload 4.0 multiscript
+obuild/build.sh build 3.8
+obuild/build.sh upload 3.8 development
 
 \"build test\" runs all of the example files (in a temp dir) and puts errors in a log:
 
@@ -83,8 +80,14 @@ then
   \rm -f $2/doc/latex/biblatex/CHANGES.md
   \rm -f $2/doc/latex/biblatex/biblatex.pdf
   \rm -f $2/doc/latex/biblatex/biblatex.tex
-  \rm -rf $2/doc/latex/biblatex/examples
-  \rm -rf $2/tex/latex/biblatex
+  for file in obuild/tds/doc/latex/biblatex/examples/*
+  do
+     \rm -f $2/doc/latex/biblatex/examples/$(basename -- "$file")
+  done
+  (cd obuild/tds/tex/latex/biblatex && for file in $(find * -type f)
+  do
+     \rm -f $2/tex/latex/biblatex/$file
+  done)
   exit 0
 fi
 
@@ -92,13 +95,13 @@ if [[ "$1" == "upload" ]]
 then
     if [[ -e obuild/biblatex-$VERSION.tds.tgz ]]
     then
-      if [ -z ${3+x} ]
+      if [[ -n "$3" ]]
       then
-        scp obuild/biblatex-"$VERSION".*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/biblatex-"$VERSIONM"/
-        scp doc/latex/biblatex/CHANGES.md philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/biblatex-"$VERSIONM"/
-      else
         scp obuild/biblatex-"$VERSION".*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/$3/
         scp doc/latex/biblatex/CHANGES.md philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/$3/
+      else
+        scp obuild/biblatex-"$VERSION".*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/biblatex-"$VERSIONM"/
+        scp doc/latex/biblatex/CHANGES.md philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/biblatex-"$VERSIONM"/
       fi
     exit 0
   fi
@@ -307,7 +310,7 @@ PDFLaTeX errors/warnings
       if [[ "$f" < 9* ]] # 9+*.tex examples require biber and we want UTF-8 support
       then
           declare TEXENGINE=pdflatex
-          declare BIBEROPTS='--output_safechars --onlylog'
+          declare BIBEROPTS='--output-safechars --onlylog'
       else
           if [[ "$f" == "93-nameparts-biber.tex" ]] # Needs xelatex
           then
@@ -325,7 +328,7 @@ PDFLaTeX errors/warnings
       # using output safechars as we are using fontenc and ascii in the test files
       # so that we can use the same test files with bibtex which only likes ascii
       # biber complains when outputting ascii from it's internal UTF-8
-      biber $BIBEROPTS --onlylog ${f%.tex}
+      biber $BIBEROPTS ${f%.tex}
       $TEXENGINE --interaction=batchmode ${f%.tex}
       if [[ $f == 20-indexing-* || $f == 21-indexing-* ]]
       then

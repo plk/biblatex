@@ -21,6 +21,8 @@
 \usepackage{microtype}
 \usepackage{typearea}
 \usepackage{mdframed}
+\usepackage{enumitem}
+\setlist[itemize]{labelsep=1em} 
 \areaset[current]{370pt}{700pt}
 \lstset{
     basicstyle=\ttfamily,
@@ -68,7 +70,7 @@
   url={\biblatexhome},
   author={Philip Kime, Moritz Wemheuer, Philipp Lehman},
   email={},
-  revision={3.19},
+  revision={3.20},
   date={\today}}
 
 \hypersetup{%
@@ -413,6 +415,10 @@ compatibility matrix for the recent versions.
 \sffamily\bfseries\spotcolor Biber version
   & \sffamily\bfseries\spotcolor \biblatex\ version\\
 \midrule
+2.19 & 3.19\\
+2.18 & 3.18\\
+2.17 & 3.17\\
+2.16 & 3.16\\
 2.15 & 3.15\\
 2.14 & 3.14\\
 2.13 & 3.13\\
@@ -854,7 +860,7 @@ The author(s) of the \bibfield{title}.
 
 \fielditem{authortype}{key}
 
-The type of author. This field will affect the string (if any) used to introduce the author. Not used by the standard bibliography styles.
+The type of author. This field will affect the string (if any) used to introduce the author.
 
 \listitem{bookauthor}{name}
 
@@ -1079,7 +1085,7 @@ however better to use the \bibfield{date} field as this supports many more featu
 
 \fielditem{nameaddon}{literal}
 
-An addon to be printed immediately after the author name in the bibliography. Not used by the standard bibliography styles. This field may be useful to add an alias or pen name (or give the real name if the pseudonym is commonly used to refer to that author).
+An addon to be printed immediately after the author name in the bibliography. Not used by the standard bibliography styles.
 
 \fielditem{note}{literal}
 
@@ -1431,7 +1437,7 @@ Custom lists for special bibliography styles. Not used by the standard bibliogra
 
 Custom fields for special bibliography styles. Not used by the standard bibliography styles.
 
-\fielditem{verb{[a--c]}}{literal}
+\fielditem{verb{[a--c]}}{verbatim}
 
 Similar to the custom fields above except that these are verbatim fields. Not used by the standard bibliography styles.
 
@@ -2660,7 +2666,7 @@ The option is intended mainly for backwards compatibility, because earlier versi
 
 \boolitem[true]{dashed}
 
-This option controls whether recurrent the same author\slash editor list in the bibliography are replaced by a dash (\cmd{bibnamdeash}, see \secref{use:fmt:fmt}). If the option is enabled, subsequent mentions of the same name list at the beginning of an entry are replaced by a dash provided the entry is not the first on the current page. If the option is disabled, name lists are never replaced by a dash.
+This option controls whether recurrent the same author\slash editor list in the bibliography are replaced by a dash (\cmd{bibnamedash}, see \secref{use:fmt:fmt}). If the option is enabled, subsequent mentions of the same name list at the beginning of an entry are replaced by a dash provided the entry is not the first on the current page. If the option is disabled, name lists are never replaced by a dash.
 
 \end{optionlist}
 
@@ -2854,7 +2860,7 @@ This option is also settable on a per-type, per-entry, per-namelist and per-name
 
 If \opt{giveninits} is set to \opt{true}, the default name formats will only render the given name initials and not the full given name. The standard styles only use the test \cmd{ifgiveninits} and hence only respond to the option \opt{giveninits}. Setting the option for a name part different from \texttt{given} has no effect on the default name formats.
 
-Note that sorting and name uniqueness are not automatically affected by this option, that have to be requested explicitly via \cmd{DeclareSortingNamekeyTemplate} and the \opt{uniquename} option (or \cmd{DeclareUniquenameTemplate}), respectively. A warning will be issued if \opt{giveninits} is used together with \opt{uniquename} set to one of the \opt{full} values and \opt{uniquename} is automatically set to the corresponding \opt{init} value.
+Note that sorting and name uniqueness are not automatically affected by this option, these have to be requested explicitly via \cmd{DeclareSortingNamekeyTemplate} and the \opt{uniquename} option (or \cmd{DeclareUniquenameTemplate}), respectively. A warning will be issued if \opt{giveninits} is used together with \opt{uniquename} set to one of the \opt{full} values and \opt{uniquename} is automatically set to the corresponding \opt{init} value.
 
 \boolitem[false]{terseinits}
 
@@ -3044,8 +3050,8 @@ This option is also settable on a per-type, per-entry and per-namelist basis.
 \multicolumn{1}{@{}H}{Counter tracks} \\
 \cmidrule(r){1-1}\cmidrule(r){2-2}\cmidrule(r){3-3}\cmidrule{4-4}
 labelalpha      & labelalpha           & extraalpha     &  label\\
-labeldateparts  & labelyear            & extradate      &  labelname+\\
-                & labelmonth           &                &  labelyear\\
+labeldateparts  & labelyear            & extradate      &  extradate context+labelyear\\
+                & labelmonth           &                &  \\
                 & labelday             &                &  \\
                 & labelendyear         &                &  \\
                 & labelendmonth        &                &  \\
@@ -3120,7 +3126,8 @@ Whether the default data model name part <prefix> (von, van, of, da, de, della, 
 \item Generating name uniqueness information
 \item Formatting aspects of the bibliography
 \end{itemize}
-%
+
+% 
 For example, if this option is enabled, \biblatex precedes the family name with the prefix---Ludwig van Beethoven would be cited as «van Beethoven» and alphabetized as «Van Beethoven, Ludwig». If this option is disabled (the default), he is cited as «Beethoven» and alphabetized as «Beethoven, Ludwig van» instead.
 This option is also settable on a per-type scope. With \biblatexml datasources and the \bibtex extended name format supported by \biber (see \secref{use:enf}), this is also settable on per-namelist and per-name scopes.
 
@@ -3389,6 +3396,13 @@ format, see \secref{use:opt:bib:hyb}:
 \begin{lstlisting}[style=bibtex]{}
 AUTHOR = {nosortothers=true and Hans Harman and
           given=Simon, family=Beumont, prefix=de, useprefix=true}
+\end{lstlisting}
+%
+A special \prm{id} parameter may also be used for any name and this will be used to override the hash used to detect identical names, for example, a gender change could be handled like this (see also \secref{aut:cav:ni}):
+
+\begin{lstlisting}[style=bibtex]{}
+  AUTHOR = {id=person1, given=Simon, family=Beumont}
+  AUTHOR = {id=person1, given=Simone, family=Beumont}
 \end{lstlisting}
 
 \subsection{Related Entries}
@@ -3872,7 +3886,7 @@ This command loops over all bibliography categories. This is equivalent to givin
 
 \cmditem{printbibheading}[key=value, \dots]
 
-This command prints a bibliography heading defined with \cmd{defbibheading}. It takes one optional argument, which is a list of options given in \keyval notation. The options are a small subset of those supported by \cmd{printbibliography}. Valid options are \opt{heading}, \opt{title} and \opt{label}. By default, this command uses the heading \texttt{bibliography}. See \secref{use:bib:hdg} for details. Also see \secref{use:use:mlt,use:use:div} for usage examples.
+This command prints a bibliography heading defined with \cmd{defbibheading}. It takes one optional argument, which is a list of options given in \keyval notation. The options are a small subset of those supported by \cmd{printbibliography}. Valid options are \opt{heading}, \opt{title}, \opt{label}, \opt{prenote} and \opt{postnote}. Note that both the \opt{prenote} and \opt{postnote} argument are printed after the heading. Their behaviour exactly mirrors that of \cmd{printbibliography}, except that no bibliography is created in between the two notes. By default, this command uses the heading \texttt{bibliography}. See \secref{use:bib:hdg} for details. Also see \secref{use:use:mlt,use:use:div} for usage examples.
 
 \cmditem{DeclarePrintbibliographyDefaults}{key=value, \dots}
 
@@ -4332,9 +4346,13 @@ Specify a uniquename template defined previously with \cmd{DeclareUniquenameTemp
 
 Specify a template defined previously with \cmd{DeclareLabelalphaNameTemplate} (see \secref{aut:ctm:lab}). This template is used to construct name parts of alphabetic labels for names inside the context. The template name can also be specified (in increasing order of preference) per"=entry, per"=name list and per"=name. See \secref{apx:opt} for information on setting per"=option, per"=namelist and per"=name options.
 
+\valitem{namehashtemplatename}{name}
+
+Specify a template defined previously with \cmd{DeclareNamehashTemplate} (see \secref{aut:cav:ni}). This template is used to construct name hashes used to determine whether names refer to the same person. The template name can also be specified (in increasing order of preference) per"=entry, per"=name list and per"=name. See \secref{apx:opt} for information on setting per"=option, per"=namelist and per"=name options.
+
 \valitem{nametemplates}{name}
 
-A convenience meta-option which sets \opt{sortingnamekeytemplate}, \opt{uniquenametemplate} and \opt{labelalphanametemplate} to the same template name. This option can also be specified (in increasing order of preference) per"=entry, per"=name list and per"=name. See \secref{apx:opt} for information on setting per"=option, per"=namelist and per"=name options.
+A convenience meta-option which sets \opt{sortingnamekeytemplate}, \opt{uniquenametemplate}, \opt{labelalphanametemplate} and \opt{namehashtemplate} to the same template name. This option can also be specified (in increasing order of preference) per"=entry, per"=name list and per"=name. See \secref{apx:opt} for information on setting per"=option, per"=namelist and per"=name options.
 
 \valitem{labelprefix}{string}
 
@@ -4351,7 +4369,7 @@ The \opt{refcontext} environment cannot be nested and \biblatex will generate an
 
 \cmditem{newrefcontext}[key=value, \dots]{name}
 
-This command is similar to the \env{refcontext} environment except that it is a stand"=alone command rather than an environment. It automatically ends any previous reference context section begun with \cmd{newrefcontext} (if any) and immediately starts a new one. Note that the context section started by the last \cmd{newrefcontext} command in the document will extend to the very end of the document. Use \cmd{endrefcontext} if you want to terminate it earlier.
+This command is similar to the \env{refcontext} environment except that it is a stand"=alone command rather than an environment. It automatically ends any previous reference context section begun with \cmd{newrefcontext} (if any) and immediately starts a new one. Note that the context section started by the last \cmd{newrefcontext} command in the document will extend to the end of the current refsection. Use \cmd{endrefcontext} if you want to terminate it earlier.
 
 \cmditem{localrefcontext}[key=value, \dots]{name}
 
@@ -5466,7 +5484,11 @@ The language specific separator to be used between multiple ranges. Defaults to 
 
 \csitem{bibdatesep}
 
-The language specific separator used between date components in terse date formats. Defaults to \cmd{hyphen}.
+The language specific separator used between date components in terse/short date formats. Defaults to \cmd{hyphen}.
+
+\csitem{bibdatendsep}
+
+The language specific separator used between date components in terse/short date formats when there is no day part of the date (usually meaning month and year only). Defaults to \cmd{hyphen}.
 
 \csitem{bibdaterangesep}
 
@@ -7017,18 +7039,15 @@ This field holds an integer indicating the position of a set member in the entry
 
 \fielditem{hash}{string}
 
-This field is special in that it is only available locally in name formatting directives. It holds a hash string which uniquely identifies individual names in a name list. This information is available for all names in all name lists. See also \bibfield{namehash} and \bibfield{fullhash}.
+This field is special in that it is only available locally in name formatting directives. It holds a hash string which uniquely identifies individual names in a name list. This information is available for all names in all name lists. See also \bibfield{namehash} and \bibfield{fullhash}. Sensitive to the hash customisations described in \secref{aut:cav:ni}.
 
 \fielditem{namehash}{string}
 
-A hash string which uniquely identifies the \bibfield{labelname} list. This is useful for recurrence checks. For example, a citation style which replaces recurrent authors or editors with a string like <idem> could save the \bibfield{namehash} field with \cmd{savefield} and use it in a comparison with \cmd{iffieldequals} later (see \secref{aut:aux:dat, aut:aux:tst}). The \bibfield{namehash} is derived from the truncated \bibfield{labelname} list, \ie it is responsive to \opt{maxcitenames} and \opt{mincitenames}. See also \bibfield{hash} and \bibfield{fullhash}.
+A hash string which uniquely identifies the \bibfield{labelname} list. This is useful for recurrence checks. For example, a citation style which replaces recurrent authors or editors with a string like <idem> could save the \bibfield{namehash} field with \cmd{savefield} and use it in a comparison with \cmd{iffieldequals} later (see \secref{aut:aux:dat, aut:aux:tst}). The \bibfield{namehash} is derived from the truncated \bibfield{labelname} list, \ie it is responsive to \opt{maxcitenames} and \opt{mincitenames}. See also \bibfield{hash} and \bibfield{fullhash}. Sensitive to the hash customisations described in \secref{aut:cav:ni}.
 
 \fielditem{bibnamehash}{string}
 
-As \bibfield{namehash} but responsive to \opt{maxbibnames} and
-\opt{minbibnames}. This is not used in standard styles but may be used to
-make tests in bibliography lists (such as those used to determine whether
-dashes should replace repeated authors) behave differently.
+As \bibfield{namehash} but responsive to \opt{maxbibnames} and \opt{minbibnames}. This is not used in standard styles but may be used to make tests in bibliography lists (such as those used to determine whether dashes should replace repeated authors) behave differently. Sensitive to the hash customisations described in \secref{aut:cav:ni}.
 
 \fielditem{$<$namelist$>$namehash}{string}
 
@@ -7040,11 +7059,19 @@ As \bibfield{bibnamehash} for the name list called <namelist>.
 
 \fielditem{fullhash}{string}
 
-A hash string which uniquely identifies the \bibfield{labelname} list. This fields differs from \bibfield{namehash} in two details: 1) The \bibfield{shortauthor} and \bibfield{shorteditor} lists are ignored when generating the hash. 2) The hash always refers to the full list, ignoring \opt{maxnames} and \opt{minnames}. See also \bibfield{hash} and \bibfield{namehash}.
+A hash string which uniquely identifies the \bibfield{labelname} list. This fields differs from \bibfield{namehash} in two details: 1) The \bibfield{shortauthor} and \bibfield{shorteditor} lists are ignored when generating the hash. 2) The hash always refers to the full list, ignoring \opt{maxnames} and \opt{minnames}. See also \bibfield{hash} and \bibfield{namehash}. Sensitive to the hash customisations described in \secref{aut:cav:ni}.
+
+\fielditem{fullhashraw}{string}
+
+As \bibfield{fullhash} but not sensitive to the hash customisations described in \secref{aut:cav:ni}. Basically a hash of all of the full nameparts of a name as it appears in the data. Not used in the default styles but could be used to discriminate between the literal given glyphs of a name and the name as it is desired to be identified for name matching purposes.
 
 \fielditem{$<$namelist$>$fullhash}{string}
 
 As \bibfield{fullhash} for the name list called <namelist>.
+
+\fielditem{$<$namelist$>$fullhashraw}{string}
+
+As \bibfield{fullhashraw} for the name list called <namelist>.
 
 \listitem{pageref}{literal}
 
@@ -7136,11 +7163,11 @@ The end day of the date field selected by \cmd{DeclareLabeldate} (\secref{aut:ct
 
 \fielditem{extradate}{integer}
 
-The author"=year citation scheme usually requires a letter to be appended to the year if the bibliography contains two or more works by the same author which were all published in the same year. In this case, the \bibfield{extradate} field holds an integer which may be converted to a letter with \cmd{mknumalph} or formatted in some other way. This field is undefined if there is only one work by the author in the bibliography or if all works by the author have different publication years. A complete author-year label consists of the fields \bibfield{labelyear} plus \bibfield{extradate}. Note that the \bibfield{labelyear} and \bibfield{extradate} fields need to be requested with the package option \opt{labeldateparts}, see \secref{use:opt:pre:int} for details. See also \bibfield{labelyear}. Table \ref{use:opt:tab1} summarises the various \opt{extra*} disambiguation counters and what they track.
+The author"=year citation scheme usually requires a letter to be appended to the year if the bibliography contains two or more works by the same author (actually the \bibfield{labelname}, which is usually the author by default but which need not be) which were all published in the same year. In this case, the \bibfield{extradate} field holds an integer which may be converted to a letter with \cmd{mknumalph} or formatted in some other way. This field is undefined if there is only one work by the author in the bibliography or if all works by the author have different publication years. A complete author-year label consists of the fields \bibfield{labelyear} plus \bibfield{extradate}. Note that the \bibfield{labelyear} and \bibfield{extradate} fields need to be requested with the package option \opt{labeldateparts}, see \secref{use:opt:pre:int} for details. See also \bibfield{labelyear}. Table \ref{use:opt:tab1} summarises the various \opt{extra*} disambiguation counters and what they track. Note that \biblatex allows a generalisation of this behaviour and the default context for \bibfield{extradate} disambiguation can be changed to allow other contexts than the author. The default will fall back to the \bibfield{labeltitle} if there is no \bibfield{labelname} (which is usually the author). See \cmd{DeclareExtradateContext} in \secref{aut:ctm:fld} to customise the \bibfield{extradate} context.
 
 \fielditem{extradatescope}{literal}
 
-This field contains the name of the most specific field which determined the value of \bibfield{extradate}. It is not used by the standard styles but may be useful in controlling the placement of the \bibfield{extradate} field value.
+This field contains the name of the most specific date part which determined the value of \bibfield{extradate}. It is not used by the standard styles but may be useful in controlling the placement of the \bibfield{extradate} field value. For example, if two works by the same author with dates <2020-05-04> and <2020-06-04> were disambiguated by \bibfield{extradate}, then \bibfield{extradatascope} would contain <labelyear> for both entries as the most specific difference is the (label)year. If the dates were <2020-05-04> and <2020-05-02>, then \bibfield{extradatascope} would contain <labelmonth>. See also \cmd{DeclareExtradate} (\secref{aut:ctm:fld}) which describes how to change the scope used to track dates.
 
 \end{fieldlist}
 
@@ -8265,6 +8292,11 @@ limiting source maps to specific refsections only (see \opt{refsection}
 option to the \cmd{map} command above).
 
 \begin{itemize}
+\item If \texttt{final} is \texttt{true} for a step then no more steps
+  after this one are run within the current map for the current entry if
+  the conditions for the step so far are not satisfied. Examples are given in
+  the descriptions for specific steps as to what this means for their
+  particular semantics.
 \item If \texttt{entrynew} is set, a new entry is created with the entry key \texttt{entrynewkey} and the entry type given in the option \texttt{entrynewtype}. This
   entry is only in-scope during the processing of the current entry and can be referenced by
   \texttt{entrytarget}.  In \texttt{entrynewkey}, you may use standard Perl regular expression
@@ -8312,15 +8344,7 @@ option to the \cmd{map} command above).
   \texttt{match} regular expression (logic is reversed if you use \texttt{notmatch} and case-insensitive if you use the versions ending in <i>)\footnote{Regular expressions are full Perl 5.16 regular expressions. This means you may need to deal with special characters, see examples.}. You may use capture parenthesis as usual and refer to these (\$1\ldots\$9) in later \texttt{fieldvalue} specifications. This allows you to pull out parts of some fields and put these parts in other fields.
 \item Perform a regular expression match and replace on the value of the \texttt{fieldsource} \prm{entryfield} if \texttt{match} and \texttt{replace} are defined.
 \item If \texttt{matches} is defined, it should be a comma-separated list of literal strings which are replaced by corresponding locations in a comma-separated list provided in \texttt{replace}. The lists must have the same number of elements or the step will be skipped. \texttt{matchesi} is the same but case-insensitive.
-\item If \texttt{fieldset} is defined, then its value is \prm{entryfield}
-  which will be set to a value specified by further options. If
-  \texttt{overwrite} is false for this step and the field to set already
-  exists then the map step is ignored. If \texttt{final} is also true for
-  this step, then processing of the parent map stops at this point. If
-  \texttt{append} is true, then the value to set is appended to the current
-  value of \prm{entryfield}. \texttt{appendstrict} only appends to
-  \prm{entryfield} if \prm{entryfield} is not empty. The value to set is
-  specified by a mandatory one and only one of the following options:
+\item If \texttt{fieldset} is defined, then its value is \prm{entryfield} which will be set to a value specified by further options. If \texttt{overwrite} is false for this step and the field to set already exists then the map step is ignored and if \texttt{final} is also true, then processing of the parent map stops at this point. If \texttt{append} is true, then the value to set is appended to the current value of \prm{entryfield}. \texttt{appendstrict} only appends to \prm{entryfield} if \prm{entryfield} is not empty. The value to set is specified by a mandatory one and only one of the following options:
   \begin{itemize}
     \item\ \texttt{fieldvalue} --- The \texttt{fieldset} \prm{entryfield} is set to the \texttt{fieldvalue} \prm{string}
     \item\ \texttt{null} --- The \texttt{fieldset} \prm{entryfield} is ignored, as if it did not exist in the datasource
@@ -8542,7 +8566,7 @@ For any entry with an \bibfield{author} field, try to set
 }
 \end{ltxexample}
 %
-Here, we use multiple match/replace for the same field to regularise some inconstant name variants. Bear in mind that \cmd{step} processing within a \opt{map} element is sequential and so the changes from a previous \cmd{step}s are already committed. Note that we don't need the \cmd{regexp} macro to protect the regular expressions in this example as they contain no characters which need special escaping. Please note that due to the difficulty of protecting regular expressions in \LaTeX, there should be no literal spaces in the argument to \cmd{regexp}. Please use escape code equivalents if spaces are needed. For example, this example, if using \cmd{regexp}, should be:
+Here, we use multiple match/replace for the same field to regularise some inconstant name variants. Bear in mind that \cmd{step} processing within a \opt{map} element is sequential and so the changes from a previous \cmd{step}s are already committed. Note that we don't need the \cmd{regexp} macro to protect the regular expressions in this example as they contain no characters which need special escaping. Please note that due to the difficulty of protecting regular expressions in \latex, there should be no literal spaces in the argument to \cmd{regexp}. Please use escape code equivalents if spaces are needed. For example, this example, if using \cmd{regexp}, should be:
 %
 \begin{ltxexample}
 \DeclareSourcemap{
@@ -9876,7 +9900,7 @@ Or if you wanted to ignore «The» at the beginning of any title field:
 \cmditem{DeclareNonamestring}{specification}
 
 Defines regular expressions to strip from name fields when
-generating \bibfield{fullhash} and \bibfield{uniquename}. The \prm{specification} is an undelimited list of \cmd{nonamestring} directives which specify the regular expressions to remove from particular name fields. Spaces, tabs and line endings may be used freely to visually arrange the \prm{specification}. Blank lines are not permissible. This command may only be used in the preamble.
+generating \bibfield{fullhash}, \bibfield{fullhashraw} and \bibfield{uniquename}. The \prm{specification} is an undelimited list of \cmd{nonamestring} directives which specify the regular expressions to remove from particular name fields. Spaces, tabs and line endings may be used freely to visually arrange the \prm{specification}. Blank lines are not permissible. This command may only be used in the preamble.
 
 \cmditem{nonamestring}{namefield or datafield name set}{regexp}
 
@@ -9950,7 +9974,7 @@ The \bibfield{label*} fields may be customized globally or on a per-type basis. 
 
 \cmditem{DeclareExtradate}{specification}
 
-Defines how \biber tracks information used to construct the \bibfield{extradate} field. This field (see \secref{aut:bbx:fld:lab}) is printed to disambiguate works by the same author which occur in the same date scope. By default, the date scope is the year and so two works by the same author within the same year will have different \bibfield{extradate} values which are used to disambiguate the works in the bibliography in the usual manner seen in many authoryear type styles. The \prm{specification} is one or more \cmd{scope} specifications which can contain one or more \cmd{field} specifications. Within a \cmd{scope}, the existence of each \cmd{field} will be checked and if found, the first \cmd{field} is used and the rest are ignored. This allows a fallback in case certain fields are not available in all entries. All \cmd{scope}s are used to track information and \cmd{scope}s should be specified in decreasing order of generality (e.g. year then month then day etc) The default definition is:
+Defines which date information used to construct the \bibfield{extradate} field. With the default setting for \cmd{DeclareExtradateContext}, this field (see \secref{aut:bbx:fld:lab}) is printed to disambiguate works by the same \bibfield{labelname} (usually the author) or \bibfield{labeltitle} (usually the main title) which occur in the same date scope. By default, the date scope is the year and so two works by the same author/title within the same year will have different \bibfield{extradate} values which are used to disambiguate the works in the bibliography in the usual manner seen in many authoryear type styles. The \prm{specification} is one or more \cmd{scope} specifications which can contain one or more \cmd{field} specifications. Within a \cmd{scope}, the existence of each \cmd{field} will be checked and if found, the first \cmd{field} is used and the rest are ignored. This allows a fallback in case certain fields are not available in all entries. All \cmd{scope}s are used to track information and \cmd{scope}s should be specified in decreasing order of generality (e.g. year then month then day etc) The default definition is:
 
 \begin{ltxexample}
 \DeclareExtradate{%
@@ -10062,6 +10086,19 @@ Doe 2001b
 \end{lstlisting}
 %
 This command may only be used in the preamble.
+
+\cmditem{DeclareExtradateContext}[entrytype, \dots]{specification}
+
+Defines the context in which identical dates (as determined by \cmd{DeclareExtradate}) are tracked so that \bibfield{extradate} can be appended for disambiguation purposes. Normally this context is the author name so that works of the same date by the same author can be disambiguated in authoryear type styles. Often, when there is no author, the title appears in the author position and the title is used as the context to disambiguate instead. Therefore, the default definition is:
+
+\begin{ltxexample}
+\DeclareExtradateContext{%
+  \field{labelname}
+  \field{labeltitle}
+}
+\end{ltxexample}
+%
+It is unlikely that this will need to be customised for normal use cases.
 
 \cmditem{DeclareLabeltitle}[entrytype, \dots]{specification}
 
@@ -10481,6 +10518,10 @@ Expands to \prm{true} if the \prm{string} is equal to the current in scope uniqu
 \cmditem{iflabelalphanametemplatename}{string}{true}{false}
 
 Expands to \prm{true} if the \prm{string} is equal to the current in scope alphabetic label name template name (see \ref{aut:ctm:srt}), and to \prm{false} otherwise.
+
+\cmditem{ifnamehashtemplatename}{string}{true}{false}
+
+Expands to \prm{true} if the \prm{string} is equal to the current in scope  name hash template name (see \ref{aut:cav:ni}), and to \prm{false} otherwise.
 
 \cmditem{iffieldundef}{field}{true}{false}
 
@@ -11441,6 +11482,10 @@ Adds an exclamation mark unless it is preceded by any punctuation mark except fo
 
 Adds a question mark unless it is preceded by any punctuation mark except for an abbreviation dot.
 
+\csitem{addslash}
+
+Adds a breakable slash. This command differs from the \cmd{slash} command in the \latex kernel in that a linebreak after the slash is not penalized at all.
+
 \csitem{isdot}
 
 Turns a previously inserted literal period into an abbreviation dot. In contrast to \cmd{adddot}, nothing is inserted if this command is not preceded by a period.
@@ -11505,10 +11550,6 @@ Similar to \cmd{addabbrvspace} but using a thin space.
 \csitem{adddotspace}
 
 Executes \cmd{adddot} and adds a space penalized by the value of the \cnt{abbrvpenalty} counter, see \secref{use:fmt:len, aut:fmt:len} for details.
-
-\csitem{addslash}
-
-Adds a breakable slash. This command differs from the \cmd{slash} command in the \latex kernel in that a linebreak after the slash is not penalized at all.
 
 \end{ltxsyntax}
 
@@ -13267,6 +13308,14 @@ The name of the name list currently being processed by \cmd{printnames}. This in
 
 Appends the \prm{code} to an internal hook executed at the beginning of every reference section. The \prm{code} is executed just after setting the reference section number. This command may only be used in the preamble.
 
+\cmditem{AtNextRefsection}{code}
+
+Appends the \prm{code} to an internal hook executed at the beginning of the next reference section. The \prm{code} is executed just after setting the reference section number.
+
+\cmditem{AtFollowingRefsections}{code}
+
+Appends the \prm{code} to an internal hook executed at the beginning of all reference sections following this command. The \prm{code} is executed just after setting the reference section number and just before any code executed via \cmd{AtNextRefsection}.
+
 \cmditem{AtBeginBibliography}{code}
 
 Appends the \prm{code} to an internal hook executed at the beginning of the bibliography. The \prm{code} is executed at the beginning of the list of references, immediately after the \prm{begin code} of \cmd{defbibenvironment}. This command may only be used in the preamble.
@@ -13562,7 +13611,7 @@ Name disambiguation works by taking a <base> which is composed of one or more na
 
 \cmditem{DeclareUniquenameTemplate}[name]{specification}
 
-Defines the \opt{uniquename} template \prm{name}. The \prm{name} is optional and defaults to \prm{<global>}.
+Defines the \opt{uniquename} template \prm{name}. The \prm{name} is optional and defaults to <global>.
 
 The \prm{specification} is an ordered list of \cmd{namepart} commands which define the nameparts to use in determining the uniquename information.
 
@@ -13836,6 +13885,73 @@ Vogel et al. 2001
 \end{lstlisting}
 %
 In the last citation, \kvopt{uniquelist}{minyear} does not override \opt{maxnames}\slash \opt{minnames} as the citation does not need disambiguating from the other two because the year is different.
+
+\subsubsection{Name Identity}
+\label{aut:cav:ni}
+A lot depends on whether several names in a bibliography refer to the same person or not. By default, this is determined purely syntactically by whether or not all of the full parts of a name are identical. This can be changed however by altering the algorithm that \biber uses to calculate various hashes for names via the following command:
+
+\begin{ltxsyntax}
+
+\cmditem{DeclareNamehashTemplate}[name]{specification}
+
+Defines the template \prm{name} used to construct the hashes from the parts of a name. The \prm{name} is optional and defaults to <global>.
+
+The \prm{specification} is an ordered list of \cmd{namepart} commands which define the nameparts to use in constructing name hashes.
+
+\cmditem{namepart}[options]{namepart}
+
+\prm{namepart} is one of the datamodel nameparts defined with the \cmd{DeclareDatamodelConstant} command (see \secref{aut:bbx:drv}). The \prm{options} are:
+
+\begin{optionlist*}
+
+\choitem{hashscope}{init, full}
+
+The \prm{namepart} will be used in the construction of the hash for the name and the data used from the namepart to do this is one of:
+
+\begin{description}
+\item[init]~Use only the initials of the \prm{namepart} in the hash construction
+\item[full]~Use the full \prm{namepart} in the hash construction
+\end{description}
+
+\end{optionlist*}
+
+\end{ltxsyntax}
+%
+The default namehash  template is:
+
+\begin{ltxexample}
+\DeclareNamehashTemplate{
+  \namepart[hashscope=full]{family}
+  \namepart[hashscope=full]{given}
+  \namepart[hashscope=full]{prefix}
+  \namepart[hashscope=full]{suffix}
+}
+\end{ltxexample}
+%
+This means that these nameparts (which all must be valid datamodel nameparts declared by \cmd{DeclareDatamodelConstant}) will be used in the order specified to construct name hashes. The full namepart will be used for all nameparts.
+
+If there was a bibliography including, for example, several syntactic variations of a name where sometimes the full given name was present and sometimes only the initial but these referred to the same person, you could set:
+
+\begin{ltxexample}
+\DeclareNamehashTemplate{
+  \namepart[hashscope=full]{family}
+  \namepart[hashscope=init]{given}
+  \namepart[hashscope=full]{prefix}
+  \namepart[hashscope=full]{suffix}
+}
+\end{ltxexample}
+%
+Which would generate hashes using only the initials of the given name, thus treating <John Smith> and <J. Smith> as the same person for hashing purposes. This would prevent \biblatex from treating these as different people even though based on syntax alone (which is the default), they would be.
+
+\paragraph{Custom name hashes via the extended name format}
+
+Another way of customising name hash generation is by overriding completely the name hash construction algorithm by passing an identifier string for the name using the extended name format (\secref{use:enf}). This string will be turned into a hash as given and any name hash template will be ignored for this name. For example, to have <John Smith> and <J. Smith> seen as the same person for name identity purposes, an alternative to the above would be:
+
+\begin{lstlisting}[style=bibtex]{}
+  AUTHOR = {id=jshash, family=Smith, given=J. and id=jshash, family=Smith, given=John}
+\end{lstlisting}
+%
+Here, the identical \prm{id} parameters of the extended name format ensure that the hashes for the two names will be the same. This has the same effect as the above example using \cmd{DeclareNamehashTemplate} and is intended for trickier situations where people change names and there is therefore no mere syntactic difference between different name forms for the same person.
 
 \subsubsection{Trackers in Floats and \acr{TOC}/\acr{LOT}/\acr{LOF}}
 \label{aut:cav:flt}
@@ -14803,6 +14919,7 @@ mincrossrefs                      &\+&\+&\_&\_&\_&\_&\_\\
 minxrefs                          &\+&\+&\_&\_&\_&\_&\_\\
 minitems                          &\+&\+&\_&\+&\+&\_&\_\\
 minnames                          &\+&\+&\_&\+&\+&\_&\_\\
+namehashtemplatename              &\_&\_&\+&\_&\+&\+&\+\\
 nametemplates                     &\_&\_&\+&\_&\+&\+&\+\\
 natbib                            &\+&\_&\_&\_&\_&\_&\_\\
 nohashothers                      &\+&\+&\_&\+&\+&\+&\_\\
@@ -14855,6 +14972,27 @@ use$<$name$>$                     &\+&\+&\_&\+&\+&\_&\_\\
 This revision history is a list of changes relevant to users of this package. Changes of a more technical nature which do not affect the user interface or the behavior of the package are not included in the list. More technical details are to be found in the \file{CHANGES.md} file. The numbers on the right indicate the relevant section of this manual.
 
 \begin{changelog}
+\begin{release}{3.20}{2023-}
+\item Added \opt{bibdatendsep}\see{use:fmt:lng}
+\item Added \cmd{AtFollowingRefsections}\see{aut:fmt:hok}
+\item Added \cmd{DeclareNamehashTemplate}\see{aut:cav:ni}
+\item Added \bibfield{fullhashraw}\see{aut:bbx:fld:gen}
+\item Augmented Extended Name Format to enable override of name hashes\see{use:enf}
+\end{release}
+\begin{release}{3.19}{2023-03-05}
+\item Added \cmd{AtNextRefsection}\see{aut:fmt:hok}
+\item Added \cmd{DeclareExtradateContext} option\see{aut:ctm:fld}
+\item Modified warning for using bibtex backend
+\item Enhanced \bibfield{extradate} tracking to fallback on \bibfield{labeltitle} when there is no author
+\end{release}
+\begin{release}{3.18b}{2022-07-12}
+\item Reenable \cmd{MakeUppercase}/\cmd{MakeLowercase} <patches>
+      based on \cmd{CaseSwitch}
+\end{release}
+\begin{release}{3.18a}{2022-07-02}
+\item Disable \cmd{MakeUppercase}/\cmd{MakeLowercase} patches as emergency
+      fix for \latex 2022-06-01-PL4 compatibility.
+\end{release}
 \begin{release}{3.18}{2022-06-22}
 \item Added sorting option \cmd{intciteorder}\see{aut:ctm:srt}
 \item Added global option \opt{pluralothers}\see{use:opt:pre:gen}

@@ -184,7 +184,7 @@ STRINGS  { ctrl.alphaothers ctrl.sortalphaothers ctrl.sortstr
            last.name last.hash last.year last.extra }
 
 FUNCTION {initialize} {
-  "$Revision: 3.18 $"
+  "$Revision: 3.20 $"
   #12 entry.max$ substring$
   #-3 entry.max$ substring$
   "Biblatex version: " swap$ * top$
@@ -1820,6 +1820,7 @@ FUNCTION {output:entry} {
   push:cite wrap:braces *
   tempstrga wrap:braces *
   entryoptions wrap:braces *
+  "" wrap:braces *
   write$ newline$
   output:names
   output:lists
@@ -1928,7 +1929,7 @@ FUNCTION {input:control:options} {
 % This version corresponds to the .bcf version, *not* the biblatex version!
 FUNCTION {input:control:version} {
   input:control:parse
-  "$Revision: 3.9 $"
+  "$Revision: 3.11 $"
   #12 entry.max$ substring$
   #-3 entry.max$ substring$
   'tempstrga :=
@@ -2771,7 +2772,7 @@ SORT
 % This version corresponds to the .bbl version, *not* the biblatex version!
 FUNCTION {output:main:begin} {
   "% $ biblatex auxiliary file $"                               write$ newline$
-  "% $ biblatex bbl format version " "$Revision: 3.2 $"
+  "% $ biblatex bbl format version " "$Revision: 3.3 $"
   #12 entry.max$ substring$ #-3 entry.max$ substring$ * " $" *  write$ newline$
   "% Do not modify the above lines!"                            write$ newline$
   "%"                                                           write$ newline$
@@ -2789,7 +2790,7 @@ FUNCTION {output:main:begin} {
   "  {}"                                                        write$ newline$
   "\endgroup"                                                   write$ newline$
   newline$
-  "\datalist[entry]{" ctrl.sortstr * "/global//global/global}" *         write$
+  "\datalist[entry]{" ctrl.sortstr * "/global//global/global/global}" *         write$
 }
 
 FUNCTION {output:main:preamble} {

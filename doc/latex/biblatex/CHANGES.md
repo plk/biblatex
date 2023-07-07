@@ -1,10 +1,36 @@
+# RELEASE NOTES FOR VERSION 3.20
+- Added `\DeclareNamehashTemplate` and supporting macros to allow
+  customisation of the nameparts used in name hash construction.
+- Added facility for custom namehash ids in extended name format.
+- Added new field 'fullhashraw'.
+- Added `\@doendpe` and `\par` call to `\printbibliography` and
+  `\printbiblist`.
+  This means that `\printbibliography` and `\printbiblist`
+  now force text after them to start a new paragraph.
+  This is probably usually desired. Since most people will use
+  bibliography environments that come with an implicit `\par`
+  or at least a new line, this should hopefully not change the output
+  in too many cases.
+
+# RELEASE NOTES FOR VERSION 3.19
+- Added `\AtNextRefsection`.
+- Added `\DeclareExtradateContext`.
+
+# RELEASE NOTES FOR VERSION 3.18b
+- Reenable `\MakeUppercase`/`\MakeLowercase` "patches" for `\bibstring`
+  based on `\CaseSwitch`.
+
+# RELEASE NOTES FOR VERSION 3.18a
+- Disable `\MakeUppercase`/`\MakeLowercase` patches as emergency fix
+  for LaTeX 2022-06-01-PL4 compatibility.
+
 # RELEASE NOTES FOR VERSION 3.18
 - New sorting name key generation macro `\visibility` which allows
   application of sorting name key generation to apply only to sorting
   within citations.
 - New sorting macro `\intciteorder` which allows sorting by order internal
   to a cite command like \cite{a,b,c}.
-- New option `pluralothers` to force "et al" to be plural (i.e. only
+- New option `pluralothers` to force "et al." to be plural (i.e. only
   replace two or more names). This is required for some styles (e.g. APA)
 - Added `\localrefcontext` as a local alternative
   to the global `\newrefcontext`.
