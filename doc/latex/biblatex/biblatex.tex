@@ -1451,7 +1451,7 @@ Custom lists for special bibliography styles. Not used by the standard bibliogra
 
 Custom fields for special bibliography styles. Not used by the standard bibliography styles.
 
-\fielditem{verb{[a--c]}}{literal}
+\fielditem{verb{[a--c]}}{verbatim}
 
 Similar to the custom fields above except that these are verbatim fields. Not used by the standard bibliography styles.
 
@@ -2138,18 +2138,25 @@ The default multiscript field alternate <language> as a BCP47 tag. This controls
 
 Normally the multiscript entryfield alternates pointed to by \bibfield{labelname} and \bibfield{labeltitle} are determined for the document via the \cmd{DeclareLabelname} and \cmd{DeclareLabeltitle} commands and this determination is static. If this option is <true>, then the multiscript alternate entryfield pointed by \bibfield{labelname} and \bibfield{labeltitle} are determined dynamically by the setting of the \opt{msform} and \opt{mslang} options at the point where the \bibfield{labelname} or \bibfield{labeltitle} are printed. See \secref{use:multiscript}.
 
-\optitem[nty]{sorting}{\opt{nty}, \opt{nyt}, \opt{nyvt}, \opt{anyt}, \opt{anyvt}, \opt{ynt}, \opt{ydnt}, \opt{count}, \opt{none}, \opt{debug}, \prm{name}}
+\optitem[nty]{sorting}{\opt{nty}, \opt{ntd}, \opt{nyt}, \opt{ndt}, \opt{nyvt}, \opt{ndvt}, \opt{anyt}, \opt{andt}, \opt{anyvt}, opt{andvt}, \opt{ynt}, \opt{dnt}, \opt{ydnt}, \opt{ddnt}, \opt{none}, \opt{count}, \opt{debug}, \prm{name}}
 
 The sorting order of the bibliography. Unless stated otherwise, the entries are sorted in ascending order. The following choices are available by default:
 
 \begin{valuelist}
 \item[nty] Sort by name, title, year.
+\item[ntd] Sort by name, title, full date.
 \item[nyt] Sort by name, year, title.
+\item[ndt] Sort by name, full date, title.
 \item[nyvt] Sort by name, year, volume, title.
+\item[ndvt] Sort by name, full date, volume, title.
 \item[anyt] Sort by alphabetic label, name, year, title.
+\item[andt] Sort by alphabetic label, name, full date, title.
 \item[anyvt] Sort by alphabetic label, name, year, volume, title.
+\item[andvt] Sort by alphabetic label, name, full date, volume, title.
 \item[ynt] Sort by year, name, title.
+\item[dnt] Sort by full date, name, title.
 \item[ydnt] Sort by year (descending), name, title.
+\item[ddnt] Sort by full date (descending), name, title.
 \item[none] Do not sort at all. All entries are processed in citation order.
 \item[count] Sort in descending order of number of times cited
 \item[debug] Sort by entry key. This is intended for debugging only.
@@ -2635,7 +2642,8 @@ As \opt{mincrossrefs} but for \bibfield{xref} fields.
 
 \boolitem[true]{bibtexcaseprotection}
 
-This option only has an effect when the \sty{expl3} implementation of the case changing functions is selected. If the option is set to \opt{true}, \cmd{MakeSentenceCase*} supports brace protection of words from case change as in classical \bibtex. If the option is set to \opt{false}, pairs of braces no longer imply case protection, which can now be enforced by wrapping the relevant word in \cmd{NoCaseChange}---this makes for a less confusing, if more verbose, markup of case protection.
+This option only has an effect when the \sty{expl3} implementation of the case changing functions is selected. If the option is set to \opt{true}, \cmd{MakeSentenceCase*} supports brace protection of words from case change as in classical \bibtex. If the option is set to \opt{false}, pairs of braces no longer imply case protection, which can now be achieved by wrapping the relevant word in \cmd{NoCaseChange}---this makes for a less confusing, if more verbose, markup of case protection.
+For examples of the effect of this option refer to the documentation of \cmd{MakeSentenceCase*} in \secref{aut:aux:msc}.
 
 \end{optionlist}
 
@@ -3521,6 +3529,8 @@ The first item considered in the sorting process is always the \bibfield{presort
 
 The chronological sorting templates presented in \apxref{apx:srt:chr} also make use of the \bibfield{presort} and \bibfield{sortkey} fields, if defined. The next item considered is the \bibfield{sortyear} or the \bibfield{year} field, depending on availability. The \opt{ynt} template extracts the first four Arabic figures from the field. If both fields are undefined, the string \texttt{9999} is used as a fallback value. This means that all entries without a year will be moved to the end of the list. The \opt{ydnt} template is similar in concept but sorts the year in descending order. As with the \opt{ynt} template, the string \texttt{9999} is used as a fallback value. The remaining items are similar to the alphabetic sorting templates discussed above. Note that the \opt{ydnt} sorting template will only sort the date in descending order. All other items are sorted in ascending order as usual.
 
+Most built-in sorting templates have a variant which sorts on all of the available parts of a full ISO8601 date right down to \bibfield{seconds} instead of only the year, see \secref{use:opt:pre}.
+
 Using special fields such as \bibfield{sortkey}, \bibfield{sortname}, or \bibfield{sorttitle} is usually not required. The \biblatex package is quite capable of working out the desired sorting order by using the data found in the regular fields of an entry. You will only need them if you want to manually modify the sorting order of the bibliography or if any data required for sorting is missing. Please refer to the field descriptions in \secref{bib:fld:spc} for details on possible uses of the special fields.
 
 \subsection{Data Annotations}
@@ -3919,7 +3929,7 @@ This command loops over all bibliography categories. This is equivalent to givin
 
 \cmditem{printbibheading}[key=value, \dots]
 
-This command prints a bibliography heading defined with \cmd{defbibheading}. It takes one optional argument, which is a list of options given in \keyval notation. The options are a small subset of those supported by \cmd{printbibliography}. Valid options are \opt{heading}, \opt{title} and \opt{label}. By default, this command uses the heading \texttt{bibliography}. See \secref{use:bib:hdg} for details. Also see \secref{use:use:mlt,use:use:div} for usage examples.
+This command prints a bibliography heading defined with \cmd{defbibheading}. It takes one optional argument, which is a list of options given in \keyval notation. The options are a small subset of those supported by \cmd{printbibliography}. Valid options are \opt{heading}, \opt{title}, \opt{label}, \opt{prenote} and \opt{postnote}. Note that both the \opt{prenote} and \opt{postnote} argument are printed after the heading. Their behaviour exactly mirrors that of \cmd{printbibliography}, except that no bibliography is created in between the two notes. By default, this command uses the heading \texttt{bibliography}. See \secref{use:bib:hdg} for details. Also see \secref{use:use:mlt,use:use:div} for usage examples.
 
 \cmditem{DeclarePrintbibliographyDefaults}{key=value, \dots}
 
@@ -3955,7 +3965,7 @@ This command prints a bibliography list. It takes an optional argument, which is
 The \prm{biblistname} is a mandatory argument which names the bibliography list. This name is used to identify:
 \begin{itemize}
 \item The default bibliography driver used to print the list entries
-\item A default bibliography list filter declared with \cmd{DeclareBiblistFilter} (see \secref{aut:ctm:bibfilt}) used to filter the entries returned from \biber
+\item A default bibliography list filter declared with \cmd{DeclareBiblistFilter} (see \secref{aut:ctm:bibfilt}) used to filter the entries returned by \biber in the \file{.bbl}
 \item A default check declared with \cmd{defbibcheck} (see \secref{use:bib:flt}) used to post-process the list entries
 \item The default bib environment to use
 \item The default sorting template to use
@@ -15591,8 +15601,8 @@ This revision history is a list of changes relevant to users of this package. Ch
 \begin{release}{4.0}{2022-}
 \item Multiscript support\see{use:multiscript}
 \end{release}
-\begin{release}{3.19}{2022}
 \begin{release}{3.20}{2023-}
+\item Added default full date sorting templates\see{use:opt:pre}
 \item Added \opt{bibdatendsep}\see{use:fmt:lng}
 \item Added \cmd{AtFollowingRefsections}\see{aut:fmt:hok}
 \item Added \cmd{DeclareNamehashTemplate}\see{aut:cav:ni}

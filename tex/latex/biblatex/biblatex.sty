@@ -370,21 +370,11 @@
   \toggletrue{blx@tempa}%
   % kernel definition
   \patchcmd\addtocontents
-    {\let\glossary\@gobble}
-    {\let\glossary\@gobble
-     \blx@contentssafe@citecommands}
+    {\let}
+    {\blx@contentssafe@citecommands
+     \let}
     {}
-    {\togglefalse{blx@tempa}}%
-  % try tag.sto's definition
-  \iftoggle{blx@tempa}
-    {}
-    {\patchcmd\addtocontents
-       {\let\glossary\Gobble}
-       {\let\glossary\Gobble
-        \blx@contentssafe@citecommands}
-       {}
-       {% give up
-       \blx@err@patch{\string\addtocontents}}}%
+    {\blx@err@patch{\string\addtocontents}}%
   % patch footnote
   \toggletrue{blx@tempa}%
   \def\do#1{%
@@ -1295,7 +1285,7 @@
   \undef\blx@do
   \undef\blx@done}
 
-% {<listmacro>}{<listcsname>} => matches in <listmacro>
+% {<listmacro>}{<listcsname>} => elements of <listmacro> that are in <listcsname>
 \protected\def\blx@filter#1#2{%
   \def\do##1{%
     \ifinlistcs{##1}{#2}
@@ -1320,7 +1310,7 @@
      {}}%
  \blx@runfilter#1}
 
-% {<listmacro>}{<listcsname>} => neg. matches in <listmacro>
+% {<listmacro>}{<listcsname>} => elements of <listmacro> that are not in <listcsname>
 \protected\def\blx@notfilter#1#2{%
   \def\do##1{%
     \ifinlistcs{##1}{#2}
@@ -10944,6 +10934,8 @@
   \blx@key@bibnote{\blx@theprenote}{#1}}
 \blx@kv@defkey{blx@bbc}{prenote}{%
   \blx@key@bibnote{\blx@theprenote}{#1}}
+\blx@kv@defkey{blx@bhd}{prenote}{%
+  \blx@key@bibnote{\blx@theprenote}{#1}}
 
 \let\blx@default@thepostnote\@empty
 \blx@kv@defkey{blx@bibdefaults}{postnote}{%
@@ -10958,7 +10950,8 @@
   \blx@key@bibnote{\blx@thepostnote}{#1}}
 \blx@kv@defkey{blx@bbc}{postnote}{%
   \blx@key@bibnote{\blx@thepostnote}{#1}}
-
+\blx@kv@defkey{blx@bhd}{postnote}{%
+  \blx@key@bibnote{\blx@thepostnote}{#1}}
 
 \blx@kv@defkey{blx@bibdefaults}{locallabelwidth}{%
   \blx@key@locallabelwidth{#1}}
@@ -11011,12 +11004,16 @@
 \def\blx@printbibheading[#1]{%
   \let\blx@theheading\blx@default@theheading
   \let\blx@thetitle\blx@default@thetitle
+  \let\blx@theprenote\blx@default@theprenote
+  \let\blx@thepostnote\blx@default@thepostnote
   \undef\blx@thelabel
   \blx@safe@actives
   \blx@kv@setkeys{blx@bhd}{#1}%
   \blx@rest@actives
   \blx@bibheading\blx@theheading\blx@thetitle
   \blx@biblabel\blx@thelabel
+  \blx@bibnote\blx@theprenote
+  \blx@bibnote\blx@thepostnote
   \endgroup}
 
 % We use this to determine whether an explicit value for resetnumbers is passed to
@@ -11240,7 +11237,8 @@
   \blx@locallabelwidth@finish
   \endgroup
   \blx@bibnote\blx@thepostnote
-  \endgroup}
+  \expandafter\endgroup\if@endpe\@doendpe\fi
+  \par}
 
 \def\blx@bibheading#1#2{%
   \begingroup
@@ -11590,8 +11588,9 @@
   \blx@locallabelwidth@finish
   \endgroup
   \blx@bibnote\blx@thepostnote
-  \endgroup
-  \if@restonecol\twocolumn\fi}
+  \expandafter\endgroup\if@endpe\@doendpe\fi
+  \if@restonecol\twocolumn\fi
+  \par}
 
 % {<biblistname>}
 \newrobustcmd*{\AtBeginBiblist}[1]{\csgappto{blx@hook@biblistinit@#1}}
