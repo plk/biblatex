@@ -16,7 +16,7 @@
   AUTHOR_transliteration_el+an:mslang        = {1="en"},
   LOCATION                                   = {locationa and Standort"s},
   LOCATION+an:mslang                         = {2="de"},
-  LOCATION_translation_fr                    = {emplacementa and Standortb},
+  LOCATION_translation_fr                    = {emplacementa and Standort"s},
   LOCATION_translation_fr+an:mslang          = {2="de"},
   TITLE                                      = {Title},
   TITLE_translation_fr                       = {Titre},
@@ -29,6 +29,12 @@
             autolang=other,%
             autofieldlang=other]{biblatex}
 \addbibresource{\jobname.bib}
+
+% In greek (el) contexts, fall back to translation/french if there is no
+% mslang=greek/el alternate
+\DeclareMsselect{el}{
+  \alternate{translation}{fr}
+}
 
 \begin{document}
 % Here we are citing and printing the bibliography using data contained in
@@ -92,7 +98,7 @@
 % Here we are citing and printing the bibliography using data contained in
 % the entryfields of alternate msform="transliteration" and mslang="el"
 \begin{refcontext}[msform=transliteration,mslang=el]
-
+  
   % Notice that due to the "dynamiclabel=true" option, the labelname printed in the citation
   % is not the static labelname as determined by \DeclareLabelname but the alternate
   % of the labelname determined by the current (refcontext) msform/mslang options
@@ -112,9 +118,14 @@
   % inside a babel \otherlanguage{english} context where additionally, all biblatex english
   % bibstrings are activated
 
-  % No location field is printed in the bibliography because there is no transliterated greek
-  % alternate for this field, only a translated french alternate. The same applied to the title
-  % field
+  % French location field is printed (with German for the second item, as
+  % explained above) in the bibliography because there is no transliterated greek
+  % alternate for this field but \DeclareMsselect allows a fallback to
+  % translation/fr. The same applied to the title field
   \printbibliography
 \end{refcontext}
 \end{document}
+
+% Local Variables:
+% TeX-engine: luatex
+% End:
