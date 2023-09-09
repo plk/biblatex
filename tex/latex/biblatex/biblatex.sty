@@ -5015,50 +5015,9 @@
         \blx@theformat{#2}%
         \blx@endunit}}}
 
-% % This loops over all form/lang pairs defined for a field and uses the first one it finds
-% % by defining \blx@cmsform/\blx@cmslang according to what it finds
-% % {bcp47tag}{entryfield}{entryfieldtype}
-% \DeclareDocumentCommand{\blx@ifmsselect}
-%   {m m m}
-%   {\blx@imc@ifmsentryfield{#2}
-%      {\boolfalse{selectms}%
-%        % First check the current \blx@msform/\blx@mslang
-%        % Must explicitly specify form/lang here and not rely on defaults as \blx@ifmsundef
-%        % checks if *any* alternates are defined if no form/lang is passed
-%        \blx@ifmsundef{#3}[\blx@msform][\blx@mslang]{#2}
-%        % If not defined, then check the select list for the language (tag) of the entry
-%        {\ifcsdef{blx@msselect@#1}
-%           {\let\blx@tempa\@empty
-%            \begingroup
-%            \def\do##1{\do@i##1}% \blx@msselect@* list contains pairs like {form}{lang}|{form}{lang}
-%            \def\do@i##1##2{%
-%              \blx@ifmsundef{#3}[{##1}][{##2}]{#2}
-%                {}
-%                {% Found a field alternate, save form/lang values and exit listloop
-%                 \gappto\blx@tempa{\def\blx@cmsform{##1}}%
-%                 \gappto\blx@tempa{\def\blx@cmslang{##2}}%
-%                 \gappto\blx@tempa{\booltrue{selectms}}%
-%                 \listbreak}}%
-%             \dolistcsloop{blx@msselect@#1}%
-%             \endgroup
-%             \blx@tempa\undef\blx@tempa}
-%           {}}
-%         {\booltrue{selectms}%
-%          \let\blx@cmsform\blx@msform
-%          \let\blx@cmslang\blx@mslang}% Found the current form/lang alternate
-%       \ifbool{selectms}
-%         {\@secondoftwo}% found an alternate
-%         {\blx@imc@iffieldundef{langid}% No alternate found, check form/langid as last resort
-%            {\@firstoftwo}
-%            {\blx@ifmsundef{#3}[\blx@msform][\blx@lmslang]{#2}
-%               {\@firstoftwo}
-%               {\let\blx@cmsform\blx@msform
-%                \let\blx@cmslang\blx@lmslang}%
-%                \@secondoftwo}}}
-%      {\blx@ifmsundef{#3}{#2}}} % Not a multiscript field, just do a normal undef check
-
 % This loops over all form/lang pairs defined for a field and uses the first one it finds
 % by defining \blx@cmsform/\blx@cmslang according to what it finds
+% Falls back on entry-specific language and then global language
 % {bcp47tag}{entryfield}{entryfieldtype}
 \DeclareDocumentCommand{\blx@ifmsselect}
   {m m m}
