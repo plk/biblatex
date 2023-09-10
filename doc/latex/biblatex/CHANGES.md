@@ -1,4 +1,6 @@
 # RELEASE NOTES FOR VERSION 3.20
+- Added new option settings `minyearinit` and `minyearfull` for
+  `uniquename`
 - Added `\DeclareNamehashTemplate` and supporting macros to allow
   customisation of the nameparts used in name hash construction.
 - Added facility for custom namehash ids in extended name format.
