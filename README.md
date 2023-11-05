@@ -4,7 +4,7 @@ This package provides advanced bibliographic facilities for use with LaTeX.
 
 The package is a complete reimplementation of the bibliographic facilities
 provided by LaTeX. A custom backend Biber is used by default which
-processes BibTeX format data files and them performs all sorting, label
+processes BibTeX format data files and then performs all sorting, label
 generation (and a great deal more).
 
 Biblatex does not use the backend to
