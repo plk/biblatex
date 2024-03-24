@@ -33,16 +33,18 @@
 
 \newbibmacro*{cite}{%
   \iffieldundef{shorthand}
-    {\ifthenelse{\ifciteibid\AND\NOT\iffirstonpage}
+    {\ifboolexpr{test {\ifciteibid} and not test {\iffirstonpage}}
        {\usebibmacro{cite:ibid}}
-       {\ifthenelse{\ifnameundef{labelname}\OR\iffieldundef{labelyear}}
+       {\ifboolexpr{test {\ifnameundef{labelname}}
+                    or test {\iffieldundef{labelyear}}}
           {\usebibmacro{cite:label}%
            \setunit{\printdelim{nonameyeardelim}}%
            \usebibmacro{cite:labeldate+extradate}%
            \usebibmacro{cite:reinit}}
           {\iffieldequals{namehash}{\cbx@lasthash}
-             {\ifthenelse{\iffieldequals{labelyear}{\cbx@lastyear}\AND
-                          \(\value{multicitecount}=0\OR\iffieldundef{postnote}\)}
+             {\ifboolexpr{test {\iffieldequals{labelyear}{\cbx@lastyear}}
+                       and (test {\ifnumequal{\value{multicitecount}}{0}}
+                            or test {\iffieldundef{postnote}})}
                 {\setunit{\addcomma}%
                  \usebibmacro{cite:extradate}}
                 {\setunit{\compcitedelim}%
@@ -59,14 +61,15 @@
 
 \newbibmacro*{citeyear}{%
   \iffieldundef{shorthand}
-    {\ifthenelse{\ifciteibid\AND\NOT\iffirstonpage}
+    {\ifboolexpr{test {\ifciteibid} and not test {\iffirstonpage}}
        {\usebibmacro{cite:ibid}}
        {\iffieldundef{labelyear}
           {\usebibmacro{cite:label}%
            \usebibmacro{cite:reinit}}
           {\iffieldequals{namehash}{\cbx@lasthash}
-             {\ifthenelse{\iffieldequals{labelyear}{\cbx@lastyear}\AND
-                          \(\value{multicitecount}=0\OR\iffieldundef{postnote}\)}
+             {\ifboolexpr{test {\iffieldequals{labelyear}{\cbx@lastyear}}
+                       and (test {\ifnumequal{\value{multicitecount}}{0}}
+                            or test {\iffieldundef{postnote}})}
                 {\setunit{\addcomma}%
                  \usebibmacro{cite:extradate}}
                 {\setunit{\compcitedelim}%
@@ -82,8 +85,9 @@
 \newbibmacro*{textcite}{%
   \iffieldequals{namehash}{\cbx@lasthash}
     {\iffieldundef{shorthand}
-       {\ifthenelse{\iffieldequals{labelyear}{\cbx@lastyear}\AND
-                    \(\value{multicitecount}=0\OR\iffieldundef{postnote}\)}
+       {\ifboolexpr{test {\iffieldequals{labelyear}{\cbx@lastyear}}
+                    and (test {\ifnumequal{\value{multicitecount}}{0}}
+                         or test {\iffieldundef{postnote}})}
           {\setunit{\addcomma}%
            \usebibmacro{cite:extradate}}
           {\setunit{\compcitedelim}%
@@ -101,7 +105,7 @@
            \ifnumequal{\value{citecount}}{1}
              {\usebibmacro{prenote}}
              {}%
-           \ifthenelse{\ifciteibid\AND\NOT\iffirstonpage}
+           \ifboolexpr{test {\ifciteibid} and not test {\iffirstonpage}}
              {\usebibmacro{cite:ibid}}
              {\usebibmacro{cite:labeldate+extradate}}}
           {\usebibmacro{cite:shorthand}}}
@@ -115,7 +119,7 @@
         \iffieldundef{shorthand}
           {\iffieldundef{labelyear}
              {\usebibmacro{cite:label}}
-             {\ifthenelse{\ifciteibid\AND\NOT\iffirstonpage}
+             {\ifboolexpr{test {\ifciteibid} and not test {\iffirstonpage}}
                 {\usebibmacro{cite:ibid}}
                 {\usebibmacro{cite:labeldate+extradate}}}%
            \savefield{labelyear}{\cbx@lastyear}}
@@ -174,7 +178,7 @@
   \ifbool{cbx:loccit}
     {}
     {\usebibmacro{postnote}}%
-  \ifthenelse{\value{multicitecount}=\value{multicitetotal}}
+  \ifnumequal{\value{multicitecount}}{\value{multicitetotal}}
     {\setunit{}%
      \printtext{%
        \ifbool{cbx:parens}
@@ -255,7 +259,8 @@
    \pagetrackerfalse%
    \DeferNextCitekeyHook%
    \usebibmacro{cite:init}}
-  {\ifthenelse{\iffirstcitekey\AND\value{multicitetotal}>0}
+  {\ifboolexpr{test {\iffirstcitekey}
+               and test {\ifnumgreater{\value{multicitetotal}}{0}}}
      {\protected@xappto\cbx@savedcites{()(\thefield{multipostnote})}%
       \global\clearfield{multipostnote}}
      {}%

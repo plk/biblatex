@@ -32,7 +32,7 @@
 
 \newbibmacro*{cite}{%
   \iffieldundef{shorthand}
-    {\ifthenelse{\ifciteibid\AND\NOT\iffirstonpage}
+    {\ifboolexpr{test {\ifciteibid} and not test {\iffirstonpage}}
        {\usebibmacro{cite:ibid}}
        {\iffieldequals{namehash}{\cbx@lasthash}
           {\setunit{\compcitedelim}}
@@ -46,7 +46,7 @@
 
 \newbibmacro*{citetitle}{%
   \iffieldundef{shorthand}
-    {\ifthenelse{\ifciteibid\AND\NOT\iffirstonpage}
+    {\ifboolexpr{test {\ifciteibid} and not test {\iffirstonpage}}
        {\usebibmacro{cite:ibid}}
        {\usebibmacro{cite:title}}}%
     {\usebibmacro{cite:shorthand}}%
@@ -65,7 +65,7 @@
     {\usebibmacro{prenote}}
     {}%
   \iffieldundef{shorthand}
-    {\ifthenelse{\ifciteibid\AND\NOT\iffirstonpage}
+    {\ifboolexpr{test {\ifciteibid} and not test {\iffirstonpage}}
        {\usebibmacro{cite:ibid}}
        {\usebibmacro{cite:title}}}%
     {\usebibmacro{cite:shorthand}}%
@@ -102,7 +102,7 @@
           \printdelim{extpostnotedelim}\bibopenparen}}
        {\setunit{\printdelim{postnotedelim}}}%
      \printfield{postnote}}%
-  \ifthenelse{\value{multicitecount}=\value{multicitetotal}}
+  \ifnumequal{\value{multicitecount}}{\value{multicitetotal}}
     {\setunit{}%
      \printtext{%
        \ifbool{cbx:parens}
@@ -183,7 +183,8 @@
    \pagetrackerfalse%
    \DeferNextCitekeyHook%
    \usebibmacro{cite:init}}
-  {\ifthenelse{\iffirstcitekey\AND\value{multicitetotal}>0}
+  {\ifboolexpr{test {\iffirstcitekey}
+               and test {\ifnumgreater{\value{multicitetotal}}{0}}}
      {\protected@xappto\cbx@savedcites{()(\thefield{multipostnote})}%
       \global\clearfield{multipostnote}}
      {}%
