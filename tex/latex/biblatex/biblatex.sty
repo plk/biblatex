@@ -345,7 +345,14 @@
     {\blx@contentssafe@citecommands
      \let}
     {}
-    {\blx@err@patch{\string\addtocontents}}%
+    {% revtex
+     % (which defines \robustify@contents to make commands safe
+     % in this context, so we check if we can have that)
+     \ifundef\robustify@contents
+       {\@secondoftwo}
+       {\ifpatchable\addtocontents{\robustify@contents}}
+       {\appto\robustify@contents{\blx@contentssafe@citecommands}}
+       {\blx@err@patch{\string\addtocontents}}}%
   % patch footnote
   \toggletrue{blx@tempa}%
   \def\do#1{%
