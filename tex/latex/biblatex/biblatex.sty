@@ -10236,23 +10236,21 @@
   \def\abx@aux@page#1#2{\blx@addpagesum{#1}{#2}}%
   \def\abx@aux@fnpage#1#2{\blx@addpagesum{#1}{#2}}}
 
-% hyperref interface
-\appto\blx@mkhyperref{%
-  \let\blx@anchors\@empty
-  \ifundef\hyper@natanchorstart
-    {\protected\def\blx@anchor{%
-       \xifinlist{\the\c@refsection @\abx@field@entrykey}{\blx@anchors}
-         {}
-         {\listxadd\blx@anchors{\the\c@refsection @\abx@field@entrykey}%
-          \hypertarget{cite.\the\c@refsection @\abx@field@entrykey}{}}}}
-    {\protected\def\blx@anchor{%
-       \xifinlist{\the\c@refsection @\abx@field@entrykey}{\blx@anchors}
-         {}
-         {\listxadd\blx@anchors{\the\c@refsection @\abx@field@entrykey}%
-          \hyper@natanchorstart{\the\c@refsection @\abx@field@entrykey}%
-          \hyper@natanchorend}}}}
 
-\appto\blx@mknohyperref{\let\blx@anchor\relax}
+% hyperref interface
+% see https://github.com/plk/biblatex/issues/1366
+\let\blx@anchors\@empty
+
+\protected\def\blx@anchor{%
+  \xifinlist{\the\c@refsection @\abx@field@entrykey}{\blx@anchors}
+    {}
+    {\listxadd\blx@anchors{\the\c@refsection @\abx@field@entrykey}%
+     \hyper@natanchorstart{\the\c@refsection @\abx@field@entrykey}%
+     \hyper@natanchorend}}
+
+% fallback defs
+\providecommand\hyper@natanchorstart[1]{}%
+\providecommand\hyper@natanchorend{}%
 
 \blx@kv@defkey{blx@biblist2}{driver}{\blx@key@driver{#1}}
 \blx@kv@defkey{blx@biblist1}{driver}{}
@@ -12285,51 +12283,46 @@
     \expandafter\@secondoftwo
   \fi}
 
-%  hyperref interface
-\appto\blx@mkhyperref{%
-  \protected\def\blx@imc@bibhyperref{%
-    \@ifnextchar[%]
-      {\blx@bibhyperref}
-      {\blx@bibhyperref[\abx@field@entrykey]}}%
-  \ifundef\hyper@natanchorstart
-    {\long\def\blx@bibhyperref[#1]#2{%
-       \blx@sfsave\hyperlink{cite.\the\c@refsection @#1}{\blx@sfrest
-         #2%
-       \blx@sfsave}\blx@sfrest}%
-     \protected\long\def\blx@imc@bibhyperlink#1#2{%
-       \blx@sfsave\hyperlink{cite.\the\c@refsection:#1}{\blx@sfrest
-         #2%
-       \blx@sfsave}\blx@sfrest}%
-     \protected\long\def\blx@imc@bibhypertarget#1#2{%
-       \blx@sfsave\hypertarget{cite.\the\c@refsection:#1}{\blx@sfrest
-         #2%
-       \blx@sfsave}\blx@sfrest}}%
-    {\long\def\blx@bibhyperref[#1]#2{%
-       \blx@sfsave\hyper@natlinkstart{\the\c@refsection @#1}\blx@sfrest
-       #2%
-       \blx@sfsave\hyper@natlinkend\blx@sfrest}%
-     \protected\long\def\blx@imc@bibhyperlink#1#2{%
-       \blx@sfsave\hyper@natlinkstart{\the\c@refsection:#1}\blx@sfrest
-       #2%
-       \blx@sfsave\hyper@natlinkend\blx@sfrest}%
-     \protected\long\def\blx@imc@bibhypertarget#1#2{%
-       \blx@sfsave\hyper@natanchorstart{\the\c@refsection:#1}\blx@sfrest
-       #2%
-       \blx@sfsave\hyper@natanchorend\blx@sfrest}}
-  \let\blx@imc@ifhyperref\@firstoftwo
-  \def\blx@sf{\spacefactor}%
-  \def\blx@sfsave{%
-    \blx@leavevmode
-    \numgdef\blx@sf{\spacefactor}}%
-  \def\blx@sfrest{%
-    \ifhmode\spacefactor\blx@sf\relax\fi
-    \gdef\blx@sf{\spacefactor}}}
+% hyperref support (we use fallbacks if hyperref is not loaded,
+% see https://github.com/plk/biblatex/issues/1366)
+\protected\def\blx@imc@bibhyperref{%
+  \@ifnextchar[%]
+    {\blx@bibhyperref}
+    {\blx@bibhyperref[\abx@field@entrykey]}}%
 
+\long\def\blx@bibhyperref[#1]#2{%
+  \blx@sfsave\hyper@natlinkstart{\the\c@refsection @#1}\blx@sfrest
+  #2%
+  \blx@sfsave\hyper@natlinkend\blx@sfrest}%
+
+\protected\long\def\blx@imc@bibhyperlink#1#2{%
+  \blx@sfsave\hyper@natlinkstart{\the\c@refsection:#1}\blx@sfrest
+  #2%
+  \blx@sfsave\hyper@natlinkend\blx@sfrest}%
+
+\protected\long\def\blx@imc@bibhypertarget#1#2{%
+  \blx@sfsave\hyper@natanchorstart{\the\c@refsection:#1}\blx@sfrest
+  #2%
+  \blx@sfsave\hyper@natanchorend\blx@sfrest}%
+
+\def\blx@sf{\spacefactor}%
+\def\blx@sfsave{%
+  \blx@leavevmode
+  \numgdef\blx@sf{\spacefactor}}%
+\def\blx@sfrest{%
+  \ifhmode\spacefactor\blx@sf\relax\fi
+  \gdef\blx@sf{\spacefactor}}
+
+
+\appto\blx@mkhyperref{%
+  \let\blx@imc@ifhyperref\@firstoftwo
+}
+
+% fallback defs
 \appto\blx@mknohyperref{%
-  \protected\def\blx@imc@bibhyperref{\@ifnextchar[\blx@nohyperref\@firstofone}%
+  \providecommand\hyper@natlinkstart[1]{}%
+  \providecommand\hyper@natlinkend{}%
   \def\blx@nohyperref[#1]#2{#2}%
-  \let\blx@imc@bibhyperlink\@secondoftwo
-  \let\blx@imc@bibhypertarget\@secondoftwo
   \let\blx@imc@ifhyperref\@secondoftwo}
 
 \blx@regimcs{%
@@ -14998,7 +14991,7 @@
   \endgroup}
 \@onlypreamble\DeclareExtradateContext
 \blx@DeclareBackendOption{global,type}[xml]{extradatecontext}
-  
+
 \newrobustcmd*{\DeclareLabelname}[2][]{%
   \begingroup
   \let\blx@tempa\@empty
@@ -16115,7 +16108,7 @@
 
 \DeclareBiblatexOption{global}[boolean]{pluralothers}[true]{%
   \settoggle{blx@pluralothers}{#1}}
-  
+
 \blx@DeclareBackendOption{entry,namelist}[string]{uniquelist}
 
 \DeclareBiblatexOption{global,type}[boolean]{nohashothers}[true]{%
