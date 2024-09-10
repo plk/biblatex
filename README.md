@@ -4,7 +4,7 @@ This package provides advanced bibliographic facilities for use with LaTeX.
 
 The package is a complete reimplementation of the bibliographic facilities
 provided by LaTeX. A custom backend Biber is used by default which
-processes BibTeX format data files and them performs all sorting, label
+processes BibTeX format data files and then performs all sorting, label
 generation (and a great deal more).
 
 Biblatex does not use the backend to
@@ -150,5 +150,5 @@ Suggestions and bug reports are welcome.
 
 - Go to the Github [issues page](https://github.com/plk/biblatex/issues).
 - Open an issue.
-- Add a [minimal working example](http://www.tex.ac.uk/cgi-bin/texfaq2html?label=minxampl) if
+- Add a [minimal working example](https://texfaq.org/FAQ-minxampl) if
   possible. This helps a great deal facilitate a swift response.

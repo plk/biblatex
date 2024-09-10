@@ -2,6 +2,7 @@
 [\abx@lbxid]
 
 \DeclareBibliographyExtras{%
+  \renewrobustcmd*{\bibdatesep}{\adddot\addnbthinspace}%
   \DeclareCapitalPunctuation{.!?}%
   \protected\def\bibrangedash{%
     \textendash\penalty\hyphenpenalty}% breakable dash
@@ -28,25 +29,28 @@
   \protected\def\mkbibdateshort#1#2#3{%
     \iffieldundef{#3}
       {}
-      {\mkdayzeros{\thefield{#3}}\adddot
-       \iffieldundef{#2}{}{\thinspace}}%
+      {\mkdayzeros{\thefield{#3}}\bibdatesep}%
     \iffieldundef{#2}
       {}
       {\mkmonthzeros{\thefield{#2}}%
        \iffieldundef{#1}
          {}
-         {\iffieldundef{#3}{/}{\adddot\thinspace}}}%
+         {\bibdatesep}}%
           \iffieldbibstring{#1}
             {\bibstring{\thefield{#1}}}
             {\dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}}}%
   \expandafter\protected\expandafter\def\csname mkbibtime24h\endcsname#1#2#3#4{%
-      \iffieldundef{#1}{}
-        {\printtext{\mktimezeros{\thefield{#1}}}\setunit{\bibtimesep}}%
-      \iffieldundef{#2}{}
-        {\printtext{\mktimezeros{\thefield{#2}}}\setunit{\bibtimesep}}%
-      \iffieldundef{#3}{}
-        {\printtext{\mktimezeros{\thefield{#3}}}}%
-      \setunit{}%
+      \iffieldundef{#1}
+        {}
+        {\mktimezeros{\thefield{#1}}%
+         \iffieldundef{#2}{}{\bibtimesep}}%
+      \iffieldundef{#2}
+        {}
+        {\mktimezeros{\thefield{#2}}%
+         \iffieldundef{#3}{}{\bibtimesep}}%
+      \iffieldundef{#3}
+        {}
+        {\mktimezeros{\thefield{#3}}}%
       \iffieldundef{#4}{}
         {\bibtimezonesep
          \mkbibtimezone{\thefield{#4}}}}%
@@ -63,73 +67,45 @@
       \iffieldundef{#4}{}
        {\space\bibtimezonesep
         \parentext{\mkbibtimezone{\thefield{#4}}}}}%
-  \protected\def\mkbibseasondateshort#1#2{%
-    \mkbibseason{\thefield{#2}}%
+  \protected\def\mkbibyeardivisiondateshort#1#2{%
+    \mkbibyeardivision{\thefield{#2}}%
     \iffieldundef{#1}{}{\space}%
     \dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}}%
-  \protected\def\mkbibseasondatelong#1#2{%
-    \mkbibseason{\thefield{#2}}%
+  \protected\def\mkbibyeardivisiondatelong#1#2{%
+    \mkbibyeardivision{\thefield{#2}}%
     \iffieldundef{#1}{}{\space}%
     \dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}}%
 }
 
 \DeclareBibliographyStrings{%
-  bibliography     = {{Zoznam bibliografick\'{y}ch odkazov}%
-                      {Bibliografia}},
-  references       = {{Cit\'{a}cie}%                  % ISO 690 -- section 2.15
-                      {Cit\'{a}cie}},
-  shorthands       = {{Zoznam skratiek}%
-                      {Skratky}},
-  editor           = {{editor}%
-                      {ed\adddot}},
-  editors          = {{editori}%
-                      {ed\adddot}},
-  compiler         = {{zostavovate\v{l}}%             % ISO 690 -- section 5.1 -- c)
-                      {zost\adddot}},
-  compilers        = {{zostavovatelia}%
-                      {zost\adddot}},
-  redactor         = {{redaktor}%
-                      {red\adddot}},
-  redactors        = {{redaktori}%
-                      {red\adddot}},
-  reviser          = {{korektor}%
-                      {kor\adddot}},
-  revisers         = {{korektori}%
-                      {kor\adddot}},
-  founder          = {{zakladate\v{l}}%
-                      {zakl\adddot}},
-  founders         = {{zakladatelia}%
-                      {zakl\adddot}},
-  continuator      = {{pokra\v{c}ovate\v{l}}%
-                      {pokr\adddot}},
-  continuators     = {{pokra\v{c}ovatelia}%
-                      {pokr\adddot}},
-  collaborator     = {{spolupracovn\'{i}k}%
-                      {spoluprac\adddot}},
-  collaborators    = {{spolupracovn\'{i}ci}%
-                      {spoluprac\adddot}},
-  translator       = {{prekladate\v{l}}%
-                      {prekl\adddot}},
-  translators      = {{prekladatelia}%
-                      {prekl\adddot}},
-  commentator      = {{koment\'{a}tor}%
-                      {kom\adddot}},
-  commentators     = {{koment\'{a}tori}%
-                      {kom\adddot}},
-  annotator        = {{anot\'{a}tor}%
-                      {anot\adddot}},
-  annotators       = {{anot\'{a}tori}%
-                      {anot\adddot}},
-  commentary       = {{koment\'{a}r}%
-                      {kom\adddot}},
-  annotations      = {{anot\'{a}cia}%
-                      {anot\adddot}},
-  introduction     = {{\'{u}vod}%
-                      {\'{u}v\adddot}},
-  foreword         = {{predhovor}%
-                      {predh\adddot}},
-  afterword        = {{doslov}%
-                      {dosl\adddot}},
+  bibliography     = {{Zoznam literat\'{u}ry}{Bibliografia}},
+  references       = {{Referencie}{Referencie}},
+  shorthands       = {{Zoznam skratiek}{Skratky}},
+  editor           = {{editor}{ed\adddot}},
+  editors          = {{editori}{ed\adddot}},
+  compiler         = {{zostavovate\v{l}}{zost\adddot}},
+  compilers        = {{zostavovatelia}{zost\adddot}},
+  redactor         = {{redaktor}{red\adddot}},
+  redactors        = {{redaktori}{red\adddot}},
+  reviser          = {{korektor}{kor\adddot}},
+  revisers         = {{korektori}{kor\adddot}},
+  founder          = {{zakladate\v{l}}{zakl\adddot}},
+  founders         = {{zakladatelia}{zakl\adddot}},
+  continuator      = {{pokra\v{c}ovate\v{l}}{pokr\adddot}},% FIXME: unsure
+  continuators     = {{pokra\v{c}ovatelia}{pokr\adddot}},% FIXME: unsure
+  collaborator     = {{spolupracovn\'{\i}k}{spoluprac\adddot}},
+  collaborators    = {{spolupracovn\'{\i}ci}{spoluprac\adddot}},
+  translator       = {{prekladate\v{l}}{prekl\adddot}},
+  translators      = {{prekladatelia}{prekl\adddot}},
+  commentator      = {{koment\'{a}tor}{kom\adddot}},
+  commentators     = {{koment\'{a}tori}{kom\adddot}},
+  annotator        = {{anot\'{a}tor}{anot\adddot}},
+  annotators       = {{anot\'{a}tori}{anot\adddot}},
+  commentary       = {{koment\'{a}r}{kom\adddot}},
+  annotations      = {{anot\'{a}cie}{anot\adddot}},
+  introduction     = {{\'{u}vod}{\'{u}v\adddot}},
+  foreword         = {{predhovor}{predh\adddot}},
+  afterword        = {{doslov}{dosl\adddot}},
   editortr         = {{editor a prekladate\v{l}}%
                       {ed\adddotspace a prekl\adddot}},
   editorstr        = {{editori a prekladatelia}%
@@ -230,97 +206,84 @@
                       {prekl\adddot\ a anot\adddot}},
   translatorsan    = {{prekladatelia a anot\'{a}tori}%
                       {prekl\adddot\ a anot\adddot}},
-  translatorin     = {{prekladate\v{l} a \'{u}vod}%
+  translatorin     = {{preklad a \'{u}vod}%
                       {prekl\adddot\ a \'{u}v\adddot}},
-  translatorsin    = {{prekladatelia a \'{u}vod}%
+  translatorsin    = {{preklad a \'{u}vod}%
                       {prekl\adddot\ a \'{u}v\adddot}},
-  translatorfo     = {{prekladate\v{l} a predhovor}%
+  translatorfo     = {{preklad a predhovor}%
                       {prekl\adddot\ a predh\adddot}},
-  translatorsfo    = {{prekladatelia a predhovor}%
+  translatorsfo    = {{preklad a predhovor}%
                       {prekl\adddot\ a predh\adddot}},
-  translatoraf     = {{prekladate\v{l} a doslov}%
+  translatoraf     = {{preklad a doslov}%
                       {prekl\adddot\ a dosl\adddot}},
-  translatorsaf    = {{prekladatelia a doslov}%
+  translatorsaf    = {{preklad a doslov}%
                       {prekl\adddot\ a dosl\adddot}},
-  translatorcoin   = {{prekladate\v{l}, koment\'{a}tor\ a \'{u}vod}%
+  translatorcoin   = {{preklad, koment\'{a}r\ a \'{u}vod}%
                       {prekl., kom\adddot\ a \'{u}v\adddot}},
-  translatorscoin  = {{prekladatelia, koment\'{a}tori\ a \'{u}vod}%
+  translatorscoin  = {{preklad, koment\'{a}r\ a \'{u}vod}%
                       {prekl., kom\adddot\ a \'{u}v\adddot}},
-  translatorcofo   = {{prekladate\v{l}, koment\'{a}tor\ a predhovor}%
+  translatorcofo   = {{preklad, koment\'{a}r\ a predhovor}%
                       {prekl., kom\adddot\ a predh\adddot}},
-  translatorscofo  = {{prekladatelia, koment\'{a}tori\ a predhovor}%
+  translatorscofo  = {{preklad, koment\'{a}r\ a predhovor}%
                       {prekl., kom\adddot\ a predh\adddot}},
-  translatorcoaf   = {{prekladate\v{l}, koment\'{a}tor\ a doslov}%
+  translatorcoaf   = {{preklad, koment\'{a}r\ a doslov}%
                       {prekl., kom\adddot\ a dosl\adddot}},
-  translatorscoaf  = {{prekladatelia, koment\'{a}tori\ a doslov}%
+  translatorscoaf  = {{preklad, koment\'{a}r\ a doslov}%
                       {prekl., kom\adddot\ a dosl\adddot}},
-  translatoranin   = {{prekladate\v{l}, anot\'{a}tor\ a \'{u}vod}%
+  translatoranin   = {{preklad, anot\'{a}cia\ a \'{u}vod}%
                       {prekl., anot\adddot\ a \'{u}v\adddot}},
-  translatorsanin  = {{prekladatelia, anot\'{a}tori\ a \'{u}vod}%
+  translatorsanin  = {{preklad, anot\'{a}cie\ a \'{u}vod}%
                       {prekl., anot\adddot\ a \'{u}v\adddot}},
-  translatoranfo   = {{prekladate\v{l}, anot\'{a}tor\ a predhovor}%
+  translatoranfo   = {{preklad, anot\'{a}cia\ a predhovor}%
                       {prekl., anot\adddot\ a predh\adddot}},
-  translatorsanfo  = {{prekladatelia, anot\'{a}tori\ a predhovor}%
+  translatorsanfo  = {{preklad, anot\'{a}cie\ a predhovor}%
                       {prekl., anot\adddot\ a predh\adddot}},
-  translatoranaf   = {{prekladate\v{l}, anot\'{a}tor\ a doslov}%
+  translatoranaf   = {{preklad, anot\'{a}cia\ a doslov}%
                       {prekl., anot\adddot\ a dosl\adddot}},
-  translatorsanaf  = {{prekladatelia, anot\'{a}tori\ a doslov}%
+  translatorsanaf  = {{preklad, anot\'{a}cie\ a doslov}%
                       {prekl., anot\adddot\ a dosl\adddot}},
-% organizer        = {{}{}},% FIXME: missing
-% organizers       = {{}{}},% FIXME: missing
-% byorganizer      = {{}{}},% FIXME: missing
-  byauthor         = {{}%
-                      {}},
-  byeditor         = {{editovan\'{e}}%
-                      {ed\adddot}},
-  bycompiler       = {{zostaven\'{e}}%
-                      {zost\adddot}},
-  byredactor       = {{redigovan\'{e}}%
-                      {red\adddot}},
-  byfounder        = {{zalo\v{z}en\'{e}}%
-                      {zal\adddot}},
-  bycontinuator    = {{pokra\v{c}ovan\'{e}}%
-                      {pokr\adddot}},
-  bycollaborator   = {{v\addnbspace spolupr\'{a}ci s}%
-                      {v\addnbspace spol\adddotspace s}},
-  bytranslator     = {{prelo\v{z}en\'{e} \lbx@lfromlang}%
-                      {prel\adddot\ \lbx@sfromlang}},
-  bycommentator    = {{komentovan\'{e}}%
-                      {kom\adddot}},
-  byannotator      = {{anotovan\'{e}}%
-                      {anot\adddot}},
-  withcommentator  = {{s\addnbspace koment\'{a}rom od}%
-                      {s\addnbspace kom\adddotspace od}},
-  withannotator    = {{s\addnbspace anot\'{a}ciami od}%
-                      {s\addnbspace anot\adddot\ od}},
-  withintroduction = {{s\addnbspace \'{u}vodom od}%
-                      {s\addnbspace \'{u}v\adddot\ od}},
-  withforeword     = {{s\addnbspace predhovorom od}%
-                      {s\addnbspace predh\adddot\ od}},
-  withafterword    = {{s\addnbspace doslovom od}%
-                      {s\addnbspace dosl\adddot\ od}},
-  byeditortr       = {{editovan\'{e} a prelo\v{z}en\'{e} \lbx@lfromlang\ }%
-                      {ed\adddotspace a prel\adddot\ \lbx@sfromlang\ }},
+  organizer        = {{organiz\'{a}tor}{org\adddot}},% FIXME: unsure
+  organizers       = {{organiz\'{a}tori}{org\adddot}},% FIXME: unsure
+  byorganizer      = {{organizovan\'{e}}{org\adddot}},% FIXME: unsure
+  byauthor         = {{}{}},
+  byeditor         = {{editovan\'{e}}{ed\adddot}},
+  bycompiler       = {{zostaven\'{e}}{zost\adddot}},
+  byredactor       = {{redigovan\'{e}}{red\adddot}},
+  byreviser        = {{korigovan\'{e}}{kor\adddot}},
+  byreviewer       = {{recenzovan\'{e}}{recenz\adddot}},
+  byfounder        = {{zalo\v{z}en\'{e}}{zal\adddot}},
+  bycontinuator    = {{pokra\v{c}ovan\'{e}}{pokr\adddot}},
+  bycollaborator   = {{v\addnbspace spolupr\'{a}ci s\addnbspace}{v\addnbspace spol\adddotspace s\addnbspace}},
+  bytranslator     = {{prelo\v{z}en\'{e} \lbx@lfromlang}{prel\adddot\ \lbx@sfromlang}},
+  bycommentator    = {{komentovan\'{e}}{kom\adddot}},
+  byannotator      = {{anotovan\'{e}}{anot\adddot}},
+  withcommentator  = {{s\addnbspace koment\'{a}rom od}{s\addnbspace kom\adddot\ od}},
+  withannotator    = {{s\addnbspace anot\'{a}ciami od}{s\addnbspace anot\adddot\ od}},
+  withintroduction = {{s\addnbspace \'{u}vodom od}{s\addnbspace \'{u}v\adddot\ od}},
+  withforeword     = {{s\addnbspace predhovorom od}{s\addnbspace predh\adddot\ od}},
+  withafterword    = {{s\addnbspace doslovom od}{s\addnbspace dosl\adddot\ od}},
+  byeditortr       = {{editovan\'{e} a prelo\v{z}en\'{e} \lbx@lfromlang}%
+                      {ed\adddotspace a prel\adddot\ \lbx@sfromlang}},
   byeditorco       = {{editovan\'{e} a komentovan\'{e}}%
-                      {ed\adddotspace a kom\adddot\ }},
+                      {ed\adddotspace a kom\adddot}},
   byeditoran       = {{editovan\'{e} a anotovan\'{e}}%
-                      {ed\adddotspace a anot\adddot\ }},
+                      {ed\adddotspace a anot\adddot}},
   byeditorin       = {{editovan\'{e}, s\addnbspace \'{u}vodom}%
                       {ed.,\addabbrvspace s\addnbspace \'{u}v\adddot}},
   byeditorfo       = {{editovan\'{e}, s\addnbspace predhovorom}%
-                      {ed.,\addabbrvspace s\addnbspace predh.,}},
+                      {ed.,\addabbrvspace s\addnbspace predh\adddot}},
   byeditoraf       = {{editovan\'{e}, s\addnbspace doslovom}%
-                      {ed.,\addabbrvspace s\addnbspace dosl.,}},
+                      {ed.,\addabbrvspace s\addnbspace dosl\adddot}},
   byeditortrco     = {{editovan\'{e}, prelo\v{z}en\'{e} \lbx@lfromlang\ a komentovan\'{e}}%
-                      {ed.,\addabbrvspace prel\adddot\ \lbx@sfromlang\ a kom\adddot\ }},
+                      {ed.,\addabbrvspace prel\adddot\ \lbx@sfromlang\ a kom\adddot}},
   byeditortran     = {{editovan\'{e}, prelo\v{z}en\'{e} \lbx@lfromlang\ a anotovan\'{e}}%
-                      {ed.,\addabbrvspace prel\adddot\ \lbx@sfromlang\ a anot\adddot\ }},
+                      {ed.,\addabbrvspace prel\adddot\ \lbx@sfromlang\ a anot\adddot}},
   byeditortrin     = {{editovan\'{e} a prelo\v{z}en\'{e} \lbx@lfromlang, s\addnbspace \'{u}vodom}%
                       {ed\adddotspace a prel\adddot\ \lbx@sfromlang, s\addnbspace \'{u}v\adddot}},
   byeditortrfo     = {{editovan\'{e} a prelo\v{z}en\'{e} \lbx@lfromlang, s\addnbspace predhovorom}%
                       {ed\adddotspace a prel\adddot\ \lbx@sfromlang, s\addnbspace predh\adddot}},
   byeditortraf     = {{editovan\'{e} a prelo\v{z}en\'{e} \lbx@lfromlang, s\addnbspace doslovom}%
-                      {ed\adddotspace a prekl\adddot\ \lbx@sfromlang, s\addnbspace dosl\adddot}},
+                      {ed\adddotspace a prel\adddot\ \lbx@sfromlang, s\addnbspace dosl\adddot}},
   byeditorcoin     = {{editovan\'{e} a komentovan\'{e}, s\addnbspace \'{u}vodom}%
                       {ed\adddotspace a kom., s\addnbspace \'{u}v\adddot}},
   byeditorcofo     = {{editovan\'{e} a komentovan\'{e}, s\addnbspace predhovorom}%
@@ -367,356 +330,223 @@
                       {prel\adddot\ \lbx@sfromlang\ a anot., s\addnbspace predh\adddot}},
   bytranslatoranaf = {{prelo\v{z}en\'{e} \lbx@lfromlang\ a anotovan\'{e}, s\addnbspace doslovom}%
                       {prel\adddot\ \lbx@sfromlang\ a anot., s\addnbspace dosl\adddot}},
-  and              = {{a}%
-                      {a}},
-  andothers        = {{et\addabbrvspace al\adddot}%   %et\addabbrvspace alii
-                      {et\addabbrvspace al\adddot}},
-  andmore          = {{et\addabbrvspace al\adddot}%   %et\addabbrvspace alii
-                      {et\addabbrvspace al\adddot}},
-  volume           = {{zv\"{a}zok}%
-                      {zv\adddot}},
-  volumes          = {{zv\"{a}zky}%
-                      {zv\adddot}},
-  involumes        = {{in}%
-                      {in}},
-  jourvol          = {{ro\v{c}n\'{i}k}%
-                      {ro\v{c}\adddot}},
-  jourser          = {{ed\'{i}cia}%                   % ISO 690 -- section 2.17
-                      {ed\adddot}},
-  book             = {{kniha}%
-                      {kniha}},
-  part             = {{\v{c}as\v{t}}%
-                      {\v{c}as\v{t}}},
-  issue            = {{\v{c}\'{i}slo}%
-                      {\v{c}\'{i}slo}},
-  newseries        = {{nov\'{a} ed\'{i}cia}%          % ISO 690 -- section 2.17
-                      {n\adddotspace ed\adddot}},
-  oldseries        = {{star\'{a} ed\'{i}cia}%         % ISO 690 -- section 2.17
-                      {st\adddotspace ed\adddot}},
-  edition          = {{vydanie}%
-                      {vyd\adddot}},
-  reprint          = {{dotla\v{c}}%
-                      {dotl\adddot}},
-  reprintof        = {{dotla\v{c}}%
-                      {dotl\adddot}},
-  reprintas        = {{dotla\v{c}en\'{e} ako}%
-                      {dotl\adddotspace ako}},
-  reprintfrom      = {{dotla\v{c}en\'{e} z}%
-                      {dotl\adddotspace z}},
-  reviewof         = {{hodnotenie}%
-                      {hodn\adddot}},
-  translationof    = {{preklad}%
-                      {prekl\adddot}},
-  translationas    = {{prelo\v{z}en\'{e} ako}%
-                      {prel\adddotspace ako}},
-  translationfrom  = {{prelo\v{z}en\'{e} z}%
-                      {prel\adddotspace z}},
-  origpubas        = {{p\^{o}vodne vydan\'{e} ako}%
-                      {p\^{o}v\adddotspace vyd\adddotspace ako}},
-  origpubin        = {{p\^{o}vodne vydan\'{e} v\addnbspace roku}%
-                      {p\^{o}v\adddotspace vyd\adddotspace v\addnbspace r\adddot}},
-  astitle          = {{ako}%
-                      {ako}},
-  bypublisher      = {{}%
-                      {}},
-  page             = {{strana}%
-                      {s\adddot}},
-  pages            = {{strany}%
-                      {s\adddot}},
-  column           = {{st\'{l}pec}%
-                      {st\'{l}p\adddot}},
-  columns          = {{st\'{l}pce}%
-                      {st\'{l}p\adddot}},
-  line             = {{riadok}%
-                      {r\adddot}},
-  lines            = {{riadky}%
-                      {r\adddot}},
-  nodate           = {{nedatovan\'{e}}%               % ISO 690 -- section 9.3.4
-                      {b\adddotspace r\adddot}},      % bez roku
-  verse            = {{ver\v{s}}%
-                      {v\adddot}},
-  verses           = {{ver\v{s}e}%
-                      {v\adddot}},
-  section          = {{paragraf}%
-                      {\S}},
-  sections         = {{paragrafy}%
-                      {\S\S}},
-  paragraph        = {{odsek}%
-                      {ods\adddot}},
-  paragraphs       = {{odseky}%
-                      {ods\adddot}},
-  in               = {{in}%
-                      {in}},
-  inseries         = {{v}%
-                      {v}},
-  ofseries         = {{z}%
-                      {z}},
-  number           = {{\v{c}\'{i}slo}%
-                      {\v{c}\adddot}},
-  chapter          = {{kapitola}%
-                      {kap\adddot}},
-% bathesis         = {{}{}},% FIXME: missing
-  mathesis         = {{diplomov\'{a} pr\'{a}ca}%
-                      {dipl\adddotspace pr\adddot}},
-  phdthesis        = {{dizerta\v{c}n\'{a} pr\'{a}ca}%
-                      {diz\adddotspace pr\adddot}},
-  candthesis       = {{kandid\'{a}tska pr\'{a}ca}%
-                      {kand\adddotspace pr\adddot}},
-  resreport        = {{v\'{y}skumn\'{a} spr\'{a}va}%
-                      {v\'{y}sk\adddot\ spr\adddot}},
-  techreport       = {{technick\'{a} spr\'{a}va}%
-                      {tech\adddotspace spr\adddot}},
-  software         = {{po\v{c}\'{i}ta\v{c}ov\'{y} softv\'{e}r}%
-                      {soft\adddot}},
-  datacd           = {{CD-ROM}%
-                      {CD-ROM}},
-  audiocd          = {{audio CD}%
-                      {audio CD}},
-  version          = {{verzia}%
-                      {ver\adddot}},
-  url              = {{url}%
-                      {url}},
-  urlfrom          = {{dostupn\'{e} z}%               % ISO 690 -- section 15.2.6
-                      {dostupn\'{e} z}},
-  urlseen          = {{citovane\'{e}}%
-                      {cit\adddot}},
-  inpreparation    = {{v\addnbspace pr\'{i}prave}%
-                      {v\addnbspace pr\'{i}prave}},
-  submitted        = {{predlo\v{z}en\'{e}}%
-                      {predl\adddot}},
-  forthcoming      = {{prijat\'{e}}%
-                      {prij\adddot}},
-  inpress          = {{v\addnbspace tla\v{c}i}%
-                      {v\addnbspace tla\v{c}i}},
-  prepublished     = {{pred publikovan\'{i}m}%
-                      {pred publ\adddot}},
-  citedas          = {{\v{d}alej citovan\'{e} ako}%
-                      {\v{d}alej cit\adddotspace ako}},
-  thiscite         = {{obzvl\'{a}\v{s}\v{t}}%
-                      {obzvl\adddot}},
-  seenote          = {{vi\v{d} pozn\'{a}mka}%
-                      {vi\v{d} pozn\adddot}},
-  quotedin         = {{citovan\'{e} v}%
-                      {cit\adddotspace v}},
-  idem             = {{idem}%
-                      {idem}},
-  idemsm           = {{idem}%
-                      {idem}},
-  idemsf           = {{eadem}%
-                      {eadem}},
-  idemsn           = {{idem}%
-                      {idem}},
-  idempm           = {{eidem}%
-                      {eidem}},
-  idempf           = {{eaedem}%
-                      {eaedem}},
-  idempn           = {{eadem}%
-                      {eadem}},
-  idempp           = {{eidem}%
-                      {eidem}},
-  ibidem           = {{ibidem}%
-                      {ibid\adddot}},
-  opcit            = {{op\adddotspace cit\adddot}%
-                      {op\adddotspace cit\adddot}},
-  loccit           = {{loc\adddotspace cit\adddot}%
-                      {loc\adddotspace cit\adddot}},
-  confer           = {{cf\adddot}%
-                      {cf\adddot}},
-  sequens          = {{sq\adddot}%
-                      {sq\adddot}},
-  sequentes        = {{sqq\adddot}%
-                      {sqq\adddot}},
-  passim           = {{passim}%
-                      {pass\adddot}},
-  see              = {{vi\v{d}}%
-                      {vi\v{d}}},
-  seealso          = {{vi\v{d} tie\v{z}}%
-                      {vi\v{d} tie\v{z}}},
-  backrefpage      = {{citovan\'{e} na strane}%
-                      {cit\adddotspace na s\adddot}},
-  backrefpages     = {{citovan\'{e} na stran\'{a}ch}%
-                      {cit\adddotspace na str\adddot}},
-  january          = {{janu\'{a}r}%
-                      {jan\adddot}},
-  february         = {{febru\'{a}r}%
-                      {feb\adddot}},
-  march            = {{marec}%
-                      {mar\adddot}},
-  april            = {{apr\'{i}l}%
-                      {apr\adddot}},
-  may              = {{m\'{a}j}%
-                      {m\'{a}j}},
-  june             = {{j\'{u}n}%
-                      {j\'{u}n}},
-  july             = {{j\'{u}l}%
-                      {j\'{u}l}},
-  august           = {{august}%
-                      {aug\adddot}},
-  september        = {{september}%
-                      {sept\adddot}},
-  october          = {{okt\'{o}ber}%
-                      {okt\adddot}},
-  november         = {{november}%
-                      {nov\adddot}},
-  december         = {{december}%
-                      {dec\adddot}},
-  langamerican     = {{americk\'{a} angli\v{c}tina}%
-                      {am\adddot angl\adddot}},
-  langbrazilian    = {{braz\'{i}lska portugal\v{c}ina}%
-                      {braz\adddot portugal\adddot}},
-% langbulgarian    = {{}{}},% FIXME: missing
-  langcatalan      = {{katal\'{a}n\v{c}ina}%
-                      {katal\adddot}},
-  langcroatian     = {{chorv\'{a}t\v{c}ina}%
-                      {chorv\adddot}},
-  langczech        = {{\v{c}e\v{s}tina}%
-                      {\v{c}e\v{s}tina}},
-  langdanish       = {{d\'{a}n\v{c}ina}%
-                      {d\'{a}n\adddot}},
-  langdutch        = {{holand\v{c}ina}%
-                      {hol\adddot}},
-  langenglish      = {{angli\v{c}tina}%
-                      {angl\adddot}},
-% langestonian     = {{}{}},% FIXME: missing
-  langfinnish      = {{f\'{i}n\v{c}ina}%
-                      {f\'{i}n\adddot}},
-  langfrench       = {{franc\'{u}z\v{s}tina}%
-                      {franc\adddot}},
-  langgalician     = {{gal\'icij\v{c}ina}%
-                      {gal\adddot}},
-  langgerman       = {{nem\v{c}ina}%
-                      {nem\adddot}},
-  langgreek        = {{gr\'{e}\v{c}tina}%
-                      {gr\'{e}\v{c}tina}},
-% langhungarian    = {{}{}}, % FIXME: missing
-  langitalian      = {{talian\v{c}ina}%
-                      {tal\adddot}},
-  langjapanese     = {{japon\v{c}ina}%
-                      {jap\adddot}},
-  langlatin        = {{latin\v{c}ina}%
-                      {lat\adddot}},
-% langlatvian      = {{}{}},% FIXME: missing
-  langnorwegian    = {{n\'{o}r\v{c}ina}%
-                      {n\'{o}r\adddot}},
-  langpolish       = {{po\v{l}\v{s}tina}%
-                      {po\v{l}\adddot}},
-  langportuguese   = {{portugal\v{c}ina}%
-                      {portugal\adddot}},
-  langrussian      = {{ru\v{s}tina}%
-                      {ru\v{s}tina}},
-  langslovak       = {{sloven\v{c}ina}%
-                      {sloven\v{c}ina}},
-  langslovene      = {{slovin\v{c}ina}%
-                      {slovin\v{c}ina}},
-  langspanish      = {{\v{s}paniel\v{c}ina}%
-                      {\v{s}pan\adddot}},
-  langswedish      = {{\v{s}v\'{e}d\v{c}ina}%
-                      {\v{s}v\'{e}d\adddot}},
-  fromamerican     = {{z\addnbspace americkej angli\v{c}tiny}%
-                      {z\addnbspace amer\adddot angl\adddot}},
-  frombrazilian    = {{z\addnbspace braz\'{i}lskej portugal\v{c}iny}%
-                      {z\addnbspace braz\adddotspace portugal\adddot}},
-% frombulgarian    = {{}{}},% FIXME: missing
-  fromcatalan      = {{z\addnbspace katal\'{a}n\v{c}iny}%
-                      {z\addnbspace katal\adddot}},
-  fromcroatian     = {{z\addnbspace chorvat\v{c}iny}%
-                      {z\addnbspace chorv\adddot}},
-  fromczech        = {{z\addnbspace \v{c}e\v{s}tiny}%
-                      {z\addnbspace \v{c}e\v{s}tiny}},
-  fromdanish       = {{z\addnbspace d\'{a}n\v{c}iny}%
-                      {z\addnbspace d\'{a}n\adddot}},
-  fromdutch        = {{z\addnbspace holand\v{c}iny}%
-                      {z\addnbspace hol\adddot}},
-  fromenglish      = {{z\addnbspace angli\v{c}tiny}%
-                      {z\addnbspace angl\adddot}},
-% fromestonian     = {{}{}},% FIXME: missing
-  fromfinnish      = {{z\addnbspace f\'{i}n\v{c}iny}%
-                      {z\addnbspace f\'{i}n\adddot}},
-  fromfrench       = {{z\addnbspace franc\'{u}z\v{s}tiny}%
-                      {z\addnbspace franc\adddot}},
-  fromgalician     = {{z\addnbspace gal\'icij\v{c}ina}%
-                      {z\addbnspace gal\adddot}},
-  fromgerman       = {{z\addnbspace nem\v{c}iny}%
-                      {z\addnbspace nem\adddot}},
-  fromgreek        = {{z\addnbspace gr\'{e}\v{c}tiny}%
-                      {z\addnbspace gr\'{e}\v{c}tiny}},
-% fromhungarian    = {{}{}}, % FIXME: missing
-  fromitalian      = {{z\addnbspace talian\v{c}iny}%
-                      {z\addnbspace tal\adddot}},
-  fromjapanese     = {{z\addnbspace japon\v{c}iny}%
-                      {z\addnbspace jap\adddot}},
-  fromlatin        = {{z\addnbspace latin\v{c}iny}%
-                      {z\addnbspace lat\adddot}},
-% fromlatvian      = {{}{}},% FIXME: missing
-  fromnorwegian    = {{z\addnbspace n\'{o}r\v{c}iny}%
-                      {z\addnbspace n\'{o}r\adddot}},
-  frompolish       = {{z\addnbspace po\v{l}\v{s}tiny}%
-                      {z\addnbspace po\v{l}\adddot}},
-  fromportuguese   = {{z\addnbspace portugal\v{c}iny}%
-                      {z\addnbspace portugal\adddot}},
-  fromrussian      = {{z\addnbspace ru\v{s}tiny}%
-                      {z\addnbspace ru\v{s}tiny}},
-  fromslovak       = {{zo sloven\v{c}iny}%
-                      {zo sloven\v{c}iny}},
-  fromslovene      = {{zo slovin\v{c}iny}%
-                      {zo slovin\v{c}iny}},
-  fromspanish      = {{zo \v{s}paniel\v{c}iny}%
-                      {zo \v{s}pan\adddot}},
-  fromswedish      = {{zo \v{s}v\'{e}d\v{c}iny}%
-                      {zo \v{s}v\'{e}d\adddot}},
-  countryde        = {{Nemecko}%
-                      {DE}},
-  countryeu        = {{Eur\'{o}pska \'{u}nia}%
-                      {EU}},
-  countryep        = {{Eur\'{o}pska \'{u}nia}%
-                      {EP}},
-  countryfr        = {{Franc\'{u}zsko}%
-                      {FR}},
-  countryuk        = {{Ve\v{l}k\'{a} Brit\'{a}nia}%
-                      {GB}},
-  countryus        = {{Spojen\'{e} \v{S}t\'{a}ty Americk\'{e}}%
-                      {US}},
-  patent           = {{patent}%
-                      {pat\adddot}},
-  patentde         = {{nemeck\'{y} patent}%
-                      {nem\adddot\ pat\adddot}},
-  patenteu         = {{eur\'{o}psky patent}%
-                      {eur\adddot\ pat\adddot}},
-  patentfr         = {{franc\'{u}zsky patent}%
-                      {franc\adddot\ pat\adddot}},
-  patentuk         = {{britsk\'{y} patent}%
-                      {britsk\'{y} pat\adddot}},
-  patentus         = {{americk\'{y} patent}%
-                      {US\adddotspace pat\adddot}},
-  patreq           = {{patentov\'{a} \v{z}iados\v{t}}%
-                      {pat\adddot\ \v{z}iad\adddot}},
-  patreqde         = {{nemeck\'{a} patentov\'{a} \v{z}iados\v{t}}%
-                      {nem\adddot\ pat\adddot\ \v{z}iad\adddot}},
-  patreqeu         = {{eur\'{o}pska patentov\'{a} \v{z}iados\v{t}}%
-                      {eur\adddot\ pat\adddot\ \v{z}iad\adddot}},
-  patreqfr         = {{franc\'{u}zska patentov\'{a} \v{z}iados\v{t}}%
-                      {franc\adddot\ pat\adddot\ \v{z}iad\adddot}},
-  patrequk         = {{britsk\'{a} patentov\'{a} \v{z}iados\v{t}}%
-                      {brit\adddot\ pat\adddot\ \v{z}iad\adddot}},
-  patrequs         = {{US\adddotspace patentov\'{a} \v{z}iados\v{t}}%
-                      {US\adddotspace pat\adddot\ \v{z}iad\adddot}},
-  file             = {{s\'{u}bor}%
-                      {s\'{u}b\adddot}},
-  library          = {{kni\v{z}nica}%
-                      {kni\v{z}nica}},
-  abstract         = {{abstrakt}%
-                      {abst\adddot}},
-  annotation       = {{anot\'{a}cia}%
-                      {anot\adddot}},
-  commonera        = {{n\'a\v{s}ho letopo\v{c}tu}{n\adddotspace l\adddot}},
-  beforecommonera  = {{pred na\v{s}\'{\i}m letopo\v{c}tom}{pred\ n\adddotspace l\adddot}},
-  annodomini       = {{po Kristovi}{po\ Kr\adddot}},
-  beforechrist     = {{pred Kristom}{pred\ Kr\adddot}},
-% circa            = {{}{}},% FIXME: missing
-% spring           = {{}{}},% FIXME: missing
-% summer           = {{}{}},% FIXME: missing
-% autumn           = {{}{}},% FIXME: missing
-% winter           = {{}{}},% FIXME: missing
+  and              = {{a}{a}},
+  andothers        = {{et\addabbrvspace al\adddot}{et\addabbrvspace al\adddot}},
+  andmore          = {{et\addabbrvspace al\adddot}{et\addabbrvspace al\adddot}},
+  volume           = {{zv\"{a}zok}{zv\adddot}},
+  volumes          = {{zv\"{a}zky}{zv\adddot}},
+  involumes        = {{in}{in}},
+  jourvol          = {{ro\v{c}n\'{\i}k}{ro\v{c}\adddot}},
+  jourser          = {{ed\'{\i}cia}{ed\adddot}},
+  book             = {{kniha}{kniha}},
+  part             = {{\v{c}as\v{t}}{\v{c}as\v{t}}},
+  issue            = {{\v{c}\'{\i}slo}{\v{c}\'{\i}slo}},
+  newseries        = {{nov\'{a} ed\'{\i}cia}{n\adddotspace ed\adddot}},
+  oldseries        = {{star\'{a} ed\'{\i}cia}{st\adddotspace ed\adddot}},
+  edition          = {{vydanie}{vyd\adddot}},
+  reprint          = {{dotla\v{c}}{dotl\adddot}},
+  reprintof        = {{dotla\v{c}}{dotl\adddot}},
+  reprintas        = {{dotla\v{c}en\'{e} ako}{dotl\adddotspace ako}},
+  reprintfrom      = {{dotla\v{c}en\'{e} z\addnbspace}{dotl\adddotspace z\addnbspace}},
+  reviewof         = {{recenzia}{recenz\adddot}},
+  translationof    = {{preklad}{prekl\adddot}},
+  translationas    = {{prelo\v{z}en\'{e} ako}{prel\adddotspace ako}},
+  translationfrom  = {{prelo\v{z}en\'{e} z\addnbspace}{prel\adddotspace z\addnbspace}},
+  origpubas        = {{p\^{o}vodne vydan\'{e} ako}{p\^{o}v\adddotspace vyd\adddotspace ako}},
+  origpubin        = {{p\^{o}vodne vydan\'{e} v\addnbspace roku}{p\^{o}v\adddotspace vyd\adddotspace v\addnbspace r\adddot}},
+  astitle          = {{ako}{ako}},
+  bypublisher      = {{}{}},
+  nodate           = {{nedatovan\'{e}}{b\adddot r\adddot}},% bez roku
+  page             = {{strana}{s\adddot}},
+  pages            = {{strany}{s\adddot}},
+  column           = {{st\'{l}pec}{st\'{l}p\adddot}},
+  columns          = {{st\'{l}pce}{st\'{l}p\adddot}},
+  line             = {{riadok}{r\adddot}},
+  lines            = {{riadky}{r\adddot}},
+  verse            = {{ver\v{s}}{v\adddot}},
+  verses           = {{ver\v{s}e}{v\adddot}},
+  section          = {{sekcia}{\S}},
+  sections         = {{sekcie}{\S\S}},
+  paragraph        = {{odsek}{ods\adddot}},
+  paragraphs       = {{odseky}{ods\adddot}},
+  pagetotal        = {{strana}{s\adddot}},
+  pagetotals       = {{strany}{s\adddot}},
+  columntotal      = {{st\'{l}pec}{st\'{l}p\adddot}},
+  columntotals     = {{st\'{l}pce}{st\'{l}p\adddot}},
+  linetotal        = {{riadok}{r\adddot}},
+  linetotals       = {{riadky}{r\adddot}},
+  versetotal       = {{ver\v{s}}{v\adddot}},
+  versetotals      = {{ver\v{s}e}{v\adddot}},
+  sectiontotal     = {{sekcia}{\S}},
+  sectiontotals    = {{sekcie}{\S\S}},
+  paragraphtotal   = {{odsek}{ods\adddot}},
+  paragraphtotals  = {{odseky}{ods\adddot}},
+  in               = {{in}{in}},
+  inseries         = {{in}{in}},
+  ofseries         = {{z}{z}},
+  number           = {{\v{c}\'{\i}slo}{\v{c}\adddot}},
+  chapter          = {{kapitola}{kap\adddot}},
+  bathesis         = {{bakal\'{a}rska pr\'{a}ca}{bak\adddotspace pr\adddot}},
+  mathesis         = {{diplomov\'{a} pr\'{a}ca}{dipl\adddotspace pr\adddot}},
+  phdthesis        = {{dizerta\v{c}n\'{a} pr\'{a}ca}{diz\adddotspace pr\adddot}},
+  candthesis       = {{kandid\'{a}tska pr\'{a}ca}{kand\adddotspace pr\adddot}},% FIXME: unsure
+  resreport        = {{v\'{y}skumn\'{a} spr\'{a}va}{v\'{y}sk\adddot\ spr\adddot}},
+  techreport       = {{technick\'{a} spr\'{a}va}{tech\adddotspace spr\adddot}},
+  software         = {{po\v{c}\'{\i}ta\v{c}ov\'{y} softv\'{e}r}{soft\adddot}},
+  datacd           = {{CD-ROM}{CD-ROM}},
+  audiocd          = {{audio CD}{audio CD}},
+  version          = {{verzia}{ver\adddot}},
+  url              = {{URL}{URL}},
+  urlfrom          = {{dostupn\'{e} z\addnbspace}{dostupn\'{e} z\addnbspace}},
+  urlseen          = {{citovan\'{e}}{cit\adddot}},
+  inpreparation    = {{v\addnbspace pr\'{\i}prave}{v\addnbspace pr\'{\i}prave}},
+  submitted        = {{odoslan\'{e}}{odosl\adddot}},
+  forthcoming      = {{bud\'{u}ce}{bud\adddot}},
+  inpress          = {{v\addnbspace tla\v{c}i}{v\addnbspace tla\v{c}i}},
+  prepublished     = {{pred publikovan\'{\i}m}{pred publ\adddot}},
+  citedas          = {{\v{d}alej citovan\'{e} ako}{\v{d}alej cit\adddotspace ako}},
+  thiscite         = {{obzvl\'{a}\v{s}\v{t}}{obzvl\adddot}},
+  seenote          = {{vi\v{d} pozn\'{a}mka}{vi\v{d} pozn\adddot}},
+  quotedin         = {{citovan\'{e} v\addnbspace}{cit\adddotspace v\addnbspace}},
+  idem             = {{idem}{idem}},
+  idemsm           = {{idem}{idem}},
+  idemsf           = {{eadem}{eadem}},
+  idemsn           = {{idem}{idem}},
+  idempm           = {{eidem}{eidem}},
+  idempf           = {{eaedem}{eaedem}},
+  idempn           = {{eadem}{eadem}},
+  idempp           = {{eidem}{eidem}},
+  ibidem           = {{ibidem}{ibid\adddot}},
+  opcit            = {{op\adddotspace cit\adddot}{op\adddotspace cit\adddot}},
+  loccit           = {{loc\adddotspace cit\adddot}{loc\adddotspace cit\adddot}},
+  confer           = {{cf\adddot}{cf\adddot}},
+  sequens          = {{sq\adddot}{sq\adddot}},
+  sequentes        = {{sqq\adddot}{sqq\adddot}},
+  passim           = {{passim}{pass\adddot}},
+  see              = {{vi\v{d}}{vi\v{d}}},
+  seealso          = {{vi\v{d} tie\v{z}}{vi\v{d} tie\v{z}}},
+  backrefpage      = {{citovan\'{e} na strane}{cit\adddotspace na str\adddot}},
+  backrefpages     = {{citovan\'{e} na stran\'{a}ch}{cit\adddotspace na s\adddot}},
+  january          = {{janu\'{a}r}{jan\adddot}},
+  february         = {{febru\'{a}r}{feb\adddot}},
+  march            = {{marec}{mar\adddot}},
+  april            = {{apr\'{\i}l}{apr\adddot}},
+  may              = {{m\'{a}j}{m\'{a}j}},
+  june             = {{j\'{u}n}{j\'{u}n}},
+  july             = {{j\'{u}l}{j\'{u}l}},
+  august           = {{august}{aug\adddot}},
+  september        = {{september}{sept\adddot}},
+  october          = {{okt\'{o}ber}{okt\adddot}},
+  november         = {{november}{nov\adddot}},
+  december         = {{december}{dec\adddot}},
+  langamerican     = {{americk\'{a} angli\v{c}tina}{am\adddot\ angl\adddot}},
+  langbrazilian    = {{braz\'{\i}lska portugal\v{c}ina}{braz\adddot\ portugal\adddot}},
+  langbulgarian    = {{bulhar\v{c}ina}{bulh\adddot}},
+  langcatalan      = {{katal\'{a}n\v{c}ina}{katal\adddot}},
+  langcroatian     = {{chorv\'{a}t\v{c}ina}{chorv\adddot}},
+  langczech        = {{\v{c}e\v{s}tina}{\v{c}e\v{s}tina}},
+  langdanish       = {{d\'{a}n\v{c}ina}{d\'{a}n\adddot}},
+  langdutch        = {{holand\v{c}ina}{hol\adddot}},
+  langenglish      = {{angli\v{c}tina}{angl\adddot}},
+  langestonian     = {{est\'{o}n\v{c}ina}{est\adddot}},
+  langfinnish      = {{f\'{\i}n\v{c}ina}{f\'{\i}n\adddot}},
+  langfrench       = {{franc\'{u}z\v{s}tina}{franc\adddot}},
+  langgalician     = {{gal\'{\i}cij\v{c}ina}{gal\adddot}},
+  langgerman       = {{nem\v{c}ina}{nem\adddot}},
+  langgreek        = {{gr\'{e}\v{c}tina}{gr\'{e}\v{c}tina}},
+  langhungarian    = {{ma\v{d}ar\v{c}ina}{ma\v{d}\adddot}},
+  langitalian      = {{talian\v{c}ina}{tal\adddot}},
+  langjapanese     = {{japon\v{c}ina}{jap\adddot}},
+  langlatin        = {{latin\v{c}ina}{lat\adddot}},
+  langlatvian      = {{loty\v{s}tina}{lot\adddot}},
+  langnorwegian    = {{n\'{o}r\v{c}ina}{n\'{o}r\adddot}},
+  langpolish       = {{po\v{l}\v{s}tina}{po\v{l}\adddot}},
+  langportuguese   = {{portugal\v{c}ina}{port\adddot}},
+  langrussian      = {{ru\v{s}tina}{ru\v{s}tina}},
+  langserbian      = {{srb\v{c}ina}{srb\adddot}},
+  langslovak       = {{sloven\v{c}ina}{sloven\v{c}ina}},
+  langslovene      = {{slovin\v{c}ina}{slovin\v{c}ina}},
+  langspanish      = {{\v{s}paniel\v{c}ina}{\v{s}pan\adddot}},
+  langswedish      = {{\v{s}v\'{e}d\v{c}ina}{\v{s}v\'{e}d\adddot}},
+  langukrainian    = {{ukrajin\v{c}ina}{ukr\adddot}},
+  fromamerican     = {{z\addnbspace americkej angli\v{c}tiny}{z\addnbspace amer\adddot\ angl\adddot}},
+  frombrazilian    = {{z\addnbspace braz\'{\i}lskej portugal\v{c}iny}{z\addnbspace braz\adddotspace portugal\adddot}},
+  frombulgarian    = {{z\addnbspace bulhar\v{c}iny}{z\addnbspace bulh\adddot}},
+  fromcatalan      = {{z\addnbspace katal\'{a}n\v{c}iny}{z\addnbspace katal\adddot}},
+  fromcroatian     = {{z\addnbspace chorvat\v{c}iny}{z\addnbspace chorv\adddot}},
+  fromczech        = {{z\addnbspace \v{c}e\v{s}tiny}{z\addnbspace \v{c}e\v{s}tiny}},
+  fromdanish       = {{z\addnbspace d\'{a}n\v{c}iny}{z\addnbspace d\'{a}n\adddot}},
+  fromdutch        = {{z\addnbspace holand\v{c}iny}{z\addnbspace hol\adddot}},
+  fromenglish      = {{z\addnbspace angli\v{c}tiny}{z\addnbspace angl\adddot}},
+  fromestonian     = {{z\addnbspace est\'{o}n\v{c}iny}{z\addnbspace est\adddot}},
+  fromfinnish      = {{z\addnbspace f\'{\i}n\v{c}iny}{z\addnbspace f\'{\i}n\adddot}},
+  fromfrench       = {{z\addnbspace franc\'{u}z\v{s}tiny}{z\addnbspace franc\adddot}},
+  fromgalician     = {{z\addnbspace gal\'{\i}cij\v{c}ina}{z\addbnspace gal\adddot}},
+  fromgerman       = {{z\addnbspace nem\v{c}iny}{z\addnbspace nem\adddot}},
+  fromgreek        = {{z\addnbspace gr\'{e}\v{c}tiny}{z\addnbspace gr\'{e}\v{c}tiny}},
+  fromhungarian    = {{z\addnbspace ma\v{d}ar\v{c}iny}{z\addnbspace ma\v{d}\adddot}},
+  fromitalian      = {{z\addnbspace talian\v{c}iny}{z\addnbspace tal\adddot}},
+  fromjapanese     = {{z\addnbspace japon\v{c}iny}{z\addnbspace jap\adddot}},
+  fromlatin        = {{z\addnbspace latin\v{c}iny}{z\addnbspace lat\adddot}},
+  fromlatvian      = {{z\addnbspace loty\v{s}tiny}{z\addnbspace lot\adddot}},
+  fromnorwegian    = {{z\addnbspace n\'{o}r\v{c}iny}{z\addnbspace n\'{o}r\adddot}},
+  frompolish       = {{z\addnbspace po\v{l}\v{s}tiny}{z\addnbspace po\v{l}\adddot}},
+  fromportuguese   = {{z\addnbspace portugal\v{c}iny}{z\addnbspace portugal\adddot}},
+  fromrussian      = {{z\addnbspace ru\v{s}tiny}{z\addnbspace ru\v{s}tiny}},
+  fromserbian      = {{zo srb\v{c}iny}{zo srb\adddot}},
+  fromslovak       = {{zo sloven\v{c}iny}{zo sloven\v{c}iny}},
+  fromslovene      = {{zo slovin\v{c}iny}{zo slovin\v{c}iny}},
+  fromspanish      = {{zo \v{s}paniel\v{c}iny}{zo \v{s}pan\adddot}},
+  fromswedish      = {{zo \v{s}v\'{e}d\v{c}iny}{zo \v{s}v\'{e}d\adddot}},
+  fromukrainian    = {{z\addnbspace ukrajin\v{c}iny}{z\addnbspace ukr\adddot}},
+  countryde        = {{Nemecko}{DE}},
+  countryeu        = {{Eur\'{o}pska \'{u}nia}{EU}},
+  countryep        = {{Eur\'{o}pska \'{u}nia}{EP}},
+  countryfr        = {{Franc\'{u}zsko}{FR}},
+  countryuk        = {{Ve\v{l}k\'{a} Brit\'{a}nia}{GB}},
+  countryus        = {{Spojen\'{e} \v{s}t\'{a}ty americk\'{e}}{US}},
+  patent           = {{patent}{pat\adddot}},
+  patentde         = {{nemeck\'{y} patent}{nem\adddot\ pat\adddot}},
+  patenteu         = {{eur\'{o}psky patent}{eur\adddot\ pat\adddot}},
+  patentfr         = {{franc\'{u}zsky patent}{franc\adddot\ pat\adddot}},
+  patentuk         = {{britsk\'{y} patent}{brit\adddot\ pat\adddot}},
+  patentus         = {{US patent}{US pat\adddot}},
+  patreq           = {{patentov\'{a} \v{z}iados\v{t}}{pat\adddot\ \v{z}iad\adddot}},
+  patreqde         = {{nemeck\'{a} patentov\'{a} \v{z}iados\v{t}}{nem\adddot\ pat\adddot\ \v{z}iad\adddot}},
+  patreqeu         = {{eur\'{o}pska patentov\'{a} \v{z}iados\v{t}}{eur\adddot\ pat\adddot\ \v{z}iad\adddot}},
+  patreqfr         = {{franc\'{u}zska patentov\'{a} \v{z}iados\v{t}}{franc\adddot\ pat\adddot\ \v{z}iad\adddot}},
+  patrequk         = {{britsk\'{a} patentov\'{a} \v{z}iados\v{t}}{brit\adddot\ pat\adddot\ \v{z}iad\adddot}},
+  patrequs         = {{US patentov\'{a} \v{z}iados\v{t}}{US pat\adddot\ \v{z}iad\adddot}},
+  file             = {{s\'{u}bor}{s\'{u}b\adddot}},
+  library          = {{kni\v{z}nica}{kni\v{z}nica}},
+  abstract         = {{abstrakt}{abst\adddot}},
+  annotation       = {{anot\'{a}cia}{anot\adddot}},
+  commonera        = {{n\'{a}\v{s}ho letopo\v{c}tu}{n\adddotspace l\adddot}},
+  beforecommonera  = {{pred na\v{s}\'{\i}m letopo\v{c}tom}{pred n\adddotspace l\adddot}},
+  annodomini       = {{po Kristovi}{po Kr\adddot}},
+  beforechrist     = {{pred Kristom}{pred Kr\adddot}},
+  circa            = {{cirka}{ca\adddot}},
+  spring           = {{jar}{jar}},
+  summer           = {{leto}{leto}},
+  autumn           = {{jese\v{n}}{jese\v{n}}},
+  winter           = {{zima}{zima}},
+% springN          = {{}{}},% FIXME: missing
+% summerN          = {{}{}},% FIXME: missing
+% autumnN          = {{}{}},% FIXME: missing
+% winterN          = {{}{}},% FIXME: missing
+% springS          = {{}{}},% FIXME: missing
+% summerS          = {{}{}},% FIXME: missing
+% autumnS          = {{}{}},% FIXME: missing
+% winterS          = {{}{}},% FIXME: missing
+% Q1               = {{}{}},% FIXME: missing
+% Q2               = {{}{}},% FIXME: missing
+% Q3               = {{}{}},% FIXME: missing
+% Q4               = {{}{}},% FIXME: missing
+% QD1              = {{}{}},% FIXME: missing
+% QD2              = {{}{}},% FIXME: missing
+% QD3              = {{}{}},% FIXME: missing
+% S1               = {{}{}},% FIXME: missing
+% S2               = {{}{}},% FIXME: missing
   am               = {{AM}{AM}},
   pm               = {{PM}{PM}},
 }

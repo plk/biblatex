@@ -1,0 +1,203 @@
+\input{regression-test}
+%
+% This file demonstrates various date formats and tests which apply to them
+% for output
+%
+\documentclass[a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[american]{babel}
+\usepackage{csquotes}
+\begin{filecontents}[force]{\jobname.bib}
+@misc{date1,
+  note      = {Years with implicit era},
+  author    = {Author1},
+  date      = {-0099-07-11/-0043-03-13}, % Negative date range
+  origdate  = {-0477},                   % Negative date
+  eventdate = {0477/0566},               % Forced CE era due to dateeraauto setting
+  urldate   = {-0020/0100},              % Cross BCE/CE range
+}
+@misc{date2,
+  note      = {Dates with circa and uncertain markers},
+  author    = {Author2},
+  date      = {1723%},        % year with ISO8601-2 approximate (circa) and uncertainty markers
+  origdate  = {1934-02~},      % year and month with circa marker
+  eventdate = {1976?},         % year with uncertainty marker
+  urldate   = {1922~},         % year with ISO8601-2 approximate (circa) marker
+}
+@misc{date3,
+  note      = {Date ranges},
+  author    = {Author3},
+  date      = {1934~/1936~},    % year range with circa markers
+  origdate  = {1723~/..},       % open-ended year range with circa marker
+  eventdate = {1976?/..},       % open-ended year range with uncertainty marker
+  urldate   = {1976/..}         % open-ended year range with open marker
+}
+@misc{date4,
+  note      = {Times},
+  author    = {Author4},
+  date      = {2004-04-25T14:34:00/2004-04-25T14:37:06},   % Date with time, floating timezone
+  origdate  = {2004-04-25T14:34:00Z/2004-04-25T14:34:05Z}, % Date with time, UTC timezone
+  eventdate = {2004-04-25T14:34:00+05:00/2004-04-25T15:34:00+05:00}, % Date with time, explicit timezone
+  urldate   = {2004-04-25T14:34:00/2004-04-25T15:00:00},   % Datetime range
+}
+@misc{date5,
+  note      = {Seasons},
+  author    = {Author5},
+  date      = {1723-21},          % year divisions (21=spring)
+  origdate  = {1934-24~},         % uncertain year plus season
+  eventdate = {1934-22/1934-23},  % range with seasons
+}
+@misc{date6,
+  % uses the 'nodate' localisation string due to default \DeclareLabeldate setting
+  note      = {Date from literal/localisation string},
+  author    = {Author6},
+}
+@misc{date7,
+  note      = {Unspecified dates can be used to do amusing things},
+  author    = {Author7},
+  date      = {19XX},         % unspecified year in century
+  origdate  = {199X},         % unspecified year in decade
+}
+@misc{date8,
+  note      = {Astronomical year era},
+  author    = {Author8},
+  date      = {0001},     % with dateera=astronomical, 1, otherwise 1 CE
+  origdate  = {0000},     % with dateera=astronomical, 0, otherwise 1 BCE
+  eventdate = {-0001},    % with dateera=astronomical, -1, otherwise 2 BCE
+  urldate   = {-0379}     % with dateera=astronomical, -379, otherwise 380 BCE
+}
+@misc{date9,
+  note        = {Automatic era setting},
+  author      = {Author9},
+  date        = {1066},
+  origdate    = {0876},
+  eventdate   = {0402},
+  urldate     = {-0382}
+}
+@misc{date10,
+  note      = {More Date ranges},
+  author    = {Author10},
+  date      = {1034/},          % unknown
+  origdate  = {/1034},          % unknown
+  eventdate = {../1034},        % open-start to year range
+  urldate   = {../1034}         % open
+}
+\end{filecontents}
+\usepackage[style=authoryear,%
+            % dateabbrev=false,% when false, don't abbreviate months/year divisions
+            % julian=true,% convert dates before gregorianstart to Julian Calendar
+            % gregorianstart=1582-10-15,% Default
+            alldates=short,%
+            % alldates=ymd,% Year-Month-Day format
+            % alldates=iso,% ISO8601 format
+            alldatesusetime=true, % print time components in non-compact date ranges
+            alltimes=12h,%
+            % alltimes=24h,% prints 24 hour format times (default)
+            % alltimes=24hcomp,% prints 24 hour compressed format times
+            % seconds=true,% uncomment to print seconds
+            % timezones=true,% uncomment to print timezones
+            datezeros=false,% pad date components with zeros?
+            dateera=secular,% prints BCE/CE controlled by dateerauto, datezeros
+            % dateera=christian,% prints BC/AD controlled by dateerauto, datezeros
+            % dateera=astronomical,% prints astronomical dates, controlled by datezeros
+            dateeraauto=600,% Sets the max year ceiling for automatic printing of era
+            % abbreviate=false,% prints full date localisation strings
+            dateuncertain=true,%
+            datecirca=true,%
+            sorting=none,%
+            backend=biber]{biblatex}
+\addbibresource{\jobname.bib}
+
+\defbibenvironment{simple}
+{\list{}
+   {\setlength{\leftmargin}{0pt}%
+    \setlength{\itemindent}{0pt}%
+    \setlength{\bibitemsep}{1ex}%
+    \setlength{\itemsep}{\bibitemsep}%
+    \setlength{\parsep}{\bibparsep}}}
+{\endlist}
+{\item}
+
+\DeclareFieldFormat{urldate}{#1}
+\DeclareFieldFormat{time}{\mkbibemph{#1}}
+\DeclareFieldFormat{labeltime}{\mkbibemph{#1}}
+\DeclareFieldFormat{origtime}{\mkbibemph{#1}}
+\DeclareFieldFormat{eventtime}{\mkbibemph{#1}}
+\DeclareFieldFormat{urltime}{\mkbibemph{#1}}
+
+\makeatletter
+
+\DeclareBibliographyDriver{misc}{%
+  \printfield[emph]{note}\\
+  \iffieldundef{labelyear}{}{%
+    \printtext[bold]{labeldate = }\printlabeldate
+    \iffieldundef{labelhour}{}
+      {\\\printtext[bold]{labeltime = }\printlabeltime}}\\%
+  \iffieldundef{year}{}{%
+    \iffieldequalstr{dateunspecified}{yearincentury}
+      {\printtext[bold]{date = }\number\numexpr\thefield{year}/100+1\relax th Century}
+      {\printtext[bold]{date = }\printdate
+       \iffieldundef{hour}{}
+         {\\\printtext[bold]{time = }\printtime}}}\\%
+  \iffieldundef{origyear}{}{%
+    \iffieldequalstr{origdateunspecified}{yearindecade}
+      {\printtext[bold]{date = }The \expandafter\@gobbletwo\number\thefield{origyear}s}
+      {\printtext[bold]{origdate = }\printorigdate
+       \iffieldundef{orighour}{}
+         {\\\printtext[bold]{origtime = }\printorigtime}}}\\%
+  \iffieldundef{eventyear}{}{%
+    \printtext[bold]{eventdate = }\printeventdate
+    \iffieldundef{eventhour}{}
+      {\\\printtext[bold]{eventtime = }\printeventtime}}\\%
+  \iffieldundef{urlyear}{}{%
+    \printtext[bold]{urldate = }\printurldate
+    \iffieldundef{urlhour}{}
+      {\\\printtext[bold]{urltime = }\printurltime}}%
+  }
+
+\begin{document}
+\showoutput
+\START
+\section*{Date formats}
+This example file parses and formats some of the supported date formats and
+demonstrates the output options. See the source for details. You can change
+the options in the source file and this document will show you the options chosen.
+\subsection*{Options used to format this test document}
+\begingroup
+datecirca=\textbf{\iftoggle{blx@datecirca}{1}{0}}\\
+dateuncertain=\textbf{\iftoggle{blx@dateuncertain}{1}{0}}\\
+dateera=\textbf{\blx@dateera}\\
+dateerauto=\textbf{\blx@dateeraauto}\\
+datezeros=\textbf{\iftoggle{blx@datezeros}{1}{0}}\\
+timezeros=\textbf{\iftoggle{blx@timezeros}{1}{0}}\\
+timezones=\textbf{\iftoggle{blx@timezones}{1}{0}}\\
+seconds=\textbf{\iftoggle{blx@seconds}{1}{0}}\\
+julian=\textbf{\iftoggle{blx@julian}{1}{0}}\\
+gregorianstart=\textbf{\blx@gregorianstart}\\
+\def\do#1{%
+  #1=\textbf{\csuse{blx@dateformat@#1}}\\}
+\do{labeldate}
+\abx@dodates
+\def\do#1{%
+  #1time=\textbf{\csuse{blx@timeformat@#1time}}\\
+  #1dateusetime=\textbf{\iftoggle{blx@#1dateusetime}{1}{0}}\\}
+\do{label}
+\abx@dodatetypes
+\endgroup
+\subsection*{Example Citation Formats}
+\textcite{date1,date2,date3,date4,date5,date6,date7,date8,date9,date10}\\[1ex]
+\cite{date1}\\
+\cite{date2}\\
+\cite{date3}\\
+\cite{date4}\\
+\cite{date5}\\
+\cite{date6}\\
+\cite{date7}\\
+\cite{date8}\\
+\cite{date9}\\
+\cite{date10}
+\printbibliography[env=simple,title={Example Bibliography Formats}]
+
+\clearpage
+\OMIT
+\end{document}

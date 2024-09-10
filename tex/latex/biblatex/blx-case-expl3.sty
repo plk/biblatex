@@ -1,0 +1,327 @@
+\RequirePackage{expl3}[2020/04/06]
+\RequirePackage{xparse}
+\ProvidesExplPackage {blx-case-expl3} {\abx@date} {\abx@version}
+  {expl3 case changing code for biblatex}
+
+
+% helper macros to work around babel \languagename catcode weirdness
+\cs_new:Npn \__biblatex_clist_put_detokenized_left:Nn #1 #2
+  {
+    \clist_put_left:No #1 { \detokenize{#2} }
+  }
+
+\cs_generate_variant:Nn \__biblatex_clist_put_detokenized_left:Nn { Ne }
+
+
+\prg_new_conditional:Npnn \__biblatex_clist_if_detokenized_in:Nn #1#2 { TF }
+  {
+    \clist_if_in:NoTF #1 { \detokenize{#2} }
+      {\prg_return_true:}
+      {\prg_return_false:}
+  }
+
+\prg_generate_conditional_variant:Nnn \__biblatex_clist_if_detokenized_in:Nn {Ne} {TF}
+
+
+
+% Map for babel/polyglossia names
+% to BCP-47-like l3text names.
+% We only need maps for l3text names that do something
+% as of 2020/04/06 those names are
+% az, de-alt, el, lt, nl, tr.
+% biblatex currently only supports dutch, greek and turkish
+% so we only map those.
+% de-alt is optional and still unusual, so *we* don't map it,
+% but a user could map it themselves.
+
+\prop_new:N \l__biblatex_babel_to_pseudobcp_prop
+
+\cs_generate_variant:Nn \msg_info:nnnnn  { nnnxn }
+
+\cs_new_protected:Npn \biblatex_maplang_babel_to_pseudobcp:nn #1 #2
+  {
+    \prop_if_in:NnT \l__biblatex_babel_to_pseudobcp_prop {#1}
+      {
+        \msg_info:nnnxn { biblatex }
+          { overwrite-babel-to-pseudobcp-map }
+          {#1}
+          {\prop_item:Nn \l__biblatex_babel_to_pseudobcp_prop {#1}}
+          {#2}
+      }
+    \prop_put:Nnn \l__biblatex_babel_to_pseudobcp_prop {#1} {#2}
+  }
+
+\NewDocumentCommand \DeclareBabelToExplLanguageMapping {mm}
+  {
+    \biblatex_maplang_babel_to_pseudobcp:nn {#1} {#2}
+  }
+
+\cs_generate_variant:Nn \msg_info:nnnn  { nnnx }
+
+\cs_new_protected:Npn \biblatex_unmaplang_babel_to_pseudobcp:n #1
+  {
+    \prop_if_in:NnT \l__biblatex_babel_to_pseudobcp_prop {#1}
+      {
+        \msg_info:nnnx { biblatex }
+          { remove-babel-to-pseudobcp-map }
+          {#1}
+          { \prop_item:Nn \l__biblatex_babel_to_pseudobcp_prop {#1} }
+      }
+    \prop_remove:Nn \l__biblatex_babel_to_pseudobcp_prop {#1}
+  }
+
+\NewDocumentCommand \UndeclareBabelToExplLanguageMapping {m}
+  {
+    \str_if_eq:nnTF {#1} {*}
+      { \prop_clear:N  \l__biblatex_babel_to_pseudobcp_prop }
+      { \biblatex_unmaplang_babel_to_pseudobcp:n {#1} }
+  }
+
+% Don't put this into biblatex.sty, since
+% \DeclareBabelToExplLanguageMapping has no equivalent in the LaTeX2e
+% code.
+\DeclareBabelToExplLanguageMapping{dutch}{nl}
+\DeclareBabelToExplLanguageMapping{greek}{el}
+\DeclareBabelToExplLanguageMapping{turkish}{tr}
+
+% Our copy of \l_text_titlecase_check_letter_bool
+\bool_new:N \l_biblatex_titlecase_check_letter_bool
+% Just to be clear: unlike l3text our default is "false"
+\bool_set_false:N \l_biblatex_titlecase_check_letter_bool
+
+% Helper macro to avoid unnecessary repetition of the same structure
+% {<case [lowercase|uppercase|titlecase|titlecase_first]>}
+% {<babel language>}{<text>}
+% We use that \prop_item:Nn is empty if the item is not present
+% and that \text_...:nn becomes \text_...:n if the first argument
+% is empty.
+\cs_new_protected:Npn \__biblatex_text_makeconverter:nnn #1 #2 #3
+  {
+    \group_begin:
+      \bool_if_exist:NTF \l_text_titlecase_check_letter_bool
+        {
+          \bool_set_eq:NN \l_text_titlecase_check_letter_bool
+                          \l_biblatex_titlecase_check_letter_bool
+        }
+        {
+          % should we raise an error or at least issue a warning here?
+        }
+      \use:c { text_#1:nn }
+        { \prop_item:Nn \l__biblatex_babel_to_pseudobcp_prop {#2} } {#3}
+    \group_end:
+  }
+
+
+\cs_new:Npn \biblatex_text_lowercase:nn #1 #2
+  {
+    \__biblatex_text_makeconverter:nnn {lowercase} {#1} {#2}
+  }
+
+\cs_generate_variant:Nn \biblatex_text_lowercase:nn { Vn }
+
+\cs_new:Npn \biblatex_text_lowercase:n #1
+  {
+    \biblatex_text_lowercase:Vn \blx@languagename {#1}
+  }
+
+\cs_set_eq:NN \blx@maketext@lowercase \biblatex_text_lowercase:n
+
+
+\cs_new:Npn \biblatex_text_uppercase:nn #1 #2
+  {
+    \__biblatex_text_makeconverter:nnn {uppercase} {#1} {#2}
+  }
+
+\cs_generate_variant:Nn \biblatex_text_uppercase:nn { Vn }
+
+\cs_new:Npn \biblatex_text_uppercase:n #1
+  {
+    \biblatex_text_uppercase:Vn \blx@languagename {#1}
+  }
+
+\cs_set_eq:NN \blx@maketext@uppercase \biblatex_text_uppercase:n
+
+
+\cs_new:Npn \biblatex_text_makecapital:nn #1 #2
+  {
+    \__biblatex_text_makeconverter:nnn {titlecase_first} {#1} {#2}
+  }
+
+\cs_generate_variant:Nn \biblatex_text_makecapital:nn { Vn }
+
+\cs_new:Npn \biblatex_text_makecapital:n #1
+  {
+    \biblatex_text_makecapital:Vn \blx@languagename {#1}
+  }
+
+\cs_set_eq:NN \blx@maketext@makecapital \biblatex_text_makecapital:n
+
+\NewDocumentCommand \MakeCapital {m}
+  {
+    \biblatex_text_makecapital:n {#1}
+  }
+
+
+
+% BibTeX to expl3 case protection code by Joseph Wright
+% https://github.com/plk/biblatex/issues/960#issuecomment-578435859
+% and Bruno Le Floch
+% https://github.com/moewew/biblatex/commit/c485f1b8079d56497b17343d7883b8fcd42f961a#r39225533
+\tl_put_right:Nn \l_text_expand_exclude_tl { \NoCaseChange }
+
+\tl_put_right:Nn \l_text_case_exclude_arg_tl { \NoCaseChange }
+
+\cs_new:Npn \biblatex_text_bibtex_to_expl:n #1
+  {
+    \__biblatex_text_bibtex_loop:w #1
+    { \q_recursion_tail } \q_recursion_stop
+  }
+
+\cs_new:Npn \__biblatex_text_bibtex_loop:w #1 #
+  {
+    \exp_not:n {#1}
+    \__biblatex_text_bibtex_group:n
+  }
+
+\cs_new:Npn \__biblatex_text_bibtex_group:n #1
+  {
+    \quark_if_recursion_tail_stop:n {#1}
+    {
+      \bool_lazy_and:nnTF
+        { \tl_if_head_is_N_type_p:n {#1} }
+        { \exp_after:wN \token_if_cs_p:N \tl_head:w #1 \q_stop }
+        { \exp_not:n {#1} }
+        { \exp_not:n { \NoCaseChange {#1} } }
+      }
+    \__biblatex_text_bibtex_loop:w
+  }
+
+\cs_new_eq:NN \biblatex_text_sentencecase_preprocess:n
+              \biblatex_text_bibtex_to_expl:n
+
+
+% By default we emulate BibTeX's brace case protection rules
+% but the user can turn that off for a more sane behaviour
+% that only relies on \NoCaseChange.
+\DeclareBiblatexOption{global,type,entry}[boolean]{bibtexcaseprotection}[true]{%
+  \str_case:nnF {#1}
+    {
+      { true }
+      {
+        \cs_set_eq:NN \biblatex_text_sentencecase_preprocess:n
+                      \biblatex_text_bibtex_to_expl:n
+      }
+      { false }
+      {
+        \cs_set_eq:NN \biblatex_text_sentencecase_preprocess:n
+                      \use:n
+      }
+    }
+    {
+      \msg_error:nnn { biblatex } { invalid-value-bibtexcaseprotection }
+                     {#1}
+    }
+}
+
+% sentence casing is a bit more involved due to expl3 changes
+% <https://github.com/latex3/latex3/issues/1232>
+% <https://github.com/latex3/latex3/pull/1240>
+% <https://github.com/latex3/latex3/pull/1247>
+% In old versions we use \text_titlecase:n
+% (counter-intuitive given its name).
+% In new versions that is deprecated and has to be emulated by
+% a combination of \text_titlecase_first:n { \text_lowercase:n {#1} }.
+% This combination would not work in old versions due to a small
+% oversight, for which we add a hotfix.
+% We detect new vs. old by the presence of \text_titlecase_all:n,
+% which was added for the new version.
+\cs_if_exist:NTF \text_titlecase_all:n
+  {
+    \cs_new_protected:Npn \biblatex_text_sentencecase:nn #1 #2
+      {
+        \group_begin:
+          \bool_set_eq:NN \l_text_titlecase_check_letter_bool
+                          \l_biblatex_titlecase_check_letter_bool
+          \text_titlecase_first:nn
+            { \prop_item:Nn \l__biblatex_babel_to_pseudobcp_prop {#1} }
+            { 
+              \text_lowercase:nn
+                { \prop_item:Nn \l__biblatex_babel_to_pseudobcp_prop {#1} }
+                {#2}
+            }
+        \group_end:
+      }
+  }
+  {
+    \cs_gset:Npn \__text_change_case_break:w #1 \q__text_recursion_stop
+      {
+        \__text_change_case_break_aux:w ? #1
+      }
+    \cs_gset:Npn \__text_change_case_break_aux:w #1 \q__text_recursion_tail
+      {
+        \__text_change_case_store:o { \use_none:n #1 }
+        \__text_change_case_end:w
+      }
+    \cs_new:Npn \biblatex_text_sentencecase:nn #1 #2
+      {
+        \__biblatex_text_makeconverter:nnn {titlecase} {#1} {#2}
+      }
+  }
+
+\cs_generate_variant:Nn \biblatex_text_sentencecase:nn { Vo, xo }
+
+% If \DeclareCaseLangs says we should apply sentence casing,
+% we go for it and pass the language along to the sentence casing macro.
+% Preprocess is either the BibTeX-to-expl3 brace translator
+% or \@firstofone (do nothing),
+% we need to expand once to get rid of the latter.
+\NewDocumentCommand \MakeSentenceCase {sm}
+  {
+    \IfBooleanTF {#1}
+      {
+        \__biblatex_clist_if_detokenized_in:NeTF
+          \l__biblatex_caselangs_clist { \blx@mksc@lang }
+          {
+            \biblatex_text_sentencecase:xo { \blx@mksc@lang }
+              { \biblatex_text_sentencecase_preprocess:n {#2} }
+          }
+          {#2}
+      }
+      {
+        \biblatex_text_sentencecase:Vo \blx@languagename
+          { \biblatex_text_sentencecase_preprocess:n {#2} }
+      }
+  }
+
+
+\clist_new:N \l__biblatex_caselangs_clist
+
+% {<language,language,...>}
+\NewDocumentCommand \DeclareCaseLangs {sm}
+  {
+    \IfBooleanF {#1}
+      { \clist_clear:N \l__biblatex_caselangs_clist }
+    \__biblatex_clist_put_detokenized_left:Ne
+      \l__biblatex_caselangs_clist {#2}
+  }
+
+% \DeclareCaseLangs invocation is in biblatex.sty
+
+\NewDocumentCommand \ifcaselang {O{\blx@languagename}}
+  {
+    \__biblatex_clist_if_detokenized_in:NeTF \l__biblatex_caselangs_clist {#1}
+  }
+
+
+\msg_new:nnnn { biblatex } { invalid-value-bibtexcaseprotection }
+  { Invalid~value~'#1'~for~option~'bibtexcaseprotection'. }
+  { Valid~values~for~'bibtexcaseprotection'~are~'true'~and~'false'. }
+
+\msg_new:nnn { biblatex } { remove-babel-to-pseudobcp-map }
+  { Removing~babel->l3text~language~mapping~for~'#1'~to~'#2'. }
+
+\msg_new:nnn { biblatex } { overwrite-babel-to-pseudobcp-map }
+  { Overwriting~babel->l3text~language~mapping~for~'#1'~from~
+    '#2'~to~'#3'. }
+
+\endinput

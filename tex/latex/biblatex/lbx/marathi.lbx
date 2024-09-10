@@ -1,0 +1,558 @@
+% हे काम ११ ऑक्टोबर, २०२० रोजी निरंजन ह्यांनी सादर केले.
+% ह्यातील बहुतांश शब्दांकरिता भाषा संचालनालयाच्या भाषाविज्ञान
+% व वाङ्मयविद्या परिभाषा कोश तसेच ग्रंथालयशास्त्र परिभाषा कोश
+% ह्या दोन परिभाषा कोशांचा संदर्भ घेतला आहे.
+% ह्यात सुधारणा सुचवण्याकरिता ह्या कोशांचा आधार जरूर
+% घेण्यात यावा. भाषा संचालनालयाच्या कोशांतील शब्दांचे
+% शोधसुकर अर्थ पुढील संकेतस्थळावरून शोधता येऊ शकतात.
+% https://shabdakosh.marathi.gov.in/
+
+\ProvidesFile{marathi.lbx}
+[\abx@lbxid]
+
+
+\lbx@ifutfinput
+  {}
+  {\PackageError{biblatex}
+     {Marathi requires UTF-8 support}
+     {The file 'marathi.lbx' requires UTF-8 encoding but you
+      seem\MessageBreak to be using a different encoding.
+      This is a fatal error. I will\MessageBreak abort loading
+      marathi.lbx now.}%
+   \endinput}
+
+
+\DeclareBibliographyExtras{%
+  \renewrobustcmd*{\bibdatesep}{/}%
+  \protected\def\bibrangedash{-}%
+  \let\finalandcomma=\empty
+  % there is some housekeeping to do if we want to use non-ASCII digits
+  % first we declare Devanagari numerals as valid numerals
+  % this will let us pass \ifnumeral tests etc.
+  % \lbx@dononasciinumerals is a core hook to allo .lbx files to inject
+  % valid numerals
+  \savecommand\lbx@dononasciinumerals
+  \def\lbx@dononasciinumerals{\do\०\do\१\do\२\do\३\do\४\do\५\do\६\do\७\do\८\do\९}%
+  % since we want to calculate with Devanagari numbers,
+  % we need to convert them to US-ASCII numbers
+  % \blx@dononasciicomputablenumerals and \blx@initcomputableequivs
+  % are both used by \def\blx@defcomputableequivalent
+  \savecommand\blx@dononasciicomputablenumerals
+  \savecommand\blx@initcomputableequivs
+  \let\blx@dononasciicomputablenumerals\@empty
+  \let\blx@initcomputableequivs\@empty
+  % map Devanagari digit to US-ASCII digit
+  \blx@defcomputableequivalent{\०}{\0}%
+  \blx@defcomputableequivalent{\१}{\1}%
+  \blx@defcomputableequivalent{\२}{\2}%
+  \blx@defcomputableequivalent{\३}{\3}%
+  \blx@defcomputableequivalent{\४}{\4}%
+  \blx@defcomputableequivalent{\५}{\5}%
+  \blx@defcomputableequivalent{\६}{\6}%
+  \blx@defcomputableequivalent{\७}{\7}%
+  \blx@defcomputableequivalent{\८}{\8}%
+  \blx@defcomputableequivalent{\९}{\9}%
+  % we will use getcomputableequivalent to obtain the ASCII-number
+  % whenever we actually need a number for computations
+  \protected\def\mkbibordinal#1{%
+    \begingroup
+    \blx@imc@getcomputableequivalent{#1}{\blx@tempa}%
+    \@tempcnta0\blx@tempa\relax
+    #1%
+    \ifcase\@tempcnta व\or ल\or र\or र\or थ\else व\fi
+    \endgroup}%
+  \protected\def\mkbibmascord#1{\mkbibordinal{#1}ा}%
+  \protected\def\mkbibfemord#1{\mkbibordinal{#1}ी}%
+  \protected\def\mkbibneutord#1{\mkbibordinal{#1}े}%
+  \savecommand\mkbibordedition
+  \savecommand\mkbibordseries
+  \def\mkbibordedition{\mkbibfemord}%
+  \def\mkbibordseries{\mkbibmascord}%
+  \savecommand\blx@comprange@check
+  \def\blx@comprange@check#1#2{%
+    \blx@imc@ifinteger{#1}
+      {\blx@imc@ifinteger{#2}}
+      {\@secondoftwo}
+      {\blx@comprange@comp{#1}{#2}}
+      {\blx@imc@hascomputableequivalent{#1}
+         {\blx@imc@hascomputableequivalent{#2}}
+         {\@secondoftwo}
+         {\begingroup
+          \blx@imc@getcomputableequivalent{#1}{\blx@tempa}%
+          \blx@imc@getcomputableequivalent{#2}{\blx@tempb}%
+          \edef\blx@tempc{\endgroup
+            \noexpand\blx@comprange@comp{\blx@tempa}{\blx@tempb}}%
+          \blx@tempc}
+         {\begingroup
+          \protected@edef\blx@tempc{\endgroup
+            \blx@range@out@value{%
+              \blx@range@out@item@process{\unexpanded{#1}}%
+              \noexpand\bibrangedash
+             \blx@range@out@item@process{\unexpanded{#2}}}}%
+          \blx@tempc}}}%
+  \savefieldformat[article]{series}%
+  \savefieldformat[periodical]{series}%
+  \DeclareFieldFormat[article,periodical]{series}{% series of a journal
+    \blx@imc@ifiscomputable{#1}
+      {\mkbibordseries{#1}~\bibstring{jourser}}
+      {\ifbibstring{#1}{\bibstring{#1}}{#1}}}%
+  \savefieldformat{edition}%
+  \DeclareFieldFormat{edition}{%
+    \blx@imc@ifiscomputable{#1}
+      {\mkbibordedition{#1}~\bibstring{edition}}
+      {#1\isdot}}%
+  \savecommand\mknumalph
+  \protected\def\mknumalph#1{%
+    \begingroup
+    \blx@imc@getcomputableequivalent{#1}{\blx@tempa}%
+    \blx@tempcnta=\blx@tempa\relax
+    \blx@numalph\blx@tempcnta
+    \endgroup}%
+  \savecommand\blx@numalph
+  \def\blx@numalph#1{%
+    \ifcase#1\relax\blx@warning@entry{Value \number#1 out of range}\number#1\or
+    अ\or आ\or इ\or ई\or उ\or ऊ\or ए\or ऐ\or ओ\or औ\or अं\or अः\or क\or
+    ख\or ग\or घ\or ङ\or च\or छ\or ज\or झ\or ञ\or ट\or ठ\or ड\or ढ\or
+    ण\or त\or थ\or द\or ध\or न\or प\or फ\or ब\or भ\or म\or य\or र\or
+    ल\or व\or श\or ष\or स\or ह\or ळ\or क्ष\or ज्ञ\else
+    \blx@warning@entry{Value \number#1 out of range}\number#1\fi}%
+  \savecommand\mkbibmonth
+  \protected\def\mkbibmonth#1{%
+    \begingroup
+      \begingroup
+      \edef\blx@tempb{\endgroup
+        \noexpand\blx@imc@getcomputableequivalent
+          {#1}
+          {\noexpand\blx@tempa}}%
+      \blx@tempb
+      \ifcase0\blx@tempa\relax
+        \blx@warning@entry{Month out of range or not an integer}%
+      \or\abx@bibmonth{january}%
+      \or\abx@bibmonth{february}%
+      \or\abx@bibmonth{march}%
+      \or\abx@bibmonth{april}%
+      \or\abx@bibmonth{may}%
+      \or\abx@bibmonth{june}%
+      \or\abx@bibmonth{july}%
+      \or\abx@bibmonth{august}%
+      \or\abx@bibmonth{september}%
+      \or\abx@bibmonth{october}%
+      \or\abx@bibmonth{november}%
+      \or\abx@bibmonth{december}%
+      \else
+        \blx@warning@entry{Month out of range}#1%
+      \fi
+    \endgroup}%
+  \protected\def\mkbibdatelong#1#2#3{%
+    \iffieldundef{#3}
+      {}
+      {\mkdayzeros{\thefield{#3}}%
+       \iffieldundef{#2}{}{\nobreakspace}}%
+    \iffieldundef{#2}
+      {}
+      {\mkbibmonth{\thefield{#2}}%
+       \iffieldundef{#1}{}{\iffieldundef{#3}{}{\addcomma}\space}}%
+    \iffieldbibstring{#1}
+      {\bibstring{\thefield{#1}}}
+      {\dateeraprintpre{#1}\stripzeros{\thefield{#1}}}}%
+  \protected\def\mkbibdateshort#1#2#3{%
+    \iffieldundef{#3}
+      {}
+      {\mkdayzeros{\thefield{#3}}%
+       \iffieldundef{#2}{}{\bibdatesep}}%
+    \iffieldundef{#2}
+      {}
+      {\mkmonthzeros{\thefield{#2}}%
+       \iffieldundef{#1}{}{\bibdatesep}}%
+    \iffieldbibstring{#1}
+      {\bibstring{\thefield{#1}}}
+      {\dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}}}%
+  \expandafter\protected\expandafter\def\csname mkbibtime24h\endcsname#1#2#3#4{%
+      \iffieldundef{#1}
+        {}
+        {\mktimezeros{\thefield{#1}}%
+         \iffieldundef{#2}{}{\bibtimesep}}%
+      \iffieldundef{#2}
+        {}
+        {\mktimezeros{\thefield{#2}}%
+         \iffieldundef{#3}{}{\bibtimesep}}%
+      \iffieldundef{#3}
+        {}
+        {\mktimezeros{\thefield{#3}}}%
+      \iffieldundef{#4}{}
+        {\bibtimezonesep
+         \mkbibtimezone{\thefield{#4}}}}%
+  \expandafter\protected\expandafter\def\csname mkbibtime12h\endcsname#1#2#3#4{%
+      \ifnumless{\thefield{#1}}{12}
+         {\bibstring{am}}
+         {\bibstring{pm}}%
+      \space
+      \stripzeros{\mktimehh{\thefield{#1}}}%
+      \bibtimesep
+      \mktimezeros{\thefield{#2}}%
+      \iffieldundef{#3}{}
+        {\bibtimesep
+         \mktimezeros{\thefield{#3}}}%
+      \iffieldundef{#4}{}
+       {\space\bibtimezonesep
+        \parentext{\mkbibtimezone{\thefield{#4}}}}}%
+  \protected\def\mkbibyeardivisiondateshort#1#2{%
+    \mkbibyeardivision{\thefield{#2}}%
+    \iffieldundef{#1}{}{\space}%
+    \dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}}%
+  \protected\def\mkbibyeardivisiondatelong#1#2{%
+    \mkbibyeardivision{\thefield{#2}}%
+    \iffieldundef{#1}{}{\space}%
+    \dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}}%
+  \savefieldformat{url}%
+  \DeclareFieldFormat{url}{\bibstring{url}\addcolon\space\url{#1}}%
+  \savefieldformat{urldate}%
+  \DeclareFieldFormat{urldate}{\mkbibparens{#1\addspace\bibstring{urlseen}}}%
+}
+
+\UndeclareBibliographyExtras{%
+  \restorecommand\lbx@dononasciinumerals
+  \restorecommand\blx@dononasciicomputablenumerals
+  \restorecommand\blx@initcomputableequivs
+  \restorecommand\blx@comprange@check
+  \restorecommand\mkbibordedition
+  \restorecommand\mkbibordseries
+  \restorecommand\mknumalph
+  \restorecommand\blx@numalph
+  \restorecommand\mkbibmonth
+  \restorefieldformat{url}%
+  \restorefieldformat{urldate}%
+  \restorefieldformat[article]{series}%
+  \restorefieldformat[periodical]{series}%
+  \restorefieldformat{edition}%
+}
+
+\DeclareBibliographyStrings{%
+    bibliography     = {{संदर्भसूची}{संदर्भसूची}},
+    references       = {{संदर्भ}{संदर्भ}},
+    shorthands       = {{संक्षेपसूची}{संक्षेप}},
+    editor           = {{संपादक}{संपा\adddot}},
+    editors          = {{संपादक}{संपा\adddot}},
+    compiler         = {{संग्राहक}{संग्रा\adddot}},
+    compilers        = {{संग्राहक}{संग्रा\adddot}},
+    redactor         = {{पाठशोधक}{पाठ\adddot}},
+    redactors        = {{पाठशोधक}{पाठ\adddot}},
+    reviser          = {{पुनरीक्षक}{पुन\adddot}},
+    revisers         = {{पुनरीक्षक}{पुन\adddot}},
+    founder          = {{संस्थापक}{संस्था\adddot}},
+    founders         = {{संस्थापक}{संस्था\adddot}},
+    collaborator     = {{सहलेखक}{सह\adddot}},% FIXME: unsure
+    collaborators    = {{सहलेखक}{सहलेखक\adddot}},% FIXME: unsure
+    translator       = {{अनुवादक}{अनु\adddot}},
+    translators      = {{अनुवादक}{अनु\adddot}},
+    commentator      = {{समालोचक}{समा\adddot}},
+    commentators     = {{समालोचक}{समा\adddot}},
+    annotator        = {{टीपालेखक}{टीपा\adddot}},
+    annotators       = {{टीपालेखक}{टीपा\adddot}},
+    commentary       = {{समालोचन}{समा\adddot}},
+    annotations      = {{टीपा}{टीपा}},
+    introduction     = {{प्रस्तावना}{प्रस्ता\adddot}},
+    foreword         = {{प्रास्ताविक}{प्रास्ता\adddot}},
+    editortr         = {{संपादक आणि अनुवादक}%
+        {संपा\adddotspace व अनु\adddot}},
+    editorstr        = {{संपादक आणि अनुवादक}%
+        {संपा\adddotspace व अनु\adddot}},
+    editorco         = {{संपादक आणि भाष्यकार}%
+        {संपा\adddotspace व भाष्य}},
+    editorsco        = {{संपादक आणि भाष्यकार}%
+        {संपा\adddotspace व भाष्य}},
+    editoran         = {{संपादक आणि टीपालेखक}%
+        {संपा\adddotspace व टीपा\adddot}},
+    editorsan        = {{संपादक आणि टीपालेखक}%
+        {संपा\adddotspace व टीपा\adddot}},
+    editorin         = {{संपादक आणि प्रस्तावना}%
+        {संपा\adddotspace व प्रस्ता\adddot}},
+    editorsin        = {{संपादक व प्रस्तावना}%
+        {संपा\adddotspace व प्रस्ता\adddot}},
+    editorfo         = {{संपादक व प्रास्ताविक}%
+        {संपा\adddotspace व प्रास्ता\adddot}},
+    editorsfo        = {{संपादक व प्रास्ताविक}%
+        {संपा\adddotspace व प्रास्ता\adddot}},
+    editortrco       = {{संपादक, अनुवादक व भाष्यकार}%
+        {संपा.\addabbrvspace अनु\adddot व भाष्य}},
+    editorstrco      = {{संपादक, अनुवादक व भाष्यकार}%
+        {संपा.\addabbrvspace अनु\adddot व भाष्य}},
+    editortran       = {{संपादक, अनुवादक व टीपालेखक}%
+        {संपा.\addabbrvspace अनु\adddot व टीपा\adddot}},
+    editorstran      = {{संपादक, अनुवादक व टीपालेखक}%
+        {संपा.\addabbrvspace अनु\adddot व टीपा\adddot}},
+    editortrin       = {{संपादक, अनुवादक व प्रस्तावना}%
+        {संपा.\addabbrvspace अनु\adddot व प्रस्ता\adddot}},
+    editorstrin      = {{संपादक, अनुवादक व प्रस्तावना}%
+        {संपा.\addabbrvspace अनु\adddot व प्रस्ता\adddot}},
+    editortrfo       = {{संपादक, अनुवादक व प्रास्ताविक}%
+        {संपा.\addabbrvspace अनु\adddot व प्रास्ता\adddot}},
+    editorstrfo      = {{संपादक, अनुवादक व प्रास्ताविक}%
+        {संपा.\addabbrvspace अनु\adddot व प्रास्ता\adddot}},
+    editorcoin       = {{संपादक, भाष्यकार व प्रस्तावना}%
+        {संपा.\addabbrvspace भाष्य व प्रस्ता\adddot}},
+    editorscoin      = {{संपादक, भाष्यकार व प्रस्तावना}%
+        {संपा.\addabbrvspace भाष्य व प्रस्ता\adddot}},
+    editorcofo       = {{संपादक, भाष्यकार व प्रास्ताविक}%
+        {संपा.\addabbrvspace भाष्य व प्रास्ता\adddot}},
+    editorscofo      = {{संपादक, भाष्यकार व प्रास्ताविक}%
+        {संपा.\addabbrvspace भाष्य व प्रास्ता\adddot}},
+    editoranin       = {{संपादक, टीपालेखक व प्रस्तावना}%
+        {संपा.\addabbrvspace टीपा\adddot व प्रस्ता\adddot}},
+    editorsanin      = {{संपादक, टीपालेखक व प्रस्तावना}%
+        {संपा.\addabbrvspace टीपा\adddot व प्रस्ता\adddot}},
+    editoranfo       = {{संपादक, टीपालेखक व प्रास्ताविक}%
+        {संपा.\addabbrvspace टीपा\adddot व प्रास्ता\adddot}},
+    editorsanfo      = {{संपादक, टीपालेखक व प्रास्ताविक}%
+        {संपा.\addabbrvspace टीपा\adddot व प्रास्ता\adddot}},
+    editortrcoin     = {{संपादक, अनुवादक, भाष्यकार व प्रस्तावना}%
+        {संपा.\addabbrvspace अनु., भाष्य व प्रस्ता\adddot}},
+    editorstrcoin    = {{संपादक, अनुवादक, भाष्यकार व प्रस्तावना}%
+        {संपा.\addabbrvspace अनु., भाष्य व प्रस्ता\adddot}},
+    editortrcofo     = {{संपादक, अनुवादक, भाष्यकार व प्रास्ताविक}%
+        {संपा.\addabbrvspace अनु., भाष्य व प्रास्ता\adddot}},
+    editorstrcofo    = {{संपादक, अनुवादक, भाष्यकार व प्रास्ताविक}%
+        {संपा.\addabbrvspace अनु., भाष्य व प्रास्ता\adddot}},
+    editortranin     = {{संपादक, अनुवादक, टीपालेखक व प्रस्तावना}%
+        {संपा.\addabbrvspace अनु., टीपा\adddot व प्रस्ता\adddot}},
+    editorstranin    = {{संपादक, अनुवादक, टीपालेखक व प्रस्तावना}%
+        {संपा.\addabbrvspace अनु., टीपा\adddot व प्रस्ता\adddot}},
+    editortranfo     = {{संपादक, अनुवादक, टीपालेखक व प्रास्ताविक}%
+        {संपा.\addabbrvspace अनु., टीपा\adddot व प्रास्ता\adddot}},
+    editorstranfo    = {{संपादक, अनुवादक, टीपालेखक व प्रास्ताविक}%
+        {संपा.\addabbrvspace अनु., टीपा\adddot व प्रास्ता\adddot}},
+    translatorco     = {{अनुवादक व भाष्य}%
+        {अनु\adddot\ व भाष्य}},
+    translatorsco    = {{अनुवादक व भाष्यकार}%
+        {अनु\adddot\ व भाष्य}},
+    translatoran     = {{अनुवादक व टीपालेखक}%
+        {अनु\adddot\ व टीपा\adddot}},
+    translatorsan    = {{अनुवादक व टीपालेखक}%
+        {अनु\adddot\ व टीपा\adddot}},
+    translatorin     = {{अनुवाद व प्रस्तावना}%
+        {अनु\adddot\ व प्रस्ता\adddot}},
+    translatorsin    = {{अनुवाद व प्रस्तावना}%
+        {अनु\adddot\ व प्रस्ता\adddot}},
+    translatorfo     = {{अनुवाद व प्रास्ताविक}%
+        {अनु\adddot\ व प्रास्ता\adddot}},
+    translatorsfo    = {{अनुवाद व प्रास्ताविक}%
+        {अनु\adddot\ व प्रास्ता\adddot}},
+    translatorcoin   = {{अनुवाद, समालोचन व प्रस्तावना}%
+        {अनु., भाष्य व प्रस्ता\adddot}},
+    translatorscoin  = {{अनुवाद, समालोचन व प्रस्तावना}%
+        {अनु., भाष्य व प्रस्ता\adddot}},
+    translatorcofo   = {{अनुवाद, समालोचन व प्रास्ताविक}%
+        {अनु., भाष्य व प्रास्ता\adddot}},
+    translatorscofo  = {{अनुवाद, समालोचन व प्रास्ताविक}%
+        {अनु., भाष्य व प्रास्ता\adddot}},
+    translatoranin   = {{अनुवाद, टीपा व प्रस्तावना}%
+        {अनु., टीपा\adddot व प्रस्ता\adddot}},
+    translatorsanin  = {{अनुवाद, टीपा व प्रस्तावना}%
+        {अनु., टीपा\adddot व प्रस्ता\adddot}},
+    translatoranfo   = {{अनुवाद, टीपा व प्रास्ताविक}%
+        {अनु., टीपा\adddot व प्रास्ता\adddot}},
+    translatorsanfo  = {{अनुवाद, टीपालेखन व प्रास्ताविक}%
+        {अनु., टीपा\adddot व प्रास्ता\adddot}},
+    organizer        = {{आयोजक}{आयो\adddot}},
+    organizers       = {{आयोजक}{आयो\adddot}},
+    byorganizer      = {{आयोजित}{आयो\adddot}},
+    byauthor         = {{लेखन}{लेखन}},
+    byeditor         = {{संपादित}{संपा\adddot}},
+    bycompiler       = {{संग्रहण}{संग्र\adddot}},
+    byredactor       = {{पाठशोधित}{पाठ\adddot}},
+    byreviser        = {{पुनरीक्षक}{पुन.\adddot}},
+    byreviewer       = {{परीक्षण}{परी\adddot}},
+    byfounder        = {{संस्थापना}{संस्था\adddot}},
+    bycontinuator    = {{क्रमशः}{क्रम\adddot}},
+    bytranslator     = {{\lbx@lfromlang\ तून अनुवादित}{\lbx@sfromlang\ अनु\adddot}},
+    bycommentator    = {{भाष्य}{भाष्य}},
+    byannotator      = {{टीपांसहित}{टीपा\adddot}},
+    withcommentator  = {{समालोचन}{समा\adddot}},
+    withannotator    = {{टीपांसह}{टीपा}},
+    withintroduction = {{प्रस्तावनेसह}{प्रस्तावनेसह}},
+    withforeword     = {{प्रास्ताविकासह}{प्रास्ता\adddot}},
+    byeditortr       = {{संपादित व \lbx@lfromlang\ अनुवादित}%
+        {संपा\adddotspace व \lbx@sfromlang\ अनु\adddot}},
+    byeditorco       = {{संपादित व समालोचित}%
+        {संपा\adddotspace व भाष्य}},
+    byeditoran       = {{संपादित व टीपांसहित}%
+        {संपा\adddotspace व टीपा\adddot}},
+    byeditorin       = {{संपादित, प्रस्तावना}%
+        {संपा.\addabbrvspace प्रस्ता\adddot}},
+    byeditorfo       = {{संपादित, प्रास्ताविकासह}%
+        {संपा.\addabbrvspace प्रास्ता\adddot}},
+    byeditortrco     = {{संपादित, \lbx@lfromlang\ अनुवादित व समालोचित}%
+        {संपा.\addabbrvspace \lbx@sfromlang\ अनु\adddot\ व भाष्य}},
+    byeditortran     = {{संपादित, \lbx@lfromlang\ अनुवादित व टीपांसहित}%
+        {संपा.\addabbrvspace \lbx@sfromlang\ अनु\adddot\ व टीपा\adddot}},
+    byeditortrin     = {{संपादित व \lbx@lfromlang\ अनुवादित, प्रस्तावना}%
+        {संपा\adddotspace व \lbx@sfromlang\ अनु\adddot\, प्रस्ता\adddot}},
+    byeditortrfo     = {{संपादित व \lbx@lfromlang\ अनुवादित, प्रास्ताविकासह}%
+        {संपा\adddotspace व \lbx@sfromlang\ अनु\adddot\, प्रास्ताविकासह\adddot}},
+    byeditorcoin     = {{संपादित व समालोचित, प्रस्तावना}%
+        {संपा\adddotspace व समा., प्रस्ता\adddot}},
+    byeditorcofo     = {{संपादित व समालोचित, प्रास्ताविकासह}%
+        {संपा\adddotspace व समा., प्रास्ताविकासह\adddot}},
+    byeditoranin     = {{संपादित व टीपांसहित, प्रस्तावना}%
+        {संपा\adddotspace व टीपा., प्रस्ता\adddot}},
+    byeditoranfo     = {{संपादित व टीपांसहित, प्रास्ताविकासह}%
+        {संपा\adddotspace व टीपा., प्रास्ताविकासह\adddot}},
+    byeditortrcoin   = {{संपादित, \lbx@lfromlang\ अनुवादित व समालोचित, प्रस्तावना}%
+        {संपा.\addabbrvspace \lbx@sfromlang\ अनु\adddot व समा., प्रस्ता\adddot}},
+    byeditortrcofo   = {{संपादित, \lbx@lfromlang\ अनुवादित व समालोचित, प्रास्ताविकासह}%
+        {संपा.\addabbrvspace \lbx@sfromlang\ अनु\adddot\ व समा., प्रास्ताविकासह}},
+    byeditortranin   = {{संपादित, \lbx@lfromlang\ अनुवादित व टीपांसहित, प्रस्तावना}%
+        {संपा.\addabbrvspace \lbx@sfromlang\ अनु\adddot\ व टीपा, प्रस्ता\adddot}},
+    byeditortranfo   = {{संपादित, \lbx@lfromlang\ अनुवादित व टीपांसहित, प्रास्ताविकासह}%
+        {संपा.\addabbrvspace \lbx@sfromlang\ अनु\adddot\ व टीपा, प्रास्ताविकासह}},
+    bytranslatorco   = {{\lbx@lfromlang\ अनुवादित व समालोचित}%
+        {\lbx@sfromlang\ अनु\adddot\ व भाष्य}},
+    bytranslatoran   = {{\lbx@lfromlang\ अनुवादित व टीपांसहित}%
+        {\lbx@sfromlang\ अनु\adddot\ व टीपा}},
+    bytranslatorin   = {{\lbx@lfromlang\ अनुवादित, प्रस्तावना}%
+        {\lbx@sfromlang\ अनु\adddot\, प्रस्ता\adddot}},
+    bytranslatorfo   = {{\lbx@lfromlang\ अनुवादित, प्रास्ताविकासह}%
+        {\lbx@sfromlang\ अनु\adddot\, प्रास्ताविकासह\adddot}},
+    bytranslatorcoin = {{\lbx@lfromlang\ अनुवादित व समालोचित, प्रस्तावना}%
+        {\lbx@sfromlang\ अनु\adddot\ व समा., प्रस्ता\adddot}},
+    bytranslatorcofo = {{\lbx@lfromlang\ अनुवादित व समालोचित, प्रास्ताविकासह}%
+        {\lbx@sfromlang\ अनु\adddot\ व समा., प्रास्ताविकासह\adddot}},
+    bytranslatoranin = {{\lbx@lfromlang\ अनुवादित व टीपांसहित, प्रस्तावना}%
+        {\lbx@sfromlang\ अनु\adddot\ व टीपा, प्रस्ता\adddot}},
+    bytranslatoranfo = {{\lbx@lfromlang\ अनुवादित व टीपांसहित, प्रास्ताविकासह}%
+        {\lbx@sfromlang\ अनु\adddot\ व टीपा, प्रास्ताविकासह\adddot}},
+    and              = {{आणि}{व}},
+    andothers        = {{व इतर}{व इतर}},
+    andmore          = {{व इतर}{व इतर}},
+    volume           = {{खंड}{खंड}},
+    volumes          = {{खंड}{खंड}},
+    jourvol          = {{खंड}{खंड}},
+    jourser          = {{अंक}{अंक}},
+    book             = {{पुस्तक}{पुस्तक}},
+    part             = {{खंड}{खंड}},
+    edition          = {{आवृत्ती}{आ\adddot}},
+    reprintfrom      = {{पुनर्प्रकाशित}{पुन\adddot}},
+    translationof    = {{अनुवाद}{अनु\adddot}},
+    translationas    = {{अनुवादित}{अनु\adddot}},
+    translationfrom  = {{अनुवादित}{अनु\adddot}},
+    origpubas        = {{मूळ आवृत्ती}{मूळ\adddotspace आ\adddot}},
+    origpubin        = {{मूळ आवृत्ती}{मूळ\adddotspace आ\adddot}},
+    bypublisher      = {{प्रकाशन}{प्रका\adddot}},
+    nodate           = {{दिनांक अनिर्दिष्ट}{दिनांक अनिर्दिष्ट}},
+    page             = {{पृष्ठ}{पृ\adddot}},
+    pages            = {{पृष्ठे}{पृ\adddot}},
+    column           = {{स्तंभ}{स्तंभ}},
+    columns          = {{स्तंभ}{स्तंभ}},
+    line             = {{ओळ}{ओळ}},
+    lines            = {{ओळी}{ओळी}},
+    verse            = {{कडवे}{कडवे}},
+    verses           = {{कडवी}{कडवी}},
+    section          = {{विभाग}{विभाग}},
+    sections         = {{विभाग}{विभाग}},
+    paragraph        = {{परिच्छेद}{परि\adddot}},
+    paragraphs       = {{परिच्छेद}{परि\adddot}},
+    pagetotal        = {{पृष्ठ}{पृ\adddot}},
+    pagetotals       = {{पृष्ठे}{पृ\adddot}},
+    columntotal      = {{स्तंभ}{स्तंभ}},
+    columntotals     = {{स्तंभ}{स्तंभ}},
+    linetotal        = {{ओळ}{ओळ}},
+    linetotals       = {{ओळी}{ओळी}},
+    versetotal       = {{कडवे}{कडवे}},
+    versetotals      = {{कडवी}{कडवी}},
+    sectiontotal     = {{विभाग}{विभाग}},
+    sectiontotals    = {{विभाग}{विभाग}},
+    paragraphtotal   = {{परिच्छेद}{परि\adddot}},
+    paragraphtotals  = {{परिच्छेद}{परि\adddot}},
+    in               = {{समाविष्ट}{समाविष्ट}},
+    inseries         = {{समाविष्ट}{समाविष्ट}},
+    number           = {{क्रमांक}{क्र\adddot}},
+    chapter          = {{प्रकरण}{प्रकरण}},
+    bathesis         = {{पदवी प्रबंध}{पदवी प्रबंध}},
+    mathesis         = {{पदव्युत्तर प्रबंध}{पदव्युत्तर प्रबंध}},
+    phdthesis        = {{पीएचडी प्रबंध}{पीएचडी प्रबंध}},
+    candthesis       = {{उमेदवार निबंध}{उमे\adddotspace निबंध}},
+    resreport        = {{शोधअहवाल}{शोधअहवाल}},
+    techreport       = {{तांत्रिक अहवाल}{तां\adddotspace अह\adddot}},
+    software         = {{संगणकीय कार्यप्रणाली}{संग\adddotspace कार्यप्रणाली}},
+    audiocd          = {{ध्वनिफीत}{ध्वनिफीत}},
+    version          = {{आवृत्ती}{आवृत्ती}},
+    url              = {{दुवा}{दुवा}},
+    urlfrom          = {{उपलब्ध}{उपलब्ध}},
+    urlseen          = {{भेट दिली}{भेट दिली}},
+    inpreparation    = {{प्रगतिपथावर}{प्रगतिपथावर}},
+    submitted        = {{सादर केलेले}{सादर केलेले}},
+    forthcoming      = {{आगामी}{आगामी}},
+    prepublished     = {{पूर्वप्रकाशित}{पूर्वप्रकाशित}},
+    thiscite         = {{खासकरून}{खासकरून}},
+    seenote          = {{टीप पाहा}{टीप पाहा}},
+    quotedin         = {{उद्धृत}{उद्धृत}},
+    see              = {{पाहा}{पाहा}},
+    seealso          = {{हेदेखील पाहा}{हेदेखील पाहा}},
+    january          = {{जानेवारी}{जाने\adddot}},
+    february         = {{फेब्रुवारी}{फेब्रु\adddot}},
+    march            = {{मार्च}{मार्च\adddot}},
+    april            = {{एप्रिल}{एप्रि\adddot}},
+    may              = {{मे}{मे}},
+    june             = {{जून}{जून}},
+    july             = {{जुलै}{जुलै}},
+    august           = {{ऑगस्ट}{ऑग\adddot}},
+    september        = {{सप्टेंबर}{सप्टें\adddot}},
+    october          = {{ऑक्टोबर}{ऑक्टो\adddot}},
+    november         = {{नोव्हेंबर}{नोव्हें\adddot}},
+    december         = {{डिसेंबर}{डिसें\adddot}},
+    langenglish      = {{इंग्रजी}{इंग्रजी}},
+    langfrench       = {{फ्रेंच}{फ्रेंच}},
+    langgerman       = {{जर्मन}{जर्मन}},
+    langgreek        = {{ग्रीक}{ग्रीक}},
+    langjapanese     = {{जपानी}{जपानी}},
+    langportuguese   = {{पोर्तुगीज}{पोर्तुगीज}},
+    langrussian      = {{रशियन}{रशियन}},
+    langspanish      = {{स्पॅनिश}{स्पॅनिश}},
+    langswedish      = {{स्वीडी}{स्वीडी}},
+    fromdutch        = {{डचमधून}{डचमधून}},
+    fromenglish      = {{इंग्रजीतून}{इंग्रजीतून}},
+    fromfrench       = {{फ्रेंचमधून}{फ्रेंचमधून}},
+    fromgerman       = {{जर्मनमधून}{जर्मनमधून}},
+    fromgreek        = {{ग्रीकमधून}{ग्रीकमधून}},
+    fromjapanese     = {{जपानीतून}{जपानीतून}},
+    fromlatin        = {{लॅटिनमधून}{लॅटिनमधून}},
+    fromportuguese   = {{पोर्तुगीजमधून}{पोर्तुगीजमधून}},
+    fromrussian      = {{रशियनमधून}{रशियनमधून}},
+    fromspanish      = {{स्पॅनिशमधून}{स्पॅनिशमधून}},
+    fromswedish      = {{स्वीडीतून}{स्वीडीतून}},
+    patent           = {{पेटंट}{पे\adddot}},
+    file             = {{धारिका}{धारिका}},
+    library          = {{ग्रंथालय}{ग्रंथालय}},
+    abstract         = {{सारांश}{सारांश}},
+    annotation       = {{टीपा}{टीपा}},
+    commonera        = {{सामान्य युग}{सा.यु\adddot}},
+    beforecommonera  = {{सामान्य युग पूर्व}{सा.यु.पू\adddot}},
+    annodomini       = {{इसवी सन}{इ.स\adddot}},
+    beforechrist     = {{इ.स.पू\adddot}{इ.स.पू\adddot}},
+    circa            = {{सुमारे}{सुमारे}},
+    spring           = {{वसंत}{वसंत}},
+    summer           = {{उन्हाळा}{उन्हाळा}},
+    autumn           = {{शरद}{शरद}},
+    winter           = {{हिवाळा}{हिवाळा}},
+% springN          = {{}{}},% FIXME: missing
+% summerN          = {{}{}},% FIXME: missing
+% autumnN          = {{}{}},% FIXME: missing
+% winterN          = {{}{}},% FIXME: missing
+% springS          = {{}{}},% FIXME: missing
+% summerS          = {{}{}},% FIXME: missing
+% autumnS          = {{}{}},% FIXME: missing
+% winterS          = {{}{}},% FIXME: missing
+% Q1               = {{}{}},% FIXME: missing
+% Q2               = {{}{}},% FIXME: missing
+% Q3               = {{}{}},% FIXME: missing
+% Q4               = {{}{}},% FIXME: missing
+% QD1              = {{}{}},% FIXME: missing
+% QD2              = {{}{}},% FIXME: missing
+% QD3              = {{}{}},% FIXME: missing
+% S1               = {{}{}},% FIXME: missing
+% S2               = {{}{}},% FIXME: missing
+    am               = {{मध्यान्हपूर्व}{म.पू\adddot}},
+    pm               = {{मध्यान्होत्तर}{म.उ\adddot}},
+}
+
+\endinput

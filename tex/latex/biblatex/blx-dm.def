@@ -1,5 +1,5 @@
 \ProvidesFile{blx-dm.def}
-[\abx@lbxid]
+[\abx@dmid]
 
 % -*- mode: LaTeX -*-
 \newbool{dmskipout}%
@@ -106,17 +106,17 @@
       \blx@xml@datamodel@entrytype{\blx@tempa}{##1}}}%
   \ifblank{#1}
     {\docsvlist{#2}}
-    {\setkeys{blx@datamodel@entrytypes}{#1}
+    {\blx@kv@setkeys{blx@datamodel@entrytypes}{#1}
      \docsvlist{#2}}%
   \endgroup}
 
-\define@key{blx@datamodel@entrytypes}{skipout}[true]{% true|false
+\blx@kv@defkey{blx@datamodel@entrytypes}{skipout}[true]{% true|false
   \ifstrequal{#1}{true}
     {\appto\blx@tempa{ skip\string_output="true"}}
     {}}
 
 % Valid dateparts
-\def\blx@notnulldateparts{month,day,hour,minute,second,timezone,season,endmonth,endday,endhour,endminute,endsecond,endtimezone,endseason}
+\def\blx@notnulldateparts{month,day,hour,minute,second,timezone,yeardivision,endmonth,endday,endhour,endminute,endsecond,endtimezone,endyeardivision}
 \def\blx@nullokdateparts{endyear,year}
 \edef\blx@dateparts{\blx@notnulldateparts,\blx@nullokdateparts}
 
@@ -128,7 +128,7 @@
   \boolfalse{dmskipout}%
   \boolfalse{dmlabelfield}%
   \let\blx@tempa\@empty
-  \setkeys{blx@datamodel@field}{#1}%
+  \blx@kv@setkeys{blx@datamodel@field}{#1}%
   \def\do##1{%
     % Generic lists of field/datatypes for testing bib fields
     \ifinlistcs{##1}{blx@datamodelfields@fieldtypes@\blx@dm@fieldtype}
@@ -182,7 +182,10 @@
       )
       and
       not test {\ifinlistcs{##1}{blx@datamodel@lists}}}
-        {\listcsgadd{blx@datamodel@lists}{##1}}
+        {\listcsgadd{blx@datamodel@lists}{##1}%
+         \ifcsstring{blx@dm@datatype}{uri}
+           {\listcsgadd{blx@datamodel@lists}{##1raw}} % URL lists need a <field>raw variant
+           {}}
         {}%
     \ifboolexpr{% add to list of fields unless certain type/datatype etc.
       bool {dmskipout}
@@ -240,19 +243,19 @@
          \xifinlistcs{\blx@datetype ####1}{blx@datamodel@fields}
            {}
            {\listcsxadd{blx@datamodel@fields}{\blx@datetype ####1}}%
-         \setkeys{blx@datamodel@field}{type=field,datatype=datepart,nullok}%
+         \blx@kv@setkeys{blx@datamodel@field}{type=field,datatype=datepart,nullok}%
          \xappto\blx@bcf@datamodel@fields{%
            \blx@xml@datamodel@field{\blx@tempa}{\blx@datetype ####1}}}%
        \expandafter\docsvlist\expandafter{\blx@nullokdateparts}%
        % dateparts which are not ok to be null by default:
        % *year, *(end)month, *(end)day, *(end)hour, *(end)minute, *(end)second, *(end)timezone
-       % *(end)season
+       % *(end)yeardivision
        \def\do####1{%
          \let\blx@tempa\@empty% reset setkeys buffer due to loop calls
          \xifinlistcs{\blx@datetype ####1}{blx@datamodel@fields}
            {}
            {\listcsxadd{blx@datamodel@fields}{\blx@datetype ####1}}%
-         \setkeys{blx@datamodel@field}{type=field,datatype=datepart}%
+         \blx@kv@setkeys{blx@datamodel@field}{type=field,datatype=datepart}%
          \xappto\blx@bcf@datamodel@fields{%
            \blx@xml@datamodel@field{\blx@tempa}{\blx@datetype ####1}}}%
        \expandafter\docsvlist\expandafter{\blx@notnulldateparts}%
@@ -261,25 +264,25 @@
    \docsvlist{#2}
    \endgroup}
 
-\define@key{blx@datamodel@field}{type}{% characters
+\blx@kv@defkey{blx@datamodel@field}{type}{% characters
   \eappto\blx@tempa{ fieldtype="#1"}%
   \def\blx@dm@fieldtype{#1}}
-\define@key{blx@datamodel@field}{datatype}{% characters
+\blx@kv@defkey{blx@datamodel@field}{datatype}{% characters
   \eappto\blx@tempa{ datatype="#1"}%
   \def\blx@dm@datatype{#1}}
-\define@key{blx@datamodel@field}{format}{% characters
+\blx@kv@defkey{blx@datamodel@field}{format}{% characters
   \eappto\blx@tempa{ format="#1"}%
   \def\blx@dm@format{#1}}
-\define@key{blx@datamodel@field}{nullok}[true]{% true|false
+\blx@kv@defkey{blx@datamodel@field}{nullok}[true]{% true|false
   \ifstrequal{#1}{true}
     {\appto\blx@tempa{ nullok="true"}}
     {}}
-\define@key{blx@datamodel@field}{skipout}[true]{% true|false
+\blx@kv@defkey{blx@datamodel@field}{skipout}[true]{% true|false
   \ifstrequal{#1}{true}
     {\appto\blx@tempa{ skip\string_output="true"}%
      \booltrue{dmskipout}}
     {}}
-\define@key{blx@datamodel@field}{label}[true]{% true|false
+\blx@kv@defkey{blx@datamodel@field}{label}[true]{% true|false
   \ifstrequal{#1}{true}
     {\appto\blx@tempa{ label="true"}%
      \booltrue{dmlabelfield}}
@@ -290,13 +293,16 @@
   \let\blx@tempa\@empty
   \ifblank{#1}
     {\def\blx@tempa{string}}
-    {\setkeys{blx@datamodel@constant}{#1}}%
+    {\blx@kv@setkeys{blx@datamodel@constant}{#1}}%
   \xappto\blx@bcf@datamodel@constants{\blx@xml@datamodel@constant{\blx@tempa}{#2}{#3}}%
   \csxdef{blx@datamodel@constant@#2}{#3}%
   \csxdef{blx@datamodel@constanttype@#2}{\blx@tempa}%
+  \ifdefstring{\blx@tempa}{list}% make an internal list for easier testing purposes
+    {\forcsvlist{\listcsgadd{blx@datamodel@constants@#2@l}}{#3}}
+    {}%
   \endgroup}
 
-\define@key{blx@datamodel@constant}{type}{%
+\blx@kv@defkey{blx@datamodel@constant}{type}{%
   \def\blx@tempa{#1}}
 
 \newrobustcmd*{\DeclareDatamodelMultiscriptEntryfields}[1]{%
@@ -340,7 +346,7 @@
 \newcommand*{\blx@datamodel@constraint}[2][]{%
   \let\blx@tempc\@empty
   \let\blx@tempd\@empty
-  \setkeys{blx@datamodel@constraint}{#1}%
+  \blx@kv@setkeys{blx@datamodel@constraint}{#1}%
   \let\constraintfieldsxor\blx@datamodel@constraintfieldsxor
   \let\constraintfieldsor\blx@datamodel@constraintfieldsor
   \let\constraintfield\blx@datamodel@constraintfield
@@ -349,22 +355,22 @@
   #2%
   \eappto\blx@tempb{\blx@xml@datamodel@constraint{\blx@tempc}{\blx@tempd}}}
 
-\define@key{blx@datamodel@constraint}{type}{% characters
+\blx@kv@defkey{blx@datamodel@constraint}{type}{% characters
   \eappto\blx@tempc{ type="#1"}}
-\define@key{blx@datamodel@constraint}{datatype}{% characters
+\blx@kv@defkey{blx@datamodel@constraint}{datatype}{% characters
   \eappto\blx@tempc{ datatype="#1"}}
-\define@key{blx@datamodel@constraint}{rangemin}{% integer
+\blx@kv@defkey{blx@datamodel@constraint}{rangemin}{% integer
   \eappto\blx@tempc{ rangemin="#1"}}
-\define@key{blx@datamodel@constraint}{rangemax}{% integer
+\blx@kv@defkey{blx@datamodel@constraint}{rangemax}{% integer
   \eappto\blx@tempc{ rangemax="#1"}}
-\define@key{blx@datamodel@constraint}{pattern}{% regexp
+\blx@kv@defkey{blx@datamodel@constraint}{pattern}{% regexp
   \eappto\blx@tempc{ pattern="#1"}}
 
 \newcommand*{\blx@datamodel@constraint@antecedent}[2][]{%
   \let\blx@tempe\@empty
   \let\blx@temph\@empty
   \let\constraintfield\blx@datamodel@constraintfieldsub
-  \setkeys{blx@datamodel@constraint@quant}{#1}%
+  \blx@kv@setkeys{blx@datamodel@constraint@quant}{#1}%
   #2%
   \let\constraintfield\blx@datamodel@constraintfield% back to default
   \eappto\blx@tempd{\blx@xml@datamodel@constraint@antecedent{\blx@tempe}{\blx@temph}}}
@@ -373,12 +379,12 @@
   \let\blx@tempe\@empty
   \let\blx@temph\@empty
   \let\constraintfield\blx@datamodel@constraintfieldsub
-  \setkeys{blx@datamodel@constraint@quant}{#1}%
+  \blx@kv@setkeys{blx@datamodel@constraint@quant}{#1}%
   #2%
   \let\constraintfield\blx@datamodel@constraintfield% back to default
   \eappto\blx@tempd{\blx@xml@datamodel@constraint@consequent{\blx@tempe}{\blx@temph}}}
 
-\define@key{blx@datamodel@constraint@quant}{quantifier}{% characters
+\blx@kv@defkey{blx@datamodel@constraint@quant}{quantifier}{% characters
   \eappto\blx@tempe{ quant="#1"}}
 
 \newcommand*{\blx@datamodel@constraintfieldsxor}[1]{%
@@ -496,9 +502,11 @@
   issue,
   issuesubtitle,
   issuetitle,
+  issuetitleaddon,
   iswc,
   journalsubtitle,
   journaltitle,
+  journaltitleaddon,
   label,
   langid,
   langidopts,
@@ -625,6 +633,7 @@
 
 \DeclareDatamodelFields[type=field, datatype=code]{execute}
 
+% fields for all entry types
 \DeclareDatamodelEntryfields{
   abstract,
   annotation,
@@ -632,14 +641,18 @@
   bookpagination,
   crossref,
   day,
+  doi,
+  eprint,
+  eprintclass,
+  eprinttype,
   endday,
   endhour,
   endminute,
   endmonth,
-  endseason,
   endsecond,
   endtimezone,
   endyear,
+  endyeardivision,
   entryset,
   entrysubtype,
   execute,
@@ -665,6 +678,12 @@
   listf,
   minute,
   month,
+  namea,
+  nameb,
+  namec,
+  nameatype,
+  namebtype,
+  namectype,
   nameaddon,
   options,
   origday,
@@ -672,17 +691,17 @@
   origendhour,
   origendminute,
   origendmonth,
-  origendseason,
   origendsecond,
   origendtimezone,
   origendyear,
+  origendyeardivision,
   orighour,
   origminute,
   origmonth,
-  origseason,
   origsecond,
   origtimezone,
   origyear,
+  origyeardivision,
   origlocation,
   origpublisher,
   origtitle,
@@ -692,7 +711,6 @@
   relatedoptions,
   relatedstring,
   relatedtype,
-  season,
   second,
   shortauthor,
   shorteditor,
@@ -733,7 +751,8 @@
   verbc,
   xdata,
   xref,
-  year}
+  year,
+  yeardivision}
 
 \DeclareDatamodelEntryfields[set]{
   entryset}
@@ -743,7 +762,6 @@
   annotator,
   author,
   commentator,
-  doi,
   editor,
   editora,
   editorb,
@@ -753,15 +771,14 @@
   editorbtype,
   editorctype,
   eid,
-  eprint,
-  eprintclass,
-  eprinttype,
   issn,
   issue,
   issuetitle,
   issuesubtitle,
+  issuetitleaddon,
   journalsubtitle,
   journaltitle,
+  journaltitleaddon,
   language,
   note,
   number,
@@ -785,7 +802,6 @@
   annotator,
   chapter,
   commentator,
-  doi,
   edition,
   editor,
   editora,
@@ -795,9 +811,7 @@
   editoratype,
   editorbtype,
   editorctype,
-  eprint,
-  eprintclass,
-  eprinttype,
+  eid,
   foreword,
   introduction,
   isbn,
@@ -828,7 +842,6 @@
   annotator,
   author,
   commentator,
-  doi,
   edition,
   editor,
   editora,
@@ -838,9 +851,6 @@
   editoratype,
   editorbtype,
   editorctype,
-  eprint,
-  eprintclass,
-  eprinttype,
   foreword,
   introduction,
   isbn,
@@ -871,7 +881,6 @@
   booktitleaddon,
   chapter,
   commentator,
-  doi,
   edition,
   editor,
   editora,
@@ -881,9 +890,7 @@
   editoratype,
   editorbtype,
   editorctype,
-  eprint,
-  eprintclass,
-  eprinttype,
+  eid,
   foreword,
   introduction,
   isbn,
@@ -911,12 +918,9 @@
   addendum,
   author,
   chapter,
-  doi,
   editor,
   editortype,
-  eprint,
-  eprintclass,
-  eprinttype,
+  eid,
   howpublished,
   language,
   location,
@@ -935,7 +939,6 @@
   annotator,
   chapter,
   commentator,
-  doi,
   edition,
   editor,
   editora,
@@ -945,9 +948,7 @@
   editoratype,
   editorbtype,
   editorctype,
-  eprint,
-  eprintclass,
-  eprinttype,
+  eid,
   foreword,
   introduction,
   isbn,
@@ -978,7 +979,6 @@
   annotator,
   author,
   commentator,
-  doi,
   edition,
   editor,
   editora,
@@ -988,9 +988,6 @@
   editoratype,
   editorbtype,
   editorctype,
-  eprint,
-  eprintclass,
-  eprinttype,
   foreword,
   introduction,
   isbn,
@@ -1018,7 +1015,6 @@
   booktitleaddon,
   chapter,
   commentator,
-  doi,
   edition,
   editor,
   editora,
@@ -1028,9 +1024,7 @@
   editoratype,
   editorbtype,
   editorctype,
-  eprint,
-  eprintclass,
-  eprinttype,
+  eid,
   foreword,
   introduction,
   isbn,
@@ -1057,13 +1051,9 @@
 \DeclareDatamodelEntryfields[dataset]{
   addendum,
   author,
-  doi,
   edition,
   editor,
   editortype,
-  eprint,
-  eprintclass,
-  eprinttype,
   language,
   location,
   note,
@@ -1082,13 +1072,10 @@
   addendum,
   author,
   chapter,
-  doi,
   edition,
   editor,
   editortype,
-  eprint,
-  eprintclass,
-  eprinttype,
+  eid,
   isbn,
   language,
   location,
@@ -1109,12 +1096,8 @@
 \DeclareDatamodelEntryfields[misc,software]{
   addendum,
   author,
-  doi,
   editor,
   editortype,
-  eprint,
-  eprintclass,
-  eprinttype,
   howpublished,
   language,
   location,
@@ -1130,12 +1113,8 @@
 \DeclareDatamodelEntryfields[online]{
   addendum,
   author,
-  doi,
   editor,
   editortype,
-  eprint,
-  eprintclass,
-  eprinttype,
   language,
   note,
   organization,
@@ -1148,10 +1127,6 @@
 \DeclareDatamodelEntryfields[patent]{
   addendum,
   author,
-  doi,
-  eprint,
-  eprintclass,
-  eprinttype,
   holder,
   location,
   note,
@@ -1165,7 +1140,6 @@
 
 \DeclareDatamodelEntryfields[periodical]{
   addendum,
-  doi,
   editor,
   editora,
   editorb,
@@ -1174,47 +1148,42 @@
   editoratype,
   editorbtype,
   editorctype,
-  eprint,
-  eprintclass,
-  eprinttype,
   issn,
   issue,
   issuesubtitle,
   issuetitle,
+  issuetitleaddon,
   language,
   note,
   number,
   pubstate,
-  season,
   series,
   subtitle,
   title,
-  volume}
+  titleaddon,
+  volume,
+  yeardivision}
 
 \DeclareDatamodelEntryfields[mvproceedings]{
   addendum,
-  doi,
   editor,
   editortype,
-  eprint,
-  eprintclass,
-  eprinttype,
   eventday,
   eventendday,
   eventendhour,
   eventendminute,
   eventendmonth,
-  eventendseason,
   eventendsecond,
   eventendtimezone,
   eventendyear,
+  eventendyeardivision,
   eventhour,
   eventminute,
   eventmonth,
-  eventseason,
   eventsecond,
   eventtimezone,
   eventyear,
+  eventyeardivision,
   eventtitle,
   eventtitleaddon,
   isbn,
@@ -1236,28 +1205,25 @@
 \DeclareDatamodelEntryfields[proceedings]{
   addendum,
   chapter,
-  doi,
   editor,
   editortype,
-  eprint,
-  eprintclass,
-  eprinttype,
+  eid,
   eventday,
   eventendday,
   eventendhour,
   eventendminute,
   eventendmonth,
-  eventendseason,
   eventendsecond,
   eventendtimezone,
   eventendyear,
+  eventendyeardivision,
   eventhour,
   eventminute,
   eventmonth,
-  eventseason,
   eventsecond,
   eventtimezone,
   eventyear,
+  eventyeardivision,
   eventtitle,
   eventtitleaddon,
   isbn,
@@ -1289,28 +1255,25 @@
   booktitle,
   booktitleaddon,
   chapter,
-  doi,
   editor,
   editortype,
-  eprint,
-  eprintclass,
-  eprinttype,
+  eid,
   eventday,
   eventendday,
   eventendhour,
   eventendminute,
   eventendmonth,
-  eventendseason,
   eventendsecond,
   eventendtimezone,
   eventendyear,
+  eventendyeardivision,
   eventhour,
   eventminute,
   eventmonth,
-  eventseason,
   eventsecond,
   eventtimezone,
   eventyear,
+  eventyeardivision,
   eventtitle,
   eventtitleaddon,
   isbn,
@@ -1338,10 +1301,7 @@
   addendum,
   author,
   chapter,
-  doi,
-  eprint,
-  eprintclass,
-  eprinttype,
+  eid,
   institution,
   isrn,
   language,
@@ -1361,10 +1321,7 @@
   addendum,
   author,
   chapter,
-  doi,
-  eprint,
-  eprintclass,
-  eprinttype,
+  eid,
   institution,
   language,
   location,
@@ -1385,17 +1342,17 @@
   eventendhour,
   eventendminute,
   eventendmonth,
-  eventendseason,
   eventendsecond,
   eventendtimezone,
   eventendyear,
+  eventendyeardivision,
   eventhour,
   eventminute,
   eventmonth,
-  eventseason,
   eventsecond,
   eventtimezone,
   eventyear,
+  eventyeardivision,
   eventtitle,
   eventtitleaddon,
   howpublished,
@@ -1431,8 +1388,10 @@
   introduction,
   issuesubtitle,
   issuetitle,
+  issuetitleaddon,
   journalsubtitle,
   journaltitle,
+  journaltitleaddon,
   location,
   mainsubtitle,
   maintitle,
@@ -1511,7 +1470,7 @@
   }
 }
 
-\DeclareDatamodelConstraints[book,mvbook,mvcollection,mvreference]{
+\DeclareDatamodelConstraints[book,mvbook]{
   \constraint[type=mandatory]{
     \constraintfield{author}
     \constraintfield{title}
@@ -1536,7 +1495,7 @@
   }
 }
 
-\DeclareDatamodelConstraints[collection,reference]{
+\DeclareDatamodelConstraints[collection,reference,mvcollection,mvreference]{
   \constraint[type=mandatory]{
     \constraintfield{editor}
     \constraintfield{title}
@@ -1598,7 +1557,6 @@
 
 \DeclareDatamodelConstraints[proceedings,mvproceedings]{
   \constraint[type=mandatory]{
-    \constraintfield{editor}
     \constraintfield{title}
   }
 }
@@ -1645,12 +1603,6 @@
   }
   \constraint[type=data, datatype=ismn]{
     \constraintfield{ismn}
-  }
-  \constraint[type=data, datatype=date]{
-    \constraintfield{date}
-    \constraintfield{eventdate}
-    \constraintfield{origdate}
-    \constraintfield{urldate}
   }
   \constraint[type=data, datatype=pattern, pattern=\regexp{(?:sf|sm|sn|pf|pm|pn|pp)}]{
     \constraintfield{gender}

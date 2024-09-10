@@ -1,0 +1,453 @@
+\input{regression-test}
+\documentclass[a4paper]{article}
+\usepackage{fontspec}
+\usepackage{libertine}
+\usepackage[fallback]{xeCJK}
+\usepackage[british]{babel}
+\usepackage{csquotes}
+\begin{filecontents}[force]{\jobname.bib}
+@book{tolstoy,
+  author = {given=Лев, patronymic=Николаевич, family=Толстой, nametemplates=russian},
+  title  = {Война и мир},
+  date   = {1877},
+  langid = {russian},
+}
+@book{bulgakov,
+  author = {given=Михаил, patronymic=Афанасьевич, family=Булгаков, nametemplates=russian},
+  title  = {Мастер и Маргарита},
+  date   = {1966},
+  langid = {russian},
+}
+@book{bulgakov:val,
+  author = {given=Валентин, patronymic=Фёдорович, family=Булгаков, nametemplates=russian},
+  title  = {Л. Н. Толстой в последний год его жизни},
+  date   = {1911},
+  langid = {russian},
+}
+
+@book{dosto:1,
+  author = {given=Александр , patronymic=Андреевич, family=Достоевский, nametemplates=russian},
+  title  = {О строении телец Грандри},
+  date   = {1885},
+  langid = {russian},
+}
+@book{dosto:2,
+  author = {given=Андрей , patronymic=Андреевич, family=Достоевский, nametemplates=russian},
+  title  = {П. П. Семенов-Тян-Шанский как исследователь, географ и статистик},
+  date   = {1914},
+  langid = {russian},
+}
+
+@book{demeke,
+  author  = {given=Kebede, patronymic=Daniel, papponymic=Demeke, nametemplates=ethiopian},
+  title   = {One},
+  date    = {1983}
+}
+@book{dameke,
+  author  = {given=Kebede, patronymic=Daniel, papponymic=Dameke, nametemplates=ethiopian},
+  title   = {Two},
+  date    = {1983}
+}
+@book{james,
+  author  = {given=Kebede, patronymic=James, papponymic=Demeke, nametemplates=ethiopian},
+  title   = {Three},
+  date    = {1983}
+}
+@book{jonathan,
+  author  = {given=Kebede, patronymic=Jonathan, papponymic=Kebede, nametemplates=ethiopian},
+  title   = {Four},
+  date    = {1986}
+}
+@book{william,
+  author  = {given=Kebede, patronymic=William, papponymic=Kebede, nametemplates=ethiopian},
+  title   = {Four},
+  date    = {1987}
+}
+
+@book{zhangx1,
+  title      = {Shuming},
+  titleaddon = {書名},
+  author     = {family=Zhang, cjk=章學成, given=Xuecheng, nametemplates=cjk},
+  location   = {Beijing},
+  publisher  = {Zhonghua Shuju},
+  date       = {2017},
+}
+@book{zhangx2,
+  title      = {Shuming er},
+  titleaddon = {書名二},
+  author     = {family=Zhang, cjk=張學成, given=Xuecheng, nametemplates=cjk},
+  location   = {Shanghai},
+  publisher  = {Shangwu Yinshuguan},
+  date       = {2016},
+}
+
+@book{bronte:c,
+  author     = {Charlotte Brontë},
+  date       = {1847},
+  title      = {Jane Eyre},
+}
+@book{bronte:e,
+  author     = {Emily Brontë},
+  date       = {1847},
+  title      = {Wuthering Heights},
+}
+
+@book{austen:jane,
+  author     = {Jane Austen},
+  date       = {1813},
+  title      = {Pride and Prejudice},
+}
+@collection{austen:john,
+  editor     = {John Austen},
+  editortype = {compiler},
+  date       = {1924},
+  title      = {Rogues in Porcelain: A Miscellany of 18th Poems},
+}
+\end{filecontents}
+\usepackage[style=authoryear,datamodel=93-nameparts,backend=biber, autolang=hyphen]{biblatex}
+\addbibresource{biblatex-examples.bib}
+\addbibresource{\jobname.bib}
+
+
+% Use transliteration to sort Cyrillic among Latin script
+\DeclareSortTranslit{
+  \translit[russian]{*}{russian}{bgn/pcgn-standard}
+}
+
+\makeatletter
+%% CJK names
+% the idea is to sort family -> given -> cjk (full name)
+% and disambiguate in the same manner using only full
+% forms of the name, no initials
+% the order should always be family -> given -> cjk
+% names are not reversed
+\DeclareSortingNamekeyTemplate[cjk]{
+  \keypart{
+    \namepart{family}
+  }
+  \keypart{
+    \namepart{given}
+  }
+  \keypart{
+    \namepart{cjk}
+  }
+}
+
+\DeclareUniquenameTemplate[cjk]{
+  \namepart[base=true]{family}
+  \namepart[disambiguation=full]{given}
+  \namepart[disambiguation=full]{cjk}
+}
+
+\DeclareNamehashTemplate[cjk]{
+  \namepart[hashscope=full]{family}
+  \namepart[hashscope=full]{given}
+  \namepart[hashscope=full]{cjk}
+}
+
+\newbibmacro*{name:cjk}[3]{%
+  \usebibmacro{name:delim}{#2#3#1}%
+  \usebibmacro{name:hook}{#2#3#1}%
+  \mkbibnamefamily{#1}%
+  \ifdefvoid{#2}{}{\bibnamedelimd\mkbibnamegiven{#2}}%
+  \ifdefvoid{#3}{}{\bibnamedelimd\mkbibnamecjk{#3}}}
+
+%% Ethiopian names
+% Ethiopian names are given -> patronymic -> papponymic
+% the latter two are only needed for disambiguation
+% names order is never reversed
+\DeclareSortingNamekeyTemplate[ethiopian]{
+  \keypart{
+    \namepart{given}
+  }
+  \keypart{
+    \namepart{patronymic}
+  }
+  \keypart{
+    \namepart{papponymic}
+  }
+}
+
+\DeclareUniquenameTemplate[ethiopian]{
+  \namepart[base=true]{given}
+  \namepart[disambiguation=full]{patronymic}
+  \namepart[disambiguation=full]{papponymic}
+}
+
+\DeclareNamehashTemplate[ethiopian]{
+  \namepart[hashscope=full]{given}
+  \namepart[hashscope=full]{patronymic}
+  \namepart[hashscope=full]{papponymic}
+}
+
+\newbibmacro*{name:ethiopian}[3]{%
+  \usebibmacro{name:delim}{#1#2#3}%
+  \usebibmacro{name:hook}{#1#2#3}%
+  \mkbibethgiven{#1}%
+  \ifdefvoid{#2}{}{\bibnamedelimd\mkbibethpat{#2}\isdot}%
+  \ifdefvoid{#3}{}{\bibnamedelimd\mkbibethpap{#3}\isdot}}
+
+\let\mkbibethgiven\mkbibnamefamily
+\let\mkbibethpat\mkbibnamegiven
+\let\mkbibethpap\mkbibnamegiven
+
+%% Russian names
+% family -> given -> patronymic
+% we never show the given name alone, it is always accompanied
+% by the patronymic
+% (patronymic could just be treated as another given name)
+% reversed name order is 'family, given patronymic'
+\DeclareSortingNamekeyTemplate[russian]{
+  \keypart{
+    \namepart{family}
+  }
+  \keypart{
+    \namepart{given}
+  }
+  \keypart{
+    \namepart{patronymic}
+  }
+}
+
+\DeclareUniquenameTemplate[russian]{
+  \namepart[base=true]{family}
+  \namepart{given}
+  \namepart{patronymic}
+}
+
+\DeclareNamehashTemplate[russian]{
+  \namepart[hashscope=full]{family}
+  \namepart[hashscope=full]{given}
+  \namepart[hashscope=full]{patronymic}
+}
+
+\newbibmacro*{name:russian}[3]{%
+  \usebibmacro{name:delim}{#1#2#3}%
+  \usebibmacro{name:hook}{#1#2#3}%
+  \ifdefvoid{#2}
+    {}
+    {\mkbibnamegiven{#2}\isdot\bibnamedelimd
+     \ifdefvoid{#3}
+       {}
+       {\mkbibnamepatronymic{#3}\isdot\bibnamedelimd}}%
+  \mkbibnamefamily{#1}}
+
+\newbibmacro*{name:russian-rev}[3]{%
+  \usebibmacro{name:delim}{#1#2#3}%
+  \usebibmacro{name:hook}{#1#2#3}%
+  \mkbibnamefamily{#1}%
+  \ifdefvoid{#2}
+    {}
+    {\revsdnamepunct\bibnamedelimd
+     \mkbibnamegiven{#2}\isdot
+     \ifdefvoid{#3}
+       {}
+       {\bibnamedelimd\mkbibnamepatronymic{#3}\isdot}}}
+
+%% sortname
+% helper to select the sorting template in \ifcase
+\newcommand*{\abx@sortingnamekeytemplate}{0}
+\newcommand*{\abx@getsortingnamekeytemplate}{%
+  \ifsortingnamekeytemplatename{cjk}
+     {\def\abx@sortingnamekeytemplate{1}}
+     {\ifsortingnamekeytemplatename{ethiopian}
+        {\def\abx@sortingnamekeytemplate{2}}
+        {\ifsortingnamekeytemplatename{russian}
+           {\def\abx@sortingnamekeytemplate{3}}
+           {}}}}
+
+% show fullest version of names,
+% reverse Russian and western names for sorting
+% all other names are always in the correct order for sorting
+\DeclareNameFormat{sortname}{%
+  \abx@getsortingnamekeytemplate
+  \ifcase\abx@sortingnamekeytemplate\relax
+    \usebibmacro{name:family-given}
+      {\namepartfamily}
+      {\namepartgiven}
+      {\namepartprefix}
+      {\namepartsuffix}%
+  \or
+    \usebibmacro{name:cjk}
+      {\namepartfamily}
+      {\namepartgiven}
+      {\namepartcjk}%
+  \or
+    \usebibmacro{name:ethiopian}
+      {\namepartgiven}
+      {\namepartpatronymic}
+      {\namepartpapponymic}%
+  \or
+    \usebibmacro{name:russian-rev}
+      {\namepartfamily}
+      {\namepartgiven}
+      {\namepartpatronymic}%
+  \fi
+  \usebibmacro{name:andothers}}
+
+%% labelname
+% copy of the standard definition in biblatex.def
+% uses the 'old way' of finding the disambiguating name part
+\newbibmacro{labelname:western}{%
+  \ifcase\value{uniquename}%
+    \usebibmacro{name:family}
+      {\namepartfamily}
+      {\namepartgiven}
+      {\namepartprefix}
+      {\namepartsuffix}%
+  \or
+    \ifuseprefix
+      {\usebibmacro{name:given-family}
+        {\namepartfamily}
+        {\namepartgiveni}
+        {\namepartprefix}
+        {\namepartsuffixi}}
+      {\usebibmacro{name:given-family}
+        {\namepartfamily}
+        {\namepartgiveni}
+        {\namepartprefixi}
+        {\namepartsuffixi}}%
+  \or
+    \usebibmacro{name:given-family}
+      {\namepartfamily}
+      {\namepartgiven}
+      {\namepartprefix}
+      {\namepartsuffix}%
+  \fi
+  \usebibmacro{name:andothers}}
+
+% Uses \iffieldequalstr{uniquepart} to find the disambiguating
+% name part.
+% If neither base (i.e. family) nor given name are enough,
+% go with the full name.
+% Uses \empty for suppressed name parts, so we don't have to define
+% dedicated macros for the shorter name forms.
+\newbibmacro{labelname:cjk}{%
+  \iffieldequalstr{uniquepart}{base}%
+    {\usebibmacro{name:cjk}
+       {\namepartfamily}
+       {\empty}
+       {\empty}}
+    {\iffieldequalstr{uniquepart}{given}%
+       {\usebibmacro{name:cjk}
+          {\namepartfamily}
+          {\namepartgiven}
+          {\empty}}
+       {\usebibmacro{name:cjk}
+          {\namepartfamily}
+          {\namepartgiven}
+          {\namepartcjk}}}}
+
+% similar to the CJK format
+\newbibmacro{labelname:ethiopian}{%
+  \iffieldequalstr{uniquepart}{base}%
+    {\usebibmacro{name:ethiopian}
+       {\namepartgiven}
+       {\empty}
+       {\empty}}
+    {\iffieldequalstr{uniquepart}{patronymic}%
+       {\usebibmacro{name:ethiopian}
+          {\namepartgiven}
+          {\namepartpatronymic}
+          {\empty}}
+       {\usebibmacro{name:ethiopian}
+          {\namepartgiven}
+          {\namepartpatronymic}
+          {\namepartpapponymic}}}}
+
+% Uses \iffieldequalstr{uniquepart} to get the disambiguating
+% name part.
+% We only choose between 'Given Patronymic Family' and
+% 'G. P. Family', the decision whether or not to use
+% initials is for the given name to decide.
+% If the given initial is enough to disambiguate the name,
+% the given name and patronymic become initials.
+% Even if the initial of the patronymic would make the name
+% unique we go with the full name instead.
+% There is no 'Given P. Family' format.
+% \namepart<>un=1 says initials are enough
+% 2 means the full name is required
+% 0 means not used
+\newbibmacro{labelname:russian}{%
+  \iffieldequalstr{uniquepart}{base}%
+    {\usebibmacro{name:russian}
+       {\namepartfamily}
+       {\empty}
+       {\empty}}
+    {\ifnum\namepartgivenun=1\relax
+       \usebibmacro{name:russian}
+          {\namepartfamily}
+          {\namepartgiveni}
+          {\namepartpatronymici}%
+     \else
+       \usebibmacro{name:russian}
+          {\namepartfamily}
+          {\namepartgiven}
+          {\namepartpatronymic}%
+     \fi}}
+
+% helper to select the uniquename template in \ifcase
+\newcommand*{\abx@uniquenametemplatename}{0}
+\newcommand*{\abx@getuniquenametemplatename}{%
+  \ifuniquenametemplatename{cjk}
+     {\def\abx@uniquenametemplatename{1}}
+     {\ifuniquenametemplatename{ethiopian}
+        {\def\abx@uniquenametemplatename{2}}
+        {\ifuniquenametemplatename{russian}
+           {\def\abx@uniquenametemplatename{3}}
+           {}}}}
+
+\DeclareNameFormat{labelname}{%
+  \abx@getuniquenametemplatename
+  \ifcase\abx@uniquenametemplatename\relax
+    \usebibmacro{labelname:western}%
+  \or
+    \usebibmacro{labelname:cjk}%
+  \or
+    \usebibmacro{labelname:ethiopian}%
+  \or
+    \usebibmacro{labelname:russian}%
+  \fi
+  \usebibmacro{name:andothers}}
+\makeatother
+
+\begin{document}
+\printbibliography
+\clearpage
+
+\showoutput
+\START
+% Historically, name handling in latex bibliographies has been determined by
+% the name parsing rules of bibtex. In a modern context, this name handling
+% is rather archaic, restricted to Western names with the four parts
+% "family", "given", "prefix", "suffix" (often referred to in bibtex
+% documentation as "last", "first", "von" and "Jr" parts). When using biber,
+% it is possible to define arbitrary name parts since the allowable name
+% parts are defined in the data model (see accompanying file 93-nameparts.dbx).
+
+% Here we demonstrate the possibility of adding a new name parts to the
+% datamodel and then using it in formatting, sorting etc.
+% Notice that we can use the new name part types in the datasource
+% which is now allowable due to the enhanced datamodel constant definition.
+% We have also defined a new name format and method of sorting names which
+% are aware of the new name parts.
+%
+\textcite{tolstoy,bulgakov,bulgakov:val}
+
+\textcite{dosto:1}
+
+\textcite{dosto:2}
+
+\textcite{demeke,dameke,james,jonathan,william}
+
+\textcite{sigfridsson,worman,geer,knuth:ct:a,cicero,companion,vangennep}
+
+\textcite{bronte:c,bronte:e,austen:jane,austen:john}
+
+\textcite{zhangx1,zhangx2}
+
+\printbibliography
+
+\clearpage
+\OMIT
+\end{document}

@@ -18,9 +18,9 @@
 % \namepart<namepart>i - e.g. \namepartfamilyi
 \def\do#1{%
   \csdef{mkbibname#1}##1{##1}%
-  \define@key{blx@opt@namepart}{#1}{\csdef{namepart#1}{##1}}%
-  \define@key{blx@opt@namepart}{#1i}{\csdef{namepart#1i}{##1}}%
-  \define@key{blx@opt@namepart}{#1un}{\csdef{namepart#1un}{##1}}}
+  \blx@kv@defkey{blx@opt@namepart}{#1}{\csdef{namepart#1}{##1}}%
+  \blx@kv@defkey{blx@opt@namepart}{#1i}{\csdef{namepart#1i}{##1}}%
+  \blx@kv@defkey{blx@opt@namepart}{#1un}{\csdef{namepart#1un}{##1}}}
 \expandafter\docsvlist\expandafter{\blx@datamodel@constant@nameparts}
 
 % legacy aliases
@@ -95,8 +95,17 @@
 \DeclareDelimFormat{andmoredelim}{\addspace}
 
 \newcommand*{\multicitedelim}{\addsemicolon\space}
+\newcommand*{\multicitesubentrydelim}{\addcomma}
+\newcommand*{\multiciterangedelim}{\bibrangedash}
+\newcommand*{\multicitesubentryrangedelim}{\multiciterangedelim}
+
 \newcommand*{\compcitedelim}{\addcomma\space}
+
 \newcommand*{\supercitedelim}{\addcomma}
+\newcommand*{\supercitesubentrydelim}{\supercitedelim}
+\newcommand*{\superciterangedelim}{\bibrangedash}
+\newcommand*{\supercitesubentryrangedelim}{\superciterangedelim}
+
 \DeclareDelimFormat{prenotedelim}{\addspace}
 \DeclareDelimFormat{postnotedelim}{\addcomma\space}
 \DeclareDelimAlias{multiprenotedelim}{prenotedelim}
@@ -168,6 +177,7 @@
 \newcommand*{\subtitlepunct}{\newunitpunct}
 \newcommand*{\intitlepunct}{\addcolon\space}
 \newcommand*{\bibpagespunct}{\addcomma\space}
+\newcommand*{\bibeidpunct}{\addcomma\space}
 \newcommand*{\bibpagerefpunct}{\addspace}
 \newcommand*{\revsdnamepunct}{\addcomma}
 \newcommand*{\bibnamedash}{%
@@ -184,7 +194,7 @@
 % Examples of use, uncommenting these would break backwards compatibility
 %\newcommand*{\begrelateddelimorigpubin}{\addspace}
 %\newcommand*{\begrelateddelimorigpubas}{\addspace}
-\newcommand{\mkrelatedstring}{\mainlang}
+\newcommand{\mkrelatedstringtext}{\textmainlang}
 
 % Used for indexing
 
@@ -200,6 +210,11 @@
 % \bibsetup is a generic hook controlling the (low-level) layout of
 % the bibliography and bibliography lists. The default
 % definition should work fine in most cases.
+% There are a few other penalties and parameters that could be adjusted
+% here, but we don't do that by default for backwards compatibility
+% reasons.
+% * \finalhyphendemerits can be set to 0 to allow hyphenation
+%   in the penultimate line
 
 \newcommand*{\bibsetup}{%
   \interlinepenalty=5000\relax
@@ -237,6 +252,10 @@
 % Using \frenchspacing in the bibliography is recommended. If you
 % want more visual separation, try the package option 'block=space'.
 % This will yield better results than \nonfrenchspacing.
+
+% If \frenchspacing is removed here, it may also have to be removed
+% from \blx@beglang@spacefactors, for example with
+% \let\blx@beglang@spacefactors\@empty
 
 % \citesetup is a generic hook for citations.
 
@@ -469,8 +488,8 @@
   \ifblank{#2}{}{\volcitedelim\printtext[volcitepages]{#2}}}
 
 % multicite commands
-\DeclareFieldFormat{multiprenote}{#1\isdot}
-\DeclareFieldFormat{multipostnote}{\mkpageprefix[pagination][\mknormrange]{#1}}
+\DeclareFieldAlias{multiprenote}{prenote}
+\DeclareFieldAlias{multipostnote}{postnote}
 
 % Used by \citeurl
 
@@ -610,6 +629,7 @@
 % The default used by \citelist
 
 \DeclareListAlias{citelist}{default}
+\DeclareListWrapperAlias{citelist}{default}
 
 % Used in the bibliography
 
@@ -709,6 +729,11 @@
 \DeclareListAlias{origpublisher}{publisher}
 \DeclareListAlias{institution}{default}
 \DeclareListAlias{organization}{default}
+
+\DeclareListWrapperAlias{origlocation}{location}
+\DeclareListWrapperAlias{origpublisher}{publisher}
+\DeclareListWrapperAlias{institution}{default}
+\DeclareListWrapperAlias{organization}{default}
 
 % Auxiliary macros for list formatting directives
 % ------------------------------------------------------------------
@@ -929,6 +954,7 @@
 
 % Default used by \citename
 \DeclareNameAlias{citename}{default}
+\DeclareNameWrapperAlias{citename}{default}
 
 % Used in some citations
 \DeclareNameFormat{labelname}{%
@@ -983,6 +1009,28 @@
 \DeclareNameAlias{withintroduction}{default}
 \DeclareNameAlias{withforeword}{default}
 \DeclareNameAlias{withafterword}{default}
+
+\DeclareNameWrapperAlias{author}{default}
+\DeclareNameWrapperAlias{bookauthor}{author}
+\DeclareNameWrapperAlias{editor}{default}
+\DeclareNameWrapperAlias{editora}{editor}
+\DeclareNameWrapperAlias{editorb}{editor}
+\DeclareNameWrapperAlias{editorc}{editor}
+\DeclareNameWrapperAlias{translator}{default}
+
+\DeclareNameWrapperAlias{byauthor}{default}
+\DeclareNameWrapperAlias{bybookauthor}{byauthor}
+\DeclareNameWrapperAlias{byeditor}{default}
+\DeclareNameWrapperAlias{byeditora}{byeditor}
+\DeclareNameWrapperAlias{byeditorb}{byeditor}
+\DeclareNameWrapperAlias{byeditorc}{byeditor}
+\DeclareNameWrapperAlias{bytranslator}{default}
+
+\DeclareNameWrapperAlias{withcommentator}{default}
+\DeclareNameWrapperAlias{withannotator}{default}
+\DeclareNameWrapperAlias{withintroduction}{default}
+\DeclareNameWrapperAlias{withforeword}{default}
+\DeclareNameWrapperAlias{withafterword}{default}
 
 \DeclareFieldFormat{authortype}{#1}
 \DeclareFieldFormat{editortype}{#1}
@@ -1163,8 +1211,6 @@
 
 % The fallback used by \indexlist
 
-\DeclareIndexListWrapperFormat{default}{#1}
-
 \DeclareIndexListFormat{default}{\index{#1}}
 
 % ------------------------------------------------------------------
@@ -1175,8 +1221,6 @@
 % ------------------------------------------------------------------
 
 % The fallback used by \indexnames
-
-\DeclareIndexNameWrapperFormat{default}{#1}
 
 \DeclareIndexNameFormat{default}{%
   \usebibmacro{index:name}
@@ -1227,7 +1271,7 @@
 \newbibmacro*{index:name}[5]{%
   \usebibmacro{index:entry}{#1}{\mkbibindexname{#2}{#3}{#4}{#5}}}
 
-% {<family name>}{<given name>}{<given initials>}{<family name prefix>}
+% {<family name>}{<given name>}{<prefix>}{<suffix>}
 \newcommand*{\mkbibindexname}[4]{%
   \ifuseprefix
     {\ifdefvoid{#3}{}{#3 }%
@@ -1354,6 +1398,11 @@
   }
 }
 
+\DeclareExtradateContext{%
+  \field{labelname}
+  \field{labeltitle}
+}
+
 \DeclareLabeltitle{%
   \field{shorttitle}
   \field{title}
@@ -1396,6 +1445,17 @@
 }
 
 % ------------------------------------------------------------------
+% NAMEHASH TEMPLATE
+% ------------------------------------------------------------------
+
+\DeclareNamehashTemplate{
+  \namepart[hashscope=full]{family}
+  \namepart[hashscope=full]{given}
+  \namepart[hashscope=full]{prefix}
+  \namepart[hashscope=full]{suffix}
+}
+
+% ------------------------------------------------------------------
 % SORTING
 % ------------------------------------------------------------------
 
@@ -1428,6 +1488,11 @@
 
 \DeclareSortingTemplate{none}{
   \sort{\citeorder}
+  \sort{\intciteorder}
+}
+
+\DeclareSortingTemplate{count}{
+  \sort[direction=descending]{\citecount}
 }
 
 \DeclareSortingTemplate{debug}{
@@ -1465,6 +1530,50 @@
   }
 }
 
+\DeclareSortingTemplate{ntd}{
+  \sort{
+    \field{presort}
+  }
+  \sort[final]{
+    \field{sortkey}
+  }
+  \sort{
+    \field{sortname}
+    \field{author}
+    \field{editor}
+    \field{translator}
+    \field{sorttitle}
+    \field{title}
+  }
+  \sort{
+    \field{sorttitle}
+    \field{title}
+  }
+  \sort{
+    \field{sortyear}
+    \field{year}
+  }
+  \sort{
+    \field{month}
+  }
+  \sort{
+    \field{day}
+  }
+  \sort{
+    \field{hour}
+  }
+  \sort{
+    \field{minute}
+  }
+  \sort{
+    \field{second}
+  }
+  \sort{
+    \field{volume}
+    \literal{0}
+  }
+}
+
 \DeclareSortingTemplate{nyt}{
   \sort{
     \field{presort}
@@ -1494,6 +1603,50 @@
   }
 }
 
+\DeclareSortingTemplate{ndt}{
+  \sort{
+    \field{presort}
+  }
+  \sort[final]{
+    \field{sortkey}
+  }
+  \sort{
+    \field{sortname}
+    \field{author}
+    \field{editor}
+    \field{translator}
+    \field{sorttitle}
+    \field{title}
+  }
+  \sort{
+    \field{sortyear}
+    \field{year}
+  }
+  \sort{
+    \field{month}
+  }
+  \sort{
+    \field{day}
+  }
+  \sort{
+    \field{hour}
+  }
+  \sort{
+    \field{minute}
+  }
+  \sort{
+    \field{second}
+  }
+  \sort{
+    \field{sorttitle}
+    \field{title}
+  }
+  \sort{
+    \field{volume}
+    \literal{0}
+  }
+}
+
 \DeclareSortingTemplate{nyvt}{
   \sort{
     \field{presort}
@@ -1512,6 +1665,50 @@
   \sort{
     \field{sortyear}
     \field{year}
+  }
+  \sort{
+    \field{volume}
+    \literal{0}
+  }
+  \sort{
+    \field{sorttitle}
+    \field{title}
+  }
+}
+
+\DeclareSortingTemplate{ndvt}{
+  \sort{
+    \field{presort}
+  }
+  \sort[final]{
+    \field{sortkey}
+  }
+  \sort{
+    \field{sortname}
+    \field{author}
+    \field{editor}
+    \field{translator}
+    \field{sorttitle}
+    \field{title}
+  }
+  \sort{
+    \field{sortyear}
+    \field{year}
+  }
+  \sort{
+    \field{month}
+  }
+  \sort{
+    \field{day}
+  }
+  \sort{
+    \field{hour}
+  }
+  \sort{
+    \field{minute}
+  }
+  \sort{
+    \field{second}
   }
   \sort{
     \field{volume}
@@ -1555,6 +1752,53 @@
   }
 }
 
+\DeclareSortingTemplate{andt}{
+  \sort{
+    \field{presort}
+  }
+  \sort{
+    \field{labelalpha}
+  }
+  \sort[final]{
+    \field{sortkey}
+  }
+  \sort{
+    \field{sortname}
+    \field{author}
+    \field{editor}
+    \field{translator}
+    \field{sorttitle}
+    \field{title}
+  }
+  \sort{
+    \field{sortyear}
+    \field{year}
+  }
+  \sort{
+    \field{month}
+  }
+  \sort{
+    \field{day}
+  }
+  \sort{
+    \field{hour}
+  }
+  \sort{
+    \field{minute}
+  }
+  \sort{
+    \field{second}
+  }
+  \sort{
+    \field{sorttitle}
+    \field{title}
+  }
+  \sort{
+    \field{volume}
+    \literal{0}
+  }
+}
+
 \DeclareSortingTemplate{anyvt}{
   \sort{
     \field{presort}
@@ -1576,6 +1820,53 @@
   \sort{
     \field{sortyear}
     \field{year}
+  }
+  \sort{
+    \field{volume}
+    \literal{0}
+  }
+  \sort{
+    \field{sorttitle}
+    \field{title}
+  }
+}
+
+\DeclareSortingTemplate{andvt}{
+  \sort{
+    \field{presort}
+  }
+  \sort{
+    \field{labelalpha}
+  }
+  \sort[final]{
+    \field{sortkey}
+  }
+  \sort{
+    \field{sortname}
+    \field{author}
+    \field{editor}
+    \field{translator}
+    \field{sorttitle}
+    \field{title}
+  }
+  \sort{
+    \field{sortyear}
+    \field{year}
+  }
+  \sort{
+    \field{month}
+  }
+  \sort{
+    \field{day}
+  }
+  \sort{
+    \field{hour}
+  }
+  \sort{
+    \field{minute}
+  }
+  \sort{
+    \field{second}
   }
   \sort{
     \field{volume}
@@ -1613,6 +1904,47 @@
   }
 }
 
+\DeclareSortingTemplate{dnt}{
+  \sort{
+    \field{presort}
+  }
+  \sort[final]{
+    \field{sortkey}
+  }
+  \sort{
+    \field{sortyear}
+    \field{year}
+    \literal{9999}
+  }
+  \sort{
+    \field{month}
+  }
+  \sort{
+    \field{day}
+  }
+  \sort{
+    \field{hour}
+  }
+  \sort{
+    \field{minute}
+  }
+  \sort{
+    \field{second}
+  }
+  \sort{
+    \field{sortname}
+    \field{author}
+    \field{editor}
+    \field{translator}
+    \field{sorttitle}
+    \field{title}
+  }
+  \sort{
+    \field{sorttitle}
+    \field{title}
+  }
+}
+
 \DeclareSortingTemplate{ydnt}{
   \sort{
     \field{presort}
@@ -1624,6 +1956,47 @@
     \field{sortyear}
     \field{year}
     \literal{9999}
+  }
+  \sort{
+    \field{sortname}
+    \field{author}
+    \field{editor}
+    \field{translator}
+    \field{sorttitle}
+    \field{title}
+  }
+  \sort{
+    \field{sorttitle}
+    \field{title}
+  }
+}
+
+\DeclareSortingTemplate{ddnt}{
+  \sort{
+    \field{presort}
+  }
+  \sort[final]{
+    \field{sortkey}
+  }
+  \sort[direction=descending]{
+    \field{sortyear}
+    \field{year}
+    \literal{9999}
+  }
+  \sort[direction=descending]{
+    \field{month}
+  }
+  \sort[direction=descending]{
+    \field{day}
+  }
+  \sort[direction=descending]{
+    \field{hour}
+  }
+  \sort[direction=descending]{
+    \field{minute}
+  }
+  \sort[direction=descending]{
+    \field{second}
   }
   \sort{
     \field{sortname}
@@ -1715,6 +2088,7 @@
 \DeclareDataInheritance{periodical}{article,suppperiodical}{%
   \inherit{title}{journaltitle}
   \inherit{subtitle}{journalsubtitle}
+  \inherit{titleaddon}{journaltitleaddon}
   \noinherit{shorttitle}
   \noinherit{sorttitle}
   \noinherit{indextitle}
@@ -2207,21 +2581,21 @@
 \DeclareCiteCommand{\notecite}
   {\printfield{prenote}%
    \setunit*{\printdelim{prenotedelim}}}
-  {\nocite{\thefield{entrykey}}}
+  {}
   {}
   {\printfield{postnote}}
 
 \DeclareCiteCommand{\pnotecite}[\mkbibparens]
   {\printfield{prenote}%
    \setunit*{\printdelim{prenotedelim}}}
-  {\nocite{\thefield{entrykey}}}
+  {}
   {}
   {\printfield{postnote}}
 
 \DeclareCiteCommand{\fnotecite}[\mkbibfootnote]
   {\printfield{prenote}%
    \setunit*{\printdelim{prenotedelim}}}
-  {\nocite{\thefield{entrykey}}}
+  {}
   {}
   {\printfield{postnote}}
 
@@ -2344,7 +2718,7 @@
 \newbibmacro*{multipostnote}{%
   \iffieldundef{multipostnote}
     {}
-    {\printdelim{multipostnotedelim}
+    {\printdelim{multipostnotedelim}%
      \printfield{multipostnote}}}
 
 % ------------------------------------------------------------------
@@ -2824,6 +3198,9 @@
      \newunit}%
   \printfield{maintitleaddon}}
 
+% The \iffieldundef{journaltitleaddon} is usually not necessary.
+% We need it to ensure that a \setunit* after this macro does the right thing
+% for backwards compatibility.
 \newbibmacro*{journal}{%
   \ifboolexpr{
     test {\iffieldundef{journaltitle}}
@@ -2834,8 +3211,14 @@
     {\printtext[journaltitle]{%
        \printfield[titlecase]{journaltitle}%
        \setunit{\subtitlepunct}%
-       \printfield[titlecase]{journalsubtitle}}}}
+       \printfield[titlecase]{journalsubtitle}}%
+     \newunit}%
+  \iffieldundef{journaltitleaddon}
+    {}
+    {\printfield{journaltitleaddon}}}
 
+% Re \iffieldundef{titleaddon} see the comment about
+% \iffieldundef{journaltitleaddon} above.
 \newbibmacro*{periodical}{%
   \ifboolexpr{
     test {\iffieldundef{title}}
@@ -2846,7 +3229,11 @@
     {\printtext[title]{%
        \printfield[titlecase]{title}%
        \setunit{\subtitlepunct}%
-       \printfield[titlecase]{subtitle}}}}
+       \printfield[titlecase]{subtitle}}%
+     \newunit}%
+  \iffieldundef{titleaddon}
+    {}
+    {\printfield{titleaddon}}}
 
 \newbibmacro*{issue}{%
   \ifboolexpr{
@@ -2858,11 +3245,13 @@
     {\printtext[issuetitle]{%
        \printfield[titlecase]{issuetitle}%
        \setunit{\subtitlepunct}%
-       \printfield[titlecase]{issuesubtitle}}}}
+       \printfield[titlecase]{issuesubtitle}}%
+     \newunit}%
+  \printfield{issuetitleaddon}}
 
 \newbibmacro*{in:}{%
-  \printtext{%
-    \bibstring{in}\intitlepunct}}
+  \bibstring{in}%
+  \printunit{\intitlepunct}}
 
 \newbibmacro*{date}{\printdate}
 
@@ -2900,9 +3289,12 @@
     {\printfield[eprint:\strfield{eprinttype}]{eprint}}}
 
 \newbibmacro*{annotation}{%
+  \begingroup
+  \togglefalse{blx@bibliography}%
   \iffieldundef{annotation}
     {\printfile[annotation]{\bibannotationprefix\thefield{entrykey}.tex}}
-    {\printfield{annotation}}}
+    {\printfield{annotation}}%
+  \endgroup}
 
 \newbibmacro*{abstract}{%
   \iffieldundef{abstract}
@@ -2921,26 +3313,31 @@
          {\ifnamesequal{author}{savedauthor}
             {\clearname{author}}
             {}}%
-       \renewbibmacro*{related:init}{}%
        \DeclareNameAlias{sortname}{default}%
+       % from authortitle and authoryear
+       \ifbibmacroundef{bbx:dashcheck}
+         {}
+         {\renewbibmacro*{bbx:dashcheck}[2]{##2}}%
+       % authoryear
+       \ifbibmacroundef{labeltitle}
+         {}
+         {\renewbibmacro*{labeltitle}{}}%
        \ifbibmacroundef{date+extradate}
          {}
          {\renewbibmacro*{date+extradate}{}%
-          \renewbibmacro*{date}{\printdate}}%
-       \renewbibmacro*{pageref}{}}
+          \renewbibmacro*{bbx:ifmergeddate}{\@secondoftwo}}%
+       \renewbibmacro*{pageref}{}%
+       \renewbibmacro*{related:init}{}}
       {\thefield{entrytype}}}}
 
 \newbibmacro*{related:bytranslator}[1]{%
   \entrydata{#1}{%
     \renewbibmacro*{name:hook}[1]{%
       \ifnumequal{\value{listcount}}{1}
-        {\begingroup
-         \mkrelatedstring%
-         \lbx@initnamehook{#1}%
-         \endgroup}
+        {\mkrelatedstringtext{\lbx@initnamehook{##1}}}
         {}}%
     \printnames[bytranslator]{translator}%
-    \setunit*{\addspace\bibstring[\mkrelatedstring]{astitle}\space}%
+    \setunit*{\addspace\bibstring[\mkrelatedstringtext]{astitle}\space}%
     \usebibmacro{title}%
     \setunit{\addspace}%
     \printtext[parens]{%
@@ -2988,7 +3385,7 @@
       test {\iflistundef{publisher}}
     }
       {}
-      {\setunit{\addspace\bibstring[\mkrelatedstring]{bypublisher}\space}%
+      {\setunit{\addspace\bibstring[\mkrelatedstringtext]{bypublisher}\space}%
        \printlist{publisher}%
        \setunit{\addcomma\space}%
        \iflistsequal{location}{savedlocation}
@@ -3004,7 +3401,7 @@
       test {\iflistundef{publisher}}
     }
       {}
-      {\setunit{\addspace\bibstring[\mkrelatedstring]{bypublisher}\space}%
+      {\setunit{\addspace\bibstring[\mkrelatedstringtext]{bypublisher}\space}%
        \printlist{publisher}%
        \setunit{\addcomma\space}%
        \iflistsequal{location}{savedlocation}
@@ -3012,10 +3409,7 @@
          {\printlist{location}}}}}
 
 \DeclareFieldFormat{title:hook}{%
-  \begingroup
-  \mkrelatedstring%
-  \lbx@inittitlehook{#1}%
-  \endgroup
+  \mkrelatedstringtext{\lbx@inittitlehook{#1}}%
   \mkbibemph{#1}}
 
 \newbibmacro*{related:reprintfrom}[1]{%

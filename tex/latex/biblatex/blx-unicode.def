@@ -32,6 +32,20 @@
 \closein\blx@bcfin
 \endgroup
 
+% Second part of workaround for odd XeTeX/babel-french behaviour
+% https://github.com/plk/biblatex/issues/979
+% fix by Ulrike Fischer
+% https://tex.stackexchange.com/a/544914/.
+% The first bit lives in biblatex.sty.
+% At some point we may want to consider providing a
+% blx-unicode-xetex and a blx-unicode-lualatex
+% both loading a blx-unicode-generic.
+% For now this test is enough.
+\ifundef\XeTeXrevision
+  {}
+  {\providerobustcmd*{\textnohyphenation}[1]{%
+     \bgroup\nohyphenation#1\egroup^^^^200b}}
+
 \appto\blx@setfrcodes{%
   % … should probably have dot spacefactor, but pdfLaTeX
   % makes it a period, so we have this here for consistency
@@ -46,17 +60,17 @@
     {\blx@normrange@endash#1––&}
     {\ifblank{#2}
        {\begingroup
-        \edef\blx@tempc{\endgroup
+        \protected@edef\blx@tempc{\endgroup
           \blx@range@out@value{%
-            \expandonce\blx@range@out@item@process{\unexpanded{#1}}%
+            \blx@range@out@item@process{\unexpanded{#1}}%
             \noexpand\bibrangedash}}%
         \blx@tempc}
        {\ifblank{#1}
           {\begingroup
-           \edef\blx@tempc{\endgroup
+           \protected@edef\blx@tempc{\endgroup
              \blx@range@out@value{%
                \noexpand\bibrangedash
-               \expandonce\blx@range@out@item@process{%
+               \blx@range@out@item@process{%
                  \unexpanded{#2}}}}%
            \blx@tempc}
           {\blx@range@process{#1}{#2}}}}}
@@ -66,17 +80,17 @@
     {\blx@normrange@hyphen#1--&}
     {\ifblank{#2}
        {\begingroup
-        \edef\blx@tempc{\endgroup
+        \protected@edef\blx@tempc{\endgroup
           \blx@range@out@value{%
-            \expandonce\blx@range@out@item@process{\unexpanded{#1}}%
+            \blx@range@out@item@process{\unexpanded{#1}}%
             \noexpand\bibrangedash}}%
         \blx@tempc}
        {\ifblank{#1}
           {\begingroup
-           \edef\blx@tempc{\endgroup
+           \protected@edef\blx@tempc{\endgroup
              \blx@range@out@value{%
                \noexpand\bibrangedash
-               \expandonce\blx@range@out@item@process{\unexpanded{#2}}}}%
+               \blx@range@out@item@process{\unexpanded{#2}}}}%
            \blx@tempc}
           {\blx@range@process{#1}{#2}}}}}
 
@@ -85,15 +99,15 @@
     {\blx@firstpage@endash#1––&}
     {\ifblank{#1}
        {\begingroup
-        \edef\blx@tempc{\endgroup
+        \protected@edef\blx@tempc{\endgroup
           \blx@range@out@value{%
             \noexpand\bibrangedash
-            \expandonce\blx@range@out@item@process{\unexpanded{#2}}}}%
+            \blx@range@out@item@process{\unexpanded{#2}}}}%
         \blx@tempc}
        {\begingroup
-        \edef\blx@tempc{\endgroup
+        \protected@edef\blx@tempc{\endgroup
           \blx@range@out@value{%
-            \expandonce\blx@range@out@item@process{\unexpanded{#1}}}}%
+            \blx@range@out@item@process{\unexpanded{#1}}}}%
         \blx@tempc}}}
 
 \def\blx@firstpage@endash#1–#2–#3&{%
@@ -101,15 +115,15 @@
     {\blx@firstpage@hyphen#1--&}
     {\ifblank{#1}
        {\begingroup
-        \edef\blx@tempc{\endgroup
+        \protected@edef\blx@tempc{\endgroup
           \blx@range@out@value{%
             \noexpand\bibrangedash
-            \expandonce\blx@range@out@item@process{\unexpanded{#2}}}}%
+            \blx@range@out@item@process{\unexpanded{#2}}}}%
         \blx@tempc}
        {\begingroup
-        \edef\blx@tempc{\endgroup
+        \protected@edef\blx@tempc{\endgroup
           \blx@range@out@value{%
-            \expandonce\blx@range@out@item@process{\unexpanded{#1}}}}%
+            \blx@range@out@item@process{\unexpanded{#1}}}}%
         \blx@tempc}}}
 
 \endinput

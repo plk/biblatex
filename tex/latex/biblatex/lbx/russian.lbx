@@ -9,7 +9,7 @@
   {}
   {\PackageError{biblatex}
      {Russian requires UTF-8 support}
-     {The 'russian.lbx' file requires UTF-8 encoding but you
+     {The file 'russian.lbx' requires UTF-8 encoding but you
       seem\MessageBreak to be using a different encoding.
       This is a fatal error. I will\MessageBreak abort loading
       russian.lbx now.}%
@@ -31,6 +31,7 @@
 }
 
 \DeclareBibliographyExtras{%
+  \renewrobustcmd*{\bibdatesep}{\adddot}%
   \protected\def\bibrangedash{%
     \textemdash\penalty\hyphenpenalty}% breakable dash
   \let\finalandcomma=\empty
@@ -57,11 +58,11 @@
     \iffieldundef{#3}
       {}
       {\mkdayzeros{\thefield{#3}}%
-       \iffieldundef{#2}{}{\adddot}}%
+       \iffieldundef{#2}{}{\bibdatesep}}%
     \iffieldundef{#2}
       {}
       {\mkmonthzeros{\thefield{#2}}%
-       \iffieldundef{#1}{}{\adddot}}%
+       \iffieldundef{#1}{}{\bibdatesep}}%
     \iffieldbibstring{#1}
       {\bibstring{\thefield{#1}}}
       {\dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}}}%
@@ -70,13 +71,17 @@
   \def\mkbibordedition{\mkbibneutord}%
   \def\mkbibordseries{\mkbibfemord}%
   \expandafter\protected\expandafter\def\csname mkbibtime24h\endcsname#1#2#3#4{%
-      \iffieldundef{#1}{}
-        {\printtext{\mktimezeros{\thefield{#1}}}\setunit{\bibtimesep}}%
-      \iffieldundef{#2}{}
-        {\printtext{\mktimezeros{\thefield{#2}}}\setunit{\bibtimesep}}%
-      \iffieldundef{#3}{}
-        {\printtext{\mktimezeros{\thefield{#3}}}}%
-      \setunit{}%
+      \iffieldundef{#1}
+        {}
+        {\mktimezeros{\thefield{#1}}%
+         \iffieldundef{#2}{}{\bibtimesep}}%
+      \iffieldundef{#2}
+        {}
+        {\mktimezeros{\thefield{#2}}%
+         \iffieldundef{#3}{}{\bibtimesep}}%
+      \iffieldundef{#3}
+        {}
+        {\mktimezeros{\thefield{#3}}}%
       \iffieldundef{#4}{}
         {\bibtimezonesep
          \mkbibtimezone{\thefield{#4}}}}%
@@ -93,12 +98,12 @@
       \iffieldundef{#4}{}
        {\space\bibtimezonesep
         \parentext{\mkbibtimezone{\thefield{#4}}}}}%
-  \protected\def\mkbibseasondateshort#1#2{%
-    \mkbibseason{\thefield{#2}}%
+  \protected\def\mkbibyeardivisiondateshort#1#2{%
+    \mkbibyeardivision{\thefield{#2}}%
     \iffieldundef{#1}{}{\space}%
     \dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}}%
-  \protected\def\mkbibseasondatelong#1#2{%
-    \mkbibseason{\thefield{#2}}%
+  \protected\def\mkbibyeardivisiondatelong#1#2{%
+    \mkbibyeardivision{\thefield{#2}}%
     \iffieldundef{#1}{}{\space}%
     \dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}}%
 }
@@ -576,6 +581,23 @@
   summer           = {{лето}{лето}},
   autumn           = {{осень}{осень}},
   winter           = {{зима}{зима}},
+% springN          = {{}{}},% FIXME: missing
+% summerN          = {{}{}},% FIXME: missing
+% autumnN          = {{}{}},% FIXME: missing
+% winterN          = {{}{}},% FIXME: missing
+% springS          = {{}{}},% FIXME: missing
+% summerS          = {{}{}},% FIXME: missing
+% autumnS          = {{}{}},% FIXME: missing
+% winterS          = {{}{}},% FIXME: missing
+% Q1               = {{}{}},% FIXME: missing
+% Q2               = {{}{}},% FIXME: missing
+% Q3               = {{}{}},% FIXME: missing
+% Q4               = {{}{}},% FIXME: missing
+% QD1              = {{}{}},% FIXME: missing
+% QD2              = {{}{}},% FIXME: missing
+% QD3              = {{}{}},% FIXME: missing
+% S1               = {{}{}},% FIXME: missing
+% S2               = {{}{}},% FIXME: missing
   am               = {{ДП}{ДП}},
   pm               = {{ПП}{ПП}},
 }

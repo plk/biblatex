@@ -1,0 +1,855 @@
+\ProvidesFile{lithuanian.lbx}
+[\abx@lbxid]
+
+\DeclareRedundantLanguages{lithuanian}{lithuanian}
+
+% This file requires UTF-8 support!
+
+\lbx@ifutfinput
+  {}
+  {\PackageError{biblatex}
+     {Lithuanian requires UTF-8 support}
+     {The file 'lithuanian.lbx' requires UTF-8 encoding but you
+      seem\MessageBreak to be using a different encoding.
+      This is a fatal error. I will\MessageBreak abort loading
+      lithuanian.lbx now.}%
+   \endinput}
+
+\DeclareBibliographyExtras{%
+  \DeclareCapitalPunctuation{.:!?}%
+  \protected\def\bibrangedash{%
+    \textendash\penalty\hyphenpenalty}% breakable endash
+  \def\lbx@lt@bibdaterangeseplong{\space\textendash\space}%
+  \def\lbx@lt@bibnumdaterangeseplong{\textendash}%
+  \def\lbx@lt@bibdaterangesepshort{\textendash}%
+  \let\lbx@lt@bibnumdaterangesepshort\lbx@lt@bibdaterangesepshort
+  \savecommand\bibdatesep
+  \protected\def\bibdatesep{\nobreakspace}%
+  \let\finalandcomma=\empty
+  \let\finalandsemicolon=\empty
+  \undef\mkbibordinal
+  \protected\def\mkbibmascord#1{\stripzeros{#1}-as}%
+  \protected\def\mkbibfemord#1{\stripzeros{#1}-a}%
+  \undef\mkbibneutord
+  \savecommand\mkbibordedition
+  \savecommand\mkbibordseries
+  \def\mkbibordedition{\mkbibmascord}%
+  \def\mkbibordseries{\mkbibfemord}%
+  \savecommand\lbx@lfromlang
+  \savecommand\lbx@sfromlang
+  \def\lbx@lfromlang{%
+    \iflistundef{origlanguage}
+      {}
+      {\printlist[lfromoriglanguage]{origlanguage}\space}}%
+  \def\lbx@sfromlang{%
+    \iflistundef{origlanguage}
+      {}
+      {\printlist[sfromoriglanguage]{origlanguage}\space}}%
+  \let\lbx@lt@ifdayrange\@secondoftwo
+  \def\lbx@lt@ifdropdaystring{\lbx@lt@ifdayrange}%
+  \let\lbx@lt@ifmonthrange\@secondoftwo
+  \def\lbx@lt@ifdropmonthstring{\lbx@lt@ifmonthrange}%
+  \let\lbx@lt@ifyearrange\@secondoftwo
+  \def\lbx@lt@ifdropyearstring{\lbx@lt@ifyearrange}%
+  \protected\def\mkbibdatelong#1#2#3{%
+    \iffieldundef{#1}
+      {}
+      {\iffieldbibstring{#1}
+         {\bibstring{\thefield{#1}}}
+         {\dateeraprintpre{#1}%
+          \stripzeros{\thefield{#1}}%
+          \lbx@lt@ifdropyearstring
+            {}
+            {\addnbspace\bibstring{year}}}%
+       \iffieldundef{#2}{}{\addnbspace}}%
+    \iffieldundef{#2}
+      {}
+      {\lbx@lt@mkgenmonth{\thefield{#2}}%
+       \iffieldundef{#3}
+         {\lbx@lt@ifdropmonthstring
+            {}
+            {\addnbspace\bibstring{month}}}
+         {\addnbspace}}%
+    \iffieldundef{#3}
+      {}
+      {\stripzeros{\thefield{#3}}%
+       \lbx@lt@ifdropdaystring{}{\addnbspace\bibstring{day}}}%
+  }%
+  \protected\def\mkbibdateshort#1#2#3{%
+    \iffieldundef{#1}
+      {}
+      {\iffieldbibstring{#1}
+         {\bibstring{\thefield{#1}}}
+         {\dateeraprintpre{#1}%
+          \forcezerosy{\thefield{#1}}}}%
+    \iffieldundef{#2}
+      {}
+      {\iffieldundef{#1}{}{\bibdatesep}%
+       \forcezerosmdt{\thefield{#2}}}%
+    \iffieldundef{#3}
+      {}
+      {\iffieldundef{#2}{}{\bibdatesep}%
+       \forcezerosmdt{\thefield{#3}}}%
+  }%
+  \let\mkbibyeardivisiondatelong\mkbibyeardivisiondateshort
+  \savecommand\mkdaterangefull
+  \savecommand\mkdaterangefullextra
+  \savecommand\mkdaterangetrunc
+  \savecommand\mkdaterangetruncextra
+  \protected\def\mkdaterangefull{%
+    \lbx@lt@mkdaterangefull}%
+  \protected\def\mkdaterangefullextra{%
+    \lbx@lt@mkdaterangefullextra}%
+  \protected\def\mkdaterangetrunc{%
+    \lbx@lt@mkdaterangetrunc}%
+  \protected\def\mkdaterangetruncextra{%
+    \lbx@lt@mkdaterangetruncextra}%
+  \savecommand\bibtimesep
+  \protected\def\bibtimesep{.}%
+  \expandafter\protected\expandafter\def\csname mkbibtime24h\endcsname#1#2#3#4{%
+      \iffieldundef{#1}
+        {}
+        {\mktimezeros{\thefield{#1}}%
+         \iffieldundef{#2}{}{\bibtimesep}}%
+      \iffieldundef{#2}
+        {}
+        {\mktimezeros{\thefield{#2}}%
+         \iffieldundef{#3}{}{\bibtimesep}}%
+      \iffieldundef{#3}
+        {}
+        {\mktimezeros{\thefield{#3}}}%
+      \iffieldundef{#4}{}
+        {\bibtimezonesep
+         \mkbibtimezone{\thefield{#4}}}}%
+  \csletcs{mkbibtime12h}{mkbibtime24h}%
+  \protected\def\mkbibyeardivisiondateshort#1#2{%
+    \dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}%
+    \iffieldundef{#1}{}{\addspace}%
+    \mkbibyeardivision{\thefield{#2}}%
+  }%
+  \let\mkbibyeardivisiondatelong\mkbibyeardivisiondateshort
+}%
+
+\UndeclareBibliographyExtras{%
+  \restorecommand\bibdatesep
+  \restorecommand\mkbibordedition
+  \restorecommand\mkbibordseries
+  \restorecommand\lbx@lfromlang
+  \restorecommand\lbx@sfromlang
+  \restorecommand\bibtimesep
+  \restorecommand\mkdaterangefull
+  \restorecommand\mkdaterangefullextra
+  \restorecommand\mkdaterangetrunc
+  \restorecommand\mkdaterangetruncextra
+}
+
+\NewBibliographyString{%
+  genjanuary,
+  genfebruary,
+  genmarch,
+  genapril,
+  genmay,
+  genjune,
+  genjuly,
+  genaugust,
+  genseptember,
+  genoctober,
+  gennovember,
+  gendecember,
+  year,
+  month,
+  day,
+}
+
+\DeclareBibliographyStrings{%
+  bibliography     = {{Bibliografija}{Bibliografija}},
+  references       = {{Literatūros sąrašas}{Literatūra}},
+  shorthands       = {{Santrumpų sąrašas}{Santrumpos}},
+  editor           = {{sudarytojas}{sud\adddot}},
+  editors          = {{sudarytojai}{sud\adddot}},
+  compiler         = {{parengėjas}{pareng\adddot}},% FIXME: unsure
+  compilers        = {{parengėjai}{pareng\adddot}},% FIXME: unsure
+  redactor         = {{redaktorius}{red\adddot}},
+  redactors        = {{redaktoriai}{red\adddot}},
+  reviser          = {{korektorius}{kor\adddot}},
+  revisers         = {{korektoriai}{kor\adddot}},
+  founder          = {{pradininkas}{prad\adddot}},% FIXME: unsure
+  founders         = {{pradininkai}{prad\adddot}},% FIXME: unsure
+  continuator      = {{tęsėjas}{tęs\adddot}},
+  continuators     = {{tęsėjai}{tęs\adddot}},
+  collaborator     = {{bendradarbis}{bendr\adddot}},
+  collaborators    = {{bendradarbiai}{bendr\adddot}},
+  translator       = {{vertėjas}{vert\adddot}},
+  translators      = {{vertėjai}{vert\adddot}},
+  commentator      = {{komentarų autorius}{koment\adddotspace aut\adddot}},
+  commentators     = {{komentarų autoriai}{koment\adddotspace aut\adddot}},
+  annotator        = {{paaiškinimų autorius}{paaišk\adddotspace aut\adddot}},
+  annotators       = {{paaiškinimų autoriai}{paaišk\adddotspace aut\adddot}},
+  commentary       = {{komentarai}{koment\adddot}},
+  annotations      = {{paaiškinimai}{paaišk\adddot}},
+  introduction     = {{įvadas}{įv\adddot}},
+  foreword         = {{pratarmė}{prat\adddot}},
+  afterword        = {{pabaigos žodis}{pab\adddotspace žodis}},
+  editortr         = {{sudarytojas ir vertėjas}%
+                      {sud\adddotspace ir vert\adddot}},
+  editorstr        = {{sudarytojai ir vertėjai}%
+                      {sud\adddotspace ir vert\adddot}},
+  editorco         = {{sudarytojas ir komentarų autorius}%
+                      {sud\adddotspace ir koment\adddotspace aut\adddot}},
+  editorsco        = {{sudarytojai ir komentarų autoriai}%
+                      {sud\adddotspace ir koment\adddotspace aut\adddot}},
+  editoran         = {{sudarytojas ir paaiškinimų autorius}%
+                      {sud\adddotspace ir paaišk\adddotspace aut\adddot}},
+  editorsan        = {{sudarytojai ir paaiškinimų autoriai}%
+                      {sud\adddotspace ir paaišk\adddotspace aut\adddot}},
+  editorin         = {{sudarytojas ir įvado autorius}%
+                      {sud\adddotspace ir įv\adddotspace aut\adddot}},
+  editorsin        = {{sudarytojai ir įvado autoriai}%
+                      {sud\adddotspace ir įv\adddotspace aut\adddot}},
+  editorfo         = {{sudarytojas ir pratarmės autorius}%
+                      {sud\adddotspace ir prat\adddotspace aut\adddot}},
+  editorsfo        = {{sudarytojai ir pratarmės autoriai}%
+                      {sud\adddotspace ir prat\adddotspace aut\adddot}},
+  editoraf         = {{sudarytojas ir pabaigos žodžio autorius}%
+                      {sud\adddotspace ir pab\adddotspace žodžio aut\adddot}},
+  editorsaf        = {{sudarytojai ir pabaigos žodžio autoriai}%
+                      {sud\adddotspace ir pab\adddotspace žodžio aut\adddot}},
+  editortrco       = {{sudarytojas, vertėjas ir komentarų autorius}%
+                      {sud., vert\adddotspace ir koment\adddotspace aut\adddot}},
+  editorstrco      = {{sudarytojai, vertėjai ir komentarų autoriai}%
+                      {sud., vert\adddotspace ir koment\adddotspace aut\adddot}},
+  editortran       = {{sudarytojas, vertėjas ir paaiškinimų autorius}%
+                      {sud., vert\adddotspace ir paaišk\adddotspace aut\adddot}},
+  editorstran      = {{sudarytojai, vertėjai ir paaiškinimų autoriai}%
+                      {sud., vert\adddotspace ir paaišk\adddotspace aut\adddot}},
+  editortrin       = {{sudarytojas, vertėjas ir įvado autorius}%
+                      {sud., vert\adddotspace ir įv\adddotspace aut\adddot}},
+  editorstrin      = {{sudarytojai, vertėjai ir įvado autoriai}%
+                      {sud., vert\adddotspace ir įv\adddotspace aut\adddot}},
+  editortrfo       = {{sudarytojas, vertėjas ir pratarmės autorius}%
+                      {sud., vert\adddotspace ir pratarmės\adddotspace aut\adddot}},
+  editorstrfo      = {{sudarytojai, vertėjai ir pratarmės autoriai}%
+                      {sud., vert\adddotspace ir prat\adddotspace aut\adddot}},
+  editortraf       = {{sudarytojas, vertėjas ir pabaigos žodžio autorius}%
+                      {sud., vert\adddotspace ir pab\adddotspace žodžio aut\adddot}},
+  editorstraf      = {{sudarytojai, vertėjai ir pabaigos žodžio autoriai}%
+                      {sud., vert\adddotspace ir pab\adddotspace žodžio aut\adddot}},
+  editorcoin       = {{sudarytojas, komentarų ir įvado autorius}%
+                      {sud., koment\adddotspace ir įv\adddotspace aut\adddot}},
+  editorscoin      = {{sudarytojai, komentarų ir įvado autoriai}%
+                      {sud., koment\adddotspace ir įv\adddotspace aut\adddot}},
+  editorcofo       = {{sudarytojas, komentarų ir pratarmės autorius}%
+                      {sud., koment\adddotspace ir prat\adddotspace aut\adddot}},
+  editorscofo      = {{sudarytojai, komentarų ir pratarmės autoriai}%
+                      {sud., koment\adddotspace ir prat\adddotspace aut\adddot}},
+  editorcoaf       = {{sudarytojas, komentarų ir pabaigos žodžio autorius}%
+                      {sud., koment\adddotspace ir pab\adddotspace žodžio aut\adddot}},
+  editorscoaf      = {{sudarytojai, komentarų ir pabaigos žodžio autoriai}%
+                      {sud., koment\adddotspace ir pab\adddotspace žodžio aut\adddot}},
+  editoranin       = {{sudarytojas, paaiškinimų ir įvado autorius}%
+                      {sud., paaišk\adddotspace ir įv\adddotspace aut\adddot}},
+  editorsanin      = {{sudarytojai, paaiškinimų ir įvado autoriai}%
+                      {sud., paaišk\adddotspace ir įv\adddotspace aut\adddot}},
+  editoranfo       = {{sudarytojas, paaiškinimų ir pratarmės autorius}%
+                      {sud., paaišk\adddotspace ir prat\adddotspace aut\adddot}},
+  editorsanfo      = {{sudarytojai, paaiškinimų ir pratarmės autoriai}%
+                      {sud., paaišk\adddotspace ir prat\adddotspace aut\adddot}},
+  editoranaf       = {{sudarytojas, paaiškinimų ir pabaigos žodžio autorius}%
+                      {sud., paaišk\adddotspace ir pab\adddotspace žodžio aut\adddot}},
+  editorsanaf      = {{sudarytojai, paaiškinimų ir pabaigos žodžio autoriai}%
+                      {sud., paaišk\adddotspace ir pab\adddotspace žodžio aut\adddot}},
+  editortrcoin     = {{sudarytojas, vertėjas, komentarų ir įvado autorius}%
+                      {sud., vert., koment\adddotspace ir įv\adddotspace aut\adddot}},
+  editorstrcoin    = {{sudarytojai, vertėjai, komentarų ir įvado autoriai}%
+                      {sud., vert., koment\adddotspace ir įv\adddotspace aut\adddot}},
+  editortrcofo     = {{sudarytojas, vertėjas, komentarų ir pratarmės autorius}%
+                      {sud., vert., koment\adddotspace ir prat\adddotspace aut\adddot}},
+  editorstrcofo    = {{sudarytojai, vertėjai, komentarų ir pratarmės autoriai}%
+                      {sud., vert., koment\adddotspace ir prat\adddotspace aut\adddot}},
+  editortrcoaf     = {{sudarytojas, vertėjas, komentarų ir pabaigos žodžio autorius}%
+                      {sud., vert., koment\adddotspace ir pab\adddotspace žodžio aut\adddot}},
+  editorstrcoaf    = {{sudarytojai, vertėjai, komentarų ir pabaigos žodžio autoriai}%
+                      {sud., vert., koment\adddotspace ir pab\adddotspace žodžio aut\adddot}},
+  editortranin     = {{sudarytojas, vertėjas, paaiškinimų ir įvado autorius}%
+                      {sud., vert., paaišk\adddotspace ir įv\adddotspace aut\adddot}},
+  editorstranin    = {{sudarytojai, vertėjai, paaiškinimų ir įvado autoriai}%
+                      {sud., vert., paaišk\adddotspace ir įv\adddotspace aut\adddot}},
+  editortranfo     = {{sudarytojas, vertėjas, paaiškinimų ir pratarmės autorius}%
+                      {sud., vert., paaišk\adddotspace ir prat\adddotspace aut\adddot}},
+  editorstranfo    = {{sudarytojai, vertėjai, paaiškinimų ir pratarmės autoriai}%
+                      {sud., vert., paaišk\adddotspace ir prat\adddotspace aut\adddot}},
+  editortranaf     = {{sudarytojas, vertėjas, paaiškinimų ir pabaigos žodžio autorius}%
+                      {sud., vert., paaišk\adddotspace ir pab\adddotspace žodžio aut\adddot}},
+  editorstranaf    = {{sudarytojai, vertėjai, paaiškinimų ir pabaigos žodžio autoriai}%
+                      {sud., vert., paaišk\adddotspace ir pab\adddotspace žodžio aut\adddot}},
+  translatorco     = {{vertėjas ir komentarų autorius}%
+                      {vert\adddotspace ir koment\adddotspace aut\adddot}},
+  translatorsco    = {{vertėjai ir komentarų autoriai}%
+                      {vert\adddotspace ir koment\adddotspace aut\adddot}},
+  translatoran     = {{vertėjas ir paaiškinimų autorius}%
+                      {vert\adddotspace ir paaišk\adddotspace aut\adddot}},
+  translatorsan    = {{vertėjai ir paaiškinimų autoriai}%
+                      {vert\adddotspace ir paaišk\adddotspace aut\adddot}},
+  translatorin     = {{vertėjas ir įvado autorius}%
+                      {vert\adddotspace ir įv\adddotspace aut\adddot}},
+  translatorsin    = {{vertėjai ir įvado autoriai}%
+                      {vert\adddotspace ir įv\adddotspace aut\adddot}},
+  translatorfo     = {{vertėjas ir pratarmės autorius}%
+                      {vert\adddotspace ir prat\adddotspace aut\adddot}},
+  translatorsfo    = {{vertėjai ir pratarmės autoriai}%
+                      {vert\adddotspace ir prat\adddotspace aut\adddot}},
+  translatoraf     = {{vertėjas ir pabaigos žodžio autorius}%
+                      {vert\adddotspace ir pab\adddotspace žodžio aut\adddot}},
+  translatorsaf    = {{vertėjai ir pabaigos žodžio autoriai}%
+                      {vert\adddotspace ir pab\adddotspace žodžio aut\adddot}},
+  translatorcoin   = {{vertėjas, komentarų ir įvado autorius}%
+                      {vert., koment\adddotspace ir įv\adddotspace aut\adddot}},
+  translatorscoin  = {{vertėjai, komentarų ir įvado autoriai}%
+                      {vert., koment\adddotspace ir įv\adddotspace aut\adddot}},
+  translatorcofo   = {{vertėjas, komentarų ir pratarmės autorius}%
+                      {vert., koment\adddotspace ir prat\adddotspace aut\adddot}},
+  translatorscofo  = {{vertėjai, komentarų ir pratarmės autoriai}%
+                      {vert., koment\adddotspace ir prat\adddotspace aut\adddot}},
+  translatorcoaf   = {{vertėjas, komentarų ir pabaigos žodžio autorius}%
+                      {vert., koment\adddotspace ir pab\adddotspace žodžio aut\adddot}},
+  translatorscoaf  = {{vertėjai, komentarų ir pabaigos žodžio autoriai}%
+                      {vert., koment\adddotspace ir pab\adddotspace žodžio aut\adddot}},
+  translatoranin   = {{vertėjas, paaiškinimų ir įvado autorius}%
+                      {vert., paaišk\adddotspace ir įv\adddotspace aut\adddot}},
+  translatorsanin  = {{vertėjai, paaiškinimų ir įvado autoriai}%
+                      {vert., paaišk\adddotspace ir įv\adddotspace aut\adddot}},
+  translatoranfo   = {{vertėjas, paaiškinimų ir pratarmės autorius}%
+                      {vert., paaišk\adddotspace ir prat\adddotspace aut\adddot}},
+  translatorsanfo  = {{vertėjai, paaiškinimų ir pratarmės autoriai}%
+                      {vert., paaišk\adddotspace ir prat\adddotspace aut\adddot}},
+  translatoranaf   = {{vertėjas, paaiškinimų ir pabaigos žodžio autorius}%
+                      {vert., paaišk\adddotspace ir pab\adddotspace žodžio aut\adddot}},
+  translatorsanaf  = {{vertėjai, paaiškinimų ir pabaigos žodžio autoriai}%
+                      {vert., paaišk\adddotspace ir pab\adddotspace žodžio aut\adddot}},
+  organizer        = {{organizatorius}{org\adddot}},
+  organizers       = {{organizatoriai}{org\adddot}},
+  byorganizer      = {{organizavo}{org\adddot}},
+%  byauthor         = {{}{}}, %or sukūrė, or parašė
+  byeditor         = {{sudarė}{sud\adddotspace}},
+  bycompiler       = {{parengė}{pareng\adddotspace}},
+  byredactor       = {{redagavo}{red\adddotspace}},
+  byreviser        = {{tikrino}{tikr\adddotspace}},
+  byreviewer       = {{recenzavo}{rec\adddotspace}},
+  byfounder        = {{pradėjo}{prad\adddotspace}},
+  bycontinuator    = {{tęsė}{tęs\adddotspace}},
+  bycollaborator   = {{bendradarbiaujant su}{bendradarb\adddotspace su}},% FIXME: unsure
+  bytranslator     = {{\lbx@lfromlang išvertė}{\lbx@sfromlang vert\adddot}},
+  bycommentator    = {{komentarus parengė}{koment\adddot}},
+  byannotator      = {{paaiškinimus parengė}{paaišk\adddot}},
+  withcommentator  = {{komentarų autorius}{koment\adddotspace aut\adddot}},
+  withannotator    = {{paaiškinimų autorius}{paaišk\adddotspace aut\adddot}},
+  withintroduction = {{įvado autorius}{įv\adddotspace aut\adddot}},
+  withforeword     = {{pratarmės autorius}{prat\adddotspace aut\adddot}},
+  withafterword    = {{pabaigos žodžio autorius}{pab\adddotspace žodžio aut\adddot}},
+  byeditortr       = {{sudarė ir \lbx@lfromlang išvertė}%
+                      {sud\adddotspace ir \lbx@sfromlang vert\adddot}},
+  byeditorco       = {{sudarė ir komentarus parengė}%
+                      {sud\adddotspace ir koment\adddotspace parengė}},
+  byeditoran       = {{sudarė ir paaiškinimus parengė}%
+                      {sud\adddotspace ir paaišk\adddotspace parengė}},
+  byeditorin       = {{sudarė ir įvadą parašė}%
+                      {sud\adddotspace ir įv\adddotspace parašė}},
+  byeditorfo       = {{sudarė ir pratarmę parašė}%
+                      {sud\adddotspace ir prat\adddotspace parašė}},
+  byeditoraf       = {{sudarė ir pabaigos žodį parašė}%
+                      {sud\adddotspace ir pab\adddotspace žodį parašė}},
+  byeditortrco     = {{sudarė, \lbx@lfromlang išvertė ir komentarus parengė}%
+                      {sud., \lbx@sfromlang vert\adddotspace ir koment\adddotspace parengė}},
+  byeditortran     = {{sudarė, \lbx@lfromlang išvertė ir paaiškinimus parengė}%
+                      {sud., \lbx@sfromlang vert\adddotspace ir paaišk\adddotspace parengė}},
+  byeditortrin     = {{sudarė, \lbx@lfromlang išvertė ir įvadą parašė}%
+                      {sud., \lbx@sfromlang vert\adddotspace ir įv\adddotspace parašė}},
+  byeditortrfo     = {{sudarė, \lbx@lfromlang išvertė ir pratarmę parašė}%
+                      {sud., \lbx@sfromlang vert\adddotspace ir prat\adddotspace parašė}},
+  byeditortraf     = {{sudarė, \lbx@lfromlang išvertė ir pabaigos žodį parašė}%
+                      {sud., \lbx@sfromlang vert\adddotspace ir pab\adddotspace žodį parašė}},
+  byeditorcoin     = {{sudarė, komentarus parengė ir įvadą parašė}%
+                      {sud., koment\adddotspace ir įv\adddotspace parašė}},
+  byeditorcofo     = {{sudarė, komentarus parengė ir pratarmę parašė}%
+                      {sud., koment\adddotspace ir prat\adddotspace parašė}},
+  byeditorcoaf     = {{sudarė, komentarus parengė ir pabaigos žodį parašė}%
+                      {sud., koment\adddotspace ir pab\adddotspace žodį parašė}},
+  byeditoranin     = {{sudarė, paaiškinimus parengė ir įvadą parašė}%
+                      {sud., paaišk\adddotspace ir įv\adddotspace parašė}},
+  byeditoranfo     = {{sudarė, paaiškinimus parengė ir pratarmę parašė}%
+                      {sud., paaišk\adddotspace ir prat\adddotspace parašė}},
+  byeditoranaf     = {{sudarė, paaiškinimus parengė ir pabaigos žodį parašė}%
+                      {sud., paaišk\adddotspace ir pab\adddotspace žodį parašė}},
+  byeditortrcoin   = {{sudarė, \lbx@lfromlang išvertė, komentarus parengė ir įvadą parašė}%
+                      {sud., \lbx@sfromlang vert\adddot, koment\adddotspace ir įvad\adddotspace parašė}},
+  byeditortrcofo   = {{sudarė, \lbx@lfromlang išvertė, komentarus parengė ir pratarmę parašė}%
+                      {sud., \lbx@sfromlang vert\adddot, koment\adddotspace ir prat\adddotspace parašė}},
+  byeditortrcoaf   = {{sudarė, \lbx@lfromlang išvertė, komentarus ir pabaigos žodį parašė}%
+                      {sud., \lbx@sfromlang vert\adddot, koment\adddotspace ir pab\adddotspace žodį parašė}},
+  byeditortranin   = {{sudarė, \lbx@lfromlang išvertė, paaiškinimus parengė ir įvadą parašė}%
+                      {sud., \lbx@sfromlang vert\adddot, paaišk\adddotspace ir pab\adddotspace žodį parašė}},
+  byeditortranfo   = {{sudarė, \lbx@lfromlang išvertė, paaiškinimus parengė ir pratarmę parašė}%
+                      {sud., \lbx@sfromlang vert\adddot, paaišk\adddotspace ir prat\adddotspace parašė}},
+  byeditortranaf   = {{sudarė, \lbx@lfromlang išvertė, paaiškinimus parengė ir pabaigos žodį parašė}%
+                      {sud., \lbx@sfromlang vert\adddot, paaišk\adddotspace ir pab\adddotspace žodį parašė}},
+  bytranslatorco   = {{\lbx@lfromlang išvertė ir komentarus parengė}%
+                      {\lbx@sfromlang vert\adddotspace ir koment\adddotspace parengė}},
+  bytranslatoran   = {{\lbx@lfromlang išvertė ir paaiškinimus parengė}%
+                      {\lbx@sfromlang vert\adddotspace ir paaišk\adddotspace parengė}},
+  bytranslatorin   = {{\lbx@lfromlang išvertė ir įvadą parašė}%
+                      {\lbx@sfromlang vert\adddotspace ir įv\adddotspace parašė}},
+  bytranslatorfo   = {{\lbx@lfromlang išvertė ir pratarmę parašė}%
+                      {\lbx@sfromlang vert\adddotspace ir prat\adddotspace parašė}},
+  bytranslatoraf   = {{\lbx@lfromlang išvertė ir pabaigos žodį parašė}%
+                      {\lbx@sfromlang vert\adddotspace ir pab\adddotspace žodį parašė}},
+  bytranslatorcoin = {{\lbx@lfromlang išvertė, komentarus parengė ir įvadą parašė}%
+                      {\lbx@sfromlang vert\adddot, koment\adddotspace ir įv\adddotspace parašė}},
+  bytranslatorcofo = {{\lbx@lfromlang išvertė, komentarus parengė ir pratarmę parašė}%
+                      {\lbx@sfromlang vert\adddot, koment\adddotspace ir prat\adddotspace parašė}},
+  bytranslatorcoaf = {{\lbx@lfromlang išvertė, komentarus parengė ir pabaigos žodį parašė}%
+                      {\lbx@sfromlang vert\adddot, koment\adddotspace ir pab\adddotspace žodį parašė}},
+  bytranslatoranin = {{\lbx@lfromlang išvertė, paaiškinimus parengė ir įvadą parašė}%
+                      {\lbx@sfromlang vert\adddot, paaišk\adddotspace ir įv\adddotspace parašė}},
+  bytranslatoranfo = {{\lbx@lfromlang išvertė, paaiškinimus parengė ir pratarmę parašė}%
+                      {\lbx@sfromlang vert\adddot, paaišk\adddotspace ir prat\adddotspace parašė}},
+  bytranslatoranaf = {{\lbx@lfromlang išvertė, paaiškinimus parengė ir pabaigos žodį parašė}%
+                      {\lbx@sfromlang vert\adddot, paaišk\adddotspace ir pab\adddotspace žodį parašė}}, %
+  and              = {{ir}{ir}},
+  andothers        = {{ir kiti}{ir kt\adddot}},
+  andmore          = {{ir taip toliau}{ir t\adddotspace t\adddot}},
+  volume           = {{tomas}{t\adddot}},
+  volumes          = {{tomai}{t\adddot}},
+%  involumes        = {{}{}},
+  jourvol          = {{tomas}{t\adddot}},
+  jourser          = {{serija}{ser\adddot}},
+  book             = {{knyga}{kn\adddot}},
+  part             = {{dalis}{d\adddot}},
+  issue            = {{numeris}{Nr.}},
+  newseries        = {{nauja serija}{nauj\adddotspace ser\adddot}},
+  oldseries        = {{sena serija}{sen\adddotspace ser\adddot}},
+  edition          = {{leidimas}{leid\adddot}},
+  reprint          = {{pakartotinis leidimas}{pakartot\adddotspace leid\adddot}},
+  reprintof        = {{pakartotinis leidimas}{pakartot\adddotspace leid\adddot}},% FIXME: unsure
+  reprintas        = {{perspausdinta kaip}{perspausdinta kaip}},
+  reprintfrom      = {{perspausdinta iš}{perspausdinta iš}},
+  reviewof         = {{recenzija}{rec\adddotspace}},
+  translationof    = {{versta iš leidinio}{vert\adddotspace iš leid\adddot}},
+  translationas    = {{išversta kaip}{išversta kaip}},
+  translationfrom  = {{vertimas iš}{vert\adddotspace iš}},
+  origpubas        = {{originaliai publikuotas kaip}{orig\adddotspace publ\adddotspace kaip}},
+  origpubin        = {{originaliai publikuotas}{orig\adddotspace publ\adddotspace}},
+  astitle          = {{pavadinimu}{pavadinimu}},%or kaip
+  bypublisher      = {{leidykloje}{leidykloje}},% FIXME: unsure
+  page             = {{puslapis}{p\adddot}},
+  pages            = {{puslapiai}{p\adddot}},
+  column           = {{skiltis}{skilt\adddot}},
+  columns          = {{skiltys}{skilt\adddot}},
+  line             = {{eilutė}{eil\adddot}},
+  lines            = {{eilutės}{eil\adddot}},
+  nodate           = {{sine anno}{s\adddotspace a\adddot}},
+  verse            = {{eilutė}{eil\adddot}},
+  verses           = {{eilutės}{eil\adddot}},
+  section          = {{paragrafas}{paragr\adddot}},
+  sections         = {{paragrafai}{paragr\adddot}},
+  paragraph        = {{pastraipa}{pastr\adddot}},
+  paragraphs       = {{pastraipos}{pastr\adddot}},
+  pagetotal        = {{puslapis}{p\adddot}},
+  pagetotals       = {{puslapiai}{p\adddot}},
+  columntotal      = {{skiltis}{skilt\adddot}},
+  columntotals     = {{skiltys}{skilt\adddot}},
+  linetotal        = {{eilutė}{eil\adddot}},
+  linetotals       = {{eilutės}{eil\adddot}},
+  versetotal       = {{eilutė}{eil\adddot}},
+  versetotals      = {{eilutės}{eil\adddot}},
+  sectiontotal     = {{paragrafas}{paragr\adddot}},
+  sectiontotals    = {{paragrafai}{paragr\adddot}},
+  paragraphtotal   = {{pastraipa}{pastr\adddot}},
+  paragraphtotals  = {{pastraipos}{pastr\adddot}},
+  in               = {{iš}{iš}},
+%  inseries         = {{}{}},%or iš
+  ofseries         = {{iš}{iš}},
+  number           = {{numeris}{Nr\adddot}},
+  chapter          = {{skyrius}{sk\adddot}},
+  bathesis         = {{bakalauro darbas}{bak\adddotspace darb\adddot}},
+  mathesis         = {{magistro darbas}{mag\adddotspace darb\adddot}},
+  phdthesis        = {{disertacija}{disert\adddot}},
+  candthesis       = {{disertacija}{disert\adddot}},
+  resreport        = {{mokslinė ataskaita}{moksl\adddotspace atask\adddot}},
+  techreport       = {{techninė ataskaita}{techn\adddotspace atask\adddot}},
+  software         = {{programinė įranga}{PĮ}},
+  datacd           = {{CD-ROM}{CD-ROM}},
+  audiocd          = {{audio CD}{audio CD}},
+  version          = {{versija}{vers\adddot}},
+  url              = {{interaktyvus}{interaktyvus}},
+  urlfrom          = {{pasiekiamas per}{pasiekiamas per}},
+  urlseen          = {{tikrinta}{tikrinta}},
+  inpreparation    = {{rengiamas}{rengiamas}},
+  submitted        = {{pateiktas}{pateiktas}},
+  forthcoming      = {{pasirodysiantis}{pasirodysiantis}},
+  inpress          = {{spaudoje}{spaudoje}},
+  prepublished     = {{išankstinė publikacija}{išankstinė publ\adddot}},
+  citedas          = {{nuo šiol cituojamas kaip}{nuo šiol}},
+  thiscite         = {{čia}{čia}},
+  seenote          = {{žiūrėk nuorodą}{žr\adddotspace nuor\adddot}},
+  quotedin         = {{cituota}{cituota}},
+  idem             = {{tas pats}{t\adddotspace p\adddot}},
+  idemsm           = {{tas pats}{t\adddotspace p\adddot}},
+  idemsf           = {{ta pati}{t\adddotspace p\adddot}},
+  idemsn           = {{tas pats}{t\adddotspace p\adddot}},
+  idempm           = {{tie patys}{t\adddotspace p\adddot}},
+  idempf           = {{tos pačios}{t\adddotspace p\adddot}},
+  idempn           = {{tie patys}{t\adddotspace p\adddot}},
+  idempp           = {{tie patys}{t\adddotspace p\adddot}},
+  ibidem           = {{ten pat}{ten pat}},
+  opcit            = {{op\adddotspace cit\adddot}{op\adddotspace cit\adddot}},
+  loccit           = {{loc\adddotspace cit\adddot}{loc\adddotspace cit\adddot}},
+  confer           = {{palygink}{plg\adddot}},
+  sequens          = {{ir sekantis}{ir kt\adddot}},
+  sequentes        = {{ir sekantys}{ir kt\adddot}},
+  passim           = {{passim}{pass\adddot}},
+  see              = {{žiūrėk}{žr\adddot}},
+  seealso          = {{taip pat žiūrėk}{t\adddotspace p\adddotspace žr\adddot}},
+  backrefpage      = {{cituota puslapyje}{cit\adddotspace psl\adddot}},
+  backrefpages     = {{cituota puslapiuose}{cit\adddotspace psl\adddot}},
+  january          = {{sausis}{saus\adddot}},
+  february         = {{vasaris}{vas\adddot}},
+  march            = {{kovas}{kov\adddot}},
+  april            = {{balandis}{bal\adddot}},
+  may              = {{gegužė}{geg\adddot}},
+  june             = {{birželis}{birž\adddot}},
+  july             = {{liepa}{liepa}},
+  august           = {{rugpjūtis}{rugpj\adddot}},
+  september        = {{rugsėjis}{rugs\adddot}},
+  october          = {{spalis}{spal\adddot}},
+  november         = {{lapkritis}{lapkr\adddot}},
+  december         = {{gruodis}{gruod\adddot}},
+  genjanuary       = {{sausio}{saus\adddot}},
+  genfebruary      = {{vasario}{vas\adddot}},
+  genmarch         = {{kovo}{kov\adddot}},
+  genapril         = {{balandžio}{bal\adddot}},
+  genmay           = {{gegužės}{geg\adddot}},
+  genjune          = {{birželio}{birž\adddot}},
+  genjuly          = {{liepos}{liep\adddot}},
+  genaugust        = {{rugpjūčio}{rugpj\adddot}},
+  genseptember     = {{rugsėjo}{rugs\adddot}},
+  genoctober       = {{spalio}{spal\adddot}},
+  gennovember      = {{lapkričio}{lapkr\adddot}},
+  gendecember      = {{gruodžio}{gruod\adddot}},
+  langamerican     = {{amerikiečių kalba}{amer\adddotspace k\adddot}},
+  langbrazilian    = {{brazilų kalba}{braz\adddotspace k\adddot}},
+  langbulgarian    = {{bulgarų kalba}{bulgarų k\adddot}},
+  langcatalan      = {{katalonų kalba}{katalonų k\adddot}},
+  langcroatian     = {{kroatų kalba}{kroatų k\adddot}},
+  langczech        = {{čekų kalba}{čekų k\adddot}},
+  langdanish       = {{danų kalba}{danų k\adddot}},
+  langdutch        = {{olandų kalba}{olandų k\adddot}},
+  langenglish      = {{anglų kalba}{anglų k\adddot}},
+  langestonian     = {{estų kalba}{estų k\adddot}},
+  langfinnish      = {{suomių kalba}{suomių k\adddot}},
+  langfrench       = {{prancūzų kalba}{pranc\adddotspace k\adddot}},
+  langgerman       = {{vokiečių kalba}{vok\adddotspace k\adddot}},
+  langgreek        = {{graikų kalba}{graikų k\adddot}},
+  langhungarian    = {{vengrų kalba}{vengrų k\adddot}},
+  langitalian      = {{italų kalba}{it\adddotspace k\adddot}},
+  langjapanese     = {{japonų kalba}{japonų k\adddot}},
+  langlatin        = {{lotynų kalba}{lot\adddotspace k\adddot}},
+  langlatvian      = {{latvių kalba}{latv\adddotspace k\adddot}},
+  langlithuanian   = {{lietuvių kalba}{liet\adddotspace k\adddot}},
+  langnorwegian    = {{norvegų kalba}{norv\adddotspace k\adddot}},
+  langpolish       = {{lenkų kalba}{lenkų k\adddot}},
+  langportuguese   = {{portugalų kalba}{portug\adddotspace k\adddot}},
+  langrussian      = {{rusų kalba}{rusų k\adddot}},
+  langserbian      = {{serbų kalba}{serbų k\adddot}},
+  langslovak       = {{slovakų kalba}{slovakų k\adddot}},
+  langslovene      = {{slovėnų kalba}{slovėnų k\adddot}},
+  langspanish      = {{ispanų kalba}{isp\adddotspace k\adddot}},
+  langswedish      = {{švedų kalba}{švedų k\adddot}},
+  langturkish      = {{turkų kalba}{turkų k\adddot}},
+  langukrainian    = {{ukrainiečių kalba}{ukrain\adddotspace k\adddot}},
+  fromamerican     = {{iš amerikiečių kalbos}{iš amer\adddotspace k\adddot}},
+  frombrazilian    = {{iš brazilų kalbos}{iš braz\adddotspace k\adddot}},
+  frombulgarian    = {{iš bulgarų kalbos}{iš bulgarų k\adddot}},
+  fromcatalan      = {{iš katalonų kalbos}{iš katalonų k\adddot}},
+  fromcroatian     = {{iš kroatų kalbos}{iš kroatų k\adddot}},
+  fromczech        = {{iš čekų kalbos}{iš čekų k\adddot}},
+  fromdanish       = {{iš danų kalbos}{iš danų k\adddot}},
+  fromdutch        = {{iš olandų kalbos}{iš olandų k\adddot}},
+  fromenglish      = {{iš anglų kalbos}{iš anglų k\adddot}},
+  fromestonian     = {{iš estų kalbos}{iš estų k\adddot}},
+  fromfinnish      = {{iš suomių kalbos}{iš suomių k\adddot}},
+  fromfrench       = {{iš prancūzų kalbos}{iš pranc\adddotspace k\adddot}},
+  fromgerman       = {{iš vokiečių kalbos}{iš vok\adddotspace k\adddot}},
+  fromgreek        = {{iš graikų kalbos}{iš graikų k\adddot}},
+  fromhungarian    = {{iš vengrų kalbos}{iš vengrų k\adddot}},
+  fromitalian      = {{iš italų kalbos}{iš italų k\adddot}},
+  fromjapanese     = {{iš japonų kalbos}{iš japonų k\adddot}},
+  fromlatin        = {{iš lotynų kalbos}{iš lot\adddotspace k\adddot}},
+  fromlatvian      = {{iš latvių kalbos}{iš latvių k\adddot}},
+  fromnorwegian    = {{iš norvegų kalbos}{iš norv\adddotspace k\adddot}},
+  frompolish       = {{iš lenkų kalbos}{iš lenkų k\adddot}},
+  fromportuguese   = {{iš portugalų kalbos}{iš portug\adddotspace k\adddot}},
+  fromrussian      = {{iš rusų kalbos}{iš rusų k\adddot}},
+  fromserbian      = {{iš serbų kalbos}{iš serbų k\adddot}},
+  fromslovak       = {{iš slovakų kalbos}{iš slovakų k\adddot}},
+  fromslovene      = {{iš slovėnų kalbos}{iš slovėnų k\adddot}},
+  fromspanish      = {{iš ispanų kalbos}{iš isp\adddotspace k\adddot}},
+  fromswedish      = {{iš švedų kalbos}{iš švedų k\adddot}},
+  fromturkish      = {{iš turkų kalbos}{iš turkų k\adddot}},
+  fromukrainian    = {{iš ukrainiečių kalbos}{iš ukrain\adddotspace k\adddot}},
+  countryde        = {{Vokietija}{DE}},
+  countryeu        = {{Europos Sąjunga}{EU}},
+  countryep        = {{Europos Sąjunga}{EP}},
+  countryfr        = {{Prancūzija}{FR}},
+  countryuk        = {{Didžioji Britanija}{DB}},
+  countryus        = {{Jungtinės Amerikos Valstijos}{JAV}},
+  patent           = {{patentas}{pat\adddot}},
+  patentde         = {{vokiškas patentas}{vokiškas pat\adddot}},
+  patenteu         = {{europinis patentas}{europinis pat\adddot}},
+  patentfr         = {{prancūziškas patentas}{prancūziškas pat\adddot}},
+  patentuk         = {{angliškas patentas}{angliškas pat\adddot}},
+  patentus         = {{JAV\addspace patentas}{JAV\addspace pat\adddot}},
+  patreq           = {{patento prašymas}{pat\adddotspace praš\adddot}},
+  patreqde         = {{vokiško patento prašymas}{vokiško pat\adddotspace praš\adddot}},
+  patreqeu         = {{europinio patento prašymas}{europinio pat\adddotspace praš\adddot}},
+  patreqfr         = {{prancūziško patento prašymas}{prancūziško pat\adddotspace praš\adddot}},
+  patrequk         = {{angliško patento prašymas}{angliško pat\adddotspace praš\adddot}},
+  patrequs         = {{JAV\addspace patento prašymas}{JAV\addspace pat\adddot\ praš\adddot}},
+  file             = {{byla}{b\adddot}},
+  library          = {{biblioteka}{bibl\adddot}},
+  abstract         = {{santrauka}{santr\adddot}},
+  annotation       = {{paaiškinimas}{paaišk\adddot}},
+  commonera        = {{mūsų eros}{m\adddotspace e\adddot}},
+  beforecommonera  = {{prieš mūsų erą}{pr\adddotspace m\adddotspace e\adddot}},
+  annodomini       = {{po Kristaus gimimo}{po\space Kr\adddot}},
+  beforechrist     = {{prieš Kristaus giminimą}{pr\adddotspace Kr\adddot}},
+  circa            = {{apie}{apie}},
+  spring           = {{pavasaris}{pav\adddot}},
+  summer           = {{vasara}{vas\adddot}},
+  autumn           = {{ruduo}{ruduo}},
+  winter           = {{žiema}{žiema}},
+% springN          = {{}{}},% FIXME: missing
+% summerN          = {{}{}},% FIXME: missing
+% autumnN          = {{}{}},% FIXME: missing
+% winterN          = {{}{}},% FIXME: missing
+% springS          = {{}{}},% FIXME: missing
+% summerS          = {{}{}},% FIXME: missing
+% autumnS          = {{}{}},% FIXME: missing
+% winterS          = {{}{}},% FIXME: missing
+% Q1               = {{}{}},% FIXME: missing
+% Q2               = {{}{}},% FIXME: missing
+% Q3               = {{}{}},% FIXME: missing
+% Q4               = {{}{}},% FIXME: missing
+% QD1              = {{}{}},% FIXME: missing
+% QD2              = {{}{}},% FIXME: missing
+% QD3              = {{}{}},% FIXME: missing
+% S1               = {{}{}},% FIXME: missing
+% S2               = {{}{}},% FIXME: missing
+% am               = {{}{}},
+% pm               = {{}{}},
+  year             = {{m\adddot}{m\adddot}},
+  month            = {{mėn\adddot}{mėn\adddot}},
+  day              = {{d\adddot}{d\adddot}},
+}
+
+
+\protected\gdef\lbx@lt@mkgenmonth#1{%
+  \ifcase0#1\relax
+    #1\BibliographyWarning{Month out of range}%
+  \or\abx@bibmonth{genjanuary}%
+  \or\abx@bibmonth{genfebruary}%
+  \or\abx@bibmonth{genmarch}%
+  \or\abx@bibmonth{genapril}%
+  \or\abx@bibmonth{genmay}%
+  \or\abx@bibmonth{genjune}%
+  \or\abx@bibmonth{genjuly}%
+  \or\abx@bibmonth{genaugust}%
+  \or\abx@bibmonth{genseptember}%
+  \or\abx@bibmonth{genoctober}%
+  \or\abx@bibmonth{gennovember}%
+  \or\abx@bibmonth{gendecember}%
+  \else
+    #1\BibliographyWarning{Month out of range}%
+  \fi}%
+
+\protected\gdef\lbx@lt@ifdayrange@i#1{%
+  \ifboolexpr{not test {\iffieldundef{#1endyear}}
+              and test {\iffieldsequal{#1year}{#1endyear}}
+              and test {\iffieldsequal{#1month}{#1endmonth}}
+              and (test {\iffieldundef{#1hour}}
+                   or not togl {blx@#1dateusetime})}}
+
+\protected\gdef\lbx@lt@ifmonthrange@i#1{%
+  \ifboolexpr{not test {\iffieldundef{#1endyear}}
+              and test {\iffieldsequal{#1year}{#1endyear}}
+              and test {\iffieldundef{#1day}}
+              and test {\iffieldundef{#1endday}}}}
+
+\protected\gdef\lbx@lt@ifyearrange@i#1{%
+  \ifboolexpr{not test {\iffieldundef{#1endyear}}
+              and test {\iffieldundef{#1month}}
+              and test {\iffieldundef{#1endmonth}}}}
+
+\gdef\lbx@lt@ifdatenumrange{%
+  \lbx@lt@ifyearrange
+    {\@firstoftwo}
+    {\lbx@lt@ifdayrange}}
+
+\protected\gdef\lbx@lt@mkdaterangetrunc#1#2{%
+  \blx@if@printanytimes{#2}
+    {\mkdaterangefull{#1}{#2}}
+    {\lbx@lt@mkdaterangetrunc@i{#1}{#2}}}
+
+\protected\gdef\lbx@lt@mkdaterangetrunc@i#1#2{%
+  \begingroup
+    \blx@metadateinfo{#2}%
+    \edef\lbx@lt@ifdayrange{\lbx@lt@ifdayrange@i{#2}}%
+    \edef\lbx@lt@ifmonthrange{\lbx@lt@ifmonthrange@i{#2}}%
+    \edef\lbx@lt@ifyearrange{\lbx@lt@ifyearrange@i{#2}}%
+    \iffieldundef{#2year}
+      {}
+      {\printtext[{#2date}]{%
+         \datecircaprint
+         \iffieldundef{#2yeardivision}
+           {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
+            \blx@printtime{#2}{}}%
+           {\csuse{mkbibyeardivisiondate#1}{#2year}{#2yeardivision}}%
+         \dateeraprint{#2year}%
+         \dateuncertainprint
+         \iffieldundef{#2endyear}
+           {}
+           {\iffieldequalstr{#2endyear}{}
+              {\mbox{\csuse{lbx@lt@bibdaterangesep#1}}}
+              {\lbx@lt@ifdatenumrange
+                 {\csuse{lbx@lt@bibnumdaterangesep#1}}
+                 {\csuse{lbx@lt@bibdaterangesep#1}}%
+               \let\lbx@lt@ifdropdaystring\@secondoftwo
+               \let\lbx@lt@ifdropmonthstring\@secondoftwo
+               \let\lbx@lt@ifdropyearstring\@secondoftwo
+               \enddatecircaprint
+               \iffieldundef{#2yeardivision}
+                 {\iffieldsequal{#2year}{#2endyear}
+                   {\iffieldsequal{#2month}{#2endmonth}
+                      {\csuse{mkbibdate#1}{}{}{#2endday}}
+                      {\csuse{mkbibdate#1}{}{#2endmonth}{#2endday}}}
+                   {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}%
+                  \blx@printtime{#2}{end}}
+                 {\iffieldsequal{#2year}{#2endyear}
+                    {\csuse{mkbibyeardivisiondate#1}{}{#2endyeardivision}}
+                    {\csuse{mkbibyeardivisiondate#1}{#2endyear}{#2endyeardivision}}}%
+               \enddateuncertainprint
+               \dateeraprint{#2endyear}}}}}%
+  \endgroup}
+
+\protected\gdef\lbx@lt@mkdaterangetruncextra#1#2{%
+  \blx@if@printanytimes{#2}
+    {\mkdaterangefullextra{#1}{#2}}
+    {\lbx@lt@mkdaterangetruncextra@i{#1}{#2}}}
+
+\protected\gdef\lbx@lt@mkdaterangetruncextra@i#1#2{%
+  \begingroup
+    \blx@metadateinfo{#2}%
+    \edef\lbx@lt@ifdayrange{\lbx@lt@ifdayrange@i{#2}}%
+    \edef\lbx@lt@ifmonthrange{\lbx@lt@ifmonthrange@i{#2}}%
+    \edef\lbx@lt@ifyearrange{\lbx@lt@ifyearrange@i{#2}}%
+    \iffieldundef{#2year}
+      {}
+      {\printtext[{#2date}]{%
+         \datecircaprint
+         \iffieldundef{#2yeardivision}
+           {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
+            \blx@printtime{#2}{}}%
+           {\csuse{mkbibyeardivisiondate#1}{#2year}{#2yeardivision}}%
+         \dateeraprint{#2year}%
+         \dateuncertainprint
+         \iffieldundef{#2endyear}
+           {\printfield{extradate}}
+           {\iffieldequalstr{#2endyear}{}
+              {\printfield{extradate}%
+               \mbox{\csuse{lbx@lt@bibdaterangesep#1}}}
+              {\lbx@lt@ifdatenumrange
+                 {\csuse{lbx@lt@bibnumdaterangesep#1}}
+                 {\csuse{lbx@lt@bibdaterangesep#1}}%
+               \let\lbx@lt@ifdropdaystring\@secondoftwo
+               \let\lbx@lt@ifdropmonthstring\@secondoftwo
+               \let\lbx@lt@ifdropyearstring\@secondoftwo
+               \enddatecircaprint
+               \iffieldundef{#2yeardivision}
+                 {\iffieldsequal{#2year}{#2endyear}
+                   {\iffieldsequal{#2month}{#2endmonth}
+                      {\csuse{mkbibdate#1}{}{}{#2endday}}
+                      {\csuse{mkbibdate#1}{}{#2endmonth}{#2endday}}}
+                   {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}%
+                  \blx@printtime{#2}{end}}
+                 {\iffieldsequal{#2year}{#2endyear}
+                    {\csuse{mkbibyeardivisiondate#1}{}{#2endyeardivision}}
+                    {\csuse{mkbibyeardivisiondate#1}{#2endyear}{#2endyeardivision}}}%
+               \printfield{extradate}%
+               \enddateuncertainprint
+               \dateeraprint{#2endyear}}}}}%
+  \endgroup}
+
+\protected\gdef\lbx@lt@mkdaterangefull#1#2{%
+  \begingroup
+    \blx@metadateinfo{#2}%
+    \iffieldundef{#2year}
+      {\blx@nounit}
+      {\printtext[{#2date}]{%
+         \datecircaprint
+         % Such a yeardivision component can only come from an ISO8601 yeardivision which replaces
+         % a normal month so if it exists, we know that a normal date print is ruled out
+         \iffieldundef{#2yeardivision}
+           {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
+            % Optionally print the time after the date
+            \blx@printtime{#2}{}}
+           {\csuse{mkbibyeardivisiondate#1}{#2year}{#2yeardivision}}%
+         \dateuncertainprint
+         \dateeraprint{#2year}%
+         \iffieldundef{#2endyear}
+           {}
+           {\iffieldequalstr{#2endyear}{}
+              {\mbox{\csuse{lbx@lt@bibdaterangesep#1}}}
+              {\csuse{lbx@lt@bibdaterangesep#1}%
+               \enddatecircaprint
+               \iffieldundef{#2endyeardivision}
+                 {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}%
+                  % Optionally print the time after the date
+                  \blx@printtime{#2}{end}}
+                 {\csuse{mkbibyeardivisiondate#1}{#2endyear}{#2endyeardivision}}%
+               \enddateuncertainprint
+               \dateeraprint{#2endyear}}}}}%
+  \endgroup}
+
+\protected\gdef\lbx@lt@mkdaterangefullextra#1#2{%
+  \begingroup
+    \blx@metadateinfo{#2}%
+    \iffieldundef{#2year}
+      {\blx@nounit}
+      {\printtext[{#2date}]{%
+         \datecircaprint
+         % Such a yeardivision component can only come from an ISO8601 yeardivision which replaces
+         % a normal month so if it exists, we know that a normal date print is ruled out
+         \iffieldundef{#2yeardivision}
+           {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
+            % Optionally print the time after the date
+            \blx@printtime{#2}{}}
+           {\csuse{mkbibyeardivisiondate#1}{#2year}{#2yeardivision}}%
+         \dateuncertainprint
+         \dateeraprint{#2year}%
+         \iffieldundef{#2endyear}
+           {\printfield{extradate}}
+           {\iffieldequalstr{#2endyear}{}
+              {\printfield{extradate}%
+               \mbox{\csuse{lbx@lt@bibdaterangesep#1}}}
+              {\csuse{lbx@lt@bibdaterangesep#1}%
+               \enddatecircaprint
+               \iffieldundef{#2endyeardivision}
+                 {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}%
+                  % Optionally print the time after the date
+                  \blx@printtime{#2}{end}}
+                 {\csuse{mkbibyeardivisiondate#1}{#2endyear}{#2endyeardivision}}}%
+               \printfield{extradate}%
+               \enddateuncertainprint
+               \dateeraprint{#2endyear}}}}%
+  \endgroup}
+
+\endinput

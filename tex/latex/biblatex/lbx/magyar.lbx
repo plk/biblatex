@@ -1,23 +1,10 @@
 \ProvidesFile{magyar.lbx}
 [\abx@lbxid]
 
-\ifundef{\lbx@hu@loadinfo}
-  {\blx@warning@noline{%
-     Hungarian localisation module for biblatex loaded.\MessageBreak
-     This module changes more definitions than usual.\MessageBreak
-     Please refer to the documentation for hints and\MessageBreak
-     check the output carefully, especially with non-\MessageBreak
-     standard styles or customisations to field formats.\MessageBreak
-     This warning can be disabled by calling\MessageBreak
-     '\string\BiblatexHungarianWarningOff'\MessageBreak
-     after 'biblatex' has been loaded, but before\MessageBreak
-     the localisation is loaded for the first time}%
-   \global\let\lbx@hu@loadinfo\@empty}
-  {}
-
 \DeclareRedundantLanguages{magyar}{magyar,hungarian}
 
 \DeclareBibliographyExtras{%
+  \renewrobustcmd*{\bibdatesep}{\nobreakspace}%
   \DeclareCapitalPunctuation{.!?}%
   \protected\def\bibrangedash{%
     \textendash\penalty\hyphenpenalty}% breakable dash
@@ -29,7 +16,8 @@
   \protected\def\mkbibmascord{\mkbibordinal}%
   \protected\def\mkbibfemord{\mkbibordinal}%
   \protected\def\mkbibneutord{\mkbibordinal}%
-  \let\lbx@hu@dayrange\@secondoftwo
+  \let\lbx@hu@ifdayrange\@secondoftwo
+  \def\lbx@hu@ifplainday{\lbx@hu@ifdayrange}%
   \protected\def\mkbibdatelong#1#2#3{%
     \iffieldundef{#1}
       {}
@@ -45,7 +33,7 @@
        \iffieldundef{#3}{}{\nobreakspace}}%
     \iffieldundef{#3}
       {}
-      {\lbx@hu@dayrange{\thefield{#3}}{\mkbibordinal{\thefield{#3}}}}%
+      {\lbx@hu@ifplainday{\thefield{#3}}{\mkbibordinal{\thefield{#3}}}}%
   }%
   \protected\def\mkbibdateshort#1#2#3{%
     \iffieldundef{#1}
@@ -55,16 +43,16 @@
          {\dateeraprintpre{#1}%
           \iffieldundef{#2}{\thefield{#1}}
           {\mkbibordinal{\thefield{#1}}}}%
-       \iffieldundef{#2}{}{\nobreakspace}}%
+       \iffieldundef{#2}{}{\bibdatesep}}%
     \iffieldundef{#2}
       {}
       {\mkmonthzeros{\thefield{#2}}\adddot
-       \iffieldundef{#3}{}{\nobreakspace}}%
+       \iffieldundef{#3}{}{\bibdatesep}}%
     \iffieldundef{#3}
       {}
-      {\mkdayzeros{\thefield{#3}}\lbx@hu@dayrange{}{\adddot}}%
+      {\mkdayzeros{\thefield{#3}}\lbx@hu@ifdayrange{}{\adddot}}%
   }%
-  \let\mkbibseasondatelong\mkbibseasondateshort
+  \let\mkbibyeardivisiondatelong\mkbibyeardivisiondateshort
   \savecommand\mkdaterangecomp
   \savecommand\mkdaterangecompextra
   \savecommand\mkdaterangeterse
@@ -77,24 +65,28 @@
     \lbx@hu@mkdaterangetruncextra{long}}%
   \protected\def\mkdaterangeterseextra{%
     \lbx@hu@mkdaterangetruncextra{short}}%
-\expandafter\protected\expandafter\def\csname mkbibtime24h\endcsname#1#2#3#4{%
-      \iffieldundef{#1}{}
-        {\printtext{\mktimezeros{\thefield{#1}}}\setunit{\bibtimesep}}%
-      \iffieldundef{#2}{}
-        {\printtext{\mktimezeros{\thefield{#2}}}\setunit{\bibtimesep}}%
-      \iffieldundef{#3}{}
-        {\printtext{\mktimezeros{\thefield{#3}}}}%
-      \setunit{}%
+  \expandafter\protected\expandafter\def\csname mkbibtime24h\endcsname#1#2#3#4{%
+      \iffieldundef{#1}
+        {}
+        {\mktimezeros{\thefield{#1}}%
+         \iffieldundef{#2}{}{\bibtimesep}}%
+      \iffieldundef{#2}
+        {}
+        {\mktimezeros{\thefield{#2}}%
+         \iffieldundef{#3}{}{\bibtimesep}}%
+      \iffieldundef{#3}
+        {}
+        {\mktimezeros{\thefield{#3}}}%
       \iffieldundef{#4}{}
         {\bibtimezonesep
          \mkbibtimezone{\thefield{#4}}}}%
   \csletcs{mkbibtime12h}{mkbibtime24h}%
-  \protected\def\mkbibseasondateshort#1#2{%
+  \protected\def\mkbibyeardivisiondateshort#1#2{%
     \dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}%
-    \iffieldundef{#1}{}{\adddot\space}
-    \mkbibseason{\thefield{#2}}%
+    \iffieldundef{#1}{}{\adddot\space}%
+    \mkbibyeardivision{\thefield{#2}}%
   }%
-  \let\mkbibseasondatelong\mkbibseasondateshort
+  \let\mkbibyeardivisiondatelong\mkbibyeardivisiondateshort
   \savecommand\lbx@lfromlang
   \savecommand\lbx@sfromlang
   \def\lbx@lfromlang{%
@@ -111,7 +103,7 @@
   % this redefines \mkpageprefix to put the page number as suffix
   \savecommand\blx@mkpageprefix
   \protected\long\def\blx@mkpageprefix#1[#2]#3{%
-    \blx@mkpageprefix@i[#2]{#3}%
+    \blx@mkpageprefix@i[{#2}]{#3}%
     \ifnumeral{#3}
       {\ppspace\bibstring{#1}}
       {\ifnumerals{#3}
@@ -139,12 +131,12 @@
     \mkpageprefix[pagination][\lbx@hu@mkdottednormrange]{#1}}%
   \savefieldformat{chapter}%
   \DeclareFieldFormat{chapter}{%
-    \ifnumerals{#1}{\mkbibordinal{#1}}{#1}
+    \ifnumerals{#1}{\mkbibordinal{#1}}{#1}%
     \addnbspace
     \bibstring{chapter}}%
   \savefieldformat{volume}%
   \DeclareFieldFormat{volume}{%
-    \ifnumerals{#1}{\mkbibordinal{#1}}{#1}
+    \ifnumerals{#1}{\mkbibordinal{#1}}{#1}%
     \addnbspace
     \bibstring{volume}}%
   \savefieldformat{part}%
@@ -160,7 +152,7 @@
     \bibstring{part}}%
   \savefieldformat{version}%
   \DeclareFieldFormat{version}{%
-    \ifnumerals{#1}{\mkbibordinal{#1}}{#1}
+    \ifnumerals{#1}{\mkbibordinal{#1}}{#1}%
     \addnbspace
     \bibstring{version}}%
 }
@@ -462,7 +454,7 @@
 % translationfrom  = {{}{}},% FIXME need example
   reviewof         = {{recenzi\'oja}{rec\adddot}},% FIXME swap word order
   origpubas        = {{eredeti c\'ime}{ered\adddotspace c\'im}},
-  origpubin        = {{eredeti kiad\'as}{ered\adddotspace kiad\adddotspace}},
+  origpubin        = {{eredeti kiad\'as}{ered\adddotspace kiad\adddot}},
 % astitle          = {{}{}},% FIXME need example
 % bypublisher      = {{\addcomma}{\addcomma}},% FIXME: this is a cludge that can not be guaranteed to work in most situations, so it stays commented out
   nodate           = {{\'ev n\'elk\"ul}{\'e\adddotspace n\adddot}},
@@ -637,11 +629,28 @@
   summer           = {{ny\'ar}{ny\'ar}},
   autumn           = {{\H{o}sz}{\H{o}sz}},
   winter           = {{t\'el}{t\'el}},
+% springN          = {{}{}},% FIXME: missing
+% summerN          = {{}{}},% FIXME: missing
+% autumnN          = {{}{}},% FIXME: missing
+% winterN          = {{}{}},% FIXME: missing
+% springS          = {{}{}},% FIXME: missing
+% summerS          = {{}{}},% FIXME: missing
+% autumnS          = {{}{}},% FIXME: missing
+% winterS          = {{}{}},% FIXME: missing
+% Q1               = {{}{}},% FIXME: missing
+% Q2               = {{}{}},% FIXME: missing
+% Q3               = {{}{}},% FIXME: missing
+% Q4               = {{}{}},% FIXME: missing
+% QD1              = {{}{}},% FIXME: missing
+% QD2              = {{}{}},% FIXME: missing
+% QD3              = {{}{}},% FIXME: missing
+% S1               = {{}{}},% FIXME: missing
+% S2               = {{}{}},% FIXME: missing
   am               = {{d\'elel\H{o}tt}{de\adddot}},
   pm               = {{d\'elut\'an}{du\adddot}},
 }
 
-\protected\gdef\lbx@hu@dayrange@i#1{%
+\protected\gdef\lbx@hu@ifdayrange@i#1{%
   \ifboolexpr{not test {\iffieldundef{#1endyear}}
               and test {\iffieldsequal{#1year}{#1endyear}}
               and test {\iffieldsequal{#1month}{#1endmonth}}
@@ -656,25 +665,25 @@
 \protected\gdef\lbx@hu@mkdaterangetrunc@i#1#2{%
   \begingroup
     \blx@metadateinfo{#2}%
-    \edef\lbx@hu@dayrange{\lbx@hu@dayrange@i{#2}}%
+    \edef\lbx@hu@ifdayrange{\lbx@hu@ifdayrange@i{#2}}%
     \iffieldundef{#2year}
       {}
-      {\printtext[#2date]{%
+      {\printtext[{#2date}]{%
          \datecircaprint
-         \iffieldundef{#2season}
+         \iffieldundef{#2yeardivision}
            {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
             \blx@printtime{#2}{}}%
-           {\csuse{mkbibseasondate#1}{#2year}{#2season}}%
+           {\csuse{mkbibyeardivisiondate#1}{#2year}{#2yeardivision}}%
          \dateeraprint{#2year}%
          \dateuncertainprint
          \iffieldundef{#2endyear}
            {}
            {\iffieldequalstr{#2endyear}{}
               {\mbox{\bibdaterangesep}}
-              {\lbx@hu@dayrange{\bibrangedash}{\bibdaterangesep}%
-               \let\lbx@hu@dayrange\@secondoftwo
+              {\lbx@hu@ifdayrange{\bibrangedash}{\bibdaterangesep}%
+               \let\lbx@hu@ifplainday\@secondoftwo
                \enddatecircaprint
-               \iffieldundef{#2season}
+               \iffieldundef{#2yeardivision}
                  {\iffieldsequal{#2year}{#2endyear}
                    {\iffieldsequal{#2month}{#2endmonth}
                       {\csuse{mkbibdate#1}{}{}{#2endday}}
@@ -682,8 +691,8 @@
                    {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}%
                   \blx@printtime{#2}{end}}
                  {\iffieldsequal{#2year}{#2endyear}
-                    {\csuse{mkbibseasondate#1}{}{#2endseason}}
-                    {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}}%
+                    {\csuse{mkbibyeardivisiondate#1}{}{#2endyeardivision}}
+                    {\csuse{mkbibyeardivisiondate#1}{#2endyear}{#2endyeardivision}}}%
                \enddateuncertainprint
                \dateeraprint{#2endyear}}}}}%
   \endgroup}
@@ -696,15 +705,15 @@
 \protected\gdef\lbx@hu@mkdaterangetruncextra@i#1#2{%
   \begingroup
     \blx@metadateinfo{#2}%
-    \edef\lbx@hu@dayrange{\lbx@hu@dayrange@i{#2}}%
+    \edef\lbx@hu@ifdayrange{\lbx@hu@ifdayrange@i{#2}}%
     \iffieldundef{#2year}
       {}
-      {\printtext[#2date]{%
+      {\printtext[{#2date}]{%
          \datecircaprint
-         \iffieldundef{#2season}
+         \iffieldundef{#2yeardivision}
            {\csuse{mkbibdate#1}{#2year}{#2month}{#2day}%
             \blx@printtime{#2}{}}%
-           {\csuse{mkbibseasondate#1}{#2year}{#2season}}%
+           {\csuse{mkbibyeardivisiondate#1}{#2year}{#2yeardivision}}%
          \dateeraprint{#2year}%
          \dateuncertainprint
          \iffieldundef{#2endyear}
@@ -712,10 +721,10 @@
            {\iffieldequalstr{#2endyear}{}
               {\printfield{extradate}%
                \mbox{\bibdaterangesep}}
-              {\lbx@hu@dayrange{\bibrangedash}{\bibdaterangesep}%
-               \let\lbx@hu@dayrange\@secondoftwo
+              {\lbx@hu@ifdayrange{\bibrangedash}{\bibdaterangesep}%
+               \let\lbx@hu@ifplainday\@secondoftwo
                \enddatecircaprint
-               \iffieldundef{#2season}
+               \iffieldundef{#2yeardivision}
                  {\iffieldsequal{#2year}{#2endyear}
                    {\iffieldsequal{#2month}{#2endmonth}
                       {\csuse{mkbibdate#1}{}{}{#2endday}}
@@ -723,8 +732,8 @@
                    {\csuse{mkbibdate#1}{#2endyear}{#2endmonth}{#2endday}}%
                   \blx@printtime{#2}{end}}
                  {\iffieldsequal{#2year}{#2endyear}
-                    {\csuse{mkbibseasondate#1}{}{#2endseason}}
-                    {\csuse{mkbibseasondate#1}{#2endyear}{#2endseason}}}%
+                    {\csuse{mkbibyeardivisiondate#1}{}{#2endyeardivision}}
+                    {\csuse{mkbibyeardivisiondate#1}{#2endyear}{#2endyeardivision}}}%
                \printfield{extradate}%
                \enddateuncertainprint
                \dateeraprint{#2endyear}}}}}%

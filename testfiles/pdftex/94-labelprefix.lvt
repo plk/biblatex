@@ -1,0 +1,90 @@
+\input{regression-test}
+\documentclass[a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage{csquotes}
+\usepackage[style=numeric, sorting=none, defernumbers=true, backend=biber]{biblatex}
+\addbibresource{biblatex-examples.bib}
+
+\DeclareBibliographyCategory{cat1}
+\addtocategory{cat1}{yoon}
+\DeclareBibliographyCategory{cat2}
+\addtocategory{cat2}{piccato}
+\assignrefcontextcats[sorting=none,labelprefix=Q]{cat2}
+\assignrefcontextentries[labelprefix=Q]{yoon}
+\assignrefcontextkeyws*[sorting=none,labelprefix=S]{secondary}
+\defbibfilter{cats}{category=cat1 or category=cat2}
+
+\DeclareRefcontext{rcone}{labelprefix=R}
+\DeclareRefcontext{rctwo}{labelprefix=T}
+\DeclareRefcontext{rcthree}{sorting=nty}
+
+\setlength{\parindent}{0pt}
+\newcommand{\cmd}[1]{\texttt{\textbackslash #1}}
+\begin{document}
+\showoutput
+\START
+This example demonstrates the quite complex options for assigning
+labelprefices to bibliographies and how citations decide which bibliography
+to point to. The default rule is that a citation will point to its entry in
+the last bibliography in which it appears. This can be overridden by
+explicit assignment to particular refcontexts with the
+\cmd{assignrefcontext*} macros.\\
+
+% refcontext=none/global//global/global
+
+This is a publication by Aristotle:
+\cite{aristotle:anima} % comes from refcontext=none/global/R/global/global
+
+These are not publications by Aristotle:
+\cite{yoon} % comes from default refcontext=none/global/Q/global/global due
+            % to \assignrefcontextentries
+\cite{worman} % comes from default refcontext=nty/global//global/global and not from
+              % nty/global/T/global/global in next refsection even though that is the
+              % last printed bib/biblist with worman in it. This is because
+              % refcontext defaults are local to refcontexts
+\cite{piccato} % comes from refcontext=none/global/Q/global/global due to \assignrefcontextcats
+\cite{nussbaum} % comes from refcontext=none/global/S/global/global due to \assignrefcontextkeyws*
+
+This is another publication by Aristotle:
+\cite{aristotle:physics} % comes from refcontext=none/global/R/global/global
+
+\begin{refcontext}{rcone}
+% refcontext=none/global/R/global/global
+\printbibliography[keyword=primary, title={Aristotle Publications}]
+% aristotle:anima and aristotle:physics default refcontext is this one
+\end{refcontext}
+
+% Alternative style of specifying refcontext
+% Note here that the optional argument to \newrefcontext overrides the
+% value set with the named refcontext
+\newrefcontext[labelprefix=S]{rctwo}
+% refcontext=none/global/S/global/global
+\printbibliography[notkeyword=primary, title={Other publications}]
+\endrefcontext
+
+\begin{refcontext}[labelprefix=Q]
+% refcontext=none/global/Q/global/global
+\printbibliography[filter=cats, title={Other publications}]
+\end{refcontext}
+
+\begin{refcontext}[sorting=nty]
+% refcontext=nty/global//global/global
+\printbibliography[resetnumbers, notkeyword=primary, title={More Other publications}]
+% Nussbaum default refcontext is this one
+% piccato default refcontext is this one
+% yoon default refcontext is this one
+% worman default refcontext is this one
+\cite{nussbaum} % comes from refcontext=nty/global//global/global due to weak \assignrefcontextkeyws*
+\end{refcontext}
+
+\section*{New Refsection}
+\newrefsection
+\cite{worman} % comes from default refcontext=nty/global/T/global/global
+\begin{refcontext}[labelprefix=T]{rcone}
+% refcontext=nty/global//global/global
+\printbibliography[resetnumbers, notkeyword=primary, title={More Other publications}]
+\end{refcontext}
+
+\clearpage
+\OMIT
+\end{document}

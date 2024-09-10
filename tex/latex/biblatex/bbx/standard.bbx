@@ -19,6 +19,8 @@
   \settoggle{bbx:related}{#1}}
 
 \ExecuteBibliographyOptions{isbn,url,doi,eprint,related}
+% @online url is shown even if url=false, globally
+\ExecuteBibliographyOptions[online]{url=true}
 
 \newbibmacro*{begentry}{}
 \newbibmacro*{finentry}{\finentry}
@@ -485,15 +487,7 @@
   \newunit\newblock
   \usebibmacro{date}%
   \newunit\newblock
-  \iftoggle{bbx:doi}
-    {\printfield{doi}}
-    {}%
-  \newunit\newblock
-  \iftoggle{bbx:eprint}
-    {\usebibmacro{eprint}}
-    {}%
-  \newunit\newblock
-  \usebibmacro{url+urldate}%
+  \usebibmacro{doi+eprint+url}%
   \newunit\newblock
   \usebibmacro{addendum+pubstate}%
   \setunit{\bibpagerefpunct}\newblock
@@ -719,9 +713,7 @@
   \newunit\newblock
   \usebibmacro{location+date}%
   \newunit\newblock
-  \iftoggle{bbx:url}
-    {\usebibmacro{url+urldate}}
-    {}%
+  \usebibmacro{doi+eprint+url}%
   \newunit\newblock
   \usebibmacro{addendum+pubstate}%
   \setunit{\bibpagerefpunct}\newblock
@@ -808,7 +800,7 @@
   \printfield{volume}%
   \setunit*{\adddot}%
   \printfield{number}%
-  \setunit{\addcomma\space}%
+  \setunit{\bibeidpunct}%
   \printfield{eid}}
 
 \newbibmacro*{title+issuetitle}{%
@@ -894,6 +886,8 @@
 
 \newbibmacro*{chapter+pages}{%
   \printfield{chapter}%
+  \setunit{\bibpagespunct}%
+  \printfield{eid}%
   \setunit{\bibpagespunct}%
   \printfield{pages}%
   \newunit}
@@ -989,14 +983,14 @@
                test {\ifbibxstring{\thefield{relatedtype}s}}
              }
                {\printtext[\bbx@tempb]{%
-                  \bibstring[\mkrelatedstring]{\thefield{relatedtype}s}}}
+                  \bibstring[\mkrelatedstringtext]{\thefield{relatedtype}s}}}
                {\iffieldbibstring{relatedtype}
                   {\printtext[\bbx@tempb]{%
-                     \bibstring[\mkrelatedstring]{\thefield{relatedtype}}}}
+                     \bibstring[\mkrelatedstringtext]{\thefield{relatedtype}}}}
                   {}}}
             {\iffieldbibstring{relatedstring}
                {\printtext[\bbx@tempb]{%
-                  \bibstring[\mkrelatedstring]{\thefield{relatedstring}}}}
+                  \bibstring[\mkrelatedstringtext]{\thefield{relatedstring}}}}
                {\printfield[\bbx@tempb]{relatedstring}}}%
           \docsvfield{related}%
           \usebibmacro{endrelatedloop}}}%

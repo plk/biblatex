@@ -2,7 +2,7 @@
 [\abx@cptid]
 
 \blx@warning@noline{%
-  Using fall-back BibTeX(8) backend:\MessageBreak
+  Using fall-back bibtex backend:\MessageBreak
   functionality may be reduced/unavailable%
 }
 
@@ -207,52 +207,6 @@
   \let\iflabeldateuncertain\@secondoftwo
   \let\iflabelenddateuncertain\@secondoftwo}
 
-% {<string>}
-% This mustn't be robust as it's likely to be used mainly in tests and so
-% needs to be expandable
-\renewcommand*\rangelen[1]{%
-  \ifblank{#1}
-    {0}%
-    {\expandafter\blx@rangelen@range\romannumeral-`\q%
-      #1\bibrangedash\bibrangedash&%
-    }}
-
-\def\blx@rangelen@range#1\bibrangedash#2\bibrangedash#3&{%
-  \ifblank{#3}
-    {\blx@rangelen@hyphen#1--&}
-    {\blx@rangelen@check{#1}{#2}}%
-}
-\def\blx@rangelen@hyphen#1-#2-#3&{%
-  \ifblank{#3}
-    {1}% No range at all: assume one page
-    {\blx@rangelen@check{#1}{#2}}%
-}
-\def\blx@rangelen@check#1#2{%
-  \expandafter\blx@rangelen@check@aux
-    \number\numexpr
-      \blx@rangelen@check@int{#2}
-      -
-      \blx@rangelen@check@int{#1}
-      + 1
-    \relax
-    &\stop
-}
-\def\blx@rangelen@check@aux#1&#2\stop{%
-  \ifblank{#2}
-    {#1}
-    {-1}%
-}
-\def\blx@rangelen@check@int#1{%
-  \ifblank{#1}
-    {0&}
-    {%
-      \if\number\numexpr0#1-0#1\relax0
-        #1
-      \else
-        0&
-      \fi
-    }%
-}
 
 % Alter message text
 \patchcmd{\blx@bbl@warn}{Biber}{BibTeX}{}{}
@@ -260,6 +214,7 @@
 %% Data input
 
 \patchcmd{\blx@bblinput}{\blx@bblfile}{\blx@bblfile\blx@bblsecs}{}{}
+
 
 \def\blx@bblfile{%
   \blx@secinit
@@ -273,18 +228,23 @@
   \blx@ifsigned{\blx@auxfile}{bbl}
     {\InputIfFileExists{\blx@auxfile.bbl}
        {\blx@info@noline{... file '\blx@auxfile.bbl' found}%
-        \global\toggletrue{blx@bbldone}}
+        \global\toggletrue{blx@bbldone}%
+        \blx@generate@bbl@mdfivesum@found{\blx@auxfile.bbl}}
        {\blx@info@noline{... file '\blx@auxfile.bbl' not found}%
         \typeout{No file \blx@auxfile.bbl.}%
-        \global\togglefalse{blx@bbldone}}}
+        \global\togglefalse{blx@bbldone}%
+        \blx@generate@bbl@mdfivesum@notfound}}
     {}%
   \blx@bblend
   \endgroup
+  % Check if Biber rerun was not carried out.
+  % If so, ask for it again.
+  \blx@check@bbl@rerun@mdfivesum
   \csnumgdef{blx@labelnumber@\the\c@refsection}{0}}
 
 \def\blx@bblsecs{%
   \advance\c@refsection\@ne
-  \ifnum\c@refsection>\blx@maxsection
+  \ifnum\c@refsection>\c@blx@maxsection
   \else
     \blx@bblfile
     \expandafter\blx@bblsecs
@@ -330,51 +290,6 @@
     {}%
   \global\csundef{blx@refp@\the\c@refsection @#1}}
 
-\def\blx@bblend{%
-  \ifcsdef{blx@refs@\the\c@refsection}%
-    {\begingroup
-     \let\do\blx@addxref
-     \dolistcsloop{blx@refs@\the\c@refsection}%
-     \endgroup
-     \global\csundef{blx@refs@\the\c@refsection}}
-    {}%
-  \iftoggle{blx@addset}
-    {\blx@addset
-     \global\togglefalse{blx@addset}}
-    {}}
-
-\def\blx@citation#1#2{%
-  \ifbool{citerequest}
-    {\ifcsdef{blx@setp@\the\c@refsection @#1}
-       {\blx@citation@set{#1}{#2}}
-       {\ifcsdef{blx@setc@\the\c@refsection @#1}
-         {\blx@citation@inset{#1}{#2}}
-         {\blx@citation@entry{#1}{#2}}}%
-     \ifcsdef{blx@refc@\the\c@refsection @#1}%
-       {\blx@citation@xref{#1}}
-       {}}
-    {}}
-
-\def\blx@citation@set#1#2{%
-  \blx@citation@entry{#1}{#2}%
-  \begingroup
-  \def\do##1{\blx@citation@entry{##1}\blx@msg@cundef}%
-  \expandafter\expandafter\expandafter\docsvlist
-  \expandafter\expandafter\expandafter{%
-    \csname blx@setp@\the\c@refsection @#1\endcsname}%
-  \endgroup}
-
-\def\blx@citation@inset#1#2{%
-  \blx@citation@entry{#1}{#2}%
-  \expandafter\expandafter\expandafter\blx@citation@inset@i
-  \expandafter\expandafter\expandafter{%
-    \csname blx@setc@\the\c@refsection @#1\endcsname}\blx@msg@cundef}
-
-\def\blx@citation@inset@i#1{%
-  \ifcsdef{blx@setp@\the\c@refsection @#1}
-    {\blx@citation@set{#1}}
-    {\blx@citation@entry{#1}}}
-
 \def\blx@citation@xref#1{%
   \begingroup
   \edef\blx@tempa{blx@refp@\the\c@refsection @%
@@ -395,6 +310,289 @@
       \csname blx@refc@\the\c@refsection @#1\endcsname}\blx@msg@cundef
   \fi}
 
+\def\blx@bblend{%
+  \ifcsdef{blx@refs@\the\c@refsection}%
+    {\begingroup
+     \let\do\blx@addxref
+     \dolistcsloop{blx@refs@\the\c@refsection}%
+     \endgroup
+     \global\csundef{blx@refs@\the\c@refsection}}
+    {}%
+  \iftoggle{blx@addset}
+    {\blx@addset
+     \global\togglefalse{blx@addset}}
+    {}}
+
+
+% set support
+
+% We'll generate 'fake sets' for sorting.
+% A fake set will be the copy of a normal set but with a crossref
+% to the first set member, that way it inherits sorting info.
+
+\def\blx@grabfirstcsvitem#1,#2\blx@grabfirstcsvitem@end{#1}
+
+\def\blx@btx@fakesetentry#1#2#3#4{%
+  \blx@nl
+  @set{#1,\blx@nl
+  \space\space fakeset  = {#2},\blx@nl
+  \space\space entryset = {#3},\blx@nl
+  \space\space crossref = {#4},\blx@nl
+  }%
+}
+
+\def\blx@fakeset@prefix{blx@fakeset-}
+
+\protected\def\blx@writefakeset@oo#1#2{%
+  \begingroup
+  \edef\blx@tempa{\endgroup
+    \noexpand\blx@writefakeset
+      {\expandonce{#1}}
+      {\expandonce{#2}}}%
+  \blx@tempa
+}
+
+\protected\def\blx@writefakeset#1#2{%
+  \blx@auxwrite\blx@bcfout{}{%
+    \blx@btx@fakesetentry
+      {\blx@fakeset@prefix#1}
+      {#1}
+      {#2}
+      {\blx@grabfirstcsvitem#2,\blx@grabfirstcsvitem@end}}}
+
+\protected\def\blx@bbl@fakeset#1{%
+  \csxdef{blx@isfakeset@\the\c@refsection @\abx@field@entrykey}{%
+    \detokenize{#1}}%
+  \global\cslet{blx@getfakeset@\the\c@refsection @#1}\abx@field@entrykey
+}
+
+% we can't rely on \inset in the .bbl (which should be in the child
+% entry), so we produce setc manually from the @set parent
+% but the bibliography may not be in a nice order to grab setc
+% properly, so we need to save setc data in the .aux file
+\appto\blx@secinit{%
+  \cslet{blx@setclist@\the\c@refsection}\@empty
+  \cslet{blx@fakesetplist@\the\c@refsection}\@empty}
+
+\apptocmd{\blx@bbl@set@i}
+  {\ifcsundef{blx@isfakeset@\the\c@refsection @\abx@field@entrykey}
+     {\csxdef{blx@setc@\the\c@refsection @#1}{\abx@field@entrykey}%
+      \listcsxadd{blx@setclist@\the\c@refsection}{\detokenize{#1}}}
+     {}}
+  {}
+  {\blx@error
+     {Failed to patch '\string\blx@bbl@set@i'}
+     {Patching '\string\blx@bbl@set@i' failed for some reason.
+      \MessageBreak
+      Please report this bug}}
+
+% {<section>}{<set child>}{<set parent>}
+\protected\def\blx@aux@set@setc#1#2#3{%
+  \csxdef{blx@setc@#1@#2}{#3}}
+
+\protected\def\blx@aux@write@setc#1#2#3{%
+  \blx@auxwrite\blx@aux{}{\string\blx@aux@set@setc{#1}{#2}{#3}}}
+
+\def\blx@write@setc#1{%
+  \ifcsundef{blx@setc@\the\c@refsection @#1}
+    {}
+    {\blx@aux@write@setc{\the\c@refsection}{#1}
+       {\csuse{blx@setc@\the\c@refsection @#1}}}}
+
+\appto\blx@bblend{%
+  \forlistcsloop{\blx@write@setc}{blx@setclist@\the\c@refsection}}
+
+% blx@setonly doesn't exist here, since it is defined in \inset,
+% rely on the existence of setc instead.
+% We also make sure to skip the actual @set entries and display
+% the fake ones.
+\patchcmd{\blx@bbl@endentry}
+  {\nottoggle{blx@setonly}}
+  {\ifentrytype{set}
+    {\ifcsundef{blx@isfakeset@\the\c@refsection @\abx@field@entrykey}
+       {\blx@writefakeset@oo{\abx@field@entrykey}{\abx@field@entryset}%
+        \settoggle{blx@skipbib}{true}%
+        \settoggle{blx@skipbiblist}{true}%
+        \settoggle{blx@skiplab}{true}}
+       {\listcsxadd{blx@fakesetplist@\the\c@refsection}{%
+          \abx@field@entrykey}}}
+    {}%
+   \ifcsundef{blx@setc@\the\c@refsection @\abx@field@entrykey}}
+  {}
+  {\blx@error
+     {Failed to patch '\string\blx@bbl@endentry'}
+     {Patching '\string\blx@bbl@endentry' failed for some reason.
+      \MessageBreak
+      Please report this bug}}
+
+% cite the fake set for our current set
+% the \expandafter party essentially does
+% \blx@citation@entry{\blx@fakeset@prefix#1}{\blx@msg@cundef}
+% (just correctly \detokenize'd and all)
+\def\blx@citation@set#1#2{%
+  \blx@citation@entry{#1}{#2}%
+  \ifcsundef{blx@isfakeset@\the\c@refsection @#1}
+    {\begingroup
+     \expandafter\def\expandafter\blx@tempa\expandafter{%
+       \expandafter\detokenize\expandafter{\blx@fakeset@prefix#1}}%
+     \expandafter\expandafter\expandafter\blx@citation@entry
+     \expandafter\expandafter\expandafter{\blx@tempa}{\blx@msg@cundef}%
+     \endgroup}
+    {}%
+  \begingroup
+  \def\do##1{\blx@citation@entry{##1}\blx@msg@cundef}%
+  \expandafter\expandafter\expandafter\docsvlist
+  \expandafter\expandafter\expandafter{%
+    \csname blx@setp@\the\c@refsection @#1\endcsname}%
+  \endgroup}
+
+\def\blx@citation@inset#1#2{%
+  \blx@citation@entry{#1}{#2}%
+  \expandafter\expandafter\expandafter\blx@citation@inset@i
+  \expandafter\expandafter\expandafter{%
+    \csname blx@setc@\the\c@refsection @#1\endcsname}\blx@msg@cundef}
+
+\def\blx@citation@inset@i#1{%
+  \ifcsdef{blx@setp@\the\c@refsection @#1}
+    {\blx@citation@set{#1}}
+    {\blx@citation@entry{#1}}}
+
+\def\blx@appentrydatato#1#2{%
+  \ifdef#2
+    {\appto#1{%
+       \def\noexpand#2{\expandonce#2}}}
+    {}}
+
+% if we have a fakeset, load the real @set to get the right entrykey
+% if we have a real @set, load the fakeset for all entry data
+% but make sure that the entrykey fits
+% in any case copy over some label data from its first child
+\def\blx@getdata#1{%
+  \csuse{blx@data@\the\c@refsection @\blx@refcontext@context @#1}%
+  \ifcsundef{blx@isfakeset@\the\c@refsection @#1}
+    {}
+    {\csuse{blx@data@\the\c@refsection @\blx@refcontext@context
+             @\csuse{blx@isfakeset@\the\c@refsection @#1}}}%
+  \ifcsundef{blx@getfakeset@\the\c@refsection @#1}
+    {}
+    {\let\blx@real@abx@field@entrykey\abx@field@entrykey
+     \csuse{blx@data@\the\c@refsection @\blx@refcontext@context
+            @\csuse{blx@getfakeset@\the\c@refsection @#1}}%
+     \let\abx@field@entrykey\blx@real@abx@field@entrykey}%
+  \ifcsundef{blx@setp@\the\c@refsection @\abx@field@entrykey}
+    {}
+    {\begingroup
+     \expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\def
+     \expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter\blx@tempa
+     \expandafter\expandafter\expandafter\expandafter
+     \expandafter\expandafter\expandafter{%
+       \expandafter\expandafter\expandafter\blx@grabfirstcsvitem
+         \csname blx@setp@\the\c@refsection
+           @\abx@field@entrykey\endcsname,\blx@grabfirstcsvitem@end}%
+     \let\blx@tempb\@empty
+     \blx@ifdata{\blx@tempa}
+       {\blx@getdata{\blx@tempa}%
+        \blx@appentrydatato\blx@tempb\abx@field@labelyear
+        \blx@appentrydatato\blx@tempb\abx@field@labelendyear
+        \blx@appentrydatato\blx@tempb\abx@field@labelmonth
+        \blx@appentrydatato\blx@tempb\abx@field@labelendmonth
+        \blx@appentrydatato\blx@tempb\abx@field@labelday
+        \blx@appentrydatato\blx@tempb\abx@field@labelendday
+        \blx@appentrydatato\blx@tempb\abx@field@labelprefix
+        \blx@appentrydatato\blx@tempb\abx@field@labelalpha
+        \blx@appentrydatato\blx@tempb\abx@field@extraalpha
+        \blx@appentrydatato\blx@tempb\abx@field@extradate}
+       {}%
+     \edef\blx@tempb{\endgroup\blx@tempb}%
+     \blx@tempb}%
+  \blx@adjustyears
+  \blx@getlabeldata
+  \blx@aliasfields
+  \blx@setcitecounter}
+
+
+\def\blx@bblend@redosetlabelwidth@i#1{%
+  \begingroup
+  \blx@ifdata{#1}
+    {\blx@getdata{#1}%
+     \nottoggle{blx@skiplab}
+       {\iftoggle{blx@labelnumber}
+          {\ifdefempty\abx@field@localnumber
+             {}
+             {\ifundef\abx@field@shorthand
+                {\blx@bbl@labelnumberwidth@numeric{}}
+                {\blx@bbl@labelnumberwidth@shorthand{}}}}
+          {}%
+        \iftoggle{blx@labelalpha}
+          {\blx@bbl@labelalpha}
+          {}%
+        \iftoggle{blx@labeltitle}
+          {\blx@bbl@labeltitle}
+          {}%
+        \iftoggle{blx@labeltitleyear}
+          {\blx@bbl@labeltitleyear}
+          {}%
+        \iftoggle{blx@labeldateparts}
+          {\blx@bbl@labeldate}
+          {}%
+        \blx@bbl@labelname}
+       {}}
+    {}%
+  \endgroup
+}
+
+\def\blx@bblend@redosetlabelwidth{%
+  \forlistcsloop{\blx@bblend@redosetlabelwidth@i}
+    {blx@fakesetplist@\the\c@refsection}}
+
+\appto\blx@bblend{\blx@bblend@redosetlabelwidth}
+
+% categories need the correct entry key for fake sets
+\def\blx@addtocategory#1#2{%
+  % If we are adding a set member to a category, make sure we also add the
+  % set parent if it is cited. If it is cited, we should be using the set
+  % parent in the category, not the set child member. blx@setc@... will
+  % only exist if the set parent is also cited as it is only defined when a
+  % member contains \inset which only happens when the set parent is cited.
+  \ifcsdef{blx@setc@\the\c@refsection @#2}
+    {\blx@auxwrite\@mainaux{}{\string\abx@aux@category{#1}{\csuse{blx@setc@\the\c@refsection @#2}}}%
+     \abx@aux@category{#1}{\csuse{blx@setc@\the\c@refsection @#2}}}
+    {}%
+  \ifcsundef{blx@getfakeset@\the\c@refsection @#2}
+    {}
+    {\blx@auxwrite\@mainaux{}{\string\abx@aux@category{#1}{\csuse{blx@getfakeset@\the\c@refsection @#2}}}%
+     \abx@aux@category{#1}{\csuse{blx@getfakeset@\the\c@refsection @#2}}}%
+  \blx@auxwrite\@mainaux{}{\string\abx@aux@category{#1}{#2}}%
+  \abx@aux@category{#1}{#2}}
+
+% dynamic entry sets
+
+\def\blx@btx@citeset#1#2{%
+  \blx@nl
+  @set{#1,\blx@nl
+  \space\space entryset = {#2},\blx@nl
+  }%
+}
+
+\protected\def\blx@setreq#1#2{%
+  \blx@auxwrite\blx@bcfout{}{\blx@btx@citeset{#1}{#2}}%
+  \blx@nocite@do{#1}}
+
+% xref and @set
+\def\blx@citation@i#1#2{%
+  \ifbool{citerequest}
+    {\ifcsdef{blx@setp@\the\c@refsection @#1}
+       {\blx@citation@set{#1}{#2}}
+       {\ifcsdef{blx@setc@\the\c@refsection @#1}
+         {\blx@citation@inset{#1}{#2}}
+         {\blx@citation@entry{#1}{#2}}}%
+     \ifcsdef{blx@refc@\the\c@refsection @#1}%
+       {\blx@citation@xref{#1}}
+       {}}
+    {}}
+
 % refcontexts are out, but we can try to save labelprefix
 
 % Luckily all refcontext names use \blx@refcontext@labelprefix, so if we
@@ -406,7 +604,7 @@
 % in \blx@refcontext@labelprefix@real and pass it to the aux file.
 % There are differences to the result obtained with Biber,
 % but it should be good enough for very simple applications.
-\define@key{blx@refcontext}{labelprefix}{%
+\blx@kv@defkey{blx@refcontext}{labelprefix}{%
   \xdef\blx@refcontext@labelprefix@real{#1}%
   \iftoggle{blx@defernumbers}
     {}%
@@ -432,12 +630,12 @@
     The option will be ignored}}
 
 \def\blx@bibtexrefcontext@disable#1{%
-  \define@key{blx@refcontext}{#1}{%
+  \blx@kv@defkey{blx@refcontext}{#1}{%
     \blx@warn@bibtexrefcontext{#1}}}
 
 \forcsvlist{\blx@bibtexrefcontext@disable}{%
   nametemplates,sorting,sortingnamekeytemplatename,uniquenametemplatename,
-  labelalphanametemplatename}
+  labelalphanametemplatename,namehashtemplatename}
 
 \def\blx@assignrefcontext@disable#1{%
   \blx@warning{%
@@ -479,7 +677,7 @@
       \MessageBreak
       Please report this bug}}
 
-\AtEndDocument{%
+\blx@AtEndDocument{%
   % always add default labelprefix declarations to .aux
   \iftoggle{blx@bbldone}
     {\def\do#1{%
@@ -539,12 +737,68 @@
 }
 
 \def\blx@ctrlwrite{%
-  % \sortalphaothers should only contain safe characters,
-  % so we should be able to \edef it
+  \ifcsundef{blx@sorting@\blx@sorting}
+    {\blx@warning@noline{Sorting template '\blx@sorting'\MessageBreak
+       not available with BibTeX backend.\MessageBreak
+       Switch to Biber or select one of the default templates}}
+    {}%
+  \begingroup
+  \blx@safe@actives
+  \let\protect\string
   \edef\blx@sortalphaothers{\sortalphaothers}%
   \immediate\openout\blx@write\blx@ctrlfile\blxauxsuffix.bib\relax
   \blx@auxwrite\blx@write{}{\blx@ctrl}%
-  \immediate\closeout\blx@write}
+  \endgroup
+  \AfterEndDocument{\immediate\closeout\blx@write}}
+
+
+% {<string>}
+% This mustn't be robust as it's likely to be used mainly in tests and so
+% needs to be expandable
+\renewcommand*\rangelen[1]{%
+  \ifblank{#1}
+    {0}%
+    {\expandafter\blx@rangelen@range\romannumeral-`\q%
+      #1\bibrangedash\bibrangedash&%
+    }}
+
+\def\blx@rangelen@range#1\bibrangedash#2\bibrangedash#3&{%
+  \ifblank{#3}
+    {\blx@rangelen@hyphen#1--&}
+    {\blx@rangelen@check{#1}{#2}}%
+}
+\def\blx@rangelen@hyphen#1-#2-#3&{%
+  \ifblank{#3}
+    {1}% No range at all: assume one page
+    {\blx@rangelen@check{#1}{#2}}%
+}
+\def\blx@rangelen@check#1#2{%
+  \expandafter\blx@rangelen@check@aux
+    \number\numexpr
+      \blx@rangelen@check@int{#2}
+      -
+      \blx@rangelen@check@int{#1}
+      + 1
+    \relax
+    &\stop
+}
+\def\blx@rangelen@check@aux#1&#2\stop{%
+  \ifblank{#2}
+    {#1}
+    {-1}%
+}
+\def\blx@rangelen@check@int#1{%
+  \ifblank{#1}
+    {0&}
+    {%
+      \if\number\numexpr0#1-0#1\relax0
+        #1
+      \else
+        0&
+      \fi
+    }%
+}
+
 
 % Disable some interfaces
 

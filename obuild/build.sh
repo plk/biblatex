@@ -6,19 +6,16 @@ echo "Usage:
 build.sh help
 build.sh install <version> <tds_root>
 build.sh uninstall <tds_root>
-build.sh build <version>
 build.sh builddist|builddocs|build <version>
 build.sh testbibtex [file]|testbiber [file]|test [file]|testoutput 
-build.sh upload <version> [ \"DEV\" ]
-
-With the \"DEV\" argument, uploads to the SourceForge development
-folder instead of the <version> numbered folder
+build.sh upload <version> [ <folder> ]
+build.sh showdiff <filewithissues>
 
 Examples: 
 obuild/build.sh install 3.8 ~/texmf/
 obuild/build.sh uninstall ~/texmf/
 obuild/build.sh build 3.8
-obuild/build.sh upload 3.8 DEV
+obuild/build.sh upload 3.8 development
 
 \"build test\" runs all of the example files (in a temp dir) and puts errors in a log:
 
@@ -72,6 +69,7 @@ fi
 declare VERSION=$2
 declare VERSIONM=$(echo -n "$VERSION" | perl -nE 'say s/^(\d+\.\d+)[a-z]/$1/r')
 declare DATE=$(date '+%Y/%m/%d')
+declare ERRORS=0
 
 if [[ "$1" == "uninstall" ]]
 then
@@ -82,8 +80,14 @@ then
   \rm -f $2/doc/latex/biblatex/CHANGES.md
   \rm -f $2/doc/latex/biblatex/biblatex.pdf
   \rm -f $2/doc/latex/biblatex/biblatex.tex
-  \rm -rf $2/doc/latex/biblatex/examples
-  \rm -rf $2/tex/latex/biblatex
+  for file in obuild/tds/doc/latex/biblatex/examples/*
+  do
+     \rm -f $2/doc/latex/biblatex/examples/$(basename -- "$file")
+  done
+  (cd obuild/tds/tex/latex/biblatex && for file in $(find * -type f)
+  do
+     \rm -f $2/tex/latex/biblatex/$file
+  done)
   exit 0
 fi
 
@@ -91,10 +95,10 @@ if [[ "$1" == "upload" ]]
 then
     if [[ -e obuild/biblatex-$VERSION.tds.tgz ]]
     then
-      if [[ "$3" == "DEV" ]]
+      if [[ -n "$3" ]]
       then
-        scp obuild/biblatex-"$VERSION".*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/development/
-        scp doc/latex/biblatex/CHANGES.md philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/development/
+        scp obuild/biblatex-"$VERSION".*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/$3/
+        scp doc/latex/biblatex/CHANGES.md philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/$3/
       else
         scp obuild/biblatex-"$VERSION".*tgz philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/biblatex-"$VERSIONM"/
         scp doc/latex/biblatex/CHANGES.md philkime,biblatex@frs.sourceforge.net:/home/frs/project/biblatex/biblatex-"$VERSIONM"/
@@ -177,8 +181,7 @@ then
 
   mv biblatex.tex.bak biblatex.tex
 
-  cp biblatex.pdf ../../../obuild/tds/doc/
-  cp biblatex.pdf ../../../obuild/flat/doc/
+  cp biblatex.pdf ../../../obuild/flat/biblatex/doc/
   cd ../../.. || exit
 
   echo
@@ -189,8 +192,8 @@ if [[ "$1" == "builddist" || "$1" == "build" ]]
 then
   \rm -f obuild/biblatex-$VERSION.tds.tgz
   \rm -f obuild/biblatex-$VERSION.tgz
-  tar zcf obuild/biblatex-$VERSION.tds.tgz -C obuild/tds bibtex biber doc tex
-  tar zcf obuild/biblatex-$VERSION.tgz -C obuild/flat biblatex
+  gtar zcf obuild/biblatex-$VERSION.tds.tgz -C obuild/tds bibtex biber doc tex
+  gtar zcf obuild/biblatex-$VERSION.tgz -C obuild/flat biblatex
 
   echo "Created packages (flat and TDS) ..."
 fi
@@ -236,6 +239,9 @@ then
       echo -n "File (bibtex): $f ... "
       exec 4>&1 7>&2 # save stdout/stderr
       exec 1>/dev/null 2>&1 # redirect them from here
+      # Twice due to two-pass @set handling in bibtex
+      pdflatex --interaction=batchmode ${f%.tex}
+      bibtex ${f%.tex}
       pdflatex --interaction=batchmode ${f%.tex}
       bibtex ${f%.tex}
       # Any refsections? If so, need extra bibtex runs
@@ -269,7 +275,7 @@ PDFLaTeX errors/warnings
 ------------------------"  >> ../example_errs_bibtex.txt
       # Use GNU grep to get PCREs as we want to ignore the legacy bibtex
       # warning in 3.4+
-      /opt/local/bin/grep -P '(?:[Ee]rror|[Ww]arning): (?!Using fall-back|prefixnumbers option|Empty biblist)' ${f%.tex}.log >> ../example_errs_bibtex.txt
+      grep -P '(?:[Ee]rror|[Ww]arning): (?!Using fall-back|prefixnumbers option|The option '\''labelprefix'\''|Empty biblist|Font|Command \\mark|Writing or overwriting file|\S+ is being set as the default font)' ${f%.tex}.log >> ../example_errs_bibtex.txt
       if [[ $? -eq 0 ]]; then bibtexflag=true; fi
       grep -E -A 3 '^!' ${f%.tex}.log >> ../example_errs_bibtex.txt
       if [[ $? -eq 0 ]]; then bibtexflag=true; fi
@@ -277,13 +283,14 @@ PDFLaTeX errors/warnings
       echo "BibTeX errors/warnings" >> ../example_errs_bibtex.txt
       echo "---------------------" >> ../example_errs_bibtex.txt
       # Glob as we need to check all .blgs in case of refsections
-      grep -E -i -e "(error|warning)[^\$]" ${f%.tex}*.blg >> ../example_errs_bibtex.txt
+      grep -i -e "(error|warning)[^\$]" ${f%.tex}*.blg >> ../example_errs_bibtex.txt
       if [[ $? -eq 0 ]]; then bibtexflag=true; fi
       echo "==============================" >> ../example_errs_bibtex.txt
       echo >> ../example_errs_bibtex.txt
       if $bibtexflag 
       then
-        echo "ERRORS"
+          ERRORS=1
+          echo -e "\033[0;31mERRORS\033[0m"
       else
         echo "OK"
       fi
@@ -303,7 +310,7 @@ PDFLaTeX errors/warnings
       if [[ "$f" < 9* ]] # 9+*.tex examples require biber and we want UTF-8 support
       then
           declare TEXENGINE=pdflatex
-          declare BIBEROPTS='--output_safechars --onlylog'
+          declare BIBEROPTS='--output-safechars --onlylog'
       else
           if [[ "$f" == "93-nameparts-biber.tex" ]] # Needs xelatex
           then
@@ -321,7 +328,7 @@ PDFLaTeX errors/warnings
       # using output safechars as we are using fontenc and ascii in the test files
       # so that we can use the same test files with bibtex which only likes ascii
       # biber complains when outputting ascii from it's internal UTF-8
-      biber $BIBEROPTS --onlylog ${f%.tex}
+      biber $BIBEROPTS ${f%.tex}
       $TEXENGINE --interaction=batchmode ${f%.tex}
       if [[ $f == 20-indexing-* || $f == 21-indexing-* ]]
       then
@@ -345,30 +352,45 @@ Test file: $f
 
 $TEXENGINE errors/warnings
 ------------------------"  >> ../example_errs_biber.txt
-      /opt/local/bin/grep -P '(?:[Ee]rror|[Ww]arning):(?:(?! Overwriting file))' ${f%.tex}.log >> ../example_errs_biber.txt
+      grep -P '(?:[Ee]rror|[Ww]arning): (?!Using fall-back|prefixnumbers option|The option '\''labelprefix'\''|Empty biblist|Font|Command \\mark|Writing or overwriting file|\S+ is being set as the default font)' ${f%.tex}.log >> ../example_errs_biber.txt
       if [[ $? -eq 0 ]]; then biberflag=true; fi
       grep -E -A 3 '^!' ${f%.tex}.log >> ../example_errs_biber.txt
       if [[ $? -eq 0 ]]; then biberflag=true; fi
       echo >> ../example_errs_biber.txt
       echo "Biber errors/warnings" >> ../example_errs_biber.txt
       echo "---------------------" >> ../example_errs_biber.txt
-      grep -E -i "(error|warn)" ${f%.tex}.blg >> ../example_errs_biber.txt
+      grep -i -e "(error|warn)" ${f%.tex}.blg >> ../example_errs_biber.txt
       if [[ $? -eq 0 ]]; then biberflag=true; fi
       echo "==============================" >> ../example_errs_biber.txt
       echo >> ../example_errs_biber.txt
       if $biberflag 
       then
-        echo "ERRORS"
+          ERRORS=1
+          echo -e "\033[0;31mERRORS\033[0m"
       else
         echo "OK"
       fi
     done
   fi
-  cd ../../.. || exit
+  cd ../../..
+  exit $ERRORS
 fi
 
 if [[ "$1" == "testoutput" ]]
 then
-  cd obuild || exit
-  ./testfull.pl
+  mkdir -p obuild/failedpdfs
+  for f in obuild/test/examples/*.pdf
+  do
+    echo -n "Checking `basename $f` ... "
+    diff-pdf "doc/latex/biblatex/examples/`basename $f`" $f 2>/dev/null
+    if [[ $? -eq 0 ]]
+    then
+      echo "PASS"
+    else
+        ERRORS=1
+        cp $f obuild/failedpdfs/
+        echo -e "\033[0;31mFAIL\033[0m"
+    fi
+  done
+  exit $ERRORS
 fi
