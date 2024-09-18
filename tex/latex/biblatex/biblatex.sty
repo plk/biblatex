@@ -18,6 +18,7 @@
 \def\abx@cbxid{\abx@date\space v\abx@version\space biblatex citation style (PK/MW)}
 \def\abx@lbxid{\abx@date\space v\abx@version\space biblatex localization (PK/MW)}
 \def\abx@cptid{\abx@date\space v\abx@version\space biblatex compatibility (PK/MW)}
+\def\abx@dmid{\abx@date\space v\abx@version\space biblatex datamodel (PK/MW)}
 
 % This is not updated by build script as the control file version
 % does not necessarily change with the package version.
@@ -374,7 +375,14 @@
     {\blx@contentssafe@citecommands
      \let}
     {}
-    {\blx@err@patch{\string\addtocontents}}%
+    {% revtex
+     % (which defines \robustify@contents to make commands safe
+     % in this context, so we check if we can have that)
+     \ifundef\robustify@contents
+       {\@secondoftwo}
+       {\ifpatchable\addtocontents{\robustify@contents}}
+       {\appto\robustify@contents{\blx@contentssafe@citecommands}}
+       {\blx@err@patch{\string\addtocontents}}}%
   % patch footnote
   \toggletrue{blx@tempa}%
   \def\do#1{%
@@ -831,7 +839,7 @@
 
 % {<string>}{<strip>}{<result>}
 % <result> will contain the bit of <string>
-% before the last occurence of <strip>
+% before the last occurrence of <strip>
 \protected\def\blx@stripfromendinto#1#2#3{%
   \begingroup
   \edef\blx@tempa{\endgroup
@@ -842,7 +850,7 @@
 
 %% Allocation
 
-% Counter to track nested tabularx environemnts so we don't
+% Counter to track nested tabularx environments so we don't
 % try to patch the commands more than once below as this undefs some
 % macros and an error is thrown
 \newcounter{tabx@nest}
@@ -1853,7 +1861,7 @@
 % 1007/3001  exclamation mark
 % 1008/3002  question mark
 % 1009       suppress punctuation
-% 1010       new paragaph
+% 1010       new paragraph
 
 \mathchardef\blx@sf@prefixchar=1001% e.g. apostrophe or equivalent for prefix handling
 \mathchardef\blx@sf@dot=1002
@@ -4436,7 +4444,7 @@
     {\blx@declaredelimalias@omom[{#1}]{#2}}
     {\blx@declaredelimalias@omm[{#1}]{#2}}}
 
-% hrmpf ... remember that \docsvlist doesn't do anthing for empty
+% hrmpf ... remember that \docsvlist doesn't do anything for empty
 % lists/list items
 \def\blx@declaredelimalias@omom[#1]#2[#3]#4{%
   \ifstrequal{#1}{*}
@@ -4801,7 +4809,7 @@
 % Then, \blx@defformat@d is defined by calling
 % \def\blx@defformat@d#1{format body}
 
-% [<entrytype>]{<name>}{<definiton>}
+% [<entrytype>]{<name>}{<definition>}
 \newrobustcmd*{\DeclareNameFormat}{%
   \@ifstar
     {\blx@defformat\blx@defnameformat{nfd}*}
@@ -7457,11 +7465,11 @@
   \stripzeros \forcezerosy \forcezerosmdt
   \mkyearzeros \mkmonthzeros \mkdayzeros \mktimezeros}
 
-% User macro for retrieving currrent language
+% User macro for retrieving current language
 \def\currentlang{\blx@languagename}
 
 % We need to be able to prefix \providetoggle with \global,
-% plus we don't need the testing from \providetoggle anway.
+% plus we don't need the testing from \providetoggle anyway.
 % This uses internal implementation details of etoolbox's
 % toggles, so is a bit meh, but it's better than rolling our own
 % version of toggles just for that.
@@ -7585,7 +7593,7 @@
               {\blx@hook@initlang
                \def\blx@endlang{%
                  \blx@hook@endlang
-                 \csname end\blx@thelangenv\endcsname
+                 \expandafter\end\expandafter{\blx@thelangenv}%
                  \endgroup}%
                \iftoggle{blx@autolangbib}
                  {\let\blx@endlangbib\blx@endlang}
@@ -7593,9 +7601,17 @@
                \iftoggle{blx@autolangcite}
                  {\let\blx@endlangcite\blx@endlang}
                  {}%
-               \csname\blx@thelangenv\expandafter\endcsname
-               \expandafter{\abx@field@@@langid}}}
-           {}}}
+               \expandafter\expandafter\expandafter\begin
+                 \expandafter\expandafter\expandafter{%
+                   \expandafter\blx@thelangenv\expandafter}%
+                     \expandafter{\abx@field@langid}}}
+           {\def\blx@endlang{\endgroup}%
+            \iftoggle{blx@autolangbib}
+              {\let\blx@endlangbib\blx@endlang}
+              {}%
+            \iftoggle{blx@autolangcite}
+              {\let\blx@endlangcite\blx@endlang}
+              {}}}}
     {}%
   \def\blx@imc@mainlang{%
     \ifundef\blx@warn@mainlang
@@ -7662,8 +7678,8 @@
                 \blx@hook@endlang
                 % Polyglossia language envs are \<lang>[]
                 \ifcsstring{blx@thelangenv}{langname}
-                  {\csname end\abx@field@@@langid\endcsname}
-                  {\csname end\blx@thelangenv\endcsname}%
+                  {\expandafter\end\expandafter{\abx@field@langid}}
+                  {\expandafter\end\expandafter{\blx@thelangenv}}%
                 \endgroup}%
               \iftoggle{blx@autolangbib}
                 {\let\blx@endlangbib\blx@endlang}
@@ -7672,14 +7688,24 @@
                 {\let\blx@endlangcite\blx@endlang}
                 {}%
               \ifcsstring{blx@thelangenv}{langname}
-                {\ifdef\abx@field@@@langidopts
-                   {\csname\abx@field@@@langid\expandafter\endcsname
-                      \expandafter[\abx@field@@@langidopts]}
-                   {\csname\abx@field@@@langid\endcsname}}
-                {\csname\blx@thelangenv\expandafter\endcsname
-                   \expandafter{\abx@field@@@langid}}%
+                {\ifdef\abx@field@langidopts
+                   {\expandafter\expandafter\expandafter\begin
+                      \expandafter\expandafter\expandafter{%
+                        \expandafter\abx@field@langid\expandafter}%
+                          \expandafter[\abx@field@langidopts]}
+                   {\expandafter\begin\expandafter{\abx@field@langid}}}
+                {\expandafter\expandafter\expandafter\begin
+                   \expandafter\expandafter\expandafter{%
+                     \expandafter\blx@thelangenv\expandafter}%
+                       \expandafter{\abx@field@langid}}%
               \blx@beglang@spacefactors}}
-          {}}}
+          {\def\blx@endlang{\endgroup}%
+           \iftoggle{blx@autolangbib}
+             {\let\blx@endlangbib\blx@endlang}
+             {}%
+           \iftoggle{blx@autolangcite}
+             {\let\blx@endlangcite\blx@endlang}
+             {}}}}
        {}%
   \def\blx@imc@mainlang{%
     \ifundef\blx@warn@mainlang
@@ -8009,7 +8035,7 @@
   \listxadd\blx@datetypes{\blx@datetype}}
 \abx@dodates
 % main date field has an empty prefix (''date) which can't be added to a list
-% and so do it explicity
+% and so do it explicitly
 % This is one of the few (only?) hard-coded datamodel assumptions but it is
 % very unlikely that anyone would *remove* the main date field in a custom application ...
 \def\abx@dodatetypes{\do{}\dolistloop\blx@datetypes}
@@ -9236,7 +9262,7 @@
 
 \def\blx@adjustyears{%
   % All dates by default are output from biber in astronomical era with a year 0
-  % So, if we are ouputting BCE/BC era, we need to adjust the years by +1
+  % So, if we are outputting BCE/BC era, we need to adjust the years by +1
   \def\do##1{%
     \ifdefstring\blx@dateera{astronomical}
       {}
@@ -9721,7 +9747,8 @@
             \csuse{blx@labelnumber@\the\c@refsection}+1}%
           \edef\abx@field@@@localnumber{%
             \csuse{blx@labelnumber@\the\c@refsection}}%
-          \blx@bbl@fieldedef{labelnumber}{\abx@field@@@localnumber}}%
+          \blx@bbl@fieldedef{labelnumber}{\abx@field@localnumber}%
+          \blx@bbl@fieldedef{localnumber}{\abx@field@localnumber}}%
         \iftoggle{blx@skipbib}
           {}
           {\blx@bbl@labelnumberwidth@numeric{}}}
@@ -12323,8 +12350,13 @@
     {\noexpand\blx@refpatch@sect@memoir@i{\string#1}{#1}{#2}}
     {}{\noexpand\blx@err@patch{\string\memsecstarinfo}}}
 
-\def\blx@refpatch@sect@memoir@i#1#2#3{%
-  \ifstrequal{#1}{#2}{#3}{}}
+% we have to expand the section csname, because
+% memoir saves it in a helper macro
+\protected\def\blx@refpatch@sect@memoir@i#1#2#3{%
+  \begingroup
+  \edef\blx@tempa{\endgroup
+    \noexpand\ifstrequal{#1}{#2}}%
+  \blx@tempa{#3}{}}
 
 % The standard classes have \@startsection, \@sect and \@ssect.
 % \@startsection is used by unstarred and starred sections alike
@@ -17401,6 +17433,8 @@
 \def\blx@opt@uniquename@allfull{allfull}
 \def\blx@opt@uniquename@mininit{mininit}
 \def\blx@opt@uniquename@minfull{minfull}
+\def\blx@opt@uniquename@minyearinit{minyearinit}
+\def\blx@opt@uniquename@minyearfull{minyearfull}
 
 \blx@DeclareBackendOption{entry,namelist,name}[string]{uniquename}
 
@@ -17776,6 +17810,12 @@
           Setting 'uniquename=allinit}%
         \blx@kv@setkeys{blx@opt@pre}{uniquename=allinit}}
        {}%
+     \ifdefstrequal\blx@uniquename\blx@opt@uniquename@minyearfull
+       {\blx@warn@conflopt{%
+          '<namepart>inits' conflicts with 'uniquename=minyearfull'.\MessageBreak
+          Setting 'uniquename=minyearinit}%
+        \blx@kv@setkeys{blx@opt@pre}{uniquename=minyearinit}}
+       {}
      \ifdefstrequal\blx@uniquename\blx@opt@uniquename@minfull
        {\blx@warn@conflopt{%
           '<namepart>inits' conflicts with 'uniquename=minfull'.\MessageBreak

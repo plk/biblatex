@@ -6,8 +6,9 @@ env:
 on:
   push:
   pull_request:
-    branches:
-      - main
+  workflow_dispatch:
+  schedule:
+    - cron:  '24  5 * * 6'
 
 concurrency: 
   group: ${{ github.ref }}
@@ -19,7 +20,7 @@ jobs:
     steps:
       # Boilerplate
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       # GitHub Actions don't regenerate the cache if the key doesn't change, so
       # we integrate a random UUID into the key to keep them different.
       # DO NOT CHANGE THIS
@@ -34,15 +35,15 @@ jobs:
       # If we want to force regeneration of the cache, increase the number after
       # *both* instances of "texlive-v"
       - name: Load cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/texlive
-          key: texlive-v2023-${{ steps.get-id.outputs.id }}
-          restore-keys: texlive-v2023-
+          key: texlive-v2024-${{ steps.get-id.outputs.id }}
+          restore-keys: texlive-v2024-
       # We need Ghostscript for XeTeX tests.
       - run: sudo apt-get update && sudo apt-get install ghostscript
       - name: Install TeX Live
-        uses: zauguin/install-texlive@v1
+        uses: zauguin/install-texlive@v3
         with:
           # List the required TeX Live packages in a separate file to allow reuse in
           # different workflows.

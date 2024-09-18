@@ -223,12 +223,50 @@
     }
 }
 
-
-\cs_new:Npn \biblatex_text_sentencecase:nn #1 #2
+% sentence casing is a bit more involved due to expl3 changes
+% <https://github.com/latex3/latex3/issues/1232>
+% <https://github.com/latex3/latex3/pull/1240>
+% <https://github.com/latex3/latex3/pull/1247>
+% In old versions we use \text_titlecase:n
+% (counter-intuitive given its name).
+% In new versions that is deprecated and has to be emulated by
+% a combination of \text_titlecase_first:n { \text_lowercase:n {#1} }.
+% This combination would not work in old versions due to a small
+% oversight, for which we add a hotfix.
+% We detect new vs. old by the presence of \text_titlecase_all:n,
+% which was added for the new version.
+\cs_if_exist:NTF \text_titlecase_all:n
   {
-    \__biblatex_text_makeconverter:nnn {titlecase} {#1} {#2}
+    \cs_new_protected:Npn \biblatex_text_sentencecase:nn #1 #2
+      {
+        \group_begin:
+          \bool_set_eq:NN \l_text_titlecase_check_letter_bool
+                          \l_biblatex_titlecase_check_letter_bool
+          \text_titlecase_first:nn
+            { \prop_item:Nn \l__biblatex_babel_to_pseudobcp_prop {#1} }
+            { 
+              \text_lowercase:nn
+                { \prop_item:Nn \l__biblatex_babel_to_pseudobcp_prop {#1} }
+                {#2}
+            }
+        \group_end:
+      }
   }
-
+  {
+    \cs_gset:Npn \__text_change_case_break:w #1 \q__text_recursion_stop
+      {
+        \__text_change_case_break_aux:w ? #1
+      }
+    \cs_gset:Npn \__text_change_case_break_aux:w #1 \q__text_recursion_tail
+      {
+        \__text_change_case_store:o { \use_none:n #1 }
+        \__text_change_case_end:w
+      }
+    \cs_new:Npn \biblatex_text_sentencecase:nn #1 #2
+      {
+        \__biblatex_text_makeconverter:nnn {titlecase} {#1} {#2}
+      }
+  }
 
 \cs_generate_variant:Nn \biblatex_text_sentencecase:nn { Vo, xo }
 

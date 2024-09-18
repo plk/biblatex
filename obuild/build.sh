@@ -243,8 +243,8 @@ if [[ "$1" == "builddist" || "$1" == "build" ]]
 then
   \rm -f obuild/$PACKAGENAME$PACKAGEEXT-$VERSION.tds.tgz
   \rm -f obuild/$PACKAGENAME$PACKAGEEXT-$VERSION.tgz
-  gnutar zcf obuild/$PACKAGENAME$PACKAGEEXT-$VERSION.tds.tgz -C obuild/tds bibtex biber doc tex
-  gnutar zcf obuild/$PACKAGENAME$PACKAGEEXT-$VERSION.tgz -C obuild/flat $PACKAGENAME$PACKAGEEXT
+  gtar zcf obuild/$PACKAGENAME$PACKAGEEXT-$VERSION.tds.tgz -C obuild/tds bibtex biber doc tex
+  gtar zcf obuild/$PACKAGENAME$PACKAGEEXT-$VERSION.tgz -C obuild/flat $PACKAGENAME$PACKAGEEXT
 
   echo "Created packages (flat and TDS) ..."
 fi
