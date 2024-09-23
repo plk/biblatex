@@ -357,7 +357,7 @@ PDFLaTeX errors/warnings
         continue
       fi
 
-      biberflag=false      
+      biberflag=false
       if [[ "$f" < 9* ]] # 9+*.tex examples require biber and we want UTF-8 support
       then
           declare TEXENGINE=pdflatex
