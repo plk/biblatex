@@ -23,7 +23,7 @@
 % This is not updated by build script as the control file version
 % does not necessarily change with the package version.
 % This is used when writing the .bcf
-\def\blx@bcfversion{3.12}
+\def\blx@bcfversion{3.11}
 
 % This is not updated by build script as the bbl version
 % does not necessarily change with the package version.
@@ -13336,9 +13336,9 @@
 \xdef\blx@xml@labelalpha@part#1#2{%
   ~~~~~~<bcf:labelpart#1>#2</bcf:labelpart>\blx@nl}
 
-\xdef\blx@xml@extradate#1#2{%
-  ~~<bcf:extradatespec type="#1">\blx@nl
-  #2%
+\xdef\blx@xml@extradate#1{%
+  ~~<bcf:extradatespec>\blx@nl
+  #1%
   ~~</bcf:extradatespec>\blx@nl}
 \xdef\blx@xml@extradatescope#1{%
   ~~~~<bcf:scope>\blx@nl
@@ -13747,12 +13747,8 @@
   \dolistloop\blx@latem@type
   % extradate specification
   \eappto\blx@tempa{%
-    \blx@xml@comment{EXTRADATE}}%
-  \def\do##1{%
-    \eappto\blx@tempa{%
-      \blx@xml@extradate{##1}{%
-      \csuse{blx@extradate@##1}}}}%
-  \dolistloop\blx@ed@type
+    \blx@xml@comment{EXTRADATE}%
+    \blx@xml@extradate{\csuse{blx@bcf@extradatespec}}}%
   % data inheritance
   \eappto\blx@tempa{%
     \blx@xml@comment{INHERITANCE}%
@@ -14270,7 +14266,7 @@
     {\eappto\blx@tempc{ substring\string_side="right"}}
     {\eappto\blx@tempc{ substring\string_side="left"}}}
 
-% [<entrytype,...>]{<spec>}
+% [<entrytype>]{<spec>}
 \newrobustcmd*{\DeclareLabelalphaTemplate}[2][]{%
    \ifblank{#1}
      {\blx@latem{#2}{global}}
@@ -14843,31 +14839,19 @@
 \def\blx@sortinclude@i#1{%
   \appto\blx@tempa{\blx@xml@include{#1}}}
 
-% [<entrytype,...>]{<field,field,...>}
-\newrobustcmd*{\DeclareExtradate}[2][]{%
-   \ifblank{#1}
-     {\blx@ed{#2}{global}}
-     {\forcsvlist{\blx@ed{#2}}{#1}}}
-\@onlypreamble\DeclareExtradate
-\blx@DeclareBackendOption{global,type}[xml]{extradatespec}
-
-\def\blx@ed#1#2{%
+% {<field,field,...>}
+\newrobustcmd*{\DeclareExtradate}[1]{%
   \begingroup
   \let\blx@tempa\@empty
   \let\scope\blx@extradate@scope
   #1%
-  \ifdef\blx@ed@type
-    {\ifinlist{#2}\blx@ed@type
-      {\global\cslet{blx@extradate@#2}\blx@tempa}
-      {\listgadd\blx@ed@type{#2}%
-       \global\cslet{blx@extradate@#2}\blx@tempa}}
-    {\listgadd\blx@ed@type{#2}%
-     \global\cslet{blx@extradate@#2}\blx@tempa}%
+  \global\let\blx@bcf@extradatespec\blx@tempa
   \endgroup}
+\@onlypreamble\DeclareExtradate
+\blx@DeclareBackendOption{global}[xml]{extradatespec}
 
 \newrobustcmd*{\blx@extradate@scope}[1]{%
   \let\blx@tempb\@empty
-  \blx@tempcnta\z@
   \let\field\blx@ordereded@field
   #1%
   \csxappto{blx@tempa}{%
@@ -14893,7 +14877,7 @@
   \endgroup}
 \@onlypreamble\DeclareExtradateContext
 \blx@DeclareBackendOption{global,type}[xml]{extradatecontext}
-
+  
 \newrobustcmd*{\DeclareLabelname}[2][]{%
   \begingroup
   \let\blx@tempa\@empty
