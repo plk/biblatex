@@ -1,5 +1,3 @@
-# RELEASE NOTES FOR VERSION 3.21
-- \DeclareExtradate can now be specified per-entrytype
 # RELEASE NOTES FOR VERSION 3.20
 - Added new option settings `minyearinit` and `minyearfull` for
   `uniquename`
