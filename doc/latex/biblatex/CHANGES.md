@@ -352,7 +352,7 @@
   be defined with `\DeclareEntryOption` in order for biber to recognise
   them and pass them out in the `.bbl`.
   This should not adversely affect any code using the documented
-  `\Decalare...Option` interface, so should be uncritical for most users.
+  `\Declare...Option` interface, so should be uncritical for most users.
 - Added `\DeclareBiblatexOption` as a convenient interface to declare the same
   option in different scopes. This should help avoid code duplication.
   For example
@@ -664,7 +664,7 @@
 - Fix `\mkpagetotal`
 - Fix issue with refcontexts not appearing in some circumstances
 - **DEPRECATION NOTICE** The coming update to the ISO8601 standard
-  supercedes the draft EDTF (Extended Date Time Format) extensions.
+  supersedes the draft EDTF (Extended Date Time Format) extensions.
   When the new ISO8601 standard is public, biblatex will therefore
   support the ISO8601-2 Clause 4, Level 1 Extended Format which is
   equivalent to the draft EDTF standard but with different syntax. This

@@ -345,7 +345,14 @@
     {\blx@contentssafe@citecommands
      \let}
     {}
-    {\blx@err@patch{\string\addtocontents}}%
+    {% revtex
+     % (which defines \robustify@contents to make commands safe
+     % in this context, so we check if we can have that)
+     \ifundef\robustify@contents
+       {\@secondoftwo}
+       {\ifpatchable\addtocontents{\robustify@contents}}
+       {\appto\robustify@contents{\blx@contentssafe@citecommands}}
+       {\blx@err@patch{\string\addtocontents}}}%
   % patch footnote
   \toggletrue{blx@tempa}%
   \def\do#1{%
@@ -782,7 +789,7 @@
 
 % {<string>}{<strip>}{<result>}
 % <result> will contain the bit of <string>
-% before the last occurence of <strip>
+% before the last occurrence of <strip>
 \protected\def\blx@stripfromendinto#1#2#3{%
   \begingroup
   \edef\blx@tempa{\endgroup
@@ -793,7 +800,7 @@
 
 %% Allocation
 
-% Counter to track nested tabularx environemnts so we don't
+% Counter to track nested tabularx environments so we don't
 % try to patch the commands more than once below as this undefs some
 % macros and an error is thrown
 \newcounter{tabx@nest}
@@ -1693,7 +1700,7 @@
 % 1007/3001  exclamation mark
 % 1008/3002  question mark
 % 1009       suppress punctuation
-% 1010       new paragaph
+% 1010       new paragraph
 
 \mathchardef\blx@sf@prefixchar=1001% e.g. apostrophe or equivalent for prefix handling
 \mathchardef\blx@sf@dot=1002
@@ -3910,7 +3917,7 @@
     {\blx@declaredelimalias@omom[{#1}]{#2}}
     {\blx@declaredelimalias@omm[{#1}]{#2}}}
 
-% hrmpf ... remember that \docsvlist doesn't do anthing for empty
+% hrmpf ... remember that \docsvlist doesn't do anything for empty
 % lists/list items
 \def\blx@declaredelimalias@omom[#1]#2[#3]#4{%
   \ifstrequal{#1}{*}
@@ -4272,7 +4279,7 @@
 % Then, \blx@defformat@d is defined by calling
 % \def\blx@defformat@d#1{format body}
 
-% [<entrytype>]{<name>}{<definiton>}
+% [<entrytype>]{<name>}{<definition>}
 \newrobustcmd*{\DeclareNameFormat}{%
   \@ifstar
     {\blx@defformat\blx@defnameformat{nfd}*}
@@ -6633,11 +6640,11 @@
   \stripzeros \forcezerosy \forcezerosmdt
   \mkyearzeros \mkmonthzeros \mkdayzeros \mktimezeros}
 
-% User macro for retrieving currrent language
+% User macro for retrieving current language
 \def\currentlang{\blx@languagename}
 
 % We need to be able to prefix \providetoggle with \global,
-% plus we don't need the testing from \providetoggle anway.
+% plus we don't need the testing from \providetoggle anyway.
 % This uses internal implementation details of etoolbox's
 % toggles, so is a bit meh, but it's better than rolling our own
 % version of toggles just for that.
@@ -6773,7 +6780,13 @@
                  \expandafter\expandafter\expandafter{%
                    \expandafter\blx@thelangenv\expandafter}%
                      \expandafter{\abx@field@langid}}}
-           {}}}
+           {\def\blx@endlang{\endgroup}%
+            \iftoggle{blx@autolangbib}
+              {\let\blx@endlangbib\blx@endlang}
+              {}%
+            \iftoggle{blx@autolangcite}
+              {\let\blx@endlangcite\blx@endlang}
+              {}}}}
     {}%
   \def\blx@imc@mainlang{%
     \ifundef\blx@warn@mainlang
@@ -6861,7 +6874,13 @@
                      \expandafter\blx@thelangenv\expandafter}%
                        \expandafter{\abx@field@langid}}%
               \blx@beglang@spacefactors}}
-          {}}}
+          {\def\blx@endlang{\endgroup}%
+           \iftoggle{blx@autolangbib}
+             {\let\blx@endlangbib\blx@endlang}
+             {}%
+           \iftoggle{blx@autolangcite}
+             {\let\blx@endlangcite\blx@endlang}
+             {}}}}
        {}%
   \def\blx@imc@mainlang{%
     \ifundef\blx@warn@mainlang
@@ -7191,7 +7210,7 @@
   \listxadd\blx@datetypes{\blx@datetype}}
 \abx@dodates
 % main date field has an empty prefix (''date) which can't be added to a list
-% and so do it explicity
+% and so do it explicitly
 % This is one of the few (only?) hard-coded datamodel assumptions but it is
 % very unlikely that anyone would *remove* the main date field in a custom application ...
 \def\abx@dodatetypes{\do{}\dolistloop\blx@datetypes}
@@ -8134,7 +8153,7 @@
   \ifblank{#1}
     {\def\blx@tempa{default}}
     {\def\blx@tempa{#1}}%
-  \def\blx@tempb{#1}%
+  \def\blx@tempb{#2}%
   \ifcsundef{abx@field@\blx@tempb source}
     {}%
     {\letcs\blx@tempb{abx@field@\blx@tempb source}%
@@ -8309,7 +8328,7 @@
 
 \def\blx@adjustyears{%
   % All dates by default are output from biber in astronomical era with a year 0
-  % So, if we are ouputting BCE/BC era, we need to adjust the years by +1
+  % So, if we are outputting BCE/BC era, we need to adjust the years by +1
   \def\do##1{%
     \ifdefstring\blx@dateera{astronomical}
       {}
