@@ -1,3 +1,9 @@
+# RELEASE NOTES FOR VERSION 3.21
+- Added `\mkseqrange` and `\mkseqornormrange` (with starred
+  counterpart, respectively) to format pages in citations using
+  the bibstrings `sequens` and `sequentes` if applicable.
+- Added new option `pageseq` to enable and customize page sequences.
+
 # RELEASE NOTES FOR VERSION 3.20
 - Added new option settings `minyearinit` and `minyearfull` for
   `uniquename`
