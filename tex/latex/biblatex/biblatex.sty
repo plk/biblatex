@@ -964,6 +964,9 @@
 \newtoggle{blx@noroman}
 \newtoggle{blx@nohashothers}
 \newtoggle{blx@nosortothers}
+\newtoggle{blx@seq}
+\newtoggle{blx@allsq}
+\newtoggle{blx@twosq}
 \newtoggle{blx@singletitle}
 \newtoggle{blx@uniquebaretitle}
 \newtoggle{blx@uniqueprimaryauthor}
@@ -3739,6 +3742,113 @@
   \else
     \expandafter\blx@comprange@end
   \fi}
+
+% <*>[<postpro>]{<string>}
+\newrobustcmd*{\mkseqrange}{%
+  \begingroup
+  \@ifstar
+    {\blx@range@aux\blx@seqrange@ii}
+    {\blx@range@aux\blx@seqrange@i}}
+
+\def\blx@seqrange@i[#1][#2]#3{%
+  \let\blx@tempa\@empty
+  \protected\def\blx@range@out@value{\appto\blx@tempa}%
+  \def\blx@range@out@item@process{#2}%
+  \let\blx@range@out@delim\blx@range@out@value
+  \let\blx@range@split\blx@genrange@split
+  \let\blx@range@process\blx@seqrange@check
+  \blx@range@chunk{#3}%
+  \begingroup
+  \edef\blx@tempa{\endgroup
+    \unexpanded{#1}{\expandonce\blx@tempa}}%
+  \blx@tempa
+  \endgroup}
+
+\def\blx@seqrange@ii[#1][#2]#3{%
+  \protected\def\blx@range@out@value{#1}%
+  \def\blx@range@out@item@process{#2}%
+  \let\blx@range@out@delim\@firstofone
+  \let\blx@range@split\blx@genrange@split
+  \let\blx@range@process\blx@seqrange@check
+  \blx@range@chunk{#3}%
+  \endgroup}
+
+\def\blx@seqrange@check#1#2{%
+  \blx@imc@ifinteger{#1}
+    {\blx@imc@ifinteger{#2}
+       {\@firstoftwo}
+       {\@secondoftwo}}
+    {\@secondoftwo}
+    {\blx@seqrange@comp{#1}{#2}}
+    {\begingroup
+     \protected@edef\blx@tempc{\endgroup
+       \blx@range@out@value{%
+         \blx@range@out@item@process{\unexpanded{#1}}%
+         \noexpand\bibrangedash
+         \blx@range@out@item@process{\unexpanded{#2}}}}%
+     \blx@tempc}}
+
+\def\blx@seqrange@comp#1#2{%
+  \def\blx@tempb{#1}%
+  \def\blx@tempc{#2}%
+  \expandafter\blx@seqrange@comp@div
+}
+
+\def\blx@seqrange@end{%
+  \numdef\blx@tempb\blx@tempb
+  \numdef\blx@tempc\blx@tempc
+  \begingroup
+  \protected@edef\blx@tempb{\endgroup
+    \blx@range@out@value{%
+      \blx@range@out@item@process{\blx@tempb}%
+      \noexpand\bibrangedash
+      \blx@range@out@item@process{\blx@tempc}}}%
+  \blx@tempb}
+
+\def\blx@seqrange@psq{%
+  \numdef\blx@tempb\blx@tempb
+  \begingroup
+  \protected@edef\blx@tempb{\endgroup
+    \blx@range@out@value{%
+      \blx@range@out@item@process{\blx@tempb}%
+      \noexpand\psq}}%
+  \blx@tempb}
+
+\def\blx@seqrange@psqq{%
+  \numdef\blx@tempb\blx@tempb
+  \begingroup
+  \protected@edef\blx@tempb{\endgroup
+    \blx@range@out@value{%
+      \blx@range@out@item@process{\blx@tempb}%
+      \noexpand\psqq}}%
+  \blx@tempb}
+
+\def\blx@seqrange@comp@div{%
+  \blx@tempcnta\blx@tempb\relax
+  \blx@tempcntb\blx@tempc\relax
+  \advance\blx@tempcntb-\blx@tempcnta
+  \ifnum\blx@tempcntb=1
+    \let\@psq\psq
+    \expandafter\blx@seqrange@psq
+  \else
+     \iftoggle{blx@twosq}{%
+        \expandafter\blx@seqrange@end
+     }{%
+       \iftoggle{blx@allsq}{%
+          \expandafter\blx@seqrange@psqq
+       }{%
+         \ifnum\blx@tempcntb=2
+            \expandafter\blx@seqrange@psqq
+         \else
+            \expandafter\blx@seqrange@end
+         \fi
+       }%
+     }%
+  \fi}
+
+% <*>[<postpro>]{<string>}
+\newrobustcmd*{\mkseqornormrange}{%
+  \iftoggle{blx@seq}{\mkseqrange}{\mknormrange}}
 
 % <*>[<postpro>]{<string>}
 \newrobustcmd*{\mkfirstpage}{%
@@ -15054,6 +15164,18 @@
     \def\blx@minxrefs{#1}%
   \fi}
 \def\blx@minxrefs{2}
+
+\DeclareBibliographyOption[string]{pageseq}{%
+  \ifstrequal{#1}{all+}
+    {\toggletrue{blx@seq}\toggletrue{blx@allsq}\togglefalse{blx@twosq}}% all+
+    {\ifstrequal{#1}{three+}
+       {\toggletrue{blx@seq}\togglefalse{blx@allsq}\togglefalse{blx@twosq}}% three+
+       {\ifstrequal{#1}{two+}
+          {\toggletrue{blx@seq}\togglefalse{blx@allsq}\toggletrue{blx@twosq}}% two+
+          {\togglefalse{blx@seq}\togglefalse{blx@allsq}\togglefalse{blx@twosq}}% none
+       }%
+    }%
+}
 
 \DeclareBibliographyOption[string]{texencoding}{%
   \ifstrequal{#1}{auto}
