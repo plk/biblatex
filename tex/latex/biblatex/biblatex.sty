@@ -964,9 +964,10 @@
 \newtoggle{blx@noroman}
 \newtoggle{blx@nohashothers}
 \newtoggle{blx@nosortothers}
-\newtoggle{blx@seq}
-\newtoggle{blx@allsq}
-\newtoggle{blx@twosq}
+\newtoggle{blx@pagecomp}
+\newtoggle{blx@pagesq}
+\newtoggle{blx@allpagesq}
+\newtoggle{blx@twopagesq}
 \newtoggle{blx@singletitle}
 \newtoggle{blx@uniquebaretitle}
 \newtoggle{blx@uniqueprimaryauthor}
@@ -3830,10 +3831,10 @@
   \ifnum\blx@tempcntb=1
     \expandafter\blx@seqrange@psq
   \else
-     \iftoggle{blx@twosq}{%
+     \iftoggle{blx@twopagesq}{%
         \expandafter\blx@seqrange@end
      }{%
-       \iftoggle{blx@allsq}{%
+       \iftoggle{blx@allpagesq}{%
           \expandafter\blx@seqrange@psqq
        }{%
          \ifnum\blx@tempcntb=2
@@ -3846,8 +3847,14 @@
   \fi}
 
 % <*>[<postpro>]{<string>}
-\newrobustcmd*{\mkseqornormrange}{%
-  \iftoggle{blx@seq}{\mkseqrange}{\mknormrange}}
+\newrobustcmd*{\mkautorange}{%
+  \iftoggle{blx@pagesq}%
+      {\mkseqrange}
+      {\iftoggle{blx@pagecomp}%
+         {\mkcomprange}
+         {\mknormrange}%
+      }%
+}
 
 % <*>[<postpro>]{<string>}
 \newrobustcmd*{\mkfirstpage}{%
@@ -15164,17 +15171,23 @@
   \fi}
 \def\blx@minxrefs{2}
 
-\DeclareBibliographyOption[string]{pageseq}{%
-  \togglefalse{blx@seq}\togglefalse{blx@allsq}\togglefalse{blx@twosq}%
-  \ifstrequal{#1}{all+}
-    {\toggletrue{blx@seq}\toggletrue{blx@allsq}}% all+
-    {\ifstrequal{#1}{three+}
-       {\toggletrue{blx@seq}}% three+
-       {\ifstrequal{#1}{two+}
-          {\toggletrue{blx@seq}\toggletrue{blx@twosq}}% two+
-          {\ifstrequal{#1}{none}{}{% none
-             \blx@warning{Invalid pageseq value `#1'\MessageBreak
-                          Falling back to default.}}}%
+\DeclareBibliographyOption[string]{citepagerange}{%
+  \togglefalse{blx@pagecomp}%
+  \togglefalse{blx@pagesq}%
+  \togglefalse{blx@allpagesq}%
+  \togglefalse{blx@twopagesq}%
+  \ifstrequal{#1}{allsqq}
+    {\toggletrue{blx@pagesq}\toggletrue{blx@allpagesq}}% allsqq
+    {\ifstrequal{#1}{3sqq}
+       {\toggletrue{blx@pagesq}}% 3sqq
+       {\ifstrequal{#1}{2sq}
+          {\toggletrue{blx@pagesq}\toggletrue{blx@twopagesq}}% 2sq
+          {\ifstrequal{#1}{compressed}% compressed
+             {\toggletrue{blx@pagecomp}}%
+             {\ifstrequal{#1}{normalized}{}{% normalized
+                 \blx@warning{Invalid citepagerange value `#1'\MessageBreak
+                              Falling back to default.}}}%
+          }%
        }%
     }%
 }

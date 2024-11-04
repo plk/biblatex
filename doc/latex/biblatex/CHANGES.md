@@ -1,8 +1,11 @@
 # RELEASE NOTES FOR VERSION 3.21
-- Added `\mkseqrange` and `\mkseqornormrange` (with starred
-  counterpart, respectively) to format pages in citations using
-  the bibstrings `sequens` and `sequentes` if applicable.
-- Added new option `pageseq` to enable and customize page sequences.
+- Added `\mkseqrange` and `\mkseqrange*` to format pages in citations
+  using the bibstrings `sequens` and `sequentes` if applicable.
+- Added new option `citepagerange` to customize the format of page ranges.
+- Added `\mkautorange` and `\mkautorange*` which forward to `\mknormrange`,
+  `\mkcomprange` or `\mkseqrange` (or their starred counterpart, respectively)
+  depending on the `citepagerange` value.
+- Use `\mkautorange` in standard styles.
 
 # RELEASE NOTES FOR VERSION 3.20
 - Added new option settings `minyearinit` and `minyearfull` for

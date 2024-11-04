@@ -2354,22 +2354,21 @@ This option controls indexing in citations and in the bibliography. More precise
 
 This feature requires support by the selected citation style. All standard styles which come with this package support indexing of both citations and entries in the bibliography. Note that you still need to enable indexing globally with \cmd{makeindex} to get an index.
 
-\optitem[none]{pageseq}{\opt{none}, \opt{two+}, \opt{three+}, \opt{all+}}
+\optitem[normalized]{citepagerange}{\opt{normalized}, \opt{2sq}, \opt{3sqq}, \opt{allsqq}, \opt{compressed}}
 
-This option controls how page ranges are formatted in the postnote field of citations. The following styles are available:
+This option controls how page ranges are formatted in the postnote field of citations. The following formats are available:
 
 \begin{valuelist}
-\item[none] Disable this feature, \ie the page list is output with normal (first--last) ranges in all cases.
-\item[two+] A range of exactly two consecutive pages is printed using the starting page and the localisation string \texttt{sequens}, \eg the list <1-2, 11-13, 21-24> is compressed to <1\,sq., 11--13, 21--24>.
-\item[three+] Similar in concept to \opt{two+} but, additionally, a range of exactly three consecutive pages is printed using the starting page and the localisation string \texttt{sequentes}, \eg the above list is compressed to <1\,sq., 11\,sqq., 21--24>.
-\item[all+] Similar in concept to \opt{three+} with the difference that \texttt{sequentes} is defined as <any range of more than two consecutive pages>. Hence, the above list is compressed to <1\,sq., 11\,sqq., 21\,sqq.>.
+\item[normalized] The cited pages are output with normalized ranges and full starting and ending pages in all cases, \eg the list <1-2, 11-13, 21-24> is output as <1--2, 11--13, 21--24>.
+\item[2sq] A range of exactly two consecutive pages is printed using the starting page and the localisation string \texttt{sequens}, \eg the above list is compressed to <1\,sq., 11--13, 21--24>.
+\item[3sqq] Similar in concept to \opt{2sq} but, additionally, a range of exactly three consecutive pages is printed using the starting page and the localisation string \texttt{sequentes}, \eg the above list is compressed to <1\,sq., 11\,sqq., 21--24>.
+\item[allsqq] Similar in concept to \opt{3sqq} with the difference that \texttt{sequentes} is defined as <any range of more than two consecutive pages>. Hence, the above list is compressed to <1\,sq., 11\,sqq., 21\,sqq.>.
+\item[compressed] The page ranges are compressed with \cmd{mkcomprange} (see \secref{aut:aux:msc}), so the above list comes out as <1--2, 11--3, 21--4>.
 \end{valuelist}
 
 The spacing inserted between the page number and the respective localisation string may be modified by redefining the macro \cmd{sqspace}.
 
-Note that this feature is only supported by citation styles that use \cmd{mkseqrange}, \cmd{mkseqrange*}, \cmd{mkseqornormrange}, or \cmd{mkseqornormrange*} for formatting page ranges in the postscript field (see \secref{aut:aux:msc}).
-
-Note also that if \cmd{mkseqrange} or \cmd{mkseqrange*} is used, the default is \opt{three+}.
+Note that this feature is only supported by citation styles that use \cmd{mkautorange} or \cmd{mkautorange*} for formatting page ranges in the postscript field (see \secref{aut:aux:msc}). When using \cmd{mkseqrange} or \cmd{mkseqrange*}, \opt{2sq}, \opt{3ssq}, and \opt{allsqq} are considered, any other value equals \opt{3ssq}.
 
 \boolitem[false]{loadfiles}
 
@@ -4906,13 +4905,13 @@ Similar to \cmd{pno} but suppresses all prefixes. See \secref{use:cav:pag} for f
 
 In the \prm{postnote} argument to a citation command, this command indicates a range of two pages where only the starting page is given. See \secref{use:cav:pag} for further details and usage instructions. The suffix printed is the localisation string \texttt{sequens}, see \secref{aut:lng:key}. The spacing inserted between the suffix and the page number may be modified by redefining the macro \cmd{sqspace}. The default is an unbreakable interword space. Note that this command is only available locally in citations and the bibliography.
 
-Note also that you might want to use the option \opt{pageseq} (see \secref{use:opt:pre:gen}) to automatize the use of this command rather than entering it manually.
+Note also that you might want to use the option \opt{citepagerange} (see \secref{use:opt:pre:gen}) to automatize the use of this command rather than entering it manually.
 
 \csitem{psqq}
 
 Similar to \cmd{psq} but, depending on the convention, indicates either a range of three pages or an open-ended page range greater than two pages. See \secref{use:cav:pag} for further details and usage instructions. The suffix printed is the localisation string \texttt{sequentes}, see \secref{aut:lng:key}. This command is only available locally in citations and the bibliography.
 
-Note also that you might want to use the option \opt{pageseq} (see \secref{use:opt:pre:gen}) to automatize the use of this command rather than entering it manually.
+Note also that you might want to use the option \opt{citepagerange} (see \secref{use:opt:pre:gen}) to automatize the use of this command rather than entering it manually.
 
 \cmditem{pnfmt}{text}
 
@@ -11272,7 +11271,7 @@ This command, which is intended for use in field formatting directives, will par
 \cmditem{mkseqrange}[postpro][itempostpro]{text}
 \cmditem*{mkseqrange*}[postpro][itempostpro]{text}
 
-This command, which is intended for use in field formatting directives, will parse its \prm{text} argument for page ranges and will normalise them similar to \cmd{mknormrange}. The difference is that the command will output only the first page and the localisation string \texttt{sequens} or \texttt{sequentes}, respectively, if applicable (depending on the setting of the \opt{pageseq} option; see \secref{use:opt:pre:gen}). The scanner recognises \cmd{bibrangedash} and hyphens as range dashes. It will normalize the dash by replacing any number of consecutive hyphens with \cmd{bibrangedash}. Lists of ranges delimited with \cmd{bibrangessep} are also supported. The scanner will normalise any comma or semicolons surrounded by optional space by replacing them with \cmd{bibrangessep}. If you want to hide a character from the list/range scanner for some reason, wrap the character or the entire string in curly braces. The optional \prm{postpro} argument specifies a macro to be used for post-processing the \prm{text}. See \cmd{mkcomprange} on how to use this argument. The starred version of this command differs from the regular one in the way the \prm{postpro} argument is applied to a list of values. The second optional argument \prm{itempostpro} is used to post-process each individual number item in the formatted list. It can be used to convert numbers from cardinals to ordinals. If only one optional argument is present, it is treated as \prm{postpro}. For example, with default \opt{pageseq} settings:
+This command, which is intended for use in field formatting directives, will parse its \prm{text} argument for page ranges and will normalise them similar to \cmd{mknormrange}. The difference is that the command will output only the first page and the localisation string \texttt{sequens} or \texttt{sequentes}, respectively, if applicable (depending on the setting of the \opt{citepagerange} option; see \secref{use:opt:pre:gen}). The scanner recognises \cmd{bibrangedash} and hyphens as range dashes. It will normalize the dash by replacing any number of consecutive hyphens with \cmd{bibrangedash}. Lists of ranges delimited with \cmd{bibrangessep} are also supported. The scanner will normalise any comma or semicolons surrounded by optional space by replacing them with \cmd{bibrangessep}. If you want to hide a character from the list/range scanner for some reason, wrap the character or the entire string in curly braces. The optional \prm{postpro} argument specifies a macro to be used for post-processing the \prm{text}. See \cmd{mkcomprange} on how to use this argument. The starred version of this command differs from the regular one in the way the \prm{postpro} argument is applied to a list of values. The second optional argument \prm{itempostpro} is used to post-process each individual number item in the formatted list. It can be used to convert numbers from cardinals to ordinals. If only one optional argument is present, it is treated as \prm{postpro}. For example, with default \opt{citepagerange} settings:
 
 \begin{ltxexample}
 \mkseqrange[\mkpageprefix]{5, 123-124, 423-439, 522-524}
@@ -11286,11 +11285,11 @@ pp. 5, 123 sq., 423-439, 522 sqq.
 p. 5, pp. 123 sq., pp. 423-439, pp. 522 sqq.
 \end{ltxexample}
 
-\cmditem{mkseqornormrange}[postpro][itempostpro]{text}
-\cmditem*{mkseqornormrange*}[postpro][itempostpro]{text}
+\cmditem{mkautorange}[postpro][itempostpro]{text}
+\cmditem*{mkautorange*}[postpro][itempostpro]{text}
 
-This command, which is intended for use in field formatting directives, is a portmanteau command which will be equal to  \cmd{mkseqrange} or \cmd{mkseqrange*}, respectively, if the \opt{pageseq} option (see \secref{use:opt:pre:gen}) is is set to \opt{two+}, \opt{three+}, or \opt{all+}, and to \cmd{mknormrange} or \cmd{mknormrange*} otherwise.
-Use this if you want to give the users of your style the choice to toggle \opt{pageseq}.
+This command, which is intended for use in field formatting directives, is a portmanteau command which is equal to \cmd{mkseqrange} or \cmd{mkseqrange*}, respectively, if the \opt{citepagerange} option (see \secref{use:opt:pre:gen}) is set to \opt{2sq}, \opt{3sqq}, or \opt{allsqq}, to \cmd{mkcomprange} or \cmd{mkcomprange*}, respectively, if the \opt{citepagerange} option is set to \opt{compressed}, and to \cmd{mknormrange} or \cmd{mknormrange*} with \opt{normalized} and by default.
+Use this if you want to give the users of your style the choice to toggle \opt{citepagerange}.
 
 
 \cmditem{mkfirstpage}[postpro][itempostpro]{text}
@@ -15078,8 +15077,10 @@ This revision history is a list of changes relevant to users of this package. Ch
 
 \begin{changelog}
 \begin{release}{3.21}{2024-}
-\item Added \cmd{mkseqrange} and \cmd{mkseqornormrange} (with starred counterpart, respectively) to format pages in citations using the bibliography strings \texttt{sequens} and \texttt{sequentes} if applicable \see{aut:aux:msc}
-\item Added new option \opt{pageseq} to enable and customize page sequences \see{use:opt:pre:gen}
+\item Added \cmd{mkseqrange} and \cmd{mkseqrange*} to format pages in citations using the bibliography strings \texttt{sequens} and \texttt{sequentes} if applicable\see{aut:aux:msc}
+\item Added option \opt{citepagerange} to customize the format of page ranges\see{use:opt:pre:gen}
+\item Added \cmd{mkautorange} and \cmd{mkautorange*} which forwards to \cmd{mknormrange}, \cmd{mkcomprange} or \cmd{mkseqrange} (or their starred counterpart, respectively) depending on the \opt{citepagerange} value\see{aut:aux:msc}
+\item Use \cmd{mkautorange} in standard styles.
 \end{release}
 \begin{release}{3.20}{2024-03-22}
 \item Added new \opt{uniquename} options \see{use:opt:pre:int}
