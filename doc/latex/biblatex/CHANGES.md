@@ -6,6 +6,7 @@
   `\mkcomprange` or `\mkseqrange` (or their starred counterpart, respectively)
   depending on the `citepagerange` value.
 - Use `\mkautorange` in standard styles.
+- Fix `\DeclareHyphenationExceptions` with polyglossia and language variants.
 
 # RELEASE NOTES FOR VERSION 3.20
 - Added new option settings `minyearinit` and `minyearfull` for
