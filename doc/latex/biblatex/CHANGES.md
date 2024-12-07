@@ -7,6 +7,7 @@
   depending on the `citepagerange` value.
 - Use `\mkautorange` in standard styles.
 - Fix `\DeclareHyphenationExceptions` with polyglossia and language variants.
+- Support bibstrings in location field.
 
 # RELEASE NOTES FOR VERSION 3.20
 - Added new option settings `minyearinit` and `minyearfull` for
