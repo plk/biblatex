@@ -2,7 +2,7 @@ checkengines = {"pdftex"}
 stdengine = "pdftex"
 checkruns = 3
 
-testfiledir = "testfiles/index-complex"
+testfiledir = "testfiles/index-multiple"
 
 function runtest_tasks(name, run)
   if run == 1 then
