@@ -1,3 +1,7 @@
+# RELEASE NOTES FOR VERSION 3.22
+- Added `noanchors` option to suppress link anchors/targets to
+  a bibliography.
+
 # RELEASE NOTES FOR VERSION 3.21
 - Added `\mkseqrange` and `\mkseqrange*` to format pages in citations
   using the bibstrings `sequens` and `sequentes` if applicable.

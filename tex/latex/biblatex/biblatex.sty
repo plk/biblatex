@@ -9471,6 +9471,7 @@
 \blx@kv@defkey{blx@bib1}{prenote}{}
 \blx@kv@defkey{blx@bib1}{postnote}{}
 \blx@kv@defkey{blx@bib1}{omitnumbers}[]{}
+
 % Here we are using the first pass to see if there is an explicit setting for resetnumbers
 % If there isn't we will use the default behaviour where if there is a labelprefix,
 % resetnumbers will default to "true"
@@ -10246,12 +10247,20 @@
 % see https://github.com/plk/biblatex/issues/1366
 \let\blx@anchors\@empty
 
-\protected\def\blx@anchor{%
+\protected\def\blx@anchor@active{%
   \xifinlist{\the\c@refsection @\abx@field@entrykey}{\blx@anchors}
     {}
     {\listxadd\blx@anchors{\the\c@refsection @\abx@field@entrykey}%
      \hyper@natanchorstart{\the\c@refsection @\abx@field@entrykey}%
      \hyper@natanchorend}}
+
+\let\blx@anchor\blx@anchor@active
+
+\blx@kv@defkey{blx@bib1}{noanchors}{}
+\blx@kv@defkey{blx@bib2}{noanchors}[true]{%
+  \ifstrequal{#1}{true}
+    {\let\blx@anchor\@empty}
+    {\let\blx@anchor\blx@anchor@active}}
 
 % fallback defs
 \providecommand\hyper@natanchorstart[1]{}%
