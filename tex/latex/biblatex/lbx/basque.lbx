@@ -9,41 +9,86 @@
   \let\finalandcomma=\empty
   \let\finalandsemicolon=\empty
   \def\mkbibordinal{\mkbibmascord}%
-  \providecommand*{\sptext}{\textsuperscript}% \sptext -> spanish.ldf (babel)
-  %\protected\def\mkbibmascord#1{\stripzeros{#1}\sptext{o}}%
+  \providecommand*{\sptext}{\textsuperscript}%
   \protected\def\mkbibmascord#1{\stripzeros{#1}\adddot}%
-  %\protected\def\mkbibfemord#1{\stripzeros{#1}\sptext{a}}%
   \protected\def\mkbibfemord#1{\stripzeros{#1}\adddot}%
   \protected\def\mkbibneutord{\mkbibmascord}%
+  \def\blx@basque@mon@i{urtarrila}%
+  \def\blx@basque@mon@ii{otsaila}%
+  \def\blx@basque@mon@iii{martxoa}%
+  \def\blx@basque@mon@iv{apirila}%
+  \def\blx@basque@mon@v{maiatza}%
+  \def\blx@basque@mon@vi{ekaina}%
+  \def\blx@basque@mon@vii{uztaila}%
+  \def\blx@basque@mon@viii{abuztua}%
+  \def\blx@basque@mon@ix{iraila}%
+  \def\blx@basque@mon@x{urria}%
+  \def\blx@basque@mon@xi{azaroa}%
+  \def\blx@basque@mon@xii{abendua}%
   \protected\def\mkbibdatelong#1#2#3{%
-    \iffieldundef{#3}
-      {}
-      {\stripzeros{\thefield{#3}}%
-       \iffieldundef{#2}{}{\nobreakspace de\space}}%
-    \iffieldundef{#2}
-      {}
-      {\mkbibmonth{\thefield{#2}}%
-       \iffieldundef{#1}{}{\nobreakspace de\space}}%
-    \iffieldbibstring{#1}
-      {\bibstring{\thefield{#1}}}
-      {\dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}}}%
-  \protected\def\mkbibdateshort#1#2#3{%
     \iffieldundef{#1}
       {}
-      {\mkdayzeros{\thefield{#1}}%
-       \iffieldundef{#2}{}{\bibdatesep}}%
+      {\dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}%
+       \ifboolexpr{not test {\iffieldundef{#2}} or not test {\iffieldundef{#3}}}
+         {\ifcase\numexpr\thefield{#1}-(\thefield{#1}/100)*100\relax
+            ko\or eko\or ko\or ko\or ko\or eko\or ko\or ko\or ko\or ko\or%  0- 9
+            eko\or ko\or ko\or ko\or ko\or eko\or ko\or ko\or ko\or ko\or% 10-19
+            ko\or eko\or ko\or ko\or ko\or eko\or ko\or ko\or ko\or ko\or% 20-29
+            eko\or ko\or ko\or ko\or ko\or eko\or ko\or ko\or ko\or ko\or% 30-39
+            ko\or eko\or ko\or ko\or ko\or eko\or ko\or ko\or ko\or ko\or% 40-49
+            eko\or ko\or ko\or ko\or ko\or eko\or ko\or ko\or ko\or ko\or% 50-59
+            ko\or eko\or ko\or ko\or ko\or eko\or ko\or ko\or ko\or ko\or% 60-69
+            eko\or ko\or ko\or ko\or ko\or eko\or ko\or ko\or ko\or ko\or% 70-79
+            ko\or eko\or ko\or ko\or ko\or eko\or ko\or ko\or ko\or ko\or% 80-89
+            eko\or ko\or ko\or ko\or ko\or eko\or ko\or ko\or ko\or ko\or% 90-99
+            eko% 100, just in case
+          \fi}%
+         {}}%
     \iffieldundef{#2}
       {}
-      {\mkmonthzeros{\thefield{#2}}%
-       \iffieldundef{#1}{}{\bibdatesep}}%
-    \iffieldbibstring{#3}
-      {\bibstring{\thefield{#3}}}
-      \stripzeros{\thefield{#3}}}%
+      {\addspace
+       \iffieldundef{#3}
+         {\ifcase\thefield{#2}%
+            \or\blx@basque@mon@i
+            \or\blx@basque@mon@ii
+            \or\blx@basque@mon@iii
+            \or\blx@basque@mon@iv
+            \or\blx@basque@mon@v
+            \or\blx@basque@mon@vi
+            \or\blx@basque@mon@vii
+            \or\blx@basque@mon@viii
+            \or\blx@basque@mon@ix
+            \or\blx@basque@mon@x
+            \or\blx@basque@mon@xi
+            \or\blx@basque@mon@xii
+          \fi}%
+         {\mkbibmonth{\thefield{#2}}}}%
+    \iffieldundef{#3}
+      {}
+      {\addspace\stripzeros{\thefield{#3}}%
+       \ifcase\thefield{#3}%
+         \or a\or a\or a\or a\or a\or a\or a\or a\or a\or a%  1-10
+         \or \or a\or a\or a\or a\or a\or a\or a\or a\or a%  11-20
+         \or a\or a\or a\or a\or a\or a\or a\or a\or a\or a% 21-30
+         \or% 31
+       \fi}%
+  }%
+  \protected\def\mkbibdateshort#1#2#3{%
+    \iffieldbibstring{#1}
+      {\bibstring{\thefield{#1}}}
+      {\dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}}%
+    \iffieldundef{#2}
+      {}
+      {\bibdatesep\mkmonthzeros{\thefield{#2}}}%
+    \iffieldundef{#3}
+      {}
+      {\bibdatesep\mkdayzeros{\thefield{#3}}}%
+  }%
   \savecommand\mkdaterangeterse
   \protected\def\mkdaterangeterse{%
     \BibliographyWarning{%
       Date format 'terse' not applicable to\MessageBreak
-      Spanish dates. Using format 'short' instead}%
+      Basque dates. Using format 'short' instead}%
     \mkdaterangefull{short}}%
   \savecommand\mkbibordedition
   \savecommand\mkbibordseries
@@ -373,18 +418,18 @@
   seealso          = {{ikus ere}{ik\adddotspace ere}},%
   backrefpage      = {{ikus orria}{ik\adddotspace orr\adddot}},%
   backrefpages     = {{ikus orriak}{ik\adddotspace orrk\adddot}},%
-  january          = {{urtarrila}{urt\adddot}},%
-  february         = {{otsaila}{ots\adddot}},%
-  march            = {{martxoa}{mar\adddot}},%
-  april            = {{apirila}{ap\adddot}},%
-  may              = {{maiatza}{mai\adddot}},%
-  june             = {{ekaina}{ek\adddot}},%
-  july             = {{uztaila}{uz\adddot}},%
-  august           = {{abuztua}{abu\adddot}},%
-  september        = {{iraila}{ir\adddot}},%
-  october          = {{urria}{urr\adddot}},%
-  november         = {{azaroa}{az\adddot}},%
-  december         = {{abendua}{abe\adddot}},%
+  january          = {{urtarrilaren}{urt\adddot}},%
+  february         = {{otsailaren}{ots\adddot}},%
+  march            = {{martxoaren}{mar\adddot}},%
+  april            = {{apirilaren}{ap\adddot}},%
+  may              = {{maiatzaren}{mai\adddot}},%
+  june             = {{ekainaren}{ek\adddot}},%
+  july             = {{uztailaren}{uz\adddot}},%
+  august           = {{abuztuaren}{abu\adddot}},%
+  september        = {{irailaren}{ir\adddot}},%
+  october          = {{urriaren}{urr\adddot}},%
+  november         = {{azaroaren}{az\adddot}},%
+  december         = {{abenduaren}{abe\adddot}},%
   langamerican     = {{ingleles amerikarra}{ingeles amerikarra}},%
   langbrazilian    = {{portugesa}{portugesa}},%
   langbulgarian    = {{bulgariera}{bulgariera}},%
