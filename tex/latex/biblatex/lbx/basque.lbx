@@ -3,47 +3,86 @@
 
 \DeclareRedundantLanguages{basque}{basque}
 
+\NewBibliographyString{%
+  genjanuary,
+  genfebruary,
+  genmarch,
+  genapril,
+  genmay,
+  genjune,
+  genjuly,
+  genaugust,
+  genseptember,
+  genoctober,
+  gennovember,
+  gendecember%
+}
+
 \DeclareBibliographyExtras{%
   \renewrobustcmd*{\bibdatesep}{\mbox{-}}%
   \protected\def\bibrangedash{\mbox{-}}% non-breaking hyphen
   \let\finalandcomma=\empty
   \let\finalandsemicolon=\empty
   \def\mkbibordinal{\mkbibmascord}%
-  \providecommand*{\sptext}{\textsuperscript}% \sptext -> spanish.ldf (babel)
-  %\protected\def\mkbibmascord#1{\stripzeros{#1}\sptext{o}}%
+  \providecommand*{\sptext}{\textsuperscript}%
   \protected\def\mkbibmascord#1{\stripzeros{#1}\adddot}%
-  %\protected\def\mkbibfemord#1{\stripzeros{#1}\sptext{a}}%
   \protected\def\mkbibfemord#1{\stripzeros{#1}\adddot}%
   \protected\def\mkbibneutord{\mkbibmascord}%
   \protected\def\mkbibdatelong#1#2#3{%
-    \iffieldundef{#3}
-      {}
-      {\stripzeros{\thefield{#3}}%
-       \iffieldundef{#2}{}{\nobreakspace de\space}}%
-    \iffieldundef{#2}
-      {}
-      {\mkbibmonth{\thefield{#2}}%
-       \iffieldundef{#1}{}{\nobreakspace de\space}}%
-    \iffieldbibstring{#1}
-      {\bibstring{\thefield{#1}}}
-      {\dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}}}%
-  \protected\def\mkbibdateshort#1#2#3{%
     \iffieldundef{#1}
       {}
-      {\mkdayzeros{\thefield{#1}}%
-       \iffieldundef{#2}{}{\bibdatesep}}%
+      {\dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}%
+       \ifboolexpr{not test {\iffieldundef{#2}} or not test {\iffieldundef{#3}}}
+         {\ifnumequal{\thefield{#1}}{0}%
+          {ko}% zero (0)
+          {\edef\lbx@basque@yearmodhundred{\lbx@lbx@basque@truncmod{\thefield{#1}}{100}}%
+           \ifnumequal{\lbx@basque@yearmodhundred}{0}
+             {\ifnumequal{\lbx@lbx@basque@truncmod{\thefield{#1}}{1000}}{0}
+                {ko}% mila, bi mila, milioi, ... (1000, 2000, 1 000 000, ...)
+                {eko}}% ehun, berrehun, ..., bederatziehun (100, 200, ..., 900)
+            {\edef\lbx@basque@yearmodtwenty{%
+               \lbx@lbx@basque@truncmod{\lbx@basque@yearmodhundred}{20}}%
+             \ifboolexpr{
+               test {\ifnumequal{\lbx@basque@yearmodtwenty}{1}}% 1, 21, 41, 61, 81
+               or test {\ifnumequal{\lbx@basque@yearmodtwenty}{5}}% 5, 25, 45, 65, 85
+               or test {\ifnumequal{\lbx@basque@yearmodtwenty}{10}}% 10, 30, 50, 70, 90
+               or test {\ifnumequal{\lbx@basque@yearmodtwenty}{15}}% 15, 35, 55, 75, 95
+             }
+               {eko}
+               {ko}}}}%
+      {}}%
     \iffieldundef{#2}
       {}
-      {\mkmonthzeros{\thefield{#2}}%
-       \iffieldundef{#1}{}{\bibdatesep}}%
-    \iffieldbibstring{#3}
-      {\bibstring{\thefield{#3}}}
-      \stripzeros{\thefield{#3}}}%
+      {\addspace
+       \iffieldundef{#3}
+         {\mkbibmonth{\thefield{#2}}}%
+         {\lbx@basque@mkbibmonthgen{\thefield{#2}}}}%
+    \iffieldundef{#3}
+      {}
+      {\addspace\stripzeros{\thefield{#3}}%
+       \ifcase\thefield{#3}%
+         \or a\or a\or a\or a\or a\or a\or a\or a\or a\or a%  1-10
+         \or \or a\or a\or a\or a\or a\or a\or a\or a\or a%  11-20
+         \or a\or a\or a\or a\or a\or a\or a\or a\or a\or a% 21-30
+         \or% 31
+       \fi}%
+  }%
+  \protected\def\mkbibdateshort#1#2#3{%
+    \iffieldbibstring{#1}
+      {\bibstring{\thefield{#1}}}
+      {\dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}}%
+    \iffieldundef{#2}
+      {}
+      {\bibdatesep\mkmonthzeros{\thefield{#2}}}%
+    \iffieldundef{#3}
+      {}
+      {\bibdatesep\mkdayzeros{\thefield{#3}}}%
+  }%
   \savecommand\mkdaterangeterse
   \protected\def\mkdaterangeterse{%
     \BibliographyWarning{%
       Date format 'terse' not applicable to\MessageBreak
-      Spanish dates. Using format 'short' instead}%
+      Basque dates. Using format 'short' instead}%
     \mkdaterangefull{short}}%
   \savecommand\mkbibordedition
   \savecommand\mkbibordseries
@@ -385,6 +424,18 @@
   october          = {{urria}{urr\adddot}},%
   november         = {{azaroa}{az\adddot}},%
   december         = {{abendua}{abe\adddot}},%
+  genjanuary       = {{urtarrilaren}{urt\adddot}},%
+  genfebruary      = {{otsailaren}{ots\adddot}},%
+  genmarch         = {{martxoaren}{mar\adddot}},%
+  genapril         = {{apirilaren}{ap\adddot}},%
+  genmay           = {{maiatzaren}{mai\adddot}},%
+  genjune          = {{ekainaren}{ek\adddot}},%
+  genjuly          = {{uztailaren}{uz\adddot}},%
+  genaugust        = {{abuztuaren}{abu\adddot}},%
+  genseptember     = {{irailaren}{ir\adddot}},%
+  genoctober       = {{urriaren}{urr\adddot}},%
+  gennovember      = {{azaroaren}{az\adddot}},%
+  gendecember      = {{abenduaren}{abe\adddot}},%
   langamerican     = {{ingleles amerikarra}{ingeles amerikarra}},%
   langbrazilian    = {{portugesa}{portugesa}},%
   langbulgarian    = {{bulgariera}{bulgariera}},%
@@ -493,6 +544,34 @@
 % S2               = {{}{}},% FIXME: missing
   am               = {{a\adddotspace m\adddot}{a\adddot m\adddot}},%
   pm               = {{p\adddotspace m\adddot}{p\adddot m\adddot}},%
+}
+
+\protected\gdef\lbx@basque@mkbibmonthgen#1{%
+  \ifcase0#1\relax
+    #1\BibliographyWarning{Month out of range}%
+  \or\abx@bibmonth{genjanuary}%
+  \or\abx@bibmonth{genfebruary}%
+  \or\abx@bibmonth{genmarch}%
+  \or\abx@bibmonth{genapril}%
+  \or\abx@bibmonth{genmay}%
+  \or\abx@bibmonth{genjune}%
+  \or\abx@bibmonth{genjuly}%
+  \or\abx@bibmonth{genaugust}%
+  \or\abx@bibmonth{genseptember}%
+  \or\abx@bibmonth{genoctober}%
+  \or\abx@bibmonth{gennovember}%
+  \or\abx@bibmonth{gendecember}%
+  \else
+    #1\BibliographyWarning{Month out of range}%
+  \fi}%
+
+\gdef\lbx@lbx@basque@truncmod#1#2{%
+  \the\numexpr
+    (#1)-((#1)/(#2))*(#2)
+    \ifnum\numexpr (#1)-((#1)/(#2))*(#2)\relax<0
+    +(#2)
+    \fi
+  \relax
 }
 
 \endinput
