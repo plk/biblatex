@@ -297,6 +297,11 @@
     {}}
 \endgroup
 
+
+\IfDocumentMetadataT{%
+  \AddToHook{fntext/begin}{\toggletrue{blx@footnote}}%
+}
+
 \AtEndPreamble{%
   \blx@packageincompatibility
   \blx@packageincompatibility@endpreambleonly
@@ -354,97 +359,99 @@
        {\appto\robustify@contents{\blx@contentssafe@citecommands}}
        {\blx@err@patch{\string\addtocontents}}}%
   % patch footnote
-  \toggletrue{blx@tempa}%
-  \def\do#1{%
-    \patchcmd#1%
-      {\color@begingroup}
-      {\color@begingroup\toggletrue{blx@footnote}}
-      {\togglefalse{blx@tempa}\listbreak}
-      {}}%
-  \docsvlist{%
-    \@footnotetext,%          latex
-    \H@@footnotetext,%        hyperref
-    \V@@footnotetext,%        fancyvrb
-    \scr@saved@footnotetext,% koma-script 3.x
-    \l@dold@footnotetext,%    ledmac
-    \l@doldold@footnotetext,% ledmac
-    \predefinedfootnotetext,% linguex
-    \@fntORI}%                frenchle
-  \iftoggle{blx@tempa}%       ams classes ...
-    {\def\do#1{%
-       \patchcmd#1
-         {\@makefntext}
-         {\toggletrue{blx@footnote}\@makefntext}
+  \IfDocumentMetadataF{%
+    \toggletrue{blx@tempa}%
+    \def\do#1{%
+      \patchcmd#1%
+        {\color@begingroup}
+        {\color@begingroup\toggletrue{blx@footnote}}
+        {\togglefalse{blx@tempa}\listbreak}
+        {}}%
+    \docsvlist{%
+      \@footnotetext,%          latex
+      \H@@footnotetext,%        hyperref
+      \V@@footnotetext,%        fancyvrb
+      \scr@saved@footnotetext,% koma-script 3.x
+      \l@dold@footnotetext,%    ledmac
+      \l@doldold@footnotetext,% ledmac
+      \predefinedfootnotetext,% linguex
+      \@fntORI}%                frenchle
+    \iftoggle{blx@tempa}%       ams classes ...
+      {\def\do#1{%
+         \patchcmd#1
+           {\@makefntext}
+           {\toggletrue{blx@footnote}\@makefntext}
+           {\togglefalse{blx@tempa}}
+           {}}%
+       \docsvlist{\@footnotetext,%    ams classes standard
+                  \H@@footnotetext}}% hyperref
+      {}%
+    \@ifpackageloaded{bidi}%    bidi
+      {\blx@patchbidifootnotes}
+      {}%
+    \@ifclassloaded{memoir}
+      {\def\do#1{%
+         \patchcmd#1%
+           {\color@begingroup}
+           {\color@begingroup\toggletrue{blx@footnote}}
+           {}
+           {}}%
+       \docsvlist{%
+         \m@mold@footnotetext,%
+         \@plainfootnotetext,%
+         \@twocolfootnotetext,%
+         \@threecolfootnotetext,%
+         \@parafootnotetext}%
+       \def\do#1{%
+         \patchcmd#1%
+           {\color@begingroup\@makefntext}
+           {\color@begingroup\toggletrue{blx@footnote}\@makefntext}
+           {}
+           {}}%
+       \docsvlist{%
+         \@footnotetext,% patch twice
+         \H@@footnotetext,% patch twice
+         \@plainfootnotetext}}
+      {}%
+    \@ifclassloaded{beamer}
+      {\expandafter\patchcmd\csname beamerx@\string\beamer@framefootnotetext\endcsname
+         {\color@begingroup}
+         {\color@begingroup\toggletrue{blx@footnote}}
          {\togglefalse{blx@tempa}}
-         {}}%
-     \docsvlist{\@footnotetext,%    ams classes standard
-                \H@@footnotetext}}% hyperref
-    {}%
-  \@ifpackageloaded{bidi}%    bidi
-    {\blx@patchbidifootnotes}
-    {}%
-  \@ifclassloaded{memoir}
-    {\def\do#1{%
-       \patchcmd#1%
+         {}%
+       \expandafter\patchcmd\csname beamerx@\string\@mpfootnotetext\endcsname
          {\color@begingroup}
          {\color@begingroup\toggletrue{blx@footnote}}
          {}
-         {}}%
-     \docsvlist{%
-       \m@mold@footnotetext,%
-       \@plainfootnotetext,%
-       \@twocolfootnotetext,%
-       \@threecolfootnotetext,%
-       \@parafootnotetext}%
-     \def\do#1{%
-       \patchcmd#1%
-         {\color@begingroup\@makefntext}
-         {\color@begingroup\toggletrue{blx@footnote}\@makefntext}
+         {}}
+      {}%
+    \iftoggle{blx@tempa}
+      {\blx@warning@noline{%
+         Patching footnotes failed.\MessageBreak
+         Footnote detection will not work}}
+      {}%
+    \def\do#1{%
+      \patchcmd#1%
+        {\color@begingroup}
+         {\color@begingroup\toggletrue{blx@footnote}}
+        {\listbreak}
+        {}}%
+    \docsvlist{%
+      \@mpfootnotetext,%        minipages
+      \H@@mpfootnotetext}%      hyperref minipages
+    \@ifpackageloaded{bigfoot}
+      {\apptocmd\@makefnstartbox
+         {\toggletrue{blx@footnote}}
          {}
-         {}}%
-     \docsvlist{%
-       \@footnotetext,% patch twice
-       \H@@footnotetext,% patch twice
-       \@plainfootnotetext}}
-    {}%
-  \@ifclassloaded{beamer}
-    {\expandafter\patchcmd\csname beamerx@\string\beamer@framefootnotetext\endcsname
-       {\color@begingroup}
-       {\color@begingroup\toggletrue{blx@footnote}}
-       {\togglefalse{blx@tempa}}
-       {}%
-     \expandafter\patchcmd\csname beamerx@\string\@mpfootnotetext\endcsname
-       {\color@begingroup}
-       {\color@begingroup\toggletrue{blx@footnote}}
-       {}
-       {}}
-    {}%
-  \iftoggle{blx@tempa}
-    {\blx@warning@noline{%
-       Patching footnotes failed.\MessageBreak
-       Footnote detection will not work}}
-    {}%
-  \def\do#1{%
-    \patchcmd#1%
-      {\color@begingroup}
-      {\color@begingroup\toggletrue{blx@footnote}}
-      {\listbreak}
-      {}}%
-  \docsvlist{%
-    \@mpfootnotetext,%        minipages
-    \H@@mpfootnotetext}%      hyperref minipages
+         {\blx@err@patch{'bigfoot' package}}}
+      {}%
+  }%
   \@ifpackageloaded{endnotes}
     {\patchcmd\theendnotes
        {\enoteformat}
        {\toggletrue{blx@footnote}\enoteformat}
        {}
        {\blx@err@patch{'endnotes' package}}}
-    {}%
-  \@ifpackageloaded{bigfoot}
-    {\apptocmd\@makefnstartbox
-       {\toggletrue{blx@footnote}}
-       {}
-       {\blx@err@patch{'bigfoot' package}}}
     {}%
   \@ifpackageloaded{showkeys}
     {\ifdef\SK@
