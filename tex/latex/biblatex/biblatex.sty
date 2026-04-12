@@ -12344,7 +12344,16 @@
 % fallback defs
 \appto\blx@mknohyperref{%
   \def\blx@nohyperref[#1]#2{#2}%
-  \let\blx@imc@ifhyperref\@secondoftwo}
+  \let\blx@imc@ifhyperref\@secondoftwo
+  \IfDocumentMetadataTF
+   {
+    \AddToHook{cmd/hyper@natlinkstart/before}[biblatex]{}
+    \AddToHook{cmd/hyper@natlinkend/after}[biblatex]{}
+    \DeclareHookRule{cmd/hyper@natlinkstart/before}{biblatex}{voids}{hyperref}
+    \DeclareHookRule{cmd/hyper@natlinkend/after}{biblatex}{voids}{hyperref}
+   }
+   {\AddToHook{package/hyperref/after}{\def\hyper@natlinkstart#1{}\def\hyper@natlinkend{}}}%
+}
 
 \blx@regimcs{%
   \bibhyperref \bibhyperlink \bibhypertarget \ifhyperref}
