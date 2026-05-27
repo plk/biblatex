@@ -11336,6 +11336,7 @@
   \undef\blx@tempd
   \let\blx@tempe\@empty
   \def\blx@tempf{false}%
+  \let\blx@tempg\@empty
   \blx@kv@setkeys{blx@addbib}{#2}%
   \blx@xsanitizeafter{#1}{#3}%
   \endgroup}
@@ -11353,6 +11354,7 @@
 \blx@kv@defkey{blx@addbib}{label}{\edef\blx@tempd{\detokenize{#1}}}
 \blx@kv@defkey{blx@addbib}{bibencoding}{\def\blx@tempe{#1}}
 \blx@kv@defkey{blx@addbib}{glob}[true]{\def\blx@tempf{#1}}
+\blx@kv@defkey{blx@addbib}{category}{\def\blx@tempg{#1}}
 
 % \blx@res@type@<resource>      resource -> type
 % \blx@res@data@<resource>      resource -> datatype
@@ -11375,7 +11377,36 @@
 \def\blx@addbib@resource#1{%
   \blx@addbib@register{#1}%
   \listgadd\blx@bibfiles{#1}%
-  \blx@regbibfile\jobname{#1}}
+  \blx@regbibfile\jobname{#1}%
+  \ifblank{\blx@tempg}
+    {}
+    {\forcsvlist{\blx@addbib@category{#1}}{\blx@tempg}}}
+
+% {<resource>}{<category>}
+\def\blx@addbib@category#1#2{%
+  % #2 may be a macro reference (e.g. \blx@tempg) rather than literal characters;
+  % edef here to capture the expanded category name as character tokens.
+  \edef\blx@addbib@catname{#2}%
+  \ifcsundef{blx@catg@\blx@addbib@catname}
+    {\blx@error
+       {Category '\blx@addbib@catname' not declared}
+       {Use \string\DeclareBibliographyCategory\space to declare}}
+    {\booltrue{sourcemap}%
+     \xappto\blx@sourcemap@user{%
+       \blx@xml@sourcemap@maps{ datatype="bibtex" level="user" map_overwrite="1"}{%
+         \blx@xml@sourcemap@map{}{%
+           \blx@xml@sourcemap@perdatasource{#1}%
+           \blx@xml@sourcemap@step{ map_field_set="keywords"
+             map_field_value="blx@srccat@\blx@addbib@catname"
+             map_append="1"}}}}%
+     % Use \csxappto so \blx@addbib@catname is expanded to its string value
+     % (category name as literal characters) before the tokens are stored in
+     % the hook; \noexpand protects the commands that must not be expanded.
+     \csxappto{blx@hook@bblitem@*}{%
+       \noexpand\ifkeyword{blx@srccat@\blx@addbib@catname}%
+         {\noexpand\blx@addtocategory
+            {\blx@addbib@catname}{\noexpand\thefield{entrykey}}}%
+         {}}}}
 
 \def\blx@addbib@global#1{%
   \blx@addbib@resource{#1}%
