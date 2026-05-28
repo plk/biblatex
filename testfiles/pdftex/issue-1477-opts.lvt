@@ -1,0 +1,51 @@
+\input{regression-test}
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+% issue-1477: verify that category= coexists correctly with other
+% \addbibresource options (label=, type=) without breaking option parsing.
+
+\begin{filecontents}{\jobname-primary.bib}
+@book{hectic,
+  author    = {Henry Hectic},
+  title     = {How Horticulturalists Howl},
+  publisher = {Honorary Books},
+  location  = {Henage},
+  year      = {2000},
+}
+\end{filecontents}
+
+\begin{filecontents}{\jobname-secondary.bib}
+@book{flutter,
+  author    = {Frederick Flutter},
+  title     = {Fraternising with Flowers},
+  publisher = {Frippery Pamphlets},
+  location  = {Folkestone},
+  year      = {1995},
+}
+\end{filecontents}
+
+\usepackage[style=authoryear, backend=biber]{biblatex}
+
+\DeclareBibliographyCategory{primary}
+\DeclareBibliographyCategory{secondary}
+
+% category= combined with label=
+\addbibresource[category=primary, label=prim]{\jobname-primary.bib}
+% category= combined with type= (explicit default value)
+\addbibresource[category=secondary, type=file]{\jobname-secondary.bib}
+
+\begin{document}
+\showoutput
+\START
+
+\cite{hectic}
+\cite{flutter}
+
+\printbibliography[title={Primary Sources},category=primary]
+\printbibliography[title={Secondary Sources},category=secondary]
+
+\clearpage
+\OMIT
+\end{document}

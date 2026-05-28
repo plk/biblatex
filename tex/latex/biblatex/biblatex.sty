@@ -11380,43 +11380,50 @@
   \blx@regbibfile\jobname{#1}%
   \ifdefempty{\blx@addbib@catopt}
     {}
-    {\def\blx@addbib@res{#1}%
-     \let\blx@addbib@catsep\@empty  % comma injected before 2nd+ keywords
+    {% Build keyword list and register bblitem hooks, then emit one maps block.
+     \let\blx@addbib@kwds\@empty
+     \def\blx@addbib@res{#1}%
      \expandafter\forcsvlist
      \expandafter\blx@addbib@cathandler
-     \expandafter{\blx@addbib@catopt}}}
+     \expandafter{\blx@addbib@catopt}%
+     \blx@addbib@emit@catmaps{#1}}}
 
-% Helper: single-token handler so that \expandafter can expand \blx@addbib@catopt
-% into the \forcsvlist call, correctly splitting comma-separated category lists.
+% Helper: single-token wrapper so \expandafter can expand \blx@addbib@catopt
+% into the \forcsvlist call, correctly splitting comma-separated lists.
 \def\blx@addbib@cathandler#1{%
-  \blx@addbib@category{\blx@addbib@res}{#1}}
+  \blx@addbib@category{#1}}
 
-% {<resource>}{<category>}
-\def\blx@addbib@category#1#2{%
-  % #2 may be a macro reference (e.g. \blx@tempg) rather than literal characters;
-  % edef here to capture the expanded category name as character tokens.
-  \edef\blx@addbib@catname{#2}%
+% {<category>}  -- validates category, extends \blx@addbib@kwds, adds bblitem hook
+\def\blx@addbib@category#1{%
+  % #1 may be a macro: edef to capture expanded category name as character tokens.
+  \edef\blx@addbib@catname{#1}%
   \ifcsundef{blx@catg@\blx@addbib@catname}
     {\blx@error
        {Category '\blx@addbib@catname' not declared}
        {Use \string\DeclareBibliographyCategory\space to declare}}
-    {\booltrue{sourcemap}%
-     \xappto\blx@sourcemap@user{%
-       \blx@xml@sourcemap@maps{ datatype="bibtex" level="user" map_overwrite="1"}{%
-         \blx@xml@sourcemap@map{}{%
-           \blx@xml@sourcemap@perdatasource{#1}%
-           \blx@xml@sourcemap@step{ map_field_set="keywords"
-             map_field_value="\blx@addbib@catsep{}blx@srccat@\blx@addbib@catname"
-             map_append="1"}}}}%
-     \def\blx@addbib@catsep{,}%  % subsequent keywords get a leading comma
-     % Use \csxappto so \blx@addbib@catname is expanded to its string value
-     % (category name as literal characters) before the tokens are stored in
-     % the hook; \noexpand protects the commands that must not be expanded.
+    {% Append to the keyword list: blx@srccat@<name>, comma-separated.
+     \ifdefempty{\blx@addbib@kwds}
+       {\edef\blx@addbib@kwds{blx@srccat@\blx@addbib@catname}}
+       {\eappto\blx@addbib@kwds{,blx@srccat@\blx@addbib@catname}}%
+     % Hook: at bbl-read time, add the entry to this category if the sourcemap
+     % keyword tag is present on the entry.
      \csxappto{blx@hook@bblitem@*}{%
        \noexpand\ifkeyword{blx@srccat@\blx@addbib@catname}%
          {\noexpand\blx@addtocategory
             {\blx@addbib@catname}{\noexpand\thefield{entrykey}}}%
          {}}}}
+
+% {<resource>} -- emits a single sourcemap maps block covering all categories.
+% \blx@addbib@kwds holds the pre-built comma-separated keyword string.
+\def\blx@addbib@emit@catmaps#1{%
+  \booltrue{sourcemap}%
+  \xappto\blx@sourcemap@user{%
+    \blx@xml@sourcemap@maps{ datatype="bibtex" level="user" map_overwrite="1"}{%
+      \blx@xml@sourcemap@map{}{%
+        \blx@xml@sourcemap@perdatasource{#1}%
+        \blx@xml@sourcemap@step{ map_field_set="keywords"
+          map_field_value="\blx@addbib@kwds"
+          map_append="1"}}}}}
 
 \def\blx@addbib@global#1{%
   \blx@addbib@resource{#1}%
