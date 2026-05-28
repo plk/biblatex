@@ -11372,17 +11372,22 @@
     {}%
   \ifdef\blx@tempd
     {\csxdef{blx@res@labl@\blx@tempd}{#1}}
-    {}}
+    {}%
+  \blx@addbib@applycats{#1}}
 
 \def\blx@addbib@resource#1{%
   \blx@addbib@register{#1}%
   \listgadd\blx@bibfiles{#1}%
-  \blx@regbibfile\jobname{#1}%
+  \blx@regbibfile\jobname{#1}}
+
+% {<resource>} -- shared category processing called from \blx@addbib@register
+% (and therefore from \blx@addbib@resource and \blx@addbib@global as well).
+% Builds the keyword list, registers bblitem hooks, emits one maps block.
+% No-op when no category= option was given.
+\def\blx@addbib@applycats#1{%
   \ifdefempty{\blx@addbib@catopt}
     {}
-    {% Build keyword list and register bblitem hooks, then emit one maps block.
-     \let\blx@addbib@kwds\@empty
-     \def\blx@addbib@res{#1}%
+    {\let\blx@addbib@kwds\@empty
      \expandafter\forcsvlist
      \expandafter\blx@addbib@cathandler
      \expandafter{\blx@addbib@catopt}%
