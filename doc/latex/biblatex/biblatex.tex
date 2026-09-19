@@ -6410,7 +6410,14 @@ Expands to \prm{true} or \prm{false}, depending on \sty{memoir}'s \cmd{bibintoc}
 \subsubsection{Page Numbers in Citations}
 \label{use:cav:pag}
 
-If the \prm{postnote} argument to a citation command is a page number or page range, \biblatex will automatically prefix it with <p.> or <pp.> by default. This works reliably in typical cases, but sometimes manual intervention may be required. In this case, it is important to understand how this argument is handled in detail. First, \biblatex checks if the postnote is an Arabic or Roman numeral (case insensitive). If this test succeeds, the postnote is considered as a single page or other number which will be prefixed with <p.> or some other string which depends on the \sty{pagination} field (see \secref{bib:use:pag}). If it fails, a second test is performed to find out if the postnote is a range or a list of Arabic or Roman numerals. If this test succeeds, the postnote will be prefixed with <pp.> or some other string in the plural form. If it fails as well, the postnote is printed as is. Note that both tests expand the \prm{postnote}. All commands used in this argument must therefore be robust or prefixed with \cmd{protect}. Here are a few examples of \prm{postnote} arguments which will be correctly recognized as a single number, a range of numbers, or a list of numbers, respectively:
+The default field format for the \prm{postnote} argument in the standard styles is
+
+\begin{ltxexample}
+\DeclareFieldFormat{postnote}{\mkpageprefix[pagination][\mkautorange]{#1}}
+\end{ltxexample}
+%
+
+This means that if the \prm{postnote} argument to a citation command is a page number or page range, \biblatex will automatically prefix it with <p.> or <pp.> by default. Furthermore, the argument is processed by \cmd{mkautorange}, which depending on the \opt{citepagerange} option behaves like \cmd{mkseqrange}, \cmd{mkcomprange} or \cmd{mknormrange}. This works reliably and gives expected output in typical cases, but sometimes manual intervention may be required. In this case, it is important to understand how this argument is handled in detail. For the pagination prefix, \biblatex first checks if the postnote is an Arabic or Roman numeral (case insensitive). If this test succeeds, the postnote is considered as a single page or other number which will be prefixed with <p.> or some other string which depends on the \sty{pagination} field (see \secref{bib:use:pag}). If it fails, a second test is performed to find out if the postnote is a range or a list of Arabic or Roman numerals. If this test succeeds, the postnote will be prefixed with <pp.> or some other string in the plural form. If it fails as well, the postnote is printed as is. Note that both tests expand the \prm{postnote}. All commands used in this argument must therefore be robust or prefixed with \cmd{protect}. Here are a few examples of \prm{postnote} arguments which will be correctly recognized as a single number, a range of numbers, or a list of numbers, respectively:
 
 \begin{ltxexample}
 \cite[25]{key}
@@ -6478,6 +6485,19 @@ It is possible to suppress the prefix on a per"=entry basis by setting the \bibf
 \end{ltxexample}
 %
 The \prm{postnote} argument is handled as a field and the formatting of this field is controlled by a field formatting directive which may be freely redefined. The above definition will simply print the postnote as is. See \secref{aut:cbx:fld, aut:bib:fmt} in the author guide for further details.
+
+The page range processing done by \cmd{mkautorange} (amongst other things depending on \opt{citepagerange} settings) normalises certain punctuation used in page ranges and multiple page ranges for a more uniform output. In particular both commas and semicolons are replaced by \cmd{bibrangessep} and hyphens and dashes are nomalised to \cmd{bibrangedash}. In case it is undesirable that parts of the postnote are replaced by \cmd{mkautorange}, hide the characters in a pair of curly braces.
+
+\begin{ltxexample}
+\cite[4, 7-10; some additional text]{key}
+\cite[4, 7-10{;} some additional text]{key}
+\end{ltxexample}
+%
+If only this normlisation behaviour is undesired, but automatic pagination prefixing is still desired, the following field format definition will help
+
+\begin{ltxexample}
+\DeclareFieldFormat{postnote}{\mkpageprefix[pagination]{#1}}
+\end{ltxexample}
 
 \subsubsection{Name Parts and Name Spacing}
 \label{use:cav:nam}
@@ -11203,7 +11223,7 @@ Custom styles may follow a different approach, but style authors are encouraged 
 This command is intended for use in field formatting directives which format the page numbers in the \prm{postnote} argument of citation commands and the \bibfield{pages} field of bibliography entries. It will parse its \prm{text} argument and prefix it with <p.> or <pp.> by default. The optional \prm{pagination} argument holds the name of a field indicating the pagination type. This may be either \bibfield{pagination} or \bibfield{bookpagination}, with \bibfield{pagination} being the default. The spacing between the prefix and the \prm{text} may be modified by redefining \cmd{ppspace}. The default is an unbreakable interword space. See \secref{bib:use:pag, use:cav:pag} for further details. See also \cmd{DeclareNumChars}, \cmd{DeclareRangeChars}, \cmd{DeclareRangeCommands}, and \cmd{NumCheckSetup}. The optional \prm{postpro} argument specifies a macro to be used for post-processing the \prm{text}. If only one optional argument is given, it is taken as \prm{pagination}. Here are two typical examples:
 
 \begin{ltxexample}
-\DeclareFieldFormat{postnote}{<<\mkpageprefix[pagination][\mknormrange]{#1}>>}
+\DeclareFieldFormat{postnote}{<<\mkpageprefix[pagination][\mkautorange]{#1}>>}
 \DeclareFieldFormat{pages}{<<\mkpageprefix[bookpagination]{#1}>>}
 \end{ltxexample}
 %
