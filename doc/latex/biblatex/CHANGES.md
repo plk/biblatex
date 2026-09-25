@@ -1,4 +1,5 @@
 # RELEASE NOTES FOR VERSION 3.22a
+- Added Azerbaijani localisation (Anar Abdullayev).
 - Switched `\mkrelatedstringtext` from `\textmainlang` to `\textouterlang`.
   The old behaviour can be restored with
   `\renewcommand{\mkrelatedstringtext}{\textmainlang}`

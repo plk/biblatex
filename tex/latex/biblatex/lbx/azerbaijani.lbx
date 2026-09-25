@@ -1,0 +1,941 @@
+\ProvidesFile{azerbaijani.lbx}
+[\abx@lbxid]
+
+\DeclareRedundantLanguages{azerbaijani}{azerbaijani}
+
+\DeclareBibliographyExtras{%
+  % Flag used by the related-entry macros below to tell whether the
+  % citing entry's own relatedstring field is undefined, queried
+  % before \entrydata* switches the field context to the related
+  % entry (see lbx@az@related:titleinject and the origpubas/origpubin
+  % overrides). \providetoggle is idempotent, so this is safe to
+  % re-run on every activation.
+  \providetoggle{lbx@az@relatedstringundef}%
+  \renewrobustcmd*{\bibdatesep}{\adddot}%
+  \protected\def\bibrangedash{%
+    \textendash\penalty\hyphenpenalty}% breakable dash
+  \let\finalandcomma=\empty
+  \def\finalandsemicolon{\addsemicolon}%
+  \protected\def\mkbibordinal#1{%
+    \blx@imc@ifinteger{#1}
+      {\begingroup
+       \@tempcnta0#1\relax
+       \edef\lbx@az@ordinalnum{\number\@tempcnta}%
+       \number\@tempcnta-%
+       \ifnum\@tempcnta=0
+         cı%
+       \else
+         \@tempcntb\@tempcnta
+         \divide\@tempcntb10
+         \multiply\@tempcntb10
+         \advance\@tempcnta-\@tempcntb
+         \ifnum\@tempcnta>0
+           \ifcase\@tempcnta
+           \or ci\or ci\or cü\or cü\or ci\or cı\or ci\or ci\or cu\fi
+         \else
+           \@tempcnta\lbx@az@ordinalnum\relax
+           \divide\@tempcnta10
+           \@tempcntb\@tempcnta
+           \divide\@tempcntb10
+           \multiply\@tempcntb10
+           \advance\@tempcnta-\@tempcntb
+           \ifnum\@tempcnta>0
+             \ifcase\@tempcnta
+             \or cu\or ci\or cu\or cı\or ci\or cı\or ci\or ci\or cı\fi
+           \else
+             \@tempcnta\lbx@az@ordinalnum\relax
+             \@tempcntb\@tempcnta
+             \divide\@tempcntb1000
+             \multiply\@tempcntb1000
+             \advance\@tempcnta-\@tempcntb
+             \ifnum\@tempcnta>0
+               cü%
+             \else
+               \@tempcnta\lbx@az@ordinalnum\relax
+               \@tempcntb\@tempcnta
+               \divide\@tempcntb1000000
+               \multiply\@tempcntb1000000
+               \advance\@tempcnta-\@tempcntb
+               \ifnum\@tempcnta>0
+                 ci%
+               \else
+                 \@tempcnta\lbx@az@ordinalnum\relax
+                 \@tempcntb\@tempcnta
+                 \divide\@tempcntb1000000000
+                 \multiply\@tempcntb1000000000
+                 \advance\@tempcnta-\@tempcntb
+                 \ifnum\@tempcnta>0 cu\else cı\fi
+               \fi
+             \fi
+           \fi
+         \fi
+       \fi
+       \endgroup}
+      {#1}}%
+  \protected\def\mkbibmascord{\mkbibordinal}%
+  \protected\def\mkbibfemord{\mkbibordinal}%
+  \protected\def\mkbibneutord{\mkbibordinal}%
+  \protected\def\mkbibdatelong#1#2#3{%
+    \iffieldundef{#3}
+      {}
+      {\stripzeros{\thefield{#3}}%
+       \iffieldundef{#2}{}{\nobreakspace}}%
+    \iffieldundef{#2}
+      {}
+      {\mkbibmonth{\thefield{#2}}%
+       \iffieldundef{#1}{}{\space}}%
+    \iffieldbibstring{#1}
+      {\bibstring{\thefield{#1}}}
+      {\dateeraprintpre{#1}\stripzeros{\thefield{#1}}}}%
+  \protected\def\mkbibdateshort#1#2#3{%
+    \iffieldundef{#3}
+      {}
+      {\mkdayzeros{\thefield{#3}}%
+       \iffieldundef{#2}{}{\bibdatesep}}%
+    \iffieldundef{#2}
+      {}
+      {\mkmonthzeros{\thefield{#2}}%
+       \iffieldundef{#1}{}{\bibdatesep}}%
+    \iffieldbibstring{#1}
+      {\bibstring{\thefield{#1}}}
+      {\dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}}}%
+  \expandafter\protected\expandafter\def\csname mkbibtime24h\endcsname#1#2#3#4{%
+      \iffieldundef{#1}
+        {}
+        {\mktimezeros{\thefield{#1}}%
+         \iffieldundef{#2}{}{\bibtimesep}}%
+      \iffieldundef{#2}
+        {}
+        {\mktimezeros{\thefield{#2}}%
+         \iffieldundef{#3}{}{\bibtimesep}}%
+      \iffieldundef{#3}
+        {}
+        {\mktimezeros{\thefield{#3}}}%
+      \iffieldundef{#4}{}
+        {\bibtimezonesep
+         \mkbibtimezone{\thefield{#4}}}}%
+  \expandafter\protected\expandafter\def\csname mkbibtime12h\endcsname#1#2#3#4{%
+      \stripzeros{\mktimehh{\thefield{#1}}}%
+      \bibtimesep
+      \forcezerosmdt{\thefield{#2}}%
+      \iffieldundef{#3}{}
+        {\bibtimesep
+         \forcezerosmdt{\thefield{#3}}}%
+       \space
+       \ifnumless{\thefield{#1}}{12}
+         {\bibstring{am}}
+         {\bibstring{pm}}%
+      \iffieldundef{#4}{}
+       {\space\bibtimezonesep
+        \parentext{\mkbibtimezone{\thefield{#4}}}}}%
+  \protected\def\mkbibyeardivisiondateshort#1#2{%
+    \mkbibyeardivision{\thefield{#2}}%
+    \iffieldundef{#1}{}{\space}%
+    \dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}}%
+  \protected\def\mkbibyeardivisiondatelong#1#2{%
+    \mkbibyeardivision{\thefield{#2}}%
+    \iffieldundef{#1}{}{\space}%
+    \dateeraprintpre{#1}\mkyearzeros{\thefield{#1}}}%
+  % Azerbaijani related-entry phrasing: rather than manually
+  % reconstructing author/title/location/date (which would silently
+  % drop legitimate metadata such as editor, edition, series, volume,
+  % pagetotal, isbn, doi, url or note), reuse related:default's own
+  % \usedriver call so the *normal* bibliography driver renders the
+  % related entry in full, and inject the localised phrase only by
+  % locally overriding the "title" bibmacro for the duration of that
+  % one \usedriver call (title is the common hook used by @article
+  % directly and by @book/@inbook/@incollection via maintitle+title /
+  % maintitle+booktitle). Everything else the driver prints is
+  % untouched.
+  \savebibmacro{lbx@az@related:titleinject}%
+  \newbibmacro*{lbx@az@related:titleinject}[2]{%
+    \iffieldundef{relatedstring}
+      {\toggletrue{lbx@az@relatedstringundef}}
+      {\togglefalse{lbx@az@relatedstringundef}}%
+    \entrydata*{#1}{%
+      \usedriver
+        {\ifnameundef{savedauthor}
+           {\ifnameundef{savededitor}
+              {}
+              {\ifnamesequal{editor}{savededitor}
+                 {\clearname{editor}}
+                 {}}}
+           {\ifnamesequal{author}{savedauthor}
+              {\clearname{author}}
+              {}}%
+         \DeclareNameAlias{sortname}{default}%
+         \ifbibmacroundef{bbx:dashcheck}
+           {}
+           {\renewbibmacro*{bbx:dashcheck}[2]{##2}}%
+         \ifbibmacroundef{labeltitle}
+           {}
+           {\renewbibmacro*{labeltitle}{}}%
+         \ifbibmacroundef{date+extradate}
+           {}
+           {\renewbibmacro*{date+extradate}{}%
+            \renewbibmacro*{bbx:ifmergeddate}{\@secondoftwo}}%
+         \renewbibmacro*{pageref}{}%
+         \renewbibmacro*{related:init}{}%
+         \ifbibmacroundef{title}
+           {}
+           {\letbibmacro{lbx@az@origtitle}{title}%
+            \renewbibmacro*{title}{%
+              \usebibmacro{lbx@az@origtitle}%
+              \iftoggle{lbx@az@relatedstringundef}
+                {\setunit{\space}%
+                 \printtext{\bibstring[\mkrelatedstringtext]{#2}}%
+                 \printunit{\addcomma\space}}
+                {}}}}
+        {\thefield{entrytype}}}}%
+  \savebibmacro{related:reviewof}%
+  \newbibmacro*{related:reviewof}[1]{%
+    \usebibmacro{lbx@az@related:titleinject}{#1}{reviewof}}%
+  \savebibmacro{related:translationof}%
+  \newbibmacro*{related:translationof}[1]{%
+    \usebibmacro{lbx@az@related:titleinject}{#1}{translationof}}%
+  \savebibmacro{related:reprintof}%
+  \newbibmacro*{related:reprintof}[1]{%
+    \usebibmacro{lbx@az@related:titleinject}{#1}{reprintof}}%
+  \savebibmacro{related:translationas}%
+  \newbibmacro*{related:translationas}[1]{%
+    \usebibmacro{lbx@az@related:titleinject}{#1}{translationas}}%
+  \savebibmacro{related:reprintas}%
+  \newbibmacro*{related:reprintas}[1]{%
+    \usebibmacro{lbx@az@related:titleinject}{#1}{reprintas}}%
+  \savebibmacro{related:origpubas}%
+  \renewbibmacro*{related:origpubas}[1]{%
+    \iffieldundef{relatedstring}
+      {\toggletrue{lbx@az@relatedstringundef}}
+      {\togglefalse{lbx@az@relatedstringundef}}%
+    \entrydata*{#1}{%
+      \usebibmacro{title}%
+      \iftoggle{lbx@az@relatedstringundef}
+        {\setunit{\space}%
+         \printtext{başlıqlı}%
+         \ifboolexpr{
+           test {\iflistsequal{publisher}{savedpublisher}}
+           or
+           test {\iflistundef{publisher}}
+         }
+           {}
+           {\setunit{\space}%
+            \printtext{\printlist{publisher}}%
+            \setunit{\space}%
+            \printtext{tərəfindən}}%
+         \setunit{\space}%
+         \printtext{\bibstring[\mkrelatedstringtext]{origpubas}}%
+         \ifboolexpr{
+           test {\iflistsequal{publisher}{savedpublisher}}
+           or
+           test {\iflistundef{publisher}}
+         }
+           {}
+           {\setunit{\addcomma\space}%
+            \iflistsequal{location}{savedlocation}
+              {}
+              {\printlist{location}}}}
+        {}}}%
+  \savebibmacro{related:origpubin}%
+  \renewbibmacro*{related:origpubin}[1]{%
+    \iffieldundef{relatedstring}
+      {\toggletrue{lbx@az@relatedstringundef}}
+      {\togglefalse{lbx@az@relatedstringundef}}%
+    \entrydata*{#1}{%
+      \edef\lbx@az@relyear{\strfield{year}}%
+      \expandafter\mkbibordinal\expandafter{\lbx@az@relyear}%
+      \space ildə%
+      \iflistundef{publisher}
+        {}
+        {\space\printlist{publisher}\space tərəfindən}%
+      \iftoggle{lbx@az@relatedstringundef}
+        {\setunit{\space}%
+         \printtext{\bibstring[\mkrelatedstringtext]{origpubin}}}
+        {}%
+      \setunit{\addcomma\space}%
+      \printlist{location}}}%
+  \savebibmacro{related:translationfrom}%
+  \newbibmacro*{related:translationfrom}[1]{%
+    \usebibmacro{lbx@az@related:titleinject}{#1}{translationfrom}}%
+  % reprintfrom has its own dedicated related:reprintfrom macro that
+  % never calls \usedriver or the "title" bibmacro (it renders the
+  % containing anthology/journal issue, not a full related-entry
+  % citation), so lbx@az@related:titleinject does not apply here. This
+  % is upstream's related:reprintfrom (biblatex.def) with the phrase
+  % inserted immediately after the container title in each of the two
+  % existing branches (book/anthology; journal), before the remaining
+  % container metadata. Everything else is untouched.
+  \savebibmacro{related:reprintfrom}%
+  \renewbibmacro*{related:reprintfrom}[1]{%
+    \iffieldundef{relatedstring}
+      {\toggletrue{lbx@az@relatedstringundef}}
+      {\togglefalse{lbx@az@relatedstringundef}}%
+    \entrydata*{#1}{%
+      \iffieldundef{journaltitle}
+        {\iffieldundef{maintitle}
+           {\printfield[title:hook]{booktitle}}
+           {\printfield[title:hook]{maintitle}}%
+         \iftoggle{lbx@az@relatedstringundef}
+           {\setunit{\space}%
+            \printtext{\bibstring[\mkrelatedstringtext]{reprintfrom}}%
+            \printunit{\addcomma\space}}
+           {}%
+         \newunit\newblock
+         \usebibmacro{byeditor+others}%
+         \newunit\newblock
+         \printfield{edition}%
+         \newunit
+         \iffieldundef{volume}
+           {}
+           {\printfield{volume}%
+            \printfield{part}}
+         \newunit\newblock
+         \usebibmacro{series+number}%
+         \newunit\newblock
+         \printfield{note}%
+         \newunit\newblock
+         \usebibmacro{publisher+location+date}%
+         \newunit\newblock
+         \usebibmacro{chapter+pages}}
+        {\renewbibmacro*{journal}{%
+           \printfield[title:hook]{journaltitle}%
+           \iftoggle{lbx@az@relatedstringundef}
+             {\setunit{\space}%
+              \printtext{\bibstring[\mkrelatedstringtext]{reprintfrom}}%
+              \printunit{\addcomma\space}}
+             {}}%
+         \usebibmacro{journal+issuetitle}%
+         \newunit\newblock
+         \usebibmacro{byeditor+others}%
+         \newunit\newblock
+         \usebibmacro{note+pages}}}}%
+  % related:bytranslator (relatedtype=bytranslator) is a separate
+  % template macro from our seven-type family: it names the related
+  % entry's translator(s), then astitle, then the related entry's own
+  % title, then a parenthetical (location: publisher, date). English
+  % order is [names] astitle [title]; Azerbaijani needs [names]
+  % tərəfindən [title] başlıqlı [from-language] tərcümə, so the whole
+  % construction is rebuilt as one unit rather than just relocating the
+  % astitle word. Upstream's own "bytranslator" bibstring (used for
+  % ordinary contributor-role labelling, e.g. "translated by X" on
+  % ordinary entries) also happens to be reused as the generic
+  % relatedtype prefix for this same relatedtype value -- that prefix
+  % is suppressed here (like the other eight types) so it does not
+  % duplicate what this macro already says; the ordinary global
+  % "bytranslator" string itself is untouched and still governs normal
+  % contributor labelling elsewhere.
+  %
+  % The citing entry's origlanguage (if any) is preserved: switching to
+  % \entrydata* (upstream uses unstarred \entrydata, which does not
+  % populate the "saved*" fields) gives access to "savedoriglanguage"
+  % once inside the related entry's field context, via the same
+  % mechanism already used for savedpublisher/savedlocation elsewhere.
+  % Reusing the existing lfromoriglanguage/sfromoriglanguage list
+  % formats (the same machinery \lbx@lfromlang/\lbx@sfromlang rely on)
+  % against "savedoriglanguage" instead of "origlanguage" gives the
+  % correctly-inflected, long/short-aware "from LANGUAGE" phrase
+  % without reimplementing any vowel-harmony or language-name logic.
+  % The "from*"/"lang*" strings are stored in lowercase base form and
+  % printed as-is here (mid-sentence slot); biblatex's own bibstring
+  % capitalization machinery still uppercases them correctly wherever
+  % they are used sentence-initially elsewhere (e.g. the global
+  % "bytranslator" string).
+  \savefieldformat{relatedstring:bytranslator}%
+  \DeclareFieldFormat{relatedstring:bytranslator}{\iffieldundef{relatedstring}{}{#1\printunit{\relatedpunct}}}%
+  \savebibmacro{related:bytranslator}%
+  \renewbibmacro*{related:bytranslator}[1]{%
+    \iffieldundef{relatedstring}
+      {\toggletrue{lbx@az@relatedstringundef}}
+      {\togglefalse{lbx@az@relatedstringundef}}%
+    \entrydata*{#1}{%
+      \renewbibmacro*{name:hook}[1]{%
+        \ifnumequal{\value{listcount}}{1}
+          {\mkrelatedstringtext{\lbx@initnamehook{##1}}}
+          {}}%
+      \printnames[bytranslator]{translator}%
+      \setunit{\space}%
+      \printtext{tərəfindən}%
+      \setunit{\space}%
+      \usebibmacro{title}%
+      \iftoggle{lbx@az@relatedstringundef}
+        {\setunit{\space}%
+         \printtext{\bibstring[\mkrelatedstringtext]{astitle}}%
+         \setunit{\space}%
+         \printtext{%
+           \iflistundef{savedoriglanguage}
+             {}
+             {% Resolve the original language before entering the related entry.
+              \edef\lbx@az@origlang{\strfirstlistitem{savedoriglanguage}}%
+              \edef\lbx@az@fromphrase{\bibstring{from\lbx@az@origlang}}%
+              \edef\lbx@az@langphrase{\bibstring{lang\lbx@az@origlang}}%
+              % Resolve the bibstring key before testing it since \ifbibstring
+              % does not expand a macro used as part of the key.
+              \ifcsdef{abx@lstr@from\lbx@az@origlang}
+                {\lbx@az@fromphrase}
+                {\ifcsdef{abx@lstr@lang\lbx@az@origlang}
+                   {\lbx@az@langphrase}
+                   {\lbx@az@origlang}}%
+              \space}%
+           tərcümə}}
+        {}%
+      \setunit{\addspace}%
+      \printtext[parens]{%
+        \printlist{location}%
+        \iflistundef{publisher}
+          {\setunit*{\addcomma\space}}
+          {\setunit*{\addcolon\space}}%
+        \printlist{publisher}%
+        \setunit*{\addcomma\space}%
+        \printdate}}}%
+  \savefieldformat{relatedstring:reviewof}%
+  \DeclareFieldFormat{relatedstring:reviewof}{\iffieldundef{relatedstring}{}{#1\printunit{\relatedpunct}}}%
+  \savefieldformat{relatedstring:translationof}%
+  \DeclareFieldFormat{relatedstring:translationof}{\iffieldundef{relatedstring}{}{#1\printunit{\relatedpunct}}}%
+  \savefieldformat{relatedstring:reprintof}%
+  \DeclareFieldFormat{relatedstring:reprintof}{\iffieldundef{relatedstring}{}{#1\printunit{\relatedpunct}}}%
+  \savefieldformat{relatedstring:translationas}%
+  \DeclareFieldFormat{relatedstring:translationas}{\iffieldundef{relatedstring}{}{#1\printunit{\relatedpunct}}}%
+  \savefieldformat{relatedstring:reprintas}%
+  \DeclareFieldFormat{relatedstring:reprintas}{\iffieldundef{relatedstring}{}{#1\printunit{\relatedpunct}}}%
+  \savefieldformat{relatedstring:origpubas}%
+  \DeclareFieldFormat{relatedstring:origpubas}{\iffieldundef{relatedstring}{}{#1\printunit{\relatedpunct}}}%
+  \savefieldformat{relatedstring:origpubin}%
+  \DeclareFieldFormat{relatedstring:origpubin}{\iffieldundef{relatedstring}{}{#1\printunit{\relatedpunct}}}%
+  \savefieldformat{relatedstring:translationfrom}%
+  \DeclareFieldFormat{relatedstring:translationfrom}{\iffieldundef{relatedstring}{}{#1\printunit{\relatedpunct}}}%
+  \savefieldformat{relatedstring:reprintfrom}%
+  \DeclareFieldFormat{relatedstring:reprintfrom}{\iffieldundef{relatedstring}{}{#1\printunit{\relatedpunct}}}%
+  % Azerbaijani shorthand introduction: upstream's automatic branch (no
+  % explicit shorthandintro field) is just "citedas SHORTHAND", e.g.
+  % "(henceforth cited as KrV)". The natural Azerbaijani reading needs a
+  % trailing "kimi istinad edilir" after the shorthand, so only that one
+  % branch is rebuilt here; the explicit-shorthandintro branch (a fully
+  % user-supplied string) is copied through unchanged.
+  \savebibmacro{shorthandintro}%
+  \renewbibmacro*{shorthandintro}{%
+    \iffieldundef{shorthandintro}
+      {\iffieldundef{shorthand}
+         {}
+         {\setunit{\addspace}%
+          \printtext[parens]{%
+            \bibstring{citedas}\space
+            \printfield{shorthand}\space
+            kimi istinad edilir}}}
+      {\setunit{\addspace}%
+       \printtext[parens]{\printfield{shorthandintro}}}}%
+}
+
+\UndeclareBibliographyExtras{%
+  \restorebibmacro{lbx@az@related:titleinject}%
+  \restorebibmacro{related:reviewof}%
+  \restorebibmacro{related:translationof}%
+  \restorebibmacro{related:reprintof}%
+  \restorebibmacro{related:translationas}%
+  \restorebibmacro{related:reprintas}%
+  \restorebibmacro{related:origpubas}%
+  \restorebibmacro{related:origpubin}%
+  \restorebibmacro{related:translationfrom}%
+  \restorebibmacro{related:reprintfrom}%
+  \restorebibmacro{related:bytranslator}%
+  \restorefieldformat{relatedstring:reviewof}%
+  \restorefieldformat{relatedstring:translationof}%
+  \restorefieldformat{relatedstring:reprintof}%
+  \restorefieldformat{relatedstring:translationas}%
+  \restorefieldformat{relatedstring:reprintas}%
+  \restorefieldformat{relatedstring:origpubas}%
+  \restorefieldformat{relatedstring:origpubin}%
+  \restorefieldformat{relatedstring:translationfrom}%
+  \restorefieldformat{relatedstring:reprintfrom}%
+  \restorefieldformat{relatedstring:bytranslator}%
+  \restorebibmacro{shorthandintro}%
+}
+
+\DeclareBibliographyStrings{%
+  bibliography     = {{Ədəbiyyat}{Ədəbiyyat}},
+  references       = {{İstinadlar}{İstinadlar}},
+  shorthands       = {{Qısaltmalar}{Qısaltmalar}},
+  editor           = {{redaktor}{red\adddot}},
+  editors          = {{redaktorlar}{red\adddot}},
+  compiler         = {{tərtibçi}{tərt\adddot}},
+  compilers        = {{tərtibçilər}{tərt\adddot}},
+  redactor         = {{redaktor}{red\adddot}},
+  redactors        = {{redaktorlar}{red\adddot}},
+  reviser          = {{yenidən işləyən}{yenidən işləyən}},
+  revisers         = {{yenidən işləyənlər}{yenidən işləyənlər}},
+  founder          = {{təsisçi}{təsisçi}},
+  founders         = {{təsisçilər}{təsisçilər}},
+  continuator      = {{davam etdirən}{davam etdirən}},
+  continuators     = {{davam etdirənlər}{davam etdirənlər}},
+  collaborator     = {{əməkdaş}{əməkdaş}},
+  collaborators    = {{əməkdaşlar}{əməkdaşlar}},
+  translator       = {{tərcüməçi}{tərc\adddot}},
+  translators      = {{tərcüməçilər}{tərc\adddot}},
+  commentator      = {{şərhin müəllifi}{şərhin müəl\adddot}},
+  commentators     = {{şərhin müəllifləri}{şərhin müəl\adddot}},
+  annotator        = {{annotasiyanın müəllifi}{annotasiyanın müəllifi}},
+  annotators       = {{annotasiyanın müəllifləri}{annotasiyanın müəllifləri}},
+  commentary       = {{şərh}{şərh}},
+  annotations      = {{annotasiyalar}{annotasiyalar}},
+  introduction     = {{giriş}{giriş}},
+  foreword         = {{ön söz}{ön söz}},
+  afterword        = {{son söz}{son söz}},
+  editortr         = {{redaktor və tərcüməçi}%
+                      {red\adddotspace və tərc\adddot}},
+  editorstr        = {{redaktorlar və tərcüməçilər}%
+                      {red\adddotspace və tərc\adddot}},
+  editorco         = {{redaktor və şərhin müəllifi}%
+                      {red\adddotspace və şərhin müəllifi}},
+  editorsco        = {{redaktorlar və şərhin müəllifləri}%
+                      {red\adddotspace və şərhin müəllifləri}},
+  editoran         = {{redaktor və annotasiyanın müəllifi}%
+                      {red\adddotspace və annotasiyanın müəllifi}},
+  editorsan        = {{redaktorlar və annotasiyanın müəllifləri}%
+                      {red\adddotspace və annotasiyanın müəllifləri}},
+  editorin         = {{redaktor və girişin müəllifi}%
+                      {red\adddotspace və girişin müəllifi}},
+  editorsin        = {{redaktorlar və girişin müəllifləri}%
+                      {red\adddotspace və girişin müəllifləri}},
+  editorfo         = {{redaktor və ön sözün müəllifi}%
+                      {red\adddotspace və ön sözün müəllifi}},
+  editorsfo        = {{redaktorlar və ön sözün müəllifləri}%
+                      {red\adddotspace və ön sözün müəllifləri}},
+  editoraf         = {{redaktor və son sözün müəllifi}%
+                      {red\adddotspace və son sözün müəllifi}},
+  editorsaf        = {{redaktorlar və son sözün müəllifləri}%
+                      {red\adddotspace və son sözün müəllifləri}},
+  editortrco       = {{redaktor, tərcüməçi\finalandcomma\ və şərhin müəllifi}%
+                      {red.,\addabbrvspace tərc\adddot\finalandcomma\ və şərhin müəllifi}},
+  editorstrco      = {{redaktorlar, tərcüməçilər\finalandcomma\ və şərhin müəllifləri}%
+                      {red.,\addabbrvspace tərc\adddot\finalandcomma\ və şərhin müəllifləri}},
+  editortran       = {{redaktor, tərcüməçi\finalandcomma\ və annotasiyanın müəllifi}%
+                      {red.,\addabbrvspace tərc\adddot\finalandcomma\ və annotasiyanın müəllifi}},
+  editorstran      = {{redaktorlar, tərcüməçilər\finalandcomma\ və annotasiyanın müəllifləri}%
+                      {red.,\addabbrvspace tərc\adddot\finalandcomma\ və annotasiyanın müəllifləri}},
+  editortrin       = {{redaktor, tərcüməçi\finalandcomma\ və girişin müəllifi}%
+                      {red.,\addabbrvspace tərc\adddot\finalandcomma\ və girişin müəllifi}},
+  editorstrin      = {{redaktorlar, tərcüməçilər\finalandcomma\ və girişin müəllifləri}%
+                      {red.,\addabbrvspace tərc\adddot\finalandcomma\ və girişin müəllifləri}},
+  editortrfo       = {{redaktor, tərcüməçi\finalandcomma\ və ön sözün müəllifi}%
+                      {red.,\addabbrvspace tərc\adddot\finalandcomma\ və ön sözün müəllifi}},
+  editorstrfo      = {{redaktorlar, tərcüməçilər\finalandcomma\ və ön sözün müəllifləri}%
+                      {red.,\addabbrvspace tərc\adddot\finalandcomma\ və ön sözün müəllifləri}},
+  editortraf       = {{redaktor, tərcüməçi\finalandcomma\ və son sözün müəllifi}%
+                      {red.,\addabbrvspace tərc\adddot\finalandcomma\ və son sözün müəllifi}},
+  editorstraf      = {{redaktorlar, tərcüməçilər\finalandcomma\ və son sözün müəllifləri}%
+                      {red.,\addabbrvspace tərc\adddot\finalandcomma\ və son sözün müəllifləri}},
+  editorcoin       = {{redaktor, şərhin\finalandcomma\ və girişin müəllifi}%
+                      {red.,\addabbrvspace şərhin\finalandcomma\ və girişin müəllifi}},
+  editorscoin      = {{redaktorlar, şərhin\finalandcomma\ və girişin müəllifləri}%
+                      {red.,\addabbrvspace şərhin\finalandcomma\ və girişin müəllifləri}},
+  editorcofo       = {{redaktor, şərhin\finalandcomma\ və ön sözün müəllifi}%
+                      {red.,\addabbrvspace şərhin\finalandcomma\ və ön sözün müəllifi}},
+  editorscofo      = {{redaktorlar, şərhin\finalandcomma\ və ön sözün müəllifləri}%
+                      {red.,\addabbrvspace şərhin\finalandcomma\ və ön sözün müəllifləri}},
+  editorcoaf       = {{redaktor, şərhin\finalandcomma\ və son sözün müəllifi}%
+                      {red.,\addabbrvspace şərhin\finalandcomma\ və son sözün müəllifi}},
+  editorscoaf      = {{redaktorlar, şərhin\finalandcomma\ və son sözün müəllifləri}%
+                      {red.,\addabbrvspace şərhin\finalandcomma\ və son sözün müəllifləri}},
+  editoranin       = {{redaktor, annotasiyanın\finalandcomma\ və girişin müəllifi}%
+                      {red.,\addabbrvspace annotasiyanın\finalandcomma\ və girişin müəllifi}},
+  editorsanin      = {{redaktorlar, annotasiyanın\finalandcomma\ və girişin müəllifləri}%
+                      {red.,\addabbrvspace annotasiyanın\finalandcomma\ və girişin müəllifləri}},
+  editoranfo       = {{redaktor, annotasiyanın\finalandcomma\ və ön sözün müəllifi}%
+                      {red.,\addabbrvspace annotasiyanın\finalandcomma\ və ön sözün müəllifi}},
+  editorsanfo      = {{redaktorlar, annotasiyanın\finalandcomma\ və ön sözün müəllifləri}%
+                      {red.,\addabbrvspace annotasiyanın\finalandcomma\ və ön sözün müəllifləri}},
+  editoranaf       = {{redaktor, annotasiyanın\finalandcomma\ və son sözün müəllifi}%
+                      {red.,\addabbrvspace annotasiyanın\finalandcomma\ və son sözün müəllifi}},
+  editorsanaf      = {{redaktorlar, annotasiyanın\finalandcomma\ və son sözün müəllifləri}%
+                      {red.,\addabbrvspace annotasiyanın\finalandcomma\ və son sözün müəllifləri}},
+  editortrcoin     = {{redaktor, tərcüməçi, şərhin\finalandcomma\ və girişin müəllifi}%
+                      {red.,\addabbrvspace tərc., şərhin\finalandcomma\ və girişin müəllifi}},
+  editorstrcoin    = {{redaktorlar, tərcüməçilər, şərhin\finalandcomma\ və girişin müəllifləri}%
+                      {red.,\addabbrvspace tərc., şərhin\finalandcomma\ və girişin müəllifləri}},
+  editortrcofo     = {{redaktor, tərcüməçi, şərhin\finalandcomma\ və ön sözün müəllifi}%
+                      {red.,\addabbrvspace tərc., şərhin\finalandcomma\ və ön sözün müəllifi}},
+  editorstrcofo    = {{redaktorlar, tərcüməçilər, şərhin\finalandcomma\ və ön sözün müəllifləri}%
+                      {red.,\addabbrvspace tərc., şərhin\finalandcomma\ və ön sözün müəllifləri}},
+  editortrcoaf     = {{redaktor, tərcüməçi, şərhin\finalandcomma\ və son sözün müəllifi}%
+                      {red.,\addabbrvspace tərc., şərhin\finalandcomma\ və son sözün müəllifi}},
+  editorstrcoaf    = {{redaktorlar, tərcüməçilər, şərhin\finalandcomma\ və son sözün müəllifləri}%
+                      {red.,\addabbrvspace tərc., şərhin\finalandcomma\ və son sözün müəllifləri}},
+  editortranin     = {{redaktor, tərcüməçi, annotasiyanın\finalandcomma\ və girişin müəllifi}%
+                      {red.,\addabbrvspace tərc., annotasiyanın\finalandcomma\ və girişin müəllifi}},
+  editorstranin    = {{redaktorlar, tərcüməçilər, annotasiyanın\finalandcomma\ və girişin müəllifləri}%
+                      {red.,\addabbrvspace tərc., annotasiyanın\finalandcomma\ və girişin müəllifləri}},
+  editortranfo     = {{redaktor, tərcüməçi, annotasiyanın\finalandcomma\ və ön sözün müəllifi}%
+                      {red.,\addabbrvspace tərc., annotasiyanın\finalandcomma\ və ön sözün müəllifi}},
+  editorstranfo    = {{redaktorlar, tərcüməçilər, annotasiyanın\finalandcomma\ və ön sözün müəllifləri}%
+                      {red.,\addabbrvspace tərc., annotasiyanın\finalandcomma\ və ön sözün müəllifləri}},
+  editortranaf     = {{redaktor, tərcüməçi, annotasiyanın\finalandcomma\ və son sözün müəllifi}%
+                      {red.,\addabbrvspace tərc., annotasiyanın\finalandcomma\ və son sözün müəllifi}},
+  editorstranaf    = {{redaktorlar, tərcüməçilər, annotasiyanın\finalandcomma\ və son sözün müəllifləri}%
+                      {red.,\addabbrvspace tərc., annotasiyanın\finalandcomma\ və son sözün müəllifləri}},
+  translatorco     = {{tərcüməçi və şərhin müəllifi}%
+                      {tərc\adddot\ və şərhin müəllifi}},
+  translatorsco    = {{tərcüməçilər və şərhin müəllifləri}%
+                      {tərc\adddot\ və şərhin müəllifləri}},
+  translatoran     = {{tərcüməçi və annotasiyanın müəllifi}%
+                      {tərc\adddot\ və annotasiyanın müəllifi}},
+  translatorsan    = {{tərcüməçilər və annotasiyanın müəllifləri}%
+                      {tərc\adddot\ və annotasiyanın müəllifləri}},
+  translatorin     = {{tərcüməçi və girişin müəllifi}%
+                      {tərc\adddot\ və girişin müəllifi}},
+  translatorsin    = {{tərcüməçilər və girişin müəllifləri}%
+                      {tərc\adddot\ və girişin müəllifləri}},
+  translatorfo     = {{tərcüməçi və ön sözün müəllifi}%
+                      {tərc\adddot\ və ön sözün müəllifi}},
+  translatorsfo    = {{tərcüməçilər və ön sözün müəllifləri}%
+                      {tərc\adddot\ və ön sözün müəllifləri}},
+  translatoraf     = {{tərcüməçi və son sözün müəllifi}%
+                      {tərc\adddot\ və son sözün müəllifi}},
+  translatorsaf    = {{tərcüməçilər və son sözün müəllifləri}%
+                      {tərc\adddot\ və son sözün müəllifləri}},
+  translatorcoin   = {{tərcüməçi, şərhin və girişin müəllifi}%
+                      {tərc., şərhin\ və girişin müəllifi}},
+  translatorscoin  = {{tərcüməçilər, şərhin və girişin müəllifləri}%
+                      {tərc., şərhin\ və girişin müəllifləri}},
+  translatorcofo   = {{tərcüməçi, şərhin və ön sözün müəllifi}%
+                      {tərc., şərhin\ və ön sözün müəllifi}},
+  translatorscofo  = {{tərcüməçilər, şərhin və ön sözün müəllifləri}%
+                      {tərc., şərhin\ və ön sözün müəllifləri}},
+  translatorcoaf   = {{tərcüməçi, şərhin və son sözün müəllifi}%
+                      {tərc., şərhin\ və son sözün müəllifi}},
+  translatorscoaf  = {{tərcüməçilər, şərhin və son sözün müəllifləri}%
+                      {tərc., şərhin\ və son sözün müəllifləri}},
+  translatoranin   = {{tərcüməçi, annotasiyanın və girişin müəllifi}%
+                      {tərc., annotasiyanın və girişin müəllifi}},
+  translatorsanin  = {{tərcüməçilər, annotasiyanın və girişin müəllifləri}%
+                      {tərc., annotasiyanın və girişin müəllifləri}},
+  translatoranfo   = {{tərcüməçi, annotasiyanın və ön sözün müəllifi}%
+                      {tərc., annotasiyanın və ön sözün müəllifi}},
+  translatorsanfo  = {{tərcüməçilər, annotasiyanın və ön sözün müəllifləri}%
+                      {tərc., annotasiyanın və ön sözün müəllifləri}},
+  translatoranaf   = {{tərcüməçi, annotasiyanın və son sözün müəllifi}%
+                      {tərc., annotasiyanın və son sözün müəllifi}},
+  translatorsanaf  = {{tərcüməçilər, annotasiyanın və son sözün müəllifləri}%
+                      {tərc., annotasiyanın və son sözün müəllifləri}},
+  organizer        = {{təşkilatçı}{təşk\adddot}},
+  organizers       = {{təşkilatçılar}{təşk\adddot}},
+  byorganizer      = {{təşkil edən}{təşk\adddotspace edən}},
+  byauthor         = {{müəllif}{müəllif}},
+  byeditor         = {{redaktə edən}{red\adddotspace edən}},
+  bycompiler       = {{tərtib edən}{tərt\adddotspace edən}},
+  byredactor       = {{redaktə edən}{red\adddotspace edən}},
+  byreviser        = {{yenidən işləyən}{yenidən işləyən}},
+  byreviewer       = {{rəy verən}{rəy verən}},
+  byfounder        = {{təsis edən}{təsis edən}},
+  bycontinuator    = {{davam etdirən}{davam etdirən}},
+  bycollaborator   = {{əməkdaşlıq edən}{əməkdaşlıq edən}},
+  bytranslator     = {{\lbx@lfromlang\ tərcümə edən}{\lbx@sfromlang\ tərc\adddot\ edən}},
+  bycommentator    = {{şərh edən}{şərh edən}},
+  byannotator      = {{annotasiyanı yazan}{annotasiyanı yazan}},
+  withcommentator  = {{şərhini yazan}{şərhini yazan}},
+  withannotator    = {{annotasiyanı yazan}{annotasiyanı yazan}},
+  withintroduction = {{girişi yazan}{girişi yazan}},
+  withforeword     = {{ön sözü yazan}{ön sözü yazan}},
+  withafterword    = {{son sözü yazan}{son sözü yazan}},
+  byeditortr       = {{redaktə və \lbx@lfromlang\ tərcümə edən}%
+                      {red\adddotspace və \lbx@sfromlang\ tərc\adddot\ edən}},
+  byeditorco       = {{redaktə və şərh edən}%
+                      {red\adddotspace və şərh edən}},
+  byeditoran       = {{redaktə edən və annotasiyanı yazan}%
+                      {red\adddotspace edən və annotasiyanı yazan}},
+  byeditorin       = {{girişlə birlikdə redaktə edən}%
+                      {girişlə birlikdə red\adddotspace edən}},
+  byeditorfo       = {{ön sözlə birlikdə redaktə edən}%
+                      {ön sözlə birlikdə red\adddotspace edən}},
+  byeditoraf       = {{son sözlə birlikdə redaktə edən}%
+                      {son sözlə birlikdə red\adddotspace edən}},
+  byeditortrco     = {{redaktə, \lbx@lfromlang\ tərcümə və şərh edən}%
+                      {red.,\addabbrvspace \lbx@sfromlang\ tərc\adddot\ və şərh edən}},
+  byeditortran     = {{redaktə, \lbx@lfromlang\ tərcümə edən və annotasiyanı yazan}%
+                      {red.,\addabbrvspace \lbx@sfromlang\ tərc\adddot\ edən və annotasiyanı yazan}},
+  byeditortrin     = {{girişlə birlikdə redaktə və \lbx@lfromlang\ tərcümə edən}%
+                      {girişlə birlikdə red\adddotspace və \lbx@sfromlang\ tərc\adddot\ edən}},
+  byeditortrfo     = {{ön sözlə birlikdə redaktə və \lbx@lfromlang\ tərcümə edən}%
+                      {ön sözlə birlikdə red\adddotspace və \lbx@sfromlang\ tərc\adddot\ edən}},
+  byeditortraf     = {{son sözlə birlikdə redaktə və \lbx@lfromlang\ tərcümə edən}%
+                      {son sözlə birlikdə red\adddotspace və \lbx@sfromlang\ tərc\adddot\ edən}},
+  byeditorcoin     = {{girişlə birlikdə redaktə və şərh edən}%
+                      {girişlə birlikdə red\adddotspace və şərh edən}},
+  byeditorcofo     = {{ön sözlə birlikdə redaktə və şərh edən}%
+                      {ön sözlə birlikdə red\adddotspace və şərh edən}},
+  byeditorcoaf     = {{son sözlə birlikdə redaktə və şərh edən}%
+                      {son sözlə birlikdə red\adddotspace və şərh edən}},
+  byeditoranin     = {{girişlə birlikdə redaktə edən və annotasiyanı yazan}%
+                      {girişlə birlikdə red\adddotspace edən və annotasiyanı yazan}},
+  byeditoranfo     = {{ön sözlə birlikdə redaktə edən və annotasiyanı yazan}%
+                      {ön sözlə birlikdə red\adddotspace edən və annotasiyanı yazan}},
+  byeditoranaf     = {{son sözlə birlikdə redaktə edən və annotasiyanı yazan}%
+                      {son sözlə birlikdə red\adddotspace edən və annotasiyanı yazan}},
+  byeditortrcoin   = {{girişlə birlikdə redaktə, \lbx@lfromlang\ tərcümə və şərh edən}%
+                      {girişlə birlikdə red.,\addabbrvspace \lbx@sfromlang\ tərc\adddot\ və şərh edən}},
+  byeditortrcofo   = {{ön sözlə birlikdə redaktə, \lbx@lfromlang\ tərcümə və şərh edən}%
+                      {ön sözlə birlikdə red.,\addabbrvspace \lbx@sfromlang\ tərc\adddot\ və şərh edən}},
+  byeditortrcoaf   = {{son sözlə birlikdə redaktə, \lbx@lfromlang\ tərcümə və şərh edən}%
+                      {son sözlə birlikdə red.,\addabbrvspace \lbx@sfromlang\ tərc\adddot\ və şərh edən}},
+  byeditortranin   = {{girişlə birlikdə redaktə, \lbx@lfromlang\ tərcümə edən və annotasiyanı yazan}%
+                      {girişlə birlikdə red.,\addabbrvspace \lbx@sfromlang\ tərc\adddot\ edən və annotasiyanı yazan}},
+  byeditortranfo   = {{ön sözlə birlikdə redaktə, \lbx@lfromlang\ tərcümə edən və annotasiyanı yazan}%
+                      {ön sözlə birlikdə red.,\addabbrvspace \lbx@sfromlang\ tərc\adddot\ edən və annotasiyanı yazan}},
+  byeditortranaf   = {{son sözlə birlikdə redaktə, \lbx@lfromlang\ tərcümə edən və annotasiyanı yazan}%
+                      {son sözlə birlikdə red.,\addabbrvspace \lbx@sfromlang\ tərc\adddot\ edən və annotasiyanı yazan}},
+  bytranslatorco   = {{\lbx@lfromlang\ tərcümə və şərh edən}%
+                      {\lbx@sfromlang\ tərc\adddot\ və şərh edən}},
+  bytranslatoran   = {{\lbx@lfromlang\ tərcümə edən və annotasiyanı yazan}%
+                      {\lbx@sfromlang\ tərc\adddot\ edən və annotasiyanı yazan}},
+  bytranslatorin   = {{girişlə birlikdə \lbx@lfromlang\ tərcümə edən}%
+                      {girişlə birlikdə \lbx@sfromlang\ tərc\adddot\ edən}},
+  bytranslatorfo   = {{ön sözlə birlikdə \lbx@lfromlang\ tərcümə edən}%
+                      {ön sözlə birlikdə \lbx@sfromlang\ tərc\adddot\ edən}},
+  bytranslatoraf   = {{son sözlə birlikdə \lbx@lfromlang\ tərcümə edən}%
+                      {son sözlə birlikdə \lbx@sfromlang\ tərc\adddot\ edən}},
+  bytranslatorcoin = {{girişlə birlikdə \lbx@lfromlang\ tərcümə və şərh edən}%
+                      {girişlə birlikdə \lbx@sfromlang\ tərc\adddot\ və şərh edən}},
+  bytranslatorcofo = {{ön sözlə birlikdə \lbx@lfromlang\ tərcümə və şərh edən}%
+                      {ön sözlə birlikdə \lbx@sfromlang\ tərc\adddot\ və şərh edən}},
+  bytranslatorcoaf = {{son sözlə birlikdə \lbx@lfromlang\ tərcümə və şərh edən}%
+                      {son sözlə birlikdə \lbx@sfromlang\ tərc\adddot\ və şərh edən}},
+  bytranslatoranin = {{girişlə birlikdə \lbx@lfromlang\ tərcümə edən və annotasiyanı yazan}%
+                      {girişlə birlikdə \lbx@sfromlang\ tərc\adddot\ edən və annotasiyanı yazan}},
+  bytranslatoranfo = {{ön sözlə birlikdə \lbx@lfromlang\ tərcümə edən və annotasiyanı yazan}%
+                      {ön sözlə birlikdə \lbx@sfromlang\ tərc\adddot\ edən və annotasiyanı yazan}},
+  bytranslatoranaf = {{son sözlə birlikdə \lbx@lfromlang\ tərcümə edən və annotasiyanı yazan}%
+                      {son sözlə birlikdə \lbx@sfromlang\ tərc\adddot\ edən və annotasiyanı yazan}},
+  and              = {{və}{və}},
+  andothers        = {{və başqaları}{və b\adddot}},
+  andmore          = {{və başqaları}{və b\adddot}},
+  volume           = {{cild}{c\adddot}},
+  volumes          = {{cild}{c\adddot}},
+  involumes        = {{}{}},
+  jourvol          = {{cild}{c\adddot}},
+  jourser          = {{seriya}{ser\adddot}},
+  book             = {{kitab}{kitab}},
+  part             = {{hissə}{hissə}},
+  issue            = {{buraxılış}{buraxılış}},
+  newseries        = {{yeni seriya}{yeni ser\adddot}},
+  oldseries        = {{köhnə seriya}{köhnə ser\adddot}},
+  edition          = {{nəşr}{nəşr}},
+  reprint          = {{təkrar nəşr}{təkrar nəşr}},
+  reprintof        = {{əsərinin təkrar nəşri}{əsərinin təkrar nəşri}},
+  reprintas        = {{başlıqlı təkrar nəşr}{başlıqlı təkrar nəşr}},
+  reprintfrom      = {{nəşrindən təkrar çap}{nəşrindən təkrar çap}},
+  reviewof         = {{əsəri haqqında rəy}{əsəri haqqında rəy}},
+  translationof    = {{əsərinin tərcüməsi}{əsərinin tərcüməsi}},
+  translationas    = {{başlıqlı tərcümə}{başlıqlı tərcümə}},
+  translationfrom  = {{əsərindən tərcümə}{əsərindən tərcümə}},
+  origpubas        = {{ilk nəşr}{ilk nəşr}},
+  origpubin        = {{ilk nəşr}{ilk nəşr}},
+  astitle          = {{başlıqlı}{başlıqlı}},
+  bypublisher      = {{nəşr edən}{nəşr edən}},
+  nodate           = {{tarix yoxdur}{t\adddot y\adddot}},
+  page             = {{səhifə}{s\adddot}},
+  pages            = {{səhifələr}{s\adddot}},
+  column           = {{sütun}{süt\adddot}},
+  columns          = {{sütunlar}{süt\adddot}},
+  line             = {{sətir}{sət\adddot}},
+  lines            = {{sətirlər}{sət\adddot}},
+  verse            = {{bənd}{b\adddot}},
+  verses           = {{bəndlər}{b\adddot}},
+  section          = {{bölmə}{\S}},
+  sections         = {{bölmələr}{\S\S}},
+  paragraph        = {{paraqraf}{par\adddot}},
+  paragraphs       = {{paraqraflar}{par\adddot}},
+  pagetotal        = {{səhifə}{s\adddot}},
+  pagetotals       = {{səhifə}{s\adddot}},
+  columntotal      = {{sütun}{süt\adddot}},
+  columntotals     = {{sütun}{süt\adddot}},
+  linetotal        = {{sətir}{sət\adddot}},
+  linetotals       = {{sətir}{sət\adddot}},
+  versetotal       = {{bənd}{b\adddot}},
+  versetotals      = {{bənd}{b\adddot}},
+  sectiontotal     = {{bölmə}{\S}},
+  sectiontotals    = {{bölmə}{\S\S}},
+  paragraphtotal   = {{paraqraf}{par\adddot}},
+  paragraphtotals  = {{paraqraf}{par\adddot}},
+  in               = {{}{}},
+  inseries         = {{}{}},
+  ofseries         = {{}{}},
+  number           = {{nömrə}{№}},
+  chapter          = {{fəsil}{fəs\adddot}},
+  bathesis         = {{bakalavr buraxılış işi}{bakalavr buraxılış işi}},
+  mathesis         = {{magistrlik dissertasiyası}{magistrlik dissertasiyası}},
+  phdthesis        = {{fəlsəfə doktoru dissertasiyası}{fəlsəfə doktoru dissertasiyası}},
+  candthesis       = {{namizədlik dissertasiyası}{namizədlik dissertasiyası}},
+  resreport        = {{tədqiqat hesabatı}{tədq\adddotspace hes\adddot}},
+  techreport       = {{texniki hesabat}{tex\adddotspace hes\adddot}},
+  software         = {{proqram təminatı}{proq\adddotspace təmin\adddot}},
+  datacd           = {{CD-ROM}{CD-ROM}},
+  audiocd          = {{audio CD}{audio CD}},
+  version          = {{versiya}{vers\adddot}},
+  url              = {{ünvan}{ünvan}},
+  urlfrom          = {{}{}},
+  urlseen          = {{baxılma tarixi\addcolon}
+                      {baxılma tarixi\addcolon}},
+  inpreparation    = {{nəşrə hazırlanır}{nəşrə hazırlanır}},
+  submitted        = {{çapa təqdim edilib}{çapa təqdim edilib}},
+  forthcoming      = {{çapa qəbul edilib}{çapa qəbul edilib}},
+  inpress          = {{çapdadır}{çapdadır}},
+  prepublished     = {{ön çap}{ön çap}},
+  citedas          = {{bundan sonra}{bundan sonra}},
+  thiscite         = {{xüsusilə}{xüs\adddot}},
+  seenote          = {{bax\addcolon\space qeyd}
+                      {bax\addcolon\space qeyd}},
+  quotedin         = {{sitat gətirildiyi mənbə\addcolon}
+                      {sitat gətirildiyi mənbə\addcolon}},
+  idem             = {{idem}{idem}},
+  idemsm           = {{idem}{idem}},
+  idemsf           = {{eadem}{eadem}},
+  idemsn           = {{idem}{idem}},
+  idempm           = {{eidem}{eidem}},
+  idempf           = {{eaedem}{eaedem}},
+  idempn           = {{eadem}{eadem}},
+  idempp           = {{eidem}{eidem}},
+  ibidem           = {{ibidem}{ibid\adddot}},
+  opcit            = {{op\adddotspace cit\adddot}{op\adddotspace cit\adddot}},
+  loccit           = {{loc\adddotspace cit\adddot}{loc\adddotspace cit\adddot}},
+  confer           = {{cf\adddot}{cf\adddot}},
+  sequens          = {{sq\adddot}{sq\adddot}},
+  sequentes        = {{sqq\adddot}{sqq\adddot}},
+  passim           = {{passim}{pass\adddot}},
+  see              = {{bax}{bax}},
+  seealso          = {{həmçinin bax}{həmçinin bax}},
+  backrefpage      = {{istinad səhifəsi}{istinad səh\adddot}},
+  backrefpages     = {{istinad səhifələri}{istinad səh\adddot}},
+  january          = {{yanvar}{yan\adddot}},
+  february         = {{fevral}{fev\adddot}},
+  march            = {{mart}{mar\adddot}},
+  april            = {{aprel}{apr\adddot}},
+  may              = {{may}{may}},
+  june             = {{iyun}{iyn\adddot}},
+  july             = {{iyul}{iyl\adddot}},
+  august           = {{avqust}{avq\adddot}},
+  september        = {{sentyabr}{sen\adddot}},
+  october          = {{oktyabr}{okt\adddot}},
+  november         = {{noyabr}{noy\adddot}},
+  december         = {{dekabr}{dek\adddot}},
+  langamerican     = {{Amerika ingiliscəsi}{Amerika ingiliscəsi}},
+  langazerbaijani  = {{azərbaycanca}{azərbaycanca}},
+  langbasque       = {{baskca}{baskca}},
+  langbrazilian    = {{Braziliya portuqalcası}{Braziliya portuqalcası}},
+  langbulgarian    = {{bolqarca}{bolqarca}},
+  langcatalan      = {{katalanca}{katalanca}},
+  langcroatian     = {{xorvatca}{xorvatca}},
+  langczech        = {{çexcə}{çexcə}},
+  langdanish       = {{dan dili}{dan dili}},
+  langdutch        = {{Niderland dili}{Niderland dili}},
+  langenglish      = {{ingiliscə}{ingiliscə}},
+  langestonian     = {{estonca}{estonca}},
+  langfinnish      = {{fincə}{fincə}},
+  langfrench       = {{fransızca}{fransızca}},
+  langgalician     = {{qalisiya dili}{qalisiya dili}},
+  langgerman       = {{almanca}{almanca}},
+  langgreek        = {{yunanca}{yunanca}},
+  langhungarian    = {{macarca}{macarca}},
+  langitalian      = {{italyanca}{italyanca}},
+  langjapanese     = {{yaponca}{yaponca}},
+  langlatin        = {{latınca}{latınca}},
+  langlatvian      = {{latışca}{latışca}},
+  langlithuanian   = {{litvaca}{litvaca}},
+  langmarathi      = {{marathicə}{marathicə}},
+  langnorwegian    = {{Norveç dili}{Norveç dili}},
+  langpolish       = {{polyakca}{polyakca}},
+  langportuguese   = {{portuqalca}{portuqalca}},
+  langromanian     = {{rumınca}{rumınca}},
+  langrussian      = {{rusca}{rusca}},
+  langserbian      = {{serbcə}{serbcə}},
+  langslovak       = {{slovakca}{slovakca}},
+  langslovene      = {{slovencə}{slovencə}},
+  langspanish      = {{ispanca}{ispanca}},
+  langswedish      = {{İsveç dili}{İsveç dili}},
+  langturkish      = {{türkcə}{türkcə}},
+  langukrainian    = {{ukraynaca}{ukraynaca}},
+  fromamerican     = {{Amerika ingiliscəsindən}{Amerika ingiliscəsindən}},
+  fromazerbaijani  = {{azərbaycancadan}{azərbaycancadan}},
+  frombasque       = {{baskcadan}{baskcadan}},
+  frombrazilian    = {{Braziliya portuqalcasından}{Braziliya portuqalcasından}},
+  frombulgarian    = {{bolqarcadan}{bolqarcadan}},
+  fromcatalan      = {{katalancadan}{katalancadan}},
+  fromcroatian     = {{xorvatcadan}{xorvatcadan}},
+  fromczech        = {{çexcədən}{çexcədən}},
+  fromdanish       = {{dan dilindən}{dan dilindən}},
+  fromdutch        = {{Niderland dilindən}{Niderland dilindən}},
+  fromenglish      = {{ingiliscədən}{ingiliscədən}},
+  fromestonian     = {{estoncadan}{estoncadan}},
+  fromfinnish      = {{fincədən}{fincədən}},
+  fromfrench       = {{fransızcadan}{fransızcadan}},
+  fromgalician     = {{qalisiya dilindən}{qalisiya dilindən}},
+  fromgerman       = {{almancadan}{almancadan}},
+  fromgreek        = {{yunancadan}{yunancadan}},
+  fromhungarian    = {{macarcadan}{macarcadan}},
+  fromitalian      = {{italyancadan}{italyancadan}},
+  fromjapanese     = {{yaponcadan}{yaponcadan}},
+  fromlatin        = {{latıncadan}{latıncadan}},
+  fromlatvian      = {{latışcadan}{latışcadan}},
+  fromlithuanian   = {{litvacadan}{litvacadan}},
+  frommarathi      = {{marathicədən}{marathicədən}},
+  fromnorwegian    = {{Norveç dilindən}{Norveç dilindən}},
+  frompolish       = {{polyakcadan}{polyakcadan}},
+  fromportuguese   = {{portuqalcadan}{portuqalcadan}},
+  fromromanian     = {{rumıncadan}{rumıncadan}},
+  fromrussian      = {{ruscadan}{ruscadan}},
+  fromserbian      = {{serbcədən}{serbcədən}},
+  fromslovak       = {{slovakcadan}{slovakcadan}},
+  fromslovene      = {{slovencədən}{slovencədən}},
+  fromspanish      = {{ispancadan}{ispancadan}},
+  fromswedish      = {{İsveç dilindən}{İsveç dilindən}},
+  fromturkish      = {{türkcədən}{türkcədən}},
+  fromukrainian    = {{ukraynacadan}{ukraynacadan}},
+  countryde        = {{Almaniya}{DE}},
+  countryeu        = {{Avropa İttifaqı}{EU}},
+  countryep        = {{Avropa İttifaqı}{EP}},
+  countryfr        = {{Fransa}{FR}},
+  countryuk        = {{Birləşmiş Krallıq}{GB}},
+  countryus        = {{Amerika Birləşmiş Ştatları}{US}},
+  patent           = {{patent}{pat\adddot}},
+  patentde         = {{Alman patenti}{Alman pat\adddot}},
+  patenteu         = {{Avropa patenti}{Avropa pat\adddot}},
+  patentfr         = {{Fransız patenti}{Fransız pat\adddot}},
+  patentuk         = {{Birləşmiş Krallıq patenti}{Birləşmiş Krallıq pat\adddot}},
+  patentus         = {{ABŞ patenti}{ABŞ pat\adddot}},
+  patreq           = {{patent ərizəsi}{patent ərizəsi}},
+  patreqde         = {{Alman patent ərizəsi}{Alman patent ərizəsi}},
+  patreqeu         = {{Avropa patent ərizəsi}{Avropa patent ərizəsi}},
+  patreqfr         = {{Fransız patent ərizəsi}{Fransız patent ərizəsi}},
+  patrequk         = {{Birləşmiş Krallıq patent ərizəsi}{Birləşmiş Krallıq patent ərizəsi}},
+  patrequs         = {{ABŞ patent ərizəsi}{ABŞ patent ərizəsi}},
+  file             = {{fayl}{fayl}},
+  library          = {{kitabxana}{kitabxana}},
+  abstract         = {{xülasə}{xülasə}},
+  annotation       = {{annotasiya}{annotasiya}},
+  commonera        = {{Bizim era}{BE}},
+  beforecommonera  = {{Bizim eradan əvvəl}{BEƏ}},
+  annodomini       = {{Miladdan sonra}{MS}},
+  beforechrist     = {{Miladdan əvvəl}{MƏ}},
+  circa            = {{circa}{ca\adddot}},
+  spring           = {{Yaz}{Yaz}},
+  summer           = {{Yay}{Yay}},
+  autumn           = {{Payız}{Payız}},
+  winter           = {{Qış}{Qış}},
+  springN          = {{Yaz (Şimal Yarımkürəsi)}{Yaz ŞY}},
+  summerN          = {{Yay (Şimal Yarımkürəsi)}{Yay ŞY}},
+  autumnN          = {{Payız (Şimal Yarımkürəsi)}{Payız ŞY}},
+  winterN          = {{Qış (Şimal Yarımkürəsi)}{Qış ŞY}},
+  springS          = {{Yaz (Cənub Yarımkürəsi)}{Yaz CY}},
+  summerS          = {{Yay (Cənub Yarımkürəsi)}{Yay CY}},
+  autumnS          = {{Payız (Cənub Yarımkürəsi)}{Payız CY}},
+  winterS          = {{Qış (Cənub Yarımkürəsi)}{Qış CY}},
+  Q1               = {{birinci rüb}{I rüb}},
+  Q2               = {{ikinci rüb}{II rüb}},
+  Q3               = {{üçüncü rüb}{III rüb}},
+  Q4               = {{dördüncü rüb}{IV rüb}},
+  QD1              = {{birinci dördaylıq}{I dördaylıq}},
+  QD2              = {{ikinci dördaylıq}{II dördaylıq}},
+  QD3              = {{üçüncü dördaylıq}{III dördaylıq}},
+  S1               = {{birinci semestr}{I semestr}},
+  S2               = {{ikinci semestr}{II semestr}},
+  am               = {{AM}{AM}},
+  pm               = {{PM}{PM}},
+}
+
+\endinput
