@@ -1,0 +1,56 @@
+\input{regression-test}
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+% issue-1477: verify that category= works with \addsectionbib.
+% \addsectionbib registers options without adding the resource to the default
+% resource list; the resource is supplied via \refsection's optional argument.
+
+\begin{filecontents}{\jobname-primary.bib}
+@book{hectic,
+  author    = {Henry Hectic},
+  title     = {How Horticulturalists Howl},
+  publisher = {Honorary Books},
+  location  = {Henage},
+  year      = {2000},
+}
+\end{filecontents}
+
+\begin{filecontents}{\jobname-secondary.bib}
+@book{flutter,
+  author    = {Frederick Flutter},
+  title     = {Fraternising with Flowers},
+  publisher = {Frippery Pamphlets},
+  location  = {Folkestone},
+  year      = {1995},
+}
+\end{filecontents}
+
+\usepackage[style=authoryear, backend=biber]{biblatex}
+
+\DeclareBibliographyCategory{primary}
+\DeclareBibliographyCategory{secondary}
+
+% Register options (including category=) without adding to the default list
+\addsectionbib[category=primary]{\jobname-primary.bib}
+\addsectionbib[category=secondary]{\jobname-secondary.bib}
+
+\begin{document}
+\showoutput
+\START
+
+% Supply the resources explicitly through \refsection
+\refsection[\jobname-primary.bib,\jobname-secondary.bib]
+
+\cite{hectic}
+\cite{flutter}
+
+\printbibliography[title={Primary Sources},category=primary]
+\printbibliography[title={Secondary Sources},category=secondary]
+
+\endrefsection
+
+\clearpage
+\OMIT
+\end{document}
